@@ -10,11 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,11 +34,11 @@ import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.formatMessage
-import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MessageMetadataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
+import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -107,10 +104,14 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel) {
                                         color = MaterialTheme.colorScheme.onPrimary
                                     )
                                 )
+                                val time = formatTime(
+                                    Instant.fromEpochMilliseconds(item.originTimestamp).toLocalDateTime(timeZone)
+                                )
+                                val date = formatDate(
+                                    Instant.fromEpochMilliseconds(item.originTimestamp).toLocalDateTime(timeZone)
+                                )
                                 Text(
-                                    formatTime(
-                                        Instant.fromEpochMilliseconds(item.originTimestamp).toLocalDateTime(timeZone)
-                                    ),
+                                    "$date - $time",
                                     style = MaterialTheme.typography.labelSmall,
                                     modifier = Modifier.paddingFromBaseline(0.dp),
                                     maxLines = 1,
@@ -129,7 +130,7 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel) {
                     val avatarImage = interaction.userInfo.image?.collectAsState(null)?.value
                     Box(Modifier.padding(4.dp)) {
                         Row {
-                            Box(Modifier.padding(top = 8.dp, start = 4.dp)) {
+                            Box(Modifier.padding(top = 6.dp, start = 6.dp)) {
                                 Avatar(avatarImage, interaction.userInfo.initials ?: "?")
                             }
                             Spacer(Modifier.size(8.dp))
@@ -137,21 +138,28 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel) {
                                 Row {
                                     Text(interaction.userInfo.name, fontWeight = FontWeight.Bold)
                                     Spacer(Modifier.size(8.dp))
-                                    Text(interaction.userInfo.userId.full)
+                                    Text(interaction.userInfo.userId.full, fontWeight = FontWeight.Light)
                                 }
                                 Row {
-                                    if (interaction.hasRead) Icon(
-                                        Icons.Filled.Done,
-                                        i18n.messageBubbleRead(),
-                                        Modifier
-                                            .size(MaterialTheme.typography.labelSmall.dp)
-                                            .padding(start = 2.dp),
-                                    )
+                                    if (interaction.hasRead) {
+                                        Text(
+                                            "(seen)",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            modifier = Modifier.paddingFromBaseline(0.dp),
+                                            maxLines = 1,
+                                        ) // TODO: i18n
+                                        Spacer(Modifier.size(6.dp))
+                                    }
                                     val reactions = interactionFilterByReaction
                                         ?.let { listOf(it) } ?: interaction.reactions
                                     reactions.forEach { reactionKey ->
+                                        Text(
+                                            reactionKey,
+                                            style = MaterialTheme.typography.labelLarge,
+                                            modifier = Modifier.paddingFromBaseline(0.dp),
+                                            maxLines = 1,
+                                        )
                                         Spacer(Modifier.size(8.dp))
-                                        Text(reactionKey)
                                     }
                                 }
                             }
@@ -170,14 +178,18 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel) {
                     }
                 }
                 reactionCounts.forEach { reactionCount ->
+                    val isSelected = interactionFilterByReaction == reactionCount.key
                     Spacer(Modifier.size(8.dp))
                     Button(
                         onClick = { interactionFilterByReaction = reactionCount.key },
-                        border = if (interactionFilterByReaction == reactionCount.key) {
-                            ButtonDefaults.outlinedButtonBorder(true)
-                        } else null,
+                        border = if (isSelected) ButtonDefaults.outlinedButtonBorder(true) else null,
                     ) {
-                        Text("${reactionCount.key} ${reactionCount.value}")
+                        Text(
+                            "${reactionCount.key} ${reactionCount.value}",
+                            style = MaterialTheme.typography.labelLarge,
+                            modifier = Modifier.paddingFromBaseline(0.dp),
+                            maxLines = 1,
+                        )
                     }
                 }
             }
