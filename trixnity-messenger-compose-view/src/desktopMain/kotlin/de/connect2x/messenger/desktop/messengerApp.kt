@@ -3,7 +3,6 @@ package de.connect2x.messenger.desktop
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -12,7 +11,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
-import androidx.compose.ui.window.Notification
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -41,6 +39,7 @@ import de.connect2x.trixnity.messenger.util.defaultDragAndDropHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import okio.FileSystem
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import java.awt.GraphicsEnvironment
@@ -61,6 +60,9 @@ fun CoroutineScope.messengerApp(
         name = "Trixnity Messenger",
         id = "de.connect2x.messenger"
     )
+    runBlocking { // Make sure the app is suspended until permissions are granted
+        notificationHandler.requestPermissions()
+    }
     application {
         val gd = GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice
         val width = gd.displayMode.width
