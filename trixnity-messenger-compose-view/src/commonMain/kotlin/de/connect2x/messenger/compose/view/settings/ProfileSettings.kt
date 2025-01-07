@@ -174,7 +174,6 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
                     profileViewModel.cancelEditDisplayName(profileSingleViewModel.userId)
                     editMode.value = false
                 },
-                enabled = canChangeDisplayName,
             ) {
                 EditIcon(Icons.Default.Clear, i18n.commonCancel())
             }
@@ -219,10 +218,13 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
             EditButton({ done(editMode, profileSingleViewModel, profileViewModel) })
             { EditIcon(Icons.Default.Check, i18n.commonAcceptEdit()) }
         } else {
-            EditButton({ editMode.value = true }) {
+            EditButton(
+                onClick = { editMode.value = true },
+                enabled = canChangeDisplayName,
+            ) {
                 EditIcon(
                     Icons.Default.Edit,
-                    i18n.commonEdit()
+                    i18n.commonEdit(),
                 )
             }
         }
