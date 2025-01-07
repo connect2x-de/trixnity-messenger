@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Possibility to provide an app version that is displayed in the info section
 - Show users typing in room list
 - Allow sending attachments with Enter (desktop)
+- Check server capabilities for setting display name and avatar
 - Add User Profile Screen
 
 ### Changed
