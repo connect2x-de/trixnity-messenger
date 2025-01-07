@@ -122,7 +122,10 @@ private fun ReactionsFilter(
             }
             Spacer(Modifier.size(8.dp))
         }
-        reactionCounts.forEach { reactionCount ->
+        reactionCounts.let { map ->
+            // Handle case where removal of a reaction causes a broken state.
+            interactionFilterByReaction.value?.let { map + Pair(it, map.getOrElse(it) { 0u }) } ?: map
+        }.forEach { reactionCount ->
             val isSelected = interactionFilterByReaction.value == reactionCount.key
             Button(
                 onClick = { interactionFilterByReaction.value = reactionCount.key },
