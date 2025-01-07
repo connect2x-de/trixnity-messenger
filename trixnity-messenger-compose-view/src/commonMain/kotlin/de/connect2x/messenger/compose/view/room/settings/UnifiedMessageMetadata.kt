@@ -114,21 +114,26 @@ private fun ReactionsFilter(
     interactionFilterByReaction: MutableState<ReactionKey?>,
 ) {
     FlowRow(Modifier.padding(start = 8.dp)) {
-        if (interactionFilterByReaction.value != null) {
-            Button(onClick = {
-                interactionFilterByReaction.value = null
-            }) {
-                Text("Clear") // TODO: i18n
-            }
-            Spacer(Modifier.size(8.dp))
-        }
+//        if (interactionFilterByReaction.value != null) {
+//            Button(onClick = {
+//                interactionFilterByReaction.value = null
+//            }) {
+//                Text("Clear") // TODO: i18n
+//            }
+//            Spacer(Modifier.size(8.dp))
+//        }
         reactionCounts.let { map ->
             // Handle case where removal of a reaction causes a broken state.
-            interactionFilterByReaction.value?.let { map + Pair(it, map.getOrElse(it) { 0u }) } ?: map
+            interactionFilterByReaction.value
+                ?.let { if (map.containsKey(it).not()) map + Pair(it, 0u) else null } ?: map
         }.forEach { reactionCount ->
             val isSelected = interactionFilterByReaction.value == reactionCount.key
             Button(
-                onClick = { interactionFilterByReaction.value = reactionCount.key },
+                onClick = {
+                    if (interactionFilterByReaction.value == reactionCount.key) {
+                        interactionFilterByReaction.value = null
+                    } else interactionFilterByReaction.value = reactionCount.key
+                },
                 border = if (isSelected) ButtonDefaults.outlinedButtonBorder(true) else null,
             ) {
                 Text(
