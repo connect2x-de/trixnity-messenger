@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Internal: removed strong skipping Compose mode as it is enabled by default now 
+
 ### Fixed
 
 - Don't show sender for own elements (including outbox elements)
