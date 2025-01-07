@@ -168,7 +168,7 @@ class UserProfileViewModelImpl(
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), 0)
     override val showPowerLevel = MutableStateFlow(false)
 
-    private val _membershipChanging =  MutableStateFlow(false)
+    private val _membershipChanging = MutableStateFlow(false)
     override val membershipChanging: StateFlow<Boolean> = _membershipChanging
 
     override val iHavePowerToKickUser = matrixClient.user.canKickUser(selectedRoomId, userId)
@@ -496,6 +496,7 @@ class UserProfileViewModelImpl(
         is ActiveVerificationState.Cancel,
         ActiveVerificationState.AcceptedByOtherDevice,
         ActiveVerificationState.Undefined -> true
+
         else -> false
     }
 
@@ -506,7 +507,13 @@ class UserProfileViewModelImpl(
         matrixClient.user.getAccountData<DirectEventContent>().firstOrNull()
             ?.mappings
             ?.get(userId)
-            ?.firstOrNull()
+            ?.firstNotNullOfOrNull { roomId -> roomId.takeIf { isUserNotLeft(it, userId) } }
+
+    private suspend fun isUserNotLeft(roomId: RoomId, userId: UserId) =
+        matrixClient.user.getById(roomId, userId).firstOrNull()
+            ?.membership.let { membership ->
+                membership == Membership.JOIN || membership == Membership.INVITE || membership == Membership.KNOCK
+            }
 
     private suspend fun createNewChat(): RoomId? =
         matrixClient.api.room.createRoom(
