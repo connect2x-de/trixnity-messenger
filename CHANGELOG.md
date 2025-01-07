@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Possibility to provide an app version that is displayed in the info section
 - Show users typing in room list
 - Allow sending attachments with Enter (desktop)
+- Check server capabilities for setting display name and avatar and prevent editing if not supported
 - Only show option for recovery key reset in self verification when verification methods are loaded
 - Only show verification banner in RoomList, when the selected Account isn't verified
 - Change RedoSelfVerification to Wizard Framework
@@ -24,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 ### Removed
+
+- Internal: removed strong skipping Compose mode as it is enabled by default now 
 
 ### Fixed
 

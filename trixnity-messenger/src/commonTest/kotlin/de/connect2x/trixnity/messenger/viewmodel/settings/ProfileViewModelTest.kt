@@ -30,6 +30,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.MediaService
+import net.folivo.trixnity.client.store.ServerData
+import net.folivo.trixnity.clientserverapi.model.media.GetMediaConfig
+import net.folivo.trixnity.clientserverapi.model.server.Capabilities
+import net.folivo.trixnity.clientserverapi.model.server.Capability
+import net.folivo.trixnity.clientserverapi.model.server.GetCapabilities
+import net.folivo.trixnity.clientserverapi.model.server.GetVersions
 import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.UserId
@@ -71,6 +77,18 @@ class ProfileViewModelTest : ShouldSpec() {
             }.koin
             every { matrixClientMock.avatarUrl } returns MutableStateFlow("mxc://localhost/123456")
             every { matrixClientMock.userId } returns ownUserId
+            every { matrixClientMock.serverData } returns MutableStateFlow(
+                ServerData(
+                    versions = GetVersions.Response(),
+                    mediaConfig = GetMediaConfig.Response(),
+                    capabilities = GetCapabilities.Response(
+                        capabilities = Capabilities(setOf(
+                            Capability.SetDisplayName(enabled = true),
+                            Capability.SetAvatarUrl(enabled = true),
+                        ))
+                    ),
+                )
+            )
 
             // mock2
             every { matrixClientMock2.di } returns koinApplication {
@@ -94,6 +112,18 @@ class ProfileViewModelTest : ShouldSpec() {
                     any(),
                 )
             } returns Result.success(InMemoryPlatformMedia("avatar2".encodeToByteArray().toByteArrayFlow()))
+            every { matrixClientMock2.serverData } returns MutableStateFlow(
+                ServerData(
+                    versions = GetVersions.Response(),
+                    mediaConfig = GetMediaConfig.Response(),
+                    capabilities = GetCapabilities.Response(
+                        capabilities = Capabilities(setOf(
+                            Capability.SetDisplayName(enabled = true),
+                            Capability.SetAvatarUrl(enabled = true),
+                        ))
+                    ),
+                )
+            )
         }
 
         should("show profiles initially") {
