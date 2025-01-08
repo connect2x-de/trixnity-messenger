@@ -74,11 +74,12 @@ class AccountSetupRouter(
 
 
     fun onCloseSelfVerification(userId: UserId, completedVerification: Boolean) {
-        if (stack.active.configuration is Config.ShowAccountSetup &&
-            (stack.active.configuration as Config.ShowAccountSetup).userId == userId &&
-            stack.active.instance is Wrapper.ShowAccountSetup
+        val activeInstance = stack.active
+        if (activeInstance.configuration is Config.ShowAccountSetup &&
+            (activeInstance.configuration as Config.ShowAccountSetup).userId == userId &&
+            activeInstance.instance is Wrapper.ShowAccountSetup
         ) {
-            (stack.active.instance as Wrapper.ShowAccountSetup).viewModel.changeVerificationCompleteStatus(
+            (activeInstance.instance as Wrapper.ShowAccountSetup).viewModel.changeVerificationCompleteStatus(
                 completedVerification
             )
         }

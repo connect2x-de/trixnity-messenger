@@ -29,6 +29,11 @@ interface AccountSetupViewModel {
     fun closeAccountSetup()
     fun startVerification()
     fun changeVerificationCompleteStatus(newVerificationCompleteStatus: Boolean)
+
+    /**
+     * Marks whether the current verification was completed/skipped or cancelled.
+     * A value of null means, that no verification is in process
+     */
     val completedVerification: MutableStateFlow<Boolean?>
     val userId: UserId
     val privacySettingsViewModel: PrivacySettingsSingleAccountViewModel
@@ -43,7 +48,7 @@ class AccountSetupViewModelImpl(
     ViewModelContext by viewModelContext, AccountSetupViewModel {
     override val userId = viewModelContext.userId
 
-    override val completedVerification : MutableStateFlow<Boolean?> = MutableStateFlow(null)
+    override val completedVerification: MutableStateFlow<Boolean?> = MutableStateFlow(null)
 
     override val privacySettingsViewModel by lazy {
         get<PrivacySettingsSingleAccountViewModelFactory>().create(viewModelContext) {}
@@ -52,12 +57,12 @@ class AccountSetupViewModelImpl(
         get<NotificationSettingsSingleAccountViewModelFactory>().create(viewModelContext)
     }
 
-    private val startedVerification = MutableStateFlow(false)
+    private val verificationInProgress = MutableStateFlow(false)
 
     override fun startVerification() {
-        if (!startedVerification.value) {
+        if (!verificationInProgress.value) {
             onStartVerification(userId, true)
-            startedVerification.value = true
+            verificationInProgress.value = true
             completedVerification.value = null
         }
     }
@@ -68,7 +73,7 @@ class AccountSetupViewModelImpl(
 
     override fun changeVerificationCompleteStatus(newVerificationCompleteStatus: Boolean) {
         completedVerification.value = newVerificationCompleteStatus
-        startedVerification.value = false
+        verificationInProgress.value = false
     }
 
 }
