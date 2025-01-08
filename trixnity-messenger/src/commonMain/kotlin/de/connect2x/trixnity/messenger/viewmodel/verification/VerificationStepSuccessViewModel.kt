@@ -1,8 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 
 
 interface VerificationStepSuccessViewModelFactory {
