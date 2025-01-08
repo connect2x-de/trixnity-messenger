@@ -1,25 +1,18 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.details
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,16 +27,13 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -67,7 +57,7 @@ class ImageTimelineElementDetailsView :
         "image/webp",
     )
 
-    @OptIn(ExperimentalResourceApi::class, ExperimentalLayoutApi::class)
+    @OptIn(ExperimentalResourceApi::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
     @Composable
     override fun create(
         element: RoomMessageTimelineElementViewModel.FileBased.Image,
@@ -80,16 +70,21 @@ class ImageTimelineElementDetailsView :
         val error = element.loadMediaError.collectAsState().value
 
         val scale = remember { mutableStateOf(1f) }
-        val move = remember { mutableStateOf(Offset(0f, 0f)) }
-        val xMin = remember { mutableStateOf(0f) }
-        val yMin = remember { mutableStateOf(0f) }
-        val maxBoundsImage = remember { mutableStateOf(Offset(0f, 0f)) }
+        val offset = remember { mutableStateOf(Offset(0f, 0f)) }
+        val canZoom = remember { mutableStateOf(false) }
+
+        val state = rememberTransformableState { zoomChange, offsetChange, rotationChange ->
+            // note: scale goes by factor, not an absolute difference, so we need to multiply it
+            // for this example, we don't allow downscaling, so cap it to 1f
+            scale.value = (scale.value * zoomChange).coerceIn(0.2f, 4f)
+            offset.value += offsetChange
+        }
 
         LaunchedEffect(Unit) {
             element.loadMedia()
         }
 
-        ElementDetailsDialog(onClose) {
+        FileBasedDetailsDialog(element, onClose, additions = { ZoomButtons(scale) }) {
             // we need focus in the box to capture key events
             val focusRequester = remember { FocusRequester() }
 
@@ -99,69 +94,41 @@ class ImageTimelineElementDetailsView :
                         .fillMaxSize()
                         .focusRequester(focusRequester)
                         .focusable()
+                        .onKeyEvent { keyEvent ->
+                            canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
+                            true
+                        }
+                        .pointerInput(Unit) {
+                            awaitPointerEventScope {
+                                while (true) {
+                                    awaitPointerEvent(pass = PointerEventPass.Final)
+                                        .changes
+                                        .forEach {
+                                            focusRequester.requestFocus() // otherwise, key events will be lost
+                                            if (canZoom.value) {
+                                                val delta = 0.1f * -it.scrollDelta.y
+                                                scale.value = (scale.value + delta).coerceIn(0.2f, 4f)
+                                            }
+                                        }
+                                }
+                            }
+                        }
                         // performance when image is rendered with no alpha channel
                         .background(color = if (media == null) MaterialTheme.colorScheme.background else Color.Black)
-                        .pointerInput(Unit) {
-                            detectTransformGestures { _, pan, zoom, _ ->
-                                if (media != null) {
-                                    val oldScale = scale.value
-                                    val newScale = oldScale * zoom
-                                    scale.value = newScale.coerceIn(1f, 10f)
-
-                                    xMin.value += maxWidth.toPx() * (oldScale - scale.value) / 2
-                                    yMin.value += maxHeight.toPx() * (oldScale - scale.value) / 2
-                                    move.value = Offset(
-                                        if (xMin.value < 0) {
-                                            (move.value.x + pan.x).coerceIn(xMin.value, -xMin.value)
-                                        } else {
-                                            move.value.x + pan.x
-                                        },
-                                        if (yMin.value < 0) {
-                                            (move.value.y + pan.y).coerceIn(yMin.value, -yMin.value)
-                                        } else {
-                                            move.value.y + pan.y
-                                        }
-                                    )
-                                }
-                            }
-                            detectTapGestures { } // prevent interaction with background
-                        }
-                        .then(
-                            with(LocalDensity.current) {
-                                mouseEventsForImageElementDetails(
-                                    maxWidth.toPx(),
-                                    maxHeight.toPx(),
-                                    maxBoundsImage.value,
-                                    scale,
-                                    move,
-                                    xMin,
-                                    yMin
-                                )
-                            }
-                        )
-                        .then(Modifier.onKeyEvent {
-                            if (it.type == KeyEventType.KeyDown && it.key == Key.Escape) {
-                                onClose()
-                                true
-                            } else {
-                                false
-                            }
-                        })
+                        .transformable(state = state),
+                    contentAlignment = Alignment.Center,
                 ) {
                     media?.decodeToImageBitmap()?.let { bitmap ->
-                        Box(Modifier.align(Alignment.Center)) {
-                            maxBoundsImage.value = Offset(bitmap.width.toFloat(), bitmap.height.toFloat())
-                            Image(
-                                bitmap,
-                                "",
-                                Modifier.graphicsLayer {
-                                    scaleX = scale.value
-                                    scaleY = scale.value
-                                    translationX = move.value.x
-                                    translationY = move.value.y
-                                }
-                            )
-                        }
+                        Image(
+                            bitmap,
+                            "",
+                            Modifier.graphicsLayer {
+                                translationX = offset.value.x
+                                translationY = offset.value.y
+                                scaleX = scale.value
+                                scaleY = scale.value
+                            }
+                        )
                     }
                     progress?.let {
                         if (media == null) {
@@ -180,25 +147,6 @@ class ImageTimelineElementDetailsView :
                                 } else Text(i18n.imageCouldNotBeLoaded())
                             }
                         }
-                    }
-                }
-                FlowRow(
-                    Modifier.fillMaxWidth().padding(20.dp),
-                    horizontalArrangement = Arrangement.End,
-                    verticalArrangement = Arrangement.Top
-                ) {
-                    IconButton(
-                        { element.downloadMedia { onSave() } },
-                        Modifier.buttonPointerModifier()
-                    ) {
-                        Icon(Icons.Default.Download, i18n.downloadMessage())
-                    }
-                    IconButton(
-                        { onClose() },
-                        Modifier
-                            .buttonPointerModifier()
-                    ) {
-                        Icon(Icons.Default.Close, i18n.commonClose(), tint = Color.LightGray)
                     }
                 }
             }

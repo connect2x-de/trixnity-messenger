@@ -24,10 +24,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -64,7 +62,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         val media = element.downloadMediaResult.collectAsState().value
         val progress = element.downloadMediaProgress.collectAsState().value
         val (error, setError) = remember { mutableStateOf<String?>(null) }
-        var zoom by remember { mutableStateOf(1.0f) }
+        var zoom = remember { mutableStateOf(1.0f) }
         val i18n = DI.current.get<I18nView>()
 
         LaunchedEffect(Unit) {
@@ -74,7 +72,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
             element.downloadMediaError.collect { setError(it) }
         }
 
-        ElementDetailsDialog(onClose) {
+        FileBasedDetailsDialog(element, onClose, additions = { ZoomButtons(zoom) }) {
             BoxWithConstraints {
                 Column(
                     Modifier.fillMaxSize().blockPointerInput(),
@@ -104,17 +102,17 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                                 Button(
                                     modifier = Modifier.padding(horizontal = 8.dp).buttonPointerModifier(),
                                     onClick = {
-                                        val newZoom = min(4.0f, zoom * 1.33f)
-                                        zoom = if (newZoom > 1f && zoom < 1f) 1f else newZoom
+                                        val newZoom = min(4.0f, zoom.value * 1.33f)
+                                        zoom.value = if (newZoom > 1f && zoom.value < 1f) 1f else newZoom
                                     }) {
                                     Text("+")
                                 }
-                                Text("${ceil(zoom * 100)}%")
+                                Text("${ceil(zoom.value * 100)}%")
                                 Button(
                                     modifier = Modifier.padding(horizontal = 8.dp).buttonPointerModifier(),
                                     onClick = {
-                                        val newZoom = max(0.1f, zoom * 0.66f)
-                                        zoom = if (newZoom < 1f && zoom > 1f) 1f else newZoom
+                                        val newZoom = max(0.1f, zoom.value * 0.66f)
+                                        zoom.value = if (newZoom < 1f && zoom.value > 1f) 1f else newZoom
                                     }) {
                                     Text("-")
                                 }
@@ -149,7 +147,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                                 DownloadProgress(progress, element::cancelDownloadMedia)
                             }
 
-                            media != null -> PDFReader(media, zoom) {
+                            media != null -> PDFReader(media, zoom.value) {
                                 setError(it ?: i18n.fileCouldNotBeLoaded())
                             }
 
