@@ -22,7 +22,8 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 
 
-// TODO remove
+// TODO: remove?
+// TODO: should consider outbox to get immediate feedback
 @OptIn(ExperimentalCoroutinesApi::class)
 fun getMessageUserReactions(
     client: MatrixClient,

@@ -37,6 +37,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimeline
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 
+
 @Composable
 fun MessageBubbleContent(
     holder: BaseTimelineElementHolderViewModel,
@@ -44,13 +45,13 @@ fun MessageBubbleContent(
     showActionMenu: () -> Unit,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
-    val highlight = holder.asTimelineElementHolder()?.highlight?.collectAsState()?.value == true
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
     val showSender = holder.showSender.collectAsState().value == true
     val isReplaced = holder.asTimelineElementHolder()?.isReplaced?.collectAsState()?.value == true
+    val isHighlighted = holder.asTimelineElementHolder()?.highlight?.collectAsState()?.value == true
     val hasRepliedElement = holder.isReply.collectAsState().value != null
 
-    val highlighted = if (highlight) Modifier.border(
+    val highlightingEffect = if (isHighlighted) Modifier.border(
         width = 3.dp,
         color = MaterialTheme.colorScheme.outline,
         shape = RoundedCornerShape(8.dp),
@@ -66,7 +67,7 @@ fun MessageBubbleContent(
             Modifier
                 .padding(0.dp)
                 .weight(1.0f, fill = needsMaxWidth.not())
-                .then(highlighted)
+                .then(highlightingEffect)
         ) {
             if (showSender) {
                 Box(
@@ -78,9 +79,8 @@ fun MessageBubbleContent(
                         Text(
                             text = sender.name,
                             style = MaterialTheme.typography.labelLarge.copy(
-                                color = MaterialTheme.messengerColors.getUserColor(
-                                    sender.userId
-                                )
+                                color = MaterialTheme.messengerColors
+                                    .getUserColor(sender.userId)
                             ),
                         )
                     } else {
@@ -92,7 +92,8 @@ fun MessageBubbleContent(
 
             RepliedElement(holder)
 
-            // the hasRepliedElement is needed to avoid layouting already layouted elements which leads to this: "Asking for intrinsic measurements of SubcomposeLayout layouts is not supported."
+            // The [hasRepliedElement] is needed to avoid layouting of already layouted elements which leads to this:
+            // "Asking for intrinsic measurements of SubcomposeLayout layouts is not supported."
             if (needsMaxWidth || hasRepliedElement) {
                 content(showActionMenu)
                 Row(
@@ -109,7 +110,7 @@ fun MessageBubbleContent(
                             modifier = Modifier.padding(
                                 start = 5.dp,
                                 end = 5.dp,
-                                bottom = 5.dp
+                                bottom = 5.dp,
                             ),
                             verticalAlignment = Alignment.Bottom,
                         ) {
@@ -125,10 +126,9 @@ fun MessageBubbleContent(
                             val spacing = spacing.roundToPx()
                             val message = measurables[0].measure(constraints)
                             val date = measurables.getOrNull(1)?.measure(constraints)
-
                             return date?.let {
                                 if (message.width + spacing + date.width < constraints.maxWidth) {
-                                    // add extra padding to bottom that is missing otherwise
+                                    // Add extra padding to bottom that is missing otherwise.
                                     val height = message.height + 10.dp.roundToPx()
                                     layout(
                                         width = message.width + spacing + date.width,
@@ -137,68 +137,56 @@ fun MessageBubbleContent(
                                         message.place(0, 0)
                                         date.place(
                                             message.width + spacing,
-                                            height - date.height
+                                            height - date.height,
                                         )
                                     }
                                 } else {
                                     layout(
                                         width = constraints.maxWidth,
-                                        height = message.height + date.height
+                                        height = message.height + date.height,
                                     ) {
                                         message.place(0, 0)
                                         date.place(
                                             constraints.maxWidth - date.width,
-                                            message.height
+                                            message.height,
                                         )
                                     }
                                 }
                             } ?: layout(
                                 message.width,
-                                message.height
-                            ) {
-                                message.place(0, 0)
-                            }
+                                message.height,
+                            ) { message.place(0, 0) }
                         }
+
+                        private val widthSpacing = (spacing + 1.dp) // To be _just_ big enough for one line.
 
                         override fun IntrinsicMeasureScope.minIntrinsicWidth(
                             measurables: List<IntrinsicMeasurable>,
-                            height: Int
-                        ): Int {
-                            val spacing = (spacing + 1.dp).roundToPx() // to be _just_ big enough for one line
-                            return measurables.sumOf { it.minIntrinsicWidth(height) } + spacing
-                        }
+                            height: Int,
+                        ): Int = measurables.sumOf { it.minIntrinsicWidth(height) } + widthSpacing.roundToPx()
 
                         override fun IntrinsicMeasureScope.maxIntrinsicWidth(
                             measurables: List<IntrinsicMeasurable>,
-                            height: Int
-                        ): Int {
-                            val spacing = (spacing + 1.dp).roundToPx() // to be _just_ big enough for one line
-                            return measurables.sumOf { it.maxIntrinsicWidth(height) } + spacing
-                        }
+                            height: Int,
+                        ): Int = measurables.sumOf { it.maxIntrinsicWidth(height) } + widthSpacing.roundToPx()
 
                         override fun IntrinsicMeasureScope.minIntrinsicHeight(
                             measurables: List<IntrinsicMeasurable>,
-                            width: Int
-                        ): Int {
-                            return measurables.sumOf { it.minIntrinsicHeight(width) }
-                        }
+                            width: Int,
+                        ): Int = measurables.sumOf { it.minIntrinsicHeight(width) }
 
                         override fun IntrinsicMeasureScope.maxIntrinsicHeight(
                             measurables: List<IntrinsicMeasurable>,
-                            width: Int
-                        ): Int {
-                            return measurables.sumOf { it.maxIntrinsicHeight(width) }
-                        }
+                            width: Int,
+                        ): Int = measurables.sumOf { it.maxIntrinsicHeight(width) }
                     })
             }
 
-            if (sendError != null) {
-                Box(Modifier.padding(start = 10.dp, end = 10.dp)) {
-                    Text(
-                        text = sendError,
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
+            if (sendError != null) Box(Modifier.padding(horizontal = 10.dp)) {
+                Text(
+                    text = sendError,
+                    style = MaterialTheme.typography.labelSmall,
+                )
             }
         }
     }

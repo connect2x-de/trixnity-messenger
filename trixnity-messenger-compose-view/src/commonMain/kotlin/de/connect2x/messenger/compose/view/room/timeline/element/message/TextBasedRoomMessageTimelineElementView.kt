@@ -148,9 +148,8 @@ private fun MessageRichText(
 private val urlRegex =
     Regex("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=;]*)")
 
-// TODO: either extract or make private again
 @Composable
-fun formatMessage(
+private fun formatMessage(
     message: String,
     mentions: List<Pair<IntRange, TimelineElementMention?>>,
 ): String {

@@ -53,13 +53,11 @@ fun BoxScope.MessageBubbleActionMenu(
     onInfoClassic: () -> Unit, // TODO remove
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
-    val i18n = DI.current.get<I18nView>()
     when {
         Platform.current.isMobile -> MessageBubbleActionMenuMobile(
             showActionMenu,
             additionalContextActions,
             holder,
-            i18n,
             onMessageInfo,
             onInfoClassic,
             onReactToMessage,
@@ -69,7 +67,6 @@ fun BoxScope.MessageBubbleActionMenu(
             showActionMenu,
             holder,
             hoverMessage,
-            i18n,
             additionalContextActions,
             onMessageInfo,
             onInfoClassic,
@@ -83,12 +80,12 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
     showActionMenu: MutableState<Boolean>,
     holder: BaseTimelineElementHolderViewModel,
     hoverMessage: State<Boolean>,
-    i18n: I18nView,
     additionalContextActions: @Composable() (ColumnScope.(onClose: () -> Unit) -> Unit),
     onMessageInfo: () -> Unit,
     onInfoClassic: () -> Unit,
     onReactToMessage: () -> Unit,
 ) {
+    val i18n = DI.current.get<I18nView>()
     val onClose = {
         showActionMenu.value = false
     }
@@ -103,8 +100,9 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
     ) {
         AnimatedVisibility(
             hoverMessage.value,
-            Modifier
-                .clip(CircleShape)
+            modifier = Modifier
+                .align(Alignment.Center)
+                .clip(CircleShape),
         ) {
             Box(
                 Modifier
@@ -127,9 +125,8 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
                 .sizeIn(maxWidth = 300.dp),
         ) {
             additionalContextActions(onClose)
-            holder.baseMenuActions(i18n, onMessageInfo, onInfoClassic, onReactToMessage).forEach { action ->
-                action.render { onClose() }
-            }
+            holder.baseMenuActions(i18n, onMessageInfo, onInfoClassic, onReactToMessage)
+                .forEach { action -> action.render { onClose() } }
         }
     }
 }
@@ -140,11 +137,11 @@ private fun MessageBubbleActionMenuMobile(
     showActionMenu: MutableState<Boolean>,
     additionalContextActions: @Composable() (ColumnScope.(onClose: () -> Unit) -> Unit),
     holder: BaseTimelineElementHolderViewModel,
-    i18n: I18nView,
     onMessageInfo: () -> Unit,
     onInfoClassic: () -> Unit,
     onReactToMessage: () -> Unit,
 ) {
+    val i18n = DI.current.get<I18nView>()
     val coroutineScope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(false)
     val onClose = {
@@ -156,24 +153,19 @@ private fun MessageBubbleActionMenuMobile(
         }
         Unit
     }
-    if (showActionMenu.value) {
-        ModalBottomSheet(
-            sheetState = bottomSheetState,
-            onDismissRequest = { showActionMenu.value = false },
+    if (showActionMenu.value) ModalBottomSheet(
+        sheetState = bottomSheetState,
+        onDismissRequest = { showActionMenu.value = false },
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 100.dp)
+                .padding(bottom = 40.dp)
         ) {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .defaultMinSize(minHeight = 100.dp)
-                    .padding(bottom = 40.dp)
-            ) {
-                additionalContextActions(onClose)
-                holder.baseMenuActions(i18n, onMessageInfo, onInfoClassic, onReactToMessage).forEach { action ->
-                    action.render {
-                        onClose()
-                    }
-                }
-            }
+            additionalContextActions(onClose)
+            holder.baseMenuActions(i18n, onMessageInfo, onInfoClassic, onReactToMessage)
+                .forEach { action -> action.render { onClose() } }
         }
     }
 }

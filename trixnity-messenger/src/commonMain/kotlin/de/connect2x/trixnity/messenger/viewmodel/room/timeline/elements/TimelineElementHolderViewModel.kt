@@ -120,9 +120,8 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val showLoadingIndicatorBefore: StateFlow<Boolean>
     val showLoadingIndicatorAfter: StateFlow<Boolean>
 
-    // TODO: remove?
     val isRead: StateFlow<Boolean?>
-    val isReadBy: StateFlow<List<UserInfoElement>?>
+    val isReadBy: StateFlow<List<UserInfoElement>?> // TODO: remove?
 
     val reactions: StateFlow<Map<String, Set<ReactionEvent>>>
     val canBeReactedTo: StateFlow<Boolean>
@@ -147,8 +146,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     fun report()
     fun addReaction(reaction: String)
     fun removeReaction(reaction: ReactionEvent)
-
-    fun showMessageMetadata()
+    fun openMessageMetadata()
 
     data class ReactionEvent(
         val eventId: EventId,
@@ -178,13 +176,15 @@ class TimelineElementHolderViewModelImpl(
     private val timelineEventFlow = timelineEventFlow.shareIn(coroutineScope, whileSubscribedWithTimeout)
     private val config = get<MatrixMessengerConfiguration>()
     private val initials = get<Initials>()
-    private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
-    private val repliedTimelineElementHolderViewModelFactory = get<RepliedTimelineElementHolderViewModelFactory>()
+    private val timelineElementViewModelFactorySelector =
+        get<TimelineElementViewModelFactorySelector>()
+    private val repliedTimelineElementHolderViewModelFactory =
+        get<RepliedTimelineElementHolderViewModelFactory>()
 
-    override val showLoadingIndicatorBefore =
-        showLoadingIndicatorBefore.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
-    override val showLoadingIndicatorAfter =
-        showLoadingIndicatorAfter.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+    override val showLoadingIndicatorBefore = showLoadingIndicatorBefore
+        .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+    override val showLoadingIndicatorAfter = showLoadingIndicatorAfter
+        .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -289,11 +289,11 @@ class TimelineElementHolderViewModelImpl(
 
     override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> =
         flow {
-            // we don't need to subscribe for changes or manage the child lifecycle as a reply cannot be changed in Matrix.
+            // No need to subscribe for changes or manage the child lifecycle since a reply cannot be changed in Matrix.
             val eventContent = timelineEventFlow.first().event.content
             if (eventContent !is MessageEventContent) return@flow
             val repliedEventId = eventContent.relatesTo?.replyTo?.eventId
-            if (repliedEventId == null) return@flow
+                ?: return@flow
             emit(
                 repliedTimelineElementHolderViewModelFactory.create(
                     childContext("repliedElement-$eventId"),
@@ -310,8 +310,7 @@ class TimelineElementHolderViewModelImpl(
             timelineEvent?.sender != senderUserId
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-
-    // TODO images are loaded for each holder into memory! This should be fixed.
+    // TODO: images are loaded for each holder into memory! This should be fixed.
     override val sender: StateFlow<UserInfoElement?> =
         matrixClient.user.getById(roomId, senderUserId).map { user ->
             user.toUserInfoElement(coroutineScope, matrixClient, initials, config.avatarMaxSize, senderUserId)
@@ -347,7 +346,7 @@ class TimelineElementHolderViewModelImpl(
 
     override val isRead: StateFlow<Boolean?> =
         getMessageIsRead(matrixClient, senderUserId, roomId, eventId)
-            .stateIn(coroutineScope, Lazily, false) // Lazily to not unnecessary recompute
+            .stateIn(coroutineScope, Lazily, false) // Lazily to not unnecessary recompute.
 
     override val isReadBy: StateFlow<List<UserInfoElement>?> =
         getMessageReadReceipts(matrixClient, senderUserId, roomId, eventId).map { users ->
@@ -359,8 +358,6 @@ class TimelineElementHolderViewModelImpl(
             }
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-
-    // TODO should consider outbox to get immediate feedback
     override val reactions =
         getMessageUserReactions(matrixClient, timelineEventFlow, initials, roomId, eventId)
             .stateIn(coroutineScope, Lazily, emptyMap())
@@ -417,15 +414,10 @@ class TimelineElementHolderViewModelImpl(
                                 _redactionInProgress.value = false
                             }
                         }
-                    } else {
-                        log.warn { "try to redact timeline event $eventId, but is no room message or it is not by this user" }
-
-                    }
+                    } else log.warn { "try to redact timeline event $eventId, but is no room message or it is not by this user" }
                 }
             }
-        } else {
-            log.warn { "try to redact timeline event $eventId, but is already marked for redaction" }
-        }
+        } else log.warn { "try to redact timeline event $eventId, but is already marked for redaction" }
     }
 
     override fun reply() {
@@ -463,7 +455,7 @@ class TimelineElementHolderViewModelImpl(
         }
     }
 
-    override fun showMessageMetadata() {
+    override fun openMessageMetadata() {
         onOpenMetadata(this.eventId)
     }
 
@@ -519,7 +511,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override fun report() {}
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: TimelineElementHolderViewModel.ReactionEvent) {}
-    override fun showMessageMetadata() {}
+    override fun openMessageMetadata() {}
 }
 
 class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -568,5 +560,5 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun report() {}
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: TimelineElementHolderViewModel.ReactionEvent) {}
-    override fun showMessageMetadata() {}
+    override fun openMessageMetadata() {}
 }
