@@ -39,6 +39,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 
+
 @Composable
 fun RoomSettingsContainer(roomSettingsViewModel: RoomSettingsViewModel, isTwoPane: Boolean) {
     Box(Modifier.fillMaxWidth().clickable(enabled = false) {}) {

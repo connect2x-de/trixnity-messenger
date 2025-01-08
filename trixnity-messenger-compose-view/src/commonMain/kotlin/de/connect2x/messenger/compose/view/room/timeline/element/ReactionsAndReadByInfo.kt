@@ -20,6 +20,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
 
+// TODO: remove component
 @Composable
 fun ReactionsAndReadByInfo(
     reactors: Map<String, List<UserInfoElement>>,

@@ -21,15 +21,11 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
-class BaseTimelineElementHolderContextMenuAction(
-    val label: String,
-    internal val action: () -> Unit
-) {
-    operator fun invoke() = action()
-}
+
+// TODO: rename file to TimelineElementHolderMenuActions.kt or BaseTimelineElementHolderContextMenuActions.kt
 
 @Composable
-internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
+internal fun BaseTimelineElementHolderViewModel.baseMenuActions( // TODO: rename to menuActions or contextMenuActions
     i18n: I18nView,
     onInfo: () -> Unit,
     onInfoClassic: () -> Unit, // TODO remove
@@ -39,7 +35,7 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
     val canBeRepliedTo = asTimelineElementHolder()?.canBeRepliedTo?.collectAsState()?.value == true
     val canBeEdited = asTimelineElementHolder()?.canBeEdited?.collectAsState()?.value == true
     val canBeRedacted = asTimelineElementHolder()?.canBeRedacted?.collectAsState()?.value == true
-    val canBeReportedTo = asTimelineElementHolder()?.canBeReported?.collectAsState()?.value == true
+    val canBeReported = asTimelineElementHolder()?.canBeReported?.collectAsState()?.value == true
     val canRetrySend = asOutboxElementHolder()?.canRetrySend?.collectAsState()?.value == true
     val canAbortSend = asOutboxElementHolder()?.canAbortSend?.collectAsState()?.value == true
     return buildList {
@@ -50,65 +46,51 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
                     action = onInfo,
                 )
             )
-        }
-        if (this@baseMenuActions is TimelineElementHolderViewModel) {
-            add(
+            add( // TODO: remove
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.infoMessage() + " CLASSIC",
                     action = onInfoClassic,
                 )
             )
-        }
-        if (this@baseMenuActions is TimelineElementHolderViewModel && canBeReactedTo) {
-            add(
+            if (canBeReactedTo) add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.reactMessage(),
                     action = onReact,
                 )
             )
-        }
-        if (this@baseMenuActions is TimelineElementHolderViewModel && canBeRepliedTo) {
-            add(
+            if (canBeRepliedTo) add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.replyMessage(),
                     action = ::reply,
                 )
             )
-        }
-        if (this@baseMenuActions is TimelineElementHolderViewModel && canBeEdited) {
-            add(
+            if (canBeEdited) add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.editMessage(),
                     action = ::replace,
                 )
             )
-        }
-        if (this@baseMenuActions is TimelineElementHolderViewModel && canBeRedacted) {
-            add(
+            if (canBeRedacted) add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.redactMessage(),
                     action = ::redact,
                 )
             )
-        }
-        if (this@baseMenuActions is TimelineElementHolderViewModel && canBeReportedTo) {
-            add(
+            if (canBeReported) add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.reportMessage(),
                     action = ::report,
                 )
             )
         }
-        if (this@baseMenuActions is OutboxElementHolderViewModel && canRetrySend) {
-            add(
+        if (this@baseMenuActions is OutboxElementHolderViewModel) {
+            if (canRetrySend) add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.retrySendMessage(),
                     action = ::retrySend,
                 )
             )
-        }
-        if (this@baseMenuActions is OutboxElementHolderViewModel && canAbortSend) {
-            add(
+            if (canAbortSend) add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.abortSendMessage(),
                     action = ::abortSend,
@@ -118,48 +100,54 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
     }
 }
 
-@Composable
-fun BaseTimelineElementHolderContextMenuAction.render(onClose: () -> Unit) {
-    if (Platform.current.isMobile) {
-        bottomSheetItem(onClose)
-    } else {
-        dropDownMenuItem(onClose)
+class BaseTimelineElementHolderContextMenuAction(
+    val label: String,
+    internal val action: () -> Unit,
+) {
+    operator fun invoke() = action()
+
+    @Composable
+    internal fun render(onClose: () -> Unit) {
+        when {
+            Platform.current.isMobile -> bottomSheetItem(onClose)
+            else -> dropDownMenuItem(onClose)
+        }
     }
-}
 
-@Composable
-internal fun BaseTimelineElementHolderContextMenuAction.dropDownMenuItem(
-    onClose: () -> Unit,
-) {
-    DropdownMenuItem(
-        text = {
-            Text(
-                label,
-                Modifier.buttonPointerModifier(),
-                color = MaterialTheme.colorScheme.onBackground,
-            )
-        },
-        onClick = {
-            onClose()
-            action()
-        },
-        contentPadding = PaddingValues(horizontal = 10.dp),
-    )
-}
-
-@Composable
-internal fun BaseTimelineElementHolderContextMenuAction.bottomSheetItem(
-    onClose: () -> Unit,
-) {
-    Text(
-        label,
-        color = MaterialTheme.colorScheme.onBackground,
-        modifier = Modifier
-            .padding(20.dp)
-            .fillMaxWidth()
-            .clickable {
-                action()
-                onClose()
+    @Composable
+    internal fun dropDownMenuItem(
+        onClose: () -> Unit,
+    ) {
+        DropdownMenuItem(
+            text = {
+                Text(
+                    label,
+                    Modifier.buttonPointerModifier(),
+                    color = MaterialTheme.colorScheme.onBackground,
+                )
             },
-    )
+            onClick = {
+                onClose()
+                action()
+            },
+            contentPadding = PaddingValues(horizontal = 10.dp),
+        )
+    }
+
+    @Composable
+    internal fun bottomSheetItem(
+        onClose: () -> Unit,
+    ) {
+        Text(
+            label,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier
+                .padding(20.dp)
+                .fillMaxWidth()
+                .clickable {
+                    action()
+                    onClose()
+                },
+        )
+    }
 }

@@ -9,6 +9,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 
+
 @Composable
 fun ExtrasPaneContentSwitch(
     stack: Value<ChildStack<*, ExtrasRouter.Wrapper>>,

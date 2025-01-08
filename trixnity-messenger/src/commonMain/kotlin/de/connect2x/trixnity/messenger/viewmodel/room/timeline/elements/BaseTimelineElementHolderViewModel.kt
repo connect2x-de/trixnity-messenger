@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import kotlinx.coroutines.flow.StateFlow
 
+
 sealed interface BaseTimelineElementHolderViewModel {
     /**
      * Unique key of the element within the timeline.

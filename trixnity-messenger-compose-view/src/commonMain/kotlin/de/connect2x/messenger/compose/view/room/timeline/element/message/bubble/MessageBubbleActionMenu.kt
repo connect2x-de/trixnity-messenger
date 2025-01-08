@@ -39,7 +39,6 @@ import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.message.baseMenuActions
-import de.connect2x.messenger.compose.view.room.timeline.element.message.render
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import kotlinx.coroutines.launch
 
@@ -137,7 +136,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun BoxScope.MessageBubbleActionMenuMobile(
+private fun MessageBubbleActionMenuMobile(
     showActionMenu: MutableState<Boolean>,
     additionalContextActions: @Composable() (ColumnScope.(onClose: () -> Unit) -> Unit),
     holder: BaseTimelineElementHolderViewModel,

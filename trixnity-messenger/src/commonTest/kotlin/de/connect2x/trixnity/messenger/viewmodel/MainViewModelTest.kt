@@ -244,6 +244,7 @@ class MainViewModelTest : ShouldSpec() {
                 cut.selectedRoomId.value shouldBe null
                 cut shouldShowListOfType RoomListRouter.Wrapper.List::class
                 cut shouldShowRoom false
+                cut shouldShowList true
             }
         }
 
@@ -263,6 +264,7 @@ class MainViewModelTest : ShouldSpec() {
             val roomId = RoomId("!Room:localhost")
             cut.onRoomSelected(UserId("test", "server"), roomId)
             advanceUntilIdle()
+            cut shouldShowRoom true
             cut.closeDetailsAndShowList()
             advanceUntilIdle()
             assertSoftly {

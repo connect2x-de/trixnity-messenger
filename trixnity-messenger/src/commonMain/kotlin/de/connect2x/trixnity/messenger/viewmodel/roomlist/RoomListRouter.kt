@@ -385,10 +385,6 @@ class RoomListRouter(
         navigation.popSuspending()
     }
 
-    fun isShown(): Boolean {
-        return stack.value.active.configuration is Config.RoomList
-    }
-
     @Serializable
     sealed class Config {
         @Serializable

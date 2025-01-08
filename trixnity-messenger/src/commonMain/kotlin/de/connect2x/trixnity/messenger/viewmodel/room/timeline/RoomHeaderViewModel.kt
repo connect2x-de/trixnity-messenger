@@ -35,7 +35,6 @@ import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.TypingEventContent
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import org.koin.core.component.get
 
@@ -131,9 +130,6 @@ open class RoomHeaderViewModelImpl(
     private val onVerifyUser: () -> Unit,
     private val onShowRoomSettings: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomHeaderViewModel {
-
-    override val error: MutableStateFlow<String?> = MutableStateFlow(null)
-
     private val directRoom = get<DirectRoom>()
     private val userPresence = get<UserPresence>()
     private val roomName = get<RoomName>()
@@ -141,6 +137,8 @@ open class RoomHeaderViewModelImpl(
     private val initials = get<Initials>()
     private val userBlocking = get<UserBlocking>()
     private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
+
+    override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override val roomHeaderInfo: StateFlow<RoomHeaderInfo> =
         combine(
@@ -191,12 +189,14 @@ open class RoomHeaderViewModelImpl(
                 isPublic = true,
             )
         )
+
     override val userTrustLevel: StateFlow<UserTrustLevel?> =
         directRoom.getUsers(matrixClient, selectedRoomId).flatMapLatest {
             it.firstOrNull()?.let { userId ->
                 matrixClient.key.getTrustLevel(userId)
             } ?: flowOf(null)
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
     override val canVerifyUser: StateFlow<Boolean> =
         combine(
             directRoom.getUsers(matrixClient, selectedRoomId),
@@ -217,6 +217,7 @@ open class RoomHeaderViewModelImpl(
     ) { otherUsers, ignoredUserListEventContent ->
         otherUsers.size == 1 && (ignoredUserListEventContent?.ignoredUsers?.containsKey(otherUsers[0])?.not() ?: false)
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
     override val canUnblockUser: StateFlow<Boolean> = combine(
         directRoom.getUsers(matrixClient, selectedRoomId),
         matrixClient.user.getAccountData<IgnoredUserListEventContent>(),

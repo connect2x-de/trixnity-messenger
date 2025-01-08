@@ -14,9 +14,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+
 // TODO use context receivers for CoroutineScope in future Kotlin version
 
-private val log = KotlinLogging.logger { }
+private val log = KotlinLogging.logger {}
 
 /**
  * @see [com.arkivanov.decompose.router.stack.replaceCurrent]

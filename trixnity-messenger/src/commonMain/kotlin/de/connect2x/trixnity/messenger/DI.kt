@@ -165,6 +165,7 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
+
 data class MatrixClientConfigurationHolder(val matrixClientConfiguration: MatrixClientConfiguration.() -> Unit)
 
 fun interface DebugName {
@@ -259,7 +260,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
     // platform-specific view models
     ::platformNotificationSettingsSingleAccountViewModelFactoryModule,
 
-// platform-specific implementations
+    // platform-specific implementations
     ::platformModule,
     ::platformPathsModule,
     ::platformCreateRepositoriesModuleModule,
@@ -281,7 +282,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
 )
 
 /*
- * Factories for view models; provide your own factory to change or enhance behaviour of existing view models
+ * Factories for view models: Provide your own factory to change or enhance behaviours of existing view models.
  */
 
 private fun connectingViewModels() = module {

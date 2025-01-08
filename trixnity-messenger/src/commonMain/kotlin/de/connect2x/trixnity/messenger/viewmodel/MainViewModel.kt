@@ -80,7 +80,7 @@ interface MainViewModel {
     val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>>
 
     /**
-     * ATTENTION: The viewmodel has to be explicitly started as the routers cannot be not initialized in the init block!
+     * ATTENTION: The viewmodel has to be explicitly started as the routers cannot be initialized in the init block!
      */
     fun start()
     fun closeDetailsAndShowList()
@@ -97,8 +97,8 @@ open class MainViewModelImpl(
     private val onRemoveAccount: (UserId) -> Unit,
 ) : ViewModelContext by viewModelContext, MainViewModel {
 
-    private val activeVerifications =
-        MutableStateFlow(setOf<UserId>()) // in case of multiple active verifications, we need to do them one after another
+    // In case of multiple active verifications, these need to be processed in consecutive order one at a time!
+    private val activeVerifications = MutableStateFlow(setOf<UserId>())
     private val messengerSettings by inject<MatrixMessengerSettingsHolder>()
 
     override val selectedRoomId = MutableStateFlow<RoomId?>(null)
@@ -117,7 +117,7 @@ open class MainViewModelImpl(
         backPressHandler()
     }
 
-    init { // init before routers, so those can register other handlers that are executed before
+    init { // Init before routers, so those can register other handlers that are executed beforehand.
         backHandler.register(backCallback)
     }
 
@@ -192,13 +192,11 @@ open class MainViewModelImpl(
     }
 
     private fun backPressHandler() {
-        if (roomRouter.isShown()
-//            && isSinglePane.value
-        ) {
+        if (roomRouter.isShown()) {
             closeDetailsAndShowList()
         } else {
             getOrNull<MinimizeApp>()?.invoke()
-            // TODO was "minimize", but we should use native routing without all the back press handlers
+            // TODO: was "minimize", but we should use native routing without all the back press handlers
             //  native routing could also allow to use web history
             //  see also: https://github.com/arkivanov/Decompose/tree/master/sample/shared/shared/src/commonMain/kotlin/com/arkivanov/sample/shared/multipane
         }
@@ -220,13 +218,12 @@ open class MainViewModelImpl(
         }
     }
 
-    // ATTENTION: the viewmodel has to be explicitly started as the routers cannot be not initialized in the init block
+    // ATTENTION: The viewmodel has to be explicitly started as the routers cannot be initialized in the init block!
     override fun start() {
         roomRouter.stack.subscribe { routerStack: ChildStack<RoomRouter.Config, RoomRouter.Wrapper> ->
             log.debug { "roomRouter has changed: ${routerStack.active.configuration::class.simpleName} (roomId: ${routerStack.active.configuration.getRoomId()})" }
             selectedRoomId.value = routerStack.active.configuration.getRoomId()
         }
-
         startSync()
         possiblyStartSelfVerification()
         startActiveVerificationsQueue()
@@ -252,7 +249,6 @@ open class MainViewModelImpl(
                 }
             }
         }
-
         coroutineScope.launch {
             this@MainViewModelImpl.matrixClients
                 .scan(
@@ -265,10 +261,9 @@ open class MainViewModelImpl(
                     }
                 }
         }
-
         lifecycle.doOnStop {
             coroutineScope.launch {
-                withContext(NonCancellable) { // even when the scope is destroyed, we want the sync to stop
+                withContext(NonCancellable) { // Even when the scope is destroyed, we want the sync to stop.
                     log.debug { "app is stopped: cancel sync" }
                     this@MainViewModelImpl.matrixClients.value.forEach { (userId, matrixClient) ->
                         log.debug { "stop sync for $userId" }
@@ -276,9 +271,7 @@ open class MainViewModelImpl(
                     }
                 }
             }
-
-            // only when the app was stopped, we want to (re-)start the sync
-            lifecycle.doOnStart(isOneTime = true) {
+            lifecycle.doOnStart(isOneTime = true) { // Only when the app was stopped, we want to (re-)start the sync.
                 coroutineScope.launch {
                     log.debug { "resume app: restart sync" }
                     this@MainViewModelImpl.matrixClients.value.forEach { (userId, matrixClient) ->
@@ -355,7 +348,6 @@ open class MainViewModelImpl(
             }
         }
     }
-
 
     private fun reactToActiveVerifications() {
         coroutineScope.launch {
@@ -444,7 +436,7 @@ open class MainViewModelImpl(
         coroutineScope.launch {
             log.debug { "onRoomSelected: $id" }
             roomRouter.showRoom(userId, id)
-            // TODO: What hack exactly? Comment seems outdated!
+            // TODO: What hack exactly? Comment might be outdated!
             // Hack for iOS: Since the observe mechanism of line 236ff does not work.
             selectedRoomId.value = id
             roomListRouter.show()
@@ -594,7 +586,6 @@ class PreviewMainViewModel : MainViewModel {
                 )
             )
         )
-
     override val isRoomShown: StateFlow<Boolean> = MutableStateFlow(false)
     override fun onRoomSelected(userId: UserId, id: RoomId) {
         selectedRoomId.value = id

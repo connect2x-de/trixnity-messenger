@@ -100,7 +100,7 @@ class TimelineElementViewModelFactorySelectorImpl(
     }
 
     private suspend fun findFactory(content: RoomEventContent): TimelineElementViewModelFactory<RoomEventContent>? {
-        if (replaceEventsShouldNotBeRendered(content)) return null
+        if (isReplaceEvent(content)) return null
 
         val contentClass = content::class
         return (factoryMapping.read { get(contentClass) }
@@ -127,7 +127,6 @@ class TimelineElementViewModelFactorySelectorImpl(
             }).getOrNull()
     }
 
-    private fun replaceEventsShouldNotBeRendered(content: RoomEventContent): Boolean {
-        return content is MessageEventContent && content.relatesTo is RelatesTo.Replace
-    }
+    private fun isReplaceEvent(content: RoomEventContent): Boolean =
+        content is MessageEventContent && content.relatesTo is RelatesTo.Replace
 }
