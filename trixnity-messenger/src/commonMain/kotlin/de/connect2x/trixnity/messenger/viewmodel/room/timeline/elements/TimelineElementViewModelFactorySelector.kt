@@ -17,7 +17,8 @@ import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.utils.concurrentMutableMap
 import kotlin.reflect.KClass
 
-private val log = KotlinLogging.logger { }
+
+private val log = KotlinLogging.logger {}
 
 interface TimelineElementViewModelFactorySelector {
     fun nextSupportedTimelineEvent(timelineEvents: Flow<Flow<TimelineEvent>>): Flow<TimelineEvent?>
@@ -43,11 +44,10 @@ class TimelineElementViewModelFactorySelectorImpl(
             val factory: TimelineElementViewModelFactory<RoomEventContent>
         ) : Mapping
 
-        fun getOrNull() =
-            when (this) {
-                is Exist -> factory
-                None -> null
-            }
+        fun getOrNull() = when (this) {
+            is Exist -> factory
+            None -> null
+        }
     }
 
     private val factoryMapping = concurrentMutableMap<KClass<out RoomEventContent>, Mapping>()
@@ -57,6 +57,7 @@ class TimelineElementViewModelFactorySelectorImpl(
             timelineEvents.collect { timelineEvent ->
                 timelineEvent
                     .map { supports(it.content) }
+                    // TODO: check if it really should emmit timeline-event from outside of the mapped onEach every time that's called
                     .onEach { if (it) emitAll(timelineEvent) else emit(null) }
                     .first { !it }
             }
@@ -72,23 +73,23 @@ class TimelineElementViewModelFactorySelectorImpl(
         roomId: RoomId,
         eventId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-    ): TimelineElementViewModel<*> {
-        if (content == null)
-            return encryptedWaitTimelineElementViewModelFactory.create(
-                viewModelContext = viewModelContext,
-            ) ?: TimelineElementViewModel.Empty
-        return content.fold(
+    ): TimelineElementViewModel<*> = when {
+        content == null -> encryptedWaitTimelineElementViewModelFactory.create(
+            viewModelContext = viewModelContext,
+        ) ?: TimelineElementViewModel.Empty
+
+        else -> content.fold(
             onFailure = { error ->
                 encryptedErrorTimelineElementViewModelFactory.create(
                     viewModelContext = viewModelContext,
                     error = error,
                 ) ?: TimelineElementViewModel.Empty
             },
-            onSuccess = { content ->
-                findFactory(content)
+            onSuccess = { roomEventContent ->
+                findFactory(roomEventContent)
                     ?.create(
                         viewModelContext = viewModelContext,
-                        content = content,
+                        content = roomEventContent,
                         roomId = roomId,
                         eventId = eventId,
                         onOpenMention = onOpenMention,

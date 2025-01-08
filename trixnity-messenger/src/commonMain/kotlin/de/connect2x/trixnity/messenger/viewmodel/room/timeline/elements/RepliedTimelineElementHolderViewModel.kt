@@ -12,8 +12,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whi
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,7 +39,7 @@ import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
 
 
-private val log = KotlinLogging.logger { }
+private val log = KotlinLogging.logger {}
 
 interface RepliedTimelineElementHolderViewModelFactory {
     fun create(
@@ -86,7 +84,6 @@ interface RepliedTimelineElementHolderViewModel {
     val showSender: StateFlow<Boolean?>
 }
 
-@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class RepliedTimelineElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     protected val timelineEventFlow: Flow<TimelineEvent?>,
@@ -162,7 +159,7 @@ class RepliedTimelineElementHolderViewModelImpl(
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 }
 
-class PreviewRepliedTimelineElementViewModel1 : RepliedTimelineElementHolderViewModel {
+class PreviewRepliedTimelineElementViewModel : RepliedTimelineElementHolderViewModel {
     override val eventId: EventId = EventId("\$1:localhost")
     override val element: StateFlow<TimelineElementViewModel<*>?> =
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
@@ -170,7 +167,7 @@ class PreviewRepliedTimelineElementViewModel1 : RepliedTimelineElementHolderView
             override val formattedBody: String = "Hello <b/>everyone!"
             override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
             override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
-            override fun openMention(timelineElementMention: TimelineElementMention) {}
+            override fun openMention(mention: TimelineElementMention) {}
         })
     override val isByMe: StateFlow<Boolean> = MutableStateFlow(true)
     override val sender: StateFlow<UserInfoElement?> = MutableStateFlow(null)

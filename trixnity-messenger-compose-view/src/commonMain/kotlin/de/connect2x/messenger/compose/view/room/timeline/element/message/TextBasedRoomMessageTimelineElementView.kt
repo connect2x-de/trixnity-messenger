@@ -15,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -38,6 +37,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 
+
 @Composable
 fun TextBasedRoomMessageTimelineElementView(
     holder: BaseTimelineElementHolderViewModel,
@@ -47,14 +47,14 @@ fun TextBasedRoomMessageTimelineElementView(
         holder,
         needsMaxWidth = false,
     ) { showActionMenu ->
-        if (Platform.current.isDesktop) {
-            // on Desktop, it makes sense to select text and copy it;
-            // on Android, this will consume long tap events, which we use for the context menu
-            SelectionContainer {
+        // On Desktop: It makes sense to select the text and copy it.
+        // On Android: This will consume long tap events, which we use for the context menu.
+        when {
+            Platform.current.isDesktop -> SelectionContainer {
                 MessageTextContent(holder, element, showActionMenu)
             }
-        } else {
-            MessageTextContent(holder, element, showActionMenu)
+
+            else -> MessageTextContent(holder, element, showActionMenu)
         }
     }
 }
@@ -73,7 +73,6 @@ private fun MessageTextContent(
                 Icon(Icons.Filled.SmartToy, i18n.automated())
                 Text(i18n.automated(), fontStyle = FontStyle.Italic)
             }
-
             Spacer(Modifier.size(5.dp))
         }
 
@@ -90,34 +89,29 @@ private fun MessageTextContent(
 
         val message = element.formattedBody ?: element.body
         val text = formatMessage(message, mentions)
-
         val richTextState = rememberSaveable(text, saver = RichTextState.Saver) {
             RichTextState().apply {
                 setHtml(text)
             }
+        }.apply {
+            config.linkColor =
+                if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
+                else MaterialTheme.messengerColors.link
         }
-        richTextState.config.linkColor =
-            if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
-            else MaterialTheme.messengerColors.link
 
         if (mentions.any { it.second != null }) {
             val baseUriHandler = LocalUriHandler.current
-            val uriHandler by remember {
+            remember {
                 mentionsUriHandler(
                     baseUriHandler,
                     element,
                     mentions.map { it.second })
-            }
-
+            }.value
+        } else {
+            LocalUriHandler.current
+        }.let { uriHandler ->
             MessageRichText(
                 uriHandler,
-                richTextState,
-                holder.isByMe,
-                showActionMenu,
-            )
-        } else {
-            MessageRichText(
-                LocalUriHandler.current,
                 richTextState,
                 holder.isByMe,
                 showActionMenu,

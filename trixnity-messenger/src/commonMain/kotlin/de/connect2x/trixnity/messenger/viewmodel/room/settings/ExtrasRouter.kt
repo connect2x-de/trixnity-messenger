@@ -138,7 +138,7 @@ class ExtrasRouterImpl(
                 addMembersToRoomViewModel = viewModelContext.get<PotentialMembersViewModelFactory>()
                     .create(
                         viewModelContext = viewModelContext.childContext(componentContext),
-                        roomId = config.roomId
+                        roomId = config.roomId,
                     ),
             )
         )
