@@ -23,7 +23,7 @@ fun ExtrasPaneContentSwitch(
             is ExtrasRouter.Wrapper.RoomSettings -> RoomSettingsContainer(child.viewModel, isTwoPane)
             is ExtrasRouter.Wrapper.AddMember -> AddMembersContainer(child.viewModel)
             is ExtrasRouter.Wrapper.ExportRoom -> ExportRoomContainer(child.viewModel)
-            is ExtrasRouter.Wrapper.MessageMetadata -> UnifiedMessageMetadata(child.viewModel)
+            is ExtrasRouter.Wrapper.MessageMetadata -> UnifiedMessageMetadata(child.viewModel, stack.value.items.size)
             is ExtrasRouter.Wrapper.None -> Box {}
         }.let {}
     }

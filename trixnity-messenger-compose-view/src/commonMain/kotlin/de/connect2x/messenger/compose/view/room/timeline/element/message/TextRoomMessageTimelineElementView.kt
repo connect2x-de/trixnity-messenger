@@ -1,8 +1,8 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInSendMessage
 import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -41,11 +41,6 @@ class TextRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.TextBased.Text,
     ) {
-        TextBasedRoomMessageTimelineElementView(holder, element, {
-            showMessageReactions = false
-            showContextActionMenu = false
-            alwaysShowChatBubbleTail = true
-            bubblePadding = { _ -> 0.dp }
-        })
+        TextBasedRoomMessageTimelineElementView(holder, element, { applyPreviewConfig() })
     }
 }

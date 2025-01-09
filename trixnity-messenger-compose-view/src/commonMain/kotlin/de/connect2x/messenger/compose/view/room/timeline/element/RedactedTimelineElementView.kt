@@ -76,5 +76,4 @@ internal fun Redacted(element: RedactedTimelineElementViewModel) {
             fontStyle = FontStyle.Italic,
         )
     }
-
 }

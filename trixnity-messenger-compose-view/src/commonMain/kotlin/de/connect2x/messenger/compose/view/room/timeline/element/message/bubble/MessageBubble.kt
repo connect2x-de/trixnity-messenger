@@ -68,6 +68,13 @@ data class MessageBubbleDisplayConfig(
     companion object {
         fun of(config: MessageBubbleDisplayConfig.() -> Unit) =
             MessageBubbleDisplayConfig().apply(config).copy()
+
+        fun MessageBubbleDisplayConfig.applyPreviewConfig() = this.apply {
+            showMessageReactions = false
+            showContextActionMenu = false
+            alwaysShowChatBubbleTail = true
+            bubblePadding = { _ -> 0.dp }
+        }
     }
 }
 

@@ -41,7 +41,8 @@ import kotlin.reflect.KClass
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-private val log = KotlinLogging.logger { }
+
+private val log = KotlinLogging.logger {}
 
 data class ExportRoomProgress(val processed: Long? = null, val total: Long? = null)
 

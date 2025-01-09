@@ -23,7 +23,7 @@ class HistoryVisibilityStateTimelineElementView : TimelineElementView<HistoryVis
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: HistoryVisibilityStateTimelineElementViewModel
+        element: HistoryVisibilityStateTimelineElementViewModel,
     ) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.let {

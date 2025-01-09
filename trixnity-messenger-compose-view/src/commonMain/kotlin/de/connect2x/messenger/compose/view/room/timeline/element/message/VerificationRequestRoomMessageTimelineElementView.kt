@@ -53,6 +53,7 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRe
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 import kotlin.reflect.KClass
 
+
 class VerificationRequestRoomMessageTimelineElementView :
     TimelineElementView<RoomMessageTimelineElementViewModel.VerificationRequest> {
     override val supports: KClass<RoomMessageTimelineElementViewModel.VerificationRequest> =
@@ -82,7 +83,7 @@ class VerificationRequestRoomMessageTimelineElementView :
 @Composable
 private fun UserVerification(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.VerificationRequest
+    element: RoomMessageTimelineElementViewModel.VerificationRequest,
 ) {
     val i18n = DI.get<I18nView>()
     val sender = holder.sender.collectAsState().value
@@ -221,4 +222,3 @@ private fun VerificationAcceptedByOtherClient() {
     val i18n = DI.get<I18nView>()
     Text(i18n.userVerificationOtherDevice())
 }
-

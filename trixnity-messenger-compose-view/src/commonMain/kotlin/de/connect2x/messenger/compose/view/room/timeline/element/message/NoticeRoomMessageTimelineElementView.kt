@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import kotlin.reflect.KClass
 
+
 class NoticeRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.TextBased.Notice> {
     override val supports: KClass<RoomMessageTimelineElementViewModel.TextBased.Notice> =
         RoomMessageTimelineElementViewModel.TextBased.Notice::class
@@ -19,7 +20,7 @@ class NoticeRoomMessageTimelineElementView : TimelineElementView<RoomMessageTime
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.TextBased.Notice
+        element: RoomMessageTimelineElementViewModel.TextBased.Notice,
     ) {
         TextBasedRoomMessageTimelineElementView(holder, element)
     }

@@ -70,9 +70,8 @@ interface MessageMetadataViewModel {
     val edits: StateFlow<List<TimelineElementHolderViewModel>>
 
     val error: StateFlow<String?>
-//    val errorCause: StateFlow<String?>
-
-    //    fun errorDismiss()
+    // val errorCause: StateFlow<String?>
+    // fun errorDismiss()
     fun back()
 }
 
@@ -192,7 +191,6 @@ class MessageMetadataViewModelImpl(
             }
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, emptyList())
 
-
     override val reactionCounts: StateFlow<Map<ReactionKey, UInt>> =
         reactions.map { it.byCount }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, emptyMap())
@@ -203,7 +201,6 @@ class MessageMetadataViewModelImpl(
     override fun back() {
         onBack()
     }
-
 }
 
 data class MessageUserInteraction(

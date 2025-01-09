@@ -31,6 +31,7 @@ import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
@@ -80,12 +81,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-            config = {
-                showMessageReactions = false
-                showContextActionMenu = false
-                alwaysShowChatBubbleTail = true
-                bubblePadding = { _ -> 0.dp }
-            },
+            config = { applyPreviewConfig() },
         ) { showActionMenu, onSave ->
             MessageImage(element, showActionMenu, onSave)
         }
