@@ -104,7 +104,7 @@ kotlin {
         val jvmAndNativeMain by creating {
             dependsOn(commonMain.get())
             dependencies {
-                implementation(libs.trixnity.client.repository.realm)
+                implementation(libs.trixnity.client.repository.room)
                 api(libs.trixnity.client.media.okio)
             }
         }
@@ -112,6 +112,7 @@ kotlin {
             dependsOn(jvmAndNativeMain)
             dependencies {
                 implementation(libs.bundles.jna)
+                implementation(libs.androidx.sqlite.bundled) // FIXME encrypted
             }
         }
         androidMain {
@@ -120,6 +121,7 @@ kotlin {
                 implementation(libs.androidx.activity)
                 implementation(libs.androidx.security.crypto)
                 implementation(libs.androidx.browser)
+                implementation(libs.androidx.sqlite.bundled)
             }
         }
         nativeMain {
@@ -128,6 +130,7 @@ kotlin {
         iosMain {
             dependencies {
                 implementation(libs.ktor.client.darwin) // since with iOS projects, we cannot include the engine, we select it here
+                implementation(libs.androidx.sqlite.bundled)
             }
         }
         jsMain {

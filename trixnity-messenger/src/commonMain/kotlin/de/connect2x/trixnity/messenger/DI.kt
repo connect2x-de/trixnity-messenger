@@ -182,7 +182,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                 val eventContentSerializerMappings = getAll<EventContentSerializerMappings>()
                 MatrixClientConfigurationHolder {
                     name = getOrNull<DebugName>()?.invoke()
-                    setOwnMessagesAsFullyRead = true
+                    markOwnMessageAsRead = true
                     httpClientEngine = config.httpClientEngine
                     httpClientConfig = config.httpClientConfig
                     lastRelevantEventFilter =

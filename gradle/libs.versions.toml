@@ -11,11 +11,12 @@ messengerVersionCode = "1"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
 
-trixnity = "4.11.2" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.11.3-DEV-32377601" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
 kotlinWrappers = "1.0.0-pre.774" # https://github.com/JetBrains/kotlin-wrappers/releases
 kotlinxCoroutines = "1.9.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinxSerialization = "1.7.3" # https://github.com/Kotlin/kotlinx.serialization/releases
+androidxSqlite = "2.5.0-alpha12" # https://developer.android.com/jetpack/androidx/releases/sqlite
 decompose = "3.2.2" # https://github.com/arkivanov/Decompose/releases
 essenty = "2.2.1" # https://github.com/arkivanov/Essenty/releases (bound to decompose version)
 kotlinxDatetime = "0.6.1" # https://github.com/Kotlin/kotlinx-datetime/releases
@@ -67,7 +68,7 @@ androidTestMonitor = "1.7.2" # https://developer.android.com/jetpack/androidx/re
 trixnity-client = { module = "net.folivo:trixnity-client", version.ref = "trixnity" }
 trixnity-crypto-core = { module = "net.folivo:trixnity-crypto-core", version.ref = "trixnity" }
 trixnity-client-repository-exposed = { module = "net.folivo:trixnity-client-repository-exposed", version.ref = "trixnity" }
-trixnity-client-repository-realm = { module = "net.folivo:trixnity-client-repository-realm", version.ref = "trixnity" }
+trixnity-client-repository-room = { module = "net.folivo:trixnity-client-repository-room", version.ref = "trixnity" }
 trixnity-client-repository-indexeddb = { module = "net.folivo:trixnity-client-repository-indexeddb", version.ref = "trixnity" }
 trixnity-client-media-okio = { module = "net.folivo:trixnity-client-media-okio", version.ref = "trixnity" }
 trixnity-client-media-opfs = { module = "net.folivo:trixnity-client-media-opfs", version.ref = "trixnity" }
@@ -103,6 +104,7 @@ jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 androidx-activity = { module = "androidx.activity:activity-ktx", version.ref = "activity" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "crypto" }
+androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "androidxSqlite" }
 kotlin-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version.ref = "kotlinWrappers" }
 kotlin-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser" }
 kotest-junit-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }

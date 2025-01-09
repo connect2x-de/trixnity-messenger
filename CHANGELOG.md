@@ -17,11 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Moved from Realm to Androidx Room database.
+
 ### Deprecated
 
 ### Removed
 
-- Internal: removed strong skipping Compose mode as it is enabled by default now 
+- Internal: removed strong skipping Compose mode as it is enabled by default now
 
 ### Fixed
 

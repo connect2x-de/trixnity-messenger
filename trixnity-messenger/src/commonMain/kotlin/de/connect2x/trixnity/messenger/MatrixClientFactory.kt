@@ -18,7 +18,7 @@ private val log = KotlinLogging.logger { }
 interface MatrixClientFactory {
     data class LoginResult(
         val matrixClient: MatrixClient,
-        val databasePassword: SecretByteArray?,
+        val databaseKey: SecretByteArray?,
     )
 
     suspend fun loginWith(
@@ -46,14 +46,14 @@ class MatrixClientFactoryImpl(
         checkExisting: suspend (LoginInfo) -> Unit,
     ): Result<LoginResult> = kotlin.runCatching {
         log.debug { "loginWith to account" }
-        var databasePassword: SecretByteArray? = null
+        var databaseKey: SecretByteArray? = null
         LoginResult(
             matrixClient = MatrixClient.loginWith(
                 baseUrl = baseUrl,
                 repositoriesModuleFactory = { loginInfo ->
                     checkExisting(loginInfo)
                     createRepositoriesModuleOrThrow(loginInfo.userId).also {
-                        databasePassword = it.databasePassword
+                        databaseKey = it.databaseKey
                     }.module
                 },
                 mediaStoreFactory = { loginInfo ->
@@ -70,7 +70,7 @@ class MatrixClientFactoryImpl(
                 },
                 configuration = configuration.matrixClientConfiguration,
             ).getOrThrow(),
-            databasePassword = databasePassword,
+            databaseKey = databaseKey,
         )
     }
 
