@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
+
 class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.FileBased.Audio> {
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.Audio> =
         RoomMessageTimelineElementViewModel.FileBased.Audio::class
@@ -62,6 +63,25 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
                     )
                 }
             }
+        ) { showActionMenu, onSave ->
+            MessageAudio(element, showActionMenu, onSave)
+        }
+    }
+
+    @Composable
+    override fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: RoomMessageTimelineElementViewModel.FileBased.Audio,
+    ) {
+        FileBasedRoomMessageTimelineElement(
+            holder,
+            element,
+            config = {
+                showMessageReactions = false
+                showContextActionMenu = false
+                alwaysShowChatBubbleTail = true
+                bubblePadding = { _ -> 0.dp }
+            },
         ) { showActionMenu, onSave ->
             MessageAudio(element, showActionMenu, onSave)
         }

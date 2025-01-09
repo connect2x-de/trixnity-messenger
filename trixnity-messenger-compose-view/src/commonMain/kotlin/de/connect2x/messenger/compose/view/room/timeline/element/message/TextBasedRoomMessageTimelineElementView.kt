@@ -31,6 +31,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isDesktop
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.mentionsUriHandler
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -42,10 +43,11 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 fun TextBasedRoomMessageTimelineElementView(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.TextBased<*>,
+    config: MessageBubbleDisplayConfig.() -> Unit = {},
 ) {
     MessageBubble(
-        holder,
-        needsMaxWidth = false,
+        holder = holder,
+        config = config,
     ) { showActionMenu ->
         // On Desktop: It makes sense to select the text and copy it.
         // On Android: This will consume long tap events, which we use for the context menu.

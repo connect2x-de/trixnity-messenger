@@ -41,6 +41,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import kotlin.reflect.KClass
 
+
 class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.FileBased.Image> {
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.Image> =
         RoomMessageTimelineElementViewModel.FileBased.Image::class
@@ -65,6 +66,25 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
                         maxLines = 1,
                     )
                 }
+            },
+        ) { showActionMenu, onSave ->
+            MessageImage(element, showActionMenu, onSave)
+        }
+    }
+
+    @Composable
+    override fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: RoomMessageTimelineElementViewModel.FileBased.Image,
+    ) {
+        FileBasedRoomMessageTimelineElement(
+            holder,
+            element,
+            config = {
+                showMessageReactions = false
+                showContextActionMenu = false
+                alwaysShowChatBubbleTail = true
+                bubblePadding = { _ -> 0.dp }
             },
         ) { showActionMenu, onSave ->
             MessageImage(element, showActionMenu, onSave)
@@ -185,4 +205,3 @@ internal fun ReplyImage(element: RoomMessageTimelineElementViewModel.FileBased.I
         }
     }
 }
-

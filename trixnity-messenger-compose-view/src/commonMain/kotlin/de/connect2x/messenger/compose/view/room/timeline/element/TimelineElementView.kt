@@ -5,6 +5,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import kotlin.reflect.KClass
 
+
 interface TimelineElementView<V : TimelineElementViewModel<*>> {
     val supports: KClass<V>
 
@@ -20,6 +21,14 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
     @Composable
     fun createReplyInSendMessage(element: V) {
     }
+
+    @Composable
+    fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: V,
+//        config: MessageBubbleDisplayConfig.() -> Unit = {},
+    ) {
+    }
 }
 
 object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel.Empty> {
@@ -31,7 +40,7 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel.E
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: TimelineElementViewModel.Empty
+        element: TimelineElementViewModel.Empty,
     ) {
     }
 }

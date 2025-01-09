@@ -24,6 +24,9 @@ interface TimelineElementViewSelector {
 
     @Composable
     fun createReplyInSendMessage(element: TimelineElementViewModel<*>)
+
+    @Composable
+    fun createAsMessagePreview(holder: BaseTimelineElementHolderViewModel, element: TimelineElementViewModel<*>)
 }
 
 @Composable
@@ -43,13 +46,13 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
 
     override suspend fun waitFor(element: TimelineElementViewModel<*>) {
         val factory = selectFactory(element)
-        factory?.waitFor(element)
+        factory.waitFor(element)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: TimelineElementViewModel<*>
+        element: TimelineElementViewModel<*>,
     ) {
         val factory = rememberSelectFactory(element)
         factory?.createInTimeline(holder, element)
@@ -57,23 +60,34 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
 
     @Composable
     override fun createReplyInTimeline(
-        element: TimelineElementViewModel<*>
+        element: TimelineElementViewModel<*>,
     ) {
         val factory = rememberSelectFactory(element)
         factory?.createReplyInTimeline(element)
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: TimelineElementViewModel<*>) {
+    override fun createReplyInSendMessage(
+        element: TimelineElementViewModel<*>,
+    ) {
         val factory = rememberSelectFactory(element)
         factory?.createReplyInSendMessage(element)
+    }
+
+    @Composable
+    override fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: TimelineElementViewModel<*>,
+    ) {
+        val factory = rememberSelectFactory(element)
+        factory?.createAsMessagePreview(holder, element)
     }
 
     @Composable
     private fun rememberSelectFactory(element: TimelineElementViewModel<*>): TimelineElementView<TimelineElementViewModel<*>>? =
         remember(element) { selectFactory(element) }
 
-    private fun selectFactory(element: TimelineElementViewModel<*>): TimelineElementView<TimelineElementViewModel<*>>? {
+    private fun selectFactory(element: TimelineElementViewModel<*>): TimelineElementView<TimelineElementViewModel<*>> {
         val timelineElementViewModelClass = element::class
         return factoryMapping.value[timelineElementViewModelClass]
             ?: run {

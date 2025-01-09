@@ -34,11 +34,10 @@ class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimeli
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: EncryptedWaitTimelineElementViewModel
+        element: EncryptedWaitTimelineElementViewModel,
     ) {
         MessageBubble(
-            holder,
-            needsMaxWidth = false,
+            holder = holder,
         ) { _ ->
             EncryptedMessage()
         }

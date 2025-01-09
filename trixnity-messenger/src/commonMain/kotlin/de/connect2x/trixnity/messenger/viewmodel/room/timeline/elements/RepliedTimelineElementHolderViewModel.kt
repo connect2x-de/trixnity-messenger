@@ -127,6 +127,7 @@ class RepliedTimelineElementHolderViewModelImpl(
                 content,
                 roomId,
                 EventIdOrTransactionId(eventId),
+                false,
                 onOpenMention,
             ).also {
                 elementCache.value = TimelineElementViewModelWrapper(it, lifecycle)

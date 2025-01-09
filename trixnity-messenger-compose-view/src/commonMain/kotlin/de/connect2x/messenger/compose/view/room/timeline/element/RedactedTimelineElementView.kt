@@ -37,11 +37,10 @@ class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementV
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RedactedTimelineElementViewModel
+        element: RedactedTimelineElementViewModel,
     ) {
         MessageBubble(
-            holder,
-            needsMaxWidth = false,
+            holder = holder,
         ) { _ ->
             Redacted(element)
         }

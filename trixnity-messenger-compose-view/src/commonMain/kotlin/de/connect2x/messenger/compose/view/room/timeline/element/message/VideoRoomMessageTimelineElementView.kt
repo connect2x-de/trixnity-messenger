@@ -44,6 +44,7 @@ import org.jetbrains.compose.resources.decodeToImageBitmap
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
+
 class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.FileBased.Video> {
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.Video> =
         RoomMessageTimelineElementViewModel.FileBased.Video::class
@@ -69,6 +70,25 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
                     )
                 }
             }
+        ) { showMenuAction, onSave ->
+            MessageVideo(holder, element, showMenuAction, onSave)
+        }
+    }
+
+    @Composable
+    override fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: RoomMessageTimelineElementViewModel.FileBased.Video,
+    ) {
+        FileBasedRoomMessageTimelineElement(
+            holder,
+            element,
+            config = {
+                showMessageReactions = false
+                showContextActionMenu = false
+                alwaysShowChatBubbleTail = true
+                bubblePadding = { _ -> 0.dp }
+            },
         ) { showMenuAction, onSave ->
             MessageVideo(holder, element, showMenuAction, onSave)
         }

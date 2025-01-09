@@ -35,6 +35,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
 
+
 class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.FileBased.File> {
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.File> =
         RoomMessageTimelineElementViewModel.FileBased.File::class
@@ -46,10 +47,30 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.FileBased.File
+        element: RoomMessageTimelineElementViewModel.FileBased.File,
     ) {
         FileBasedRoomMessageTimelineElement(
-            holder, element, {}
+            holder,
+            element,
+        ) { showActionMenu, onSave ->
+            MessageFile(element, showActionMenu, onSave)
+        }
+    }
+
+    @Composable
+    override fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: RoomMessageTimelineElementViewModel.FileBased.File,
+    ) {
+        FileBasedRoomMessageTimelineElement(
+            holder,
+            element,
+            config = {
+                showMessageReactions = false
+                showContextActionMenu = false
+                alwaysShowChatBubbleTail = true
+                bubblePadding = { _ -> 0.dp }
+            },
         ) { showActionMenu, onSave ->
             MessageFile(element, showActionMenu, onSave)
         }

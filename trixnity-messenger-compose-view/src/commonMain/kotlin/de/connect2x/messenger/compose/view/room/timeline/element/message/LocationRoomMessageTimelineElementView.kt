@@ -17,6 +17,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import kotlin.reflect.KClass
 
+
 class LocationRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.Location> {
     override val supports: KClass<RoomMessageTimelineElementViewModel.Location> =
         RoomMessageTimelineElementViewModel.Location::class
@@ -50,17 +51,16 @@ fun MessageLocation(
     element: RoomMessageTimelineElementViewModel.Location,
 ) {
     MessageBubble(
-        holder,
-        needsMaxWidth = false,
+        holder = holder,
     ) { showMenuAction ->
-        if (Platform.current.isDesktop) {
-            // on Desktop it makes sense to select text and copy it;
-            // on Android, this will consume long tap events, which we use for the context menu
-            SelectionContainer {
+        // On Desktop: It makes sense to select the text and copy it.
+        // On Android: This will consume long tap events, which we use for the context menu.
+        when {
+            Platform.current.isDesktop -> SelectionContainer {
                 MessageLocationContent(element, showMenuAction)
             }
-        } else {
-            MessageLocationContent(element, showMenuAction)
+
+            else -> MessageLocationContent(element, showMenuAction)
         }
     }
 }

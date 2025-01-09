@@ -28,6 +28,7 @@ interface TimelineElementViewModelFactorySelector {
         content: Result<RoomEventContent>?,
         roomId: RoomId,
         eventId: EventIdOrTransactionId,
+        showReplacedEvents: Boolean,
         onOpenMention: OpenMentionCallback,
     ): TimelineElementViewModel<*>
 }
@@ -67,40 +68,48 @@ class TimelineElementViewModelFactorySelectorImpl(
     private suspend fun supports(content: Result<RoomEventContent>?): Boolean =
         content == null || content.fold(onFailure = { true }, onSuccess = { findFactory(it) != null })
 
+    private var showReplacedEvents = false
+
     override suspend fun create(
         viewModelContext: MatrixClientViewModelContext,
         content: Result<RoomEventContent>?,
         roomId: RoomId,
         eventId: EventIdOrTransactionId,
+        showReplacedEvents: Boolean,
         onOpenMention: OpenMentionCallback,
-    ): TimelineElementViewModel<*> = when {
-        content == null -> encryptedWaitTimelineElementViewModelFactory.create(
-            viewModelContext = viewModelContext,
-        ) ?: TimelineElementViewModel.Empty
+    ): TimelineElementViewModel<*> {
+        this.showReplacedEvents = showReplacedEvents
+        return when {
+            content == null -> encryptedWaitTimelineElementViewModelFactory.create(
+                viewModelContext = viewModelContext,
+            ) ?: TimelineElementViewModel.Empty
 
-        else -> content.fold(
-            onFailure = { error ->
-                encryptedErrorTimelineElementViewModelFactory.create(
-                    viewModelContext = viewModelContext,
-                    error = error,
-                ) ?: TimelineElementViewModel.Empty
-            },
-            onSuccess = { roomEventContent ->
-                findFactory(roomEventContent)
-                    ?.create(
+            else -> content.fold(
+                onFailure = { error ->
+                    encryptedErrorTimelineElementViewModelFactory.create(
                         viewModelContext = viewModelContext,
-                        content = roomEventContent,
-                        roomId = roomId,
-                        eventId = eventId,
-                        onOpenMention = onOpenMention,
-                    )
-                    ?: TimelineElementViewModel.Empty
-            }
-        )
+                        error = error,
+                    ) ?: TimelineElementViewModel.Empty
+                },
+                onSuccess = { roomEventContent ->
+                    findFactory(roomEventContent)
+                        ?.create(
+                            viewModelContext = viewModelContext,
+                            content = roomEventContent,
+                            roomId = roomId,
+                            eventId = eventId,
+                            onOpenMention = onOpenMention,
+                        )
+                        ?: TimelineElementViewModel.Empty
+                }
+            )
+        }
     }
 
-    private suspend fun findFactory(content: RoomEventContent): TimelineElementViewModelFactory<RoomEventContent>? {
-        if (isReplaceEvent(content)) return null
+    private suspend fun findFactory(
+        content: RoomEventContent,
+    ): TimelineElementViewModelFactory<RoomEventContent>? {
+        if (showReplacedEvents.not() && isReplaceEvent(content)) return null
 
         val contentClass = content::class
         return (factoryMapping.read { get(contentClass) }

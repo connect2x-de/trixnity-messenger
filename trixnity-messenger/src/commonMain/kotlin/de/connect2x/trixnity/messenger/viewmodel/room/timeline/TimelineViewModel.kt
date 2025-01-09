@@ -68,6 +68,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.scan
@@ -199,7 +200,6 @@ interface TimelineViewModel {
         val lastLoadedElement: String,
         val windowIsFocused: Boolean,
     )
-
 
     sealed class Wrapper {
         data object None : Wrapper()
@@ -580,6 +580,7 @@ class TimelineViewModelImpl(
             formattedTime = formattedTime,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
+            showReplacedEvents = flowOf(false),
             onMessageReplace = ::onMessageReplace,
             onMessageReply = ::onMessageReply,
             onMessageReport = ::onShowReportMessageModal,

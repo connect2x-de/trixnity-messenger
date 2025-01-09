@@ -36,26 +36,30 @@ import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxEl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
+
 @Composable
 fun MessageBubbleContainer(
     holder: BaseTimelineElementHolderViewModel,
-    needsMaxWidth: Boolean,
+    config: MessageBubbleDisplayConfig,
     infoOpen: MutableState<Boolean>,
     reactionsOpen: MutableState<Boolean>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
     overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
+    val isFirstInUserSequence = holder.isFirstInUserSequence.collectAsState().value == true
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
     val showActionMenu = remember { mutableStateOf(false) }
     val hoverMessage = remember { mutableStateOf(false) }
 
-    val messageBackground =
-        when {
-            sendError != null -> MaterialTheme.colorScheme.errorContainer
-            holder.isByMe -> MaterialTheme.colorScheme.primary
-            else -> MaterialTheme.colorScheme.secondary
-        }
+    val messageBackground = when {
+        sendError != null -> MaterialTheme.colorScheme.errorContainer
+        holder.isByMe -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.secondary
+    }
+
+    val forceChatBubbleTail = config.alwaysShowChatBubbleTail
+    val showChatBubbleTail = forceChatBubbleTail || isFirstInUserSequence
 
     Column {
         Box(
@@ -68,22 +72,21 @@ fun MessageBubbleContainer(
                         hoverMessage.value = false
                         true
                     })
-                .pointerInput(holder) { // key is important to react to changes
+                .pointerInput(holder) { // Key is important to react to changes!
                     detectTapGestures(onLongPress = {
                         showActionMenu.value = true
-                    }) // in case the child element has no tap / click detection, we can use this
+                    }) // Catch input here in case the child element has no tap / click detection.
                     size
                 }
         ) {
             Row {
-                val isFirstInUserSequence = holder.isFirstInUserSequence.collectAsState().value == true
                 if (holder.isByMe.not()) {
-                    if (isFirstInUserSequence) {
+                    if (showChatBubbleTail) {
                         Box(
                             Modifier
                                 .background(
                                     messageBackground,
-                                    shape = ChatEdgeLeft(with(LocalDensity.current) { 8.dp.roundToPx() })
+                                    shape = ChatBubbleTailLeft(with(LocalDensity.current) { 8.dp.roundToPx() }),
                                 )
                                 .requiredWidth(8.dp)
                                 .fillMaxHeight()
@@ -97,32 +100,36 @@ fun MessageBubbleContainer(
                     color = messageBackground,
                 ) {
                     Box(modifier = Modifier.width(IntrinsicSize.Max)) {
-                        MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = true }, content)
+                        MessageBubbleContent(
+                            holder, config,
+                            { showActionMenu.value = true },
+                            content,
+                        )
                         MessageBubbleContentOverlay(
                             hoverMessage,
                             overlay,
                         )
                     }
                 }
-                if (holder.isByMe && isFirstInUserSequence) Box(
+                if (holder.isByMe && showChatBubbleTail) Box(
                     Modifier
                         .background(
                             messageBackground,
-                            shape = ChatEdgeRight(with(LocalDensity.current) { 8.dp.roundToPx() })
+                            shape = ChatBubbleTailRight(with(LocalDensity.current) { 8.dp.roundToPx() }),
                         )
                         .zIndex(-1f)
                         .fillMaxHeight()
                     // No width and no padding, as really wide messages will push this
-                    // to the max amount (we only use padding in the Timeline)
+                    // to the max amount (we only use padding in the Timeline).
                 )
             }
-            MessageBubbleActionMenu(
+            if (config.showContextActionMenu) MessageBubbleActionMenu(
                 holder,
                 hoverMessage,
                 showActionMenu,
                 onMessageInfo = {
                     // TODO maybe add showMessageMetadata to BaseTimelineHolderElementVM?
-                    if (holder is TimelineElementHolderViewModel) holder.showMessageMetadata()
+                    if (holder is TimelineElementHolderViewModel) holder.openMessageMetadata()
                 },
                 onReactToMessage = { reactionsOpen.value = true },
                 onInfoClassic = { infoOpen.value = true }, // TODO remove
@@ -133,7 +140,7 @@ fun MessageBubbleContainer(
 }
 
 
-class ChatEdgeRight(private val offset: Int) : Shape {
+class ChatBubbleTailRight(private val offset: Int) : Shape {
 
     override fun createOutline(
         size: Size,
@@ -149,7 +156,7 @@ class ChatEdgeRight(private val offset: Int) : Shape {
     }
 }
 
-class ChatEdgeLeft(private val offset: Int) : Shape {
+class ChatBubbleTailLeft(private val offset: Int) : Shape {
 
     override fun createOutline(
         size: Size,

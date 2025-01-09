@@ -26,11 +26,10 @@ class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTime
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: EncryptedErrorTimelineElementViewModel
+        element: EncryptedErrorTimelineElementViewModel,
     ) {
         MessageBubble(
-            holder,
-            needsMaxWidth = false,
+            holder = holder,
         ) { _ ->
             EncryptedError()
         }
