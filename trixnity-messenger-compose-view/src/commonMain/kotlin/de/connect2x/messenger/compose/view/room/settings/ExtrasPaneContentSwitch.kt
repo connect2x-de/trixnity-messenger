@@ -13,17 +13,22 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 @Composable
 fun ExtrasPaneContentSwitch(
     stack: Value<ChildStack<*, ExtrasRouter.Wrapper>>,
-    isTwoPane: Boolean,
+    isSinglePane: Boolean,
 ) {
     Children(
         stack = stack,
         animation = stackAnimation(fade()),
     ) {
         when (val child = it.instance) {
-            is ExtrasRouter.Wrapper.RoomSettings -> RoomSettingsContainer(child.viewModel, isTwoPane)
+            is ExtrasRouter.Wrapper.RoomSettings -> RoomSettingsContainer(child.viewModel, isSinglePane)
             is ExtrasRouter.Wrapper.AddMember -> AddMembersContainer(child.viewModel)
             is ExtrasRouter.Wrapper.ExportRoom -> ExportRoomContainer(child.viewModel)
-            is ExtrasRouter.Wrapper.MessageMetadata -> UnifiedMessageMetadata(child.viewModel, stack.value.items.size)
+            is ExtrasRouter.Wrapper.MessageMetadata -> UnifiedMessageMetadata(
+                child.viewModel,
+                stack.value.items.size,
+                isSinglePane,
+            )
+
             is ExtrasRouter.Wrapper.None -> Box {}
         }.let {}
     }

@@ -41,31 +41,31 @@ import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 
 
 @Composable
-fun RoomSettingsContainer(roomSettingsViewModel: RoomSettingsViewModel, isTwoPane: Boolean) {
+fun RoomSettingsContainer(roomSettingsViewModel: RoomSettingsViewModel, isSinglePane: Boolean) {
     Box(Modifier.fillMaxWidth().clickable(enabled = false) {}) {
         Box(
             Modifier
                 .fillMaxHeight()
                 .align(Alignment.CenterEnd)
         ) {
-            RoomSettings(roomSettingsViewModel, isTwoPane)
+            RoomSettings(roomSettingsViewModel, isSinglePane)
         }
     }
 }
 
 interface RoomSettingsView {
     @Composable
-    fun create(roomSettingsViewModel: RoomSettingsViewModel, isTwoPane: Boolean)
+    fun create(roomSettingsViewModel: RoomSettingsViewModel, isSinglePane: Boolean)
 }
 
 @Composable
-fun RoomSettings(roomSettingsViewModel: RoomSettingsViewModel, isTwoPane: Boolean) {
-    DI.get<RoomSettingsView>().create(roomSettingsViewModel, isTwoPane)
+fun RoomSettings(roomSettingsViewModel: RoomSettingsViewModel, isSinglePane: Boolean) {
+    DI.get<RoomSettingsView>().create(roomSettingsViewModel, isSinglePane)
 }
 
 class RoomSettingsViewImpl : RoomSettingsView {
     @Composable
-    override fun create(roomSettingsViewModel: RoomSettingsViewModel, isTwoPane: Boolean) {
+    override fun create(roomSettingsViewModel: RoomSettingsViewModel, isSinglePane: Boolean) {
         val i18n = DI.get<I18nView>()
         val error = roomSettingsViewModel.error.collectAsState().value
         val leaveRoomWarningOpen = roomSettingsViewModel.leaveRoomWarningOpen.collectAsState().value
@@ -86,7 +86,7 @@ class RoomSettingsViewImpl : RoomSettingsView {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconButton(onClick = { roomSettingsViewModel.close() }, Modifier.buttonPointerModifier()) {
-                                if (isTwoPane) Icon(Icons.AutoMirrored.Default.ArrowBack, i18n.commonBack())
+                                if (isSinglePane) Icon(Icons.AutoMirrored.Default.ArrowBack, i18n.commonBack())
                                 else Icon(Icons.Default.Close, i18n.commonClose())
                             }
                             Spacer(Modifier.size(10.dp))

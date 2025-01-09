@@ -51,7 +51,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
-fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: Int) {
+fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: Int, isSinglePane: Boolean) {
     val i18n = DI.get<I18nView>()
     val scroll = rememberScrollState()
     val edits = viewModel.edits.collectAsState().value
@@ -70,13 +70,16 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
                 Column(Modifier.fillMaxWidth()) {
                     Row(
                         Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         IconButton(
                             onClick = { viewModel.back() },
                             modifier = Modifier.buttonPointerModifier(),
                         ) {
-                            if (stackPosition > 2) Icon(Icons.AutoMirrored.Default.ArrowBack, i18n.commonBack())
+                            if (isSinglePane || stackPosition > 2) Icon(
+                                Icons.AutoMirrored.Default.ArrowBack,
+                                i18n.commonBack()
+                            )
                             else Icon(Icons.Default.Close, i18n.commonClose())
                         }
                         Spacer(Modifier.size(10.dp))
