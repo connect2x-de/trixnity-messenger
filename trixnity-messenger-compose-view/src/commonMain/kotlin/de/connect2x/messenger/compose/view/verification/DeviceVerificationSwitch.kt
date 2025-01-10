@@ -107,7 +107,7 @@ fun DeviceVerificationWizardWaitForOther(cancelAction: (() -> Unit)? = null) {
         id = "DEVICE_VERIFICATION_WIZARD_WAIT",
         title = { i18n.deviceVerification() },
         content = {
-            Column {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 DeviceVerificationWaitForOtherContent()
             }
         },

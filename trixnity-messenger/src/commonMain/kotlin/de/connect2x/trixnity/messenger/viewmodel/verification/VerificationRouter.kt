@@ -6,14 +6,11 @@ import com.arkivanov.decompose.router.stack.childStack
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
-
-private val log = KotlinLogging.logger {  }
 
 class VerificationRouter(
     private val viewModelContext: ViewModelContext,
@@ -29,10 +26,6 @@ class VerificationRouter(
         key = "VerificationRouter-${routerKey}",
         childFactory = ::createChild,
     )
-
-    init {
-        log.debug{"Started Verification Router"}
-    }
 
     private fun createChild(config: Config, componentContext: ComponentContext): Wrapper =
         when (config) {

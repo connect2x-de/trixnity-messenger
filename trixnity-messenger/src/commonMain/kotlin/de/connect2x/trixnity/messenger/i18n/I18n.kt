@@ -284,9 +284,9 @@ abstract class I18n(
     }
 
     fun verificationMethodSasDevice() = translate {
-        EN - """Please compare a set of emojis on this device and another device where this account is active.
+        EN - """        Please compare a set of emojis on this device and another device where this account is active.
         In case the emojis are different, please contact your administrator.""".trimIndent()
-        DE - """Vergleichen Sie eine Reihe von Emojis an diesem Gerät und einem anderen Gerät, auf dem Ihr Konto aktiviert ist.
+        DE - """        Vergleichen Sie eine Reihe von Emojis an diesem Gerät und einem anderen Gerät, auf dem Ihr Konto aktiviert ist.
         Sollten die Emojis nicht übereinstimmen, kontaktieren Sie bitte Ihren Administrator.""".trimIndent()
     }
 
