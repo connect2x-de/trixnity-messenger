@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show users typing in room list
 - Allow sending attachments with Enter (desktop)
 - Use SysNotify on desktop targets to display native toasts for notifications
+- Check server capabilities for setting display name and avatar and prevent editing if not supported
 
 ### Changed
 
@@ -22,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 ### Removed
+
+- Internal: removed strong skipping Compose mode as it is enabled by default now 
 
 ### Fixed
 
