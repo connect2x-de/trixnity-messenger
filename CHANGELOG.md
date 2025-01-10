@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show users typing in room list
 - Allow sending attachments with Enter (desktop)
 - Check server capabilities for setting display name and avatar and prevent editing if not supported
+- More conservative MatrixClient initialization failure handling.
 
 ### Changed
 

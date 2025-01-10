@@ -1,8 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.AccountAlreadyExistsException
-import de.connect2x.trixnity.messenger.LoadStoreException.StoreLockedException
 import de.connect2x.trixnity.messenger.MatrixClientFactory
+import de.connect2x.trixnity.messenger.MatrixClientInitializationException
+import de.connect2x.trixnity.messenger.MatrixClientInitializationException.DatabaseLockedException
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixClientsImpl
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
@@ -261,7 +262,10 @@ class MatrixClientsTest : ShouldSpec() {
 
                 val result = cut.initFromStore()
 
-                result shouldBe MatrixClients.InitFromStoreResult(setOf(), mapOf(UserId("test1", "server") to null))
+                result shouldBe MatrixClients.InitFromStoreResult(
+                    setOf(),
+                    mapOf(UserId("test1", "server") to MatrixClientInitializationException.NoDatabaseException)
+                )
                 cut.value shouldBe mapOf()
                 initFromStoreCalled shouldBe true
 
@@ -271,11 +275,11 @@ class MatrixClientsTest : ShouldSpec() {
                 val cut = createCut()
                 settings.update(UserId("test1", "server")) { it }
                 initFromStore calls {
-                    Result.failure(StoreLockedException("The database is locked."))
+                    Result.failure(DatabaseLockedException("The database is locked."))
                 }
                 cut.initFromStore() shouldBe MatrixClients.InitFromStoreResult(
                     success = setOf(),
-                    failures = mapOf(UserId("test1", "server") to StoreLockedException("The database is locked."))
+                    failures = mapOf(UserId("test1", "server") to DatabaseLockedException("The database is locked."))
                 )
 
                 cancelNeverEndingCoroutines()

@@ -93,8 +93,8 @@ class MatrixClientFactoryImpl(
         val repositoriesModule = try {
             repositoriesModuleCreation.create(userId)
         } catch (exc: Exception) {
-            if (isLocked(exc)) throw LoadStoreException.StoreLockedException()
-            else throw LoadStoreException.StoreAccessException(exc.message)
+            if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
+            else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
         }
         return repositoriesModule
     }
@@ -107,8 +107,8 @@ class MatrixClientFactoryImpl(
         val repositoriesModule = try {
             repositoriesModuleCreation.load(userId, databasePassword)
         } catch (exc: Exception) {
-            if (isLocked(exc)) throw LoadStoreException.StoreLockedException()
-            else throw LoadStoreException.StoreAccessException(exc.message)
+            if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
+            else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
         }
         return repositoriesModule
     }
