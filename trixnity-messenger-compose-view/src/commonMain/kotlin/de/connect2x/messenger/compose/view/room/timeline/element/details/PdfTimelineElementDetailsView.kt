@@ -7,19 +7,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.blockPointerInput
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -39,9 +31,6 @@ import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import net.folivo.trixnity.client.media.PlatformMedia
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.reflect.KClass
 
 class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.File> {
@@ -77,55 +66,12 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                 Column(
                     Modifier.fillMaxSize().blockPointerInput(),
                 ) {
-                    Surface(
-                        Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.surface,
-                        tonalElevation = 8.dp,
-                    ) {
-                        FlowRow {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Button(
-                                    modifier = Modifier.padding(horizontal = 8.dp).buttonPointerModifier(),
-                                    onClick = { onClose() },
-                                ) {
-                                    Text(i18n.commonClose())
-                                }
-                                Text(element.name)
-                            }
-                            Button(
-                                modifier = Modifier.padding(horizontal = 8.dp).buttonPointerModifier(),
-                                onClick = { onSave() }
-                            ) {
-                                Text(i18n.downloadMessage())
-                            }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Button(
-                                    modifier = Modifier.padding(horizontal = 8.dp).buttonPointerModifier(),
-                                    onClick = {
-                                        val newZoom = min(4.0f, zoom.value * 1.33f)
-                                        zoom.value = if (newZoom > 1f && zoom.value < 1f) 1f else newZoom
-                                    }) {
-                                    Text("+")
-                                }
-                                Text("${ceil(zoom.value * 100)}%")
-                                Button(
-                                    modifier = Modifier.padding(horizontal = 8.dp).buttonPointerModifier(),
-                                    onClick = {
-                                        val newZoom = max(0.1f, zoom.value * 0.66f)
-                                        zoom.value = if (newZoom < 1f && zoom.value > 1f) 1f else newZoom
-                                    }) {
-                                    Text("-")
-                                }
-                            }
-                        }
-                    }
-                    HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
                     Box(
                         Modifier
-                            .background(Color.Gray)
+                            .background(Color.Black)
                             .fillMaxSize()
                             .weight(1f)
-                            .focusable()
+                            .focusable(),
                     ) {
                         when {
                             error != null -> {

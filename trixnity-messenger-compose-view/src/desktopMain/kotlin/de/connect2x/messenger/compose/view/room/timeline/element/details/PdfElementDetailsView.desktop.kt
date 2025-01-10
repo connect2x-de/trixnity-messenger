@@ -103,7 +103,8 @@ actual fun PDFReader(
     Box(
         Modifier
             .fillMaxSize()
-            .onSizeChanged { viewSize = it }
+            .onSizeChanged { viewSize = it },
+        contentAlignment = Alignment.Center,
     ) {
         val documentData = document?.first
         val renderer = document?.second
@@ -121,7 +122,7 @@ actual fun PDFReader(
             LazyColumn(
                 modifier = Modifier
                     .horizontalScroll(horizontalScroll)
-                    .simpleVerticalScrollbar(lazyListState, MaterialTheme.colorScheme.primary)
+                    .simpleVerticalScrollbar(lazyListState, Color.Gray)
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(8.dp),

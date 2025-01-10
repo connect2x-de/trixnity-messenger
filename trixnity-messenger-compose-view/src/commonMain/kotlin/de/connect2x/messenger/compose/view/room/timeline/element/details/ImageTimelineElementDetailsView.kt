@@ -33,6 +33,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.get
@@ -55,6 +56,7 @@ class ImageTimelineElementDetailsView :
         "image/png",
         "image/bmp",
         "image/webp",
+        "image/gif", // gifs can be rendered statically (first frame)
     )
 
     @OptIn(ExperimentalResourceApi::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
@@ -87,8 +89,7 @@ class ImageTimelineElementDetailsView :
         FileBasedDetailsDialog(element, onClose, additions = { ZoomButtons(scale) }) {
             // we need focus in the box to capture key events
             val focusRequester = remember { FocusRequester() }
-
-            BoxWithConstraints {
+            BoxWithConstraints(Modifier.zIndex(0.0f)) {
                 Box(
                     Modifier
                         .fillMaxSize()

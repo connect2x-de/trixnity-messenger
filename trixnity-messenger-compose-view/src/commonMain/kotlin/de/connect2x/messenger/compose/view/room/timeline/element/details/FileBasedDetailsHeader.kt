@@ -34,6 +34,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -64,6 +65,7 @@ fun FileBasedDetailsHeader(
 
     Row(
         Modifier
+            .zIndex(99.0f)
             .fillMaxWidth()
             .background(color = Color.Black)
             .padding(MaterialTheme.messengerDpConstants.small)
