@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,11 +20,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isMetaPressed
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.DownloadProgress
-import de.connect2x.messenger.compose.view.common.blockPointerInput
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
@@ -52,6 +55,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         val progress = element.downloadMediaProgress.collectAsState().value
         val (error, setError) = remember { mutableStateOf<String?>(null) }
         var zoom = remember { mutableStateOf(1.0f) }
+        val canZoom = remember { mutableStateOf(false) }
         val i18n = DI.current.get<I18nView>()
 
         LaunchedEffect(Unit) {
@@ -62,49 +66,51 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         }
 
         FileBasedDetailsDialog(element, onClose, additions = { ZoomButtons(zoom) }) {
-            BoxWithConstraints {
-                Column(
-                    Modifier.fillMaxSize().blockPointerInput(),
+            val focusRequester = remember { FocusRequester() }
+            Column {
+                Box(
+                    Modifier
+                        .background(Color.Black)
+                        .fillMaxSize()
+                        .focusRequester(focusRequester)
+                        .focusable()
+                        .onKeyEvent { keyEvent ->
+                            canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
+                            true
+                        }
+                        .zoomModifier(focusRequester, canZoom, zoom),
                 ) {
-                    Box(
-                        Modifier
-                            .background(Color.Black)
-                            .fillMaxSize()
-                            .weight(1f)
-                            .focusable(),
-                    ) {
-                        when {
-                            error != null -> {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center,
-                                    modifier = Modifier.fillMaxSize().padding(32.dp),
-                                ) {
-                                    Icon(
-                                        MaterialTheme.messengerIcons.typeFile,
-                                        i18n.commonFile(),
-                                        Modifier.size(96.dp).align(Alignment.CenterHorizontally)
-                                    )
-                                    Text(error)
-                                }
+                    when {
+                        error != null -> {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxSize().padding(32.dp),
+                            ) {
+                                Icon(
+                                    MaterialTheme.messengerIcons.typeFile,
+                                    i18n.commonFile(),
+                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally)
+                                )
+                                Text(error)
                             }
+                        }
 
-                            progress != null -> {
-                                DownloadProgress(progress, element::cancelDownloadMedia)
-                            }
+                        progress != null -> {
+                            DownloadProgress(progress, element::cancelDownloadMedia)
+                        }
 
-                            media != null -> PDFReader(media, zoom.value) {
-                                setError(it ?: i18n.fileCouldNotBeLoaded())
-                            }
+                        media != null -> PDFReader(media, zoom.value) {
+                            setError(it ?: i18n.fileCouldNotBeLoaded())
+                        }
 
-                            else -> {
-                                Column(
-                                    modifier = Modifier.align(Alignment.Center),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center,
-                                ) {
-                                    CircularProgressIndicator()
-                                }
+                        else -> {
+                            Column(
+                                modifier = Modifier.align(Alignment.Center),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                            ) {
+                                CircularProgressIndicator()
                             }
                         }
                     }

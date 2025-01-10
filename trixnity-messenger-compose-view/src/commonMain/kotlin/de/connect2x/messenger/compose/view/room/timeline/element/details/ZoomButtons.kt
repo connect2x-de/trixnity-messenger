@@ -5,6 +5,10 @@ import androidx.compose.material.icons.outlined.ZoomIn
 import androidx.compose.material.icons.outlined.ZoomOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -19,4 +23,28 @@ fun ZoomButtons(scale: MutableState<Float>, minScale: Float = 0.2f, maxScale: Fl
     FileBasedDetailsHeaderButton(Icons.Outlined.ZoomOut, i18n.commonZoomOut()) {
         scale.value = (scale.value - 0.2f).coerceIn(minScale, maxScale)
     }
+}
+
+fun Modifier.zoomModifier(
+    focusRequester: FocusRequester,
+    canZoom: MutableState<Boolean>,
+    zoom: MutableState<Float>,
+): Modifier {
+    return this.then(
+        Modifier.pointerInput(Unit) {
+            awaitPointerEventScope {
+                while (true) {
+                    awaitPointerEvent(pass = PointerEventPass.Final)
+                        .changes
+                        .forEach {
+                            focusRequester.requestFocus() // otherwise, key events will be lost
+                            if (canZoom.value) {
+                                val delta = 0.1f * -it.scrollDelta.y
+                                zoom.value = (zoom.value + delta).coerceIn(0.2f, 4f)
+                            }
+                        }
+                }
+            }
+        }
+    )
 }

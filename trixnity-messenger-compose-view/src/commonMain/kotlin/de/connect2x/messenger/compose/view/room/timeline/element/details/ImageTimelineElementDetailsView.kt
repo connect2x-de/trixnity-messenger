@@ -30,8 +30,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.DI
@@ -71,14 +69,14 @@ class ImageTimelineElementDetailsView :
         val progress = element.loadMediaProgress.collectAsState().value
         val error = element.loadMediaError.collectAsState().value
 
-        val scale = remember { mutableStateOf(1f) }
         val offset = remember { mutableStateOf(Offset(0f, 0f)) }
+        val zoom = remember { mutableStateOf(1f) }
         val canZoom = remember { mutableStateOf(false) }
 
         val state = rememberTransformableState { zoomChange, offsetChange, rotationChange ->
             // note: scale goes by factor, not an absolute difference, so we need to multiply it
             // for this example, we don't allow downscaling, so cap it to 1f
-            scale.value = (scale.value * zoomChange).coerceIn(0.2f, 4f)
+            zoom.value = (zoom.value * zoomChange).coerceIn(0.2f, 4f)
             offset.value += offsetChange
         }
 
@@ -86,7 +84,7 @@ class ImageTimelineElementDetailsView :
             element.loadMedia()
         }
 
-        FileBasedDetailsDialog(element, onClose, additions = { ZoomButtons(scale) }) {
+        FileBasedDetailsDialog(element, onClose, additions = { ZoomButtons(zoom) }) {
             // we need focus in the box to capture key events
             val focusRequester = remember { FocusRequester() }
             BoxWithConstraints(Modifier.zIndex(0.0f)) {
@@ -99,21 +97,7 @@ class ImageTimelineElementDetailsView :
                             canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
                             true
                         }
-                        .pointerInput(Unit) {
-                            awaitPointerEventScope {
-                                while (true) {
-                                    awaitPointerEvent(pass = PointerEventPass.Final)
-                                        .changes
-                                        .forEach {
-                                            focusRequester.requestFocus() // otherwise, key events will be lost
-                                            if (canZoom.value) {
-                                                val delta = 0.1f * -it.scrollDelta.y
-                                                scale.value = (scale.value + delta).coerceIn(0.2f, 4f)
-                                            }
-                                        }
-                                }
-                            }
-                        }
+                        .zoomModifier(focusRequester, canZoom, zoom)
                         // performance when image is rendered with no alpha channel
                         .background(color = if (media == null) MaterialTheme.colorScheme.background else Color.Black)
                         .transformable(state = state),
@@ -126,8 +110,8 @@ class ImageTimelineElementDetailsView :
                             Modifier.graphicsLayer {
                                 translationX = offset.value.x
                                 translationY = offset.value.y
-                                scaleX = scale.value
-                                scaleY = scale.value
+                                scaleX = zoom.value
+                                scaleY = zoom.value
                             }
                         )
                     }

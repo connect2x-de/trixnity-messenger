@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 
 @Composable
@@ -28,7 +27,6 @@ fun FileBasedDetailsDialog(
         BoxWithConstraints {
             Column(Modifier.fillMaxSize().background(Color.Black)) {
                 FileBasedDetailsHeader(element, onClose, additions)
-                MiddleSpacer()
                 Box(
                     Modifier
                         .fillMaxSize()
