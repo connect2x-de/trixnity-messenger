@@ -24,6 +24,7 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 
+
 @Composable
 fun Header(backAction: () -> Unit, title: String, additionalButtons: @Composable (() -> Unit)? = null) {
     Header(backAction, { Text(title, style = MaterialTheme.typography.titleMedium) }, additionalButtons)
@@ -33,10 +34,13 @@ fun Header(backAction: () -> Unit, title: String, additionalButtons: @Composable
 fun Header(backAction: () -> Unit, title: @Composable () -> Unit, additionalButtons: @Composable (() -> Unit)? = null) {
     val i18n = DI.get<I18nView>()
     Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
-        Column(Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.fillMaxWidth()
+//                .background(Color.Blue)
+        ) {
             Row(
                 Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 IconButton(backAction, Modifier.buttonPointerModifier()) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, i18n.commonBack())
@@ -52,4 +56,3 @@ fun Header(backAction: () -> Unit, title: @Composable () -> Unit, additionalButt
         }
     }
 }
-

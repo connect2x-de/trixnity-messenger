@@ -27,7 +27,7 @@ sealed interface BaseTimelineElementHolderViewModel {
 
     /**
      * Indicates that the message is the first in a sequence or consecutive group of messages from the same user.
-     * This can be used to e.g. render a chat bubble edge.
+     * This can be used to e.g. render a chat bubble tail on the first message of the sequence only.
      */
     val isFirstInUserSequence: StateFlow<Boolean?>
 
@@ -42,22 +42,23 @@ sealed interface BaseTimelineElementHolderViewModel {
     val formattedDate: String
 
     /**
-     * Tells whether the event is from us.
+     * Whether the event is from us.
      */
     val isByMe: Boolean
 
     /**
-     * The sender of this event.
+     * The sender info of this event.
      */
     val sender: StateFlow<UserInfoElement?>
 
     /**
-     * Whether this element should show the sender.
+     * Whether this element should display the sender.
      */
     val showSender: StateFlow<Boolean?>
 
     /**
-     * Whether this element should render a big gap (e.g. due to a time gap or sender change).
+     * Whether this element should render a big gap (e.g. due to a time gap or sender change)
+     * which is preceding this element in the timeline.
      */
     val showBigGapBefore: StateFlow<Boolean?>
 }
