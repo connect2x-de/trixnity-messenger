@@ -143,7 +143,7 @@ private fun UserInteractions(
                                 Row {
                                     Text(
                                         reactionKey,
-                                        style = MaterialTheme.typography.labelLarge.copy(fontSize = 24.sp),
+                                        style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
                                         modifier = Modifier.paddingFromBaseline(0.dp),
                                         maxLines = 1,
                                     )
@@ -163,12 +163,16 @@ private fun ReactionsFilter(
     reactionCounts: Map<ReactionKey, UInt>,
     interactionFilterByReaction: MutableState<ReactionKey?>,
 ) {
+    if (reactionCounts.isEmpty()) return
     val i18n = DI.get<I18nView>()
-    val reactionList = reactionCounts.toList()
+    val reactionList = reactionCounts.asSequence()
     val tabIndex = interactionFilterByReaction.value?.let { selectedReaction ->
-        reactionList.map { it.first }.indexOf(selectedReaction) + 1
+        reactionList.map { it.key }.indexOf(selectedReaction) + 1
     } ?: 0
-    val reactionListWithSum = listOf(i18n.commonAll() to reactionCounts.map { it.value }.sum()) + reactionList
+    // TODO: i18n All + count
+    val reactionListWithSum: List<Pair<String, UInt>> =
+        listOf(i18n.commonAll() to reactionCounts.map { it.value }.sum()) +
+                reactionList.map { it.toPair() }
     HorizontalDivider()
     ScrollableTabRow(
         selectedTabIndex = tabIndex,
