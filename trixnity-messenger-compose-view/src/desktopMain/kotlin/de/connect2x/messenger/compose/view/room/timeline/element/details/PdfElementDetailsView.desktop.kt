@@ -37,6 +37,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -103,7 +104,8 @@ actual fun PDFReader(
     Box(
         Modifier
             .fillMaxSize()
-            .onSizeChanged { viewSize = it }
+            .onSizeChanged { viewSize = it },
+        contentAlignment = Alignment.Center,
     ) {
         val documentData = document?.first
         val renderer = document?.second
@@ -121,10 +123,10 @@ actual fun PDFReader(
             LazyColumn(
                 modifier = Modifier
                     .horizontalScroll(horizontalScroll)
-                    .simpleVerticalScrollbar(lazyListState, MaterialTheme.colorScheme.primary)
+                    .simpleVerticalScrollbar(lazyListState, Color.Gray)
                     .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(8.dp),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
+                contentPadding = PaddingValues(horizontal = MaterialTheme.messengerDpConstants.middle),
                 state = lazyListState,
                 content = {
                     items(count = documentData.numberOfPages, key = { it }) { pageId ->
@@ -149,7 +151,7 @@ actual fun PDFReader(
                             contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),
                             modifier = Modifier
                                 .background(color = Color.White) // Avoid performance drops on transparent images.
-                                .width(viewSize.width.dp / density * scale - 16.dp),
+                                .width(viewSize.width.dp / density * scale - MaterialTheme.messengerDpConstants.middle * 2),
                             contentScale = ContentScale.FillWidth,
                         )
                     }
