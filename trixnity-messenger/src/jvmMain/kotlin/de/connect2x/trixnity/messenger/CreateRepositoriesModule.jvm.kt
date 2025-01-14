@@ -6,6 +6,7 @@ import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.SQLiteDriver
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.sqlite.use
+import de.connect2x.trixnity.messenger.MatrixClientInitializationException.DatabaseAccessException
 import de.connect2x.trixnity.messenger.util.ConvertSecretByteArray
 import de.connect2x.trixnity.messenger.util.RootPath
 import de.connect2x.trixnity.messenger.util.SecretByteArray
@@ -43,8 +44,7 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
                 Room.databaseBuilder<TrixnityRoomDatabase>(
                     rootPath.forAccountDatabase(userId).resolve("database").toString()
                 ).apply {
-                    println("Creating database for user $userId with key $databaseKey")
-                    setDriver(databaseKey?.let(::EncryptedSQLiteDriver) ?: BundledSQLiteDriver())
+                    setDriver(databaseKey?.let(::EncryptedSQLiteDriver) ?: throw DatabaseAccessException("No Encryption Key given"))
                 }
         }
     }
@@ -62,7 +62,7 @@ private class EncryptedSQLiteDriver(key: ByteArray) : SQLiteDriver {
         driver.open(fileName).apply {
             prepare("PRAGMA hexkey = '$hexKey'").use {
                 if (!it.step() || it.getColumnNames().getOrNull(0) != "ok")
-                    throw Exception("Database does not support Encryption")
+                    throw DatabaseAccessException("Database does not support Encryption")
             }
         }
 }
