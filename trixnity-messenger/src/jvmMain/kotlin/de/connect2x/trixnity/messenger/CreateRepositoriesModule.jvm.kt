@@ -24,8 +24,7 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
 
         object : CreateRepositoriesModule {
             override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult {
-                // TODO: figure out key size: sqlite3mc encrypts via passphrase and internally uses a kdf depending on cipher
-                val databaseKey = SecureRandom.nextBytes(64)
+                val databaseKey = SecureRandom.nextBytes(EncryptedSQLiteDriver.KEY_SIZE)
                 return CreateRepositoriesModule.CreateResult(
                     module = createRoomRepositoriesModule(db(userId, databaseKey)),
                     databaseKey = convertSecretByteArray(databaseKey)
@@ -52,15 +51,26 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
 
 private class EncryptedSQLiteDriver(key: ByteArray) : SQLiteDriver {
 
+
+    companion object {
+        val KEY_SIZE = 32
+    }
+
+    init {
+        if (key.size != KEY_SIZE) {
+            throw DatabaseAccessException("Invalid key size: want ${KEY_SIZE}, got ${key.size}")
+        }
+    }
+
     @ExperimentalStdlibApi
-    private val hexKey = key.toHexString()
+    private val rawKey = key.toHexString()
 
     private val driver = BundledSQLiteDriver()
 
     @ExperimentalStdlibApi
     override fun open(fileName: String): SQLiteConnection =
         driver.open(fileName).apply {
-            prepare("PRAGMA hexkey = '$hexKey'").use {
+            prepare("PRAGMA key = 'raw:$rawKey'").use {
                 if (!it.step() || it.getColumnNames().getOrNull(0) != "ok")
                     throw DatabaseAccessException("Database does not support Encryption")
             }
