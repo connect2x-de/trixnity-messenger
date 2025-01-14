@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import io.kotest.core.spec.style.ShouldSpec
 
-class UnifiedMessageMetadataViewModelTest : ShouldSpec() {
+class MessageMetadataViewModelTest : ShouldSpec() {
 
     init{
         should("return the message content"){TODO()}

@@ -63,26 +63,16 @@ class RoomHeaderViewModelTest : ShouldSpec() {
     private val otherUser = UserId("cob", "localhost")
 
     val matrixClientMock = mock<MatrixClient>()
-
     val roomServiceMock = mock<RoomService>()
-
     val userServiceMock = mock<UserService>()
-
-    val mediaServiceMock = mock<MediaService>()
-
-    val keyServiceMock = mock<KeyService>()
-
-    val roomNameMock = mock<RoomName>()
-
-    val roomTopicMock = mock<RoomTopic>()
-
-    val initialsMock = mock<Initials>()
-
-    val userPresenceMock = mock<UserPresence>()
-
-    val directRoomMock = mock<DirectRoom>()
-
-    val userBlockingMock = mock<UserBlocking>()
+    private val mediaServiceMock = mock<MediaService>()
+    private val keyServiceMock = mock<KeyService>()
+    private val roomNameMock = mock<RoomName>()
+    private val roomTopicMock = mock<RoomTopic>()
+    private val initialsMock = mock<Initials>()
+    private val userPresenceMock = mock<UserPresence>()
+    private val directRoomMock = mock<DirectRoom>()
+    private val userBlockingMock = mock<UserBlocking>()
 
     private lateinit var roomNameElement: BlockingAnsweringScope<Flow<String>>
     private lateinit var roomTopicElement: BlockingAnsweringScope<Flow<String>>
@@ -103,7 +93,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                 initialsMock,
                 userPresenceMock,
                 directRoomMock,
-                userBlockingMock
+                userBlockingMock,
             )
             every { matrixClientMock.di } returns koinApplication {
                 modules(

@@ -302,7 +302,7 @@ class TimelineElementHolderViewModelImpl(
             val eventContent = timelineEventFlow.first().event.content
             if (eventContent !is MessageEventContent) return@flow
             val repliedEventId = eventContent.relatesTo?.replyTo?.eventId
-                ?: return@flow
+                ?: return@flow // Emit nothing if repled element can't be resolved.
             emit(
                 repliedTimelineElementHolderViewModelFactory.create(
                     childContext("repliedElement-$eventId"),
@@ -360,7 +360,7 @@ class TimelineElementHolderViewModelImpl(
     override val isReadBy: StateFlow<List<UserInfoElement>?> =
         getMessageReadReceipts(matrixClient, senderUserId, roomId, eventId).map { users ->
             when {
-                users.isEmpty() -> null
+                users.isNullOrEmpty() -> null
                 else -> users.map {
                     it.toUserInfoElement(coroutineScope, matrixClient, initials, config.avatarMaxSize, it.userId)
                 }
@@ -468,9 +468,9 @@ class TimelineElementHolderViewModelImpl(
         onOpenMetadata(this.eventId)
     }
 
-//    override fun toString(): String =
-//        "TimelineElementViewModel(showLoadingIndicator=${this@TimelineElementHolderViewModelImpl.hasLoadingIndicatorBefore.value}" +
-//                ", shouldShowUnreadMarker=${hasUnreadMarker.value})"
+    override fun toString(): String =
+        "TimelineElementViewModel(showLoadingIndicator=${showLoadingIndicatorBefore.value}" +
+                ", shouldShowUnreadMarker=${showUnreadMarker.value})"
 }
 
 class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {

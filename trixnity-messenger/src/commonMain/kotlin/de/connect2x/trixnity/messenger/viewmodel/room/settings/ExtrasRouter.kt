@@ -90,9 +90,10 @@ class ExtrasRouterImpl(
         }
     }
 
+    override fun isExtrasRouterShown(): Boolean = stack.value.active.configuration !is None
+
     override suspend fun closeExtrasRouter() {
         log.debug { "close room settings" }
-        // TODO: clear only settings items if Metadata is open?
         settingsNavigation.popWhileSuspending { it != None }
     }
 
@@ -109,8 +110,6 @@ class ExtrasRouterImpl(
             settingsNavigation.bringToFrontSuspending(baseConfig)
         } else onRouterAlreadyShown()
     }
-
-    override fun isExtrasRouterShown(): Boolean = stack.value.active.configuration !is None
 
     private fun createSettingsChild(
         config: Config,

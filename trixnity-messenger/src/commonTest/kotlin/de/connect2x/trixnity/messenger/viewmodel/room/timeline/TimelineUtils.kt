@@ -8,7 +8,6 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.withClue
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +20,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeout
+import kotlinx.datetime.Instant
+import kotlinx.datetime.Instant.Companion.fromEpochMilliseconds
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.client.room.GetTimelineEventConfig
@@ -60,15 +61,15 @@ import net.folivo.trixnity.core.model.events.m.room.RedactionEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import kotlin.time.Duration.Companion.seconds
 
+
 private val log = KotlinLogging.logger {}
 
 fun roomUsers(
     userService: UserService,
     roomId: RoomId,
     block: RoomUserBuilder.() -> Unit,
-) {
+): RoomUserBuilder =
     RoomUserBuilder(userService, roomId).apply(block)
-}
 
 class RoomUserBuilder(
     private val userService: UserService,
@@ -77,33 +78,57 @@ class RoomUserBuilder(
     data class RoomUserWithReceipts(
         val user: RoomUser,
         val receipts: RoomUserReceipts,
+        val testTag: String = "none",
     )
 
     val users = MutableStateFlow(listOf<RoomUserWithReceipts>())
 
+    private fun updateMocks(testTag: String = "none") {
+        every { userService.getAll(roomId) } calls {
+            log.debug { "userService.getAll($roomId) for tag: $testTag" }
+            users.map {
+                it.associate { (user, _) ->
+                    user.userId to flowOf(
+                        user
+                    )
+                }
+            }
+        }
+        every { userService.getAllReceipts(roomId) } calls {
+            log.debug { "userService.getAllReceipts($roomId) for tag: $testTag" }
+            users.map {
+                it.associate { (_, receipts) ->
+                    receipts.userId to flowOf(receipts)
+                }
+            }
+        }
+    }
+
     init {
-        every { userService.getAll(roomId) } returns users.map {
-            it.associate { (user, _) ->
-                user.userId to flowOf(
-                    user
-                )
-            }
-        }
-        every { userService.getAllReceipts(roomId) } returns users.map {
-            it.associate { (_, receipts) ->
-                receipts.userId to flowOf(
-                    receipts
-                )
-            }
-        }
+        updateMocks()
+    }
+
+    fun addOrUpdateUsers(block: RoomUserBuilder.() -> Unit) {
+        this.apply(block)
     }
 
     operator fun RoomUserWithReceipts.unaryPlus() {
-        every { userService.getById(roomId, this@unaryPlus.user.userId) } returns flowOf(this.user)
-        users.update { it + this }
+//        updateMocks(this@unaryPlus.testTag)
+        every { userService.getById(roomId, this@unaryPlus.user.userId) } calls {
+            log.debug { "userService.getById($roomId, ${this@unaryPlus.user.userId}) for tag: $testTag" }
+            flowOf(this@unaryPlus.user)
+        }
+        users.update {
+            it.filter { existingUser -> existingUser.user.userId != this.user.userId } + this
+        }
     }
 
-    fun roomUser(name: String, id: UserId = UserId(name), lastReadMessage: EventId? = null): RoomUserWithReceipts =
+    fun roomUser(
+        name: String,
+        id: UserId = UserId(name),
+        lastReadMessage: EventId? = null,
+        testTag: String = "none",
+    ): RoomUserWithReceipts =
         RoomUserWithReceipts(
             RoomUser(
                 roomId,
@@ -111,11 +136,11 @@ class RoomUserBuilder(
                 name,
                 StateEvent(
                     MemberEventContent(membership = Membership.JOIN),
-                    EventId(""),
+                    EventId("$name-join"),
                     id,
                     roomId,
                     0L,
-                    stateKey = ""
+                    stateKey = "",
                 ),
             ),
             RoomUserReceipts(
@@ -125,7 +150,8 @@ class RoomUserBuilder(
                         ReceiptType.Read to RoomUserReceipts.Receipt(it, ReceiptEventContent.Receipt(24))
                     )
                 }.orEmpty()
-            )
+            ),
+            testTag,
         )
 }
 
@@ -139,16 +165,17 @@ fun timeline(
         roomServiceMock.getAccountData(roomId, FullyReadEventContent::class)
     }
     val fullyReadEventIndex = MutableStateFlow<Int?>(null)
-    fullyReadMock returns fullyReadEventIndex.map { it?.let { FullyReadEventContent(EventId("$it")) } }
+    fullyReadMock returns fullyReadEventIndex
+        .map { it?.let { FullyReadEventContent(EventId("$it")) } }
 
     val room = MutableStateFlow(Room(roomId))
     every { roomServiceMock.getById(roomId) } returns room
 
     val timelineMock = TimelineMock(room, fullyReadEventIndex, roomServiceMock).apply { addEvents(block) }
-    every { roomServiceMock.getLastTimelineEvent(roomId, any()) } returns
-            timelineMock.eventsInStore.map { it.lastOrNull() }
-    every { roomServiceMock.getLastTimelineEvents(roomId, any()) } returns
-            timelineMock.eventsInStore.map { it.reversed().asFlow() }
+    every { roomServiceMock.getLastTimelineEvent(roomId, any()) } returns timelineMock
+        .eventsInStore.map { it.lastOrNull() }
+    every { roomServiceMock.getLastTimelineEvents(roomId, any()) } returns timelineMock
+        .eventsInStore.map { it.reversed().asFlow() }
     every {
         roomServiceMock.getTimeline(
             eq(roomId),
@@ -266,13 +293,11 @@ class TimelineBuilder(
     private val roomId = room.value.roomId
     private val timelineEvents: MutableStateFlow<List<MutableStateFlow<TimelineEvent>>> = MutableStateFlow(listOf())
 
-    fun build(): List<StateFlow<TimelineEvent>> {
-        return timelineEvents.value
-    }
+    fun build(): List<StateFlow<TimelineEvent>> = timelineEvents.value
 
-    private var idCounter = 0
+    private var idCounter: Int = 0
+    private var timeCounter: Long = 1
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     operator fun TimelineEvent.unaryPlus(): MutableStateFlow<TimelineEvent> {
         val previousTimelineEvent = timelineEvents.value.lastOrNull()
         val newTimelineEvent = MutableStateFlow(this.copy(previousEventId = previousTimelineEvent?.value?.eventId))
@@ -292,6 +317,7 @@ class TimelineBuilder(
                     }
             }
         }
+
         every {
             roomServiceMock.getTimelineEvents(roomId, eventId, GetEvents.Direction.BACKWARDS, any())
         } returns channelFlow {
@@ -330,15 +356,16 @@ class TimelineBuilder(
 
     fun messageEvent(
         sender: UserId,
-        sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
+        eventId: EventId? = null,
+        sentAt: Instant = fromEpochMilliseconds(timeCounter++ * 1000),
         transactionId: String? = null,
         block: MessageEventBuilder.() -> Unit
     ): MessageEvent<*> =
-        messageEvent(sender, EventId("${idCounter++}"), roomId, sentAt, transactionId, block)
+        messageEvent(sender, eventId ?: EventId("${idCounter++}"), roomId, sentAt, transactionId, block)
 
     fun stateEvent(
         sender: UserId,
-        sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
+        sentAt: Instant = fromEpochMilliseconds(0),
         block: StateEventBuilder.() -> Unit
     ): StateEvent<*> =
         stateEvent(sender, EventId("${idCounter++}"), roomId, sentAt, block)
@@ -348,7 +375,7 @@ fun messageEvent(
     sender: UserId,
     eventId: EventId,
     roomId: RoomId,
-    sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
+    sentAt: Instant = fromEpochMilliseconds(0),
     transactionId: String? = null,
     block: MessageEventBuilder.() -> Unit
 ): MessageEvent<*> {
@@ -413,7 +440,7 @@ fun stateEvent(
     sender: UserId,
     eventId: EventId,
     roomId: RoomId,
-    sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
+    sentAt: Instant = fromEpochMilliseconds(0),
     block: StateEventBuilder.() -> Unit
 ): StateEvent<*> {
     val content = StateEventBuilder().apply(block).content

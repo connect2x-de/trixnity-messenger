@@ -43,7 +43,7 @@ fun getMessageIsRead(
 @OptIn(ExperimentalCoroutinesApi::class)
 fun getMessageReadReceipts(
     client: MatrixClient, senderUserId: UserId, roomId: RoomId, eventId: EventId,
-): Flow<Set<RoomUser>> = flow {
+): Flow<Set<RoomUser>?> = flow {
     val cumulatedReads = mutableSetOf<UserId>()
     isReadSearch(client, senderUserId, roomId, eventId)
         .collect {
@@ -69,15 +69,13 @@ fun getMessageReadReceipts(
     }
 }
 
-/**
- * TODO This algorithm has a few issues (mostly edge cases):
- *   - Ressource consumption: Too many same re-computations are done for each element.
- *     For example when far away from the last event and only ourself wrote messages.
- *   - Wrong results: On membership change depending on history visibility we may getting wrong results.
- *     For example when A sends a message and B joins, B may not be able to read at all but is marked as reader.
- *   Possible solution: lazily calculate Map<EventId,Set<UserId>> (sorted) in TimelineViewModel, which can be iterated through.
- *   This List must also forget "old" events, when not needed anymore and consider membership changes depending on history visibility.
- */
+// TODO This algorithm has a few issues (mostly edge cases):
+//   - Ressource consumption: Too many same re-computations are done for each element.
+//     For example when far away from the last event and only ourself wrote messages.
+//   - Wrong results: On membership change depending on history visibility we may getting wrong results.
+//     For example when A sends a message and B joins, B may not be able to read at all but is marked as reader.
+//   Possible solution: lazily calculate Map<EventId,Set<UserId>> (sorted) in TimelineViewModel, which can be iterated through.
+//   This List must also forget "old" events, when not needed anymore and consider membership changes depending on history visibility.
 @OptIn(ExperimentalCoroutinesApi::class)
 private fun isReadSearch(
     client: MatrixClient,
@@ -85,6 +83,7 @@ private fun isReadSearch(
     roomId: RoomId,
     eventId: EventId,
 ): Flow<IsReadSearchResult> =
+    // TODO: can sender be implied from message?
     getReceipts(client, senderUserId, roomId).flatMapLatest { receipts ->
         log.trace { "isReadSearch: senderUserId=$senderUserId roomId=$roomId eventId=$eventId" }
         client.room.getTimelineEvents(roomId, eventId, FORWARDS)

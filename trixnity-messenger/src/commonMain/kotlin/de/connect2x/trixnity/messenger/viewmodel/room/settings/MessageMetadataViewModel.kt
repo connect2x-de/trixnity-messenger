@@ -168,6 +168,7 @@ class MessageMetadataViewModelImpl(
             .filterNotNull()
             .flatMapLatest { senderUserId ->
                 getMessageReadReceipts(matrixClient, senderUserId, roomId, eventId)
+                    .map { it ?: emptySet() }
             }.stateIn(coroutineScope, whileSubscribedWithTimeout, emptySet())
 
     val reactions: StateFlow<MessageUserReactions> =

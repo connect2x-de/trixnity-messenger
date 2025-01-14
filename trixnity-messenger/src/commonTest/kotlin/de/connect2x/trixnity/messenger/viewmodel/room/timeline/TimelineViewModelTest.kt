@@ -396,6 +396,9 @@ class TimelineViewModelTest : ShouldSpec() {
                 job.cancel()
             }
         }
+        context("message receipts"){
+            // TODO: Add smoke tests for isRead
+        }
         context(TimelineViewModel::viewState.name) {
             should("load more messages before") {
                 val timelineMock = timeline(roomServiceMock, roomId) {
