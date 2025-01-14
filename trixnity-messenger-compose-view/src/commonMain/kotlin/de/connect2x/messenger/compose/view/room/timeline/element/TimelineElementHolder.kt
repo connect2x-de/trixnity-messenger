@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -14,6 +13,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxEl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.FlowPreview
 
 private val log = KotlinLogging.logger { }
 
@@ -32,6 +32,7 @@ fun TimelineElementHolder(
 }
 
 class TimelineElementHolderViewImpl : TimelineElementHolderView {
+    @OptIn(FlowPreview::class)
     @Composable
     override fun create(
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
@@ -45,10 +46,10 @@ class TimelineElementHolderViewImpl : TimelineElementHolderView {
                         timelineElementHolderViewModel.showLoadingIndicatorAfter.collectAsState().value
                     val showUnreadMarker = timelineElementHolderViewModel.showUnreadMarker.collectAsState().value
 
-                    AnimatedVisibility(showLoadingIndicatorBefore, enter = EnterTransition.None) { LoadingSpinner() }
+                    AnimatedVisibility(showLoadingIndicatorBefore) { LoadingSpinner() }
                     TimelineElementHolderSwitch(timelineElementHolderViewModel)
                     AnimatedVisibility(showUnreadMarker) { UnreadMessagesIndicator() }
-                    AnimatedVisibility(showLoadingIndicatorAfter, enter = EnterTransition.None) { LoadingSpinner() }
+                    AnimatedVisibility(showLoadingIndicatorAfter) { LoadingSpinner() }
                 }
 
                 is OutboxElementHolderViewModel -> {

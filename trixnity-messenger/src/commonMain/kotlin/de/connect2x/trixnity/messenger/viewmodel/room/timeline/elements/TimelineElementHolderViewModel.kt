@@ -13,9 +13,11 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.debounceAfterFirst
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emitAll
@@ -42,7 +45,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.getAccountData
 import net.folivo.trixnity.client.room.getTimelineEventReactionAggregation
 import net.folivo.trixnity.client.room.getTimelineEventReplaceAggregation
 import net.folivo.trixnity.client.room.message.react
@@ -63,14 +65,15 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
-import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.core.component.get
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.seconds
 
 
 private val log = KotlinLogging.logger { }
@@ -88,6 +91,7 @@ interface TimelineElementHolderViewModelFactory {
         showLoadingIndicatorBefore: Flow<Boolean>,
         showLoadingIndicatorAfter: Flow<Boolean>,
         getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
+        fullyReadEvent: Flow<EventId?>,
         onMessageReplace: (RoomId, EventId) -> Unit,
         onMessageReply: (RoomId, EventId) -> Unit,
         onMessageReport: (RoomId, EventId) -> Unit,
@@ -105,6 +109,7 @@ interface TimelineElementHolderViewModelFactory {
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
             getReceipts = getReceipts,
+            fullyReadEvent = fullyReadEvent,
             onMessageReplace = onMessageReplace,
             onMessageReply = onMessageReply,
             onMessageReport = onMessageReport,
@@ -169,6 +174,7 @@ class TimelineElementHolderViewModelImpl(
     showLoadingIndicatorBefore: Flow<Boolean>,
     showLoadingIndicatorAfter: Flow<Boolean>,
     private val getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
+    private val fullyReadEvent: Flow<EventId?>,
     private val onMessageReplace: (RoomId, EventId) -> Unit,
     private val onMessageReply: (RoomId, EventId) -> Unit,
     private val onMessageReport: (RoomId, EventId) -> Unit,
@@ -181,10 +187,17 @@ class TimelineElementHolderViewModelImpl(
     private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
     private val repliedTimelineElementHolderViewModelFactory = get<RepliedTimelineElementHolderViewModelFactory>()
 
+    @OptIn(FlowPreview::class)
     override val showLoadingIndicatorBefore =
-        showLoadingIndicatorBefore.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+        showLoadingIndicatorBefore
+            .debounce { if (it) 1.seconds else Duration.ZERO } // prevent indicator on fast loading
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+
+    @OptIn(FlowPreview::class)
     override val showLoadingIndicatorAfter =
-        showLoadingIndicatorAfter.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+        showLoadingIndicatorAfter
+            .debounce { if (it) 1.seconds else Duration.ZERO } // prevent indicator on fast loading
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -199,12 +212,13 @@ class TimelineElementHolderViewModelImpl(
         ).shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
     override val showUnreadMarker: StateFlow<Boolean> =
-        matrixClient.room.getAccountData<FullyReadEventContent>(roomId).flatMapLatest { fullyReadEvent ->
-            if (fullyReadEvent?.eventId == eventId) {
-                log.trace { "start compute unread marker at $eventId" }
-                nextSupportedTimelineEvent.map { it != null && it.sender != userId }
-            } else flowOf(false)
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+        fullyReadEvent
+            .flatMapLatest { fullyReadEvent ->
+                if (fullyReadEvent == eventId) {
+                    log.trace { "start compute unread marker at $eventId" }
+                    nextSupportedTimelineEvent.map { it != null && it.sender != userId }.debounceAfterFirst(1.seconds)
+                } else flowOf(false)
+            }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override val isReplaced: StateFlow<Boolean> =
         matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId).map {

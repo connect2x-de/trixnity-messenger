@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
@@ -37,6 +38,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.UnknownEventContent
+import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
@@ -681,6 +683,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             showLoadingIndicatorBefore = flowOf(false),
             showLoadingIndicatorAfter = flowOf(false),
             getReceipts = { receipts },
+            fullyReadEvent = roomServiceMock.getAccountData(roomId, FullyReadEventContent::class).map { it?.eventId },
             timelineEventFlow = flowOf(timelineEvent),
             onMessageReplace = mock(),
             onMessageReply = mock(),

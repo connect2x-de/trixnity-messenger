@@ -187,7 +187,7 @@ class TimelineViewImpl : TimelineView {
                 val listState =
                     rememberLazyListState(initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else 0)
 
-                val uiState by remember {
+                val visible by remember {
                     derivedStateOf {
                         val visibleItems = listState.layoutInfo.visibleItemsInfo
                         val lastVisible =
@@ -205,19 +205,23 @@ class TimelineViewImpl : TimelineView {
                                 val key = it.key
                                 key as? String
                             }
-                        if (firstVisible != null && lastVisible != null)
-                            TimelineViewModel.ViewState(
-                                firstVisible,
-                                lastVisible,
-                                timelineElementHolderViewModels.last().key,
-                                timelineElementHolderViewModels.first().key,
-                                isFocused,
-                            )
-                        else null
+                        if (firstVisible != null && lastVisible != null) {
+                            firstVisible to lastVisible
+                        } else null
                     }
                 }
-                LaunchedEffect(uiState) {
-                    timelineViewModel.viewState.value = uiState
+                LaunchedEffect(visible, timelineElementHolderViewModels, isFocused) {
+                    visible?.let {
+                        timelineViewModel.viewState.value = TimelineViewModel.ViewState(
+                            it.first,
+                            it.second,
+                            timelineElementHolderViewModels.last().key,
+                            timelineElementHolderViewModels.first().key,
+                            isFocused,
+                        ).also {
+                            log.debug { "viewState: $it" }
+                        }
+                    }
                 }
 
                 LaunchedEffect(scrollTo, timelineElementHolderViewModels) {

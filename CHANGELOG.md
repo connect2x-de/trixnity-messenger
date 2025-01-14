@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- Internal: removed strong skipping Compose mode as it is enabled by default now 
+- Internal: removed strong skipping Compose mode as it is enabled by default now
 
 ### Fixed
 
@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show sender, when state event before element
 - Text colors in message bubbles and input field (Desktop) adjusted for dark mode
 - Removed ability to block yourself
+- Fixed various issues, that unread marker is unnecessarily displayed
 
 ### Security
 
