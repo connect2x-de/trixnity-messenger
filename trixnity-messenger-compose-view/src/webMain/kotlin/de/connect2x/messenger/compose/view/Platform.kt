@@ -15,6 +15,9 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -76,7 +79,7 @@ actual fun Tooltip(
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
         tooltip = {
             PlainTooltip(
-                modifier = modifier.clickable(onClick = onClick?: { }),
+                modifier = modifier.clickable(onClick = onClick ?: {}),
                 caretSize = TooltipDefaults.caretSize,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -109,6 +112,17 @@ actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Bool
             }
     )
 }
+
+@OptIn(ExperimentalComposeUiApi::class)
+actual fun Modifier.pointerEventWrapper(
+    eventType: PointerEventType,
+    pass: PointerEventPass,
+    onEvent: AwaitPointerEventScope.(event: PointerEvent) -> Unit
+) = this.onPointerEvent(
+    eventType,
+    pass,
+    onEvent,
+)
 
 actual suspend fun copyToClipboard(value: String, di: Koin) {
     window.navigator.clipboard.writeText(value).await()

@@ -14,6 +14,10 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.core.content.ContextCompat.getSystemService
 import de.connect2x.trixnity.messenger.util.ActivityGetter
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -77,6 +81,12 @@ actual fun Modifier.buttonPointerModifier(enabled: Boolean): Modifier = this // 
 
 actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier =
     this // empty Modifier
+
+actual fun Modifier.pointerEventWrapper(
+    eventType: PointerEventType,
+    pass: PointerEventPass,
+    onEvent: AwaitPointerEventScope.(event: PointerEvent) -> Unit
+) = this // Pointer events are not supported on Mobile.
 
 actual suspend fun copyToClipboard(value: String, di: Koin) {
     val context = di.getOrNull<ActivityGetter>()?.invoke()?.applicationContext

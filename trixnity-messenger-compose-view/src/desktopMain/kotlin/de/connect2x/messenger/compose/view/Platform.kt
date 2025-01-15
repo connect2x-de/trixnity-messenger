@@ -17,6 +17,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -26,11 +29,12 @@ import org.koin.core.Koin
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 
+
 @Composable
 private fun defaultScrollbarStyle(): ScrollbarStyle {
-    return  LocalScrollbarStyle.current.copy(
+    return LocalScrollbarStyle.current.copy(
         hoverColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f),
-        unhoverColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
+        unhoverColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
     )
 }
 
@@ -124,6 +128,17 @@ actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Bool
     )
 
 }
+
+@OptIn(ExperimentalComposeUiApi::class)
+actual fun Modifier.pointerEventWrapper(
+    eventType: PointerEventType,
+    pass: PointerEventPass,
+    onEvent: AwaitPointerEventScope.(event: PointerEvent) -> Unit
+) = this.onPointerEvent(
+    eventType,
+    pass,
+    onEvent,
+)
 
 actual suspend fun copyToClipboard(value: String, di: Koin) {
     Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(value), null)
