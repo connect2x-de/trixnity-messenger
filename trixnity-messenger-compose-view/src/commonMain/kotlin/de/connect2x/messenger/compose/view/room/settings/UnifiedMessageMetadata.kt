@@ -80,8 +80,10 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
         { viewModel.back() },
         if (isSinglePane || stackPosition > 2) BACK else CLOSE,
     ) {
-        Column(Modifier.background(Color.Blue)) {
-
+        Column(
+            Modifier
+//            .background(Color.Blue)
+        ) {
             Spacer(Modifier.size(8.dp))
             Text("Message Sender:") // TODO: i18n
             senderInfo?.let { info ->
@@ -105,11 +107,7 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
 //            MessageHistory(edits.sortedBy { "${it.formattedDate} - ${it.formattedTime}" }.reversed())
             Spacer(Modifier.size(8.dp))
         }
-
-        Box(
-            Modifier.fillMaxSize()
-//                .background(Color.Red)
-        ) {
+        Box(Modifier.fillMaxSize()) {
             Box(
                 Modifier.fillMaxSize()
                     .padding(horizontal = 8.dp)
@@ -209,41 +207,12 @@ private fun ReactionsFilter(
     val i18n = DI.get<I18nView>()
     var selectedTabIndex by remember { mutableStateOf<Int?>(0) }
     val reactionList = reactionCounts.asSequence()
-//    val tabIndex = interactionFilterByReaction.value?.let { selectedReaction ->
-//        reactionList.map { it.key }.indexOf(selectedReaction) + 1
-//    } ?: 0
     val reactionListWithSum: List<Pair<String, UInt>> =
         listOf(i18n.commonAll() to reactionList.map { it.value }.sum()) +
                 reactionList.map { it.toPair() }
     Column {
-//        HorizontalDivider()
-//        ScrollableTabRow(
-//            modifier = Modifier.height(reactionFilterHeight),
-//            selectedTabIndex = tabIndex,
-//            containerColor = Color.Transparent,
-//            contentColor = MaterialTheme.colorScheme.onSurface,
-//            edgePadding = 0.dp,
-//            divider = {},
-//
-//            ) {
-//            reactionListWithSum.forEachIndexed { index, (reaction, count) ->
-//                val isSelected = interactionFilterByReaction.value == reaction
-//                val onClick = {
-//                    if (index == 0) interactionFilterByReaction.value = null
-//                    else interactionFilterByReaction.value = reaction
-//                }
-//                Tab(
-//                    selected = isSelected,
-//                    onClick = onClick,
-//                    modifier = Modifier
-//                        .minimumInteractiveComponentSize()
-//                        .padding(horizontal = 5.dp),
-//                ) { Text("$reaction $count") }
-//            }
-//        }
-
         val filterScrollState = rememberLazyListState()
-        ScrollableTabsRow(
+        TabsRow(
             tabsCount = reactionListWithSum.size,
             selectedTabIndex = selectedTabIndex,
             scrollableState = filterScrollState,
@@ -281,7 +250,7 @@ private fun ReactionsFilter(
 }
 
 @Composable
-private fun ScrollableTabsRow(
+private fun TabsRow(
     tabsCount: Int,
     selectedTabIndex: Int?,
     modifier: Modifier = Modifier,
@@ -299,24 +268,19 @@ private fun ScrollableTabsRow(
     val averageTabWidth = tabsWidthCache.values.average()
         .let { if (it.isFinite()) it else .0 }
         .fastRoundToInt()
-//    var inducedVerticalScrollDelta by remember { mutableStateOf(0f) }
-//    LaunchedEffect(inducedVerticalScrollDelta) {
-//        scrollableState.animateScrollBy(inducedVerticalScrollDelta)
-//        inducedVerticalScrollDelta = 0f
-//    }
     Surface(
         modifier = modifier,
         color = containerColor,
         contentColor = contentColor,
     ) {
         LazyRow(
-            modifier = Modifier.background(Color.LightGray)
+            modifier = Modifier
                 .pointerEventWrapper(PointerEventType.Scroll) {
                     it.changes.firstOrNull()?.let { change ->
+                        // TODO: Ensure that there's only one simultaneous scrolling/launch happening?
                         coroutineScope.launch {
                             scrollableState.animateScrollBy(change.scrollDelta.y * density * 16)
                         }
-//                        inducedVerticalScrollDelta += change.scrollDelta.y * density
                     }
                 }
                 .onSizeChanged { scrollContainerWidth = it.width },
@@ -327,6 +291,7 @@ private fun ScrollableTabsRow(
                     val isSelected = tabIndex == selectedTabIndex
                     Box(Modifier
                         .clickable {
+                            // TODO: Ensure that there's only one simultaneous scrolling/launch happening?
                             coroutineScope.launch {
                                 scrollableState.animateScrollToItem(
                                     tabIndex,
@@ -351,7 +316,6 @@ private fun ScrollableTabsRow(
                             if (tabIndex % 2 == 0) containerColor
                             else contentColor.copy(alpha = .05f)
                         )
-//                        .background(with(Color) { if (tabIndex % 2 == 0) Red else Blue })
                     ) {
                         Box(
                             modifier = Modifier
@@ -360,14 +324,6 @@ private fun ScrollableTabsRow(
                                 .minimumInteractiveComponentSize(),
                             content = { onTabContent(tabIndex, isSelected) },
                         )
-//                        if (false) if (isSelected) selectedTabIndex?.let { tabIndex ->
-//                            Box(
-//                                Modifier
-//                                    .size(tabsWidthCache.getOrElse(tabIndex) { 0 }.dp, 8.dp)
-//                                    .align(Alignment.BottomCenter)
-//                                    .background(selectionIndicatorColor)
-//                            )
-//                        }
                     }
                 }
             }

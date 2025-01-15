@@ -33,6 +33,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beOfType
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -314,6 +315,7 @@ class RoomViewModelTest : ShouldSpec() {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun roomViewModel(): RoomViewModelImpl {
         Dispatchers.setMain(Dispatchers.Unconfined)
         return RoomViewModelImpl(
