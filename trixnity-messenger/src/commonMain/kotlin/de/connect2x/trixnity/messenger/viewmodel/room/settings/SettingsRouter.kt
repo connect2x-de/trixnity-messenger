@@ -55,7 +55,7 @@ interface SettingsRouter {
         data object ExportRoom : Config()
 
         @Serializable
-        data class ViewProfile(val roomId: RoomId, val userId: UserId) : Config()
+        data class ViewProfile(val userId: UserId) : Config()
     }
 }
 
@@ -155,7 +155,7 @@ class SettingsRouterImpl(
     }
 
     override suspend fun showUserProfile(userId: UserId) {
-        settingsNavigation.launchBringToFront(viewModelContext.coroutineScope, Config.ViewProfile(roomId, userId))
+        settingsNavigation.launchBringToFront(viewModelContext.coroutineScope, Config.ViewProfile(userId))
     }
 
     private fun closeUserProfile() {

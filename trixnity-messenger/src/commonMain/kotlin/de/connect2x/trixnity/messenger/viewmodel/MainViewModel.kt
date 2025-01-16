@@ -526,16 +526,16 @@ open class MainViewModelImpl(
     override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {
         when (timelineElementMention) {
             is TimelineElementMention.User -> {
-                val userId = timelineElementMention.user.userId
+                val otherUserId = timelineElementMention.user.userId
 
                 // TODO: find out where the mentioned userId is located instead of assuming the mention source
                 val roomId = selectedRoomId.value ?: run {
-                    log.warn { "Could not open User Profile $userId, no room selected" }
+                    log.warn { "Could not open User Profile $otherUserId, no room selected" }
                     return
                 }
 
-                log.warn { "Opening User Profile $userId" }
-                onOpenUserProfile(userId, roomId, userId)
+                log.warn { "Opening User Profile $otherUserId" }
+                onOpenUserProfile(userId, roomId, otherUserId)
             }
 
             is TimelineElementMention.Room -> {

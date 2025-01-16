@@ -104,6 +104,7 @@ interface UserProfileViewModel {
     val presence: StateFlow<Presence>
     val openingChat: StateFlow<Boolean>
     val verifying: StateFlow<Boolean>
+    val canOpenChat: StateFlow<Boolean>
 
     fun openKickUserWarning()
     fun closeKickUserWarning()
@@ -136,6 +137,14 @@ class UserProfileViewModelImpl(
 
     private val roomUser = matrixClient.user.getById(selectedRoomId, userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    override val canOpenChat =
+            matrixClient.user.getAccountData<DirectEventContent>().map { directEvent ->
+                val isDirectChatWithOtherUser = directEvent?.mappings?.get(userId)?.contains(selectedRoomId) ?: false
+                log.debug { "Checking whether chat can be opened: is direct chat with other user: $isDirectChatWithOtherUser" }
+                !isDirectChatWithOtherUser
+            }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 

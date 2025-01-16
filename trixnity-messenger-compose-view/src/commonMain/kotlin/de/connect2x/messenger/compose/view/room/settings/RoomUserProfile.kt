@@ -115,7 +115,7 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
         val userTrustLevel = userProfileViewModel.userTrustLevel.collectAsState().value
         val openingChat = userProfileViewModel.openingChat.collectAsState().value
         val verifying = userProfileViewModel.verifying.collectAsState().value
-        val isDirect = userProfileViewModel.isDirect.collectAsState().value
+        val canOpenChat = userProfileViewModel.canOpenChat.collectAsState().value
 
         Column(
             Modifier
@@ -204,7 +204,7 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
                             enabled = !blockingInProgress
                         )
                     }
-                    if (!isDirect) {
+                    if (canOpenChat) {
                         MenuElement(Modifier.clickable {
                             userProfileViewModel.openChat()
                         }) {
