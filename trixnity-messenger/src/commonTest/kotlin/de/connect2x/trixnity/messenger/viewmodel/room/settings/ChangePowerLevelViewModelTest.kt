@@ -361,22 +361,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 userId = userId,
                 coroutineContext = coroutineContext
             ),
-            roomUser = MutableStateFlow(
-                RoomUser(
-                    roomId,
-                    userId,
-                    userId.full,
-                    event = StateEvent(
-                        MemberEventContent(membership = Membership.JOIN),
-                        EventId("$1234"),
-                        userId,
-                        roomId,
-                        0,
-                        null,
-                        "key"
-                    )
-                )
-            ),
+            targetUser = userId,
             error = MutableStateFlow(null),
             selectedRoomId = roomId,
             powerLevel = powerLevel,

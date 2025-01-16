@@ -337,6 +337,11 @@ abstract class I18nView(
         DE - "Bannen"
     }
 
+    fun banned() = translate {
+        EN - "Banned"
+        DE - "Gebannt"
+    }
+
     fun unban() = translate {
         EN - "unban"
         DE - "Entbannen"
@@ -884,6 +889,16 @@ abstract class I18nView(
     fun userProfileBanUserConfirmationSure() = translate {
         EN - "Are you sure to ban this user?"
         DE - "Möchten Sie den Teilnehmer wirklich bannen?"
+    }
+
+    fun userProfileRoomOptions() = translate {
+        EN - "Room Options"
+        DE - "Raumoptionen"
+    }
+
+    fun userProfileUserOptions() = translate {
+        EN - "User Options"
+        DE - "Benutzeroptionen"
     }
 
     fun unbannable() = translate {

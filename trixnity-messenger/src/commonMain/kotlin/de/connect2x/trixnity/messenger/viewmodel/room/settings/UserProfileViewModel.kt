@@ -203,7 +203,7 @@ class UserProfileViewModelImpl(
             .create(
                 viewModelContext = viewModelContext.childContext("changePowerLevel-${userId.full}"),
                 powerLevel = powerLevel,
-                roomUser = roomUser,
+                targetUser = userId,
                 error = error,
                 selectedRoomId = selectedRoomId
             )

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -51,6 +53,8 @@ import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MessengerDialog
+import de.connect2x.messenger.compose.view.common.SmallSpacer
+import de.connect2x.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.messenger.compose.view.common.WarningDialog
 import de.connect2x.messenger.compose.view.common.blockPointerInput
 import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
@@ -61,6 +65,8 @@ import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
 import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.messengerDpConstants
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel
 import net.folivo.trixnity.client.key.UserTrustLevel
@@ -97,25 +103,18 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
         val userInfoElement = userProfileViewModel.userInfo.collectAsState().value
         val image = userInfoElement?.image?.collectAsState(null)?.value
         val userId = userProfileViewModel.userId
-        val membershipChanging = userProfileViewModel.membershipChanging.collectAsState().value
-        val iHavePowerToBanUser = userProfileViewModel.iHavePowerToBanUser.collectAsState().value
-        val iHavePowerToUnbanUser = userProfileViewModel.iHavePowerToUnbanUser.collectAsState().value
-        val iHavePowerToKickUser = userProfileViewModel.iHavePowerToKickUser.collectAsState().value
-        val maxPowerLevel = userProfileViewModel.changePowerLevelViewModel.canSetPowerLevelToMax.collectAsState().value
         val blockingInProgress = userProfileViewModel.blockingInProgress.collectAsState().value
         val isUserBlocked = userProfileViewModel.isUserBlocked.collectAsState().value
         val membership = userProfileViewModel.membership.collectAsState().value
         val membershipReason = userProfileViewModel.membershipReason.collectAsState().value
-        val canSetRoleToAdmin =
-            userProfileViewModel.changePowerLevelViewModel.canSetRoleToAdmin.collectAsState().value
-        val canSetRoleToModerator =
-            userProfileViewModel.changePowerLevelViewModel.canSetRoleToModerator.collectAsState().value
-        val canSetRoleToUser =
-            userProfileViewModel.changePowerLevelViewModel.canSetRoleToUser.collectAsState().value
+
         val userTrustLevel = userProfileViewModel.userTrustLevel.collectAsState().value
         val openingChat = userProfileViewModel.openingChat.collectAsState().value
         val verifying = userProfileViewModel.verifying.collectAsState().value
         val canOpenChat = userProfileViewModel.canOpenChat.collectAsState().value
+
+
+
 
         Column(
             Modifier
@@ -152,40 +151,35 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
                     Spacer(Modifier.height(5.dp))
                     when (userTrustLevel) {
                         is UserTrustLevel.CrossSigned ->
-                            StatusRow(i18n.secure(), true)
+                            StatusRow(i18n.secure(), true) { VerifiedIcon(VerificationLevel.USER) }
 
                         is UserTrustLevel.NotAllDevicesCrossSigned ->
-                            StatusRow(i18n.insecure(), false)
+                            StatusRow(i18n.insecure(), false) { NotVerifiedIcon(VerificationLevel.USER) }
 
                         UserTrustLevel.Blocked, is UserTrustLevel.Invalid, UserTrustLevel.Unknown, null ->
-                            StatusRow(i18n.roomNoEncryptionFound(), false)
+                            StatusRow(i18n.roomNoEncryptionFound(), false) { NotVerifiedIcon(VerificationLevel.USER) }
+                    }
+                    if (membership == Membership.BAN) {
+                        StatusRow(membershipReason ?: i18n.banned(), false) { BanIcon() }
                     }
                 }
             }
 
             Column {
-                if (membership == Membership.BAN && membershipReason != null) {
-                    HorizontalDivider(Modifier.fillMaxWidth())
-                    MenuElement {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Send,
-                            i18n.contact(),
-                            Modifier.size(24.dp)
-                        )
-                        Spacer(Modifier.size(10.dp))
-                        Text(i18n.userProfileBanReason())
-                    }
-                    Row(
-                        Modifier.fillMaxWidth().padding(start = 44.dp, end = 10.dp),
-                        Arrangement.Start,
-                        Alignment.Top
-                    ) {
-                        Text(membershipReason)
-                    }
-                }
-
                 if (!userProfileViewModel.isMyself) {
+
                     HorizontalDivider(Modifier.fillMaxWidth())
+                    SmallSpacer()
+
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.messengerDpConstants.small),
+                        Arrangement.Start,
+                        Alignment.CenterVertically
+                    ) {
+                        Text(i18n.userProfileUserOptions(), style = MaterialTheme.typography.titleMedium)
+                    }
+                    VerySmallSpacer()
+
                     MenuElement(arrangement = Arrangement.SpaceBetween) {
                         Row {
                             BlockIcon()
@@ -236,61 +230,111 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
                             color = defaultColorForState(!verifying)
                         )
                     }
-                    HorizontalDivider(Modifier.fillMaxWidth())
-                    if (
-                        canSetRoleToUser ||
-                        canSetRoleToModerator ||
-                        canSetRoleToAdmin ||
-                        (maxPowerLevel != null && maxPowerLevel != 0L)
-                    ) {
-                        MenuElement(Modifier.clickable {
-                            userProfileViewModel.changePowerLevelViewModel.openChangingPowerLevelDialog()
-                        }) {
-                            Icon(
-                                Icons.Filled.Verified,
-                                i18n.userProfileChangePowerLevel(),
-                                Modifier.size(24.dp)
-                            )
-                            Spacer(Modifier.size(10.dp))
-                            Text(i18n.userProfileChangePowerLevel())
-                        }
-                    }
-                    if (iHavePowerToBanUser || (iHavePowerToUnbanUser && membership == Membership.BAN)) {
-                        MenuElement(arrangement = Arrangement.SpaceBetween) {
-                            Row {
-                                BanIcon()
-                                Spacer(Modifier.size(10.dp))
-                                Text(i18n.userProfileBanUser())
-                            }
-                            Switch(
-                                checked = membership == Membership.BAN,
-                                onCheckedChange = {
-                                    if (membership == Membership.BAN) {
-                                        userProfileViewModel.openUnbanUserWarning()
-                                    } else {
-                                        userProfileViewModel.openBanUserWarning()
-                                    }
-                                },
-                                enabled = !membershipChanging
-                            )
-                        }
-                    }
-                    if (iHavePowerToKickUser) {
-                        MenuElement(Modifier.clickable {
-                            userProfileViewModel.openKickUserWarning()
-                        }) {
-                            Icon(
-                                Icons.Filled.PersonOff,
-                                i18n.userProfileRemoveUser(),
-                                Modifier.size(24.dp)
-                            )
-                            Spacer(Modifier.size(10.dp))
-                            Text(i18n.userProfileRemoveUser())
-                        }
-                    }
+
+
+                    RoomOptions(userProfileViewModel, i18n)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun RoomOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
+
+    val iHavePowerToBanUser = userProfileViewModel.iHavePowerToBanUser.collectAsState().value
+    val iHavePowerToUnbanUser = userProfileViewModel.iHavePowerToUnbanUser.collectAsState().value
+    val iHavePowerToKickUser = userProfileViewModel.iHavePowerToKickUser.collectAsState().value
+    val maxPowerLevel = userProfileViewModel.changePowerLevelViewModel.canSetPowerLevelToMax.collectAsState().value
+    val canSetRoleToAdmin =
+        userProfileViewModel.changePowerLevelViewModel.canSetRoleToAdmin.collectAsState().value
+    val canSetRoleToModerator =
+        userProfileViewModel.changePowerLevelViewModel.canSetRoleToModerator.collectAsState().value
+    val canSetRoleToUser =
+        userProfileViewModel.changePowerLevelViewModel.canSetRoleToUser.collectAsState().value
+    val membership = userProfileViewModel.membership.collectAsState().value
+
+    val shouldShowChangePowerLevel = canSetRoleToUser || canSetRoleToModerator || canSetRoleToAdmin ||
+            (maxPowerLevel != null && maxPowerLevel != 0L)
+    val shouldShowBan = iHavePowerToBanUser || (iHavePowerToUnbanUser && membership == Membership.BAN)
+
+    if (shouldShowChangePowerLevel || shouldShowBan || iHavePowerToKickUser) {
+        HorizontalDivider(Modifier.fillMaxWidth())
+
+        SmallSpacer()
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.messengerDpConstants.small),
+            Arrangement.Start,
+            Alignment.CenterVertically
+        ) {
+            Text(i18n.userProfileRoomOptions(), style = MaterialTheme.typography.titleMedium)
+        }
+        VerySmallSpacer()
+
+        if (shouldShowChangePowerLevel) {
+            ChangePowerLevelSection(userProfileViewModel, i18n)
+        }
+        if (shouldShowBan) {
+            BanUserSection(userProfileViewModel, i18n)
+        }
+        if (iHavePowerToKickUser) {
+            KickUserSection(userProfileViewModel, i18n)
+        }
+    }
+}
+
+@Composable
+private fun ChangePowerLevelSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
+    MenuElement(Modifier.clickable {
+        userProfileViewModel.changePowerLevelViewModel.openChangingPowerLevelDialog()
+    }) {
+        Icon(
+            Icons.Filled.Verified,
+            i18n.userProfileChangePowerLevel(),
+            Modifier.size(24.dp)
+        )
+        Spacer(Modifier.size(10.dp))
+        Text(i18n.userProfileChangePowerLevel())
+    }
+}
+
+@Composable
+private fun BanUserSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
+    val membership = userProfileViewModel.membership.collectAsState().value
+    val membershipChanging = userProfileViewModel.membershipChanging.collectAsState().value
+
+    MenuElement(arrangement = Arrangement.SpaceBetween) {
+        Row {
+            BanIcon()
+            Spacer(Modifier.size(10.dp))
+            Text(i18n.userProfileBanUser())
+        }
+        Switch(
+            checked = membership == Membership.BAN,
+            onCheckedChange = {
+                if (membership == Membership.BAN) {
+                    userProfileViewModel.openUnbanUserWarning()
+                } else {
+                    userProfileViewModel.openBanUserWarning()
+                }
+            },
+            enabled = !membershipChanging
+        )
+    }
+}
+
+@Composable
+private fun KickUserSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
+    MenuElement(Modifier.clickable {
+        userProfileViewModel.openKickUserWarning()
+    }) {
+        Icon(
+            Icons.Filled.PersonOff,
+            i18n.userProfileRemoveUser(),
+            Modifier.size(24.dp)
+        )
+        Spacer(Modifier.size(10.dp))
+        Text(i18n.userProfileRemoveUser())
     }
 }
 
@@ -555,31 +599,31 @@ private fun MenuElement(
 }
 
 @Composable
-private fun StatusRow(text: String, positive: Boolean = true) {
+private fun StatusRow(text: String, positive: Boolean = true, icon: @Composable () -> Unit,) {
     SuggestionChip(
         enabled = false,
         onClick = {},
         label = {
             Row(
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.verySmall),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (positive) {
-                    VerifiedIcon(VerificationLevel.TIMELINE_EVENT)
-                } else {
-                    NotVerifiedIcon(VerificationLevel.TIMELINE_EVENT)
+                icon()
+
+                BoxWithConstraints {
+                    Text(
+                        text,
+                        color = if (positive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.widthIn(max = maxWidth * .5f)
+                    )
                 }
 
-                Text(
-                    text,
-                    color = if (positive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
-                )
             }
         },
         colors = SuggestionChipDefaults.suggestionChipColors().copy(
             disabledContainerColor = if (positive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer,
             disabledLabelColor = if (positive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
-        )
+        ),
     )
 }
 
