@@ -1,6 +1,7 @@
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -10,7 +11,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 
 // https://stackoverflow.com/questions/66341823/jetpack-compose-scrollbars
 // https://stackoverflow.com/a/68056586
@@ -18,17 +19,18 @@ import androidx.compose.ui.unit.dp
 fun Modifier.simpleVerticalScrollbar(
     state: LazyListState,
     color: Color,
-    width: Dp = 8.dp,
+    width: Dp = MaterialTheme.messengerDpConstants.small,
     scrollBarState: MutableState<SimpleVerticalScrollbarState?>? = null,
 ): Modifier {
     val targetAlpha = if (state.isScrollInProgress) 1f else 0f
-    val duration = if (state.isScrollInProgress) 150 else 500
+    val duration = if (state.isScrollInProgress) 300 else 1_000
 
     val alpha by animateFloatAsState(
         targetValue = targetAlpha,
         animationSpec = tween(durationMillis = duration),
     )
 
+    // TODO: this does not work when the PDF is zoomed in, since it is not visible
     return drawWithContent {
         drawContent()
 
@@ -40,7 +42,7 @@ fun Modifier.simpleVerticalScrollbar(
             val elementHeight = this.size.height / state.layoutInfo.totalItemsCount
             val scrollbarOffsetY = firstVisibleElementIndex * elementHeight
             val scrollbarHeight = state.layoutInfo.visibleItemsInfo.size * elementHeight
-            val offset = Offset(this.size.width - width.toPx(), scrollbarOffsetY)
+            val offset = Offset(this.size.width - (width * 1.5f).toPx(), scrollbarOffsetY)
             val size = Size(width.toPx(), scrollbarHeight)
             if (scrollBarState != null) scrollBarState.value =
                 SimpleVerticalScrollbarState(offset, size, alpha)

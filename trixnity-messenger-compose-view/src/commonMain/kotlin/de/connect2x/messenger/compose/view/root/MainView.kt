@@ -43,7 +43,6 @@ class MainViewImpl : MainView {
                 }
             }
         }
-//        MediaOverlaySwitch(mainViewModel)
         DeviceVerificationSwitch(mainViewModel)
         AvatarCutterSwitch(mainViewModel)
         AccountSetupSwitch(mainViewModel)
