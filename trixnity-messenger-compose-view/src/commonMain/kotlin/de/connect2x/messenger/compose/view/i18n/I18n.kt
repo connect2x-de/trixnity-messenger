@@ -851,6 +851,26 @@ abstract class I18nView(
         DE - "Dieser Nutzer wird von Ihnen geblockt."
     }
 
+    fun messageDetailsTitle() = translate {
+        EN - "Message details"
+        DE - "Nachrichtendetails"
+    }
+
+    fun messageDetailsSender() = translate {
+        EN - "Sender"
+        DE - "Absender"
+    }
+
+    fun messageDetailsMessage() = translate {
+        EN - "Message"
+        DE - "Nachricht"
+    }
+
+    fun messageDetailsReadersAndReactions() = translate {
+        EN - "Readers and Reactions"
+        DE - "Leser und Reaktionen"
+    }
+
     fun roomSettings() = translate {
         EN - "room settings"
         DE - "Raumeinstellungen"

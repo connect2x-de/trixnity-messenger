@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TabRowDefaults
@@ -57,6 +59,7 @@ import de.connect2x.messenger.compose.view.pointerEventWrapper
 import de.connect2x.messenger.compose.view.room.settings.ExtrasPaneHeaderBackButtonType.BACK
 import de.connect2x.messenger.compose.view.room.settings.ExtrasPaneHeaderBackButtonType.CLOSE
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MessageMetadataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MessageUserInteraction
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -67,20 +70,58 @@ import kotlinx.coroutines.launch
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
 fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: Int, isSinglePane: Boolean) {
+    val i18n = DI.get<I18nView>()
+
     val scrollState = rememberScrollState()
-    val edits = viewModel.edits.collectAsState().value
+
+
+//    val edits = viewModel.edits.collectAsState().value
+
+    val message = viewModel.compiledMessage.collectAsState().value
+
     val reactionCounts = viewModel.reactionCounts.collectAsState().value
     val userInteractions = viewModel.userInteractions.collectAsState().value
     val senderInfo = viewModel.senderInfo.collectAsState().value
     val interactionFilterByReaction = remember { mutableStateOf<ReactionKey?>(null) }
     val reactionFilterHeight = if (reactionCounts.isEmpty()) 0.dp else 64.dp // TODO: Derive the value from a config.
     ExtrasPaneHeader(
-        "Message details", // TODO: i18n
+        i18n.messageDetailsTitle(),
         null, // TODO
         { viewModel.back() },
         if (isSinglePane || stackPosition > 2) BACK else CLOSE,
     ) {
-        Column(
+        Box(
+            Modifier.fillMaxSize()
+        ) {
+            Column(
+                Modifier
+                    .verticalScroll(scrollState)
+                    .padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp))
+            ) {
+                Spacer(Modifier.size(20.dp))
+                Text(text = i18n.messageDetailsSender(), style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.size(10.dp))
+                if (senderInfo != null) UserInfo(senderInfo)
+                Spacer(Modifier.size(20.dp))
+                Text(text = i18n.messageDetailsMessage(), style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.size(10.dp))
+                if (message != null) MessageHistory(listOf(message))
+                HorizontalDivider()
+                Spacer(Modifier.size(20.dp))
+                Text(text = i18n.messageDetailsReadersAndReactions(), style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.size(10.dp))
+                UserInteractions(userInteractions, interactionFilterByReaction.value)
+                Spacer(Modifier.size(10.dp))
+                ReactionsFilter(
+                    reactionCounts,
+                    interactionFilterByReaction,
+                    reactionFilterHeight,
+                )
+            }
+        }
+
+
+        if (false) Column(
             Modifier
 //            .background(Color.Blue)
         ) {
@@ -105,6 +146,7 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
             Spacer(Modifier.size(8.dp))
             Text("Editing history:") // TODO: i18n
 //            MessageHistory(edits.sortedBy { "${it.formattedDate} - ${it.formattedTime}" }.reversed())
+            if (message != null) MessageHistory(listOf(message))
             Spacer(Modifier.size(8.dp))
         }
         Box(Modifier.fillMaxSize()) {
@@ -134,10 +176,47 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun UserInfo(userInfo: UserInfoElement, reactions: Set<ReactionKey> = setOf()) {
+    val avatarImage = userInfo.image?.collectAsState(null)?.value
+    Box(Modifier.padding(4.dp)) {
+        Row {
+            Box(Modifier.padding(top = 6.dp, start = 6.dp)) {
+                Avatar(avatarImage, userInfo.initials ?: "?")
+            }
+            Spacer(Modifier.size(8.dp))
+            Column {
+                FlowRow {
+                    Text(userInfo.name, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.size(8.dp))
+                    Text(userInfo.userId.full, fontWeight = FontWeight.Light)
+                }
+                FlowRow {
+                    reactions.forEach { reactionKey ->
+                        Row {
+                            Text(
+                                reactionKey,
+                                style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
+                                modifier = Modifier.paddingFromBaseline(0.dp),
+                                maxLines = 1,
+                            )
+                            Spacer(Modifier.size(8.dp))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun MessageHistory(
     edits: List<TimelineElementHolderViewModel>,
 ) {
-    Column {
+    Column(
+        Modifier
+//            .background(Color.Red)
+    ) {
         edits.forEach {
             it.element.collectAsState().value?.let { element ->
                 Column(
@@ -145,7 +224,7 @@ private fun MessageHistory(
                 ) {
                     with(DI.get<TimelineElementViewSelector>()) { createAsMessagePreview(it, element) }
                 }
-                Spacer(Modifier.size(8.dp))
+                Spacer(Modifier.size(10.dp))
             }
         }
     }
@@ -163,36 +242,37 @@ private fun UserInteractions(
         }.sortedByDescending {
             it.reactions.firstOrNull()?.hashCode()
         }.forEach { interaction ->
-            val avatarImage = interaction.userInfo.image?.collectAsState(null)?.value
-            Box(Modifier.padding(4.dp)) {
-                Row {
-                    Box(Modifier.padding(top = 6.dp, start = 6.dp)) {
-                        Avatar(avatarImage, interaction.userInfo.initials ?: "?")
-                    }
-                    Spacer(Modifier.size(8.dp))
-                    // TODO: Use LazyColumn instead.
-                    Column {
-                        FlowRow {
-                            Text(interaction.userInfo.name, fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.size(8.dp))
-                            Text(interaction.userInfo.userId.full, fontWeight = FontWeight.Light)
-                        }
-                        FlowRow {
-                            interaction.reactions.forEach { reactionKey ->
-                                Row {
-                                    Text(
-                                        reactionKey,
-                                        style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
-                                        modifier = Modifier.paddingFromBaseline(0.dp),
-                                        maxLines = 1,
-                                    )
-                                    Spacer(Modifier.size(8.dp))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            // TODO: Use LazyColumn instead.
+            UserInfo(interaction.userInfo, interaction.reactions)
+//            val avatarImage = interaction.userInfo.image?.collectAsState(null)?.value
+//            Box(Modifier.padding(4.dp)) {
+//                Row {
+//                    Box(Modifier.padding(top = 6.dp, start = 6.dp)) {
+//                        Avatar(avatarImage, interaction.userInfo.initials ?: "?")
+//                    }
+//                    Spacer(Modifier.size(8.dp))
+//                    Column {
+//                        FlowRow {
+//                            Text(interaction.userInfo.name, fontWeight = FontWeight.Bold)
+//                            Spacer(Modifier.size(8.dp))
+//                            Text(interaction.userInfo.userId.full, fontWeight = FontWeight.Light)
+//                        }
+//                        FlowRow {
+//                            interaction.reactions.forEach { reactionKey ->
+//                                Row {
+//                                    Text(
+//                                        reactionKey,
+//                                        style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
+//                                        modifier = Modifier.paddingFromBaseline(0.dp),
+//                                        maxLines = 1,
+//                                    )
+//                                    Spacer(Modifier.size(8.dp))
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
         }
     }
 }
@@ -236,7 +316,7 @@ private fun ReactionsFilter(
                     Text(
                         reaction,
                         style = MaterialTheme.typography.labelLarge.let {
-                            if (tabIndex > 0) it.copy(fontSize = 24.sp) else it
+                            if (tabIndex > 0) it.copy(fontSize = 16.sp) else it
                         }
                     )
                     Spacer(Modifier.size(2.dp))
@@ -249,6 +329,7 @@ private fun ReactionsFilter(
     }
 }
 
+// TODO: move to separate file
 @Composable
 private fun TabsRow(
     tabsCount: Int,

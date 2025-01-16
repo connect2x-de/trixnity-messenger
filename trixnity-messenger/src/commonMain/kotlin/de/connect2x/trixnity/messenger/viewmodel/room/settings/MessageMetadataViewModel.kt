@@ -20,7 +20,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.getMessageUserReactions
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
@@ -66,10 +66,16 @@ interface MessageMetadataViewModel {
     val eventId: EventId
     val senderInfo: StateFlow<UserInfoElement?>
     val userInteractions: StateFlow<List<MessageUserInteraction>>
+
     val reactionCounts: StateFlow<Map<ReactionKey, UInt>>
+
+
+    val compiledMessage: StateFlow<TimelineElementHolderViewModel?>
+
     val edits: StateFlow<List<TimelineElementHolderViewModel>>
 
     val error: StateFlow<String?>
+
     // val errorCause: StateFlow<String?>
     // fun errorDismiss()
     fun back()
@@ -92,6 +98,46 @@ class MessageMetadataViewModelImpl(
     init {
         backHandler.register(backCallback)
     }
+
+    override val compiledMessage: StateFlow<TimelineElementHolderViewModel?> =
+        matrixClient.room.getTimelineEvent(roomId, eventId)
+            .map { timelineEvent ->
+
+                if (timelineEvent == null) return@map null
+
+                val roomId = timelineEvent.roomId
+                val eventId = timelineEvent.eventId
+                val sender = timelineEvent.sender
+                val key = timelineEvent.event.unsigned?.transactionId?.asKey(timelineEvent.roomId)
+                    ?: eventId.asKey(timelineEvent.roomId)
+                log.trace { "generate timeline element $eventId" }
+                val lifecycleRegistry = LifecycleRegistry()
+                get<TimelineElementHolderViewModelFactory>().create(
+                    viewModelContext = childContextWithOwnLifecycle(lifecycleRegistry),
+                    key = key,
+                    timelineEventFlow = flowOf(timelineEvent),  // TODO: is this correct?
+                    roomId = roomId,
+                    eventId = eventId,
+                    sender = sender,
+                    formattedDate = formatDate(
+                        Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
+                            .toLocalDateTime(timeZone)
+                    ),
+                    formattedTime = formatTime(
+                        Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
+                            .toLocalDateTime(timeZone)
+                    ),
+                    showLoadingIndicatorBefore = flowOf(false),
+                    showLoadingIndicatorAfter = flowOf(false),
+                    showReplacedEvents = flowOf(false),
+                    onMessageReplace = { _, _ -> },
+                    onMessageReply = { _, _ -> },
+                    onMessageReport = { _, _ -> },
+                    onOpenMention = { _, _ -> },
+                    onOpenMetadata = {},
+                )
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val edits: StateFlow<List<TimelineElementHolderViewModel>> =
         getMessageEditHistory(matrixClient, eventId, roomId)
@@ -121,7 +167,7 @@ class MessageMetadataViewModelImpl(
                         ),
                         showLoadingIndicatorBefore = flowOf(false),
                         showLoadingIndicatorAfter = flowOf(false),
-                        showReplacedEvents = flowOf(true),
+                        showReplacedEvents = flowOf(false),
                         onMessageReplace = { _, _ -> },
                         onMessageReply = { _, _ -> },
                         onMessageReport = { _, _ -> },
@@ -130,13 +176,15 @@ class MessageMetadataViewModelImpl(
                     )
                 }
             }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
+            .stateIn(coroutineScope, WhileSubscribed(), listOf())
+
 
     private fun EventId.asKey(roomId: RoomId? = null) =
         (roomId ?: this@MessageMetadataViewModelImpl.roomId).full + "-" + full
 
     private fun String.asKey(roomId: RoomId? = null) =
         (roomId ?: this@MessageMetadataViewModelImpl.roomId).full + "-" + this
+
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val senderInfo: StateFlow<UserInfoElement?> =
@@ -159,7 +207,7 @@ class MessageMetadataViewModelImpl(
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val readers: StateFlow<Set<RoomUser>> =
+    private val readers: StateFlow<Set<RoomUser>> =
         matrixClient.room.getTimelineEvent(roomId, eventId) {
             fetchSize = 1
             allowReplaceContent = false
@@ -171,7 +219,7 @@ class MessageMetadataViewModelImpl(
                     .map { it ?: emptySet() }
             }.stateIn(coroutineScope, whileSubscribedWithTimeout, emptySet())
 
-    val reactions: StateFlow<MessageUserReactions> =
+    private val reactions: StateFlow<MessageUserReactions> =
         getMessageUserReactions(matrixClient, roomId, eventId)
             .stateIn(coroutineScope, whileSubscribedWithTimeout, MessageUserReactions())
 
@@ -195,6 +243,7 @@ class MessageMetadataViewModelImpl(
     override val reactionCounts: StateFlow<Map<ReactionKey, UInt>> =
         reactions.map { it.byCount }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, emptyMap())
+
 
     override val error: StateFlow<String?> = MutableStateFlow(null)
 //        get() = TODO("Not yet implemented")

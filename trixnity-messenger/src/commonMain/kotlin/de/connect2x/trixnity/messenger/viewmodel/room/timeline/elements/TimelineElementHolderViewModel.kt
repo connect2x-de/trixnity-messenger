@@ -71,7 +71,7 @@ import org.koin.core.component.get
 import kotlin.time.Duration.Companion.hours
 
 
-private val log = KotlinLogging.logger { }
+private val log = KotlinLogging.logger {}
 
 interface TimelineElementHolderViewModelFactory {
     fun create(
@@ -122,7 +122,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val showLoadingIndicatorBefore: StateFlow<Boolean>
     val showLoadingIndicatorAfter: StateFlow<Boolean>
 
-    val isRead: StateFlow<Boolean?>
+    val isRead: StateFlow<Boolean?> // TODO not nullable?
     val isReadBy: StateFlow<List<UserInfoElement>?> // TODO: remove?
 
     val reactions: StateFlow<Map<String, Set<ReactionEvent>>>
