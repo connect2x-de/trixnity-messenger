@@ -83,6 +83,7 @@ interface UserProfileViewModel {
     val error: StateFlow<String?>
     val membershipReason: StateFlow<String?>
     val membership: StateFlow<Membership?>
+    val kickUserReason: MutableStateFlow<String>
     val kickUserWarningOpen: StateFlow<Boolean>
     val kickUserWarningMessage: StateFlow<String>
     val kickUserWarningTitle: StateFlow<String>
@@ -179,6 +180,8 @@ class UserProfileViewModelImpl(
 
     private val _membershipChanging = MutableStateFlow(false)
     override val membershipChanging: StateFlow<Boolean> = _membershipChanging
+
+    override val kickUserReason: MutableStateFlow<String> = MutableStateFlow("")
 
     override val iHavePowerToKickUser = matrixClient.user.canKickUser(selectedRoomId, userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
@@ -320,10 +323,11 @@ class UserProfileViewModelImpl(
                 matrixClient.api.room.kickUser(
                     selectedRoomId,
                     userId,
-                    null,
+                    kickUserReason.value.ifBlank { null },
                     null
                 ).fold(
                     onSuccess = {
+                        kickUserReason.value = ""
                         error.value = null
                     },
                     onFailure = {

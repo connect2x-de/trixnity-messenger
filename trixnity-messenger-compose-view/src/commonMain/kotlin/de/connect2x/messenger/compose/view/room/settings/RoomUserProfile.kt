@@ -316,13 +316,24 @@ private fun DialogHandler(userProfileViewModel: UserProfileViewModel) {
 @Composable
 fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
     val i18n = DI.get<I18nView>()
-    val kickUserWarningMessage =
-        userProfileViewModel.kickUserWarningMessage.collectAsState().value
+    val kickReason = userProfileViewModel.kickUserReason.collectAsStateForTextField().value
     val kickUserWarningTitle =
         userProfileViewModel.kickUserWarningTitle.collectAsState().value
+
     WarningDialog(
         title = kickUserWarningTitle,
-        message = { Text(kickUserWarningMessage) },
+        message = {
+            OutlinedTextField(
+                value = kickReason,
+                onValueChange = {
+                    userProfileViewModel.kickUserReason.value = it
+                },
+                label = {
+                    Text(i18n.commonOptionalReason())
+                },
+                maxLines = 5
+            )
+        },
         dismissButtonText = i18n.commonCancel().capitalize(Locale.current),
         confirmButtonText = i18n.userProfileRemoveUserConfirmation(),
         dismissAction = { userProfileViewModel.closeKickUserWarning() },
