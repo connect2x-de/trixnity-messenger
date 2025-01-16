@@ -45,6 +45,7 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
+import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
@@ -53,6 +54,7 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.PresenceEventContent
@@ -172,6 +174,8 @@ class UserProfileViewModelTest : ShouldSpec() {
             every { userServiceMock.canBanUser(eq(roomId), any()) } returns MutableStateFlow(true)
             every { userServiceMock.canUnbanUser(eq(roomId), any()) } returns MutableStateFlow(true)
             every { userServiceMock.getPowerLevel(eq(roomId), eq(alice)) } returns MutableStateFlow(50)
+            every { userServiceMock.getAccountData<DirectEventContent>(any()) } returns
+                    MutableStateFlow(DirectEventContent(mapOf()))
             every {
                 userServiceMock.canSetPowerLevelToMax(eq(roomId), any())
             } returns MutableStateFlow(100)
