@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -42,6 +43,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -91,6 +93,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
@@ -321,26 +324,21 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
             Modifier
                 .fillMaxSize()
 //                .drawLayoutRulers()
-                .background(Color.Yellow)
+//                .background(Color.Yellow)
                 .onGloballyPositioned { paneBoundsPending = density.verticalBounds(it) }
         ) {
-            log.debug { "DRAW PANE CONTENTS ================================================" }
             Box(
                 Modifier
-                    .background(Color.Gray)
+//                    .background(Color.Gray)
                     .height(paneBounds.value.height - (if (isFilterVisible) filterHeight else 0.dp))
             ) {
                 Column(
                     Modifier
                         .verticalScroll(scrollState)
-                        .background(Color.Cyan)
-//                    .fillMaxHeight(1f)
-//                    .height(paneBounds.height - filterHeight)
-                        .drawLayoutRulers()
+//                        .background(Color.Cyan)
+//                        .drawLayoutRulers()
                         .padding(horizontal = 20.dp)
-//                    .padding(bottom = filterHeight)
                 ) {
-                    log.debug { "DRAW PANE SCROLL LIST ===========================" }
                     Spacer(Modifier.size(largeSpacing))
                     Text(
                         text = i18n.messageDetailsSender(),
@@ -365,7 +363,7 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
                     Box(
                         Modifier
                             .onGloballyPositioned { interactionsBoundsPending = density.verticalBounds(it) }
-                            .background(Color.Magenta),
+//                            .background(Color.Magenta),
                     ) {
                         if (isInteractionsVisible) {
                             // TODO: Move this into the viewmodel?
@@ -395,6 +393,7 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
             if (isInteractionsVisible) ReactionsFilter(
                 Modifier
                     .height(filterHeight)
+//                    .padding(top = filterOffset),
                     .offset(y = filterOffset),
                 reactionCounts,
                 interactionFilterByReaction,
@@ -405,27 +404,25 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
 
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
-private fun UserInfo(userInfo: UserInfoElement, reactions: Set<ReactionKey> = setOf()) {
-//    val avatarImageUrl = userInfo.imageUrl
-//    val avatarImage = userInfo.image?.collectAsState(null)?.value
-//    var avatarImage: ByteArray? by remember { mutableStateOf(null) }
-//    LaunchedEffect(avatarImageUrl) {
-//        userInfo.image?.collect {
-//            avatarImage = it
-//        }
-//    }
-//    val avatarImage: ByteArray? = null
+private fun UserInfo(
+    userInfo: UserInfoElement,
+    reactions: Set<ReactionKey> = setOf(),
+) {
     Box(
         Modifier
-            .background(Color.White)
             .fillMaxWidth()
             .height(64.dp)
             .padding(4.dp)
     ) {
         Row {
             Box(Modifier.padding(top = 6.dp, start = 6.dp)) {
-                Avatar(userInfo.imageUrl, userInfo.image, userInfo.initials ?: "?")
-//                Avatar(null, null, userInfo.initials ?: "?")
+                // Loading and processing the image data immediately makes the scrolling lag.
+                // Thus it's delayed by just enough to not be bothersome but long enough that
+                // the corresponding view might already have left the building where it nor any
+                // of its coroutines care anymore about actually doing anything with the data.
+                // Tl;dr: the list navigation is much smoother as a result.
+                val imageFlow = userInfo.image?.onStart { delay((250..750).random().milliseconds) }
+                Avatar(userInfo.imageUrl, imageFlow, userInfo.initials ?: "?")
             }
             Spacer(Modifier.size(8.dp))
             Column {
@@ -480,7 +477,7 @@ private fun UserInteractions(
     visibleListHeight: Dp,
 ) {
     val density = LocalDensity.current
-
+    val hiddenItemsHeight = 64.dp
     val itemBounds = remember { mutableStateOf<MutableMap<Int, VerticalBounds>>(mutableMapOf()) }
     val itemBoundsPending by remember { mutableStateOf<MutableMap<Int, VerticalBounds>>(mutableMapOf()) }
     LaunchedEffect(Unit) {
@@ -488,60 +485,32 @@ private fun UserInteractions(
             .debounceSubsequent(uiUpdateRate, "item bounds")
             .collect { itemBounds.value = it }
     }
-
-    val hiddenItemsHeight = 64.dp
-//    var hiddenItemsBeforeCount = 0
-//    var hiddenItemsAfterCount = 0
-//    var hasShownItems = false
     Column(modifier) {
-        log.debug { "render list ====================================" }
         interactions.forEachIndexed { index, interaction ->
-            // TODO: Use LazyColumn instead.
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .background(Color.Blue)
-//                    .defaultMinSize(minHeight = hiddenItemsHeight)
-                    .height(hiddenItemsHeight)
+//                    .background(Color.Blue)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .defaultMinSize(minHeight = hiddenItemsHeight)
+//                    .height(hiddenItemsHeight)
                     .onGloballyPositioned {
                         itemBoundsPending[index] = density.verticalBounds(it)
-//                        log.debug {
-//                            "=== measured item $index: o=${itemBounds[index]?.localOffset} h=${
-//                                itemBounds[index]?.height
-//                            } po=${itemBounds[index]?.offsetRelativeTo(paneBounds)}"
-//                        }
                     }
             ) {
                 val showItem = itemBounds.value[index]
                     ?.let {
                         val itemOffset = it.offsetRelativeTo(paneBounds)
                         visibleListHeight > 0.dp && it.height > 0.dp && itemOffset != null
-                                && itemOffset < visibleListOffset + visibleListHeight + hiddenItemsHeight * 3
-                                && itemOffset > -hiddenItemsHeight * 3
+                                && itemOffset < visibleListOffset + visibleListHeight + hiddenItemsHeight
+                                && itemOffset > -hiddenItemsHeight
                     } == true
                 if (showItem) {
-//                    if (hasShownItems.not()) {
-//                        hasShownItems = true
-//                        if (hiddenItemsBeforeCount > 0) {
-//                            log.debug { "DRAW BEFORE SPACER of $hiddenItemsBeforeCount items ====" }
-//                            Spacer(Modifier.height(hiddenItemsHeight * hiddenItemsBeforeCount))
-//                        }
-//                    }
-                    log.debug { "Showing user info with image url: ${interaction.userInfo.imageUrl}" }
+//                    log.debug { "Showing user info with image url: ${interaction.userInfo.imageUrl}" }
                     UserInfo(interaction.userInfo, interaction.reactions)
-                } else {
-//                    if (!hasShownItems) Spacer(Modifier.height(hiddenItemsHeight))
-//                    if (hasShownItems) hiddenItemsAfterCount++
-//                    else hiddenItemsBeforeCount++
                 }
-//                if (showItem) log.debug { "item$index SHOWN ====" }
             }
         }
-//        if (hiddenItemsAfterCount > 0) {
-//            log.debug { "DRAW AFTER SPACER of $hiddenItemsAfterCount items ====" }
-//            Spacer(Modifier.height(hiddenItemsHeight * hiddenItemsAfterCount))
-//        }
-//        log.debug { "${hiddenItemsAfterCount + hiddenItemsBeforeCount} hidden: before=$hiddenItemsBeforeCount after=$hiddenItemsAfterCount" }
     }
 }
 
@@ -563,8 +532,11 @@ private fun ReactionsFilter(
                         selectedTabIndex = index + 1
                     reactionCount.toPair()
                 }
-    Column(modifier) {
-        val filterScrollState = rememberLazyListState()
+    val filterScrollState = rememberLazyListState()
+    Box(
+        modifier
+//            .background(Color.Red)
+    ) {
         TabsRow(
             tabsCount = reactionListWithSum.size,
             selectedTabIndex = selectedTabIndex,
@@ -605,7 +577,7 @@ private fun ReactionsFilter(
             }
         }
         // TODO: Use disappearing scrollbar?
-        HorizontalScrollbar(Modifier, filterScrollState, false)
+        HorizontalScrollbar(Modifier.align(BottomCenter), filterScrollState, false)
     }
 }
 

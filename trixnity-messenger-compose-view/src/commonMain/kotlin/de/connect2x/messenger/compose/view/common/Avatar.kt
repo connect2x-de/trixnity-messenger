@@ -38,7 +38,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 import net.folivo.trixnity.core.model.events.m.Presence
 
 
@@ -91,7 +91,7 @@ private data class AvatarImage(
 @Composable
 fun Avatar(
     imageUrl: String?,
-    imageFlow: StateFlow<ByteArray?>?,
+    imageFlow: Flow<ByteArray?>?,
     initials: String,
     size: Dp = avatarSize().dp,
     overlay: @Composable (BoxScope.() -> Unit)? = null
