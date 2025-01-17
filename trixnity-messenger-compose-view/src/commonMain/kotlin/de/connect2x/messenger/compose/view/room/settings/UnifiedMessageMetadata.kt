@@ -86,60 +86,19 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.MessageMetadataVi
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MessageUserInteraction
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.util.date.*
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import androidx.compose.foundation.layout.Arrangement.Center as ArrangeCenter
 
 
-private val log = KotlinLogging.logger {}
+//private val log = KotlinLogging.logger {}
 
-private val uiUpdateRate = 33.milliseconds
-
-@FlowPreview
-private fun <T> Flow<T>.debounceSubsequent(timeout: Duration, tag: String): Flow<T> = flow {
-    var callCounter = 0
-//        log.debug { "---------------- CALLED $tag for the ${callCounter++}nth time" }
-    var emitCounter = 0
-    var loopCounter = 0
-    var countdown: Long = 0
-    var lastClock = getTimeMillis()
-    var pendingValue: T? = null
-
-    conflate().sample(timeout).collect { emit(it) }
-
-//    collect { emit(it) }
-
-    if (false) collect { value ->
-        if (pendingValue == value) return@collect
-        loopCounter++
-//            log.debug { "---------------- PENDING $tag for the ${loopCounter}nth time" }
-        pendingValue = value
-        val loopId = loopCounter
-        while (countdown > 0 && loopId == loopCounter) {
-            delay(10.milliseconds)
-            countdown -= getTimeMillis() - lastClock
-            lastClock = getTimeMillis()
-        }
-        countdown = timeout.inWholeMilliseconds
-        if (loopId == loopCounter && pendingValue != null) {
-//                log.debug { "---------------- PENDING $tag for the ${emitCounter++}nth time" }
-            val emittingValue = pendingValue
-            pendingValue = null
-            emittingValue?.let { emit(it) }
-        }
-    }
-}
-
+// TODO: Move to utils?
 private data class VerticalBounds(
     val height: Dp,
     val localOffset: Dp,
@@ -154,27 +113,6 @@ private data class VerticalBounds(
             (thisOffset - thatOffset).let { (it / density.density).dp }
         } else null
     }
-
-//    fun remake(heightPx: Int): VerticalBounds =
-//        VerticalBounds(
-//            (heightPx / density.density).dp,
-//            calcLocalOffset(density, coordinates),
-//            density, coordinates,
-//        )
-//
-//    fun remake(height: Dp): VerticalBounds =
-//        VerticalBounds(
-//            height,
-//            calcLocalOffset(density, coordinates),
-//            density, coordinates,
-//        )
-//
-//    fun remakeFromOffset(offsetPx: Int): VerticalBounds =
-//        VerticalBounds(
-//            calcHeight(density, coordinates),
-//            (offsetPx / density.density).dp,
-//            density, coordinates,
-//        )
 
     companion object {
         fun make(density: Density, coordinates: LayoutCoordinates? = null): VerticalBounds =
@@ -200,10 +138,12 @@ private data class VerticalBounds(
     }
 }
 
+// TODO: Move to utils?
 private fun Density.verticalBounds(coordinates: LayoutCoordinates? = null): VerticalBounds {
     return VerticalBounds.make(this, coordinates)
 }
 
+// TODO: Move to utils or remove
 private fun Modifier.drawLayoutRulers(): Modifier =
     this.drawWithContent {
         val strokeWidth = Dp.Hairline.toPx()
@@ -270,8 +210,36 @@ private fun Modifier.drawLayoutRulers(): Modifier =
             debugVerticalRulerMark((i * rulerSpacing.toPx()).toDp())
     }
 
-@Composable
+// TODO: Move to utils?
 @OptIn(FlowPreview::class)
+private class ThrottledEffect<T> private constructor(value: MutableState<T>, pending: MutableState<T>) {
+    private val _value: MutableState<T> = value
+    private var _pending by pending
+    val value get() = _value.value
+    fun set(value: T) {
+        _pending = value
+    }
+
+    fun modify(setterFn: (T) -> Unit) = setterFn(_pending)
+
+    companion object {
+        @Composable
+        operator fun <T> invoke(value: () -> T): ThrottledEffect<T> {
+            val effect = ThrottledEffect(
+                remember { mutableStateOf(value()) },
+                remember { mutableStateOf(value()) },
+            )
+            LaunchedEffect(Unit) {
+                snapshotFlow { effect._pending }
+                    .conflate().sample(33.milliseconds)
+                    .collect { effect._value.value = it }
+            }
+            return effect
+        }
+    }
+}
+
+@Composable
 fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: Int, isSinglePane: Boolean) {
     val message = viewModel.compiledMessage.collectAsState().value
     val reactionCounts = viewModel.reactionCounts.collectAsState().value
@@ -284,28 +252,10 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
     val largeSpacing = 20.dp
     val filterHeight = 64.dp
 
-
     val scrollState = rememberScrollState()
-
-    val paneBounds = remember { mutableStateOf(density.verticalBounds()) }
-    var paneBoundsPending by remember { mutableStateOf(density.verticalBounds()) }
-    LaunchedEffect(Unit) {
-        snapshotFlow { paneBoundsPending }
-            .debounceSubsequent(uiUpdateRate, "pane bounds")
-            .collect { paneBounds.value = it }
-    }
-
-    val interactionsBounds = remember { mutableStateOf(density.verticalBounds()) }
-    var interactionsBoundsPending by remember { mutableStateOf(density.verticalBounds()) }
-    LaunchedEffect(Unit) {
-        snapshotFlow { interactionsBoundsPending }
-            .debounceSubsequent(uiUpdateRate, "interactions bounds")
-            .collect { interactionsBounds.value = it }
-    }
-
+    val paneBounds = ThrottledEffect { density.verticalBounds() }
+    val interactionsBounds = ThrottledEffect { density.verticalBounds() }
     val interactionFilterByReaction = remember { mutableStateOf<ReactionKey?>(null) }
-
-
     val interactionsOffset = interactionsBounds.value.offsetRelativeTo(paneBounds.value) ?: 0.dp
     val filterOffset = min(
         interactionsOffset + interactionsBounds.value.height + smallSpacing,
@@ -325,7 +275,7 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
                 .fillMaxSize()
 //                .drawLayoutRulers()
 //                .background(Color.Yellow)
-                .onGloballyPositioned { paneBoundsPending = density.verticalBounds(it) }
+                .onGloballyPositioned { paneBounds.set(density.verticalBounds(it)) }
         ) {
             Box(
                 Modifier
@@ -362,7 +312,7 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
                     Spacer(Modifier.size(smallSpacing))
                     Box(
                         Modifier
-                            .onGloballyPositioned { interactionsBoundsPending = density.verticalBounds(it) }
+                            .onGloballyPositioned { interactionsBounds.set(density.verticalBounds(it)) }
 //                            .background(Color.Magenta),
                     ) {
                         if (isInteractionsVisible) {
@@ -393,7 +343,6 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
             if (isInteractionsVisible) ReactionsFilter(
                 Modifier
                     .height(filterHeight)
-//                    .padding(top = filterOffset),
                     .offset(y = filterOffset),
                 reactionCounts,
                 interactionFilterByReaction,
@@ -468,7 +417,6 @@ private fun MessageContents(
 }
 
 @Composable
-@OptIn(FlowPreview::class)
 private fun UserInteractions(
     modifier: Modifier = Modifier,
     interactions: List<MessageUserInteraction>,
@@ -478,13 +426,7 @@ private fun UserInteractions(
 ) {
     val density = LocalDensity.current
     val hiddenItemsHeight = 64.dp
-    val itemBounds = remember { mutableStateOf<MutableMap<Int, VerticalBounds>>(mutableMapOf()) }
-    val itemBoundsPending by remember { mutableStateOf<MutableMap<Int, VerticalBounds>>(mutableMapOf()) }
-    LaunchedEffect(Unit) {
-        snapshotFlow { itemBoundsPending }
-            .debounceSubsequent(uiUpdateRate, "item bounds")
-            .collect { itemBounds.value = it }
-    }
+    val itemBounds = ThrottledEffect<MutableMap<Int, VerticalBounds>> { mutableMapOf() }
     Column(modifier) {
         interactions.forEachIndexed { index, interaction ->
             Box(
@@ -493,9 +435,8 @@ private fun UserInteractions(
 //                    .background(Color.Blue)
                     .background(MaterialTheme.colorScheme.surface)
                     .defaultMinSize(minHeight = hiddenItemsHeight)
-//                    .height(hiddenItemsHeight)
                     .onGloballyPositioned {
-                        itemBoundsPending[index] = density.verticalBounds(it)
+                        itemBounds.modify { value -> value[index] = density.verticalBounds(it) }
                     }
             ) {
                 val showItem = itemBounds.value[index]
@@ -505,10 +446,7 @@ private fun UserInteractions(
                                 && itemOffset < visibleListOffset + visibleListHeight + hiddenItemsHeight
                                 && itemOffset > -hiddenItemsHeight
                     } == true
-                if (showItem) {
-//                    log.debug { "Showing user info with image url: ${interaction.userInfo.imageUrl}" }
-                    UserInfo(interaction.userInfo, interaction.reactions)
-                }
+                if (showItem) UserInfo(interaction.userInfo, interaction.reactions)
             }
         }
     }
