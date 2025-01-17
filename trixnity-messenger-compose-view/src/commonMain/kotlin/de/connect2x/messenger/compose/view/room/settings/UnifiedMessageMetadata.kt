@@ -3,7 +3,6 @@ package de.connect2x.messenger.compose.view.room.settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.animateScrollBy
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -12,10 +11,15 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -28,6 +32,7 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,18 +40,33 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.Center
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastRoundToInt
 import de.connect2x.messenger.compose.view.DI
@@ -64,26 +84,233 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.MessageMetadataVi
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MessageUserInteraction
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
+import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.util.date.*
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import androidx.compose.foundation.layout.Arrangement.Center as ArrangeCenter
 
+
+private val log = KotlinLogging.logger {}
+
+private val uiUpdateRate = 33.milliseconds
+
+@FlowPreview
+private fun <T> Flow<T>.debounceSubsequent(timeout: Duration, tag: String): Flow<T> = flow {
+    var callCounter = 0
+//        log.debug { "---------------- CALLED $tag for the ${callCounter++}nth time" }
+    var emitCounter = 0
+    var loopCounter = 0
+    var countdown: Long = 0
+    var lastClock = getTimeMillis()
+    var pendingValue: T? = null
+
+    conflate().sample(timeout).collect { emit(it) }
+
+//    collect { emit(it) }
+
+    if (false) collect { value ->
+        if (pendingValue == value) return@collect
+        loopCounter++
+//            log.debug { "---------------- PENDING $tag for the ${loopCounter}nth time" }
+        pendingValue = value
+        val loopId = loopCounter
+        while (countdown > 0 && loopId == loopCounter) {
+            delay(10.milliseconds)
+            countdown -= getTimeMillis() - lastClock
+            lastClock = getTimeMillis()
+        }
+        countdown = timeout.inWholeMilliseconds
+        if (loopId == loopCounter && pendingValue != null) {
+//                log.debug { "---------------- PENDING $tag for the ${emitCounter++}nth time" }
+            val emittingValue = pendingValue
+            pendingValue = null
+            emittingValue?.let { emit(it) }
+        }
+    }
+}
+
+private data class VerticalBounds(
+    val height: Dp,
+    val localOffset: Dp,
+    private val scrollTrigger: Int,
+    private val density: Density,
+    private val coordinates: LayoutCoordinates? = null,
+) {
+    fun offsetRelativeTo(bounds: VerticalBounds): Dp? {
+        val thisOffset = this.coordinates?.let { if (it.isAttached) it else null }?.positionInWindow()?.y
+        val thatOffset = bounds.coordinates?.let { if (it.isAttached) it else null }?.positionInWindow()?.y
+        return if (thisOffset != null && thatOffset != null) {
+            (thisOffset - thatOffset).let { (it / density.density).dp }
+        } else null
+    }
+
+//    fun remake(heightPx: Int): VerticalBounds =
+//        VerticalBounds(
+//            (heightPx / density.density).dp,
+//            calcLocalOffset(density, coordinates),
+//            density, coordinates,
+//        )
+//
+//    fun remake(height: Dp): VerticalBounds =
+//        VerticalBounds(
+//            height,
+//            calcLocalOffset(density, coordinates),
+//            density, coordinates,
+//        )
+//
+//    fun remakeFromOffset(offsetPx: Int): VerticalBounds =
+//        VerticalBounds(
+//            calcHeight(density, coordinates),
+//            (offsetPx / density.density).dp,
+//            density, coordinates,
+//        )
+
+    companion object {
+        fun make(density: Density, coordinates: LayoutCoordinates? = null): VerticalBounds =
+            VerticalBounds(
+                height = calcHeight(density, coordinates),
+                localOffset = calcLocalOffset(density, coordinates),
+                scrollTrigger = coordinates?.let { if (it.isAttached) it else null }
+                    ?.positionInWindow()?.y?.fastRoundToInt() ?: 0,
+                density, coordinates,
+            )
+
+        private fun calcHeight(
+            density: Density,
+            coordinates: LayoutCoordinates?,
+        ) = coordinates?.size?.height
+            ?.let { (it / density.density).dp } ?: 0.dp
+
+        private fun calcLocalOffset(
+            density: Density,
+            coordinates: LayoutCoordinates?,
+        ) = coordinates?.let { if (it.isAttached) it else null }?.positionInParent()?.y
+            ?.let { (it / density.density).dp } ?: 0.dp
+    }
+}
+
+private fun Density.verticalBounds(coordinates: LayoutCoordinates? = null): VerticalBounds {
+    return VerticalBounds.make(this, coordinates)
+}
+
+private fun Modifier.drawLayoutRulers(): Modifier =
+    this.drawWithContent {
+        val strokeWidth = Dp.Hairline.toPx()
+
+        fun DrawScope.debugBounds(inset: Dp, color: Color = Color.Red, dashed: Boolean = false) {
+            drawPath(
+                color = color,
+                path = Path().apply {
+                    inset.toPx().let { inset ->
+                        // Keep starting new lines so dashes can be used for measuring.
+                        moveTo(inset, inset)
+                        lineTo(size.width - inset, inset)
+                        moveTo(inset, inset)
+                        lineTo(inset, size.height - inset)
+                        moveTo(size.width - inset, inset)
+                        lineTo(size.width - inset, size.height - inset)
+                        moveTo(inset, size.height - inset)
+                        lineTo(size.width - inset, size.height - inset)
+                    }
+                },
+                style = Stroke(
+                    width = strokeWidth,
+                    pathEffect = if (dashed) PathEffect.dashPathEffect(
+                        floatArrayOf(inset.toPx(), inset.toPx()),
+                    ) else null,
+                ),
+            )
+        }
+
+        fun DrawScope.debugHorizontalRulerMark(offset: Dp, color: Color = Color.Red) {
+            drawPath(
+                color = color,
+                path = Path().apply {
+                    offset.toPx().let { offset ->
+                        moveTo(0f, offset)
+                        lineTo(size.width, offset)
+                    }
+                },
+                style = Stroke(width = strokeWidth),
+            )
+        }
+
+        fun DrawScope.debugVerticalRulerMark(offset: Dp, color: Color = Color.Red) {
+            drawPath(
+                color = color,
+                path = Path().apply {
+                    offset.toPx().let { offset ->
+                        moveTo(offset, 0f)
+                        lineTo(offset, size.height)
+                    }
+                },
+                style = Stroke(width = strokeWidth),
+            )
+        }
+
+        drawContent()
+        debugBounds(10.dp, dashed = true)
+        debugBounds(0.dp)
+
+        val rulerSpacing = 100.dp
+        for (i in 1..(size.height / rulerSpacing.toPx()).fastRoundToInt())
+            debugHorizontalRulerMark((i * rulerSpacing.toPx()).toDp())
+        for (i in 1..(size.width / rulerSpacing.toPx()).fastRoundToInt())
+            debugVerticalRulerMark((i * rulerSpacing.toPx()).toDp())
+    }
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(FlowPreview::class)
 fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: Int, isSinglePane: Boolean) {
-    val i18n = DI.get<I18nView>()
-
-    val scrollState = rememberScrollState()
-
-
-//    val edits = viewModel.edits.collectAsState().value
-
     val message = viewModel.compiledMessage.collectAsState().value
-
     val reactionCounts = viewModel.reactionCounts.collectAsState().value
     val userInteractions = viewModel.userInteractions.collectAsState().value
     val senderInfo = viewModel.senderInfo.collectAsState().value
+
+    val i18n = DI.get<I18nView>()
+    val density = LocalDensity.current
+    val smallSpacing = 10.dp
+    val largeSpacing = 20.dp
+    val filterHeight = 64.dp
+
+
+    val scrollState = rememberScrollState()
+
+    val paneBounds = remember { mutableStateOf(density.verticalBounds()) }
+    var paneBoundsPending by remember { mutableStateOf(density.verticalBounds()) }
+    LaunchedEffect(Unit) {
+        snapshotFlow { paneBoundsPending }
+            .debounceSubsequent(uiUpdateRate, "pane bounds")
+            .collect { paneBounds.value = it }
+    }
+
+    val interactionsBounds = remember { mutableStateOf(density.verticalBounds()) }
+    var interactionsBoundsPending by remember { mutableStateOf(density.verticalBounds()) }
+    LaunchedEffect(Unit) {
+        snapshotFlow { interactionsBoundsPending }
+            .debounceSubsequent(uiUpdateRate, "interactions bounds")
+            .collect { interactionsBounds.value = it }
+    }
+
     val interactionFilterByReaction = remember { mutableStateOf<ReactionKey?>(null) }
-    val reactionFilterHeight = if (reactionCounts.isEmpty()) 0.dp else 64.dp // TODO: Derive the value from a config.
+
+
+    val interactionsOffset = interactionsBounds.value.offsetRelativeTo(paneBounds.value) ?: 0.dp
+    val filterOffset = min(
+        interactionsOffset + interactionsBounds.value.height + smallSpacing,
+        paneBounds.value.height - filterHeight,
+    )
+    val isInteractionsVisible = filterOffset >= interactionsOffset
+    val isFilterVisible = isInteractionsVisible && reactionCounts.isNotEmpty()
+
     ExtrasPaneHeader(
         i18n.messageDetailsTitle(),
         null, // TODO
@@ -91,86 +318,87 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
         if (isSinglePane || stackPosition > 2) BACK else CLOSE,
     ) {
         Box(
-            Modifier.fillMaxSize()
-        ) {
-            Column(
-                Modifier
-                    .verticalScroll(scrollState)
-                    .padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp))
-            ) {
-                Spacer(Modifier.size(20.dp))
-                Text(text = i18n.messageDetailsSender(), style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.size(10.dp))
-                if (senderInfo != null) UserInfo(senderInfo)
-                Spacer(Modifier.size(20.dp))
-                Text(text = i18n.messageDetailsMessage(), style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.size(10.dp))
-                if (message != null) MessageHistory(listOf(message))
-                HorizontalDivider()
-                Spacer(Modifier.size(20.dp))
-                Text(text = i18n.messageDetailsReadersAndReactions(), style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.size(10.dp))
-                UserInteractions(userInteractions, interactionFilterByReaction.value)
-                Spacer(Modifier.size(10.dp))
-                ReactionsFilter(
-                    reactionCounts,
-                    interactionFilterByReaction,
-                    reactionFilterHeight,
-                )
-            }
-        }
-
-
-        if (false) Column(
             Modifier
-//            .background(Color.Blue)
+                .fillMaxSize()
+//                .drawLayoutRulers()
+                .background(Color.Yellow)
+                .onGloballyPositioned { paneBoundsPending = density.verticalBounds(it) }
         ) {
-            Spacer(Modifier.size(8.dp))
-            Text("Message Sender:") // TODO: i18n
-            senderInfo?.let { info ->
-                val avatarImage = info.image?.collectAsState(null)?.value
-                Box(Modifier.padding(4.dp)) {
-                    Row {
-                        Box(Modifier.padding(top = 6.dp, start = 6.dp)) {
-                            Avatar(avatarImage, info.initials ?: "?")
-                        }
-                        Spacer(Modifier.size(8.dp))
-                        FlowRow {
-                            Text(info.name, fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.size(8.dp))
-                            Text(info.userId.full, fontWeight = FontWeight.Light)
-                        }
-                    }
-                }
-            }
-            Spacer(Modifier.size(8.dp))
-            Text("Editing history:") // TODO: i18n
-//            MessageHistory(edits.sortedBy { "${it.formattedDate} - ${it.formattedTime}" }.reversed())
-            if (message != null) MessageHistory(listOf(message))
-            Spacer(Modifier.size(8.dp))
-        }
-        Box(Modifier.fillMaxSize()) {
+            log.debug { "DRAW PANE CONTENTS ================================================" }
             Box(
-                Modifier.fillMaxSize()
-                    .padding(horizontal = 8.dp)
-                    .padding(bottom = reactionFilterHeight),
+                Modifier
+                    .background(Color.Gray)
+                    .height(paneBounds.value.height - (if (isFilterVisible) filterHeight else 0.dp))
             ) {
                 Column(
-                    Modifier.verticalScroll(scrollState),
+                    Modifier
+                        .verticalScroll(scrollState)
+                        .background(Color.Cyan)
+//                    .fillMaxHeight(1f)
+//                    .height(paneBounds.height - filterHeight)
+                        .drawLayoutRulers()
+                        .padding(horizontal = 20.dp)
+//                    .padding(bottom = filterHeight)
                 ) {
-                    Text("Message read by:") // TODO: i18n
-                    UserInteractions(userInteractions, interactionFilterByReaction.value)
-                    Spacer(Modifier.size(8.dp))
+                    log.debug { "DRAW PANE SCROLL LIST ===========================" }
+                    Spacer(Modifier.size(largeSpacing))
+                    Text(
+                        text = i18n.messageDetailsSender(),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Spacer(Modifier.size(smallSpacing))
+                    if (senderInfo != null) UserInfo(senderInfo)
+                    Spacer(Modifier.size(largeSpacing))
+                    Text(
+                        text = i18n.messageDetailsMessage(),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Spacer(Modifier.size(smallSpacing))
+                    MessageContents(message)
+                    HorizontalDivider()
+                    Spacer(Modifier.size(largeSpacing))
+                    Text(
+                        text = i18n.messageDetailsReadersAndReactions(),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Spacer(Modifier.size(smallSpacing))
+                    Box(
+                        Modifier
+                            .onGloballyPositioned { interactionsBoundsPending = density.verticalBounds(it) }
+                            .background(Color.Magenta),
+                    ) {
+                        if (isInteractionsVisible) {
+                            // TODO: Move this into the viewmodel?
+                            val interactions = (interactionFilterByReaction.value
+                                ?.let { filter -> userInteractions.filter { it.reactions.contains(filter) } }
+                                ?: userInteractions).sortedByDescending { it.reactions.firstOrNull()?.hashCode() }
+                            if (interactions.isEmpty()) {
+                                // Reset the filter if it's set but yields no results.
+                                interactionFilterByReaction.value = null
+                                // TODO: Add state that will trigger the filter row to scroll back to its beginning.
+                            } else UserInteractions(
+                                interactions = interactions,
+                                paneBounds = paneBounds.value,
+                                visibleListOffset = interactionsOffset,
+                                visibleListHeight = filterOffset - interactionsOffset,
+                            )
+                        }
+                        // Provide some space so the user interactions list
+                        // can appear while scrolling down.
+                        else Spacer(Modifier.size(paneBounds.value.height / 2))
+                    }
+                    Spacer(Modifier.size(smallSpacing))
                 }
                 VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
             }
-            Box(modifier = Modifier.align(Alignment.BottomCenter)) {
-                ReactionsFilter(
-                    reactionCounts,
-                    interactionFilterByReaction,
-                    reactionFilterHeight,
-                )
-            }
+
+            if (isInteractionsVisible) ReactionsFilter(
+                Modifier
+                    .height(filterHeight)
+                    .offset(y = filterOffset),
+                reactionCounts,
+                interactionFilterByReaction,
+            )
         }
     }
 }
@@ -178,11 +406,26 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
 private fun UserInfo(userInfo: UserInfoElement, reactions: Set<ReactionKey> = setOf()) {
-    val avatarImage = userInfo.image?.collectAsState(null)?.value
-    Box(Modifier.padding(4.dp)) {
+//    val avatarImageUrl = userInfo.imageUrl
+//    val avatarImage = userInfo.image?.collectAsState(null)?.value
+//    var avatarImage: ByteArray? by remember { mutableStateOf(null) }
+//    LaunchedEffect(avatarImageUrl) {
+//        userInfo.image?.collect {
+//            avatarImage = it
+//        }
+//    }
+//    val avatarImage: ByteArray? = null
+    Box(
+        Modifier
+            .background(Color.White)
+            .fillMaxWidth()
+            .height(64.dp)
+            .padding(4.dp)
+    ) {
         Row {
             Box(Modifier.padding(top = 6.dp, start = 6.dp)) {
-                Avatar(avatarImage, userInfo.initials ?: "?")
+                Avatar(userInfo.imageUrl, userInfo.image, userInfo.initials ?: "?")
+//                Avatar(null, null, userInfo.initials ?: "?")
             }
             Spacer(Modifier.size(8.dp))
             Column {
@@ -210,87 +453,117 @@ private fun UserInfo(userInfo: UserInfoElement, reactions: Set<ReactionKey> = se
 }
 
 @Composable
-private fun MessageHistory(
-    edits: List<TimelineElementHolderViewModel>,
+private fun MessageContents(
+    message: TimelineElementHolderViewModel?,
 ) {
-    Column(
-        Modifier
-//            .background(Color.Red)
-    ) {
-        edits.forEach {
-            it.element.collectAsState().value?.let { element ->
-                Column(
-                    Modifier.padding(end = 8.dp),
-                ) {
-                    with(DI.get<TimelineElementViewSelector>()) { createAsMessagePreview(it, element) }
+    Column {
+        message?.element?.collectAsState()?.value?.let { element ->
+            Column(
+                Modifier.padding(end = 8.dp),
+            ) {
+                with(DI.get<TimelineElementViewSelector>()) {
+                    createAsMessagePreview(message, element)
                 }
-                Spacer(Modifier.size(10.dp))
             }
+            Spacer(Modifier.size(10.dp))
         }
     }
 }
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(FlowPreview::class)
 private fun UserInteractions(
-    userInteractions: List<MessageUserInteraction>,
-    interactionFilterByReaction: ReactionKey?,
+    modifier: Modifier = Modifier,
+    interactions: List<MessageUserInteraction>,
+    paneBounds: VerticalBounds,
+    visibleListOffset: Dp,
+    visibleListHeight: Dp,
 ) {
-    Column {
-        userInteractions.filter {
-            interactionFilterByReaction == null || it.reactions.contains(interactionFilterByReaction)
-        }.sortedByDescending {
-            it.reactions.firstOrNull()?.hashCode()
-        }.forEach { interaction ->
+    val density = LocalDensity.current
+
+    val itemBounds = remember { mutableStateOf<MutableMap<Int, VerticalBounds>>(mutableMapOf()) }
+    val itemBoundsPending by remember { mutableStateOf<MutableMap<Int, VerticalBounds>>(mutableMapOf()) }
+    LaunchedEffect(Unit) {
+        snapshotFlow { itemBoundsPending }
+            .debounceSubsequent(uiUpdateRate, "item bounds")
+            .collect { itemBounds.value = it }
+    }
+
+    val hiddenItemsHeight = 64.dp
+//    var hiddenItemsBeforeCount = 0
+//    var hiddenItemsAfterCount = 0
+//    var hasShownItems = false
+    Column(modifier) {
+        log.debug { "render list ====================================" }
+        interactions.forEachIndexed { index, interaction ->
             // TODO: Use LazyColumn instead.
-            UserInfo(interaction.userInfo, interaction.reactions)
-//            val avatarImage = interaction.userInfo.image?.collectAsState(null)?.value
-//            Box(Modifier.padding(4.dp)) {
-//                Row {
-//                    Box(Modifier.padding(top = 6.dp, start = 6.dp)) {
-//                        Avatar(avatarImage, interaction.userInfo.initials ?: "?")
-//                    }
-//                    Spacer(Modifier.size(8.dp))
-//                    Column {
-//                        FlowRow {
-//                            Text(interaction.userInfo.name, fontWeight = FontWeight.Bold)
-//                            Spacer(Modifier.size(8.dp))
-//                            Text(interaction.userInfo.userId.full, fontWeight = FontWeight.Light)
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .background(Color.Blue)
+//                    .defaultMinSize(minHeight = hiddenItemsHeight)
+                    .height(hiddenItemsHeight)
+                    .onGloballyPositioned {
+                        itemBoundsPending[index] = density.verticalBounds(it)
+//                        log.debug {
+//                            "=== measured item $index: o=${itemBounds[index]?.localOffset} h=${
+//                                itemBounds[index]?.height
+//                            } po=${itemBounds[index]?.offsetRelativeTo(paneBounds)}"
 //                        }
-//                        FlowRow {
-//                            interaction.reactions.forEach { reactionKey ->
-//                                Row {
-//                                    Text(
-//                                        reactionKey,
-//                                        style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
-//                                        modifier = Modifier.paddingFromBaseline(0.dp),
-//                                        maxLines = 1,
-//                                    )
-//                                    Spacer(Modifier.size(8.dp))
-//                                }
-//                            }
+                    }
+            ) {
+                val showItem = itemBounds.value[index]
+                    ?.let {
+                        val itemOffset = it.offsetRelativeTo(paneBounds)
+                        visibleListHeight > 0.dp && it.height > 0.dp && itemOffset != null
+                                && itemOffset < visibleListOffset + visibleListHeight + hiddenItemsHeight * 3
+                                && itemOffset > -hiddenItemsHeight * 3
+                    } == true
+                if (showItem) {
+//                    if (hasShownItems.not()) {
+//                        hasShownItems = true
+//                        if (hiddenItemsBeforeCount > 0) {
+//                            log.debug { "DRAW BEFORE SPACER of $hiddenItemsBeforeCount items ====" }
+//                            Spacer(Modifier.height(hiddenItemsHeight * hiddenItemsBeforeCount))
 //                        }
 //                    }
-//                }
-//            }
+                    log.debug { "Showing user info with image url: ${interaction.userInfo.imageUrl}" }
+                    UserInfo(interaction.userInfo, interaction.reactions)
+                } else {
+//                    if (!hasShownItems) Spacer(Modifier.height(hiddenItemsHeight))
+//                    if (hasShownItems) hiddenItemsAfterCount++
+//                    else hiddenItemsBeforeCount++
+                }
+//                if (showItem) log.debug { "item$index SHOWN ====" }
+            }
         }
+//        if (hiddenItemsAfterCount > 0) {
+//            log.debug { "DRAW AFTER SPACER of $hiddenItemsAfterCount items ====" }
+//            Spacer(Modifier.height(hiddenItemsHeight * hiddenItemsAfterCount))
+//        }
+//        log.debug { "${hiddenItemsAfterCount + hiddenItemsBeforeCount} hidden: before=$hiddenItemsBeforeCount after=$hiddenItemsAfterCount" }
     }
 }
 
 @Composable
 private fun ReactionsFilter(
+    modifier: Modifier = Modifier,
     reactionCounts: Map<ReactionKey, UInt>,
     interactionFilterByReaction: MutableState<ReactionKey?>,
-    reactionFilterHeight: Dp,
 ) {
     if (reactionCounts.isEmpty()) return
     val i18n = DI.get<I18nView>()
-    var selectedTabIndex by remember { mutableStateOf<Int?>(0) }
+    var selectedTabIndex = 0
     val reactionList = reactionCounts.asSequence()
+    // TODO: Move this into the viewmodel?
     val reactionListWithSum: List<Pair<String, UInt>> =
         listOf(i18n.commonAll() to reactionList.map { it.value }.sum()) +
-                reactionList.map { it.toPair() }
-    Column {
+                reactionList.mapIndexed { index, reactionCount ->
+                    if (reactionCount.key == interactionFilterByReaction.value)
+                        selectedTabIndex = index + 1
+                    reactionCount.toPair()
+                }
+    Column(modifier) {
         val filterScrollState = rememberLazyListState()
         TabsRow(
             tabsCount = reactionListWithSum.size,
@@ -299,19 +572,26 @@ private fun ReactionsFilter(
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onSurface,
             selectionIndicatorColor = MaterialTheme.colorScheme.primary,
+            edgePadding = 20.dp,
             onTabClick = {
-                selectedTabIndex = it
-                if (it > 0) interactionFilterByReaction.value = reactionListWithSum[it].first
+                if (it > 0) interactionFilterByReaction.value =
+                    reactionListWithSum[it].first
                 else interactionFilterByReaction.value = null
             },
-        ) { tabIndex, isSelected ->
+        ) { tabIndex, _ ->
             reactionListWithSum[tabIndex].let { (reaction, count) ->
                 Row(
                     Modifier
-                        .size(96.dp, reactionFilterHeight)
-                        .align(Alignment.Center),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
+                        .width(96.dp)
+                        .fillMaxHeight()
+                        .background(with(MaterialTheme.colorScheme) {
+                            if (tabIndex % 2 == 0) surface
+                            else onSurface.copy(alpha = 0.063f)
+                                .compositeOver(surface)
+                        })
+                        .align(Center),
+                    verticalAlignment = CenterVertically,
+                    horizontalArrangement = ArrangeCenter,
                 ) {
                     Text(
                         reaction,
@@ -324,12 +604,12 @@ private fun ReactionsFilter(
                 }
             }
         }
-        // TODO: use disappearing scrollbar?
+        // TODO: Use disappearing scrollbar?
         HorizontalScrollbar(Modifier, filterScrollState, false)
     }
 }
 
-// TODO: move to separate file
+// TODO: Move to separate file?
 @Composable
 private fun TabsRow(
     tabsCount: Int,
@@ -338,6 +618,7 @@ private fun TabsRow(
     contentColor: Color = TabRowDefaults.primaryContentColor,
     containerColor: Color = TabRowDefaults.primaryContainerColor,
     selectionIndicatorColor: Color = TabRowDefaults.secondaryContentColor,
+    edgePadding: Dp = TabRowDefaults.ScrollableTabRowEdgeStartPadding,
     scrollableState: LazyListState = rememberLazyListState(),
     onTabClick: (tabIndex: Int) -> Unit = {},
     onTabContent: @Composable (BoxScope.(tabIndex: Int, isSelected: Boolean) -> Unit),
@@ -367,6 +648,7 @@ private fun TabsRow(
                 .onSizeChanged { scrollContainerWidth = it.width },
             state = scrollableState,
             userScrollEnabled = true,
+            contentPadding = PaddingValues(horizontal = edgePadding),
             content = {
                 items(count = tabsCount, key = { it }) { tabIndex ->
                     val isSelected = tabIndex == selectedTabIndex
@@ -393,10 +675,6 @@ private fun TabsRow(
                                 )
                             }
                         }
-                        .background(
-                            if (tabIndex % 2 == 0) containerColor
-                            else contentColor.copy(alpha = .05f)
-                        )
                     ) {
                         Box(
                             modifier = Modifier

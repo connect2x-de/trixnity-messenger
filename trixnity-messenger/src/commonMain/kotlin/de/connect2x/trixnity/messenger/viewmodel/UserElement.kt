@@ -22,6 +22,7 @@ class UserInfoElement(
     val userId: UserId,
     val initials: String? = null,
     val image: StateFlow<ByteArray?>? = null,
+    val imageUrl: String? = null,
 )
 
 fun RoomUser?.toUserInfoElement(
@@ -39,7 +40,6 @@ fun RoomUser?.toUserInfoElement(
             flow {
 
                 // TODO: some sort of retry (see retryLoopFlow)
-                // TODO: check if this is the correct place to handle the size limit
                 emit(
                     matrixClient.media.getMedia(avatarUrl).getOrNull()?.limitedByteArrayOrNull(maxAvatarSize) {
                         log.error { "Room image for room $roomId exceeds preview size limits, so it's not displayed" }
@@ -47,4 +47,5 @@ fun RoomUser?.toUserInfoElement(
                 )
             }.stateIn(coroutineScope, WhileSubscribed(), null)
         },
+        imageUrl = this@toUserInfoElement?.avatarUrl,
     )

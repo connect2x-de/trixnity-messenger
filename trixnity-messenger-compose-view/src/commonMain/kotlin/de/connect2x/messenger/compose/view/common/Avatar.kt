@@ -14,10 +14,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
@@ -32,6 +38,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.flow.StateFlow
 import net.folivo.trixnity.core.model.events.m.Presence
 
 
@@ -67,11 +74,61 @@ fun Avatar(
             }
             overlay?.invoke(this)
         }
-    }?: run {
+    } ?: run {
         Box {
             AvatarWithInitials(initials, size)
             overlay?.invoke(this)
         }
+    }
+}
+
+private data class AvatarImage(
+    val bitmap: ImageBitmap,
+    val width: Dp,
+    val height: Dp,
+)
+
+@Composable
+fun Avatar(
+    imageUrl: String?,
+    imageFlow: StateFlow<ByteArray?>?,
+    initials: String,
+    size: Dp = avatarSize().dp,
+    overlay: @Composable (BoxScope.() -> Unit)? = null
+) {
+    val i18n = DI.get<I18nView>()
+    var image: AvatarImage? by remember { mutableStateOf(null) }
+    LaunchedEffect(imageUrl) {
+        imageFlow?.collect {
+            it?.toImageBitmap()?.let { bitmap ->
+                val maxScaleX = size / bitmap.width
+                val maxScaleY = size / bitmap.height
+                val scale = max(maxScaleX, maxScaleY)
+                val width = scale * bitmap.width
+                val height = scale * bitmap.height
+                log.trace {
+                    "size ($size), image (${bitmap.width},${bitmap.height})" +
+                            ", scale ($scale), dim ($width,$height)"
+                }
+                image = AvatarImage(bitmap, width, height)
+            }
+        }
+    }
+    image?.let { (bitmap, width, height) ->
+        Box {
+            AvatarWithImage(size) {
+                Image(
+                    bitmap,
+                    i18n.commonAvatar(),
+                    Modifier.size(width, height),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            overlay?.invoke(this)
+        }
+    } ?: Box {
+        AvatarWithInitials(initials, size)
+        overlay?.invoke(this)
     }
 }
 
