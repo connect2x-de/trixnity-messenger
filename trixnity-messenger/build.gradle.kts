@@ -112,7 +112,7 @@ kotlin {
             dependsOn(jvmAndNativeMain)
             dependencies {
                 implementation(libs.bundles.jna)
-                implementation(libs.androidx.sqlite.bundled) // FIXME encrypted
+                implementation(libs.androidx.sqlite3mc.bundled)
             }
         }
         androidMain {
@@ -121,7 +121,7 @@ kotlin {
                 implementation(libs.androidx.activity)
                 implementation(libs.androidx.security.crypto)
                 implementation(libs.androidx.browser)
-                implementation(libs.androidx.sqlite.bundled)
+                implementation(libs.androidx.sqlite3.bundled)
             }
         }
         nativeMain {
@@ -130,7 +130,7 @@ kotlin {
         iosMain {
             dependencies {
                 implementation(libs.ktor.client.darwin) // since with iOS projects, we cannot include the engine, we select it here
-                implementation(libs.androidx.sqlite.bundled)
+                implementation(libs.androidx.sqlite3.bundled)
             }
         }
         jsMain {
