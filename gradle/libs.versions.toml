@@ -3,7 +3,7 @@ kotlinJvmTarget = "11"
 kotlin = "2.1.0" # https://github.com/JetBrains/kotlin/releases
 
 jvmTarget = "17"
-androidCompileSDK = "34"
+androidCompileSDK = "35"
 androidMinimalSDK = "28"
 androidTargetSDK = "34"
 messenger = "1.0.0"
