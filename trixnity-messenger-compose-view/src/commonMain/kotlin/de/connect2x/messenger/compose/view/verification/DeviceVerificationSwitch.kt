@@ -15,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,9 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
-import com.arkivanov.decompose.extensions.compose.stack.Children
-import com.arkivanov.decompose.extensions.compose.stack.animation.fade
-import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Wizard
@@ -35,41 +34,123 @@ import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerColors
-import de.connect2x.trixnity.messenger.viewmodel.verification.AcceptSasStartViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelectVerificationMethodViewModel
-import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCancelledViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCompareViewModel
-import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRejectedViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRequestViewModel
-import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepSuccessViewModel
-import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepTimeoutViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Wrapper
+import net.folivo.trixnity.core.model.events.m.key.verification.VerificationMethod
 
 @Composable
 fun BoxScope.DeviceVerificationStepSwitch(
     viewModel: VerificationViewModel
 ) {
-    Children(
-        stack = viewModel.stack,
-        animation = stackAnimation(fade())
-    ) {
-        when (val child = it.instance) {
-            is Wrapper.Request -> DeviceVerificationWizardRequest(child.viewModel)
-            is Wrapper.Wait -> DeviceVerificationWizardWaitForOther(viewModel::cancel)
-            is Wrapper.SelectVerificationMethod -> DeviceVerificationWizardSelectVerificationMethod(child.viewModel)
-            is Wrapper.AcceptSasStart -> DeviceVerificationWizardAcceptSasStart(child.viewModel)
-            is Wrapper.CompareEmojisOrNumbers -> DeviceVerificationWizardCompareEmojisOrNumbers(child.viewModel)
-            is Wrapper.Success -> DeviceVerificationWizardSuccess(child.viewModel)
+    val i18n = DI.current.get<I18nView>()
+    val selectedVerificationMethod =
+        remember { mutableStateOf<VerificationMethod?>(null) }
+    val child = viewModel.stack.subscribeAsState().value.active.instance
+    val step = WizardStep(
+        id = "DEVICE_VERIFICATION_WIZARD", title = { i18n.deviceVerification() }, content = {
+            when (child) {
+                is Wrapper.Request -> DeviceVerificationWizardRequest(child.viewModel)
+                is Wrapper.Wait -> DeviceVerificationWizardWaitForOther()
+                is Wrapper.SelectVerificationMethod -> DeviceVerificationWizardSelectVerificationMethod(
+                    child.viewModel,
+                    selectedVerificationMethod
+                )
 
-            is Wrapper.Rejected -> DeviceVerificationWizardRejected(child.viewModel)
-            is Wrapper.Timeout -> DeviceVerificationWizardTimeout(child.viewModel)
-            is Wrapper.Cancelled -> DeviceVerificationWizardCancelled(child.viewModel)
-            is Wrapper.AcceptedByOtherClient -> Box {} // not applicable for device verifications
-            is Wrapper.None -> Box {}
-        }.let {}
-    }
+                is Wrapper.AcceptSasStart -> DeviceVerificationWizardAcceptSasStart()
+                is Wrapper.CompareEmojisOrNumbers -> DeviceVerificationWizardCompareEmojisOrNumbers(child.viewModel)
+                is Wrapper.Success -> DeviceVerificationWizardSuccess()
+
+                is Wrapper.Rejected -> DeviceVerificationWizardRejected()
+                is Wrapper.Timeout -> DeviceVerificationWizardTimeout()
+                is Wrapper.Cancelled -> DeviceVerificationWizardCancelled()
+                is Wrapper.AcceptedByOtherClient -> Box {} // not applicable for device verifications
+                is Wrapper.None -> Box {}
+            }.let {}
+        },
+        nextButton = {
+            Custom {
+                when (child) {
+                    is Wrapper.Request ->
+                        Button(child.viewModel::next, Modifier.buttonPointerModifier()) {
+                            Text(i18n.commonNext().capitalize(Locale.current))
+                        }
+
+                    is Wrapper.CompareEmojisOrNumbers ->
+                        Button(
+                            child.viewModel::accept,
+                            Modifier.buttonPointerModifier().weight(1.0f, fill = false)
+                        ) {
+                            Text(i18n.verificationMatch())
+                        }
+
+                    else -> {}
+                }
+            }
+        },
+        additionalButton = {
+            when (child) {
+                is Wrapper.Wait ->
+                    Button(onClick = { viewModel.cancel() }, Modifier.buttonPointerModifier()) {
+                        Text(i18n.commonCancel())
+                    }
+
+                is Wrapper.SelectVerificationMethod -> {
+                    OkButton {
+                        selectedVerificationMethod.value?.let {
+                            child.viewModel.acceptVerificationMethod(
+                                it
+                            )
+                        }
+                    }
+                }
+
+                is Wrapper.AcceptSasStart -> {
+                    OkButton(child.viewModel::accept)
+                }
+
+                is Wrapper.Success -> {
+                    OkButton(child.viewModel::ok)
+                }
+
+                is Wrapper.Rejected -> {
+                    OkButton(child.viewModel::ok)
+                }
+
+                is Wrapper.Timeout -> {
+                    OkButton(child.viewModel::ok)
+                }
+
+                is Wrapper.Cancelled -> {
+                    OkButton(child.viewModel::ok)
+                }
+
+                else -> null
+            }
+
+        },
+        backButton = {
+            Custom {
+                when (child) {
+                    is Wrapper.CompareEmojisOrNumbers ->
+                        Button(
+                            child.viewModel::decline,
+                            Modifier.buttonPointerModifier().weight(1.0f, fill = false),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text(i18n.verificationNotMatch(), color = Color.White)
+                        }
+
+                    else -> {}
+                }
+            }
+        }
+    )
+    Wizard(listOf(step))
 }
+
 
 @Composable
 fun DeviceVerificationWizardRequest(verificationStepRequestViewModel: VerificationStepRequestViewModel) {
@@ -77,204 +158,80 @@ fun DeviceVerificationWizardRequest(verificationStepRequestViewModel: Verificati
     val deviceDisplayName = verificationStepRequestViewModel.ourDeviceDisplayName.collectAsState().value
     val theirDisplayName = verificationStepRequestViewModel.theirDisplayName.collectAsState().value
 
-    val step = WizardStep(
-        id = "DEVICE_VERIFICATION_WIZARD_REQUEST",
-        title = { i18n.deviceVerification() },
-        content = {
-            Column {
-                theirDisplayName?.let {
-                    Text(i18n.deviceVerificationInitiatedBy(it))
-                }
-                Text(i18n.deviceVerificationToAccount(deviceDisplayName))
-                Spacer(Modifier.size(20.dp))
-            }
-        },
-        nextButton = {
-            Custom {
-                Button(verificationStepRequestViewModel::next, Modifier.buttonPointerModifier()) {
-                    Text(i18n.commonNext().capitalize(Locale.current))
-                }
-            }
+    Column {
+        theirDisplayName?.let {
+            Text(i18n.deviceVerificationInitiatedBy(it))
         }
-    )
-    Wizard(listOf(step))
+        Text(i18n.deviceVerificationToAccount(deviceDisplayName))
+        Spacer(Modifier.size(20.dp))
+    }
 }
 
 @Composable
-fun DeviceVerificationWizardWaitForOther(cancelAction: (() -> Unit)? = null) {
-    val i18n = DI.get<I18nView>()
-    val step = WizardStep(
-        id = "DEVICE_VERIFICATION_WIZARD_WAIT",
-        title = { i18n.deviceVerification() },
-        content = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                DeviceVerificationWaitForOtherContent()
-            }
-        },
-        additionalButton = {
-            cancelAction?.let {
-                Button(onClick = cancelAction, Modifier.buttonPointerModifier()) {
-                    Text(i18n.commonCancel())
-                }
-            }
-        }
-    )
-    Wizard(listOf(step))
+fun DeviceVerificationWizardWaitForOther() {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        DeviceVerificationWaitForOtherContent()
+    }
+
 }
 
 @Composable
-fun DeviceVerificationWizardSelectVerificationMethod(selectVerificationMethodViewModel: SelectVerificationMethodViewModel) {
-    val verificationMethods = selectVerificationMethodViewModel.verificationMethods
-    val selectedVerificationMethod =
-        remember { mutableStateOf(verificationMethods.firstOrNull()?.first) }
+fun DeviceVerificationWizardSelectVerificationMethod(
+    selectVerificationMethodViewModel: SelectVerificationMethodViewModel,
+    selectedVerificationMethod: MutableState<VerificationMethod?>
+) {
+    SelectVerificationMethodContent(selectVerificationMethodViewModel, selectedVerificationMethod)
 
-    val i18n = DI.get<I18nView>()
-    val step = WizardStep(
-        id = "VERIFICATION_WIZARD_SELECT",
-        title = { i18n.deviceVerification() },
-        content = {
-            SelectVerificationMethodContent(selectVerificationMethodViewModel, selectedVerificationMethod)
-        },
-        additionalButton = {
-            OkButton {
-                selectedVerificationMethod.value?.let {
-                    selectVerificationMethodViewModel.acceptVerificationMethod(
-                        it
-                    )
-                }
-            }
-        })
-    Wizard(listOf(step))
 }
 
 @Composable
-fun DeviceVerificationWizardAcceptSasStart(acceptSasStartViewModel: AcceptSasStartViewModel) {
+fun DeviceVerificationWizardAcceptSasStart() {
     val i18n = DI.get<I18nView>()
-    val step = WizardStep(
-        id = "VERIFICATION_WIZARD_ACCEPT",
-        title = { i18n.deviceVerification() },
-        content = {
-            Column {
-                Text(i18n.verificationStartEmoji())
-            }
-        },
-        additionalButton = { OkButton(acceptSasStartViewModel::accept) }
-
-    )
-    Wizard(listOf(step))
-
+    Column {
+        Text(i18n.verificationStartEmoji())
+    }
 }
 
 @Composable
 fun BoxScope.DeviceVerificationWizardCompareEmojisOrNumbers(verificationStepCompareViewModel: VerificationStepCompareViewModel) {
-    val i18n = DI.get<I18nView>()
-    val step = WizardStep(
-        id = "VERIFICATION_WIZARD_COMPARE",
-        title = { i18n.deviceVerification() },
-        content = {
-            CompareEmojisOrNumbersContent(verificationStepCompareViewModel)
-        },
-        nextButton = {
-            Custom {
-                Button(
-                    verificationStepCompareViewModel::accept,
-                    Modifier.buttonPointerModifier().weight(1.0f, fill = false)
-                ) {
-                    Text(i18n.verificationMatch())
-                }
-            }
-        },
-        backButton = {
-            Custom {
-                Button(
-                    verificationStepCompareViewModel::decline,
-                    Modifier.buttonPointerModifier().weight(1.0f, fill = false),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text(i18n.verificationNotMatch(), color = Color.White)
-                }
-            }
-        }
-    )
-    Wizard(listOf(step))
+    CompareEmojisOrNumbersContent(verificationStepCompareViewModel)
+
 }
 
 @Composable
-fun DeviceVerificationWizardSuccess(verificationStepSuccessViewModel: VerificationStepSuccessViewModel) {
+fun DeviceVerificationWizardSuccess() {
     val i18n = DI.get<I18nView>()
-    val step = WizardStep(
-        id = "VERIFICATION_WIZARD_SUCCESS",
-        title = { i18n.deviceVerification() },
-        content = {
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(i18n.verificationSuccess())
-                    Icon(
-                        Icons.Default.CheckCircle,
-                        i18n.commonSuccess(),
-                        tint = MaterialTheme.messengerColors.success
-                    )
-                }
-            }
-        },
-        additionalButton = {
-            OkButton(verificationStepSuccessViewModel::ok)
-        })
-    Wizard(listOf(step))
+
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(i18n.verificationSuccess())
+            Icon(
+                Icons.Default.CheckCircle,
+                i18n.commonSuccess(),
+                tint = MaterialTheme.messengerColors.success
+            )
+        }
+    }
 }
 
 @Composable
 fun DeviceVerificationWizardRejected(
-    verificationStepRejectedViewModel: VerificationStepRejectedViewModel,
 ) {
-    val i18n = DI.get<I18nView>()
-    val step = WizardStep(
-        id = "VERIFICATION_WIZARD_REJECTED",
-        title = { i18n.deviceVerification() },
-        content = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                VerificationRejectedContent(true)
-            }
-        },
-        additionalButton = {
-            OkButton(verificationStepRejectedViewModel::ok)
-        }
-    )
-    Wizard(listOf(step))
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        VerificationRejectedContent(true)
+    }
 }
 
 @Composable
 fun DeviceVerificationWizardTimeout(
-    verificationStepTimeoutViewModel: VerificationStepTimeoutViewModel,
 ) {
-    val i18n = DI.get<I18nView>()
-    val step = WizardStep(
-        id = "VERIFICATION_WIZARD_TIMEOUT",
-        title = { i18n.deviceVerification() },
-        content = {
-            VerificationTimeoutContent(true)
-        },
-        additionalButton = {
-            OkButton(verificationStepTimeoutViewModel::ok)
-        }
-    )
-    Wizard(listOf(step))
+    VerificationTimeoutContent(true)
 }
 
 @Composable
 fun DeviceVerificationWizardCancelled(
-    verificationStepCancelledViewModel: VerificationStepCancelledViewModel,
 ) {
-    val i18n = DI.get<I18nView>()
-    val step = WizardStep(
-        id = "VERIFICATION_WIZARD_CANCELLED",
-        title = { i18n.deviceVerification() },
-        content = {
-            VerificationCancelledContent(true)
-        },
-        additionalButton = { OkButton(verificationStepCancelledViewModel::ok) }
-    )
-    Wizard(listOf(step))
+    VerificationCancelledContent(true)
 }
 
 @Composable
