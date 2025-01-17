@@ -105,7 +105,7 @@ jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 androidx-activity = { module = "androidx.activity:activity-ktx", version.ref = "activity" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "crypto" }
-androidx-sqlite3-bundled = { module = "androidx.sqlite:sqlite3-bundled", version.ref = "androidxSqlite3" }
+androidx-sqlite3-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "androidxSqlite3" }
 androidx-sqlite3mc-bundled = { module = "androidx.sqlite:sqlite3mc-bundled", version.ref = "androidxSqlite3mc" }
 kotlin-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version.ref = "kotlinWrappers" }
 kotlin-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser" }
