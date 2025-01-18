@@ -65,9 +65,10 @@ data class MessageBubbleDisplayConfig(
     /**
      * Provide the padding from the message bubble to its container.
      */
-    var bubblePadding: BoxWithConstraintsScope.(redactionInProgress: Boolean) -> Dp = {
-        (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (it) 16.dp else 0.dp)
-    },
+    var bubblePadding: BoxWithConstraintsScope.(redactionInProgress: Boolean) -> Dp =
+        { redactionInProgress ->
+            (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (redactionInProgress) 16.dp else 0.dp)
+        },
 
     ) {
     companion object {

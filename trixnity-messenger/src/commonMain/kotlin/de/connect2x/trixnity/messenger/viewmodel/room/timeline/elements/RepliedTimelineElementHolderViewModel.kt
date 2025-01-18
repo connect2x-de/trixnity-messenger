@@ -86,8 +86,8 @@ interface RepliedTimelineElementHolderViewModel {
 
 class RepliedTimelineElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    protected val timelineEventFlow: Flow<TimelineEvent?>,
-    protected val roomId: RoomId,
+    private val timelineEventFlow: Flow<TimelineEvent?>,
+    private val roomId: RoomId,
     override val eventId: EventId,
     private val onOpenMention: OpenMentionCallback,
 ) : RepliedTimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {

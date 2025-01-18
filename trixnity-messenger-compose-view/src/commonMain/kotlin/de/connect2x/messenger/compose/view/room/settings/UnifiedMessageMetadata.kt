@@ -48,6 +48,8 @@ import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.Alignment.Companion.End
+import androidx.compose.ui.Alignment.Companion.Start
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
@@ -442,7 +444,8 @@ private fun MessageContents(
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier
                         .paddingFromBaseline(0.dp)
-                        .padding(start = 10.dp),
+                        .padding(horizontal = 10.dp)
+                        .align(if (holder.isByMe) End else Start),
                     maxLines = 1,
                 )
             }

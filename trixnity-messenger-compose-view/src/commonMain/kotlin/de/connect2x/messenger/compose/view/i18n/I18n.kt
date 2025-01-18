@@ -927,7 +927,7 @@ abstract class I18nView(
     }
 
     fun roomSettingsMembers() = translate {
-        EN - "members"
+        EN - "Members"
         DE - "Mitglieder"
     }
 
