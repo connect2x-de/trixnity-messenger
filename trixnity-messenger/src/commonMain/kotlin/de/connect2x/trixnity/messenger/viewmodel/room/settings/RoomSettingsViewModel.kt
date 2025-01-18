@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
-import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -15,7 +14,6 @@ import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 
@@ -29,7 +27,7 @@ interface RoomSettingsViewModelFactory {
         onShowAddMembers: () -> Unit,
         onShowExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
-        onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+        onOpenAvatarCutter: OpenAvatarCutterCallback,
     ): RoomSettingsViewModel = RoomSettingsViewModelImpl(
         viewModelContext = viewModelContext,
         selectedRoomId = selectedRoomId,
@@ -78,7 +76,7 @@ class RoomSettingsViewModelImpl(
     private val onShowExportRoom: () -> Unit,
     private val onCloseRoomSettings: () -> Unit,
     private val onBack: () -> Unit,
-    private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+    private val onOpenAvatarCutter: OpenAvatarCutterCallback,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
 
     private val backCallback = BackCallback {

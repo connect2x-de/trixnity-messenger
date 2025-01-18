@@ -5,12 +5,12 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
-import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Wrapper
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.OpenAvatarCutterCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
@@ -46,7 +46,7 @@ class RoomRouterImpl(
     private val viewModelContext: ViewModelContext,
     private val onCloseRoom: () -> Unit,
     private val onOpenMention: OpenMentionCallback,
-    private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+    private val onOpenAvatarCutter: OpenAvatarCutterCallback,
 ) : RoomRouter {
 
     private val roomNavigation = StackNavigation<Config>()

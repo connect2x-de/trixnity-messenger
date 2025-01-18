@@ -4,8 +4,8 @@ import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.OpenAvatarCutterCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouterImpl
@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.None as ExtrasNone
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Config.None as TimelineNone
 
@@ -31,7 +30,7 @@ interface RoomViewModelFactory {
         selectedRoomId: RoomId,
         onRoomBack: () -> Unit,
         onOpenMention: OpenMentionCallback,
-        onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+        onOpenAvatarCutter: OpenAvatarCutterCallback,
     ): RoomViewModel = RoomViewModelImpl(
         viewModelContext = viewModelContext,
         roomId = selectedRoomId,
@@ -59,7 +58,7 @@ open class RoomViewModelImpl(
     private val roomId: RoomId,
     private val onRoomBack: () -> Unit,
     onOpenMention: OpenMentionCallback,
-    onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+    onOpenAvatarCutter: OpenAvatarCutterCallback,
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
 
     override val isRoomSettingsShown = MutableStateFlow(false)

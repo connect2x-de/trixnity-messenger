@@ -78,7 +78,7 @@ open class SyncViewModelImpl(
                     }
             }
             log.info { "initial sync done" }
-        } else log.warn { "unable to sync due to no network" }
+        } else log.warn { "unable to sync due to missing network connection" }
         onSyncDone()
     }
 }

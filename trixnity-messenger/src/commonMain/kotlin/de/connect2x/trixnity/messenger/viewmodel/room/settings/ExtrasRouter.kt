@@ -70,7 +70,7 @@ class ExtrasRouterImpl(
     private val viewModelContext: MatrixClientViewModelContext,
     private val onSettingsBack: () -> Unit,
     private val onRoomBack: () -> Unit,
-    private val onOpenAvatarCutter: AvatarCutterCallback,
+    private val onOpenAvatarCutter: OpenAvatarCutterCallback,
 ) : ExtrasRouter {
 
     private val settingsNavigation = StackNavigation<Config>()

@@ -26,11 +26,13 @@ import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
 
+typealias OpenAvatarCutterCallback = (UserId, RoomId, FileDescriptor) -> Unit
+
 interface ChangeRoomAvatarViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        onOpenAvatarCutter: AvatarCutterCallback,
+        onOpenAvatarCutter: OpenAvatarCutterCallback,
     ): ChangeRoomAvatarViewModel {
         return ChangeAvatarViewModelImpl(
             viewModelContext,
@@ -41,8 +43,6 @@ interface ChangeRoomAvatarViewModelFactory {
 
     companion object : ChangeRoomAvatarViewModelFactory
 }
-
-typealias AvatarCutterCallback = (UserId, RoomId, FileDescriptor) -> Unit
 
 interface ChangeRoomAvatarViewModel {
     val canChangeRoomAvatar: StateFlow<Boolean>
@@ -55,7 +55,7 @@ interface ChangeRoomAvatarViewModel {
 class ChangeAvatarViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
-    private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+    private val onOpenAvatarCutter: OpenAvatarCutterCallback,
 ) : MatrixClientViewModelContext by viewModelContext, ChangeRoomAvatarViewModel {
 
     private val initialsComputation = get<Initials>()
