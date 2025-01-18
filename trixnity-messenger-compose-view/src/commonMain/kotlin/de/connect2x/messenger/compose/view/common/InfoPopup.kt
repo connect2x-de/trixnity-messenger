@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
+// TODO: remove component
 @Composable
 expect fun InfoPopup(
     isOpen: Boolean,

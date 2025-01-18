@@ -861,24 +861,34 @@ abstract class I18nView(
         DE - "Dieser Nutzer wird von Ihnen geblockt."
     }
 
-    fun messageDetailsTitle() = translate {
+    fun messageMetadataTitle() = translate {
         EN - "Message details"
         DE - "Nachrichtendetails"
     }
 
-    fun messageDetailsSender() = translate {
+    fun messageMetadataSender() = translate {
         EN - "Sender"
         DE - "Absender"
     }
 
-    fun messageDetailsMessage() = translate {
+    fun messageMetadataMessage() = translate {
         EN - "Message"
         DE - "Nachricht"
     }
 
-    fun messageDetailsReadersAndReactions() = translate {
-        EN - "Readers and Reactions"
+    fun messageMetadataReadersAndReactions() = translate {
+        EN - "Seen and reacted by"
         DE - "Leser und Reaktionen"
+    }
+
+    fun messageMetadataMessageTimestampLabel(formattedTime: String) = translate {
+        EN - "Sent at $formattedTime"
+        DE - "Gesendet am $formattedTime"
+    }
+
+    fun messageMetadataReadersAndReactionsNone() = translate {
+        EN - "No message interactions yet."
+        DE - "Bisher keine Nachrichtsinteraktionen"
     }
 
     fun roomSettings() = translate {

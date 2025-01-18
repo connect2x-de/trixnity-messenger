@@ -101,7 +101,7 @@ fun MessageBubbleContent(
                     Modifier.align(Alignment.End).padding(5.dp),
                     verticalAlignment = Alignment.Bottom
                 ) {
-                    MessageBubbleContentInfo(isReplaced, holder)
+                    if (config.showTimeAndEditedIndicator) MessageBubbleContentInfo(isReplaced, holder)
                 }
             } else {
                 Layout(
@@ -115,7 +115,7 @@ fun MessageBubbleContent(
                             ),
                             verticalAlignment = Alignment.Bottom,
                         ) {
-                            MessageBubbleContentInfo(isReplaced, holder)
+                            if (config.showTimeAndEditedIndicator) MessageBubbleContentInfo(isReplaced, holder)
                         }
                     },
                     measurePolicy = object : MeasurePolicy {
@@ -196,7 +196,6 @@ fun MessageBubbleContent(
 @Composable
 private fun MessageBubbleContentInfo(isReplaced: Boolean, holder: BaseTimelineElementHolderViewModel) {
     val i18n = DI.get<I18nView>()
-
     Row {
         if (isReplaced) {
             Text(

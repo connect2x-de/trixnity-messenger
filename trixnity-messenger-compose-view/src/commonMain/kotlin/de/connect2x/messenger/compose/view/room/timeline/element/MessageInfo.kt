@@ -12,8 +12,8 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
-// TODO: remove
 
+// TODO: remove
 interface MessageInfoView {
     @Composable
     fun create(

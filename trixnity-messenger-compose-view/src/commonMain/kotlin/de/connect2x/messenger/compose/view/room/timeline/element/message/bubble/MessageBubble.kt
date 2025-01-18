@@ -53,6 +53,11 @@ data class MessageBubbleDisplayConfig(
     var showRepliedElement: Boolean = true,
 
     /**
+     * Whether the bubble should render the timestamp and message has been edited indicator.
+     */
+    var showTimeAndEditedIndicator: Boolean = true,
+
+    /**
      * Whether the rendering of the chat bubble tail should be forced to be always rendered.
      */
     var alwaysShowChatBubbleTail: Boolean = false,
@@ -72,6 +77,7 @@ data class MessageBubbleDisplayConfig(
         fun MessageBubbleDisplayConfig.applyPreviewConfig() = this.apply {
             showMessageReactions = false
             showContextActionMenu = false
+            showTimeAndEditedIndicator = false
             alwaysShowChatBubbleTail = true
             bubblePadding = { _ -> 0.dp }
         }

@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.room.settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.Center
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -93,7 +95,6 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
-import androidx.compose.foundation.layout.Arrangement.Center as ArrangeCenter
 
 
 //private val log = KotlinLogging.logger {}
@@ -211,27 +212,48 @@ private fun Modifier.drawLayoutRulers(): Modifier =
     }
 
 // TODO: Move to utils?
+/**
+ * This works almost like writing and using `var value = remember { mutableStateOf(T) }`
+ * but instead of invoking a UI redraw on each update, this Helper provides a mechanism
+ * to throttle the update propagation and thus reduce unnecessary updates to the composable.
+ * E.g. when a scrolling list also performs some form of more complex layouting.
+ */
 @OptIn(FlowPreview::class)
-private class ThrottledEffect<T> private constructor(value: MutableState<T>, pending: MutableState<T>) {
+private class ThrottledMutableState<T> private constructor(value: MutableState<T>, pending: MutableState<T>) {
     private val _value: MutableState<T> = value
     private var _pending by pending
-    val value get() = _value.value
+
+    /**
+     * This field should be handled as the read-only accessor to the current value!
+     * Attempts at altering it, e.g. performing mutable collection operations
+     * may result in strange and difficult to debug behavior.
+     */
+    fun get(): T = _value.value
+
+    /**
+     * This method should be used if the intent is to update the value as a whole.
+     */
     fun set(value: T) {
         _pending = value
     }
 
-    fun modify(setterFn: (T) -> Unit) = setterFn(_pending)
+    /**
+     * This method is intended for performing modifications on a complex object which then
+     * gets propagated to the UI eventually. E.g. modifying a mutable collection
+     * without needing to copy it.
+     */
+    fun modify(modifyFn: (T) -> Unit) = modifyFn(_pending)
 
     companion object {
         @Composable
-        operator fun <T> invoke(value: () -> T): ThrottledEffect<T> {
-            val effect = ThrottledEffect(
+        operator fun <T> invoke(value: () -> T): ThrottledMutableState<T> {
+            val effect = ThrottledMutableState(
                 remember { mutableStateOf(value()) },
                 remember { mutableStateOf(value()) },
             )
             LaunchedEffect(Unit) {
                 snapshotFlow { effect._pending }
-                    .conflate().sample(33.milliseconds)
+                    .conflate().sample(66.milliseconds)
                     .collect { effect._value.value = it }
             }
             return effect
@@ -253,19 +275,19 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
     val filterHeight = 64.dp
 
     val scrollState = rememberScrollState()
-    val paneBounds = ThrottledEffect { density.verticalBounds() }
-    val interactionsBounds = ThrottledEffect { density.verticalBounds() }
+    val paneBounds = ThrottledMutableState { density.verticalBounds() }
+    val interactionsBounds = ThrottledMutableState { density.verticalBounds() }
     val interactionFilterByReaction = remember { mutableStateOf<ReactionKey?>(null) }
-    val interactionsOffset = interactionsBounds.value.offsetRelativeTo(paneBounds.value) ?: 0.dp
+    val interactionsOffset = interactionsBounds.get().offsetRelativeTo(paneBounds.get()) ?: 0.dp
     val filterOffset = min(
-        interactionsOffset + interactionsBounds.value.height + smallSpacing,
-        paneBounds.value.height - filterHeight,
+        interactionsOffset + interactionsBounds.get().height + smallSpacing,
+        paneBounds.get().height - filterHeight,
     )
     val isInteractionsVisible = filterOffset >= interactionsOffset
     val isFilterVisible = isInteractionsVisible && reactionCounts.isNotEmpty()
 
     ExtrasPaneHeader(
-        i18n.messageDetailsTitle(),
+        i18n.messageMetadataTitle(),
         null, // TODO
         { viewModel.back() },
         if (isSinglePane || stackPosition > 2) BACK else CLOSE,
@@ -280,7 +302,7 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
             Box(
                 Modifier
 //                    .background(Color.Gray)
-                    .height(paneBounds.value.height - (if (isFilterVisible) filterHeight else 0.dp))
+                    .height(paneBounds.get().height - (if (isFilterVisible) filterHeight else 0.dp))
             ) {
                 Column(
                     Modifier
@@ -291,22 +313,23 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
                 ) {
                     Spacer(Modifier.size(largeSpacing))
                     Text(
-                        text = i18n.messageDetailsSender(),
+                        text = i18n.messageMetadataSender(),
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Spacer(Modifier.size(smallSpacing))
                     if (senderInfo != null) UserInfo(senderInfo)
                     Spacer(Modifier.size(largeSpacing))
                     Text(
-                        text = i18n.messageDetailsMessage(),
+                        text = i18n.messageMetadataMessage(),
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Spacer(Modifier.size(smallSpacing))
                     MessageContents(message)
+                    Spacer(Modifier.size(smallSpacing))
                     HorizontalDivider()
                     Spacer(Modifier.size(largeSpacing))
                     Text(
-                        text = i18n.messageDetailsReadersAndReactions(),
+                        text = i18n.messageMetadataReadersAndReactions(),
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Spacer(Modifier.size(smallSpacing))
@@ -320,20 +343,21 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
                             val interactions = (interactionFilterByReaction.value
                                 ?.let { filter -> userInteractions.filter { it.reactions.contains(filter) } }
                                 ?: userInteractions).sortedByDescending { it.reactions.firstOrNull()?.hashCode() }
-                            if (interactions.isEmpty()) {
+                            if (interactions.isEmpty() && interactionFilterByReaction.value != null) {
                                 // Reset the filter if it's set but yields no results.
                                 interactionFilterByReaction.value = null
                                 // TODO: Add state that will trigger the filter row to scroll back to its beginning.
-                            } else UserInteractions(
+                            }
+                            UserInteractions(
                                 interactions = interactions,
-                                paneBounds = paneBounds.value,
+                                paneBounds = paneBounds.get(),
                                 visibleListOffset = interactionsOffset,
                                 visibleListHeight = filterOffset - interactionsOffset,
                             )
                         }
                         // Provide some space so the user interactions list
                         // can appear while scrolling down.
-                        else Spacer(Modifier.size(paneBounds.value.height / 2))
+                        else Spacer(Modifier.size(paneBounds.get().height / 2))
                     }
                     Spacer(Modifier.size(smallSpacing))
                 }
@@ -370,7 +394,7 @@ private fun UserInfo(
                 // the corresponding view might already have left the building where it nor any
                 // of its coroutines care anymore about actually doing anything with the data.
                 // Tl;dr: the list navigation is much smoother as a result.
-                val imageFlow = userInfo.image?.onStart { delay((250..750).random().milliseconds) }
+                val imageFlow = userInfo.image?.onStart { delay((250..500).random().milliseconds) }
                 Avatar(userInfo.imageUrl, imageFlow, userInfo.initials ?: "?")
             }
             Spacer(Modifier.size(8.dp))
@@ -400,16 +424,27 @@ private fun UserInfo(
 
 @Composable
 private fun MessageContents(
-    message: TimelineElementHolderViewModel?,
+    messageHolder: TimelineElementHolderViewModel?,
 ) {
-    Column {
-        message?.element?.collectAsState()?.value?.let { element ->
+    val i18n = DI.get<I18nView>()
+    messageHolder?.let { holder ->
+        holder.element.collectAsState().value?.let { element ->
             Column(
                 Modifier.padding(end = 8.dp),
             ) {
                 with(DI.get<TimelineElementViewSelector>()) {
-                    createAsMessagePreview(message, element)
+                    createAsMessagePreview(holder, element)
                 }
+                Spacer(Modifier.size(5.dp))
+                val formattedDateAndTime = "${holder.formattedTime} - ${holder.formattedDate}"
+                Text(
+                    i18n.messageMetadataMessageTimestampLabel(formattedDateAndTime),
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier
+                        .paddingFromBaseline(0.dp)
+                        .padding(start = 10.dp),
+                    maxLines = 1,
+                )
             }
             Spacer(Modifier.size(10.dp))
         }
@@ -424,22 +459,30 @@ private fun UserInteractions(
     visibleListOffset: Dp,
     visibleListHeight: Dp,
 ) {
+    val i18n = DI.get<I18nView>()
     val density = LocalDensity.current
     val hiddenItemsHeight = 64.dp
-    val itemBounds = ThrottledEffect<MutableMap<Int, VerticalBounds>> { mutableMapOf() }
+    val itemBounds = ThrottledMutableState<MutableMap<Int, VerticalBounds>> { mutableMapOf() }
     Column(modifier) {
-        interactions.forEachIndexed { index, interaction ->
+        if (interactions.isEmpty()) Text(
+            i18n.messageMetadataReadersAndReactionsNone(),
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier
+                .align(CenterHorizontally)
+                .paddingFromBaseline(0.dp)
+                .padding(start = 10.dp),
+        )
+        else interactions.forEachIndexed { index, interaction ->
             Box(
                 Modifier
                     .fillMaxWidth()
-//                    .background(Color.Blue)
                     .background(MaterialTheme.colorScheme.surface)
                     .defaultMinSize(minHeight = hiddenItemsHeight)
                     .onGloballyPositioned {
                         itemBounds.modify { value -> value[index] = density.verticalBounds(it) }
                     }
             ) {
-                val showItem = itemBounds.value[index]
+                val showItem = itemBounds.get()[index]
                     ?.let {
                         val itemOffset = it.offsetRelativeTo(paneBounds)
                         visibleListHeight > 0.dp && it.height > 0.dp && itemOffset != null
@@ -501,7 +544,7 @@ private fun ReactionsFilter(
                         })
                         .align(Center),
                     verticalAlignment = CenterVertically,
-                    horizontalArrangement = ArrangeCenter,
+                    horizontalArrangement = Arrangement.Center,
                 ) {
                     Text(
                         reaction,
