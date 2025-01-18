@@ -7,12 +7,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -68,7 +65,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -79,12 +76,14 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.Avatar
+import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.pointerEventWrapper
 import de.connect2x.messenger.compose.view.room.settings.ExtrasPaneHeaderBackButtonType.BACK
 import de.connect2x.messenger.compose.view.room.settings.ExtrasPaneHeaderBackButtonType.CLOSE
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
+import de.connect2x.messenger.compose.view.room.timeline.element.util.Tooltip
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MessageMetadataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MessageUserInteraction
@@ -318,9 +317,8 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
                         text = i18n.messageMetadataSender(),
                         style = MaterialTheme.typography.titleMedium,
                     )
-                    Spacer(Modifier.size(smallSpacing))
                     if (senderInfo != null) UserInfo(senderInfo)
-                    Spacer(Modifier.size(largeSpacing))
+                    Spacer(Modifier.size(smallSpacing))
                     Text(
                         text = i18n.messageMetadataMessage(),
                         style = MaterialTheme.typography.titleMedium,
@@ -378,19 +376,38 @@ fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: I
 }
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
 private fun UserInfo(
     userInfo: UserInfoElement,
     reactions: Set<ReactionKey> = setOf(),
 ) {
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .height(64.dp)
-            .padding(4.dp)
+    val i18n = DI.get<I18nView>()
+    val compiledReactionsList: String = reactions.joinToString(" ")
+    val hasReactions = compiledReactionsList.isNotEmpty()
+    val tooltipText = buildString {
+        append("${userInfo.name}: ${userInfo.userId.full}")
+        if (hasReactions) {
+            appendLine()
+            append(i18n.messageMetadataUserInfoTooltipReactions(compiledReactionsList))
+        }
+    }
+    Tooltip(
+        { TooltipText(tooltipText) },
+        delay = 50.milliseconds,
     ) {
-        Row {
-            Box(Modifier.padding(top = 6.dp, start = 6.dp)) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(42.dp)
+                .clickable {
+                    // Noop for hover effect.
+                    // TODO: Open user profile.
+                }
+        ) {
+            Box(
+                Modifier
+                    .align(CenterVertically)
+                    .padding(start = 8.dp)
+            ) {
                 // Loading and processing the image data immediately makes the scrolling lag.
                 // Thus it's delayed by just enough to not be bothersome but long enough that
                 // the corresponding view might already have left the building where it nor any
@@ -399,25 +416,27 @@ private fun UserInfo(
                 val imageFlow = userInfo.image?.onStart { delay((250..500).random().milliseconds) }
                 Avatar(userInfo.imageUrl, imageFlow, userInfo.initials ?: "?")
             }
-            Spacer(Modifier.size(8.dp))
-            Column {
-                FlowRow {
-                    Text(userInfo.name, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.size(8.dp))
-                    Text(userInfo.userId.full, fontWeight = FontWeight.Light)
-                }
-                FlowRow {
-                    reactions.forEach { reactionKey ->
-                        Row {
-                            Text(
-                                reactionKey,
-                                style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
-                                modifier = Modifier.paddingFromBaseline(0.dp),
-                                maxLines = 1,
-                            )
-                            Spacer(Modifier.size(8.dp))
-                        }
-                    }
+            Column(
+                Modifier
+                    .align(CenterVertically)
+                    .padding(start = 8.dp)
+            ) {
+                Text(
+                    userInfo.name,
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.paddingFromBaseline(0.dp),
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                )
+                if (hasReactions) {
+                    Spacer(Modifier.size(4.dp))
+                    Text(
+                        compiledReactionsList,
+                        style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
+                        modifier = Modifier.paddingFromBaseline(0.dp),
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                    )
                 }
             }
         }
@@ -464,7 +483,7 @@ private fun UserInteractions(
 ) {
     val i18n = DI.get<I18nView>()
     val density = LocalDensity.current
-    val hiddenItemsHeight = 64.dp
+    val hiddenItemsHeight = 45.dp
     val itemBounds = ThrottledMutableState<MutableMap<Int, VerticalBounds>> { mutableMapOf() }
     Column(modifier) {
         if (interactions.isEmpty()) Text(
@@ -480,7 +499,7 @@ private fun UserInteractions(
                 Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface)
-                    .defaultMinSize(minHeight = hiddenItemsHeight)
+                    .height(hiddenItemsHeight)
                     .onGloballyPositioned {
                         itemBounds.modify { value -> value[index] = density.verticalBounds(it) }
                     }

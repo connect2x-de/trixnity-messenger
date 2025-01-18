@@ -871,6 +871,11 @@ abstract class I18nView(
         DE - "Absender"
     }
 
+    fun messageMetadataUserInfoTooltipReactions(reactions: String) = translate {
+        EN - "Reactions: $reactions"
+        DE - "Reaktionen: $reactions"
+    }
+
     fun messageMetadataMessage() = translate {
         EN - "Message"
         DE - "Nachricht"

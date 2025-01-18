@@ -84,6 +84,7 @@ fun MemberList(memberListViewModel: MemberListViewModel) {
 
     Box(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
         LazyColumn(Modifier.fillMaxWidth(), state) {
+            // TODO: Consider showing banned users at the bottom of the list.
             members.forEach { memberListElementViewModel ->
                 val userId = memberListElementViewModel.memberUserId
                 item(key = userId.full) {
@@ -106,12 +107,12 @@ fun MemberList(memberListViewModel: MemberListViewModel) {
             VerticalScrollbar(
                 Modifier.align(Alignment.CenterEnd),
                 state,
-                false
+                false,
             )
         }
     }
     LaunchedEffect(members) {
-        if (state.layoutInfo.visibleItemsInfo.any { it.index == 1 }) { // this has been the first element before
+        if (state.layoutInfo.visibleItemsInfo.any { it.index == 1 }) { // This has been the first element before.
             state.animateScrollToItem(0)
         }
     }
