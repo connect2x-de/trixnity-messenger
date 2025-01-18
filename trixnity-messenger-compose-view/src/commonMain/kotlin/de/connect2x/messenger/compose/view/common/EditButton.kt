@@ -8,10 +8,11 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 
 @Composable
-fun EditButton(onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun EditButton(onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, content: @Composable () -> Unit) {
     IconButton(
         onClick = onClick,
         modifier = modifier.then(Modifier.size(50.dp).buttonPointerModifier()),
+        enabled = enabled,
     ) {
         content()
     }

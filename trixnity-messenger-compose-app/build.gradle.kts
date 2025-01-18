@@ -1,3 +1,4 @@
+
 import com.mikepenz.aboutlibraries.plugin.AboutLibrariesTask
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
@@ -132,10 +133,6 @@ kotlin {
             }
         }
     }
-}
-
-composeCompiler {
-    enableStrongSkippingMode = true
 }
 
 compose {

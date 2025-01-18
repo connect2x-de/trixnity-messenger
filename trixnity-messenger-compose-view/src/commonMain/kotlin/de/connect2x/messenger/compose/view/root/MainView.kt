@@ -40,8 +40,6 @@ class MainViewImpl : MainView {
                 InitialSyncSwitch(mainViewModel, isSinglePane)
             }
         }
-
-//        MediaOverlaySwitch(mainViewModel) // TODO: Re-enable later.
         DeviceVerificationSwitch(mainViewModel)
         AvatarCutterSwitch(mainViewModel)
         AccountSetupSwitch(mainViewModel)
