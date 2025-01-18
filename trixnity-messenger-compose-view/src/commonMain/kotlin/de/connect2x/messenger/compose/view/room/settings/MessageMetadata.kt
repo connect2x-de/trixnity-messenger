@@ -98,8 +98,6 @@ import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
 
-//private val log = KotlinLogging.logger {}
-
 // TODO: Move to utils?
 private data class VerticalBounds(
     val height: Dp,
@@ -262,115 +260,129 @@ private class ThrottledMutableState<T> private constructor(value: MutableState<T
     }
 }
 
-@Composable
-fun UnifiedMessageMetadata(viewModel: MessageMetadataViewModel, stackPosition: Int, isSinglePane: Boolean) {
-    val message = viewModel.compiledMessage.collectAsState().value
-    val reactionCounts = viewModel.reactionCounts.collectAsState().value
-    val userInteractions = viewModel.userInteractions.collectAsState().value
-    val senderInfo = viewModel.senderInfo.collectAsState().value
-
-    val i18n = DI.get<I18nView>()
-    val density = LocalDensity.current
-    val smallSpacing = 10.dp
-    val largeSpacing = 20.dp
-    val filterHeight = 64.dp
-
-    val scrollState = rememberScrollState()
-    val paneBounds = ThrottledMutableState { density.verticalBounds() }
-    val interactionsBounds = ThrottledMutableState { density.verticalBounds() }
-    val interactionFilterByReaction = remember { mutableStateOf<ReactionKey?>(null) }
-    val interactionsOffset = interactionsBounds.get().offsetRelativeTo(paneBounds.get()) ?: 0.dp
-    val filterOffset = min(
-        interactionsOffset + interactionsBounds.get().height + smallSpacing,
-        paneBounds.get().height - filterHeight,
+interface MessageMetadataView {
+    @Composable
+    fun create(
+        viewModel: MessageMetadataViewModel,
+        stackPosition: Int, isSinglePane: Boolean,
     )
-    val isInteractionsVisible = filterOffset >= interactionsOffset
-    val isFilterVisible = isInteractionsVisible && reactionCounts.isNotEmpty()
+}
 
-    ExtrasPaneHeader(
-        i18n.messageMetadataTitle(),
-        null, // TODO
-        { viewModel.back() },
-        if (isSinglePane || stackPosition > 2) BACK else CLOSE,
+@Composable
+fun MessageMetadata(
+    viewModel: MessageMetadataViewModel,
+    stackPosition: Int, isSinglePane: Boolean,
+) {
+    DI.get<MessageMetadataView>().create(viewModel, stackPosition, isSinglePane)
+}
+
+class MessageMetadataViewImpl : MessageMetadataView {
+    @Composable
+    override fun create(
+        viewModel: MessageMetadataViewModel,
+        stackPosition: Int, isSinglePane: Boolean,
     ) {
-        Box(
-            Modifier
-                .fillMaxSize()
-//                .drawLayoutRulers()
-//                .background(Color.Yellow)
-                .onGloballyPositioned { paneBounds.set(density.verticalBounds(it)) }
+        val message = viewModel.compiledMessage.collectAsState().value
+        val reactionCounts = viewModel.reactionCounts.collectAsState().value
+        val userInteractions = viewModel.userInteractions.collectAsState().value
+        val senderInfo = viewModel.senderInfo.collectAsState().value
+
+        val i18n = DI.get<I18nView>()
+        val density = LocalDensity.current
+        val smallSpacing = 10.dp
+        val largeSpacing = 20.dp
+        val filterHeight = 64.dp
+
+        val scrollState = rememberScrollState()
+        val paneBounds = ThrottledMutableState { density.verticalBounds() }
+        val interactionsBounds = ThrottledMutableState { density.verticalBounds() }
+        val interactionFilterByReaction = remember { mutableStateOf<ReactionKey?>(null) }
+        val interactionsOffset = interactionsBounds.get().offsetRelativeTo(paneBounds.get()) ?: 0.dp
+        val filterOffset = min(
+            interactionsOffset + interactionsBounds.get().height + smallSpacing,
+            paneBounds.get().height - filterHeight,
+        )
+        val isInteractionsVisible = filterOffset >= interactionsOffset
+        val isFilterVisible = isInteractionsVisible && reactionCounts.isNotEmpty()
+
+        ExtrasPaneHeader(
+            i18n.messageMetadataTitle(),
+            null, // TODO
+            { viewModel.back() },
+            if (isSinglePane || stackPosition > 2) BACK else CLOSE,
         ) {
             Box(
                 Modifier
-//                    .background(Color.Gray)
-                    .height(paneBounds.get().height - (if (isFilterVisible) filterHeight else 0.dp))
+                    .fillMaxSize()
+                    .onGloballyPositioned { paneBounds.set(density.verticalBounds(it)) }
             ) {
-                Column(
+                Box(
                     Modifier
-                        .verticalScroll(scrollState)
-//                        .background(Color.Cyan)
-//                        .drawLayoutRulers()
-                        .padding(horizontal = 20.dp)
+                        .height(paneBounds.get().height - (if (isFilterVisible) filterHeight else 0.dp))
                 ) {
-                    Spacer(Modifier.size(largeSpacing))
-                    Text(
-                        text = i18n.messageMetadataSender(),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    if (senderInfo != null) UserInfo(senderInfo)
-                    Spacer(Modifier.size(smallSpacing))
-                    Text(
-                        text = i18n.messageMetadataMessage(),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Spacer(Modifier.size(smallSpacing))
-                    MessageContents(message)
-                    Spacer(Modifier.size(smallSpacing))
-                    HorizontalDivider()
-                    Spacer(Modifier.size(largeSpacing))
-                    Text(
-                        text = i18n.messageMetadataReadersAndReactions(),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Spacer(Modifier.size(smallSpacing))
-                    Box(
+                    Column(
                         Modifier
-                            .onGloballyPositioned { interactionsBounds.set(density.verticalBounds(it)) }
-//                            .background(Color.Magenta),
+                            .verticalScroll(scrollState)
+                            .padding(horizontal = 20.dp)
                     ) {
-                        if (isInteractionsVisible) {
-                            // TODO: Move this into the viewmodel?
-                            val interactions = (interactionFilterByReaction.value
-                                ?.let { filter -> userInteractions.filter { it.reactions.contains(filter) } }
-                                ?: userInteractions).sortedByDescending { it.reactions.firstOrNull()?.hashCode() }
-                            if (interactions.isEmpty() && interactionFilterByReaction.value != null) {
-                                // Reset the filter if it's set but yields no results.
-                                interactionFilterByReaction.value = null
-                                // TODO: Add state that will trigger the filter row to scroll back to its beginning.
+                        Spacer(Modifier.size(largeSpacing))
+                        Text(
+                            text = i18n.messageMetadataSender(),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        if (senderInfo != null) UserInfo(senderInfo)
+                        Spacer(Modifier.size(smallSpacing))
+                        Text(
+                            text = i18n.messageMetadataMessage(),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Spacer(Modifier.size(smallSpacing))
+                        MessageContents(message)
+                        Spacer(Modifier.size(smallSpacing))
+                        HorizontalDivider()
+                        Spacer(Modifier.size(largeSpacing))
+                        Text(
+                            text = i18n.messageMetadataReadersAndReactions(),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        Spacer(Modifier.size(smallSpacing))
+                        Box(
+                            Modifier
+                                .onGloballyPositioned { interactionsBounds.set(density.verticalBounds(it)) }
+                        ) {
+                            if (isInteractionsVisible) {
+                                // TODO: Move this into the viewmodel?
+                                val interactions = (interactionFilterByReaction.value
+                                    ?.let { filter -> userInteractions.filter { it.reactions.contains(filter) } }
+                                    ?: userInteractions).sortedByDescending { it.reactions.firstOrNull()?.hashCode() }
+                                if (interactions.isEmpty() && interactionFilterByReaction.value != null) {
+                                    // Reset the filter if it's set but yields no results.
+                                    interactionFilterByReaction.value = null
+                                    // TODO: Add state that will trigger the filter row to scroll back to its beginning.
+                                }
+                                UserInteractions(
+                                    interactions = interactions,
+                                    paneBounds = paneBounds.get(),
+                                    visibleListOffset = interactionsOffset,
+                                    visibleListHeight = filterOffset - interactionsOffset,
+                                )
                             }
-                            UserInteractions(
-                                interactions = interactions,
-                                paneBounds = paneBounds.get(),
-                                visibleListOffset = interactionsOffset,
-                                visibleListHeight = filterOffset - interactionsOffset,
-                            )
+                            // Provide some space so the user interactions list
+                            // can appear while scrolling down.
+                            else Spacer(Modifier.size(500.dp))
                         }
-                        // Provide some space so the user interactions list
-                        // can appear while scrolling down.
-                        else Spacer(Modifier.size(paneBounds.get().height / 2))
+                        Spacer(Modifier.size(smallSpacing))
                     }
-                    Spacer(Modifier.size(smallSpacing))
+                    VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
                 }
-                VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
+                if (isInteractionsVisible) ReactionsFilter(
+                    Modifier
+                        .height(filterHeight)
+                        .offset(y = filterOffset),
+                    reactionCounts,
+                    interactionFilterByReaction,
+                )
             }
-
-            if (isInteractionsVisible) ReactionsFilter(
-                Modifier
-                    .height(filterHeight)
-                    .offset(y = filterOffset),
-                reactionCounts,
-                interactionFilterByReaction,
-            )
         }
     }
 }

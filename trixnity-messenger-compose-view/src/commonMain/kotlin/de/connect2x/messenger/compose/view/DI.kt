@@ -41,6 +41,8 @@ import de.connect2x.messenger.compose.view.room.settings.ChangeRoomAvatarView
 import de.connect2x.messenger.compose.view.room.settings.ChangeRoomAvatarViewImpl
 import de.connect2x.messenger.compose.view.room.settings.ExportRoomView
 import de.connect2x.messenger.compose.view.room.settings.ExportRoomViewImpl
+import de.connect2x.messenger.compose.view.room.settings.MessageMetadataView
+import de.connect2x.messenger.compose.view.room.settings.MessageMetadataViewImpl
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsExportRoomView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsExportRoomViewImpl
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsHistoryVisibilityView
@@ -119,7 +121,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElement
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelectorImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ImageTimelineElementDetailsView
-import de.connect2x.messenger.compose.view.room.timeline.element.details.PdfTimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.details.TimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementView
@@ -371,6 +372,7 @@ fun roomViewModule() = module {
 
 fun roomSettingsViewModule() = module {
     single<RoomSettingsView> { RoomSettingsViewImpl() }
+    single<MessageMetadataView> { MessageMetadataViewImpl() }
     single<ChangeRoomAvatarView> { ChangeRoomAvatarViewImpl() }
     single<RoomSettingsNameView> { RoomSettingsNameViewImpl() }
     single<RoomSettingsTopicView> { RoomSettingsTopicViewImpl() }
