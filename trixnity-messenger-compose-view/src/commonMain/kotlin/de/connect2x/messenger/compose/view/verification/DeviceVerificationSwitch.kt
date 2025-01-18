@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
@@ -24,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -42,7 +40,7 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewMo
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationMethod
 
 @Composable
-fun BoxScope.DeviceVerificationStepSwitch(
+fun BoxScope.DeviceVerificationWizardStepSwitch(
     viewModel: VerificationViewModel
 ) {
     val i18n = DI.current.get<I18nView>()
@@ -163,7 +161,6 @@ fun DeviceVerificationWizardRequest(verificationStepRequestViewModel: Verificati
             Text(i18n.deviceVerificationInitiatedBy(it))
         }
         Text(i18n.deviceVerificationToAccount(deviceDisplayName))
-        Spacer(Modifier.size(20.dp))
     }
 }
 
@@ -195,7 +192,6 @@ fun DeviceVerificationWizardAcceptSasStart() {
 @Composable
 fun BoxScope.DeviceVerificationWizardCompareEmojisOrNumbers(verificationStepCompareViewModel: VerificationStepCompareViewModel) {
     CompareEmojisOrNumbersContent(verificationStepCompareViewModel)
-
 }
 
 @Composable

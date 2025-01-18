@@ -1720,7 +1720,6 @@ abstract class I18nView(
     fun selfVerificationWaitingForMethods() = translate {
         EN - "Waiting for initial sync to complete to gather available verification methods."
         DE - "Warte auf Abschließen des initialen Ladevorgangs, um verfügbare Verifikationsmethoden zu erhalten."
-
     }
 
     fun redoSelfVerificationTitle(userId: UserId) = translate {

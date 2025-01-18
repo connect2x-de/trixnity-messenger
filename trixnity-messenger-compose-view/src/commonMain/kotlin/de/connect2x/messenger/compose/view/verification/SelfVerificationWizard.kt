@@ -50,7 +50,7 @@ open class SelfVerificationMethodsListEntries {
 class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
     @Composable
     override fun create(selfVerificationViewModel: SelfVerificationViewModel, showHelpScreen: Boolean) {
-        selfVerificationWizard(selfVerificationViewModel, showHelpScreen)
+        selfVerificationWizard(selfVerificationViewModel)
     }
 
     open class SelfVerificationWizardStep(val stepId: String) {
@@ -70,7 +70,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
     }
 
     @Composable
-    private fun selfVerificationWizard(selfVerificationViewModel: SelfVerificationViewModel, showHelpScreen: Boolean) {
+    private fun selfVerificationWizard(selfVerificationViewModel: SelfVerificationViewModel) {
         val stepList = listOf<SelfVerificationWizardStep>(
             SelfVerificationWizardStep.SelfVerificationWizardHelp,
             SelfVerificationWizardStep.SelfVerificationWizardMethods,

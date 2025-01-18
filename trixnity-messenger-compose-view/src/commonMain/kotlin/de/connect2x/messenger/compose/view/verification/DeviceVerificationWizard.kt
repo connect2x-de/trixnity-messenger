@@ -20,7 +20,7 @@ class DeviceVerificationWizardViewImpl : DeviceVerificationWizardView {
     @Composable
     override fun create(verificationViewModel: VerificationViewModel) {
         Box {
-            DeviceVerificationStepSwitch(verificationViewModel)
+            DeviceVerificationWizardStepSwitch(verificationViewModel)
         }
 
     }
