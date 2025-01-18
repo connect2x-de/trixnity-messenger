@@ -14,7 +14,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
-import de.connect2x.trixnity.messenger.viewmodel.util.getMessageEditHistory
 import de.connect2x.trixnity.messenger.viewmodel.util.getMessageReadReceipts
 import de.connect2x.trixnity.messenger.viewmodel.util.getMessageUserReactions
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -72,7 +71,6 @@ interface MessageMetadataViewModel {
 
     val compiledMessage: StateFlow<TimelineElementHolderViewModel?>
 
-    val edits: StateFlow<List<TimelineElementHolderViewModel>>
 
     val error: StateFlow<String?>
 
@@ -138,46 +136,6 @@ class MessageMetadataViewModelImpl(
                 )
             }
             .stateIn(coroutineScope, WhileSubscribed(), null)
-
-    override val edits: StateFlow<List<TimelineElementHolderViewModel>> =
-        getMessageEditHistory(matrixClient, eventId, roomId)
-            .map {
-                it.map { timelineEvent ->
-                    val roomId = timelineEvent.roomId
-                    val eventId = timelineEvent.eventId
-                    val sender = timelineEvent.sender
-                    val key = timelineEvent.event.unsigned?.transactionId?.asKey(timelineEvent.roomId)
-                        ?: eventId.asKey(timelineEvent.roomId)
-                    log.trace { "generate timeline element $eventId" }
-                    val lifecycleRegistry = LifecycleRegistry()
-                    get<TimelineElementHolderViewModelFactory>().create(
-                        viewModelContext = childContextWithOwnLifecycle(lifecycleRegistry),
-                        key = key,
-                        timelineEventFlow = flowOf(timelineEvent),  // TODO: is this correct?
-                        roomId = roomId,
-                        eventId = eventId,
-                        sender = sender,
-                        formattedDate = formatDate(
-                            Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
-                                .toLocalDateTime(timeZone)
-                        ),
-                        formattedTime = formatTime(
-                            Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
-                                .toLocalDateTime(timeZone)
-                        ),
-                        showLoadingIndicatorBefore = flowOf(false),
-                        showLoadingIndicatorAfter = flowOf(false),
-                        showReplacedEvents = flowOf(false),
-                        onMessageReplace = { _, _ -> },
-                        onMessageReply = { _, _ -> },
-                        onMessageReport = { _, _ -> },
-                        onOpenMention = { _, _ -> },
-                        onOpenMetadata = {},
-                    )
-                }
-            }
-            .stateIn(coroutineScope, WhileSubscribed(), listOf())
-
 
     private fun EventId.asKey(roomId: RoomId? = null) =
         (roomId ?: this@MessageMetadataViewModelImpl.roomId).full + "-" + full
