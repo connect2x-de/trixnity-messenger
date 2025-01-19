@@ -65,9 +65,9 @@ data class MessageBubbleDisplayConfig(
     /**
      * Provide the padding from the message bubble to its container.
      */
-    var bubblePadding: BoxWithConstraintsScope.(redactionInProgress: Boolean) -> Dp =
-        { redactionInProgress ->
-            (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (redactionInProgress) 16.dp else 0.dp)
+    var bubblePadding: BoxWithConstraintsScope.(isRedactionInProgress: Boolean) -> Dp =
+        { isRedactionInProgress ->
+            (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (isRedactionInProgress) 16.dp else 0.dp)
         },
 
     ) {
@@ -118,7 +118,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     ) {
         val cfg = MessageBubbleDisplayConfig.of(config)
-        val redactionInProgress =
+        val isRedactionInProgress =
             holder.asTimelineElementHolder()?.redactionInProgress?.collectAsState()?.value == true
         val showBigGap = holder.showBigGapBefore.collectAsState().value == true
         val topPadding = if (showBigGap) 10.dp else 3.dp
@@ -129,7 +129,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
         BoxWithConstraints(
             Modifier.fillMaxWidth(),
         ) {
-            val padding = cfg.bubblePadding(this@BoxWithConstraints, redactionInProgress)
+            val padding = cfg.bubblePadding(this@BoxWithConstraints, isRedactionInProgress)
             Column(
                 modifier = Modifier.run {
                     if (holder.isByMe) padding(start = padding, top = topPadding)
@@ -140,7 +140,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
                 horizontalAlignment = if (holder.isByMe) Alignment.End else Alignment.Start,
             ) {
                 Row {
-                    if (redactionInProgress) {
+                    if (isRedactionInProgress) {
                         val i18n = DI.get<I18nView>()
                         Box(Modifier.size(16.dp).padding(2.dp)) {
                             Icon(Icons.Default.AutoDelete, i18n.messageBubbleBeingDeleted())

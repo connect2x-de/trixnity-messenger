@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -35,7 +37,9 @@ import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.RoomUserReceipts
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.TimelineEventRelation
 import net.folivo.trixnity.client.store.eventId
+import net.folivo.trixnity.client.store.roomId
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
 import net.folivo.trixnity.core.model.EventId
@@ -51,8 +55,10 @@ import net.folivo.trixnity.core.model.events.StateEventContent
 import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
+import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType
+import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
@@ -78,14 +84,16 @@ class RoomUserBuilder(
     data class RoomUserWithReceipts(
         val user: RoomUser,
         val receipts: RoomUserReceipts,
-        val testTag: String = "none",
+//        val testTag: String = "none",
     )
 
     val users = MutableStateFlow(listOf<RoomUserWithReceipts>())
 
-    private fun updateMocks(testTag: String = "none") {
+    private fun updateMocks(
+//        testTag: String = "none"
+    ) {
         every { userService.getAll(roomId) } calls {
-            log.debug { "userService.getAll($roomId) for tag: $testTag" }
+            log.debug { "userService.getAll($roomId)" }
             users.map {
                 it.associate { (user, _) ->
                     user.userId to flowOf(
@@ -95,7 +103,7 @@ class RoomUserBuilder(
             }
         }
         every { userService.getAllReceipts(roomId) } calls {
-            log.debug { "userService.getAllReceipts($roomId) for tag: $testTag" }
+            log.debug { "userService.getAllReceipts($roomId)" }
             users.map {
                 it.associate { (_, receipts) ->
                     receipts.userId to flowOf(receipts)
@@ -113,9 +121,8 @@ class RoomUserBuilder(
     }
 
     operator fun RoomUserWithReceipts.unaryPlus() {
-//        updateMocks(this@unaryPlus.testTag)
         every { userService.getById(roomId, this@unaryPlus.user.userId) } calls {
-            log.debug { "userService.getById($roomId, ${this@unaryPlus.user.userId}) for tag: $testTag" }
+            log.debug { "userService.getById($roomId, ${this@unaryPlus.user.userId})" }
             flowOf(this@unaryPlus.user)
         }
         users.update {
@@ -127,7 +134,7 @@ class RoomUserBuilder(
         name: String,
         id: UserId = UserId(name),
         lastReadMessage: EventId? = null,
-        testTag: String = "none",
+        testTag: String = "none", // TODO
     ): RoomUserWithReceipts =
         RoomUserWithReceipts(
             RoomUser(
@@ -151,7 +158,7 @@ class RoomUserBuilder(
                     )
                 }.orEmpty()
             ),
-            testTag,
+//            testTag,
         )
 }
 
@@ -308,8 +315,8 @@ class TimelineBuilder(
             roomServiceMock.getTimelineEvents(roomId, eventId, GetEvents.Direction.FORWARDS, any())
         } returns channelFlow {
             val alreadyEmittedEvents = mutableSetOf<EventId>()
-            timelineEvents.collectLatest {
-                it.dropWhile { it.value.eventId != eventId }
+            timelineEvents.collectLatest { eventFlows ->
+                eventFlows.dropWhile { it.value.eventId != eventId }
                     .filterNot { alreadyEmittedEvents.contains(it.value.eventId) }
                     .forEach {
                         alreadyEmittedEvents.add(it.value.eventId)
@@ -317,13 +324,12 @@ class TimelineBuilder(
                     }
             }
         }
-
         every {
             roomServiceMock.getTimelineEvents(roomId, eventId, GetEvents.Direction.BACKWARDS, any())
         } returns channelFlow {
             val alreadyEmittedEvents = mutableSetOf<EventId>()
-            timelineEvents.collectLatest {
-                it.reversed()
+            timelineEvents.collectLatest { eventFlows ->
+                eventFlows.reversed()
                     .dropWhile { it.value.eventId != eventId }
                     .filterNot { alreadyEmittedEvents.contains(it.value.eventId) }
                     .forEach {
@@ -332,7 +338,50 @@ class TimelineBuilder(
                     }
             }
         }
+        every {
+//            roomServiceMock.getTimelineEventRelations(any(), any(), eq(RelationType.Annotation))
+            roomServiceMock.getTimelineEventRelations(any(), any(), any())
+        } returns channelFlow {
+            log.debug { "roomServiceMock.getTimelineEventRelations($roomId, $eventId, RelationType.Annotation)" }
+            timelineEvents.collectLatest { eventFlows ->
+//                delay(500.milliseconds)
+                val reactionFlows = eventFlows
+                    .filter {
+                        val keep = it.value.content?.fold({ it }, { it }).let { content ->
+                            content is ReactionEventContent
+//                                    && content.relatesTo != null && content.relatesTo?.eventId == eventId
+                        }
+                        log.debug { "-- filter(keep=$keep) ${it.value}" }
+                        keep
+                    }
 
+                send(emptyMap())
+
+                combine(reactionFlows) {
+                    it.forEach {
+                        log.debug { "=== REACTION EVENT: $it" }
+                    }
+                    val reactions = it.map { event ->
+                        event.content?.fold({ it }, { it }).let { content ->
+                            if (content !is ReactionEventContent) return@let null
+                            content.relatesTo?.let { relatesTo ->
+                                Pair(
+                                    event.eventId, flowOf(
+                                        TimelineEventRelation(
+                                            roomId = event.roomId,
+                                            eventId = event.eventId,
+                                            relationType = relatesTo.relationType,
+                                            relatedEventId = relatesTo.eventId,
+                                        )
+                                    )
+                                )
+                            }
+                        }
+                    }.filterNotNull().toMap()
+                    send(reactions)
+                }.firstOrNull() ?: send(emptyMap())
+            }
+        }
         previousTimelineEvent?.update {
             it.copy(nextEventId = eventId)
         }
@@ -346,7 +395,7 @@ class TimelineBuilder(
             event = this,
             previousEventId = null,
             nextEventId = null,
-            gap = null
+            gap = null,
         )
 
 
@@ -360,8 +409,10 @@ class TimelineBuilder(
         sentAt: Instant = fromEpochMilliseconds(timeCounter++ * 1000),
         transactionId: String? = null,
         block: MessageEventBuilder.() -> Unit
-    ): MessageEvent<*> =
-        messageEvent(sender, eventId ?: EventId("${idCounter++}"), roomId, sentAt, transactionId, block)
+    ): MessageEvent<*> = messageEvent(
+        sender, eventId ?: EventId("${idCounter++}"),
+        roomId, sentAt, transactionId, block,
+    )
 
     fun stateEvent(
         sender: UserId,
@@ -377,10 +428,9 @@ fun messageEvent(
     roomId: RoomId,
     sentAt: Instant = fromEpochMilliseconds(0),
     transactionId: String? = null,
-    block: MessageEventBuilder.() -> Unit
-): MessageEvent<*> {
-    val content = MessageEventBuilder().apply(block).content
-    val result = content?.let {
+    block: MessageEventBuilder.() -> Unit,
+): MessageEvent<*> = MessageEventBuilder()
+    .apply(block).content?.let { content ->
         MessageEvent(
             content = content,
             id = eventId,
@@ -393,47 +443,52 @@ fun messageEvent(
                 )
             },
         )
+    }.let { result ->
+        checkNotNull(result)
     }
-    return checkNotNull(result)
-}
 
 class MessageEventBuilder {
     var content: MessageEventContent? = null
-    fun text(message: String): RoomMessageEventContent.TextBased.Text {
-        val result = RoomMessageEventContent.TextBased.Text(message)
-        content = result
-        return result
-    }
 
-    fun reaction(relatesTo: EventId): UnknownEventContent {
-        val result = UnknownEventContent(
-            raw = JsonObject(mapOf("m.relates_to" to JsonPrimitive(relatesTo.full))),
-            eventType = "m.reaction"
+    fun text(message: String) = RoomMessageEventContent.TextBased.Text(message)
+        .also { content = it }
+
+    fun reaction1(relatesTo: EventId, reactionKey: ReactionKey) = ReactionEventContent(
+        relatesTo = RelatesTo.Annotation(
+            eventId = relatesTo,
+            key = reactionKey,
         )
-        content = result
-        return result
-    }
+    ).also { content = it }
 
-    fun redacted(): RedactedEventContent {
-        val result = RedactedEventContent(eventType = "m.room.encrypted")
-        content = result
-        return result
-    }
+    fun reaction(relatesTo: EventId, reactionKey: ReactionKey) = UnknownEventContent(
+        raw = JsonObject(
+            mapOf(
+                "m.relates_to" to JsonObject(
+                    mapOf(
+                        "event_id" to JsonPrimitive(relatesTo.full),
+                        "key" to JsonPrimitive(reactionKey),
+                        "rel_type" to JsonObject(
+                            mapOf(
+                                "name" to JsonPrimitive("m.annotation"),
+                            )
+                        ),
+                    )
+                ),
+            )
+        ),
+        eventType = "m.reaction",
+    ).also { content = it }
 
-    fun redact(redacts: EventId): RedactionEventContent {
-        val result = RedactionEventContent(redacts = redacts)
-        content = result
-        return result
-    }
+    fun redacted() = RedactedEventContent(eventType = "m.room.encrypted")
+        .also { content = it }
 
-    fun encrypted(): EncryptedMessageEventContent {
-        val result = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-            ciphertext = "",
-            sessionId = ""
-        )
-        content = result
-        return result
-    }
+    fun redact(redacts: EventId) = RedactionEventContent(redacts = redacts)
+        .also { content = it }
+
+    fun encrypted() = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
+        ciphertext = "",
+        sessionId = "",
+    ).also { content = it }
 }
 
 fun stateEvent(

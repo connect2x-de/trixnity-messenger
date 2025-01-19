@@ -28,6 +28,7 @@ import org.koin.dsl.module
 
 
 class getMessageReadReceiptsTest : ShouldSpec() {
+    override fun timeout(): Long = 5_000
 
     private val us = UserId("martin", "localhost")
 
@@ -36,7 +37,10 @@ class getMessageReadReceiptsTest : ShouldSpec() {
     val userServiceMock = mock<UserService>()
 
     init {
-        coroutineTestScope = true
+        // Ideally is should run with
+        // coroutineTestScope = true
+        // but currently that makes
+        // it fail in the test suit run.
 
         beforeEach {
             resetMocks(
@@ -111,7 +115,7 @@ class getMessageReadReceiptsTest : ShouldSpec() {
             val roomId: RoomId = RoomId("room_${runId++}", "localhost"),
             val timeline: TimelineMock = timeline(roomServiceMock, roomId) {},
             val roomUsers: RoomUserBuilder = roomUsers(userServiceMock, roomId) {},
-            val eventIds: List<EventId> = (0..2).map { EventId("event_$it") },
+            val eventIds: List<EventId> = (0..2).map { EventId("event_${runId}_$it") },
             val us: UserId = this@getMessageReadReceiptsTest.us, // Stays constant.
             val alice: UserId = UserId("alice_$runId", "localhost"),
             val bob: UserId = UserId("bob_$runId", "localhost"),
