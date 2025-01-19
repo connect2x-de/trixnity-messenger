@@ -134,6 +134,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("isFirstInUserSequence: false when not first in a user sequence") {
             timeline(roomServiceMock, roomId) {
                 (1..4).forEach {
@@ -157,6 +158,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             cut.isFirstInUserSequence.value shouldBe false
             cancelNeverEndingCoroutines()
         }
+
         should("showSender: be true when first in a user sequence") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = bob) {
@@ -172,6 +174,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showSender: be true when state event before") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
@@ -190,6 +193,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showSender: false when not first in a user sequence") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
@@ -205,6 +209,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showSender: be false when we are the sender") {
             val ourTimelineEvent = timelineEvent.copy(event = (timelineEvent.event as MessageEvent).copy(sender = us))
             timeline(roomServiceMock, roomId) {
@@ -221,6 +226,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showSender: be false when room is direct") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = bob) {
@@ -240,6 +246,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showBigGapBefore: be true when first in a user sequence") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
@@ -258,6 +265,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showBigGapBefore: false when not first in a user sequence") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
@@ -276,6 +284,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showBigGapBefore: be true when time gap is large enough") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
@@ -294,6 +303,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showBigGapBefore: be false when time gap is not large enough") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
@@ -312,6 +322,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showUnreadMarker: show the unread marker when event is set") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
@@ -333,6 +344,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showUnreadMarker: show the unread marker when subsequent event is added") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
@@ -356,6 +368,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showUnreadMarker: not show the unread marker when subsequent event is added but by us") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
@@ -379,6 +392,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showUnreadMarker: remove the unread marker when marker removed") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
@@ -401,6 +415,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showUnreadMarker: not show the unread marker, when no subsequent event") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
@@ -415,6 +430,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             cut.showUnreadMarker.value shouldBe false
             cancelNeverEndingCoroutines()
         }
+
         should("showUnreadMarker: not show the unread marker, when none of the next events is supported") {
             val timeline = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
@@ -442,6 +458,16 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             cut.showUnreadMarker.value shouldBe false
 
             cancelNeverEndingCoroutines()
+        }
+
+        context("read indication smoke tests"){
+               should("see if and by whom a message has been read"){TODO()}
+               should("see if a message hasn't been read"){TODO()}
+        }
+
+        context("message reactions smoke tests"){
+            should("see if and by whom a message has received reactions from"){TODO()}
+            should("see if a message hasn't received any reactions"){TODO()}
         }
     }
 

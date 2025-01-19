@@ -6,12 +6,9 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType
-import de.connect2x.messenger.compose.view.get
-import de.connect2x.messenger.compose.view.i18n.I18nView
 
 
 @Composable
@@ -22,7 +19,6 @@ fun ExtrasPaneHeader(
     backButtonType: HeaderBackButtonType,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val i18n = DI.get<I18nView>()
     Box(
         Modifier.fillMaxSize(),
     ) {

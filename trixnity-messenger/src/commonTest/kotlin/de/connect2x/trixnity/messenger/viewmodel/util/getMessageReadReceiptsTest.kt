@@ -2,13 +2,14 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomUserBuilder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineBuilder
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineMock
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.roomUsers
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
@@ -26,27 +27,18 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 
-private val log = KotlinLogging.logger {}
-
 class getMessageReadReceiptsTest : ShouldSpec() {
-//    private val roomId = RoomId("room", "localhost")
 
-    private val us = UserId("mimi", "localhost")
-//    private val alice = UserId("alice", "localhost")
-//    private val bob = UserId("bob", "localhost")
-
-//    private val timelineEvents = MutableStateFlow<List<TimelineEvent>>(listOf())
+    private val us = UserId("martin", "localhost")
 
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
 
-//    private val readReceipts = MutableStateFlow<Map<UserId, Flow<RoomUserReceipts?>>>(mapOf())
-
     init {
         coroutineTestScope = true
 
-        beforeTest {
+        beforeEach {
             resetMocks(
                 matrixClientMock,
                 roomServiceMock,
@@ -61,6 +53,8 @@ class getMessageReadReceiptsTest : ShouldSpec() {
                 )
             }.koin
             every { matrixClientMock.userId } returns us
+
+
 //            every { userServiceMock.canSendEvent(roomId, any()) } returns flowOf(true)
 //            every { userServiceMock.canSendEvent(roomId, any()) } ru
 //            every { userServiceMock.getAllReceipts(roomId) } calls {
@@ -106,21 +100,59 @@ class getMessageReadReceiptsTest : ShouldSpec() {
 //                timelineEvents.value.forEach { emit(flowOf(it)) }
 //                emit()
 //            }
-
-
-//            receipts.value = mapOf()
         }
 
-//        afterTest {
-//            resetMocks(
-//                matrixClientMock,
-//                roomServiceMock,
-//                userServiceMock,
-//            )
-//        }
+        // Because Mokkery is a bitch and doesn't reinitialize mocks correctly
+        // we need to differentiate the parameters by each test case.
+        var runId = 0
 
+        data class TestEnv(
+            // Increment runId during the first val field assignment!
+            val roomId: RoomId = RoomId("room_${runId++}", "localhost"),
+            val timeline: TimelineMock = timeline(roomServiceMock, roomId) {},
+            val roomUsers: RoomUserBuilder = roomUsers(userServiceMock, roomId) {},
+            val eventIds: List<EventId> = (0..2).map { EventId("event_$it") },
+            val us: UserId = this@getMessageReadReceiptsTest.us, // Stays constant.
+            val alice: UserId = UserId("alice_$runId", "localhost"),
+            val bob: UserId = UserId("bob_$runId", "localhost"),
+            val testScope: TestScope, // Place this last so it so param deconstruct is cleaner.
+        )
 
-        if (true) context("message is read") {
+        fun TestEnv.cutMessageIsRead(
+            senderId: UserId,
+            eventId: EventId,
+        ): Flow<Boolean?> = koinApplication {
+            modules(createTestDefaultTrixnityMessengerModules(mapOf(us to matrixClientMock)))
+        }.koin.let { di ->
+            getMessageIsRead(
+                client = testScope.testMatrixClientViewModelContext(
+                    di = di,
+                    userId = us,
+                ).matrixClient,
+                senderUserId = senderId,
+                roomId = roomId,
+                eventId = eventId,
+            )
+        }
+
+        fun TestEnv.cutMessageReadReceipts(
+            senderId: UserId,
+            eventId: EventId,
+        ): Flow<Set<RoomUser>?> = koinApplication {
+            modules(createTestDefaultTrixnityMessengerModules(mapOf(us to matrixClientMock)))
+        }.koin.let { di ->
+            getMessageReadReceipts(
+                client = testScope.testMatrixClientViewModelContext(
+                    di = di,
+                    userId = us,
+                ).matrixClient,
+                senderUserId = senderId,
+                roomId = roomId,
+                eventId = eventId,
+            )
+        }
+
+        context("message is read") {
 
 //            if (false) should("isRead: be false when no on read or sent a message") {
 //                timeline(roomServiceMock, roomId) {
@@ -353,7 +385,7 @@ class getMessageReadReceiptsTest : ShouldSpec() {
             }
         }
 
-        if (true) context("message read receipts:") {
+        context("message read receipts:") {
 
 //            if (false) should("isReadBy: be empty when not read") {
 //                timeline(roomServiceMock, roomId) {
@@ -453,13 +485,16 @@ class getMessageReadReceiptsTest : ShouldSpec() {
                 val timeline = timeline(roomServiceMock, roomId) {
                     +timelineEventOf(alice, eventId1)
                 }
-                val roomUsers = roomUsers(userServiceMock, roomId) {}
-                cut shouldBeUsers emptySet()
+                val roomUsers = roomUsers(userServiceMock, roomId) {
+//                    +roomUser("Bob", bob, eventId1)
+                }
+//                cut shouldBeUsers emptySet()
+//                cut shouldBeUsers setOf(bob)
                 timeline.addEvents {
                     +timelineEventOf(bob, eventId2)
                 }
                 roomUsers.addOrUpdateUsers {
-                    +roomUser("Bob", bob, eventId2)
+                    +roomUser("Bob", bob, eventId1)
                 }
                 cut shouldBeUsers setOf(bob)
                 cancelNeverEndingCoroutines()
@@ -479,19 +514,17 @@ class getMessageReadReceiptsTest : ShouldSpec() {
 //                cancelNeverEndingCoroutines()
 //            }
             should("not contain us from read marker") {
-                val roomId = RoomId("room4", "localhost")
-                val alice = UserId("alice4", "localhost")
-                val bob = UserId("bob4", "localhost")
-                val eventId = EventId("1")
-                timeline(roomServiceMock, roomId) {
-                    +timelineEventOf(alice, eventId)
+                val env = TestEnv(testScope = this)
+                val (_, timeline, roomUsers, event) = env
+                timeline.addEvents {
+                    +timelineEventOf(env.alice, event[0])
                 }
-                roomUsers(userServiceMock, roomId) {
-                    +roomUser("Us", us, eventId)
-                    +roomUser("Bob", bob, eventId)
+                roomUsers.addOrUpdateUsers {
+                    +roomUser("Us", env.us, event[0])
+                    +roomUser("Bob", env.bob, event[0])
                 }
-                val cut = cutMessageReadReceipts(alice, eventId, roomId)
-                cut shouldBeUsers setOf(bob)
+                val cut = env.cutMessageReadReceipts(env.alice, event[0])
+                cut shouldBeUsers setOf(env.bob)
                 cancelNeverEndingCoroutines()
             }
 
@@ -541,17 +574,13 @@ class getMessageReadReceiptsTest : ShouldSpec() {
 //                cancelNeverEndingCoroutines()
 //            }
             should("not contain sender from subsequent events") {
-                val roomId = RoomId("room6", "localhost")
-                val alice = UserId("alice6", "localhost")
-                val bob = UserId("bob6", "localhost")
-                val eventId1 = EventId("1")
-                val eventId2 = EventId("2")
-                val cut = cutMessageReadReceipts(alice, eventId1, roomId)
-                timeline(roomServiceMock, roomId) {
-                    +timelineEventOf(alice, eventId1)
-                    +timelineEventOf(alice, eventId2)
+                val env = TestEnv(testScope = this)
+                val (_, timeline, _, event) = env
+                val cut = env.cutMessageReadReceipts(env.alice, event[0])
+                timeline.addEvents {
+                    +timelineEventOf(env.alice, event[0])
+                    +timelineEventOf(env.alice, event[1])
                 }
-                roomUsers(userServiceMock, roomId) {}
                 cut shouldBeUsers emptySet()
                 cancelNeverEndingCoroutines()
             }
@@ -570,38 +599,21 @@ class getMessageReadReceiptsTest : ShouldSpec() {
 //                cancelNeverEndingCoroutines()
 //            }
             should("not contain sender from read marker") {
-                val roomId = RoomId("room7", "localhost")
-                val alice = UserId("alice7", "localhost")
-                val bob = UserId("bob7", "localhost")
-                val eventId = EventId("1")
-                val cut = cutMessageReadReceipts(alice, eventId, roomId)
-                timeline(roomServiceMock, roomId) {
-                    +timelineEventOf(alice, eventId)
+                val env = TestEnv(testScope = this)
+                val (_, timeline, roomUsers, event) = env
+                val cut = env.cutMessageReadReceipts(env.alice, event[0])
+                timeline.addEvents {
+                    +timelineEventOf(env.alice, event[0])
                 }
-                roomUsers(userServiceMock, roomId) {
-                    +roomUser("Bob", bob, eventId)
-                    +roomUser("Alice", alice, eventId)
+                roomUsers.addOrUpdateUsers {
+                    +roomUser("Bob", env.bob, event[0])
+                    +roomUser("Alice", env.alice, event[0])
                 }
-                cut shouldBeUsers setOf(bob)
+                cut shouldBeUsers setOf(env.bob)
                 cancelNeverEndingCoroutines()
             }
         }
     }
-
-//    private fun TestScope.receiptOf(readerId: UserId, eventId: EventId) = readerId to flowOf(
-//        RoomUserReceipts(
-//            roomId = roomId,
-//            userId = readerId,
-//            receipts = mapOf(
-//                ReceiptType.Read to RoomUserReceipts.Receipt(
-//                    eventId = eventId,
-//                    receipt = ReceiptEventContent.Receipt(
-//                        timestamp = 1,
-//                    )
-//                )
-//            )
-//        )
-//    )
 
     private suspend inline infix fun Flow<Set<RoomUser>?>.shouldBeUsers(requiredUsers: Set<UserId>) {
         this.first()!!.map { it.userId } shouldBe requiredUsers
@@ -652,62 +664,6 @@ class getMessageReadReceiptsTest : ShouldSpec() {
 //        text("Hi!")
 //    }
 
-    private fun TimelineBuilder.timelineEventOf(
-        senderId: UserId,
-        eventId: EventId? = null,
-    ): TimelineEvent = TimelineEvent(
-        event = messageEvent(
-            sender = senderId,
-            eventId = eventId,
-        ) {
-            text("Hi!")
-        },
-        content = null,
-        previousEventId = null,
-        nextEventId = null,
-        gap = null,
-    )
-
-    private fun TestScope.cutMessageIsRead(
-        senderId: UserId,
-        eventId: EventId,
-        roomId: RoomId,
-    ): Flow<Boolean?> = koinApplication {
-        modules(
-            createTestDefaultTrixnityMessengerModules(mapOf(us to matrixClientMock))
-        )
-    }.koin.let { di ->
-        getMessageIsRead(
-            client = testMatrixClientViewModelContext(
-                di = di,
-                userId = us,
-            ).matrixClient,
-            senderUserId = senderId,
-            roomId = roomId,
-            eventId = eventId,
-        )
-    }
-
-    private fun TestScope.cutMessageReadReceipts(
-        senderId: UserId,
-        eventId: EventId,
-        roomId: RoomId,
-    ): Flow<Set<RoomUser>?> = koinApplication {
-        modules(
-            createTestDefaultTrixnityMessengerModules(mapOf(us to matrixClientMock))
-        )
-    }.koin.let { di ->
-        getMessageReadReceipts(
-            client = testMatrixClientViewModelContext(
-                di = di,
-                userId = us,
-            ).matrixClient,
-            senderUserId = senderId,
-            roomId = roomId,
-            eventId = eventId,
-        )
-    }
-
     // TODO: remove
 //    private fun TestScope.cutOutDefaultSenderIsAlice(
 //        timelineEvent: TimelineEvent = this@getMessageReadReceiptsTest.timelineEventByAlice,
@@ -741,4 +697,62 @@ class getMessageReadReceiptsTest : ShouldSpec() {
 //            onOpenMetadata = mock(),
 //        )
 //    }
+
+    private fun TimelineBuilder.timelineEventOf(
+        senderId: UserId,
+        eventId: EventId? = null,
+    ): TimelineEvent = TimelineEvent(
+        event = messageEvent(
+            sender = senderId,
+            eventId = eventId,
+        ) { text("Hi!") },
+        content = null,
+        previousEventId = null,
+        nextEventId = null,
+        gap = null,
+    )
+
+    // TODO remove
+    private fun TestScope.cutMessageIsRead(
+        senderId: UserId,
+        eventId: EventId,
+        roomId: RoomId,
+    ): Flow<Boolean?> = koinApplication {
+        modules(
+            createTestDefaultTrixnityMessengerModules(
+                mapOf(us to matrixClientMock)
+            )
+        )
+    }.koin.let { di ->
+        getMessageIsRead(
+            client = testMatrixClientViewModelContext(
+                di = di,
+                userId = us,
+            ).matrixClient,
+            senderUserId = senderId,
+            roomId = roomId,
+            eventId = eventId,
+        )
+    }
+
+    // TODO remove
+    private fun TestScope.cutMessageReadReceipts(
+        senderId: UserId,
+        eventId: EventId,
+        roomId: RoomId,
+    ): Flow<Set<RoomUser>?> = koinApplication {
+        modules(
+            createTestDefaultTrixnityMessengerModules(mapOf(us to matrixClientMock))
+        )
+    }.koin.let { di ->
+        getMessageReadReceipts(
+            client = testMatrixClientViewModelContext(
+                di = di,
+                userId = us,
+            ).matrixClient,
+            senderUserId = senderId,
+            roomId = roomId,
+            eventId = eventId,
+        )
+    }
 }

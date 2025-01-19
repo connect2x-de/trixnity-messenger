@@ -459,7 +459,7 @@ class TimelineElementHolderViewModelImpl(
             matrixClient.api.room.redactEvent(
                 roomId,
                 reaction.eventId,
-                txnId = uuid4().toString()
+                txnId = uuid4().toString(),
             )
         }
     }
