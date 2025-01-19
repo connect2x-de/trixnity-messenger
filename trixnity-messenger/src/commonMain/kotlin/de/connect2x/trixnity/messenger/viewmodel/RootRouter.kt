@@ -204,8 +204,8 @@ class RootRouter(
                 viewModelContext.coroutineScope,
                 Config.SSOLogin(
                     serverUrl = addMatrixAccountMethod.serverUrl,
-                    providerId = addMatrixAccountMethod.identityProvider.id,
-                    providerName = addMatrixAccountMethod.identityProvider.name
+                    providerId = addMatrixAccountMethod.identityProvider?.id,
+                    providerName = addMatrixAccountMethod.identityProvider?.name
                 )
             )
 
@@ -297,8 +297,8 @@ class RootRouter(
         @Serializable
         data class SSOLogin(
             val serverUrl: String,
-            val providerId: String,
-            val providerName: String,
+            val providerId: String?,
+            val providerName: String?,
             val initialState: String? = null,
         ) : Config()
 
