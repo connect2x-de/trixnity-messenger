@@ -76,12 +76,12 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.Avatar
+import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
+import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.pointerEventWrapper
-import de.connect2x.messenger.compose.view.room.settings.ExtrasPaneHeaderBackButtonType.BACK
-import de.connect2x.messenger.compose.view.room.settings.ExtrasPaneHeaderBackButtonType.CLOSE
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.util.Tooltip
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -286,6 +286,7 @@ class MessageMetadataViewImpl : MessageMetadataView {
         val reactionCounts = viewModel.reactionCounts.collectAsState().value
         val userInteractions = viewModel.userInteractions.collectAsState().value
         val senderInfo = viewModel.senderInfo.collectAsState().value
+        val error = viewModel.error.collectAsState().value
 
         val i18n = DI.get<I18nView>()
         val density = LocalDensity.current
@@ -307,7 +308,7 @@ class MessageMetadataViewImpl : MessageMetadataView {
 
         ExtrasPaneHeader(
             i18n.messageMetadataTitle(),
-            null, // TODO
+            error,
             { viewModel.back() },
             if (isSinglePane || stackPosition > 2) BACK else CLOSE,
         ) {
@@ -516,6 +517,7 @@ private fun UserInteractions(
                         itemBounds.modify { value -> value[index] = density.verticalBounds(it) }
                     }
             ) {
+                // TODO: Since the item views are all the same height, the list and visibility filter can be optimized more.
                 val showItem = itemBounds.get()[index]
                     ?.let {
                         val itemOffset = it.offsetRelativeTo(paneBounds)
@@ -548,10 +550,7 @@ private fun ReactionsFilter(
                     reactionCount.toPair()
                 }
     val filterScrollState = rememberLazyListState()
-    Box(
-        modifier
-//            .background(Color.Red)
-    ) {
+    Box(modifier) {
         TabsRow(
             tabsCount = reactionListWithSum.size,
             selectedTabIndex = selectedTabIndex,

@@ -20,10 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
+import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
+import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.room.settings.ExtrasPaneHeaderBackButtonType.BACK
-import de.connect2x.messenger.compose.view.room.settings.ExtrasPaneHeaderBackButtonType.CLOSE
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 
