@@ -2,7 +2,6 @@ package de.connect2x.messenger.compose.view
 
 import android.content.ClipData
 import android.content.ClipboardManager
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListState
@@ -20,10 +19,8 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.core.content.ContextCompat.getSystemService
 import de.connect2x.trixnity.messenger.util.ActivityGetter
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.core.Koin
 
-private val log = KotlinLogging.logger { }
 
 @Composable
 actual fun VerticalScrollbar(
@@ -51,7 +48,7 @@ actual fun HorizontalScrollbar(
     reverseLayout: Boolean,
 ) = Unit
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 actual fun Tooltip(
     tooltip: @Composable () -> Unit,
@@ -77,16 +74,17 @@ actual fun Tooltip(
     }
 }
 
-actual fun Modifier.buttonPointerModifier(enabled: Boolean): Modifier = this // empty Modifier
+actual fun Modifier.buttonPointerModifier(enabled: Boolean): Modifier =
+    this // Empty modifier.
 
 actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier =
-    this // empty Modifier
+    this // Empty modifier.
 
 actual fun Modifier.pointerEventWrapper(
     eventType: PointerEventType,
     pass: PointerEventPass,
-    onEvent: AwaitPointerEventScope.(event: PointerEvent) -> Unit
-) = this // Pointer events are not supported on Mobile.
+    onEvent: AwaitPointerEventScope.(event: PointerEvent) -> Unit,
+): Modifier = this // Pointer events are not supported on Mobile.
 
 actual suspend fun copyToClipboard(value: String, di: Koin) {
     val context = di.getOrNull<ActivityGetter>()?.invoke()?.applicationContext

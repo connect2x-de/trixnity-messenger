@@ -31,12 +31,11 @@ import java.awt.datatransfer.StringSelection
 
 
 @Composable
-private fun defaultScrollbarStyle(): ScrollbarStyle {
-    return LocalScrollbarStyle.current.copy(
+private fun defaultScrollbarStyle(): ScrollbarStyle =
+    LocalScrollbarStyle.current.copy(
         hoverColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f),
         unhoverColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
     )
-}
 
 @Composable
 actual fun VerticalScrollbar(
@@ -90,44 +89,35 @@ actual fun Tooltip(
     delayMillis: Int,
     onClick: (() -> Unit)?,
     content: @Composable () -> Unit,
-) {
-    return TooltipArea(
-        tooltip = {
-            Surface(
-                modifier = Modifier.widthIn(max = 600.dp),
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.tertiary
-            ) {
-                tooltip()
-            }
-        },
-        delayMillis = delayMillis,
-        modifier = onClick?.let { modifier.clickable { onClick() } } ?: modifier,
-        content = content,
-    )
-}
+) = TooltipArea(
+    tooltip = {
+        Surface(
+            modifier = Modifier.widthIn(max = 600.dp),
+            shape = RoundedCornerShape(8.dp),
+            color = MaterialTheme.colorScheme.tertiary
+        ) {
+            tooltip()
+        }
+    },
+    delayMillis = delayMillis,
+    modifier = onClick?.let { modifier.clickable { onClick() } } ?: modifier,
+    content = content,
+)
 
 actual fun Modifier.buttonPointerModifier(enabled: Boolean): Modifier =
-    this.then(
-        Modifier.pointerHoverIcon(
-            if (enabled) PointerIcon.Hand else PointerIcon.Default,
-            false
-        )
+    this.pointerHoverIcon(
+        if (enabled) PointerIcon.Hand else PointerIcon.Default,
+        false
     )
 
 @OptIn(ExperimentalComposeUiApi::class)
-actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier {
-    return this.then(
-        Modifier
-            .onPointerEvent(PointerEventType.Enter) {
-                onEnter()
-            }
-            .onPointerEvent(PointerEventType.Exit) {
-                onExit()
-            }
-    )
-
-}
+actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier = this
+    .onPointerEvent(PointerEventType.Enter) {
+        onEnter()
+    }
+    .onPointerEvent(PointerEventType.Exit) {
+        onExit()
+    }
 
 @OptIn(ExperimentalComposeUiApi::class)
 actual fun Modifier.pointerEventWrapper(

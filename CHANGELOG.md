@@ -16,8 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Check server capabilities for setting display name and avatar and prevent editing if not supported
 
 ### Changed
-- Moved message metadata into a unified view
 
+- Moved message metadata into a unified view with a new design
 - Image detail view UI overhaul
 
 ### Deprecated

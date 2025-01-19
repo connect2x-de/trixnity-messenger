@@ -26,13 +26,14 @@ import kotlinx.browser.window
 import kotlinx.coroutines.await
 import org.koin.core.Koin
 
+
 @Composable
 actual fun VerticalScrollbar(
     modifier: Modifier,
     scrollState: ScrollState
 ) = VerticalScrollbar(
     rememberScrollbarAdapter(scrollState),
-    modifier
+    modifier,
 )
 
 @Composable
@@ -73,7 +74,7 @@ actual fun Tooltip(
     modifier: Modifier,
     delayMillis: Int,
     onClick: (() -> Unit)?,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     TooltipBox(
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
@@ -93,25 +94,19 @@ actual fun Tooltip(
 }
 
 actual fun Modifier.buttonPointerModifier(enabled: Boolean): Modifier =
-    this.then(
-        Modifier.pointerHoverIcon(
-            if (enabled) PointerIcon.Hand else PointerIcon.Default,
-            false
-        )
+    this.pointerHoverIcon(
+        if (enabled) PointerIcon.Hand else PointerIcon.Default,
+        false,
     )
 
 @OptIn(ExperimentalComposeUiApi::class)
-actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier {
-    return this.then(
-        Modifier
-            .onPointerEvent(PointerEventType.Enter) {
-                onEnter()
-            }
-            .onPointerEvent(PointerEventType.Exit) {
-                onExit()
-            }
-    )
-}
+actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier = this
+    .onPointerEvent(PointerEventType.Enter) {
+        onEnter()
+    }
+    .onPointerEvent(PointerEventType.Exit) {
+        onExit()
+    }
 
 @OptIn(ExperimentalComposeUiApi::class)
 actual fun Modifier.pointerEventWrapper(
