@@ -106,8 +106,6 @@ import de.connect2x.messenger.compose.view.room.timeline.VideoReplyViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.EmptyTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.EncryptedErrorTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.EncryptedWaitTimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfoView
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfoViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerView
@@ -432,7 +430,6 @@ fun timelineViewModule() = module {
     single<ScrollToEndButtonView> { ScrollToEndButtonViewImpl() }
     single<MessageBubbleView> { MessageBubbleViewImpl() }
     single<MessageReactionsView> { MessageReactionsViewImpl() }
-    single<MessageInfoView> { MessageInfoViewImpl() }
     single<FileBasedRoomMessageTimelineElementView> { FileBasedRoomMessageTimelineElementViewImpl() }
     single<ReadMarkerView> { ReadMarkerViewImpl() }
     single<ReplyToAreaView> { ReplyToAreaViewImpl() }

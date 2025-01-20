@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfo
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactions
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -122,9 +121,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
             holder.asTimelineElementHolder()?.redactionInProgress?.collectAsState()?.value == true
         val showBigGap = holder.showBigGapBefore.collectAsState().value == true
         val topPadding = if (showBigGap) 10.dp else 3.dp
-
-        val infoOpen = remember { mutableStateOf(false) }
-        val reactionsOpen = remember { mutableStateOf(false) }
+        val isReactionsOpen = remember { mutableStateOf(false) }
 
         BoxWithConstraints(
             Modifier.fillMaxWidth(),
@@ -149,24 +146,15 @@ class MessageBubbleViewImpl : MessageBubbleView {
                     MessageBubbleContainer(
                         holder,
                         cfg,
-                        infoOpen,
-                        reactionsOpen,
+                        isReactionsOpen,
                         additionalContextActions,
                         overlay,
                         content,
                     )
                 }
-
-                // TODO: remove
-                MessageInfo(
-                    holder,
-                    infoOpen,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-
                 if (cfg.showMessageReactions) MessageReactions(
                     holder,
-                    reactionsOpen,
+                    isReactionsOpen,
                     modifier = Modifier.padding(start = 8.dp),
                 )
             }

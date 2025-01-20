@@ -25,10 +25,10 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 // TODO: rename file to TimelineElementHolderMenuActions.kt or BaseTimelineElementHolderContextMenuActions.kt
 
 @Composable
-internal fun BaseTimelineElementHolderViewModel.baseMenuActions( // TODO: rename to menuActions or contextMenuActions
+// TODO: rename to menuActions or contextMenuActions
+internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
     i18n: I18nView,
     onInfo: () -> Unit,
-    onInfoClassic: () -> Unit, // TODO remove
     onReact: () -> Unit,
 ): List<BaseTimelineElementHolderContextMenuAction> {
     val canBeReactedTo = asTimelineElementHolder()?.canBeReactedTo?.collectAsState()?.value == true
@@ -44,12 +44,6 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions( // TODO: rename
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.infoMessage(),
                     action = onInfo,
-                )
-            )
-            add( // TODO: remove
-                BaseTimelineElementHolderContextMenuAction(
-                    label = i18n.infoMessage() + " CLASSIC",
-                    action = onInfoClassic,
                 )
             )
             if (canBeReactedTo) add(

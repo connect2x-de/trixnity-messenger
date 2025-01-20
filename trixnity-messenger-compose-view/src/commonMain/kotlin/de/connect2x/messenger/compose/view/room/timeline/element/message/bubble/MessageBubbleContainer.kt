@@ -41,7 +41,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 fun MessageBubbleContainer(
     holder: BaseTimelineElementHolderViewModel,
     config: MessageBubbleDisplayConfig,
-    infoOpen: MutableState<Boolean>,
     reactionsOpen: MutableState<Boolean>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
     overlay: (@Composable BoxScope.() -> Unit)? = null,
@@ -132,7 +131,6 @@ fun MessageBubbleContainer(
                     if (holder is TimelineElementHolderViewModel) holder.openMessageMetadata()
                 },
                 onReactToMessage = { reactionsOpen.value = true },
-                onInfoClassic = { infoOpen.value = true }, // TODO remove
                 additionalContextActions,
             )
         }
