@@ -59,6 +59,7 @@ import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType
 import net.folivo.trixnity.core.model.events.m.RelatesTo
+import net.folivo.trixnity.core.model.events.m.RelationType
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
@@ -339,28 +340,19 @@ class TimelineBuilder(
             }
         }
         every {
-//            roomServiceMock.getTimelineEventRelations(any(), any(), eq(RelationType.Annotation))
-            roomServiceMock.getTimelineEventRelations(any(), any(), any())
+            roomServiceMock.getTimelineEventRelations(roomId, eventId, eq(RelationType.Annotation))
         } returns channelFlow {
             log.debug { "roomServiceMock.getTimelineEventRelations($roomId, $eventId, RelationType.Annotation)" }
             timelineEvents.collectLatest { eventFlows ->
-//                delay(500.milliseconds)
                 val reactionFlows = eventFlows
                     .filter {
-                        val keep = it.value.content?.fold({ it }, { it }).let { content ->
+                        it.value.content?.fold({ it }, { it }).let { content ->
                             content is ReactionEventContent
-//                                    && content.relatesTo != null && content.relatesTo?.eventId == eventId
+                                    && content.relatesTo != null
+                                    && content.relatesTo?.eventId == eventId
                         }
-                        log.debug { "-- filter(keep=$keep) ${it.value}" }
-                        keep
                     }
-
-                send(emptyMap())
-
                 combine(reactionFlows) {
-                    it.forEach {
-                        log.debug { "=== REACTION EVENT: $it" }
-                    }
                     val reactions = it.map { event ->
                         event.content?.fold({ it }, { it }).let { content ->
                             if (content !is ReactionEventContent) return@let null
@@ -379,7 +371,9 @@ class TimelineBuilder(
                         }
                     }.filterNotNull().toMap()
                     send(reactions)
-                }.firstOrNull() ?: send(emptyMap())
+                }
+                    .firstOrNull()
+                    ?: send(null)
             }
         }
         previousTimelineEvent?.update {
@@ -397,7 +391,6 @@ class TimelineBuilder(
             nextEventId = null,
             gap = null,
         )
-
 
     infix fun MutableStateFlow<TimelineEvent>.withContent(content: Result<RoomEventContent>) {
         update { it.copy(content = content) }
@@ -453,31 +446,31 @@ class MessageEventBuilder {
     fun text(message: String) = RoomMessageEventContent.TextBased.Text(message)
         .also { content = it }
 
-    fun reaction1(relatesTo: EventId, reactionKey: ReactionKey) = ReactionEventContent(
+    fun reaction(relatesTo: EventId, reactionKey: ReactionKey) = ReactionEventContent(
         relatesTo = RelatesTo.Annotation(
             eventId = relatesTo,
             key = reactionKey,
         )
     ).also { content = it }
 
-    fun reaction(relatesTo: EventId, reactionKey: ReactionKey) = UnknownEventContent(
-        raw = JsonObject(
-            mapOf(
-                "m.relates_to" to JsonObject(
-                    mapOf(
-                        "event_id" to JsonPrimitive(relatesTo.full),
-                        "key" to JsonPrimitive(reactionKey),
-                        "rel_type" to JsonObject(
-                            mapOf(
-                                "name" to JsonPrimitive("m.annotation"),
-                            )
-                        ),
-                    )
-                ),
-            )
-        ),
-        eventType = "m.reaction",
-    ).also { content = it }
+//    fun reaction(relatesTo: EventId, reactionKey: ReactionKey) = UnknownEventContent(
+//        raw = JsonObject(
+//            mapOf(
+//                "m.relates_to" to JsonObject(
+//                    mapOf(
+//                        "event_id" to JsonPrimitive(relatesTo.full),
+//                        "key" to JsonPrimitive(reactionKey),
+//                        "rel_type" to JsonObject(
+//                            mapOf(
+//                                "name" to JsonPrimitive("m.annotation"),
+//                            )
+//                        ),
+//                    )
+//                ),
+//            )
+//        ),
+//        eventType = "m.reaction",
+//    ).also { content = it }
 
     fun redacted() = RedactedEventContent(eventType = "m.room.encrypted")
         .also { content = it }

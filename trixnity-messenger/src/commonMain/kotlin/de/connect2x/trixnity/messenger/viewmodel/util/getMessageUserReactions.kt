@@ -76,6 +76,9 @@ fun getMessageUserReactions(
             val reactionsAggregation = reactions.reactions
             val reactionCounts = mutableMapOf<ReactionKey, UInt>()
             val userReactions = mutableMapOf<UserId, MutableSet<ReactionKey>>()
+            if (reactionsAggregation.isEmpty()) {
+                return@flatMapLatest flowOf(MessageUserReactions())
+            }
             reactionsAggregation.keys.forEach { reactionKey ->
                 reactionsAggregation[reactionKey]?.let {
                     it.forEach { event ->

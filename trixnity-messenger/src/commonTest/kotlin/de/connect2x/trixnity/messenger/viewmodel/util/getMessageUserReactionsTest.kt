@@ -3,15 +3,18 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomUserBuilder
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineBuilder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineMock
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.roomUsers
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
-import io.github.oshai.kotlinlogging.KotlinLogging
+import io.kotest.assertions.failure
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
+import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
@@ -25,16 +28,14 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 
-private val log = KotlinLogging.logger {}
-
 class getMessageUserReactionsTest : ShouldSpec() {
-    override fun timeout(): Long = 3_000
+    override fun timeout(): Long = 5_000
 
     private val us = UserId("martin", "localhost")
 
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
-    val userServiceMock = mock<UserService>() // TODO remove?
+    val userServiceMock = mock<UserService>()
 
     init {
         // Ideally is should run with
@@ -57,8 +58,6 @@ class getMessageUserReactionsTest : ShouldSpec() {
                 )
             }.koin
             every { matrixClientMock.userId } returns us
-//            eq(RelationType.Annotation)
-//            every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns flowOf(emptyMap())
         }
 
         // Because Mokkery is a bitch and doesn't reinitialize mocks correctly
@@ -69,71 +68,347 @@ class getMessageUserReactionsTest : ShouldSpec() {
             // Increment runId during the first val field assignment!
             val roomId: RoomId = RoomId("room_${runId++}", "localhost"),
             val timeline: TimelineMock = timeline(roomServiceMock, roomId) {},
-            val roomUsers: RoomUserBuilder = roomUsers(userServiceMock, roomId) {}, // TODO remove?
+            val roomUsers: RoomUserBuilder = roomUsers(userServiceMock, roomId) {},
             val eventIds: List<EventId> = (0..2).map { EventId("event_${runId}_$it") },
             val us: UserId = this@getMessageUserReactionsTest.us, // Stays constant.
             val alice: UserId = UserId("alice_$runId", "localhost"),
-            val bob: UserId = UserId("bob_$runId", "localhost"), // TODO remove?
+            val bob: UserId = UserId("bob_$runId", "localhost"),
             val testScope: TestScope, // Place this last so it so param deconstruct is cleaner.
         )
 
-        should("test") {
-            val env = TestEnv(testScope = this)
-            val (roomId, timeline, roomUsers, event) = env
-            timeline.addEvents {
-                +messageEvent(sender = env.alice, event[0]) {
-                    text("Hello")
-                }
-//                +messageEvent(sender = env.bob, event[1]) {
-//                    reaction(event[0], "😄")
-//                }
-                +messageEvent(sender = env.bob, event[1]) {
-                    reaction1(event[0], "😄")
-                }
+        fun TestEnv.cutMessageReactions(eventId: EventId) =
+            koinApplication {
+                modules(
+                    createTestDefaultTrixnityMessengerModules(
+                        mapOf(us to matrixClientMock)
+                    )
+                )
+            }.koin.let { di ->
+                getMessageUserReactions(
+                    client = testScope.testMatrixClientViewModelContext(
+                        di = di,
+                        userId = us,
+                    ).matrixClient,
+                    roomId = roomId,
+                    eventId = eventId,
+                )
             }
-            roomUsers.addOrUpdateUsers {
-                +roomUser("Bob", env.bob)
+
+        context("reactions by user") {
+
+            should("get nothing on other message without reactions") {
+                val env = TestEnv(testScope = this)
+                val (_, timeline, _, event) = env
+                timeline.addEvents {
+                    +textMessageBy(env.alice, event[0])
+                }
+                val cut = env.cutMessageReactions(event[0])
+                cut shouldReturnReactionsByUsers mapOf()
+                cancelNeverEndingCoroutines()
             }
 
+            should("get nothing on our message without reactions") {
+                val env = TestEnv(testScope = this)
+                val (_, timeline, _, event) = env
+                timeline.addEvents {
+                    +textMessageBy(env.us, event[0])
+                }
+                val cut = env.cutMessageReactions(event[0])
+                cut shouldReturnReactionsByUsers mapOf(
+                    env.bob to setOf(),
+                )
+                cancelNeverEndingCoroutines()
+            }
 
-            val cut = cutMessageReactions(event[0], roomId)
-            cut.firstOrNull().let { log.debug { "=== REACTIONS: $it" } }
+            should("get reaction from other user on other message") {
+                val env = TestEnv(testScope = this)
+                val (_, timeline, roomUsers, event) = env
+                timeline.addEvents {
+                    +textMessageBy(env.alice, event[0])
+                    +reactionBy(env.bob, event[0], "🥳")
+                }
+                roomUsers.addOrUpdateUsers {
+                    +roomUser("Bob", env.bob)
+                }
+                val cut = env.cutMessageReactions(event[0])
+                cut shouldReturnReactionsByUsers mapOf(
+                    env.bob to setOf("🥳"),
+                )
+                cancelNeverEndingCoroutines()
+            }
 
-            true shouldBe false
-            cancelNeverEndingCoroutines()
+            should("continuously get reactions from other user on own message") {
+                val env = TestEnv(testScope = this)
+                val (_, timeline, roomUsers, event) = env
+                timeline.addEvents {
+                    +textMessageBy(env.us, event[0])
+                    +reactionBy(env.alice, event[0], "😄")
+                    +reactionBy(env.alice, event[0], "🥳")
+                }
+                roomUsers.addOrUpdateUsers {
+                    +roomUser("Alice", env.alice)
+                }
+                val cut = env.cutMessageReactions(event[0])
+                cut shouldReturnReactionsByUsers mapOf(
+                    env.alice to setOf("🥳", "😄"),
+                )
+                timeline.addEvents {
+                    +reactionBy(env.alice, event[0], "🙂")
+                }
+                cut shouldReturnReactionsByUsers mapOf(
+                    env.alice to setOf("🥳", "🙂", "😄"),
+                )
+                cancelNeverEndingCoroutines()
+            }
+
+            should("get reaction from ourselves on other message") {
+                val env = TestEnv(testScope = this)
+                val (_, timeline, roomUsers, event) = env
+                timeline.addEvents {
+                    +textMessageBy(env.alice, event[0])
+                    +reactionBy(env.us, event[0], "😄")
+                }
+                roomUsers.addOrUpdateUsers {
+                    +roomUser("Martin", env.us)
+                }
+                val cut = env.cutMessageReactions(event[0])
+                cut shouldReturnReactionsByUsers mapOf(
+                    env.us to setOf("😄"),
+                    env.alice to setOf(),
+                )
+                cancelNeverEndingCoroutines()
+            }
+
+            should("get reaction from ourselves on own message") {
+                val env = TestEnv(testScope = this)
+                val (_, timeline, roomUsers, event) = env
+                timeline.addEvents {
+                    +textMessageBy(env.us, event[0])
+                    +reactionBy(env.us, event[0], "😄")
+                }
+                roomUsers.addOrUpdateUsers {
+                    +roomUser("Martin", env.us)
+                }
+                val cut = env.cutMessageReactions(event[0])
+                cut shouldReturnReactionsByUsers mapOf(
+                    env.us to setOf("😄"),
+                )
+                cancelNeverEndingCoroutines()
+            }
+
+            should("get all reactions from multiple users on other message") {
+                val env = TestEnv(testScope = this)
+                val (_, timeline, roomUsers, event) = env
+                timeline.addEvents {
+                    +textMessageBy(env.alice, event[0])
+                    +reactionBy(env.bob, event[0], "😄")
+                    +reactionBy(env.alice, event[0], "😄")
+                    +reactionBy(env.alice, event[0], "🥳")
+                    +reactionBy(env.bob, event[0], "🙂")
+                }
+                roomUsers.addOrUpdateUsers {
+                    +roomUser("Bob", env.bob)
+                    +roomUser("Alice", env.alice)
+                }
+                val cut = env.cutMessageReactions(event[0])
+                cut shouldReturnReactionsByUsers mapOf(
+                    env.alice to setOf("🥳", "😄"),
+                    env.bob to setOf("🙂", "😄"),
+                )
+                cancelNeverEndingCoroutines()
+            }
+
+            should("get all reactions from multiple users on onw message") {
+                val env = TestEnv(testScope = this)
+                val (_, timeline, roomUsers, event) = env
+                timeline.addEvents {
+                    +textMessageBy(env.us, event[0])
+                    +reactionBy(env.bob, event[0], "😄")
+                    +reactionBy(env.bob, event[0], "🙂")
+                    +reactionBy(env.alice, event[0], "😄")
+                    +reactionBy(env.alice, event[0], "🥳")
+                }
+                roomUsers.addOrUpdateUsers {
+                    +roomUser("Bob", env.bob)
+                    +roomUser("Alice", env.alice)
+                }
+                val cut = env.cutMessageReactions(event[0])
+                cut shouldReturnReactionsByUsers mapOf(
+                    env.alice to setOf("🥳", "😄"),
+                    env.bob to setOf("🙂", "😄"),
+                )
+                cancelNeverEndingCoroutines()
+            }
+
+            should("get all reactions from multiple users and ourselves on other message") {
+                val env = TestEnv(testScope = this)
+                val (_, timeline, roomUsers, event) = env
+                timeline.addEvents {
+                    +textMessageBy(env.bob, event[0])
+                    +reactionBy(env.us, event[0], "😄")
+                    +reactionBy(env.bob, event[0], "😄")
+                    +reactionBy(env.alice, event[0], "😄")
+                    +reactionBy(env.alice, event[0], "🥳")
+                }
+                roomUsers.addOrUpdateUsers {
+                    +roomUser("Bob", env.bob)
+                    +roomUser("Martin", env.us)
+                    +roomUser("Alice", env.alice)
+                }
+                val cut = env.cutMessageReactions(event[0])
+                cut shouldReturnReactionsByUsers mapOf(
+                    env.alice to setOf("🥳", "😄"),
+                    env.bob to setOf("😄"),
+                    env.us to setOf("😄"),
+                )
+                cancelNeverEndingCoroutines()
+            }
+
+            should("get all reactions from multiple users and ourselves on onw message") {
+                val env = TestEnv(testScope = this)
+                val (_, timeline, roomUsers, event) = env
+                timeline.addEvents {
+                    +textMessageBy(env.us, event[0])
+                    +reactionBy(env.us, event[0], "🙂")
+                    +reactionBy(env.bob, event[0], "😄")
+                    +reactionBy(env.alice, event[0], "🥳")
+                }
+                roomUsers.addOrUpdateUsers {
+                    +roomUser("Bob", env.bob)
+                    +roomUser("Martin", env.us)
+                    +roomUser("Alice", env.alice)
+                }
+                val cut = env.cutMessageReactions(event[0])
+                cut shouldReturnReactionsByUsers mapOf(
+                    env.alice to setOf("🥳"),
+                    env.bob to setOf("😄"),
+                    env.us to setOf("🙂"),
+                )
+                cancelNeverEndingCoroutines()
+            }
         }
 
-        should("get nothing on other message without reactions") { TODO() }
-        should("get nothing on our message without reactions") { TODO() }
-        should("get reaction from other user on other message") { TODO() }
-        should("get reaction from other user on own message") { TODO() }
-        should("get reaction from ourselves on other message") { TODO() }
-        should("get reaction from ourselves on own message") { TODO() }
-        should("get all reactions from multiple users on other message") { TODO() }
-        should("get all reactions from multiple users on onw message") { TODO() }
-        should("get all reactions from multiple users and ourselves on other message") { TODO() }
-        should("get all reactions from multiple users and ourselves on onw message") { TODO() }
+        context("reactions by count") {
+
+            should("get nothing for message with no reactions") {
+                val env = TestEnv(testScope = this)
+                val (_, timeline, roomUsers, event) = env
+                timeline.addEvents {
+                    +textMessageBy(env.alice, event[0])
+                }
+                val cut = env.cutMessageReactions(event[0])
+                cut shouldReturnReactionsByCount listOf(
+                    "😄" to 0,
+                )
+                cancelNeverEndingCoroutines()
+            }
+
+            should("get count for single reaction") {
+                val env = TestEnv(testScope = this)
+                val (_, timeline, roomUsers, event) = env
+                timeline.addEvents {
+                    +textMessageBy(env.us, event[0])
+                    +reactionBy(env.bob, event[0], "🙂")
+                }
+                roomUsers.addOrUpdateUsers {
+                    +roomUser("Bob", env.bob)
+                }
+                val cut = env.cutMessageReactions(event[0])
+                cut shouldReturnReactionsByCount listOf(
+                    "🥳" to 0,
+                    "🙂" to 1,
+                )
+                cancelNeverEndingCoroutines()
+            }
+
+            should("get counts for single reactions") {
+                val env = TestEnv(testScope = this)
+                val (_, timeline, roomUsers, event) = env
+                timeline.addEvents {
+                    +textMessageBy(env.us, event[0])
+                    +reactionBy(env.us, event[0], "🙂")
+                    +reactionBy(env.us, event[0], "😄")
+                    +reactionBy(env.bob, event[0], "😊")
+                    +reactionBy(env.alice, event[0], "🥳")
+                }
+                roomUsers.addOrUpdateUsers {
+                    +roomUser("Bob", env.bob)
+                    +roomUser("Martin", env.us)
+                    +roomUser("Alice", env.alice)
+                }
+                val cut = env.cutMessageReactions(event[0])
+                cut shouldReturnReactionsByCount listOf(
+                    "😊" to 1,
+                    "🥳" to 1,
+                    "🙂" to 1,
+                    "😄" to 1,
+                )
+                cancelNeverEndingCoroutines()
+            }
+
+            should("get counts for reactions") {
+                val env = TestEnv(testScope = this)
+                val (_, timeline, roomUsers, event) = env
+                timeline.addEvents {
+                    +textMessageBy(env.us, event[0])
+                    +reactionBy(env.us, event[0], "🙂")
+                    +reactionBy(env.bob, event[0], "🙂")
+                    +reactionBy(env.us, event[0], "😄")
+                    +reactionBy(env.bob, event[0], "😄")
+                    +reactionBy(env.alice, event[0], "😄")
+                    +reactionBy(env.alice, event[0], "🥳")
+                }
+                roomUsers.addOrUpdateUsers {
+                    +roomUser("Bob", env.bob)
+                    +roomUser("Martin", env.us)
+                    +roomUser("Alice", env.alice)
+                }
+                val cut = env.cutMessageReactions(event[0])
+                cut shouldReturnReactionsByCount listOf(
+                    "😊" to 0,
+                    "🥳" to 1,
+                    "🙂" to 2,
+                    "😄" to 3,
+                )
+                cancelNeverEndingCoroutines()
+            }
+        }
     }
 
-    private fun TestScope.cutMessageReactions(
-        eventId: EventId,
-        roomId: RoomId,
-    ): Flow<MessageUserReactions> = koinApplication {
-        modules(
-            createTestDefaultTrixnityMessengerModules(
-                mapOf(us to matrixClientMock)
-            )
-        )
-    }.koin.let { di ->
-        getMessageUserReactions(
-            client = testMatrixClientViewModelContext(
-                di = di,
-                userId = us,
-            ).matrixClient,
-            roomId = roomId,
-            eventId = eventId,
-        )
+    private fun TimelineBuilder.textMessageBy(userId: UserId, eventId: EventId) =
+        messageEvent(sender = userId, eventId) { text("Hello") }
+
+    private fun TimelineBuilder.reactionBy(userId: UserId, reactionTo: EventId, reactionKey: ReactionKey) =
+        messageEvent(sender = userId) { reaction(reactionTo, reactionKey) }
+
+    private suspend infix fun Flow<MessageUserReactions?>.shouldReturnReactionsByUsers(
+        expected: Map<UserId, Set<ReactionKey>>,
+    ) {
+        this.firstOrNull()?.let { reactions ->
+            reactions.byUser shouldHaveSize expected.filter { it.value.isNotEmpty() }.size
+            reactions.byUser.mapKeys { it.key.userId }.let {
+                expected.forEach { expectedByUser ->
+                    val received = it[expectedByUser.key] ?: setOf()
+                    withClue("did not match expected reactions for user ${expectedByUser.key}") {
+                        received shouldBe expectedByUser.value
+                    }
+                }
+            }
+        } ?: throw failure("no reaction list received")
+    }
+
+    private suspend infix fun Flow<MessageUserReactions?>.shouldReturnReactionsByCount(
+        expected: List<Pair<ReactionKey, Int>>,
+    ) {
+        this.firstOrNull()?.let { reactions ->
+            reactions.byCount shouldHaveSize expected.filter { it.second > 0 }.size
+            expected.forEach { expectedByCount ->
+                val received = reactions.byCount[expectedByCount.first] ?: 0u
+                withClue("did not match expected count for reaction ${expectedByCount.first}") {
+                    received.toInt() shouldBe expectedByCount.second
+                }
+            }
+            reactions.byCount
+        } ?: throw failure("no reaction list received")
     }
 }
-
-
