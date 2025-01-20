@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -172,7 +173,6 @@ open class SSOLoginViewModelImpl(
                 }
             }
             loginJob?.invokeOnCompletion {
-                it?.let { log.error { it } }
                 loginJob = null
                 isResumingLogin.value = false
             }
@@ -180,7 +180,7 @@ open class SSOLoginViewModelImpl(
     }
 
     override fun abortLogin() {
-        loginJob?.cancel()
+        loginJob?.cancel("abort login")
         coroutineScope.launch {
             log.debug { "Clearing stored sso login info" }
             waitForRedirect.value = false
