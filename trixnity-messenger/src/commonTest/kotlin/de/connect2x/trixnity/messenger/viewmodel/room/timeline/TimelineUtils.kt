@@ -85,14 +85,11 @@ class RoomUserBuilder(
     data class RoomUserWithReceipts(
         val user: RoomUser,
         val receipts: RoomUserReceipts,
-//        val testTag: String = "none",
     )
 
     val users = MutableStateFlow(listOf<RoomUserWithReceipts>())
 
-    private fun updateMocks(
-//        testTag: String = "none"
-    ) {
+    private fun updateMocks() {
         every { userService.getAll(roomId) } calls {
             log.debug { "userService.getAll($roomId)" }
             users.map {
@@ -159,7 +156,6 @@ class RoomUserBuilder(
                     )
                 }.orEmpty()
             ),
-//            testTag,
         )
 }
 
@@ -376,6 +372,11 @@ class TimelineBuilder(
                     ?: send(null)
             }
         }
+        every {
+            roomServiceMock.getTimelineEventRelations(roomId, eventId, eq(RelationType.Replace))
+        } returns channelFlow {
+            send(null) // TODO: Return message edit relations.
+        }
         previousTimelineEvent?.update {
             it.copy(nextEventId = eventId)
         }
@@ -452,25 +453,6 @@ class MessageEventBuilder {
             key = reactionKey,
         )
     ).also { content = it }
-
-//    fun reaction(relatesTo: EventId, reactionKey: ReactionKey) = UnknownEventContent(
-//        raw = JsonObject(
-//            mapOf(
-//                "m.relates_to" to JsonObject(
-//                    mapOf(
-//                        "event_id" to JsonPrimitive(relatesTo.full),
-//                        "key" to JsonPrimitive(reactionKey),
-//                        "rel_type" to JsonObject(
-//                            mapOf(
-//                                "name" to JsonPrimitive("m.annotation"),
-//                            )
-//                        ),
-//                    )
-//                ),
-//            )
-//        ),
-//        eventType = "m.reaction",
-//    ).also { content = it }
 
     fun redacted() = RedactedEventContent(eventType = "m.room.encrypted")
         .also { content = it }

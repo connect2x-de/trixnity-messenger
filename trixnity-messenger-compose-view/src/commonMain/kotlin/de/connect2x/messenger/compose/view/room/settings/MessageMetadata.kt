@@ -282,7 +282,7 @@ class MessageMetadataViewImpl : MessageMetadataView {
         viewModel: MessageMetadataViewModel,
         stackPosition: Int, isSinglePane: Boolean,
     ) {
-        val message = viewModel.compiledMessage.collectAsState().value
+        val message = viewModel.messagePreview.collectAsState().value
         val reactionCounts = viewModel.reactionCounts.collectAsState().value
         val userInteractions = viewModel.userInteractions.collectAsState().value
         val senderInfo = viewModel.senderInfo.collectAsState().value

@@ -64,18 +64,10 @@ interface MessageMetadataViewModelFactory {
 interface MessageMetadataViewModel {
     val eventId: EventId
     val senderInfo: StateFlow<UserInfoElement?>
+    val messagePreview: StateFlow<TimelineElementHolderViewModel?>
     val userInteractions: StateFlow<List<MessageUserInteraction>>
-
     val reactionCounts: StateFlow<Map<ReactionKey, UInt>>
-
-
-    val compiledMessage: StateFlow<TimelineElementHolderViewModel?>
-
-
     val error: StateFlow<String?>
-
-    // val errorCause: StateFlow<String?>
-    // fun errorDismiss()
     fun back()
 }
 
@@ -97,12 +89,10 @@ class MessageMetadataViewModelImpl(
         backHandler.register(backCallback)
     }
 
-    override val compiledMessage: StateFlow<TimelineElementHolderViewModel?> =
+    override val messagePreview: StateFlow<TimelineElementHolderViewModel?> =
         matrixClient.room.getTimelineEvent(roomId, eventId)
             .map { timelineEvent ->
-
                 if (timelineEvent == null) return@map null
-
                 val roomId = timelineEvent.roomId
                 val eventId = timelineEvent.eventId
                 val sender = timelineEvent.sender
@@ -143,7 +133,6 @@ class MessageMetadataViewModelImpl(
     private fun String.asKey(roomId: RoomId? = null) =
         (roomId ?: this@MessageMetadataViewModelImpl.roomId).full + "-" + this
 
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override val senderInfo: StateFlow<UserInfoElement?> =
         matrixClient.room.getTimelineEvent(roomId, eventId) {
@@ -151,7 +140,7 @@ class MessageMetadataViewModelImpl(
             allowReplaceContent = false
         }.flatMapLatest {
             it?.let { event ->
-                matrixClient.user.getById(roomId, it.sender)
+                matrixClient.user.getById(roomId, event.sender)
                     .filterNotNull().map { roomUser ->
                         roomUser.toUserInfoElement(
                             coroutineScope,
@@ -202,9 +191,7 @@ class MessageMetadataViewModelImpl(
         reactions.map { it.byCount }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, emptyMap())
 
-
     override val error: StateFlow<String?> = MutableStateFlow(null)
-//        get() = TODO("Not yet implemented")
 
     override fun back() {
         onBack()
