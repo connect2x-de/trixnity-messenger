@@ -14,9 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show users typing in room list
 - Allow sending attachments with Enter (desktop)
 - Check server capabilities for setting display name and avatar and prevent editing if not supported
+- More conservative MatrixClient initialization failure handling.
 
 ### Changed
 
+- Moved from Realm to Androidx Room database.
+- Enabled Encryption for Androidx Room database.
 - Image detail view UI overhaul
 
 ### Deprecated
@@ -32,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Text colors in message bubbles and input field (Desktop) adjusted for dark mode
 - Removed ability to block yourself
 - Fixed show SSO login option with empty identity provider list
+- Don't show "Image could not be loaded" message while loading an image
 
 ### Security
 

@@ -110,7 +110,7 @@ fun createTestDefaultTrixnityMessengerModules(
             override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult =
                 CreateRepositoriesModule.CreateResult(module, null)
 
-            override suspend fun load(userId: UserId, databasePassword: SecretByteArray?): Module = module
+            override suspend fun load(userId: UserId, databaseKey: SecretByteArray?): Module = module
         }
     }
     single<CreateMediaStore> {

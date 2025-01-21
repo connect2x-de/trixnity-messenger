@@ -10,10 +10,10 @@ import web.streams.WritableStream
 
 external class ZipWriterStream(options: ZipWriterConstructorOptions = definedExternally) {
 
-    var readable: ReadableStream<Uint8Array>
+    var readable: ReadableStream<Uint8Array<*>>
     fun <T> writable(path: String): WritableStream<T>
     fun close(
-        comment: Uint8Array = definedExternally,
+        comment: Uint8Array<*> = definedExternally,
         options: ZipWriterCloseOptions = definedExternally
     ): Promise<Any?>
 }

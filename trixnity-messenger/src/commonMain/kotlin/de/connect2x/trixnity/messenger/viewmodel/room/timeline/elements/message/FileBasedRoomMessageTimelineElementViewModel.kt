@@ -6,6 +6,7 @@ import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
+import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media.PlatformMedia
+import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
@@ -58,6 +60,14 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
         _loadMedia.value = null
         _loadMediaProgress.value = null
         _loadMediaError.value = null
+        _loadMediaProgress.value = FileTransferProgressElement(
+            0f, formatProgress(
+                FileTransferProgress(
+                    0,
+                    content.info?.size
+                )
+            )
+        )
 
         coroutineScope.launch {
             val resultAsync = downloadManager.startDownloadAsync(

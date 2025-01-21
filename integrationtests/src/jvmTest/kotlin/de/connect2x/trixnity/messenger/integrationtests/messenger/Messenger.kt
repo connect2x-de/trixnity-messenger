@@ -109,7 +109,7 @@ suspend fun MatrixMessengerWithRoot.deleteAccount(username: String) = with(root)
     val userId = di.get<MatrixClients>().value.keys.find { it.localpart == username }
     checkNotNull(userId)
     accountsOverviewViewModel.removeAccount(userId)
-    stack.waitFor(RootRouter.Wrapper.MatrixClientLogout::class)
+    stack.waitFor(RootRouter.Wrapper.RemoveMatrixAccount::class)
     val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
     mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
     mainViewModel.initialSyncStack.waitFor(InitialSyncRouter.Wrapper.None::class)
@@ -140,12 +140,12 @@ suspend fun MatrixMessengerWithRoot.registerAccountWithToken(serverUrl: String, 
                 .filterIsInstance<AddMatrixAccountViewModel.ServerDiscoveryState.Success>().first()
                 .addMatrixAccountMethods.filterIsInstance<AddMatrixAccountMethod.Register>().first()
             addMatrixAccountViewModel.selectAddMatrixAccountMethod(registerMethod)
-            val registerNewAccountViewModel =
-                stack.waitFor(RootRouter.Wrapper.RegisterNewAccount::class).viewModel
-            registerNewAccountViewModel.username.update { "user1" }
-            registerNewAccountViewModel.password.update { "user1password" }
-            registerNewAccountViewModel.canRegisterNewUser.first { it }
-            registerNewAccountViewModel.register()
+            val registerMatrixAccountViewModel =
+                stack.waitFor(RootRouter.Wrapper.RegisterMatrixAccount::class).viewModel
+            registerMatrixAccountViewModel.username.update { "user1" }
+            registerMatrixAccountViewModel.password.update { "user1password" }
+            registerMatrixAccountViewModel.canRegisterNewUser.first { it }
+            registerMatrixAccountViewModel.register()
             authorizeUia(registrationToken)
 
             val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
@@ -365,7 +365,7 @@ suspend fun MatrixMessengerWithRoot.logout(userId: UserId) = with(root) {
         val accountsOverviewViewModel =
             mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.AccountsOverview::class).viewModel
         accountsOverviewViewModel.removeAccount(userId)
-        stack.waitFor(RootRouter.Wrapper.MatrixClientLogout::class)
+        stack.waitFor(RootRouter.Wrapper.RemoveMatrixAccount::class)
         // since we do not have multiple accounts here, we have to wait for this view and not the MainView
         // (the last account was deleted, so we expect the user to log in with a new account)
         stack.waitFor(RootRouter.Wrapper.AddMatrixAccount::class)
