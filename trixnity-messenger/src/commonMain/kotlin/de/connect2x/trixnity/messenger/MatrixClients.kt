@@ -4,6 +4,7 @@ import de.connect2x.trixnity.messenger.MatrixClients.InitFromStoreResult
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
@@ -49,7 +50,7 @@ interface MatrixClients : StateFlow<Map<UserId, MatrixClient>> {
 
     data class InitFromStoreResult(
         val success: Set<UserId>,
-        val failures: Map<UserId, Throwable?>,
+        val failures: Map<UserId, MatrixClientInitializationException>,
     )
 
     suspend fun initFromStore(): InitFromStoreResult
@@ -85,10 +86,8 @@ class MatrixClientsImpl(
                             MatrixClient.LoginState.LOGGED_OUT_SOFT, // TODO soft logout
                             MatrixClient.LoginState.LOCKED, // TODO locked
                             MatrixClient.LoginState.LOGGED_OUT -> {
+                                log.info { "remote logout triggered" }
                                 remove(userId)
-                                    .onFailure {
-                                        log.error(it) { "Failed to remove UserID: $userId, after remote logout" }
-                                    }
                             }
 
                             MatrixClient.LoginState.LOGGED_IN, null -> {}
@@ -187,7 +186,6 @@ class MatrixClientsImpl(
     }
 
     private suspend fun checkExisting(loginInfo: LoginInfo, baseUrl: Url) {
-        // TODO: This check leads to login issues if account data for this user already exists.
         if (value.containsKey(loginInfo.userId)) {
             log.debug { "account ${loginInfo.userId} already exist -> logout" }
             MatrixClientServerApiClientImpl(
@@ -202,11 +200,13 @@ class MatrixClientsImpl(
                 .getOrNull()
             throw AccountAlreadyExistsException(loginInfo.userId)
         }
+        // always remove possibly stale data
+        remove(loginInfo.userId)
     }
 
     override suspend fun initFromStore(): InitFromStoreResult = coroutineScope {
         val success = MutableStateFlow(setOf<UserId>())
-        val failures = MutableStateFlow(mapOf<UserId, Throwable?>())
+        val failures = MutableStateFlow(mapOf<UserId, MatrixClientInitializationException>())
         val newMatrixClients = settings.value.base.accounts.map { (userId, accountSettings) ->
             async {
                 if (matrixClients.value[userId] == null) {
@@ -214,12 +214,17 @@ class MatrixClientsImpl(
                         .fold(
                             onSuccess = { newMatrixClient ->
                                 if (newMatrixClient != null) success.update { it + userId }
-                                else failures.update { it + (userId to null) }
+                                else failures.update { it + (userId to MatrixClientInitializationException.NoDatabaseException) }
                                 newMatrixClient
                             },
                             onFailure = { e ->
                                 log.error(e) { "could not load $userId from store" }
-                                failures.update { it + (userId to e) }
+                                val failure = when (e) {
+                                    is CancellationException -> throw e
+                                    is MatrixClientInitializationException -> e
+                                    else -> MatrixClientInitializationException.Unknown(e.message)
+                                }
+                                failures.update { it + (userId to failure) }
                                 null
                             }
                         )
@@ -250,14 +255,15 @@ class MatrixClientsImpl(
     }
 
     override suspend fun remove(userId: UserId): Result<Unit> = kotlin.runCatching {
-        matrixClients.value[userId]?.let { matrixClient ->
+        withContext(NonCancellable) {
             log.info { "delete account data on this machine" }
-            withContext(NonCancellable) {
-                matrixClient.close()
-                settings.delete(matrixClient.userId)
-                matrixClients.update { it - userId }
-                deleteAccountData(userId)
-            }
+            val matrixClient = matrixClients.value[userId]
+            matrixClient?.close()
+            settings.delete(userId)
+            matrixClients.update { it - userId }
+            deleteAccountData(userId)
         }
+    }.onFailure {
+        log.warn(it) { "failed to remove user data fro $userId" }
     }
 }

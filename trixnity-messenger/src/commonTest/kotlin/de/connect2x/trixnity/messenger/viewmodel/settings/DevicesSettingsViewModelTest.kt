@@ -580,6 +580,7 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             config = MatrixClientConfiguration(),
             statisticCollector = ObservableCacheStatisticCollector(),
             storeScope = scope,
+            clock = Clock.System,
         ),
         clock = clock,
     )
