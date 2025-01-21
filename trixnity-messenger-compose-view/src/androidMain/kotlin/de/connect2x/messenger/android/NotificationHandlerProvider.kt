@@ -45,7 +45,7 @@ internal class NotificationHandlerProviderImpl(
                 activationIntent = { _, notification ->
                     Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse("${config.urlProtocol}://localhost/room/${notification.userData}"),
+                        Uri.parse("${config.urlProtocol}://localhost/room/${notification.callbackData}"),
                     )
                 }
             )
