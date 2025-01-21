@@ -61,7 +61,7 @@ class MessageMetadataViewModelTest : ShouldSpec() {
             every { roomServiceMock.getOutbox(any()) } returns flowOf(listOf())
         }
 
-        var runId = 0
+        var runId = 0 // Mokkery fails to properly update existing mocks.
 
         data class TestEnv(
             val roomId: RoomId = RoomId("room_${runId++}", "localhost"),
@@ -142,7 +142,7 @@ class MessageMetadataViewModelTest : ShouldSpec() {
             val interactions = cut.userInteractions.value
             interactions shouldHaveSize 3
             interactions.forEach {
-                when (it.userInfo.userId) {
+                when (it.userId) {
                     env.reader1,
                     env.reader2,
                     env.reader3 ->
@@ -174,7 +174,7 @@ class MessageMetadataViewModelTest : ShouldSpec() {
             val interactions = cut.userInteractions.value
             interactions shouldHaveSize 0
             interactions.forEach {
-                withClue("user ${it.userInfo.userId} shouldn't have read the message") {
+                withClue("user ${it.userId} shouldn't have read the message") {
                     it.hasRead shouldBe false
                 }
             }
@@ -206,7 +206,7 @@ class MessageMetadataViewModelTest : ShouldSpec() {
             cut.userInteractions.value.let { interactions ->
                 interactions shouldHaveSize 4
                 interactions.forEach {
-                    when (it.userInfo.userId) {
+                    when (it.userId) {
                         env.reader1 -> it.reactions shouldBe setOf("😄", "🙂", "🥳")
                         env.reader2 -> it.reactions shouldBe setOf("😄", "🙂")
                         env.us -> it.reactions shouldBe setOf("🙂")

@@ -103,7 +103,7 @@ class SearchImpl(
                 )
             }
             val presence = getPresence(matrixClient, userId)
-                .stateIn(presenceScope, SharingStarted.WhileSubscribed(),null)
+                .stateIn(presenceScope, SharingStarted.WhileSubscribed(), null)
 
             listOf(
                 searchUserElement(
@@ -132,7 +132,7 @@ class SearchImpl(
                                 async {
                                     val image = getImage(matrixClient, searchUser, maxAvatarSize)
                                     val presence = getPresence(matrixClient, searchUser.userId)
-                                        .stateIn(presenceScope, SharingStarted.WhileSubscribed(),null)
+                                        .stateIn(presenceScope, SharingStarted.WhileSubscribed(), null)
 
                                     searchUserElement(searchUser, image, presence)
                                 }

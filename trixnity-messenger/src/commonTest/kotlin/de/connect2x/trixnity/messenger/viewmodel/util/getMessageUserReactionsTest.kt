@@ -386,9 +386,9 @@ class getMessageUserReactionsTest : ShouldSpec() {
     ) {
         this.firstOrNull()?.let { reactions ->
             reactions.byUser shouldHaveSize expected.filter { it.value.isNotEmpty() }.size
-            reactions.byUser.mapKeys { it.key.userId }.let {
+            reactions.byUser.mapKeys { it.key }.let {
                 expected.forEach { expectedByUser ->
-                    val received = it[expectedByUser.key] ?: setOf()
+                    val received: Set<ReactionKey> = it[expectedByUser.key]?.reactions ?: setOf()
                     withClue("did not match expected reactions for user ${expectedByUser.key}") {
                         received shouldBe expectedByUser.value
                     }
@@ -403,7 +403,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
         this.firstOrNull()?.let { reactions ->
             reactions.byCount shouldHaveSize expected.filter { it.second > 0 }.size
             expected.forEach { expectedByCount ->
-                val received = reactions.byCount[expectedByCount.first] ?: 0u
+                val received = reactions.byCount[expectedByCount.first]?.count ?: 0u
                 withClue("did not match expected count for reaction ${expectedByCount.first}") {
                     received.toInt() shouldBe expectedByCount.second
                 }

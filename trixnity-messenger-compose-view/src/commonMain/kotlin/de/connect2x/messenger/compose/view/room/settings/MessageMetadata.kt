@@ -91,6 +91,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.sample
@@ -285,7 +286,6 @@ class MessageMetadataViewImpl : MessageMetadataView {
         val message = viewModel.messagePreview.collectAsState().value
         val reactionCounts = viewModel.reactionCounts.collectAsState().value
         val userInteractions = viewModel.userInteractions.collectAsState().value
-        val senderInfo = viewModel.senderInfo.collectAsState().value
         val error = viewModel.error.collectAsState().value
 
         val i18n = DI.get<I18nView>()
@@ -331,7 +331,7 @@ class MessageMetadataViewImpl : MessageMetadataView {
                             text = i18n.messageMetadataSender(),
                             style = MaterialTheme.typography.titleMedium,
                         )
-                        if (senderInfo != null) UserInfo(senderInfo)
+                        UserInfo(viewModel.senderInfo)
                         Spacer(Modifier.size(smallSpacing))
                         Text(
                             text = i18n.messageMetadataMessage(),
@@ -390,10 +390,17 @@ class MessageMetadataViewImpl : MessageMetadataView {
 
 @Composable
 private fun UserInfo(
-    userInfo: UserInfoElement,
+    userInfoFlow: StateFlow<UserInfoElement?>,
     reactions: Set<ReactionKey> = setOf(),
 ) {
     val i18n = DI.get<I18nView>()
+    val userInfo = userInfoFlow.collectAsState().value
+        ?: return Box(
+            Modifier
+                .fillMaxWidth()
+                .height(42.dp)
+        )
+
     val compiledReactionsList: String = reactions.joinToString(" ")
     val hasReactions = compiledReactionsList.isNotEmpty()
     val tooltipText = buildString {
@@ -521,9 +528,10 @@ private fun UserInteractions(
                 val showItem = itemBounds.get()[index]
                     ?.let {
                         val itemOffset = it.offsetRelativeTo(paneBounds)
+                        val cullOffset = hiddenItemsHeight * 3
                         visibleListHeight > 0.dp && it.height > 0.dp && itemOffset != null
-                                && itemOffset < visibleListOffset + visibleListHeight + hiddenItemsHeight
-                                && itemOffset > -hiddenItemsHeight
+                                && itemOffset < visibleListOffset + visibleListHeight + cullOffset
+                                && itemOffset > -cullOffset
                     } == true
                 if (showItem) UserInfo(interaction.userInfo, interaction.reactions)
             }

@@ -9,10 +9,12 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel.ReactionEvent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 import de.connect2x.trixnity.messenger.viewmodel.util.getMessageIsRead
 import de.connect2x.trixnity.messenger.viewmodel.util.getMessageReadReceipts
 import de.connect2x.trixnity.messenger.viewmodel.util.getMessageUserReactions
@@ -50,6 +52,7 @@ import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.originTimestamp
+import net.folivo.trixnity.client.store.originalName
 import net.folivo.trixnity.client.store.roomId
 import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user
@@ -125,7 +128,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val isRead: StateFlow<Boolean?> // TODO not nullable?
     val isReadBy: StateFlow<List<UserInfoElement>?> // TODO: remove?
 
-    val reactions: StateFlow<Map<String, Set<ReactionEvent>>>
+    val reactions: StateFlow<Map<ReactionKey, Set<ReactionEvent>>>
     val canBeReactedTo: StateFlow<Boolean>
 
     val isReplaced: StateFlow<Boolean>
@@ -367,9 +370,38 @@ class TimelineElementHolderViewModelImpl(
             }
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-    override val reactions =
-        getMessageUserReactions(matrixClient, timelineEventFlow, initials, roomId, eventId)
-            .stateIn(coroutineScope, Lazily, emptyMap())
+    override val reactions: StateFlow<Map<ReactionKey, Set<ReactionEvent>>> =
+        getMessageUserReactions(matrixClient, roomId, eventId)
+            .flatMapLatest { reactions ->
+                val test = reactions.byCount.map { entry ->
+                    entry.value.events.map { event ->
+                        reactions.byUser[event.sender]?.roomUserFlow?.map { roomUser ->
+                            roomUser?.let { sender ->
+                                ReactionEvent(
+                                    eventId = event.eventId,
+                                    sender = UserInfoElement(
+                                        name = sender.originalName ?: sender.name,
+                                        userId = sender.userId,
+                                        initials = initials.compute(sender.originalName ?: sender.name),
+                                        image = null, // TODO: resolve via sender.avatarUrl
+                                    ),
+                                    isMe = event.sender == userId,
+                                )
+                            }
+                        }?.map {
+                            Pair(entry.key, it)
+                        }
+                    }.filterNotNull()
+                }.flatten()
+                combine(test) {
+                    val result: MutableMap<ReactionKey, MutableSet<ReactionEvent>> = mutableMapOf()
+                    it.forEach { (key, event) ->
+                        if (event != null) result.getOrPut(key) { mutableSetOf() }.add(event)
+                    }
+                    result
+                }
+            }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, emptyMap()) // Lazily to not unnecessary recompute.
 
     override val canBeEdited: StateFlow<Boolean> = timelineEventFlow
         .filterNotNull()
