@@ -158,14 +158,8 @@ class RoomViewModelTest : ShouldSpec() {
                 roomServiceMock.usersTyping
             } returns MutableStateFlow(mapOf())
             every { roomServiceMock.getTimelineEvent(any(), any(), any()) } returns flowOf(null)
-
-
-
             every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
                     MutableStateFlow(emptyMap())
-
-
-
             every { verificationServiceMock.activeDeviceVerification } returns
                     MutableStateFlow(null)
             every { verificationServiceMock.getSelfVerificationMethods() }.also {

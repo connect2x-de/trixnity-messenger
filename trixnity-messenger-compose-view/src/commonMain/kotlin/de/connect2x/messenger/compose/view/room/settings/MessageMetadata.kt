@@ -253,7 +253,7 @@ private class ThrottledMutableState<T> private constructor(value: MutableState<T
             )
             LaunchedEffect(Unit) {
                 snapshotFlow { effect._pending }
-                    .conflate().sample(66.milliseconds)
+                    .conflate().sample(33.milliseconds)
                     .collect { effect._value.value = it }
             }
             return effect

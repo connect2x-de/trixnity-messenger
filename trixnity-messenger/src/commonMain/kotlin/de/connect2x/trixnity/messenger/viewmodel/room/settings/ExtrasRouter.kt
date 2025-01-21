@@ -72,7 +72,6 @@ interface ExtrasRouter {
 class ExtrasRouterImpl(
     private val viewModelContext: MatrixClientViewModelContext,
     private val onCloseRoom: () -> Unit,
-    private val onCloseSettings: () -> Unit,
     private val onOpenAvatarCutter: OpenAvatarCutterCallback,
 ) : ExtrasRouter {
 
@@ -131,6 +130,11 @@ class ExtrasRouterImpl(
         extrasNavigation.bringToFrontSuspending(config)
     }
 
+
+//    private inline fun <reified T : Config> isActive(): Boolean =
+//        stack.value.active.configuration is T
+
+
     private fun createSettingsChild(
         config: Config,
         componentContext: ComponentContext,
@@ -144,7 +148,6 @@ class ExtrasRouterImpl(
                 selectedRoomId = config.roomId,
                 onOpenAddMembers = { onOpenAddMembers(config.roomId) },
                 onOpenExportRoom = { onOpenExportRoom(config.roomId) },
-//                onCloseRoomSettings = onCloseSettings,
                 onCloseRoomSettings = ::onCloseRoomSettings,
                 onOpenAvatarCutter = onOpenAvatarCutter,
             )
@@ -195,76 +198,7 @@ class ExtrasRouterImpl(
 
     private fun onCloseRoomSettings() = viewModelContext.coroutineScope.launch {
         closeExtrasRouter()
-//        onCloseSettings()
     }
-
-
-    /*
-    override suspend fun openRoomSettings(roomId: RoomId) {
-        log.debug { "show settings for room: $roomId" }
-        val config = Config.RoomSettings.MainSettings(roomId)
-
-
-        showRouterOrCallFallback(config) {
-            extrasNavigation.launchBringToFront(viewModelContext.coroutineScope, config)
-        }
-    }
-
-    override suspend fun closeExtrasRouter() {
-        log.debug { "close room settings" }
-        extrasNavigation.popWhileSuspending { it != None }
-    }
-
-    override suspend fun openMessageMetadata(eventId: EventId, roomId: RoomId) {
-        log.debug { "show message metadata for event: $eventId in room: $roomId" }
-        val config = MessageMetadata(eventId, roomId)
-        showRouterOrCallFallback(config) {
-            extrasNavigation.launchBringToFront(viewModelContext.coroutineScope, config)
-        }
-    }
-
-    private suspend fun showRouterOrCallFallback(baseConfig: Config, onRouterAlreadyShown: () -> Unit) {
-        if (isShown().not()) {
-            extrasNavigation.bringToFrontSuspending(baseConfig)
-        } else onRouterAlreadyShown()
-    }
-
-        private fun showAddMembers(roomId: RoomId) {
-        extrasNavigation.launchBringToFront(viewModelContext.coroutineScope, AddMembers(roomId))
-    }
-
-    private fun closeAddMembers() {
-        if (isActive<AddMembers>())
-            extrasNavigation.launchPop(viewModelContext.coroutineScope)
-    }
-
-    private suspend fun openExportRoom(roomId: RoomId) {
-//        if (isActive<ExportRoom>())
-//            extrasNavigation.launchPop(viewModelContext.coroutineScope)
-        extrasNavigation.bringToFrontSuspending(ExportRoom(roomId))
-
-//        extrasNavigation.launchBringToFront(viewModelContext.coroutineScope, ExportRoom(roomId))
-    }
-
-    private suspend fun closeExportRoom() {
-        extrasNavigation.popWhileSuspending { it is ExportRoom }
-//        if (isActive<ExportRoom>())
-//            extrasNavigation.launchPop(viewModelContext.coroutineScope)
-    }
-
-    private suspend fun closeMessageMetadata() {
-//        if (isActive<MessageMetadata>())
-//            extrasNavigation.launchPop(viewModelContext.coroutineScope)
-        extrasNavigation.popWhileSuspending { it is MessageMetadata}
-    }
-
-    private fun onOpenExportRoom() = coroutineScope.launch {
-
-    }
-
-    private inline fun <reified T : Config> isActive(): Boolean =
-        stack.value.active.configuration is T
-*/
 
     private fun Boolean.toSuccessString() =
         if (this) "successfully" else "failed"

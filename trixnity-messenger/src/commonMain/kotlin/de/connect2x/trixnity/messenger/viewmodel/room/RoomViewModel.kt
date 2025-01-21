@@ -80,7 +80,6 @@ open class RoomViewModelImpl(
     private val extrasRouter: ExtrasRouter = ExtrasRouterImpl(
         viewModelContext = viewModelContext,
         onCloseRoom = ::onCloseRoom,
-        onCloseSettings = ::onCloseSettings,
         onOpenAvatarCutter = onOpenAvatarCutter,
     )
     override val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>> =
@@ -115,10 +114,6 @@ open class RoomViewModelImpl(
 
     private fun onOpenMessageMetadata(eventId: EventId) = coroutineScope.launch {
         extrasRouter.openMessageMetadata(eventId, roomId)
-    }
-
-    private fun onCloseSettings() = coroutineScope.launch {
-        extrasRouter.closeExtrasRouter()
     }
 }
 
