@@ -147,9 +147,11 @@ private suspend fun displayNotification(
             } ?: (null to null)
 
             log.debug { "notification will appear" }
+            val actualRoomName = if (isDirect) username.orEmpty() else roomName
             notificationHandler.push(
                 Notification(
-                    title = if (isDirect) username.orEmpty() else roomName,
+                    title = actualRoomName,
+                    group = actualRoomName,
                     description = if (isDirect) message else "$username: $message",
                     icon = image?.toAwtImage()?.let(NotificationIcon::fromBufferedImage)
                 )

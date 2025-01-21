@@ -143,6 +143,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                 notificationHandlerProvider.value[matrixClient.userId]?.push(
                     Notification(
                         title = roomName,
+                        group = roomName, // We simply group via room name when possible
                         icon = context.resources.getNotificationIcon(R.drawable.ic_logo),
                         callbackData = roomId.full
                     )
