@@ -102,6 +102,7 @@ private fun isReadSearch(
                             currentRoomId,
                             currentEventId,
                         ) // Recursive!
+                        // TODO: check if it needs tail optimization
                     )
 
                     else -> emit(IsReadSearchResult.Unread)

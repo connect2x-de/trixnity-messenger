@@ -14,9 +14,11 @@ import io.kotest.assertions.failure
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
+import io.kotest.engine.runBlocking
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
@@ -386,15 +388,22 @@ class getMessageUserReactionsTest : ShouldSpec() {
     ) {
         this.firstOrNull()?.let { reactions ->
             reactions.byUser shouldHaveSize expected.filter { it.value.isNotEmpty() }.size
-            reactions.byUser.mapKeys { it.key }.let {
-                expected.forEach { expectedByUser ->
-                    val received: Set<ReactionKey> = it[expectedByUser.key]?.reactions ?: setOf()
-                    withClue("did not match expected reactions for user ${expectedByUser.key}") {
-                        received shouldBe expectedByUser.value
+            reactions.byUser.let {
+                expected.forEach { (expectingUser, expectedReactions) ->
+                    withClue("did not match expected reactions for user $expectingUser") {
+                        val receivedReactions = it[expectingUser]?.let { userReactions ->
+                            withClue("checking user value if present") {
+                                runBlocking {
+                                    userReactions.roomUserFlow.first()!!.userId shouldBe expectingUser
+                                }
+                            }
+                            userReactions.reactions
+                        } ?: setOf()
+                        receivedReactions shouldBe expectedReactions
                     }
                 }
             }
-        } ?: throw failure("no reaction list received")
+        } ?: throw failure("no reaction data received")
     }
 
     private suspend infix fun Flow<MessageUserReactions?>.shouldReturnReactionsByCount(
@@ -402,13 +411,13 @@ class getMessageUserReactionsTest : ShouldSpec() {
     ) {
         this.firstOrNull()?.let { reactions ->
             reactions.byCount shouldHaveSize expected.filter { it.second > 0 }.size
-            expected.forEach { expectedByCount ->
-                val received = reactions.byCount[expectedByCount.first]?.count ?: 0u
-                withClue("did not match expected count for reaction ${expectedByCount.first}") {
-                    received.toInt() shouldBe expectedByCount.second
+            expected.forEach { (expectedReaction, expectedCount) ->
+                withClue("did not match expected count for reaction $expectedReaction") {
+                    val receivedOrImpliedCount = reactions.byCount[expectedReaction]?.count ?: 0u
+                    receivedOrImpliedCount.toInt() shouldBe expectedCount
                 }
             }
             reactions.byCount
-        } ?: throw failure("no reaction list received")
+        } ?: throw failure("no reaction data received")
     }
 }

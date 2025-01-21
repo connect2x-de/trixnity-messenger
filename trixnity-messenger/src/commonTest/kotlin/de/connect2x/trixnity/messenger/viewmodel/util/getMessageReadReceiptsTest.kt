@@ -10,7 +10,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
@@ -30,7 +29,6 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 
-private val log = KotlinLogging.logger {}
 
 class getMessageReadReceiptsTest : ShouldSpec() {
     override fun timeout(): Long = 5_000

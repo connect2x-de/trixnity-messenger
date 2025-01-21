@@ -357,6 +357,7 @@ class TimelineElementHolderViewModelImpl(
         getMessageIsRead(matrixClient, senderUserId, roomId, eventId)
             .stateIn(coroutineScope, Lazily, false) // Lazily to not unnecessary recompute.
 
+    // TODO: FIX THIS SHIT! ===========================================================================
     override val reactions: StateFlow<Map<ReactionKey, Set<ReactionEvent>>> =
         getMessageUserReactions(matrixClient, roomId, eventId)
             .flatMapLatest { reactions ->
@@ -370,7 +371,7 @@ class TimelineElementHolderViewModelImpl(
                                         name = sender.originalName ?: sender.name,
                                         userId = sender.userId,
                                         initials = initials.compute(sender.originalName ?: sender.name),
-                                        image = null, // TODO: resolve via sender.avatarUrl
+                                        image = null, // TODO: does it need to be resolved via sender.avatarUrl?
                                     ),
                                     isMe = event.sender == userId,
                                 )

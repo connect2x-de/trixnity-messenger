@@ -24,9 +24,7 @@ fun ExtrasPaneContentSwitch(
             is ExtrasRouter.Wrapper.AddMember -> AddMembersContainer(child.viewModel)
             is ExtrasRouter.Wrapper.ExportRoom -> ExportRoomContainer(child.viewModel)
             is ExtrasRouter.Wrapper.MessageMetadata -> MessageMetadata(
-                child.viewModel,
-                stack.value.items.size,
-                isSinglePane,
+                child.viewModel, stack.value.items.size, isSinglePane,
             )
 
             is ExtrasRouter.Wrapper.None -> Box {}
