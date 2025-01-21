@@ -11,6 +11,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.getOrNull
+import de.connect2x.trixnity.messenger.util.launchNavigate
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.launchReplaceAll
@@ -153,10 +154,6 @@ class RootRouter(
         }
     }
 
-    fun showNone() {
-        navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.None)
-    }
-
     fun showInitialization() {
         log.debug { "showInitialization" }
         navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.MatrixClientInitialization)
@@ -177,11 +174,17 @@ class RootRouter(
     }
 
     private fun showAddMatrixAccount() {
-        log.debug { "showAddMatrixAccount" }
-        navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.AddMatrixAccount)
+        navigation.launchNavigate(viewModelContext.coroutineScope) {
+            if (it.contains(Config.AddMatrixAccount)) it
+            else {
+                log.debug { "showAddMatrixAccount" }
+                listOf(Config.AddMatrixAccount)
+            }
+        }
     }
 
     private fun cancelAddMatrixAccount() = viewModelContext.coroutineScope.launch {
+        log.debug { "cancelAddMatrixAccount" }
         if (matrixClients.value.isEmpty()) {
             log.info { "There are no MatrixClients configured yet, so close the app" }
             viewModelContext.getOrNull<CloseApp>()?.invoke()
@@ -189,7 +192,6 @@ class RootRouter(
             navigation.replaceAllSuspending(Config.MatrixClientInitialization)
         }
     }
-
 
     private fun showAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
         log.debug { "showAddMatrixAccountMethod: $addMatrixAccountMethod" }
@@ -203,8 +205,8 @@ class RootRouter(
                 viewModelContext.coroutineScope,
                 Config.SSOLogin(
                     serverUrl = addMatrixAccountMethod.serverUrl,
-                    providerId = addMatrixAccountMethod.identityProvider.id,
-                    providerName = addMatrixAccountMethod.identityProvider.name
+                    providerId = addMatrixAccountMethod.identityProvider?.id,
+                    providerName = addMatrixAccountMethod.identityProvider?.name
                 )
             )
 
@@ -235,7 +237,7 @@ class RootRouter(
     }
 
     private suspend fun resumeSsoLogin(redirectUrl: Url) {
-        log.debug { "resumeSsoLogin" }
+        log.debug { "requested resume ssl login" }
         val state = settings.value.base.ssoState
         if (state != null) {
             log.info { "resume sso login" }
@@ -248,7 +250,7 @@ class RootRouter(
                 instance.viewModel.resumeLogin(redirectUrl)
             }
         } else {
-            log.warn { "cannot resume sso login" }
+            log.warn { "cannot resume sso login (no state saved)" }
         }
     }
 
@@ -296,8 +298,8 @@ class RootRouter(
         @Serializable
         data class SSOLogin(
             val serverUrl: String,
-            val providerId: String,
-            val providerName: String,
+            val providerId: String?,
+            val providerName: String?,
             val initialState: String? = null,
         ) : Config()
 
