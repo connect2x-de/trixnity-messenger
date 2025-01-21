@@ -128,7 +128,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                 val sender = event.senderOrNull ?: return
                 val user = sender.let { matrixClient.user.getById(roomId, it).first() } ?: return
 
-                val (userName, userImage) = user.let {
+                val (username, userId, userImage) = user.let {
                     val image = it.avatarUrl?.let { avatarUrl ->
                         matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
                     }?.map { flow ->
@@ -137,19 +137,19 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                             BitmapFactory.decodeByteArray(imageData, 0, imageData.size).getCircledBitmap()
                         }
                     }?.getOrNull()
-                    user.name to image
+                    Triple(user.name, user.userId, image)
                 }
 
                 notificationHandlerProvider.value[matrixClient.userId]?.push(
                     Notification(
                         title = roomName,
-                        group = roomName, // We simply group via room name when possible
+                        group = "$userId-$roomId", // We simply group via room name when possible
                         icon = context.resources.getNotificationIcon(R.drawable.ic_logo),
                         callbackData = roomId.full
                     )
                 ) {
                     val person = Person.Builder().apply {
-                        setName(userName)
+                        setName(username)
                         userImage?.let { setIcon(IconCompat.createFromIcon(context, it.toIcon())) }
                     }.build()
                     val style = NotificationCompat.MessagingStyle(person).also {

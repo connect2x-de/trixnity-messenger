@@ -142,22 +142,20 @@ private suspend fun displayNotification(
         }
 
         if (message != null) {
-            val (username, imageInBytes) = event.senderOrNull?.let { sender ->
+            val (username, userId, imageInBytes) = event.senderOrNull?.let { sender ->
                 val user = matrixClient.user.getById(roomId, sender).first()
                 val image = user?.avatarUrl?.let { avatarUrl ->
                     matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
                 }?.map { it.limitedByteArrayOrNull(maxAvatarSize) }?.getOrNull()
-                user?.name to image
-            } ?: (null to null)
-
-            val title = if (isDirect) username.orEmpty() else roomName
-            val text = if (isDirect) message else "$username: $message"
+                Triple(user?.name, user?.userId, image)
+            } ?: Triple(null, null, null)
 
             log.debug { "notification will appear" }
 
             return Notification(
-                title = title,
-                description = text,
+                title = if (isDirect) username.orEmpty() else roomName,
+                group = "$userId-$roomId",
+                description = if (isDirect) message else "$username: $message",
                 icon = imageInBytes?.let { NotificationIcon(it, avatarSize(), avatarSize()) })
         }
     } ?: log.warn { "cannot find roomId for event ${event.idOrNull}" }
