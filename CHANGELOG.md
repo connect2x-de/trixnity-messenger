@@ -15,17 +15,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow sending attachments with Enter (desktop)
 - Use SysNotify on desktop targets to display native toasts for notifications
 - Check server capabilities for setting display name and avatar and prevent editing if not supported
+- More conservative MatrixClient initialization failure handling.
 
 ### Changed
 
-- Updated SysNotify to 1.6.0
+<<<<<<< HEAD
+- Updated SysNotify to 1.7.0
+- Moved from Realm to Androidx Room database.
+- Enabled Encryption for Androidx Room database.
 - Image detail view UI overhaul
 
 ### Deprecated
 
 ### Removed
 
-- Internal: removed strong skipping Compose mode as it is enabled by default now 
+- Internal: removed strong skipping Compose mode as it is enabled by default now
 
 ### Fixed
 

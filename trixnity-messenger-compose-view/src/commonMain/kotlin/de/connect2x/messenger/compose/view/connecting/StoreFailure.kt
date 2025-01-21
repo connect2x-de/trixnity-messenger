@@ -37,24 +37,24 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.CloseApp
-import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationFailureViewModel
 import kotlinx.coroutines.delay
 
-interface StoreFailureView {
+interface MatrixClientInitializationFailureView {
     @Composable
-    fun create(storeFailureViewModel: StoreFailureViewModel)
+    fun create(matrixClientInitializationFailureViewModel: MatrixClientInitializationFailureViewModel)
 }
 
 @Composable
-fun StoreFailure(storeFailureViewModel: StoreFailureViewModel) {
-    DI.get<StoreFailureView>().create(storeFailureViewModel)
+fun MatrixClientInitializationFailure(matrixClientInitializationFailureViewModel: MatrixClientInitializationFailureViewModel) {
+    DI.get<MatrixClientInitializationFailureView>().create(matrixClientInitializationFailureViewModel)
 }
 
-class StoreFailureViewImpl : StoreFailureView {
+class MatrixClientInitializationFailureViewImpl : MatrixClientInitializationFailureView {
     @Composable
-    override fun create(storeFailureViewModel: StoreFailureViewModel) {
+    override fun create(matrixClientInitializationFailureViewModel: MatrixClientInitializationFailureViewModel) {
         val i18n = DI.get<I18nView>()
-        val deleteEnabled = storeFailureViewModel.deleteEnabled
+        val deleteEnabled = matrixClientInitializationFailureViewModel.deleteEnabled
         val scroll = rememberScrollState()
 
         Box(Modifier.fillMaxSize()) {
@@ -87,7 +87,7 @@ class StoreFailureViewImpl : StoreFailureView {
                     Text(text = i18n.storeFailureLocalDbRestart(appName))
                     Spacer(Modifier.size(20.dp))
                     Button(
-                        { storeFailureViewModel.closeApplication() },
+                        { matrixClientInitializationFailureViewModel.closeApplication() },
                         Modifier.buttonPointerModifier(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.error,
@@ -113,7 +113,7 @@ class StoreFailureViewImpl : StoreFailureView {
                     )
                     Spacer(Modifier.size(20.dp))
                     Button(
-                        { storeFailureViewModel.deleteDb() },
+                        { matrixClientInitializationFailureViewModel.delete() },
                         Modifier.buttonPointerModifier(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.error,

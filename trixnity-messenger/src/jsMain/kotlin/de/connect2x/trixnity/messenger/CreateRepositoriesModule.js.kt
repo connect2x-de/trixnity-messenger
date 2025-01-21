@@ -14,10 +14,10 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
             override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult =
                 CreateRepositoriesModule.CreateResult(
                     module = createInternal(userId),
-                    databasePassword = null,
+                    databaseKey = null,
                 )
 
-            override suspend fun load(userId: UserId, databasePassword: SecretByteArray?): Module =
+            override suspend fun load(userId: UserId, databaseKey: SecretByteArray?): Module =
                 createInternal(userId)
 
             private suspend fun createInternal(userId: UserId): Module =
