@@ -12,6 +12,8 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.AddMember
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.ExportRoom
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.MessageMetadata
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.RoomSettings
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.NoOpTimeline
@@ -69,8 +71,6 @@ import org.koin.dsl.module
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
-
-// TODO: fix
 
 class RoomViewModelTest : ShouldSpec() {
     private lateinit var lifecycle: LifecycleRegistry
@@ -157,6 +157,7 @@ class RoomViewModelTest : ShouldSpec() {
             every {
                 roomServiceMock.usersTyping
             } returns MutableStateFlow(mapOf())
+            every { roomServiceMock.getTimelineEvent(any(), any(), any()) } returns flowOf(null)
 
 
 
@@ -189,7 +190,9 @@ class RoomViewModelTest : ShouldSpec() {
                     MutableStateFlow(null)
             every { userServiceMock.getPowerLevel(any(), any()) } returns MutableStateFlow(50)
             every { userServiceMock.canSendEvent(any(), any()) } returns flowOf(true)
+            every { userServiceMock.getReceiptsById(any(), any()) } returns flowOf(null)
             every { minimizeMessengerMock.invoke() } returns Unit
+
         }
 
         afterTest {
@@ -205,7 +208,7 @@ class RoomViewModelTest : ShouldSpec() {
         should("show room settings") {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
-            cut.showSettings()
+            cut.openRoomSettings()
             cut shouldShowExtrasOfType RoomSettings::class
         }
 
@@ -214,7 +217,7 @@ class RoomViewModelTest : ShouldSpec() {
             cut shouldShowTimeline true
             cut shouldShowExtras false
             cut.timelineAs<View>().viewModel
-                .roomHeaderViewModel.showRoomSettings()
+                .roomHeaderViewModel.openRoomSettings()
             cut shouldShowExtras true
             cut shouldShowExtrasOfType RoomSettings::class
             cancelNeverEndingCoroutines()
@@ -223,19 +226,41 @@ class RoomViewModelTest : ShouldSpec() {
         should("return from settings") {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
-            cut.showSettings()
+            cut.openRoomSettings()
             cut.extrasAs<RoomSettings>().viewModel.close()
             cut shouldShowTimeline true
             cut shouldShowExtras false
             cancelNeverEndingCoroutines()
         }
 
+        should("navigate from the timeline to add-members") {
+            val cut = cutRoomViewModel()
+            cut shouldShowExtras false
+            cut.openRoomSettings()
+            cut.extrasAs<RoomSettings>().viewModel.openAddMembersView()
+            cut shouldShowExtrasOfType AddMember::class
+        }
+
+        should("navigate from the timeline to export-room") {
+            val cut = cutRoomViewModel()
+            cut shouldShowExtras false
+            cut.openRoomSettings()
+            cut.extrasAs<RoomSettings>().viewModel.openExportRoomView()
+            cut shouldShowExtrasOfType ExportRoom::class
+        }
+
+        should("navigate from the timeline to message-metadata") {
+            val cut = cutRoomViewModel()
+            cut shouldShowExtras false
+            cut.openMessageMetadata(EventId("1"))
+            cut shouldShowExtrasOfType MessageMetadata::class
+        }
+
         should("show message info") {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
             val eventId = EventId("event0")
-            cut.showMessageMetadata(eventId)
-            // TODO: fails
+            cut.openMessageMetadata(eventId)
             cut shouldShowExtras true
             cut shouldShowExtrasOfType MessageMetadata::class
         }
@@ -244,8 +269,7 @@ class RoomViewModelTest : ShouldSpec() {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
             val eventId = EventId("event2")
-            cut.showMessageMetadata(eventId)
-            // TODO: fails
+            cut.openMessageMetadata(eventId)
             cut.extrasAs<MessageMetadata>().viewModel.back()
             cut shouldShowTimeline true
             cut shouldShowExtras false
@@ -255,11 +279,10 @@ class RoomViewModelTest : ShouldSpec() {
         should("return to settings from message metadata") {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
-            cut.showSettings()
+            cut.openRoomSettings()
             cut shouldShowExtrasOfType RoomSettings::class
             val eventId = EventId("event3")
-            cut.showMessageMetadata(eventId)
-            // TODO: fails
+            cut.openMessageMetadata(eventId)
             cut.extrasAs<MessageMetadata>().viewModel.back()
             cut shouldShowExtrasOfType RoomSettings::class
         }
@@ -268,66 +291,17 @@ class RoomViewModelTest : ShouldSpec() {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
             val eventId = EventId("event4")
-            cut.showMessageMetadata(eventId)
-            // TODO: fails
+            cut.openMessageMetadata(eventId)
             cut shouldShowExtrasOfType MessageMetadata::class
-            cut.showSettings()
+            cut.openRoomSettings()
             cut shouldShowExtrasOfType RoomSettings::class
             cut.extrasAs<RoomSettings>().viewModel.close()
             cut shouldShowTimeline true
             cut shouldShowExtras false
             cancelNeverEndingCoroutines()
         }
-
-        // TODO navigate from and to add-users and export-room tests
     }
 
-
-    private suspend inline infix fun RoomViewModel.shouldShowTimeline(isShown: Boolean) {
-        delay(100.milliseconds)
-        withClue("should ${if (isShown) "show" else "hide"} timeline") {
-            if (isShown) this.timelineStack.value.active.instance should beOfType<View>()
-            else this.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
-        }
-    }
-
-    private suspend inline infix fun RoomViewModel.shouldShowExtras(isShown: Boolean) {
-        delay(100.milliseconds)
-        withClue("should ${if (isShown) "show" else "hide"} extras pane") {
-            if (isShown) this.extrasStack.value.active.instance shouldNot beOfType<ExtrasRouter.Wrapper.None>()
-            else this.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
-        }
-    }
-
-    private suspend inline infix fun RoomViewModel.shouldShowExtrasOfType(extrasType: KClass<out ExtrasRouter.Wrapper>) {
-        delay(100.milliseconds)
-        val instance = this.extrasStack.value.active.instance
-        withClue("should show extras of ${extrasType.simpleName} but was: ${instance::class.simpleName}") {
-            instance should beOfType(extrasType)
-        }
-    }
-
-    private suspend inline fun <reified T : ExtrasRouter.Wrapper> RoomViewModelImpl.extrasAs() =
-        try {
-            delay(100.milliseconds)
-            (this.extrasStack.value.active.instance as T)
-        } catch (e: ClassCastException) {
-            throw failure(
-                "expected extras pane to be of instance ${T::class.simpleName}" +
-                        " but instead was: ${this.extrasStack.value.active.instance::class.simpleName}"
-            )
-        }
-
-    private suspend inline fun <reified T : TimelineRouter.Wrapper> RoomViewModelImpl.timelineAs() =
-        try {
-            delay(100.milliseconds)
-            (this.timelineStack.value.active.instance as T)
-        } catch (e: ClassCastException) {
-            throw failure(
-                "expected timeline to be of instance ${T::class.simpleName}" +
-                        " but instead was: ${this.extrasStack.value.active.instance::class.simpleName}"
-            )
-        }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun cutRoomViewModel(): RoomViewModelImpl {
@@ -373,8 +347,8 @@ class RoomViewModelTest : ShouldSpec() {
                                         override fun blockUser() {}
                                         override fun unblockUser() {}
                                         override fun verifyUser() {}
-                                        override fun showRoomSettings() = onShowRoomSettings()
-                                        override fun goBack() = onBack()
+                                        override fun openRoomSettings() = onShowRoomSettings()
+                                        override fun back() = onBack()
                                     }
                                 }
                             }
@@ -384,9 +358,55 @@ class RoomViewModelTest : ShouldSpec() {
                 coroutineContext = currentCoroutineContext(),
             ),
             roomId = roomId,
-            onRoomBack = mock(),
+            onCloseRoom = mock(),
             onOpenAvatarCutter = { _, _, _ -> },
             onOpenMention = mock(),
         )
     }
 }
+
+private suspend inline infix fun RoomViewModel.shouldShowTimeline(isShown: Boolean) {
+    delay(100.milliseconds)
+    withClue("should ${if (isShown) "show" else "hide"} timeline") {
+        if (isShown) this.timelineStack.value.active.instance should beOfType<View>()
+        else this.timelineStack.value.active.instance should beOfType<TimelineRouter.Wrapper.None>()
+    }
+}
+
+private suspend inline infix fun RoomViewModel.shouldShowExtras(isShown: Boolean) {
+    delay(100.milliseconds)
+    withClue("should ${if (isShown) "show" else "hide"} extras pane") {
+        if (isShown) this.extrasStack.value.active.instance shouldNot beOfType<ExtrasRouter.Wrapper.None>()
+        else this.extrasStack.value.active.instance should beOfType<ExtrasRouter.Wrapper.None>()
+    }
+}
+
+private suspend inline infix fun RoomViewModel.shouldShowExtrasOfType(extrasType: KClass<out ExtrasRouter.Wrapper>) {
+    delay(100.milliseconds)
+    val instance = this.extrasStack.value.active.instance
+    withClue("should show extras of ${extrasType.simpleName} but was: ${instance::class.simpleName}") {
+        instance should beOfType(extrasType)
+    }
+}
+
+private suspend inline fun <reified T : ExtrasRouter.Wrapper> RoomViewModelImpl.extrasAs() =
+    try {
+        delay(100.milliseconds)
+        (this.extrasStack.value.active.instance as T)
+    } catch (e: ClassCastException) {
+        throw failure(
+            "expected extras pane to be of instance ${T::class.simpleName}" +
+                    " but instead was: ${this.extrasStack.value.active.instance::class.simpleName}"
+        )
+    }
+
+private suspend inline fun <reified T : TimelineRouter.Wrapper> RoomViewModelImpl.timelineAs() =
+    try {
+        delay(100.milliseconds)
+        (this.timelineStack.value.active.instance as T)
+    } catch (e: ClassCastException) {
+        throw failure(
+            "expected timeline to be of instance ${T::class.simpleName}" +
+                    " but instead was: ${this.extrasStack.value.active.instance::class.simpleName}"
+        )
+    }

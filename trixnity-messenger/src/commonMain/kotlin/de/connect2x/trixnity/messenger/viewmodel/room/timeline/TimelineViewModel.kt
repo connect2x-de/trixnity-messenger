@@ -113,17 +113,17 @@ interface TimelineViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId,
-        onShowSettings: () -> Unit,
         onBack: () -> Unit,
+        onOpenRoomSettings: () -> Unit,
         onOpenMention: OpenMentionCallback,
         onOpenMetadata: (eventId: EventId) -> Unit,
     ): TimelineViewModel = TimelineViewModelImpl(
-        viewModelContext,
-        roomId,
-        onShowSettings,
-        onBack,
-        onOpenMention,
-        onOpenMetadata,
+        viewModelContext = viewModelContext,
+        roomId = roomId,
+        onBack = onBack,
+        onOpenSettings = onOpenRoomSettings,
+        onOpenMention = onOpenMention,
+        onOpenMetadata = onOpenMetadata,
     )
 
     companion object : TimelineViewModelFactory
@@ -220,8 +220,8 @@ interface TimelineViewModel {
 class TimelineViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
-    onShowSettings: () -> Unit,
     private val onBack: () -> Unit,
+    onOpenSettings: () -> Unit,
     private val onOpenMention: OpenMentionCallback,
     private val onOpenMetadata: (eventId: EventId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
@@ -318,7 +318,7 @@ class TimelineViewModelImpl(
             selectedRoomId = roomId,
             onBack = onBack,
             onVerifyUser = ::onVerifyUser,
-            onShowRoomSettings = onShowSettings,
+            onShowRoomSettings = onOpenSettings,
         )
 
     override val inputAreaViewModel: InputAreaViewModel =

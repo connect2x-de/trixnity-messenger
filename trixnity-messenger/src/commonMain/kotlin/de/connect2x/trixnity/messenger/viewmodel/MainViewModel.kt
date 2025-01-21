@@ -80,7 +80,8 @@ interface MainViewModel {
     val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>>
 
     /**
-     * ATTENTION: The viewmodel has to be explicitly started as the routers cannot be initialized in the init block!
+     * ATTENTION: The viewmodel has to be explicitly started as
+     * the routers cannot be initialized in the init block!
      */
     fun start()
     fun closeDetailsAndShowList()
@@ -97,7 +98,8 @@ open class MainViewModelImpl(
     private val onRemoveAccount: (UserId) -> Unit,
 ) : ViewModelContext by viewModelContext, MainViewModel {
 
-    // In case of multiple active verifications, these need to be processed in consecutive order one at a time!
+    // In case of multiple active verifications,
+    // these need to be processed in consecutive order one at a time!
     private val activeVerifications = MutableStateFlow(setOf<UserId>())
     private val messengerSettings by inject<MatrixMessengerSettingsHolder>()
 
@@ -134,7 +136,7 @@ open class MainViewModelImpl(
             onCreateNewAccount = onCreateNewAccount,
             onRemoveAccount = ::onRemoveAccountInternal,
             onAccountSelected = ::onAccountSelected,
-            onStartAccountSetup = ::startAccountSetup
+            onStartAccountSetup = ::startAccountSetup,
         )
     override val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>> =
         roomListRouter.stack
@@ -166,7 +168,7 @@ open class MainViewModelImpl(
         VerificationRouter(
             viewModelContext = viewModelContext,
             routerKey = "deviceVerification",
-            onRedoSelfVerification = selfVerificationRouter::redoSelfVerification
+            onRedoSelfVerification = selfVerificationRouter::redoSelfVerification,
         )
     override val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>> =
         verificationRouter.stack
@@ -435,7 +437,7 @@ open class MainViewModelImpl(
     override fun onRoomSelected(userId: UserId, id: RoomId) {
         coroutineScope.launch {
             log.debug { "onRoomSelected: $id" }
-            roomRouter.showRoom(userId, id)
+            roomRouter.openRoom(userId, id)
             // TODO: What hack exactly? Comment might be outdated!
             // Hack for iOS: Since the observe mechanism of line 236ff does not work.
             selectedRoomId.value = id

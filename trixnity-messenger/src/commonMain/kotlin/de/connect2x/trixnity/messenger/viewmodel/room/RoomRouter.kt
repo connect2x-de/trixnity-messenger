@@ -23,8 +23,8 @@ private val log = KotlinLogging.logger {}
 
 interface RoomRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
+    suspend fun openRoom(userId: UserId, roomId: RoomId)
     suspend fun closeRoom()
-    suspend fun showRoom(userId: UserId, roomId: RoomId)
     fun isShown(): Boolean
 
     @Serializable
@@ -69,7 +69,7 @@ class RoomRouterImpl(
                 viewModelContext.get<RoomViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, roomConfig.userId),
                     selectedRoomId = RoomId(roomConfig.roomId),
-                    onRoomBack = onCloseRoom,
+                    onCloseRoom = onCloseRoom,
                     onOpenMention = onOpenMention,
                     onOpenAvatarCutter = onOpenAvatarCutter,
                 ).also {
@@ -78,7 +78,7 @@ class RoomRouterImpl(
             )
         }
 
-    override suspend fun showRoom(userId: UserId, roomId: RoomId) {
+    override suspend fun openRoom(userId: UserId, roomId: RoomId) {
         log.debug { "show room: $roomId" }
         roomNavigation.bringToFrontSuspending(Config.View(userId, roomId.full))
     }

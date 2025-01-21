@@ -29,7 +29,6 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 
-
 class getMessageReadReceiptsTest : ShouldSpec() {
     override fun timeout(): Long = 5_000
 

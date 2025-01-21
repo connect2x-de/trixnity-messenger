@@ -92,6 +92,10 @@ class MessageMetadataViewModelImpl(
         backHandler.register(backCallback)
     }
 
+    override fun back() {
+        onBack()
+    }
+
     private val message: StateFlow<TimelineEvent?> =
         matrixClient.room.getTimelineEvent(roomId, eventId)
             .stateIn(coroutineScope, WhileSubscribed(), null)
@@ -212,10 +216,6 @@ class MessageMetadataViewModelImpl(
             .stateIn(coroutineScope, whileSubscribedWithTimeout, emptyMap())
 
     override val error: StateFlow<String?> = MutableStateFlow(null)
-
-    override fun back() {
-        onBack()
-    }
 }
 
 data class MessageUserInteraction(

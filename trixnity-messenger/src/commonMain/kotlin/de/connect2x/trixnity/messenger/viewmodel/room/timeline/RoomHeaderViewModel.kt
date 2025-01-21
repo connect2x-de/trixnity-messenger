@@ -49,11 +49,11 @@ interface RoomHeaderViewModelFactory {
         onVerifyUser: () -> Unit,
         onShowRoomSettings: () -> Unit,
     ): RoomHeaderViewModel = RoomHeaderViewModelImpl(
-        viewModelContext,
-        selectedRoomId,
-        onBack,
-        onVerifyUser,
-        onShowRoomSettings,
+        viewModelContext = viewModelContext,
+        selectedRoomId = selectedRoomId,
+        onBack = onBack,
+        onVerifyUser = onVerifyUser,
+        onOpenRoomSettings = onShowRoomSettings,
     )
 
     companion object : RoomHeaderViewModelFactory
@@ -118,8 +118,8 @@ interface RoomHeaderViewModel {
     fun blockUser()
     fun unblockUser()
     fun verifyUser()
-    fun showRoomSettings()
-    fun goBack()
+    fun openRoomSettings()
+    fun back()
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -128,7 +128,7 @@ open class RoomHeaderViewModelImpl(
     private val selectedRoomId: RoomId,
     private val onBack: () -> Unit,
     private val onVerifyUser: () -> Unit,
-    private val onShowRoomSettings: () -> Unit,
+    private val onOpenRoomSettings: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomHeaderViewModel {
     private val directRoom = get<DirectRoom>()
     private val userPresence = get<UserPresence>()
@@ -261,11 +261,11 @@ open class RoomHeaderViewModelImpl(
         }
     }
 
-    override fun showRoomSettings() {
-        onShowRoomSettings()
+    override fun openRoomSettings() {
+        onOpenRoomSettings()
     }
 
-    override fun goBack() {
+    override fun back() {
         onBack()
     }
 }
@@ -293,6 +293,6 @@ class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
     override fun verifyUser() {}
     override fun blockUser() {}
     override fun unblockUser() {}
-    override fun showRoomSettings() {}
-    override fun goBack() {}
+    override fun openRoomSettings() {}
+    override fun back() {}
 }

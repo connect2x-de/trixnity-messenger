@@ -22,7 +22,7 @@ private val log = KotlinLogging.logger {}
 
 interface TimelineRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
-    suspend fun showTimeline(id: RoomId)
+    suspend fun openTimeline(id: RoomId)
     suspend fun closeTimeline()
     fun isShown(): Boolean
 
@@ -43,8 +43,8 @@ interface TimelineRouter {
 
 class TimelineRouterImpl(
     private val viewModelContext: MatrixClientViewModelContext,
-    private val onShowSettings: () -> Unit,
-    private val onRoomBack: () -> Unit,
+    private val onCloseRoom: () -> Unit,
+    private val onOpenRoomSettings: () -> Unit,
     private val onOpenMention: OpenMentionCallback,
     private val onOpenMetadata: (eventId: EventId) -> Unit,
 ) : TimelineRouter {
@@ -69,15 +69,15 @@ class TimelineRouterImpl(
                 viewModelContext.get<TimelineViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     roomId = RoomId(timelineConfig.roomId),
-                    onShowSettings = onShowSettings,
-                    onBack = onRoomBack,
+                    onBack = onCloseRoom,
+                    onOpenRoomSettings = onOpenRoomSettings,
                     onOpenMention = onOpenMention,
                     onOpenMetadata = onOpenMetadata,
                 )
             )
         }
 
-    override suspend fun showTimeline(id: RoomId) {
+    override suspend fun openTimeline(id: RoomId) {
         log.debug { "show timeline: $id" }
         timelineNavigation.bringToFrontSuspending(Config.View(roomId = id.full))
     }

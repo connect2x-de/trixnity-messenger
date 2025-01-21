@@ -790,7 +790,7 @@ class TimelineViewModelTest : ShouldSpec() {
                 coroutineContext = currentCoroutineContext(),
             ),
             roomId = roomId,
-            onShowSettings = mock(),
+            onOpenSettings = mock(),
             onBack = onBackMock,
             onOpenMention = mock(),
             onOpenMetadata = mock(),

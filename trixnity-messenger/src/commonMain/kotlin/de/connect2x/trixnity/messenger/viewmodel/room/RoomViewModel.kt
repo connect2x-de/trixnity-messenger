@@ -30,13 +30,13 @@ interface RoomViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        onRoomBack: () -> Unit,
+        onCloseRoom: () -> Unit,
         onOpenMention: OpenMentionCallback,
         onOpenAvatarCutter: OpenAvatarCutterCallback,
     ): RoomViewModel = RoomViewModelImpl(
         viewModelContext = viewModelContext,
         roomId = selectedRoomId,
-        onRoomBack = onRoomBack,
+        onCloseRoom = onCloseRoom,
         onOpenMention = onOpenMention,
         onOpenAvatarCutter = onOpenAvatarCutter,
     )
@@ -49,16 +49,15 @@ interface RoomViewModel {
     val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>>
     val isRoomSettingsShown: StateFlow<Boolean>
     val isExtrasShown: StateFlow<Boolean>
-
-    fun onRoomBack()
-    fun showSettings()
-    fun showMessageMetadata(eventId: EventId)
+    fun closeRoom()
+    fun openRoomSettings()
+    fun openMessageMetadata(eventId: EventId)
 }
 
 open class RoomViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
-    private val onRoomBack: () -> Unit,
+    private val onCloseRoom: () -> Unit,
     onOpenMention: OpenMentionCallback,
     onOpenAvatarCutter: OpenAvatarCutterCallback,
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
@@ -66,56 +65,59 @@ open class RoomViewModelImpl(
     override val isRoomSettingsShown = MutableStateFlow(false)
     override val isExtrasShown = MutableStateFlow(false)
 
+    override fun closeRoom() {
+        onCloseRoom()
+    }
+
+    override fun openRoomSettings() {
+        onOpenRoomSettings()
+    }
+
+    override fun openMessageMetadata(eventId: EventId) {
+        onOpenMessageMetadata(eventId)
+    }
+
     private val extrasRouter: ExtrasRouter = ExtrasRouterImpl(
         viewModelContext = viewModelContext,
-        onRoomBack = onRoomBack,
-        onSettingsBack = ::onSettingsBack,
+        onCloseRoom = ::onCloseRoom,
+        onCloseSettings = ::onCloseSettings,
         onOpenAvatarCutter = onOpenAvatarCutter,
     )
-
-    private val timelineRouter: TimelineRouter = TimelineRouterImpl(
-        viewModelContext = viewModelContext,
-        onShowSettings = ::onShowRoomSettings,
-        onRoomBack = onRoomBack,
-        onOpenMention = onOpenMention,
-        onOpenMetadata = ::onShowMessageMetadata,
-    )
-
-    override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
-        timelineRouter.stack
     override val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>> =
         extrasRouter.stack
 
+    private val timelineRouter: TimelineRouter = TimelineRouterImpl(
+        viewModelContext = viewModelContext,
+        onCloseRoom = ::onCloseRoom,
+        onOpenRoomSettings = ::onOpenRoomSettings,
+        onOpenMention = onOpenMention,
+        onOpenMetadata = ::onOpenMessageMetadata,
+    )
+    override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
+        timelineRouter.stack
+
     init {
         log.debug { "create RoomViewModel for: ${roomId.full} " }
-        coroutineScope.launch { timelineRouter.showTimeline(roomId) }
+        coroutineScope.launch { timelineRouter.openTimeline(roomId) }
         extrasStack.subscribe {
             isRoomSettingsShown.value = it.active.configuration is RoomSettings
             isExtrasShown.value = it.active.configuration !is ExtrasNone
         }
     }
 
-    override fun showSettings() {
-        onShowRoomSettings()
+    private fun onCloseRoom() {
+        this.onCloseRoom.invoke()
     }
 
-    override fun showMessageMetadata(eventId: EventId) {
-        onShowMessageMetadata(eventId)
+    private fun onOpenRoomSettings() = coroutineScope.launch {
+        extrasRouter.openRoomSettings(roomId)
     }
 
-    override fun onRoomBack() {
-        this.onRoomBack.invoke()
+    private fun onOpenMessageMetadata(eventId: EventId) = coroutineScope.launch {
+        extrasRouter.openMessageMetadata(eventId, roomId)
     }
 
-    internal fun onShowRoomSettings() = coroutineScope.launch {
-        extrasRouter.showRoomSettings(roomId)
-    }
-
-    internal fun onShowMessageMetadata(eventId: EventId) = coroutineScope.launch {
-        extrasRouter.showMessageMetadata(eventId, roomId)
-    }
-
-    internal fun onSettingsBack() = coroutineScope.launch {
+    private fun onCloseSettings() = coroutineScope.launch {
         extrasRouter.closeExtrasRouter()
     }
 }
@@ -141,7 +143,7 @@ class PreviewRoomViewModel : RoomViewModel {
         )
     override val isRoomSettingsShown = MutableStateFlow(false)
     override val isExtrasShown = MutableStateFlow(false)
-    override fun onRoomBack() {}
-    override fun showSettings() {}
-    override fun showMessageMetadata(eventId: EventId) {}
+    override fun closeRoom() {}
+    override fun openRoomSettings() {}
+    override fun openMessageMetadata(eventId: EventId) {}
 }

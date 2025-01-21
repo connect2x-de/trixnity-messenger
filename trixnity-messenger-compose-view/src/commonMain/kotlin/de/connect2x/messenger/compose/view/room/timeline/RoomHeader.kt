@@ -134,7 +134,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
 fun RowScope.RoomBackButton(roomHeaderViewModel: RoomHeaderViewModel) {
     val i18n = DI.get<I18nView>()
     IconButton(
-        onClick = { roomHeaderViewModel.goBack() },
+        onClick = { roomHeaderViewModel.back() },
         modifier = Modifier.align(Alignment.CenterVertically).buttonPointerModifier()
     ) {
         Icon(Icons.AutoMirrored.Default.KeyboardArrowLeft, i18n.commonBack())
@@ -197,7 +197,7 @@ fun RoomExtras(
     when {
         isMobile -> {
             if (showSettingsButton) IconButton(
-                onClick = { roomHeaderViewModel.showRoomSettings() },
+                onClick = { roomHeaderViewModel.openRoomSettings() },
                 Modifier.wrapContentSize()
             ) {
                 Icon(Icons.Default.Settings, i18n.roomHeaderSettings())
@@ -214,7 +214,7 @@ fun RoomExtras(
 
         else -> {
             if (showSettingsButton) IconButton(
-                onClick = { roomHeaderViewModel.showRoomSettings() },
+                onClick = { roomHeaderViewModel.openRoomSettings() },
                 Modifier.buttonPointerModifier().then(
                     Modifier.wrapContentSize(unbounded = true)
                 )
