@@ -142,19 +142,19 @@ private suspend fun displayNotification(
         }
 
         if (message != null) {
-            val (username, userId, imageInBytes) = event.senderOrNull?.let { sender ->
+            val (username, imageInBytes) = event.senderOrNull?.let { sender ->
                 val user = matrixClient.user.getById(roomId, sender).first()
                 val image = user?.avatarUrl?.let { avatarUrl ->
                     matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
                 }?.map { it.limitedByteArrayOrNull(maxAvatarSize) }?.getOrNull()
-                Triple(user?.name, user?.userId, image)
-            } ?: Triple(null, null, null)
+                user?.name to image
+            } ?: (null to null)
 
             log.debug { "notification will appear" }
 
             return Notification(
                 title = if (isDirect) username.orEmpty() else roomName,
-                group = "$userId-$roomId",
+                group = "${matrixClient.userId}-$roomId",
                 description = if (isDirect) message else "$username: $message",
                 icon = imageInBytes?.let { NotificationIcon(it, avatarSize(), avatarSize()) })
         }
