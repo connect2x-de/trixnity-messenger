@@ -156,17 +156,34 @@ class MessageMetadataViewModelImpl(
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val readers: StateFlow<Set<RoomUser>> =
+    private val readers: StateFlow<Map<UserId, Flow<RoomUser?>>> =
         message.map { it?.sender }
             .filterNotNull()
             .flatMapLatest { senderUserId ->
                 getMessageReadReceipts(matrixClient, senderUserId, roomId, eventId)
-                    .map { it ?: emptySet() }
-            }.stateIn(coroutineScope, whileSubscribedWithTimeout, emptySet())
+            }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, emptyMap())
 
     private val reactions: StateFlow<MessageUserReactions> =
         getMessageUserReactions(matrixClient, roomId, eventId)
             .stateIn(coroutineScope, whileSubscribedWithTimeout, MessageUserReactions())
+
+    override val userInteractions: StateFlow<List<MessageUserInteraction>> =
+        combine(readers, reactions) { readers, reactions ->
+            reactions.byUser.map { (userId, userReactions) ->
+                userId.toInteraction(
+                    userReactions.roomUserFlow,
+                    userReactions.reactions,
+                    hasRead = { readers.containsKey(it) }
+                )
+            } + readers.mapNotNull { (userId, roomUserFlow) ->
+                if (reactions.byUser.containsKey(userId)) null
+                else userId.toInteraction(
+                    roomUserFlow,
+                    hasRead = { true }
+                )
+            }
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, emptyList())
 
     private fun UserId.toInteraction(
         roomUserFlow: Flow<RoomUser?>,
@@ -189,86 +206,6 @@ class MessageMetadataViewModelImpl(
             userId = this,
         )
     }
-
-    override val userInteractions: StateFlow<List<MessageUserInteraction>> =
-        combine(readers, reactions) { readers, reactions ->
-            val readerIds = readers.map { it.userId }
-            reactions.byUser.map { (userId, userReactions) ->
-                userId.toInteraction(
-                    userReactions.roomUserFlow,
-                    userReactions.reactions,
-                    hasRead = { readerIds.contains(it) }
-                )
-            } + readerIds.mapNotNull { userId ->
-                if (reactions.byUser.containsKey(userId)) null
-                else userId.toInteraction(
-                    // TODO: move this into the read receipts helper
-                    matrixClient.user.getById(roomId, userId),
-                    hasRead = { true }
-                )
-            }
-
-
-//            reactions.byUser.map { (userId, userReactions) ->
-//                val info: StateFlow<UserInfoElement?> = userReactions.roomUserFlow.map { roomUser ->
-//                    roomUser.toUserInfoElement(
-//                        coroutineScope,
-//                        matrixClient,
-//                        initials,
-//                        config.avatarMaxSize,
-//                        userId,
-//                    )
-//                }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
-//
-//                // TODO more efficient!
-//                val hasRead = readers.find { it.userId == userId } != null
-//                MessageUserInteraction(
-//                    userInfo = info,
-//                    reactions = userReactions.reactions,
-//                    hasRead = hasRead,
-//                    userId = userId,
-//                )
-//            }
-        }
-            .stateIn(coroutineScope, whileSubscribedWithTimeout, emptyList())
-
-    /*
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val userInteractions1: StateFlow<List<MessageUserInteraction>> =
-        combine(readers, reactions) { readers, reactions ->
-            log.debug { "==== readers: ${readers.size}" }
-            val reactionUserFlows = reactions.byUser.map { it.value.roomUser }
-            combine(reactionUserFlows) { reactionUsers ->
-                log.debug { "==== reactions: ${reactionUsers.size}" }
-                (setOf(*reactionUsers) + readers)
-                    .filterNotNull()
-                    .map { roomUser ->
-                        MessageUserInteraction(
-                            userInfo = roomUser.toUserInfoElement(
-                                coroutineScope,
-                                matrixClient,
-                                initials,
-                                config.avatarMaxSize,
-                                roomUser.userId,
-                            ),
-                            reactions = reactions.byUser[roomUser.userId]?.reactions ?: emptySet(),
-                            hasRead = readers.contains(roomUser),
-                        )
-                    }
-            }
-        }.flatMapLatest {
-
-            combine(it) {
-                it.flatMap {
-                    it.map {
-                        log.debug { "-- user: ${it.userInfo.userId}" }
-                        it
-                    }
-                }
-            }
-        }
-            .stateIn(coroutineScope, whileSubscribedWithTimeout, emptyList())
-*/
 
     override val reactionCounts: StateFlow<Map<ReactionKey, UInt>> =
         reactions.map { it.byCount.mapValues { it.value.count } }

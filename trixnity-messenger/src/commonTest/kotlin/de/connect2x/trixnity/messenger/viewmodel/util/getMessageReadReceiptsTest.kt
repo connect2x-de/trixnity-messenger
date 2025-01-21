@@ -10,8 +10,11 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
+import io.github.oshai.kotlinlogging.KotlinLogging
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
+import io.kotest.engine.runBlocking
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -26,6 +29,8 @@ import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
+
+private val log = KotlinLogging.logger {}
 
 class getMessageReadReceiptsTest : ShouldSpec() {
     override fun timeout(): Long = 5_000
@@ -142,7 +147,7 @@ class getMessageReadReceiptsTest : ShouldSpec() {
         fun TestEnv.cutMessageReadReceipts(
             senderId: UserId,
             eventId: EventId,
-        ): Flow<Set<RoomUser>?> = koinApplication {
+        ): Flow<Map<UserId, Flow<RoomUser?>>> = koinApplication {
             modules(createTestDefaultTrixnityMessengerModules(mapOf(us to matrixClientMock)))
         }.koin.let { di ->
             getMessageReadReceipts(
@@ -619,12 +624,25 @@ class getMessageReadReceiptsTest : ShouldSpec() {
         }
     }
 
-    private suspend inline infix fun Flow<Set<RoomUser>?>.shouldBeUsers(requiredUsers: Set<UserId>) {
-        this.first()!!.map { it.userId } shouldBe requiredUsers
+    // TODO: maybe add some more better tests for read receipts
+
+    private suspend inline infix fun Flow<Map<UserId, Flow<RoomUser?>>>.shouldBeUsers(requiredUsers: Set<UserId>) {
+        withClue("unexpected result for reader receipts!") {
+            val result = this.first()!!
+            result.keys shouldBe requiredUsers
+            result.map { (key, flow) ->
+                runBlocking {
+                    val roomUser = flow.first()!!
+                    roomUser.userId shouldBe key
+                }
+            }
+        }
     }
 
     private suspend inline infix fun Flow<Boolean?>.shouldBeRead(isRead: Boolean) {
-        this.first()!! shouldBe isRead
+        withClue("unexpected result for read indicator!") {
+            this.first()!! shouldBe isRead
+        }
     }
 
     // TODO remove
@@ -702,6 +720,7 @@ class getMessageReadReceiptsTest : ShouldSpec() {
 //        )
 //    }
 
+    // TODO replace with variant above
     private fun TimelineBuilder.timelineEventOf(
         senderId: UserId,
         eventId: EventId? = null,
@@ -744,7 +763,7 @@ class getMessageReadReceiptsTest : ShouldSpec() {
         senderId: UserId,
         eventId: EventId,
         roomId: RoomId,
-    ): Flow<Set<RoomUser>?> = koinApplication {
+    ): Flow<Map<UserId, Flow<RoomUser?>>> = koinApplication {
         modules(
             createTestDefaultTrixnityMessengerModules(mapOf(us to matrixClientMock))
         )

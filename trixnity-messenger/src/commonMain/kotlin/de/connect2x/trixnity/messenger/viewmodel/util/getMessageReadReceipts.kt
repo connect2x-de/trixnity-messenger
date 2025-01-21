@@ -3,14 +3,13 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.transform
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.flattenNotNull
@@ -43,7 +42,7 @@ fun getMessageIsRead(
 @OptIn(ExperimentalCoroutinesApi::class)
 fun getMessageReadReceipts(
     client: MatrixClient, senderUserId: UserId, roomId: RoomId, eventId: EventId,
-): Flow<Set<RoomUser>?> = flow {
+): Flow<Map<UserId, Flow<RoomUser?>>> = flow {
     val cumulatedReads = mutableSetOf<UserId>()
     isReadSearch(client, senderUserId, roomId, eventId)
         .collect {
@@ -58,14 +57,10 @@ fun getMessageReadReceipts(
                 }
             }
         }
-}.flatMapLatest { userIds ->
-    if (userIds.isEmpty()) flowOf(emptySet())
-    else {
-        val roomUserFlows = userIds
-            .map { userId -> client.user.getById(roomId, userId) }
-        combine(roomUserFlows) { roomUsers ->
-            roomUsers.filterNotNull().toSet()
-        }
+}.mapLatest { userIds ->
+    if (userIds.isEmpty()) emptyMap()
+    else userIds.associateWith {
+        client.user.getById(roomId, it)
     }
 }
 
