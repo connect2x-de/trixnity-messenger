@@ -76,11 +76,6 @@ kotlin {
                 implementation(libs.filekit.compose)
                 implementation(libs.ktor.client.okhttp)
                 implementation(libs.pdfbox)
-                //implementation(libs.sysnotify.jvmnatives.windows.x64) // TODO: Fix in SysNotify 1.6.1
-                implementation(libs.sysnotify.jvmnatives.macos.x64)
-                implementation(libs.sysnotify.jvmnatives.macos.arm64)
-                implementation(libs.sysnotify.jvmnatives.linux.x64)
-                implementation(libs.sysnotify.jvmnatives.linux.arm64)
             }
         }
         androidMain {

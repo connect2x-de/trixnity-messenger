@@ -12,7 +12,7 @@ appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
 
 trixnity = "4.11.2" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "1.6.0" # https://gitlab.com/connect2x/sysnotify/-/packages
+sysnotify = "1.7.0" # https://gitlab.com/connect2x/sysnotify/-/packages
 kotlinWrappers = "1.0.0-pre.774" # https://github.com/JetBrains/kotlin-wrappers/releases
 kotlinxCoroutines = "1.9.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinxSerialization = "1.7.3" # https://github.com/Kotlin/kotlinx.serialization/releases
@@ -77,11 +77,6 @@ essenty = { module = "com.arkivanov.essenty:lifecycle", version.ref = "essenty" 
 skie-annotations = { module = "co.touchlab.skie:configuration-annotations", version.ref = "skie" }
 
 sysnotify = { module = "de.connect2x:sysnotify", version.ref = "sysnotify" }
-sysnotify-jvmnatives-windows-x64 = { module = "de.connect2x:sysnotify-jvm-natives-windows-x64", version.ref = "sysnotify" }
-sysnotify-jvmnatives-macos-x64 = { module = "de.connect2x:sysnotify-jvm-natives-macos-x64", version.ref = "sysnotify" }
-sysnotify-jvmnatives-macos-arm64 = { module = "de.connect2x:sysnotify-jvm-natives-macos-arm64", version.ref = "sysnotify" }
-sysnotify-jvmnatives-linux-x64 = { module = "de.connect2x:sysnotify-jvm-natives-linux-x64", version.ref = "sysnotify" }
-sysnotify-jvmnatives-linux-arm64 = { module = "de.connect2x:sysnotify-jvm-natives-linux-arm64", version.ref = "sysnotify" }
 
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
