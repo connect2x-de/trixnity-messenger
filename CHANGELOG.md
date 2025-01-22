@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed various issues, that unread marker is unnecessarily displayed
 - Fixed show SSO login option with empty identity provider list
 - Don't show "Image could not be loaded" message while loading an image
+- Fixed jumping timeline on fast message sending
 
 ### Security
 

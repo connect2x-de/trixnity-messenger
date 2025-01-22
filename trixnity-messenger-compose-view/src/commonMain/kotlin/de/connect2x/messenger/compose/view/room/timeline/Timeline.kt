@@ -226,7 +226,9 @@ class TimelineViewImpl : TimelineView {
 
                 LaunchedEffect(scrollTo, timelineElementHolderViewModels) {
                     if (scrollTo != null) {
-                        val index = timelineElementHolderViewModels.indexOfFirst { it.key == scrollTo }
+                        val index = withTimeoutOrNull(5.seconds) {
+                            timelineElementHolderViewModels.indexOfFirst { it.key == scrollTo }
+                        } ?: -1
                         if (index >= 0) {
                             log.debug { "scrolling to $scrollTo (index=$index)" }
                             listState.animateScrollToItem(index)
