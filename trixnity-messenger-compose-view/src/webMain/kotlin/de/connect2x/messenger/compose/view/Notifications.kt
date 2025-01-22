@@ -150,12 +150,14 @@ private suspend fun displayNotification(
                 user?.name to image
             } ?: (null to null)
 
+            val title = if (isDirect) username.orEmpty() else roomName
+            val text = if (isDirect) message else "$username: $message"
+
             log.debug { "notification will appear" }
 
             return Notification(
-                title = if (isDirect) username.orEmpty() else roomName,
-                group = "${matrixClient.userId}-$roomId",
-                description = if (isDirect) message else "$username: $message",
+                title = title,
+                description = text,
                 icon = imageInBytes?.let { NotificationIcon(it, avatarSize(), avatarSize()) })
         }
     } ?: log.warn { "cannot find roomId for event ${event.idOrNull}" }

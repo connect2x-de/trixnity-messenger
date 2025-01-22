@@ -12,7 +12,7 @@ appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
 
 trixnity = "4.12.0-DEV-33037849" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "1.7.0" # https://gitlab.com/connect2x/sysnotify/-/packages
+sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
 kotlinWrappers = "2025.1.3" # https://github.com/JetBrains/kotlin-wrappers/releases
 kotlinxCoroutines = "1.9.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinxSerialization = "1.7.3" # https://github.com/Kotlin/kotlinx.serialization/releases
@@ -76,9 +76,11 @@ trixnity-client-media-opfs = { module = "net.folivo:trixnity-client-media-opfs",
 trixnity-client-media-indexeddb = { module = "net.folivo:trixnity-client-media-indexeddb", version.ref = "trixnity" }
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
 essenty = { module = "com.arkivanov.essenty:lifecycle", version.ref = "essenty" }
-skie-annotations = { module = "co.touchlab.skie:configuration-annotations", version.ref = "skie" }
-
 sysnotify = { module = "de.connect2x:sysnotify", version.ref = "sysnotify" }
+sysnotify-android = { module = "de.connect2x:sysnotify-android", version.ref = "sysnotify" }
+sysnotify-js = { module = "de.connect2x:sysnotify-js", version.ref = "sysnotify" }
+#sysnotify-desktop = { module = "de.connect2x:sysnotify-jvm", version.ref = "sysnotify" }
+skie-annotations = { module = "co.touchlab.skie:configuration-annotations", version.ref = "skie" }
 
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
