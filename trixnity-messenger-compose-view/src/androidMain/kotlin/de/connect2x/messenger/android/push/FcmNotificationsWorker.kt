@@ -55,7 +55,6 @@ import net.folivo.trixnity.core.model.events.roomIdOrNull
 import net.folivo.trixnity.core.model.events.senderOrNull
 import java.time.Instant
 import kotlin.time.Duration.Companion.seconds
-import kotlin.uuid.ExperimentalUuidApi
 
 class FcmNotificationsWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     private val log = KotlinLogging.logger { }
@@ -104,7 +103,6 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
         }
     }
 
-    @OptIn(ExperimentalUuidApi::class)
     private suspend fun displayNotification(
         context: Context,
         matrixClient: MatrixClient,
@@ -128,14 +126,12 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                 val sender = event.senderOrNull ?: return
                 val user = sender.let { matrixClient.user.getById(roomId, it).first() } ?: return
 
-                val (username, userImage) = user.let {
+                val (userName, userImage) = user.let {
                     val image = it.avatarUrl?.let { avatarUrl ->
                         matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
                     }?.map { flow ->
                         val bytes = flow.limitedByteArrayOrNull(maxAvatarSize)
-                        bytes?.let { imageData ->
-                            BitmapFactory.decodeByteArray(imageData, 0, imageData.size).getCircledBitmap()
-                        }
+                        bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size).getCircledBitmap() }
                     }?.getOrNull()
                     user.name to image
                 }
@@ -143,23 +139,25 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                 notificationHandlerProvider.value[matrixClient.userId]?.push(
                     Notification(
                         title = roomName,
-                        group = "${matrixClient.userId}-$roomId",
                         icon = context.resources.getNotificationIcon(R.drawable.ic_logo),
-                        callbackData = roomId.full
+                        userData = roomId.full
                     )
                 ) {
-                    val person = Person.Builder().apply {
-                        setName(username)
-                        userImage?.let { setIcon(IconCompat.createFromIcon(context, it.toIcon())) }
-                    }.build()
-                    val style = NotificationCompat.MessagingStyle(person).also {
-                        it.addMessage(
-                            NotificationCompat.MessagingStyle.Message(
-                                message, event.originTimestampOrNull ?: Instant.now().toEpochMilli(), person
+                    var style = restoreMessagingStyle(context, roomId)
+                    if (style == null) {
+                        val person = Person.Builder().apply {
+                            setName(userName)
+                            userImage?.let { setIcon(IconCompat.createFromIcon(context, it.toIcon())) }
+                        }.build()
+                        style = NotificationCompat.MessagingStyle(person).also {
+                            it.addMessage(
+                                NotificationCompat.MessagingStyle.Message(
+                                    message, event.originTimestampOrNull ?: Instant.now().toEpochMilli(), person
+                                )
                             )
-                        )
-                        it.conversationTitle = if (isDirect) "" else roomName
-                        it.isGroupConversation = isDirect.not()
+                            it.conversationTitle = if (isDirect) "" else roomName
+                            it.isGroupConversation = isDirect.not()
+                        }
                     }
                     setStyle(style)
                     setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
