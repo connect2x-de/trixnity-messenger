@@ -46,6 +46,7 @@ import de.connect2x.messenger.previews.util.InitMessengerPreview
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import kotlinx.coroutines.flow.MutableStateFlow
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.UserId
 
@@ -53,13 +54,15 @@ import net.folivo.trixnity.core.model.UserId
 private fun previewReactionEvent(sender: String, initials: Initials, isMe: Boolean = false) =
     TimelineElementHolderViewModel.ReactionEvent(
         eventId = EventId(""),
-        sender = UserInfoElement(
-            name = sender,
-            userId = UserId(""),
-            initials = initials.compute(sender),
-            image = null,
+        senderFlow = MutableStateFlow(
+            UserInfoElement(
+                name = sender,
+                userId = UserId(""),
+                initials = initials.compute(sender),
+                image = null,
+            )
         ),
-        isMe = isMe,
+        isByMe = isMe,
     )
 
 @Composable
@@ -109,7 +112,7 @@ private fun PreviewTheme(content: @Composable () -> Unit) {
 @Composable
 fun MessageReactionPreview() {
     InitMessengerPreview {
-        val initials = object: Initials {}
+        val initials = object : Initials {}
         PreviewTheme {
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
@@ -120,11 +123,13 @@ fun MessageReactionPreview() {
                     reactionEvents = setOf(
                         TimelineElementHolderViewModel.ReactionEvent(
                             eventId = EventId(""),
-                            sender = UserInfoElement(
-                                name = "Martin",
-                                userId = UserId("@martin:local"),
+                            senderFlow = MutableStateFlow(
+                                UserInfoElement(
+                                    name = "Martin",
+                                    userId = UserId("@martin:local"),
+                                )
                             ),
-                            isMe = false,
+                            isByMe = false,
                         )
                     ),
                     count = 3,
@@ -137,11 +142,13 @@ fun MessageReactionPreview() {
                     reactionEvents = setOf(
                         TimelineElementHolderViewModel.ReactionEvent(
                             eventId = EventId(""),
-                            sender = UserInfoElement(
-                                name = "Jan",
-                                userId = UserId("@jan:local"),
+                            senderFlow = MutableStateFlow(
+                                UserInfoElement(
+                                    name = "Jan",
+                                    userId = UserId("@jan:local"),
+                                )
                             ),
-                            isMe = false,
+                            isByMe = false,
                         )
                     ),
                     count = 2,
@@ -164,7 +171,7 @@ fun MessageReactionPreview() {
 @Composable
 fun MessageReactionWrappingPreview() {
     InitMessengerPreview {
-        val initials = object: Initials {}
+        val initials = object : Initials {}
         PreviewTheme {
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),

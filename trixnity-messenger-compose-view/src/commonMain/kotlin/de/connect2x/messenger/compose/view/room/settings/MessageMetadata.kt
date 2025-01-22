@@ -214,8 +214,8 @@ private fun Modifier.drawLayoutRulers(): Modifier =
 // TODO: Move to utils?
 /**
  * This works almost like writing and using `var value = remember { mutableStateOf(T) }`
- * but instead of invoking a UI redraw on each update, this Helper provides a mechanism
- * to throttle the update propagation and thus reduce unnecessary updates to the composable.
+ * but instead of invoking a UI redraw on each update, this util provides a mechanism
+ * to throttle the update propagation and thus reduces unnecessary updates to the composable.
  * E.g. when a scrolling list also performs some form of more complex layouting.
  */
 @OptIn(FlowPreview::class)
