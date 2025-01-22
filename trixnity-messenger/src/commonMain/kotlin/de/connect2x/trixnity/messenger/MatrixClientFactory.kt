@@ -18,7 +18,7 @@ private val log = KotlinLogging.logger { }
 interface MatrixClientFactory {
     data class LoginResult(
         val matrixClient: MatrixClient,
-        val databasePassword: SecretByteArray?,
+        val databaseKey: SecretByteArray?,
     )
 
     suspend fun loginWith(
@@ -46,14 +46,14 @@ class MatrixClientFactoryImpl(
         checkExisting: suspend (LoginInfo) -> Unit,
     ): Result<LoginResult> = kotlin.runCatching {
         log.debug { "loginWith to account" }
-        var databasePassword: SecretByteArray? = null
+        var databaseKey: SecretByteArray? = null
         LoginResult(
             matrixClient = MatrixClient.loginWith(
                 baseUrl = baseUrl,
                 repositoriesModuleFactory = { loginInfo ->
                     checkExisting(loginInfo)
                     createRepositoriesModuleOrThrow(loginInfo.userId).also {
-                        databasePassword = it.databasePassword
+                        databaseKey = it.databaseKey
                     }.module
                 },
                 mediaStoreFactory = { loginInfo ->
@@ -70,7 +70,7 @@ class MatrixClientFactoryImpl(
                 },
                 configuration = configuration.matrixClientConfiguration,
             ).getOrThrow(),
-            databasePassword = databasePassword,
+            databaseKey = databaseKey,
         )
     }
 
@@ -93,8 +93,8 @@ class MatrixClientFactoryImpl(
         val repositoriesModule = try {
             repositoriesModuleCreation.create(userId)
         } catch (exc: Exception) {
-            if (isLocked(exc)) throw LoadStoreException.StoreLockedException()
-            else throw LoadStoreException.StoreAccessException(exc.message)
+            if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
+            else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
         }
         return repositoriesModule
     }
@@ -107,8 +107,8 @@ class MatrixClientFactoryImpl(
         val repositoriesModule = try {
             repositoriesModuleCreation.load(userId, databasePassword)
         } catch (exc: Exception) {
-            if (isLocked(exc)) throw LoadStoreException.StoreLockedException()
-            else throw LoadStoreException.StoreAccessException(exc.message)
+            if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
+            else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
         }
         return repositoriesModule
     }

@@ -32,12 +32,12 @@ import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationFailureViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
@@ -182,7 +182,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                 val eventContentSerializerMappings = getAll<EventContentSerializerMappings>()
                 MatrixClientConfigurationHolder {
                     name = getOrNull<DebugName>()?.invoke()
-                    setOwnMessagesAsFullyRead = true
+                    markOwnMessageAsRead = true
                     httpClientEngine = config.httpClientEngine
                     httpClientConfig = config.httpClientConfig
                     lastRelevantEventFilter =
@@ -288,11 +288,11 @@ private fun connectingViewModels() = module {
         MatrixClientInitializationViewModelFactory
     }
     single<RemoveMatrixAccountViewModelFactory> { RemoveMatrixAccountViewModelFactory }
-    single<StoreFailureViewModelFactory> { StoreFailureViewModelFactory }
+    single<MatrixClientInitializationFailureViewModelFactory> { MatrixClientInitializationFailureViewModelFactory }
     single<AddMatrixAccountViewModelFactory> { AddMatrixAccountViewModelFactory }
     single<PasswordLoginViewModelFactory> { PasswordLoginViewModelFactory }
     single<SSOLoginViewModelFactory> { SSOLoginViewModelFactory }
-    single<RegisterNewAccountViewModelFactory> { RegisterNewAccountViewModelFactory }
+    single<RegisterMatrixAccountViewModelFactory> { RegisterMatrixAccountViewModelFactory }
 }
 
 private fun syncViewModels() = module {

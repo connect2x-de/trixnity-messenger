@@ -23,6 +23,10 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.settings.SettingsStorage
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.CloseApp
+import de.connect2x.trixnity.messenger.util.DownloadManager
+import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ThumbnailsImpl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emitAll
@@ -91,6 +95,8 @@ fun createKoinApplication(): KoinApplication {
                 single<CloseApp> {
                     CloseApp { }
                 }
+                single<DownloadManager> { DownloadManagerImpl() }
+                single<Thumbnails> { ThumbnailsImpl() }
             },
             composeViewModule(),
         )

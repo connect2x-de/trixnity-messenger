@@ -87,7 +87,6 @@ kotlin {
                 implementation(libs.ktor.client.okhttp)
                 implementation(project.dependencies.platform(libs.firebase.bom))
                 implementation(libs.firebase.messaging.ktx)
-                implementation(libs.sysnotify.android)
                 // for Previews:
                 implementation(libs.slf4j.api)
             }
@@ -97,7 +96,6 @@ kotlin {
                 implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
                 implementation(project.dependencies.platform(libs.kotlin.wrappers.bom))
                 implementation(libs.kotlin.browser)
-                implementation(libs.sysnotify.js)
                 implementation(libs.filekit.core)
             }
         }
@@ -126,9 +124,6 @@ kotlin {
 dependencies {
     androidTestImplementation(libs.ui.test.junit4.android)
     debugImplementation(libs.ui.test.android.manifest)
-    implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-windows-x64") })
-    implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-linux-x64") })
-    implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-macos-x64") })
 }
 
 android {

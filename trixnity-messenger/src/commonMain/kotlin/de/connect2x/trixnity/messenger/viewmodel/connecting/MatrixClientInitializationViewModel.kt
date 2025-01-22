@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
-import de.connect2x.trixnity.messenger.LoadStoreException
+import de.connect2x.trixnity.messenger.MatrixClientInitializationException
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
@@ -22,15 +22,13 @@ interface MatrixClientInitializationViewModelFactory {
         viewModelContext: ViewModelContext,
         onNoAccounts: () -> Unit,
         onInitializationSuccess: () -> Unit,
-        onInitializationFailure: () -> Unit,
-        onStoreFailure: (userId: UserId, exception: LoadStoreException) -> Unit,
+        onInitializationFailure: (userId: UserId, exception: MatrixClientInitializationException) -> Unit,
     ): MatrixClientInitializationViewModel {
         return MatrixClientInitializationViewModelImpl(
             viewModelContext,
             onNoAccounts,
             onInitializationSuccess,
             onInitializationFailure,
-            onStoreFailure
         )
     }
 
@@ -45,8 +43,7 @@ open class MatrixClientInitializationViewModelImpl(
     private val viewModelContext: ViewModelContext,
     private val onNoAccounts: () -> Unit,
     private val onInitializationSuccess: () -> Unit,
-    private val onInitializationFailure: () -> Unit,
-    private val onStoreFailure: (userId: UserId, exception: LoadStoreException) -> Unit,
+    private val onInitializationFailure: (userId: UserId, exception: MatrixClientInitializationException) -> Unit,
 ) : ViewModelContext by viewModelContext, MatrixClientInitializationViewModel {
 
     override val currentState = MutableStateFlow("")
@@ -68,17 +65,11 @@ open class MatrixClientInitializationViewModelImpl(
         } else {
             checkWhetherSelectedAccountIsStillValid()
             val initFromStoreResult = matrixClients.initFromStore()
-            val loadStoreException = initFromStoreResult.failures.entries.find { it.value is LoadStoreException }
             when {
-                loadStoreException != null -> onStoreFailure(
-                    loadStoreException.key,
-                    loadStoreException.value as LoadStoreException
-                )
-
-                // TODO This method might be too simplistic for the complex method of loading multiple MatrixClients.
-                //  For the future: return a list of successul and failed initializations to the caller and let the caller decide
-                //  what to do (e.g., a failed account might get a warning page, but one could still use the other accounts).
-                initFromStoreResult.failures.isNotEmpty() -> onInitializationFailure()
+                initFromStoreResult.failures.isNotEmpty() -> {
+                    val firstFailure = initFromStoreResult.failures.entries.first()
+                    onInitializationFailure(firstFailure.key, firstFailure.value)
+                }
 
                 else -> {
                     currentState.value = i18n.matrixClientInitSuccess()

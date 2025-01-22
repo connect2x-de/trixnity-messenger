@@ -2,8 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.LoadStoreException.StoreLockedException
 import de.connect2x.trixnity.messenger.MatrixClientFactory
+import de.connect2x.trixnity.messenger.MatrixClientInitializationException.DatabaseLockedException
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
@@ -145,7 +145,7 @@ class PasswordLoginViewModelTest : ShouldSpec() {
                     any(),
                     any(),
                 )
-            } calls { throw StoreLockedException() }
+            } calls { throw DatabaseLockedException() }
             val cut = viewModel()
             cut.canLogin.first { it }
             cut.tryLogin()

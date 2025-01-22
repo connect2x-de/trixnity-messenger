@@ -36,7 +36,7 @@ class SSOLoginViewImpl : SSOLoginView {
         val i18n = DI.get<I18nView>()
 
         if (waitForRedirect) {
-            Text(i18n.externalLogin(ssoLoginViewModel.providerName))
+            Text(i18n.externalLogin(ssoLoginViewModel.providerName ?: "SSO"))
             Spacer(Modifier.height(20.dp))
         }
         Box(Modifier.defaultMinSize(minHeight = 20.dp)) {

@@ -7,6 +7,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.onEach
 import org.koin.core.module.Module
 
 private val log = KotlinLogging.logger { }
@@ -21,10 +22,9 @@ open class UrlHandlerBase(
             replay = 1,
             onBufferOverflow = BufferOverflow.DROP_OLDEST
         )
-) : UrlHandler, Flow<Url> by urlHandlerFlow.filter(filter)
+) : UrlHandler, Flow<Url> by urlHandlerFlow.filter(filter).onEach({ log.info { "handle url: $it" } })
 
 fun urlFilter(config: MatrixMessengerBaseConfiguration): (Url) -> Boolean = {
-    log.info { "handle url: $it" }
     val origin = Url(URLBuilder.origin)
     (it.protocol == origin.protocol || it.protocol == URLProtocol.createOrDefault(config.urlProtocol))
             && (it.host == origin.host || it.host == config.urlHost)

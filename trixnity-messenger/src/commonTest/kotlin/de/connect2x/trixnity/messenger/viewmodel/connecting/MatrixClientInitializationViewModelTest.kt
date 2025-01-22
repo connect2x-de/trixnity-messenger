@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.LoadStoreException
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -149,8 +148,7 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
             viewModelContext = viewModelContext,
             onNoAccounts = onNoAccountsMock,
             onInitializationSuccess = {},
-            onInitializationFailure = {},
-            onStoreFailure = { _: UserId, _: LoadStoreException -> },
+            onInitializationFailure = { _, _ -> },
         )
         return settings
     }

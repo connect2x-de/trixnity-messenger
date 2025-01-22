@@ -26,19 +26,19 @@ import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
 
-interface RegisterNewAccountViewModelFactory {
+interface RegisterMatrixAccountViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
         serverUrl: String,
         onLogin: () -> Unit,
         onBack: () -> Unit,
-    ): RegisterNewAccountViewModel =
-        RegisterNewAccountViewModelImpl(viewModelContext, serverUrl, onLogin, onBack)
+    ): RegisterMatrixAccountViewModel =
+        RegisterMatrixAccountViewModelImpl(viewModelContext, serverUrl, onLogin, onBack)
 
-    companion object : RegisterNewAccountViewModelFactory
+    companion object : RegisterMatrixAccountViewModelFactory
 }
 
-interface RegisterNewAccountViewModel {
+interface RegisterMatrixAccountViewModel {
     val isFirstMatrixClient: StateFlow<Boolean?>
 
     val error: StateFlow<String?>
@@ -55,12 +55,12 @@ interface RegisterNewAccountViewModel {
     fun back()
 }
 
-class RegisterNewAccountViewModelImpl(
+class RegisterMatrixAccountViewModelImpl(
     viewModelContext: ViewModelContext,
     override val serverUrl: String,
     private val onLogin: () -> Unit,
     private val onBack: () -> Unit,
-) : RegisterNewAccountViewModel, ViewModelContext by viewModelContext {
+) : RegisterMatrixAccountViewModel, ViewModelContext by viewModelContext {
 
     private val authorizeUia = get<AuthorizeUia>()
     private val config = get<MatrixMessengerConfiguration>()
@@ -153,7 +153,7 @@ class RegisterNewAccountViewModelImpl(
     }
 }
 
-class PreviewRegisterNewAccountViewModel : RegisterNewAccountViewModel {
+class PreviewRegisterMatrixAccountViewModel : RegisterMatrixAccountViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isFirstMatrixClient: StateFlow<Boolean?> = MutableStateFlow(false)
     override val serverUrl: String = "http://localhost:8008"

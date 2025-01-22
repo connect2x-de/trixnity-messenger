@@ -4,5 +4,5 @@ import js.typedarrays.Uint8Array
 import web.streams.WritableStream
 
 actual data class Destination(
-    val stream: WritableStream<Uint8Array>
+    val stream: WritableStream<Uint8Array<*>>
 )

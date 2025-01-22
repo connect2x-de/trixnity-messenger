@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.updateAndGet
 import org.jetbrains.skiko.wasm.onWasmReady
 import web.dom.DocumentVisibilityState
 import web.dom.document
-import web.dom.visibilityChange
 import web.events.Event
 import web.events.addEventListener
 import web.uievents.FocusEvent
@@ -44,7 +43,7 @@ suspend fun startMessenger(
     log.info { "Created MatrixMultiMessenger" }
 
     document.addEventListener(
-        type = Event.visibilityChange(),
+        type = Event.VISIBILITY_CHANGE,
         handler = { _: Event ->
             lifecycleRegistry.updateState(
                 document.visibilityState == DocumentVisibilityState.visible,
@@ -54,7 +53,7 @@ suspend fun startMessenger(
     )
 
     window.addEventListener(
-        type = FocusEvent.focus(),
+        type = FocusEvent.FOCUS,
         handler = { _: Event ->
             lifecycleRegistry.updateState(
                 visible = document.visibilityState == DocumentVisibilityState.visible,
@@ -64,7 +63,7 @@ suspend fun startMessenger(
     )
 
     window.addEventListener(
-        type = FocusEvent.blur(),
+        type = FocusEvent.BLUR,
         handler = { _: Event ->
             lifecycleRegistry.updateState(
                 visible = document.visibilityState == DocumentVisibilityState.visible,

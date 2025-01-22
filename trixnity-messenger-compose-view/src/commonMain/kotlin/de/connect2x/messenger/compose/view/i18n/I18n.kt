@@ -322,6 +322,16 @@ abstract class I18nView(
         DE - "überspringen"
     }
 
+    fun commonZoomIn() = translate {
+        EN - "zoom in"
+        DE - "Vergrößern"
+    }
+
+    fun commonZoomOut() = translate {
+        EN - "zoom out"
+        DE - "Verkleinern"
+    }
+
     fun newMessage() = translate {
         EN - "new message"
         DE - "neue Nachricht"

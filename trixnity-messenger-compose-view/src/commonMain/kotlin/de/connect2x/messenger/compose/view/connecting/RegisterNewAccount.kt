@@ -21,25 +21,25 @@ import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModel
 
 
 interface RegisterNewAccountView {
     @Composable
-    fun create(registerNewAccountViewModel: RegisterNewAccountViewModel)
+    fun create(registerMatrixAccountViewModel: RegisterMatrixAccountViewModel)
 }
 
 @Composable
-fun RegisterNewAccount(registerNewAccountViewModel: RegisterNewAccountViewModel) {
-    DI.get<RegisterNewAccountView>().create(registerNewAccountViewModel)
+fun RegisterNewAccount(registerMatrixAccountViewModel: RegisterMatrixAccountViewModel) {
+    DI.get<RegisterNewAccountView>().create(registerMatrixAccountViewModel)
 }
 
 class RegisterNewAccountViewImpl : RegisterNewAccountView {
     @Composable
-    override fun create(registerNewAccountViewModel: RegisterNewAccountViewModel) {
+    override fun create(registerMatrixAccountViewModel: RegisterMatrixAccountViewModel) {
         val i18n = DI.get<I18nView>()
-        val canRegisterNewUser = registerNewAccountViewModel.canRegisterNewUser.collectAsState().value
-        val error = registerNewAccountViewModel.error.collectAsState().value
+        val canRegisterNewUser = registerMatrixAccountViewModel.canRegisterNewUser.collectAsState().value
+        val error = registerMatrixAccountViewModel.error.collectAsState().value
 
         Column {
             if (error != null) {
@@ -47,10 +47,10 @@ class RegisterNewAccountViewImpl : RegisterNewAccountView {
             }
             Spacer(Modifier.size(20.dp))
             val tabToNextAndEnterSend =
-                TabInTextField(canRegisterNewUser, registerNewAccountViewModel::register)
+                TabInTextField(canRegisterNewUser, registerMatrixAccountViewModel::register)
             MatrixUsername(
-                username = registerNewAccountViewModel.username.collectAsStateForTextField(),
-                setUsername = { registerNewAccountViewModel.username.value = it },
+                username = registerMatrixAccountViewModel.username.collectAsStateForTextField(),
+                setUsername = { registerMatrixAccountViewModel.username.value = it },
                 label = i18n.registrationUsername(),
                 enabled = true,
             ) {
@@ -63,8 +63,8 @@ class RegisterNewAccountViewImpl : RegisterNewAccountView {
             }
             Spacer(Modifier.size(20.dp))
             PasswordField(
-                password = registerNewAccountViewModel.password.collectAsStateForTextField(),
-                onPasswordChange = { registerNewAccountViewModel.password.value = it },
+                password = registerMatrixAccountViewModel.password.collectAsStateForTextField(),
+                onPasswordChange = { registerMatrixAccountViewModel.password.value = it },
                 modifier = tabToNextAndEnterSend,
             ) { Text(i18n.registrationPassword()) }
         }
