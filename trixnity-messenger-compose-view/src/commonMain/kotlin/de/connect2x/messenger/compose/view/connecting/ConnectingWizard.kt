@@ -18,7 +18,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModel
-import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
 
 const val ADD_MATRIX_ACCOUNT = "ADD_MATRIX_ACCOUNT"
@@ -116,7 +116,7 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
             },
         )
 
-        is RegisterNewAccountViewModel -> WizardStep(
+        is RegisterMatrixAccountViewModel -> WizardStep(
             id = REGISTER_NEW_ACCOUNT,
             title = { i18n.registrationHeader() },
             content = {

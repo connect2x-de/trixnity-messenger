@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.util
 import com.arkivanov.decompose.DelicateDecomposeApi
 import com.arkivanov.decompose.router.stack.StackNavigator
 import com.arkivanov.decompose.router.stack.bringToFront
+import com.arkivanov.decompose.router.stack.navigate
 import com.arkivanov.decompose.router.stack.pop
 import com.arkivanov.decompose.router.stack.popWhile
 import com.arkivanov.decompose.router.stack.push
@@ -18,6 +19,33 @@ import kotlinx.coroutines.withContext
 // TODO use context receivers for CoroutineScope in future Kotlin version
 
 private val log = KotlinLogging.logger {}
+
+/**
+ * @see [com.arkivanov.decompose.router.stack.navigate]
+ */
+suspend fun <C : Any> StackNavigator<C>.navigateSuspending(
+    transformer: (stack: List<C>) -> List<C>
+) = withContext(Dispatchers.Main.immediate) {
+    navigate { oldConfiguration ->
+        val newConfiguration = transformer(oldConfiguration)
+        log.trace { "replace current ($oldConfiguration) with configuration-list $newConfiguration" }
+        newConfiguration
+    }
+}
+
+/**
+ * @see [com.arkivanov.decompose.router.stack.navigate]
+ */
+fun <C : Any> StackNavigator<C>.launchNavigate(
+    scope: CoroutineScope,
+    transformer: (stack: List<C>) -> List<C>
+) = scope.launch(Dispatchers.Main.immediate) {
+    navigate { oldConfiguration ->
+        val newConfiguration = transformer(oldConfiguration)
+        log.trace { "replace current ($oldConfiguration) with configuration-list $newConfiguration" }
+        newConfiguration
+    }
+}
 
 /**
  * @see [com.arkivanov.decompose.router.stack.replaceCurrent]

@@ -13,18 +13,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Possibility to provide an app version that is displayed in the info section
 - Show users typing in room list
 - Allow sending attachments with Enter (desktop)
+- Use SysNotify on desktop targets to display native toasts for notifications
 - Check server capabilities for setting display name and avatar and prevent editing if not supported
+- More conservative MatrixClient initialization failure handling.
 
 ### Changed
 
-- Moved message metadata into a unified view with a new design
+- Updated SysNotify to 1.7.0
+- Moved from Realm to Androidx Room database
+- Enabled Encryption for Androidx Room database
 - Image detail view UI overhaul
+- Moved message metadata into a unified view with a new design
 
 ### Deprecated
 
 ### Removed
 
-- Internal: removed strong skipping Compose mode as it is enabled by default now 
+- Internal: removed strong skipping Compose mode as it is enabled by default now
 
 ### Fixed
 
@@ -32,6 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show sender, when state event before element
 - Text colors in message bubbles and input field (Desktop) adjusted for dark mode
 - Removed ability to block yourself
+- Fixed show SSO login option with empty identity provider list
+- Don't show "Image could not be loaded" message while loading an image
 
 ### Security
 

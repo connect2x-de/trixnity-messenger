@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.AccountAlreadyExistsException
-import de.connect2x.trixnity.messenger.LoadStoreException.StoreAccessException
-import de.connect2x.trixnity.messenger.LoadStoreException.StoreLockedException
+import de.connect2x.trixnity.messenger.MatrixClientInitializationException.DatabaseAccessException
+import de.connect2x.trixnity.messenger.MatrixClientInitializationException.DatabaseLockedException
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.i18n.I18n
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -92,10 +92,10 @@ private suspend fun catchLogin(
     } catch (exc: AccountAlreadyExistsException) {
         log.warn { "account already exists locally" }
         null to i18n.connectingAccountAlreadyExists(exc.userId)
-    } catch (exc: StoreLockedException) {
+    } catch (exc: DatabaseLockedException) {
         log.error(exc) { "database is locked" }
         null to i18n.connectingErrorDbLocked()
-    } catch (exc: StoreAccessException) {
+    } catch (exc: DatabaseAccessException) {
         log.error(exc) { "cannot access database; this is a serious problem and might only be solved by deleting the database if the problem persists" }
         // we cannot load data from the DB, so either close the App or remove the DB and try again
         null to i18n.connectingErrorDbAccess()

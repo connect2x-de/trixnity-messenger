@@ -9,8 +9,8 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import de.connect2x.messenger.compose.view.connecting.ConnectingWizard
 import de.connect2x.messenger.compose.view.connecting.MatrixClientInitialization
-import de.connect2x.messenger.compose.view.connecting.MatrixClientLogout
-import de.connect2x.messenger.compose.view.connecting.StoreFailure
+import de.connect2x.messenger.compose.view.connecting.MatrixClientInitializationFailure
+import de.connect2x.messenger.compose.view.connecting.RemoveMatrixAccount
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter
 
 @Composable
@@ -22,13 +22,13 @@ fun RootSwitch(stack: Value<ChildStack<*, RootRouter.Wrapper>>) {
         when (val child = it.instance) {
             is RootRouter.Wrapper.None -> Box {}
             is RootRouter.Wrapper.MatrixClientInitialization -> MatrixClientInitialization(child.viewModel)
-            is RootRouter.Wrapper.MatrixClientLogout -> MatrixClientLogout(child.viewModel)
+            is RootRouter.Wrapper.MatrixClientInitializationFailure -> MatrixClientInitializationFailure(child.viewModel)
+            is RootRouter.Wrapper.Main -> Main(child.viewModel)
             is RootRouter.Wrapper.AddMatrixAccount -> ConnectingWizard(child.viewModel)
+            is RootRouter.Wrapper.RegisterMatrixAccount -> ConnectingWizard(child.viewModel)
+            is RootRouter.Wrapper.RemoveMatrixAccount -> RemoveMatrixAccount(child.viewModel)
             is RootRouter.Wrapper.PasswordLogin -> ConnectingWizard(child.viewModel)
             is RootRouter.Wrapper.SSOLogin -> ConnectingWizard(child.viewModel)
-            is RootRouter.Wrapper.RegisterNewAccount -> ConnectingWizard(child.viewModel)
-            is RootRouter.Wrapper.Main -> Main(child.viewModel)
-            is RootRouter.Wrapper.StoreFailure -> StoreFailure(child.viewModel)
-        }.let {}
+        }
     }
 }

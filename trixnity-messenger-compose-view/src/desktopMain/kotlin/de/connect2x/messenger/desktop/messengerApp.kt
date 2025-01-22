@@ -3,7 +3,6 @@ package de.connect2x.messenger.desktop
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -12,7 +11,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
-import androidx.compose.ui.window.Notification
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -32,6 +30,8 @@ import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
+import de.connect2x.sysnotify.NotificationHandler
+import de.connect2x.sysnotify.create
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.UrlHandler
@@ -39,6 +39,7 @@ import de.connect2x.trixnity.messenger.util.defaultDragAndDropHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import okio.FileSystem
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import java.awt.GraphicsEnvironment
@@ -55,6 +56,13 @@ fun CoroutineScope.messengerApp(
     lifecycle: LifecycleRegistry,
     urlHandler: UrlHandler,
 ) {
+    val notificationHandler = NotificationHandler.create(
+        name = "Trixnity Messenger",
+        id = "de.connect2x.messenger"
+    )
+    runBlocking { // Make sure the app is suspended until permissions are granted
+        notificationHandler.requestPermissions()
+    }
     application {
         val gd = GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice
         val width = gd.displayMode.width
@@ -64,7 +72,6 @@ fun CoroutineScope.messengerApp(
             height = min(1000.dp, height.dp)
         )
         var windowIsFocused by remember { mutableStateOf(false) }
-        val notifications = mutableStateListOf<Notification>()
 
         Window(
             onCloseRequest = ::exitApplication,
@@ -81,7 +88,6 @@ fun CoroutineScope.messengerApp(
                             log.debug { "window is focused" }
                             windowIsFocused = true
                             lifecycle.resume()
-                            notifications.clear()
                         }
 
                         override fun windowLostFocus(e: WindowEvent?) {
@@ -134,10 +140,7 @@ fun CoroutineScope.messengerApp(
                             Client(rootViewModel)
                         }
 
-                        Notifications(
-                            matrixMessenger,
-                            trayState,
-                        )
+                        Notifications(matrixMessenger, notificationHandler)
                     }
                 },
                 nonActiveMessenger = { existingProfiles ->
@@ -156,4 +159,5 @@ fun CoroutineScope.messengerApp(
             )
         }
     }
+    notificationHandler.close()
 }

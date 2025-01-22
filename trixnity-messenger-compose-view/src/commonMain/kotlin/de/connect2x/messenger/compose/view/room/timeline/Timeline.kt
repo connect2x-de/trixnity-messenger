@@ -103,7 +103,7 @@ class TimelineViewImpl : TimelineView {
         }
 
         LaunchedEffect(Unit) {
-            var elementsFromLastCollect = listOf<BaseTimelineElementHolderViewModel>()
+            var elementsFromLastCollect = setOf<BaseTimelineElementHolderViewModel>()
             timelineViewModel.elements.collect { elements ->
                 log.trace { "wait for elements to be ready" }
                 withContext(Dispatchers.Default) {
@@ -163,7 +163,7 @@ class TimelineViewImpl : TimelineView {
                     }
                 }
                 log.trace { "finished wait for elements to be ready" }
-                elementsFromLastCollect = elements
+                elementsFromLastCollect = elements.toSet()
                 timelineElementHolderViewModels = elements.asReversed()
             }
         }

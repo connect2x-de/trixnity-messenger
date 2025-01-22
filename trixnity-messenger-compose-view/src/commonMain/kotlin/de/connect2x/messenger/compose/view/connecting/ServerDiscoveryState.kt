@@ -76,20 +76,21 @@ class ServerDiscoveryStateViewImpl : ServerDiscoveryStateView {
                         }
 
                         is AddMatrixAccountMethod.SSO -> {
+                            val providerName = type.identityProvider?.name ?: "SSO"
                             ListItem(
-                                headlineContent = { Text(i18n.loginWithSSO(type.identityProvider.name)) },
+                                headlineContent = { Text(i18n.loginWithSSO(providerName)) },
                                 leadingContent = {
                                     val icon = type.icon?.toImageBitmap()
                                     if (icon != null)
                                         Image(
                                             icon,
-                                            i18n.loginWithSSO(type.identityProvider.name),
+                                            i18n.loginWithSSO(providerName),
                                             Modifier.fillMaxHeight(),
                                         )
                                     else
                                         Icon(
                                             Icons.Default.Web,
-                                            i18n.loginWithSSO(type.identityProvider.name),
+                                            i18n.loginWithSSO(providerName),
                                             Modifier.fillMaxHeight(),
                                         )
                                 },
