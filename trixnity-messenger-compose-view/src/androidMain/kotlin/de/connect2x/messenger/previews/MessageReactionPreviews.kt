@@ -57,7 +57,7 @@ private fun previewReactionEvent(sender: String, initials: Initials, isMe: Boole
         senderFlow = MutableStateFlow(
             UserInfoElement(
                 name = sender,
-                userId = UserId(""),
+                userId = UserId("@kirill:local"),
                 initials = initials.compute(sender),
                 image = null,
             )

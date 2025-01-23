@@ -9,6 +9,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.withClue
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -66,6 +67,7 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RedactionEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -89,6 +91,10 @@ class RoomUserBuilder(
 
     val users = MutableStateFlow(listOf<RoomUserWithReceipts>())
 
+    init {
+        updateMocks()
+    }
+
     private fun updateMocks() {
         every { userService.getAll(roomId) } calls {
             log.debug { "userService.getAll($roomId)" }
@@ -110,12 +116,15 @@ class RoomUserBuilder(
         }
     }
 
-    init {
-        updateMocks()
-    }
-
     fun addOrUpdateUsers(block: RoomUserBuilder.() -> Unit) {
         this.apply(block)
+    }
+
+    suspend fun addOrUpdateUsersSubsequently(vararg blocks: RoomUserBuilder.() -> Unit) {
+        blocks.forEach { block ->
+            this.apply(block)
+            delay(100.milliseconds)
+        }
     }
 
     operator fun RoomUserWithReceipts.unaryPlus() {
@@ -208,6 +217,13 @@ class TimelineMock(
     val loadAfterCalledCount = MutableStateFlow(0)
     fun addEvents(block: TimelineBuilder.() -> Unit) {
         eventsInStore.value = timelineBuilder.apply(block).build()
+    }
+
+    suspend fun addEventsSubsequently(vararg blocks: TimelineBuilder.() -> Unit) {
+        blocks.forEach { block ->
+            addEvents(block)
+            delay(100.milliseconds)
+        }
     }
 }
 
