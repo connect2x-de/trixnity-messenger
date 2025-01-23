@@ -2,16 +2,13 @@ package de.connect2x.messenger.desktop
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.graphics.toAwtImage
+import androidx.compose.ui.window.Notification
+import androidx.compose.ui.window.TrayState
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.sysnotify.Notification
-import de.connect2x.sysnotify.NotificationHandler
-import de.connect2x.sysnotify.NotificationIcon
-import de.connect2x.sysnotify.fromBufferedImage
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
@@ -42,13 +39,14 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.roomIdOrNull
 import net.folivo.trixnity.core.model.events.senderOrNull
 import net.folivo.trixnity.core.model.push.PushAction
+import javax.sound.sampled.AudioSystem
 
 private val log = KotlinLogging.logger { }
 
 @Composable
 fun Notifications(
     matrixMessenger: MatrixMessenger,
-    notificationHandler: NotificationHandler
+    trayState: TrayState,
 ) {
     val i18n = DI.get<I18nView>()
     val maxAvatarSize = DI.get<MatrixMessengerConfiguration>().avatarMaxSize
@@ -57,14 +55,7 @@ fun Notifications(
     LaunchedEffect(windowIsFocused) {
         withContext(Dispatchers.Default) {
             val roomNameComputation = matrixMessenger.di.get<RoomName>()
-            whenSyncIsRunning(
-                matrixMessenger,
-                windowIsFocused,
-                roomNameComputation,
-                i18n,
-                maxAvatarSize,
-                notificationHandler
-            )
+            whenSyncIsRunning(matrixMessenger, windowIsFocused, roomNameComputation, trayState, i18n, maxAvatarSize)
         }
     }
 }
@@ -73,9 +64,9 @@ private suspend fun whenSyncIsRunning(
     matrixMessenger: MatrixMessenger,
     windowIsFocused: Boolean,
     roomNameComputation: RoomName,
+    trayState: TrayState,
     i18n: I18nView,
-    maxAvatarSize: Long,
-    notificationHandler: NotificationHandler
+    maxAvatarSize: Long
 ) {
     val settings = matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
     matrixMessenger.di.get<MatrixClients>().scopedCollectLatest { matrixClients ->
@@ -90,7 +81,13 @@ private suspend fun whenSyncIsRunning(
                         if (currentSettings.platformNotifications.notificationsPlaySound &&
                             notification.actions.any { it is PushAction.SetSoundTweak }
                         ) {
-                            // TODO: implement a sound flag in SysNotify 1.6.2
+                            withContext(Dispatchers.IO) {
+                                MessengerTrayIcon::class.java.getResourceAsStream("/ding.wav")
+                                    ?.buffered()
+                                    ?.let(AudioSystem::getAudioInputStream)
+                                    ?.let { AudioSystem.getClip().apply { open(it) } }
+                                    ?.start()
+                            }
                         }
                         if (currentSettings.platformNotifications.notificationsShowPopup) {
                             val room = notification.event.roomIdOrNull?.let { matrixClient.room.getById(it).first() }
@@ -105,9 +102,8 @@ private suspend fun whenSyncIsRunning(
                                 isDirect,
                                 roomName,
                                 i18n,
-                                maxAvatarSize,
-                                notificationHandler
-                            )
+                                maxAvatarSize
+                            )?.let { trayState.sendNotification(it) }
                         }
                     }
                 }
@@ -124,9 +120,8 @@ private suspend fun displayNotification(
     isDirect: Boolean,
     roomName: String,
     i18n: I18nView,
-    maxAvatarSize: Long,
-    notificationHandler: NotificationHandler
-) {
+    maxAvatarSize: Long
+): Notification? {
     event.roomIdOrNull?.let { roomId ->
         val message = when {
             currentSettings.platformNotifications.notificationsShowText.not() -> "(${i18n.newMessage()})"
@@ -136,7 +131,7 @@ private suspend fun displayNotification(
         }
 
         if (message != null) {
-            val (username, image) = event.senderOrNull?.let { sender ->
+            val (username, _) = event.senderOrNull?.let { sender ->
                 val user = matrixClient.user.getById(roomId, sender).first()
                 val image = user?.avatarUrl?.let { avatarUrl ->
                     matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
@@ -146,15 +141,13 @@ private suspend fun displayNotification(
                 user?.name to image
             } ?: (null to null)
 
+            val title = if (isDirect) username.orEmpty() else roomName
+            val text = if (isDirect) message else "$username: $message"
+
             log.debug { "notification will appear" }
-            notificationHandler.push(
-                Notification(
-                    title = if (isDirect) username.orEmpty() else roomName,
-                    group = "${matrixClient.userId}-$roomId",
-                    description = if (isDirect) message else "$username: $message",
-                    icon = image?.toAwtImage()?.let(NotificationIcon::fromBufferedImage)
-                )
-            )
+
+            return Notification(title, text)
         }
     } ?: log.warn { "cannot find roomId for event ${event.idOrNull}" }
+    return null
 }
