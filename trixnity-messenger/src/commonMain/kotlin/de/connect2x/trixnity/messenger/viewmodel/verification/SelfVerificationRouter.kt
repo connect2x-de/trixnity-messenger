@@ -24,6 +24,7 @@ private val log = KotlinLogging.logger { }
 
 class SelfVerificationRouter(
     private val viewModelContext: ViewModelContext,
+    private val onCloseSelfVerification: (userId: UserId, completedVerification: Boolean) -> Unit
 ) : ViewModelContext by viewModelContext {
     private val bootstrapStarted = MutableStateFlow(false)
     private val selfVerifications =
@@ -52,7 +53,10 @@ class SelfVerificationRouter(
                                 componentContext,
                                 selfVerificationConfig.userId,
                             ),
-                            onCloseSelfVerification = { closeSelfVerification(selfVerificationConfig.userId) },
+                            onCloseSelfVerification = { completedVerification ->
+                                closeSelfVerification(selfVerificationConfig.userId)
+                                onCloseSelfVerification(selfVerificationConfig.userId, completedVerification)
+                            },
                             onResetRecovery = {
                                 closeSelfVerification(selfVerificationConfig.userId)
                                 viewModelContext.coroutineScope.launch {
@@ -72,7 +76,7 @@ class SelfVerificationRouter(
                             componentContext,
                             selfVerificationConfig.userId,
                         ),
-                        onStartSelfVerification = { showSelfVerification(selfVerificationConfig.userId) },
+                        onStartSelfVerification = { showSelfVerification(selfVerificationConfig.userId, true) },
                         onClose = ::continueWithoutVerification,
                     )
             )
@@ -98,9 +102,9 @@ class SelfVerificationRouter(
     val messengerConfiguration = get<MatrixMessengerConfiguration>()
 
     /** @see startSelfVerificationsQueue() **/
-    fun showSelfVerification(userId: UserId) {
+    fun showSelfVerification(userId: UserId, isFromSetup: Boolean = false) {
         log.debug { "add account to self verification queue: $userId" }
-        if (messengerSettings.value.base.accounts.any { !it.value.base.accountSetupFinished }) {
+        if (messengerSettings.value.base.accounts.any { !it.value.base.accountSetupFinished } && !isFromSetup) {
             log.debug { "At least one account isn't set up with the wizard, not showing self verification for $userId" }
         } else if (bootstrapStarted.value) {
             log.debug { "bootstrapping has started, not showing self verification for: $userId" }
@@ -129,9 +133,10 @@ class SelfVerificationRouter(
         }
     }
 
-    private fun closeCrossSigningBootstrap() = viewModelContext.coroutineScope.launch {
+    private fun closeCrossSigningBootstrap(userId: UserId) = viewModelContext.coroutineScope.launch {
         log.debug { "close cross signing bootstrap view" }
         bootstrapStarted.value = false
+        onCloseSelfVerification(userId, true)
         navigation.popSuspending(onComplete = { log.debug { "close bootstrap completed: $it" } })
     }
 

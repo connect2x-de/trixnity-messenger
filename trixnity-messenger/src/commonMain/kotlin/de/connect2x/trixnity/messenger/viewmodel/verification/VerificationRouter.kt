@@ -18,6 +18,7 @@ class VerificationRouter(
     private val onRedoSelfVerification: (userId: UserId) -> Unit,
 ) {
     private val navigation = StackNavigation<Config>()
+
     val stack = viewModelContext.childStack(
         source = navigation,
         serializer = Config.serializer(),

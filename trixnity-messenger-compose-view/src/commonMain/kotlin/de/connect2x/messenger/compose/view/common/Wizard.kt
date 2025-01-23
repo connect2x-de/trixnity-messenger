@@ -36,6 +36,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.WizardButtons.NextButton
+import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
@@ -197,9 +198,6 @@ private fun WizardButtons(
     val additionalButton = wizardStep.additionalButton
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Bottom) {
         val buttonList = wizardStep.buttonOrder().toList().toMutableList()
-        if (previousStep == null) {
-            buttonList.remove(WizardButtons.BackButton)
-        }
         if (additionalButton == null) {
             buttonList.remove(WizardButtons.AdditionalButton)
         }
@@ -214,13 +212,13 @@ private fun WizardButtons(
                     previousStep
                 ) else null,
             button3 =
-            if (buttonList.size > 2) getCorrespondingButton(
-                buttonList[2],
-                wizardStep,
-                nextStep,
-                currentStep,
-                previousStep
-            ) else null
+                if (buttonList.size > 2) getCorrespondingButton(
+                    buttonList[2],
+                    wizardStep,
+                    nextStep,
+                    currentStep,
+                    previousStep
+                ) else null
 
         )
     }
@@ -239,7 +237,7 @@ private fun RowScope.NextButton(
 
         is WizardNavigationButton.None -> {}
 
-        is WizardNavigationButton.Custom -> {
+        is Custom -> {
             nextButton.button(CustomButtonScopeImpl(this, currentStep, nextStep = nextStep))
         }
     }
@@ -264,15 +262,18 @@ private fun NextButtonImpl(
 }
 
 @Composable
-private fun RowScope.BackButton(wizardStep: WizardStep, currentStep: MutableState<StepId>, previousStep: StepId) {
+private fun RowScope.BackButton(wizardStep: WizardStep, currentStep: MutableState<StepId>, previousStep: StepId?) {
     return when (val backButton = wizardStep.backButton()) {
         is WizardNavigationButton.Standard -> {
-            BackButtonImpl(currentStep, previousStep, backButton)
+            if (previousStep != null) {
+                BackButtonImpl(currentStep, previousStep, backButton)
+            } else {
+            }
         }
 
         is WizardNavigationButton.None -> {}
 
-        is WizardNavigationButton.Custom -> {
+        is Custom -> {
             backButton.button(CustomButtonScopeImpl(this, currentStep, previousStep = previousStep))
         }
     }
@@ -314,7 +315,7 @@ private fun getCorrespondingButton(
 
         WizardButtons.BackButton -> {
             {
-                previousStep?.let { BackButton(wizardStep, currentStep, previousStep) }
+                BackButton(wizardStep, currentStep, previousStep)
             }
         }
 

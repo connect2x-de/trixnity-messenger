@@ -2,35 +2,241 @@ package de.connect2x.messenger.compose.view.verification
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import com.arkivanov.decompose.extensions.compose.stack.Children
-import com.arkivanov.decompose.extensions.compose.stack.animation.fade
-import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.intl.Locale
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.Wizard
+import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
+import de.connect2x.messenger.compose.view.common.WizardStep
+import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.messengerColors
+import de.connect2x.trixnity.messenger.viewmodel.verification.SelectVerificationMethodViewModel
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCompareViewModel
+import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRequestViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Wrapper
+import net.folivo.trixnity.core.model.events.m.key.verification.VerificationMethod
 
 @Composable
-fun BoxScope.DeviceVerificationStepSwitch(
-    viewModel: VerificationViewModel,
-    isEmbedded: Boolean = false
+fun BoxScope.DeviceVerificationWizardStepSwitch(
+    viewModel: VerificationViewModel
 ) {
-    Children(
-        stack = viewModel.stack,
-        animation = stackAnimation(fade())
-    ) {
-        when (val child = it.instance) {
-            is Wrapper.Request -> DeviceVerificationRequest(child.viewModel)
-            is Wrapper.Wait -> DeviceVerificationWaitForOther(viewModel::cancel)
-            is Wrapper.SelectVerificationMethod -> SelectVerificationMethod(child.viewModel)
-            is Wrapper.AcceptSasStart -> AcceptSasStart(child.viewModel)
-            is Wrapper.CompareEmojisOrNumbers -> CompareEmojisOrNumbers(child.viewModel)
-            is Wrapper.Success -> if (!isEmbedded) DeviceVerificationSuccess(child.viewModel) else child.viewModel.ok()
+    val i18n = DI.current.get<I18nView>()
+    val selectedVerificationMethod =
+        remember { mutableStateOf<VerificationMethod?>(null) }
+    val child = viewModel.stack.subscribeAsState().value.active.instance
+    val step = WizardStep(
+        id = "DEVICE_VERIFICATION_WIZARD", title = { i18n.deviceVerification() }, content = {
+            when (child) {
+                is Wrapper.Request -> DeviceVerificationWizardRequest(child.viewModel)
+                is Wrapper.Wait -> DeviceVerificationWizardWaitForOther()
+                is Wrapper.SelectVerificationMethod -> DeviceVerificationWizardSelectVerificationMethod(
+                    child.viewModel,
+                    selectedVerificationMethod
+                )
 
-            is Wrapper.Rejected -> VerificationRejected(child.viewModel, isEmbedded = isEmbedded)
-            is Wrapper.Timeout -> VerificationTimeout(child.viewModel, isEmbedded = isEmbedded)
-            is Wrapper.Cancelled -> VerificationCancelled(child.viewModel, isEmbedded = isEmbedded)
-            is Wrapper.AcceptedByOtherClient -> Box {} // not applicable for device verifications
-            is Wrapper.None -> Box {}
-        }.let {}
+                is Wrapper.AcceptSasStart -> DeviceVerificationWizardAcceptSasStart()
+                is Wrapper.CompareEmojisOrNumbers -> DeviceVerificationWizardCompareEmojisOrNumbers(child.viewModel)
+                is Wrapper.Success -> DeviceVerificationWizardSuccess()
+
+                is Wrapper.Rejected -> DeviceVerificationWizardRejected()
+                is Wrapper.Timeout -> DeviceVerificationWizardTimeout()
+                is Wrapper.Cancelled -> DeviceVerificationWizardCancelled()
+                is Wrapper.AcceptedByOtherClient -> Box {} // not applicable for device verifications
+                is Wrapper.None -> Box {}
+            }.let {}
+        },
+        nextButton = {
+            Custom {
+                when (child) {
+                    is Wrapper.Request ->
+                        Button(child.viewModel::next, Modifier.buttonPointerModifier()) {
+                            Text(i18n.commonNext().capitalize(Locale.current))
+                        }
+
+                    is Wrapper.CompareEmojisOrNumbers ->
+                        Button(
+                            child.viewModel::accept,
+                            Modifier.buttonPointerModifier().weight(1.0f, fill = false)
+                        ) {
+                            Text(i18n.verificationMatch())
+                        }
+
+                    else -> {}
+                }
+            }
+        },
+        additionalButton = {
+            when (child) {
+                is Wrapper.Wait ->
+                    Button(onClick = { viewModel.cancel() }, Modifier.buttonPointerModifier()) {
+                        Text(i18n.commonCancel())
+                    }
+
+                is Wrapper.SelectVerificationMethod -> {
+                    OkButton {
+                        selectedVerificationMethod.value?.let {
+                            child.viewModel.acceptVerificationMethod(
+                                it
+                            )
+                        }
+                    }
+                }
+
+                is Wrapper.AcceptSasStart -> {
+                    OkButton(child.viewModel::accept)
+                }
+
+                is Wrapper.Success -> {
+                    OkButton(child.viewModel::ok)
+                }
+
+                is Wrapper.Rejected -> {
+                    OkButton(child.viewModel::ok)
+                }
+
+                is Wrapper.Timeout -> {
+                    OkButton(child.viewModel::ok)
+                }
+
+                is Wrapper.Cancelled -> {
+                    OkButton(child.viewModel::ok)
+                }
+
+                else -> null
+            }
+
+        },
+        backButton = {
+            Custom {
+                when (child) {
+                    is Wrapper.CompareEmojisOrNumbers ->
+                        Button(
+                            child.viewModel::decline,
+                            Modifier.buttonPointerModifier().weight(1.0f, fill = false),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text(i18n.verificationNotMatch(), color = Color.White)
+                        }
+
+                    else -> {}
+                }
+            }
+        }
+    )
+    Wizard(listOf(step))
+}
+
+
+@Composable
+fun DeviceVerificationWizardRequest(verificationStepRequestViewModel: VerificationStepRequestViewModel) {
+    val i18n = DI.get<I18nView>()
+    val deviceDisplayName = verificationStepRequestViewModel.ourDeviceDisplayName.collectAsState().value
+    val theirDisplayName = verificationStepRequestViewModel.theirDisplayName.collectAsState().value
+
+    Column {
+        theirDisplayName?.let {
+            Text(i18n.deviceVerificationInitiatedBy(it))
+        }
+        Text(i18n.deviceVerificationToAccount(deviceDisplayName))
+    }
+}
+
+@Composable
+fun DeviceVerificationWizardWaitForOther() {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        DeviceVerificationWaitForOtherContent()
+    }
+
+}
+
+@Composable
+fun DeviceVerificationWizardSelectVerificationMethod(
+    selectVerificationMethodViewModel: SelectVerificationMethodViewModel,
+    selectedVerificationMethod: MutableState<VerificationMethod?>
+) {
+    SelectVerificationMethodContent(selectVerificationMethodViewModel, selectedVerificationMethod)
+
+}
+
+@Composable
+fun DeviceVerificationWizardAcceptSasStart() {
+    val i18n = DI.get<I18nView>()
+    Column {
+        Text(i18n.verificationStartEmoji())
+    }
+}
+
+@Composable
+fun BoxScope.DeviceVerificationWizardCompareEmojisOrNumbers(verificationStepCompareViewModel: VerificationStepCompareViewModel) {
+    CompareEmojisOrNumbersContent(verificationStepCompareViewModel)
+}
+
+@Composable
+fun DeviceVerificationWizardSuccess() {
+    val i18n = DI.get<I18nView>()
+
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(i18n.verificationSuccess())
+            Icon(
+                Icons.Default.CheckCircle,
+                i18n.commonSuccess(),
+                tint = MaterialTheme.messengerColors.success
+            )
+        }
+    }
+}
+
+@Composable
+fun DeviceVerificationWizardRejected(
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        VerificationRejectedContent(true)
+    }
+}
+
+@Composable
+fun DeviceVerificationWizardTimeout(
+) {
+    VerificationTimeoutContent(true)
+}
+
+@Composable
+fun DeviceVerificationWizardCancelled(
+) {
+    VerificationCancelledContent(true)
+}
+
+@Composable
+private fun OkButton(onClick: () -> Unit) {
+    val i18n = DI.get<I18nView>()
+    Row(Modifier.fillMaxWidth()) {
+        Spacer(Modifier.weight(1.0f, fill = true))
+        Button(onClick, Modifier.buttonPointerModifier()) {
+            Text(i18n.commonOk())
+        }
     }
 }

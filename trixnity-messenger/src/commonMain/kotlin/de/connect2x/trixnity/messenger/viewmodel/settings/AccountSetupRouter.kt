@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.router.stack.childStack
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
@@ -20,8 +21,7 @@ private val log = KotlinLogging.logger { }
 
 class AccountSetupRouter(
     private val viewModelContext: ViewModelContext,
-    private val onCloseCrossDeviceVerification : () -> Unit,
-    private val onStartCrossSigningBootstrap: (userId: UserId) -> Unit
+    private val onStartVerification: (UserId, Boolean) -> Unit
 ) : ViewModelContext by viewModelContext {
 
 
@@ -45,7 +45,9 @@ class AccountSetupRouter(
                 get<AccountSetupViewModelFactory>().create(
                     viewModelContext.childContext(
                         componentContext, userId = config.userId
-                    ), ::onSetupClose, onStartCrossSigningBootstrap, onCloseCrossDeviceVerification
+                    ),
+                    ::onSetupClose,
+                    onStartVerification,
                 )
             )
         }
@@ -71,6 +73,19 @@ class AccountSetupRouter(
     }
 
 
+    fun onCloseSelfVerification(userId: UserId, completedVerification: Boolean) {
+        val activeInstance = stack.active
+        if (activeInstance.configuration is Config.ShowAccountSetup &&
+            (activeInstance.configuration as Config.ShowAccountSetup).userId == userId &&
+            activeInstance.instance is Wrapper.ShowAccountSetup
+        ) {
+            (activeInstance.instance as Wrapper.ShowAccountSetup).viewModel.changeVerificationCompleteStatus(
+                completedVerification
+            )
+        }
+    }
+
+
     sealed class Wrapper {
         data class ShowAccountSetup(val viewModel: AccountSetupViewModel) : Wrapper()
         data object None : Wrapper()
@@ -80,6 +95,7 @@ class AccountSetupRouter(
     sealed class Config {
         @Serializable
         data class ShowAccountSetup(val userId: UserId) : Config()
+
         @Serializable
         data object None : Config()
     }

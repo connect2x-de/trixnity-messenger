@@ -56,7 +56,7 @@ class SelfVerificationViewModelTest : ShouldSpec() {
 
     val aesHmacSha2Key: SecretKeyEventContent.AesHmacSha2Key = SecretKeyEventContent.AesHmacSha2Key()
 
-    private val onCloseSelfVerificationMock = mock<Function0<Unit>>()
+    private val onCloseSelfVerificationMock = mock<Function1<Boolean, Unit>>()
 
     private val onResetRecoveryMock = mock<Function0<Unit>>()
 
@@ -167,7 +167,7 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                     )
                 )
             )
-            every { onCloseSelfVerificationMock.invoke() } returns Unit
+            every { onCloseSelfVerificationMock.invoke(any()) } returns Unit
             every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
             val cut = selfVerificationViewModel(coroutineContext)
@@ -176,7 +176,7 @@ class SelfVerificationViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
 
             deviceVerificationCalled shouldBe true
-            verify { onCloseSelfVerificationMock.invoke() }
+            verify { onCloseSelfVerificationMock.invoke(any()) }
 
             cancelNeverEndingCoroutines()
         }
@@ -251,7 +251,7 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                     )
                 )
             )
-            every { onCloseSelfVerificationMock.invoke() } returns Unit
+            every { onCloseSelfVerificationMock.invoke(any()) } returns Unit
             everySuspend {
                 verifyAccountMock.verify(any(), eq("iAmA Reco very Key1"))
             } returns Result.success(Unit)
@@ -267,7 +267,7 @@ class SelfVerificationViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceUntilIdle()
             verifySuspend {
                 verifyAccountMock.verify(any(), eq("iAmA Reco very Key1"))
-                onCloseSelfVerificationMock.invoke()
+                onCloseSelfVerificationMock.invoke(any())
             }
 
             cancelNeverEndingCoroutines()
@@ -287,7 +287,7 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                 )
             )
             var onCloseMockWasCalled = false
-            every { onCloseSelfVerificationMock.invoke() } calls { onCloseMockWasCalled = true }
+            every { onCloseSelfVerificationMock.invoke(any()) } calls { onCloseMockWasCalled = true }
             everySuspend { verifyAccountMock.verify(any(), eq("iAmA Sooo very Wron")) } returns
                     Result.failure(RecoveryKeyInvalidException("Nope"))
             every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
@@ -320,7 +320,7 @@ class SelfVerificationViewModelTest : ShouldSpec() {
                 )
             )
             var onCloseMockWasCalled = false
-            every { onCloseSelfVerificationMock.invoke() } calls { onCloseMockWasCalled = true }
+            every { onCloseSelfVerificationMock.invoke(any()) } calls { onCloseMockWasCalled = true }
             everySuspend { verifyAccountMock.verify(any(), eq("iAmA Reco very Key1")) } returns
                     Result.failure(RuntimeException("Oh no!"))
             every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods

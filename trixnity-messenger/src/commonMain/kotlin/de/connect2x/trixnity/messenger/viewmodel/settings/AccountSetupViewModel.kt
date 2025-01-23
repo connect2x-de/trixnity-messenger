@@ -2,21 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.matrixClients
-import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
-import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
-import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
-import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.client.key
+import kotlinx.coroutines.flow.MutableStateFlow
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
@@ -26,11 +13,12 @@ interface AccountSetupViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         onWizardClose: (userId: UserId) -> Unit,
-        onStartCrossSigningBootstrap: (userId: UserId) -> Unit,
-        onCloseCrossDeviceVerification: () -> Unit
+        onStartVerification: (UserId, Boolean) -> Unit,
     ): AccountSetupViewModel {
         return AccountSetupViewModelImpl(
-            viewModelContext, onWizardClose, onStartCrossSigningBootstrap, onCloseCrossDeviceVerification
+            viewModelContext,
+            onWizardClose,
+            onStartVerification,
         )
     }
 
@@ -39,24 +27,28 @@ interface AccountSetupViewModelFactory {
 
 interface AccountSetupViewModel {
     fun closeAccountSetup()
-    fun closeCrossDeviceVerification()
+    fun startVerification()
+    fun changeVerificationCompleteStatus(newVerificationCompleteStatus: Boolean)
+
+    /**
+     * Marks whether the current verification was completed/skipped or cancelled.
+     * A value of null means, that no verification is in process
+     */
+    val completedVerification: MutableStateFlow<Boolean?>
     val userId: UserId
     val privacySettingsViewModel: PrivacySettingsSingleAccountViewModel
     val notificationSettingsViewModel: NotificationSettingsSingleAccountViewModel
-    val verificationViewModel: VerificationViewModel
-    val selfVerificationViewModel: SelfVerificationViewModel
-    val isVerified: StateFlow<Boolean?>
-
 }
 
 class AccountSetupViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     val onWizardClose: (UserId) -> Unit,
-    val onStartCrossSigningBootstrap: (UserId) -> Unit,
-    val onCloseCrossDeviceVerification: () -> Unit
+    val onStartVerification: (UserId, Boolean) -> Unit,
 ) :
     ViewModelContext by viewModelContext, AccountSetupViewModel {
     override val userId = viewModelContext.userId
+
+    override val completedVerification: MutableStateFlow<Boolean?> = MutableStateFlow(null)
 
     override val privacySettingsViewModel by lazy {
         get<PrivacySettingsSingleAccountViewModelFactory>().create(viewModelContext) {}
@@ -65,30 +57,23 @@ class AccountSetupViewModelImpl(
         get<NotificationSettingsSingleAccountViewModelFactory>().create(viewModelContext)
     }
 
-    private fun startCrossSigningBootstrap() {
-        log.debug { "Start cross signing bootstrap from AccountBootstrapping" }
-        onStartCrossSigningBootstrap(userId)
-    }
+    private val verificationInProgress = MutableStateFlow(false)
 
-    override fun closeCrossDeviceVerification() {
-        log.debug { "Close device Verification from AccountBootstrapping" }
-        onCloseCrossDeviceVerification()
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override val isVerified =
-        matrixClients.map { it[userId] }.filterNotNull()
-            .map { it.key.getTrustLevel(userId, it.deviceId).map { it.isVerified } }.flatMapLatest({ it })
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-
-    override val selfVerificationViewModel by lazy {
-        get<SelfVerificationViewModelFactory>().create(viewModelContext, {}, ::startCrossSigningBootstrap)
-    }
-    override val verificationViewModel by lazy {
-        get<VerificationViewModelFactory>().create(viewModelContext, {}, {}, null, null)
+    override fun startVerification() {
+        if (!verificationInProgress.value) {
+            onStartVerification(userId, true)
+            verificationInProgress.value = true
+            completedVerification.value = null
+        }
     }
 
     override fun closeAccountSetup() {
         this.onWizardClose(userId)
     }
+
+    override fun changeVerificationCompleteStatus(newVerificationCompleteStatus: Boolean) {
+        completedVerification.value = newVerificationCompleteStatus
+        verificationInProgress.value = false
+    }
+
 }
