@@ -69,7 +69,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastRoundToInt
 import de.connect2x.messenger.compose.view.DI
@@ -82,6 +81,7 @@ import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.pointerEventWrapper
+import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.util.Tooltip
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -246,17 +246,17 @@ private class ThrottledMutableState<T> private constructor(value: MutableState<T
 
     companion object {
         @Composable
-        operator fun <T> invoke(value: () -> T): ThrottledMutableState<T> {
-            val effect = ThrottledMutableState(
-                remember { mutableStateOf(value()) },
-                remember { mutableStateOf(value()) },
+        operator fun <T> invoke(startValue: () -> T): ThrottledMutableState<T> {
+            val state = ThrottledMutableState(
+                remember { mutableStateOf(startValue()) },
+                remember { mutableStateOf(startValue()) },
             )
             LaunchedEffect(Unit) {
-                snapshotFlow { effect._pending }
+                snapshotFlow { state._pending }
                     .conflate().sample(33.milliseconds)
-                    .collect { effect._value.value = it }
+                    .collect { state._value.value = it }
             }
-            return effect
+            return state
         }
     }
 }
@@ -292,17 +292,20 @@ class MessageMetadataViewImpl : MessageMetadataView {
         val density = LocalDensity.current
         val smallSpacing = 10.dp
         val largeSpacing = 20.dp
-        val filterHeight = 64.dp
+        val filterHeight = 48.dp
 
         val scrollState = rememberScrollState()
         val paneBounds = ThrottledMutableState { density.verticalBounds() }
         val interactionsBounds = ThrottledMutableState { density.verticalBounds() }
         val interactionFilterByReaction = remember { mutableStateOf<ReactionKey?>(null) }
         val interactionsOffset = interactionsBounds.get().offsetRelativeTo(paneBounds.get()) ?: 0.dp
-        val filterOffset = min(
-            interactionsOffset + interactionsBounds.get().height + smallSpacing,
-            paneBounds.get().height - filterHeight,
-        )
+
+        // TODO: use this to have the filter bar snap to the bottom of the user interactions list
+//        val filterOffset = min(
+//            interactionsOffset + interactionsBounds.get().height + smallSpacing,
+//            paneBounds.get().height - filterHeight,
+//        )
+        val filterOffset = paneBounds.get().height - filterHeight
         val isInteractionsVisible = filterOffset >= interactionsOffset
         val isFilterVisible = isInteractionsVisible && reactionCounts.isNotEmpty()
 
@@ -398,7 +401,7 @@ private fun UserInfo(
         ?: return Box(
             Modifier
                 .fillMaxWidth()
-                .height(42.dp)
+                .height(48.dp)
         )
 
     val compiledReactionsList: String = reactions.joinToString(" ")
@@ -417,7 +420,7 @@ private fun UserInfo(
         Row(
             Modifier
                 .fillMaxWidth()
-                .height(42.dp)
+                .height(48.dp)
                 .clickable {
                     // Noop for hover effect.
                     // TODO: Open user profile.
@@ -469,6 +472,7 @@ private fun MessageContents(
 ) {
     val i18n = DI.get<I18nView>()
     messageHolder?.let { holder ->
+        DateStickyHeader(messageHolder.formattedDate)
         holder.element.collectAsState().value?.let { element ->
             Column(
                 Modifier.padding(end = 8.dp),
@@ -503,7 +507,7 @@ private fun UserInteractions(
 ) {
     val i18n = DI.get<I18nView>()
     val density = LocalDensity.current
-    val hiddenItemsHeight = 45.dp
+    val hiddenItemsHeight = 48.dp
     val itemBounds = ThrottledMutableState<MutableMap<Int, VerticalBounds>> { mutableMapOf() }
     Column(modifier) {
         if (interactions.isEmpty()) Text(
@@ -548,6 +552,7 @@ private fun ReactionsFilter(
     if (reactionCounts.isEmpty()) return
     val i18n = DI.get<I18nView>()
     var selectedTabIndex = 0
+    val buttonWidth = 64.dp
     val reactionList = reactionCounts.asSequence()
     // TODO: Move this into the viewmodel?
     val reactionListWithSum: List<Pair<String, UInt>> =
@@ -576,7 +581,7 @@ private fun ReactionsFilter(
             reactionListWithSum[tabIndex].let { (reaction, count) ->
                 Row(
                     Modifier
-                        .width(96.dp)
+                        .width(buttonWidth)
                         .fillMaxHeight()
                         .background(with(MaterialTheme.colorScheme) {
                             if (tabIndex % 2 == 0) surface
@@ -646,29 +651,30 @@ private fun TabsRow(
             content = {
                 items(count = tabsCount, key = { it }) { tabIndex ->
                     val isSelected = tabIndex == selectedTabIndex
-                    Box(Modifier
-                        .clickable {
-                            // TODO: Ensure that there's only one simultaneous scrolling/launch happening?
-                            coroutineScope.launch {
-                                scrollableState.animateScrollToItem(
-                                    tabIndex,
-                                    (scrollContainerWidth - tabsWidthCache
-                                        .getOrElse(tabIndex) { averageTabWidth }) / -2,
-                                )
+                    Box(
+                        Modifier
+                            .clickable {
+                                // TODO: Ensure that there's only one simultaneous scrolling/launch happening?
+                                coroutineScope.launch {
+                                    scrollableState.animateScrollToItem(
+                                        tabIndex,
+                                        (scrollContainerWidth - tabsWidthCache
+                                            .getOrElse(tabIndex) { averageTabWidth }) / -2,
+                                    )
+                                }
+                                onTabClick(tabIndex)
                             }
-                            onTabClick(tabIndex)
-                        }
-                        .drawWithCache {
-                            onDrawWithContent {
-                                drawContent()
-                                val indicatorHeight = 8.dp.toPx()
-                                if (isSelected) drawRect(
-                                    color = selectionIndicatorColor,
-                                    topLeft = Offset(0f, size.height - indicatorHeight),
-                                    size = Size(size.width, indicatorHeight)
-                                )
+                            .drawWithCache {
+                                onDrawWithContent {
+                                    drawContent()
+                                    val indicatorHeight = 8.dp.toPx()
+                                    if (isSelected) drawRect(
+                                        color = selectionIndicatorColor,
+                                        topLeft = Offset(0f, size.height - indicatorHeight),
+                                        size = Size(size.width, indicatorHeight)
+                                    )
+                                }
                             }
-                        }
                     ) {
                         Box(
                             modifier = Modifier

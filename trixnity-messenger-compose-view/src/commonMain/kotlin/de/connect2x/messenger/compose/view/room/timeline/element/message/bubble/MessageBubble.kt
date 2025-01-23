@@ -69,6 +69,10 @@ data class MessageBubbleDisplayConfig(
             (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (isRedactionInProgress) 16.dp else 0.dp)
         },
 
+    /**
+     * Block click events on the message contents.
+     */
+    var preventUserInput:Boolean = false,
     ) {
     companion object {
         fun of(config: MessageBubbleDisplayConfig.() -> Unit) =
@@ -77,9 +81,10 @@ data class MessageBubbleDisplayConfig(
         fun MessageBubbleDisplayConfig.applyPreviewConfig() = this.apply {
             showMessageReactions = false
             showContextActionMenu = false
-            showTimeAndEditedIndicator = false
+            showTimeAndEditedIndicator = true
             alwaysShowChatBubbleTail = true
             bubblePadding = { _ -> 0.dp }
+            preventUserInput = true
         }
     }
 }
