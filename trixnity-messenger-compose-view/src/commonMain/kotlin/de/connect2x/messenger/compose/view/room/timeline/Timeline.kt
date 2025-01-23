@@ -182,7 +182,7 @@ class TimelineViewImpl : TimelineView {
                 val unreadMarkerOnFirstLoad = remember {
                     (timelineElementHolderViewModels.indexOfLast {
                         it is TimelineElementHolderViewModel && it.showUnreadMarker.value
-                    } + 1).coerceAtMost(timelineElementHolderViewModels.size - 1)
+                    })
                 }
                 val listState =
                     rememberLazyListState(initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else 0)
@@ -213,11 +213,11 @@ class TimelineViewImpl : TimelineView {
                 LaunchedEffect(visible, timelineElementHolderViewModels, isFocused) {
                     visible?.let {
                         timelineViewModel.viewState.value = TimelineViewModel.ViewState(
-                            it.first,
-                            it.second,
-                            timelineElementHolderViewModels.last().key,
-                            timelineElementHolderViewModels.first().key,
-                            isFocused,
+                            firstVisibleElement = it.first,
+                            lastVisibleElement = it.second,
+                            firstLoadedElement = timelineElementHolderViewModels.last().key,
+                            lastLoadedElement = timelineElementHolderViewModels.first().key,
+                            windowIsFocused = isFocused,
                         ).also {
                             log.debug { "viewState: $it" }
                         }

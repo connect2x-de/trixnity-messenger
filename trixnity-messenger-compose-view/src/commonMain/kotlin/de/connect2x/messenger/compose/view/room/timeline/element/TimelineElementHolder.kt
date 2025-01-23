@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxEl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.FlowPreview
 
 private val log = KotlinLogging.logger { }
 
@@ -28,11 +27,10 @@ interface TimelineElementHolderView {
 fun TimelineElementHolder(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
 ) {
-    with(DI.get<TimelineElementHolderView>()) { create(timelineElementHolderViewModel) }
+    DI.get<TimelineElementHolderView>().create(timelineElementHolderViewModel)
 }
 
 class TimelineElementHolderViewImpl : TimelineElementHolderView {
-    @OptIn(FlowPreview::class)
     @Composable
     override fun create(
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
@@ -40,12 +38,12 @@ class TimelineElementHolderViewImpl : TimelineElementHolderView {
         Column {
             when (timelineElementHolderViewModel) {
                 is TimelineElementHolderViewModel -> {
+                    val showUnreadMarker = timelineElementHolderViewModel.showUnreadMarker.collectAsState().value
                     val showLoadingIndicatorBefore =
                         timelineElementHolderViewModel.showLoadingIndicatorBefore.collectAsState().value
                     val showLoadingIndicatorAfter =
                         timelineElementHolderViewModel.showLoadingIndicatorAfter.collectAsState().value
-                    val showUnreadMarker = timelineElementHolderViewModel.showUnreadMarker.collectAsState().value
-
+                    
                     AnimatedVisibility(showLoadingIndicatorBefore) { LoadingSpinner() }
                     TimelineElementHolderSwitch(timelineElementHolderViewModel)
                     AnimatedVisibility(showUnreadMarker) { UnreadMessagesIndicator() }

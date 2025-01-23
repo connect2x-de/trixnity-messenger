@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.debounceAfterFirst
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -88,10 +87,10 @@ interface TimelineElementHolderViewModelFactory {
         sender: UserId,
         formattedDate: String,
         formattedTime: String,
+        showUnreadMarker: Flow<Boolean>,
         showLoadingIndicatorBefore: Flow<Boolean>,
         showLoadingIndicatorAfter: Flow<Boolean>,
         getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
-        fullyReadEvent: Flow<EventId?>,
         onMessageReplace: (RoomId, EventId) -> Unit,
         onMessageReply: (RoomId, EventId) -> Unit,
         onMessageReport: (RoomId, EventId) -> Unit,
@@ -106,10 +105,10 @@ interface TimelineElementHolderViewModelFactory {
             senderUserId = sender,
             formattedDate = formattedDate,
             formattedTime = formattedTime,
+            showUnreadMarker = showUnreadMarker,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
             getReceipts = getReceipts,
-            fullyReadEvent = fullyReadEvent,
             onMessageReplace = onMessageReplace,
             onMessageReply = onMessageReply,
             onMessageReport = onMessageReport,
@@ -171,10 +170,10 @@ class TimelineElementHolderViewModelImpl(
     private val senderUserId: UserId,
     override val formattedDate: String,
     override val formattedTime: String,
+    showUnreadMarker: Flow<Boolean>,
     showLoadingIndicatorBefore: Flow<Boolean>,
     showLoadingIndicatorAfter: Flow<Boolean>,
     private val getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
-    private val fullyReadEvent: Flow<EventId?>,
     private val onMessageReplace: (RoomId, EventId) -> Unit,
     private val onMessageReply: (RoomId, EventId) -> Unit,
     private val onMessageReport: (RoomId, EventId) -> Unit,
@@ -186,18 +185,6 @@ class TimelineElementHolderViewModelImpl(
     private val initials = get<Initials>()
     private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
     private val repliedTimelineElementHolderViewModelFactory = get<RepliedTimelineElementHolderViewModelFactory>()
-
-    @OptIn(FlowPreview::class)
-    override val showLoadingIndicatorBefore =
-        showLoadingIndicatorBefore
-            .debounce { if (it) 1.seconds else Duration.ZERO } // prevent indicator on fast loading
-            .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
-
-    @OptIn(FlowPreview::class)
-    override val showLoadingIndicatorAfter =
-        showLoadingIndicatorAfter
-            .debounce { if (it) 1.seconds else Duration.ZERO } // prevent indicator on fast loading
-            .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -211,14 +198,30 @@ class TimelineElementHolderViewModelImpl(
                 .drop(1)
         ).shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
+    @OptIn(FlowPreview::class)
     override val showUnreadMarker: StateFlow<Boolean> =
-        fullyReadEvent
-            .flatMapLatest { fullyReadEvent ->
-                if (fullyReadEvent == eventId) {
+        showUnreadMarker
+            .flatMapLatest { showUnreadMarker ->
+                if (showUnreadMarker) {
                     log.trace { "start compute unread marker at $eventId" }
-                    nextSupportedTimelineEvent.map { it != null && it.sender != userId }.debounceAfterFirst(1.seconds)
-                } else flowOf(false)
-            }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+                    nextSupportedTimelineEvent.filterNotNull().map { it.sender != userId }
+                } else {
+                    flowOf(false)
+                }
+            }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+
+    @OptIn(FlowPreview::class)
+    override val showLoadingIndicatorBefore =
+        showLoadingIndicatorBefore
+            .debounce { if (it) 1.seconds else Duration.ZERO } // prevent indicator on fast loading
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+
+    @OptIn(FlowPreview::class)
+    override val showLoadingIndicatorAfter =
+        showLoadingIndicatorAfter
+            .debounce { if (it) 1.seconds else Duration.ZERO } // prevent indicator on fast loading
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override val isReplaced: StateFlow<Boolean> =
         matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId).map {
