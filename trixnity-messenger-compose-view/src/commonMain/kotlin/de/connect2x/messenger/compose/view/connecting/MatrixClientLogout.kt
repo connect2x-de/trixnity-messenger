@@ -21,17 +21,17 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModel
 
-interface MatrixClientLogoutView {
+interface RemoveMatrixAccountView {
     @Composable
     fun create(removeMatrixAccountViewModel: RemoveMatrixAccountViewModel)
 }
 
 @Composable
-fun MatrixClientLogout(removeMatrixAccountViewModel: RemoveMatrixAccountViewModel) {
-    DI.get<MatrixClientLogoutView>().create(removeMatrixAccountViewModel)
+fun RemoveMatrixAccount(removeMatrixAccountViewModel: RemoveMatrixAccountViewModel) {
+    DI.get<RemoveMatrixAccountView>().create(removeMatrixAccountViewModel)
 }
 
-class MatrixClientLogoutViewImpl : MatrixClientLogoutView {
+class RemoveMatrixAccountViewImpl : RemoveMatrixAccountView {
     @Composable
     override fun create(removeMatrixAccountViewModel: RemoveMatrixAccountViewModel) {
         val error = removeMatrixAccountViewModel.error.collectAsState().value

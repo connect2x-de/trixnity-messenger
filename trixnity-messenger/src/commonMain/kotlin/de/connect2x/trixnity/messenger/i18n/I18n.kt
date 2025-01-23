@@ -401,8 +401,8 @@ abstract class I18n(
     }
 
     fun connectingErrorForbidden() = translate {
-        EN - "Your username or password are not correct."
-        DE - "Der Nutzername oder das Passwort sind nicht korrekt."
+        EN - "Your credentials are not correct."
+        DE - "Die Zugangsdaten sind nicht korrekt."
     }
 
     fun connectingErrorNotFound() = translate {

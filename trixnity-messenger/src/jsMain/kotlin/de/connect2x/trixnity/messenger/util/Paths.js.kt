@@ -1,11 +1,12 @@
 package de.connect2x.trixnity.messenger.util
 
 import js.objects.Object
-import js.objects.jso
 import okio.Path
 import okio.Path.Companion.toPath
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import web.fs.FileSystemGetDirectoryOptions
+import web.fs.FileSystemRemoveOptions
 import web.idb.indexedDB
 import web.navigator.navigator
 import web.storage.localStorage
@@ -34,7 +35,7 @@ suspend fun Path.deleteVirtualFileSystemData() {
 
     var opfsDirectory = navigator.storage.getDirectory()
     for (segment in segments.dropLast(1)) {
-        opfsDirectory = opfsDirectory.getDirectoryHandle(segment, jso { create = true })
+        opfsDirectory = opfsDirectory.getDirectoryHandle(segment, FileSystemGetDirectoryOptions(create = true))
     }
-    opfsDirectory.removeEntry(segments.last(), jso { recursive = true })
+    opfsDirectory.removeEntry(segments.last(), FileSystemRemoveOptions(recursive = true))
 }

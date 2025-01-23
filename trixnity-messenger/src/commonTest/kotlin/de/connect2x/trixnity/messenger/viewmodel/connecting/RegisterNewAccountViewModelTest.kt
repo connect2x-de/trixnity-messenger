@@ -107,7 +107,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
 
     private suspend fun registerNewAccountViewModel(
         serverUrl: String = "https://local.host",
-    ): RegisterNewAccountViewModelImpl {
+    ): RegisterMatrixAccountViewModelImpl {
         Dispatchers.setMain(Dispatchers.Unconfined)
         val currentCoroutineContext = currentCoroutineContext()
         val di = koinApplication {
@@ -120,7 +120,7 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
             )
         }.koin
         di.get<MatrixMessengerConfiguration>().httpClientEngine = MockEngine { respond("") }
-        return RegisterNewAccountViewModelImpl(
+        return RegisterMatrixAccountViewModelImpl(
             viewModelContext = ViewModelContextImpl(
                 di = di,
                 componentContext = DefaultComponentContext(LifecycleRegistry()),

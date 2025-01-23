@@ -32,7 +32,7 @@ fun createTrixnityMessengerTestModule(debugName: String = "client") = module {
                 return CreateRepositoriesModule.CreateResult(module, null)
             }
 
-            override suspend fun load(userId: UserId, databasePassword: SecretByteArray?): Module =
+            override suspend fun load(userId: UserId, databaseKey: SecretByteArray?): Module =
                 modules[userId] ?: throw IllegalStateException("Repositories module for $userId not instantiated")
         }
     }

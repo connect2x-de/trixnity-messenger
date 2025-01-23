@@ -8,7 +8,7 @@ sealed interface AddMatrixAccountMethod {
     data class Password(override val serverUrl: String) : AddMatrixAccountMethod
     data class SSO(
         override val serverUrl: String,
-        val identityProvider: LoginType.SSO.IdentityProvider,
+        val identityProvider: LoginType.SSO.IdentityProvider?,
         val icon: ByteArray?,
     ) : AddMatrixAccountMethod {
         override fun equals(other: Any?): Boolean {
