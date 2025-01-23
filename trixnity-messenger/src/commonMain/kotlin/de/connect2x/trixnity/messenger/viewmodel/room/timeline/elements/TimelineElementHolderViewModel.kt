@@ -363,6 +363,7 @@ class TimelineElementHolderViewModelImpl(
                     reactionCount.events.mapTo(mutableSetOf()) { event ->
                         ReactionEvent(
                             eventId = event.eventId,
+                            isByMe = event.sender == userId,
                             senderFlow = (reactions.byUser[event.sender]?.roomUserFlow?.map {
                                 it?.toUserInfoElement(
                                     coroutineScope = coroutineScope,
@@ -373,7 +374,6 @@ class TimelineElementHolderViewModelImpl(
                                 )
                             } ?: flowOf(null))
                                 .stateIn(coroutineScope, whileSubscribedWithTimeout, null),
-                            isByMe = event.sender == userId,
                         )
                     }
                 }
@@ -431,10 +431,12 @@ class TimelineElementHolderViewModelImpl(
                                 _redactionInProgress.value = false
                             }
                         }
-                    } else log.warn { "try to redact timeline event $eventId, but is no room message or it is not by this user" }
+                    } else log.warn { "try to redact timeline event $eventId," +
+                            " but is no room message or it is not by this user" }
                 }
             }
-        } else log.warn { "try to redact timeline event $eventId, but is already marked for redaction" }
+        } else log.warn { "try to redact timeline event $eventId," +
+                " but is already marked for redaction" }
     }
 
     override fun reply() {

@@ -93,7 +93,6 @@ class ExtrasRouterImpl(
     }
 
     override suspend fun closeExtrasRouter() {
-//        extrasNavigation.popWhileSuspending { it !is None }
         val config = None
         extrasNavigation.replaceAllSuspending(config)
     }
@@ -129,11 +128,6 @@ class ExtrasRouterImpl(
         val config = MessageMetadata(eventId, roomId)
         extrasNavigation.bringToFrontSuspending(config)
     }
-
-
-//    private inline fun <reified T : Config> isActive(): Boolean =
-//        stack.value.active.configuration is T
-
 
     private fun createSettingsChild(
         config: Config,

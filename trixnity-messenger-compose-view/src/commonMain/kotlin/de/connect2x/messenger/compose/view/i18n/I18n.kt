@@ -886,11 +886,6 @@ abstract class I18nView(
         DE - "Leser und Reaktionen"
     }
 
-    fun messageMetadataMessageTimestampLabel(formattedTime: String) = translate {
-        EN - "Sent at $formattedTime"
-        DE - "Gesendet am $formattedTime"
-    }
-
     fun messageMetadataReadersAndReactionsNone() = translate {
         EN - "No message interactions yet."
         DE - "Bisher keine Nachrichtsinteraktionen"

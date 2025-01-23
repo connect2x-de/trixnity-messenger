@@ -45,8 +45,6 @@ import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
-import androidx.compose.ui.Alignment.Companion.End
-import androidx.compose.ui.Alignment.Companion.Start
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
@@ -481,16 +479,6 @@ private fun MessageContents(
                     createAsMessagePreview(holder, element)
                 }
                 Spacer(Modifier.size(5.dp))
-                val formattedDateAndTime = "${holder.formattedTime} - ${holder.formattedDate}"
-                Text(
-                    i18n.messageMetadataMessageTimestampLabel(formattedDateAndTime),
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier
-                        .paddingFromBaseline(0.dp)
-                        .padding(horizontal = 10.dp)
-                        .align(if (holder.isByMe) End else Start),
-                    maxLines = 1,
-                )
             }
             Spacer(Modifier.size(10.dp))
         }
