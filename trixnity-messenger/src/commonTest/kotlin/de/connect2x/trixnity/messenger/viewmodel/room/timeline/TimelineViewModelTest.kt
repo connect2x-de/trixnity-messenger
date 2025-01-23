@@ -163,8 +163,6 @@ class TimelineViewModelTest : ShouldSpec() {
 
             every { roomServiceMock.getTimelineEvent(any(), any(), any()) } returns dummyEvent
             every { roomServiceMock.getNextTimelineEvent(any(), any()) } returns flowOf(null)
-//            every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
-//                    MutableStateFlow(emptyMap())
 
             every {
                 userServiceMock.getAll(roomId)

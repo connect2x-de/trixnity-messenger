@@ -185,10 +185,10 @@ fun timeline(
     every { roomServiceMock.getById(roomId) } returns room
 
     val timelineMock = TimelineMock(room, fullyReadEventIndex, roomServiceMock).apply { addEvents(block) }
-    every { roomServiceMock.getLastTimelineEvent(roomId, any()) } returns timelineMock
-        .eventsInStore.map { it.lastOrNull() }
-    every { roomServiceMock.getLastTimelineEvents(roomId, any()) } returns timelineMock
-        .eventsInStore.map { it.reversed().asFlow() }
+    every { roomServiceMock.getLastTimelineEvent(roomId, any()) } returns
+            timelineMock.eventsInStore.map { it.lastOrNull() }
+    every { roomServiceMock.getLastTimelineEvents(roomId, any()) } returns
+            timelineMock.eventsInStore.map { it.reversed().asFlow() }
     every {
         roomServiceMock.getTimeline(
             eq(roomId),

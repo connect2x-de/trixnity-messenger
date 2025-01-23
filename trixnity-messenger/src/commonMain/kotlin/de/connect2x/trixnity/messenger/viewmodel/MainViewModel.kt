@@ -88,7 +88,7 @@ interface MainViewModel {
     fun onRoomSelected(userId: UserId, id: RoomId)
     fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor)
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
-    fun showSelfVerification(userId: UserId)
+    fun openSelfVerification(userId: UserId)
     fun openMention(userId: UserId, timelineElementMention: TimelineElementMention)
     fun closeAccountsOverview()
 }
@@ -321,7 +321,7 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun showSelfVerification(userId: UserId) {
+    override fun openSelfVerification(userId: UserId) {
         selfVerificationRouter.showSelfVerification(userId)
     }
 
@@ -596,7 +596,7 @@ class PreviewMainViewModel : MainViewModel {
     override fun closeDetailsAndShowList() {}
     override fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor) {}
     override fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor) {}
-    override fun showSelfVerification(userId: UserId) {}
+    override fun openSelfVerification(userId: UserId) {}
     override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {}
     override fun closeAccountsOverview() {}
 }
