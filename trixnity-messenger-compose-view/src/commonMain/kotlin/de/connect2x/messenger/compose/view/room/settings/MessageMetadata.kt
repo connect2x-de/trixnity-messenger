@@ -67,6 +67,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastRoundToInt
 import de.connect2x.messenger.compose.view.DI
@@ -275,6 +276,9 @@ fun MessageMetadata(
     DI.get<MessageMetadataView>().create(viewModel, stackPosition, isSinglePane)
 }
 
+private val userItemHeight = 48.dp
+private val filterBarHeight = 48.dp
+
 class MessageMetadataViewImpl : MessageMetadataView {
     @Composable
     override fun create(
@@ -290,7 +294,6 @@ class MessageMetadataViewImpl : MessageMetadataView {
         val density = LocalDensity.current
         val smallSpacing = 10.dp
         val largeSpacing = 20.dp
-        val filterHeight = 48.dp
 
         val scrollState = rememberScrollState()
         val paneBounds = ThrottledMutableState { density.verticalBounds() }
@@ -298,12 +301,10 @@ class MessageMetadataViewImpl : MessageMetadataView {
         val interactionFilterByReaction = remember { mutableStateOf<ReactionKey?>(null) }
         val interactionsOffset = interactionsBounds.get().offsetRelativeTo(paneBounds.get()) ?: 0.dp
 
-        // TODO: use this to have the filter bar snap to the bottom of the user interactions list
-//        val filterOffset = min(
-//            interactionsOffset + interactionsBounds.get().height + smallSpacing,
-//            paneBounds.get().height - filterHeight,
-//        )
-        val filterOffset = paneBounds.get().height - filterHeight
+        val filterOffset = min(
+            interactionsOffset + userItemHeight * userInteractions.size + smallSpacing,
+            paneBounds.get().height - filterBarHeight,
+        )
         val isInteractionsVisible = filterOffset >= interactionsOffset
         val isFilterVisible = isInteractionsVisible && reactionCounts.isNotEmpty()
 
@@ -320,7 +321,7 @@ class MessageMetadataViewImpl : MessageMetadataView {
             ) {
                 Box(
                     Modifier
-                        .height(paneBounds.get().height - (if (isFilterVisible) filterHeight else 0.dp))
+                        .height(paneBounds.get().height - (if (isFilterVisible) filterBarHeight else 0.dp))
                 ) {
                     Column(
                         Modifier
@@ -378,9 +379,7 @@ class MessageMetadataViewImpl : MessageMetadataView {
                     VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
                 }
                 if (isInteractionsVisible) ReactionsFilter(
-                    Modifier
-                        .height(filterHeight)
-                        .offset(y = filterOffset),
+                    Modifier.offset(y = filterOffset),
                     reactionCounts,
                     interactionFilterByReaction,
                 )
@@ -399,7 +398,7 @@ private fun UserInfo(
         ?: return Box(
             Modifier
                 .fillMaxWidth()
-                .height(48.dp)
+                .height(userItemHeight)
         )
 
     val compiledReactionsList: String = reactions.joinToString(" ")
@@ -418,7 +417,7 @@ private fun UserInfo(
         Row(
             Modifier
                 .fillMaxWidth()
-                .height(48.dp)
+                .height(userItemHeight)
                 .clickable {
                     // Noop for hover effect.
                     // TODO: Open user profile.
@@ -495,7 +494,6 @@ private fun UserInteractions(
 ) {
     val i18n = DI.get<I18nView>()
     val density = LocalDensity.current
-    val hiddenItemsHeight = 48.dp
     val itemBounds = ThrottledMutableState<MutableMap<Int, VerticalBounds>> { mutableMapOf() }
     Column(modifier) {
         if (interactions.isEmpty()) Text(
@@ -511,7 +509,7 @@ private fun UserInteractions(
                 Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface)
-                    .height(hiddenItemsHeight)
+                    .height(userItemHeight)
                     .onGloballyPositioned {
                         itemBounds.modify { value -> value[index] = density.verticalBounds(it) }
                     }
@@ -520,7 +518,7 @@ private fun UserInteractions(
                 val showItem = itemBounds.get()[index]
                     ?.let {
                         val itemOffset = it.offsetRelativeTo(paneBounds)
-                        val cullOffset = hiddenItemsHeight * 3
+                        val cullOffset = userItemHeight * 3
                         visibleListHeight > 0.dp && it.height > 0.dp && itemOffset != null
                                 && itemOffset < visibleListOffset + visibleListHeight + cullOffset
                                 && itemOffset > -cullOffset
@@ -551,7 +549,7 @@ private fun ReactionsFilter(
                     reactionCount.toPair()
                 }
     val filterScrollState = rememberLazyListState()
-    Box(modifier) {
+    Box(modifier.height(filterBarHeight)) {
         TabsRow(
             tabsCount = reactionListWithSum.size,
             selectedTabIndex = selectedTabIndex,

@@ -36,8 +36,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.gesturesDisabled
+import de.connect2x.messenger.compose.view.common.blockPointerInput
 import de.connect2x.messenger.compose.view.pointerMoveFilter
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -123,8 +122,7 @@ fun MessageBubbleContainer(
                     }
                     if (config.preventUserInput) Box(
                         Modifier
-                            .gesturesDisabled()
-                            .buttonPointerModifier(enabled = false)
+                            .blockPointerInput()
                             .size(
                                 contentSize.width.dp / density.density,
                                 contentSize.height.dp / density.density,
