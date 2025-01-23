@@ -65,19 +65,23 @@ suspend fun MatrixMessengerWithRoot.login(
     log.info { " +- main view" }
     val mainViewModel = main.viewModel
     mainViewModel.accountSetupRouterStack.waitFor(AccountSetupRouter.Wrapper.ShowAccountSetup::class).viewModel.closeAccountSetup()
-    val verification = mainViewModel.selfVerificationStack.toFlow().first { childStack ->
-        log.debug { " active: ${childStack.active.instance}" }
-        childStack.active.instance is SelfVerificationRouter.Wrapper.CrossSigningBootstrap ||
-                childStack.active.instance is SelfVerificationRouter.Wrapper.View
-    }.active.instance
-    if (verification is SelfVerificationRouter.Wrapper.View) {
+    mainViewModel.accountSetupRouterStack.waitFor(AccountSetupRouter.Wrapper.None::class)
+    val verification = withTimeoutOrNull(15.seconds) {
+        mainViewModel.selfVerificationStack.toFlow().first { childStack ->
+            log.debug { " active: ${childStack.active.instance}" }
+            childStack.active.instance is SelfVerificationRouter.Wrapper.CrossSigningBootstrap
+        }.active.instance
+    }
+    if (verification == null) {
+        mainViewModel.showSelfVerification(UserId(username))
+        val verificationView = mainViewModel.selfVerificationStack.waitFor(SelfVerificationRouter.Wrapper.View::class)
         if (recoveryKey != null) {
-            selfVerify(verification, recoveryKey)
+            selfVerify(verificationView, recoveryKey)
             mainViewModel.selfVerificationStack.waitFor(SelfVerificationRouter.Wrapper.None::class)
             log.info { "self verification done successfully" }
         } else {
             if (otherMessenger != null) {
-                selfVerify(verification, mainViewModel, otherMessenger.root)
+                selfVerify(verificationView, mainViewModel, otherMessenger.root)
             } else {
                 log.error { "cannot self verify without recovery key or other device" }
                 throw IllegalStateException("cannot self verify without recovery key or other device")

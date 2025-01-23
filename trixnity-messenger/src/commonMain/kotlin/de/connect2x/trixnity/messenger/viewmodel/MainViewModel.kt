@@ -87,6 +87,7 @@ interface MainViewModel {
     fun onRoomSelected(userId: UserId, id: RoomId)
     fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor)
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
+    fun showSelfVerification(userId: UserId)
 
     fun setSinglePane(isSinglePane: Boolean)
 
@@ -110,7 +111,7 @@ open class MainViewModelImpl(
     override val isSinglePane = MutableStateFlow(false)
     override val showRoom = MutableStateFlow(false)
 
-    internal val selfVerificationRouter = SelfVerificationRouter(viewModelContext)
+    internal val selfVerificationRouter = SelfVerificationRouter(viewModelContext, ::onCloseSelfVerification)
     override val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>> =
         selfVerificationRouter.stack
 
@@ -185,18 +186,11 @@ open class MainViewModelImpl(
     private val accountSetupRouter: AccountSetupRouter =
         AccountSetupRouter(
             viewModelContext,
-            onStartCrossSigningBootstrap = ::showCrossSigningBootstrap,
-            onCloseCrossDeviceVerification = verificationRouter::closeVerification
+            onStartVerification = selfVerificationRouter::showSelfVerification
         )
 
     override val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>> =
         accountSetupRouter.stack
-
-    private fun showCrossSigningBootstrap(userId: UserId) {
-        coroutineScope.launch {
-            selfVerificationRouter.showCrossSigningBootstrap(userId)
-        }
-    }
 
     private fun backPressHandler() {
         if (roomRouter.isShown() && isSinglePane.value) {
@@ -324,10 +318,7 @@ open class MainViewModelImpl(
                                     }
 
                                     is VerificationService.SelfVerificationMethods.CrossSigningEnabled -> {
-                                        if (selfVerificationMethods.methods.isNotEmpty()) {
-                                            log.debug { "start self verification for $userId" }
-                                            selfVerificationRouter.showSelfVerification(userId)
-                                        } else {
+                                        if (selfVerificationMethods.methods.isEmpty()) {
                                             log.debug { "no self verification methods available for $userId" }
                                             selfVerificationRouter.closeSelfVerification(userId)
                                         }
@@ -338,6 +329,10 @@ open class MainViewModelImpl(
                 }
             }
         }
+    }
+
+    override fun showSelfVerification(userId: UserId) {
+        selfVerificationRouter.showSelfVerification(userId)
     }
 
     private fun onOpenSelfVerification(userId: UserId) {
@@ -424,6 +419,10 @@ open class MainViewModelImpl(
 
     private fun startAccountSetup(userId: UserId) {
         accountSetupRouter.startSetup(userId)
+    }
+
+    private fun onCloseSelfVerification(userId: UserId, completedVerification: Boolean) {
+        accountSetupRouter.onCloseSelfVerification(userId, completedVerification)
     }
 
     override fun closeDetailsAndShowList() {
@@ -637,6 +636,9 @@ class PreviewMainViewModel : MainViewModel {
     override val showRoom: StateFlow<Boolean> = MutableStateFlow(false)
 
     override fun start() {
+    }
+
+    override fun showSelfVerification(userId: UserId) {
     }
 
     override fun closeDetailsAndShowList() {

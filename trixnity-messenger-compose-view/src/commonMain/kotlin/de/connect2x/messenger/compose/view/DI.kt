@@ -253,12 +253,12 @@ import de.connect2x.messenger.compose.view.uia.UiaPasswordInputView
 import de.connect2x.messenger.compose.view.uia.UiaPasswordInputViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaRegistrationTokenView
 import de.connect2x.messenger.compose.view.uia.UiaRegistrationTokenViewImpl
-import de.connect2x.messenger.compose.view.verification.DeviceVerificationModalView
-import de.connect2x.messenger.compose.view.verification.DeviceVerificationModalViewImpl
-import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModalView
-import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModalViewImpl
-import de.connect2x.messenger.compose.view.verification.SelfVerificationModalView
-import de.connect2x.messenger.compose.view.verification.SelfVerificationModalViewImpl
+import de.connect2x.messenger.compose.view.verification.DeviceVerificationWizardView
+import de.connect2x.messenger.compose.view.verification.DeviceVerificationWizardViewImpl
+import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWizardView
+import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWizardViewImpl
+import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardView
+import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardViewImpl
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named
@@ -473,12 +473,12 @@ fun settingsViewModule() = module {
     single<UserSettingsView> { UserSettingsViewImpl() }
     single<AdditionalAccountSetupWizardStep> { AdditionalAccountSetupWizardStepImpl() }
     single<AccountSetupWizardStepList> { AccountSetupWizardStepListImpl() }
+    single<SelfVerificationWizardView> { SelfVerificationWizardViewImpl() }
+    single<DeviceVerificationWizardView> { DeviceVerificationWizardViewImpl() }
 }
 
 fun verificationViewModule() = module {
-    single<DeviceVerificationModalView> { DeviceVerificationModalViewImpl() }
-    single<RedoSelfVerificationModalView> { RedoSelfVerificationModalViewImpl() }
-    single<SelfVerificationModalView> { SelfVerificationModalViewImpl() }
+    single<RedoSelfVerificationWizardView> { RedoSelfVerificationWizardViewImpl() }
 }
 
 fun uiaViewModule() = module {
