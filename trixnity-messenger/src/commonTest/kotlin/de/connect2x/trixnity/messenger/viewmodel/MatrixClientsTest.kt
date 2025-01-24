@@ -168,7 +168,7 @@ class MatrixClientsTest : ShouldSpec() {
             mutableMatrixClients = MutableStateFlow(mapOf())
         }
 
-        context("login") {
+//        context("login") {
             should("login and register new account locally") {
                 val cut = createCut()
                 cut.login(Url("https://example.org"), User("test1"), "password", "")
@@ -210,8 +210,8 @@ class MatrixClientsTest : ShouldSpec() {
 
                 cancelNeverEndingCoroutines()
             }
-        }
-        context("initFromStore") {
+//        }
+//        context("initFromStore") {
             should("init from the store and settings") {
                 val cut = createCut()
                 settings.update(UserId("test1", "server")) { it }
@@ -284,8 +284,8 @@ class MatrixClientsTest : ShouldSpec() {
 
                 cancelNeverEndingCoroutines()
             }
-        }
-        context("logout") {
+//        }
+//        context("logout") {
             should("logout matrix client") {
                 val cut = createCut()
                 settings.update(UserId("test1", "server")) { it }
@@ -311,8 +311,8 @@ class MatrixClientsTest : ShouldSpec() {
 
                 cancelNeverEndingCoroutines()
             }
-        }
-        context("external logout") {
+//        }
+//        context("external logout") {
             should("remove matrix client") {
                 val cut = createCut()
                 settings.update(UserId("test1", "server")) { it }
@@ -335,8 +335,8 @@ class MatrixClientsTest : ShouldSpec() {
 
                 cancelNeverEndingCoroutines()
             }
-        }
-        context("remove") {
+//        }
+//        context("remove") {
             should("remove matrix client") {
                 val cut = createCut()
                 settings.update<MatrixMessengerAccountSettingsBase>(UserId("test1", "server")) { it }
@@ -362,7 +362,7 @@ class MatrixClientsTest : ShouldSpec() {
 
                 cancelNeverEndingCoroutines()
             }
-        }
+//        }
     }
 
     suspend fun createCut(): MatrixClients =
