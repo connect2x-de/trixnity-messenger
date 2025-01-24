@@ -152,6 +152,7 @@ fun timeline(
     every {
         roomServiceMock.getTimeline(
             eq(roomId),
+            any(),
             any<suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper>()
         )
     } calls {
@@ -184,7 +185,7 @@ internal class MockedTimeline(
     private val pageSize: Int,
     private val timelineMock: TimelineMock,
     transformer: suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper
-) : TimelineBase<TimelineViewModelImpl.TimelineElementWrapper>(transformer) {
+) : TimelineBase<TimelineViewModelImpl.TimelineElementWrapper>({}, transformer) {
     private val eventsInStore = timelineMock.eventsInStore
 
     override suspend fun Flow<TimelineEvent>.canLoadBefore(): Flow<Boolean> = flowOf(true)
