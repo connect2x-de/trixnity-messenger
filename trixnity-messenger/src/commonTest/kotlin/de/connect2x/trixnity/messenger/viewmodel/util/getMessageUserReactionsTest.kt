@@ -40,10 +40,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
     val userServiceMock = mock<UserService>()
 
     init {
-        // Ideally is should run with
-        // coroutineTestScope = true
-        // but currently that makes
-        // it fail in the test suit run.
+        coroutineTestScope = true
 
         beforeEach {
             resetMocks(

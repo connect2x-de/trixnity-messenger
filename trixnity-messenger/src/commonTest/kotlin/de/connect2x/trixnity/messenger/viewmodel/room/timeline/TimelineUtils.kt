@@ -141,7 +141,6 @@ class RoomUserBuilder(
         name: String,
         id: UserId = UserId(name),
         lastReadMessage: EventId? = null,
-        testTag: String = "none", // TODO
     ): RoomUserWithReceipts =
         RoomUserWithReceipts(
             RoomUser(
