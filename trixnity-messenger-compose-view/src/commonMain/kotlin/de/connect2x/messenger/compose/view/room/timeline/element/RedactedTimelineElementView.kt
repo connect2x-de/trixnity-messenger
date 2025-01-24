@@ -20,12 +20,14 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedTimelineElementViewModel
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlin.reflect.KClass
+
 
 class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementViewModel> {
     override val supports: KClass<RedactedTimelineElementViewModel> = RedactedTimelineElementViewModel::class
@@ -41,7 +43,7 @@ class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementV
     ) {
         MessageBubble(
             holder = holder,
-        ) { _ ->
+        ) {
             Redacted(element)
         }
     }
@@ -54,6 +56,19 @@ class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementV
     @Composable
     override fun createReplyInSendMessage(element: RedactedTimelineElementViewModel) {
         Redacted(element)
+    }
+
+    @Composable
+    override fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: RedactedTimelineElementViewModel
+    ) {
+        MessageBubble(
+            holder = holder,
+            config = { applyPreviewConfig() },
+        ) {
+            Redacted(element)
+        }
     }
 }
 

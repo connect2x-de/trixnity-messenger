@@ -99,10 +99,14 @@ import kotlin.time.Duration.Companion.milliseconds
 
 
 // TODO: Move to utils?
+/**
+ * Helper to measure the visible vertical boundaries of a compose element and
+ * calculate relative offsets to other elements.
+ */
 private data class VerticalBounds(
     val height: Dp,
     val localOffset: Dp,
-    private val scrollTrigger: Int,
+    private val scrollTrigger: Int, // This ensures updates to be triggered whenever the element is moved.
     private val density: Density,
     private val coordinates: LayoutCoordinates? = null,
 ) {
@@ -400,7 +404,6 @@ private fun UserInfo(
                 .fillMaxWidth()
                 .height(userItemHeight)
         )
-
     val compiledReactionsList: String = reactions.joinToString(" ")
     val hasReactions = compiledReactionsList.isNotEmpty()
     val tooltipText = buildString {
@@ -500,6 +503,7 @@ private fun UserInteractions(
             i18n.messageMetadataReadersAndReactionsNone(),
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier
+                .height(userItemHeight * 2)
                 .align(CenterHorizontally)
                 .paddingFromBaseline(0.dp)
                 .padding(start = 10.dp),
@@ -518,7 +522,7 @@ private fun UserInteractions(
                 val showItem = itemBounds.get()[index]
                     ?.let {
                         val itemOffset = it.offsetRelativeTo(paneBounds)
-                        val cullOffset = userItemHeight * 3
+                        val cullOffset = userItemHeight * 1.5f
                         visibleListHeight > 0.dp && it.height > 0.dp && itemOffset != null
                                 && itemOffset < visibleListOffset + visibleListHeight + cullOffset
                                 && itemOffset > -cullOffset
