@@ -52,8 +52,8 @@ class getMessageUserReactionsTest : ShouldSpec() {
     }
 
     init {
-        coroutineTestScope = true
-        concurrency = 8
+//        coroutineTestScope = true
+//        concurrency = 8
         timeout = 5_000
 
         // Mokkery fails to properly update existing mocks.

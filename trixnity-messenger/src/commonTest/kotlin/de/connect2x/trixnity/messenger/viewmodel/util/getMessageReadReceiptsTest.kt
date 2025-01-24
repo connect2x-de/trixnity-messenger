@@ -379,6 +379,7 @@ class getMessageReadReceiptsTest : ShouldSpec() {
         // TODO: maybe add some more better tests for read receipts
     }
 
+    // TODO move to test utils?
     private fun <T> CoroutineScope.launchAndObserveCut(
         cut: Flow<T>,
         onCollect: (result: T, updateCount: Int) -> Unit,
