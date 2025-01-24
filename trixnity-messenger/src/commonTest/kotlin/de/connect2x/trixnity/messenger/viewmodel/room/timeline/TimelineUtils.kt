@@ -152,7 +152,7 @@ fun timeline(
     every {
         roomServiceMock.getTimeline(
             eq(roomId),
-            any(),
+            any<suspend (TimelineStateChange<TimelineViewModelImpl.TimelineElementWrapper>) -> Unit>(),
             any<suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper>()
         )
     } calls {
@@ -160,7 +160,7 @@ fun timeline(
         MockedTimeline(
             pageSize,
             timelineMock,
-            it.args[1] as (suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper)
+            it.args[2] as (suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper)
         )
     }
 

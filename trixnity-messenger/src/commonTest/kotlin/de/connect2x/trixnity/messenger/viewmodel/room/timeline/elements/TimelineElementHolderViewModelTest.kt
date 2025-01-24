@@ -680,10 +680,11 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             senderUserId = timelineEvent.sender,
             formattedDate = "01.01.2000",
             formattedTime = "07:24",
+            showUnreadMarker = roomServiceMock.getAccountData(roomId, FullyReadEventContent::class)
+                .map { it?.eventId == eventId },
             showLoadingIndicatorBefore = flowOf(false),
             showLoadingIndicatorAfter = flowOf(false),
             getReceipts = { receipts },
-            fullyReadEvent = roomServiceMock.getAccountData(roomId, FullyReadEventContent::class).map { it?.eventId },
             timelineEventFlow = flowOf(timelineEvent),
             onMessageReplace = mock(),
             onMessageReply = mock(),
