@@ -112,248 +112,240 @@ class getMessageReadReceiptsTest : ShouldSpec() {
             )
         }
 
-        // TODO
-        if (false) context("message is read") {
-
-            should("be false when no on read or sent a message other than the sender") {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutMessageIsRead(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Alice", env.alice, event[0])
-                }
-                cut shouldBeRead false
-                cancelNeverEndingCoroutines()
+        should("be false when no on read or sent a message other than the sender") {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutMessageIsRead(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
             }
-
-            should("be false when not read by anyone but us and we sent a message after it") {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutMessageIsRead(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                    +timelineEventOf(env.us, event[1])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Alice", env.alice, event[0])
-                    +roomUser("Martin", env.us, event[1])
-                }
-                cut shouldBeRead false
-                cancelNeverEndingCoroutines()
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Alice", env.alice, event[0])
             }
-
-            should("be false when not read by anyone and only the same user sent a message after it") {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutMessageIsRead(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                    +timelineEventOf(env.alice, event[1])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Alice", env.alice, event[1])
-                }
-                cut shouldBeRead false
-                cancelNeverEndingCoroutines()
-            }
-
-            should("be false when only we read the event") {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutMessageIsRead(env.alice, event[0])
-                // receipts.value = mapOf(eventIdByAlice to setOf(us))
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Martin", env.us, event[0])
-                }
-                cut shouldBeRead false
-                cancelNeverEndingCoroutines()
-            }
-
-            should("be false when only the sender read the event") {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutMessageIsRead(env.alice, event[0])
-                // receipts.value = mapOf(eventIdByAlice to setOf(alice))
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Alice", env.alice, event[0])
-                }
-                cut shouldBeRead false
-                cancelNeverEndingCoroutines()
-            }
-
-            should("be true when read by third user") {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutMessageIsRead(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Us", env.us, null)
-                    +roomUser("Bob", env.bob, null)
-                    +roomUser("Alice", env.alice, event[0])
-                }
-                cut shouldBeRead false
-                // receipts.value = mapOf(eventIdByAlice to setOf(bob))
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Bob", env.bob, event[0])
-                }
-                cut shouldBeRead true
-                cancelNeverEndingCoroutines()
-            }
-
-            should("be true when message from third user after it") {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutMessageIsRead(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Us", env.us, null)
-                    +roomUser("Bob", env.bob, null)
-                    +roomUser("Alice", env.alice, event[0])
-                }
-                cut shouldBeRead false
-                timeline.addEvents {
-                    // Should be ignored.
-                    +timelineEventOf(env.alice, event[1])
-                    +timelineEventOf(env.bob, event[2])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Bob", env.bob, event[0])
-                }
-                cut shouldBeRead true
-                cancelNeverEndingCoroutines()
-            }
+            cut shouldBeRead false
+            cancelNeverEndingCoroutines()
         }
 
-        // TODO
-        if (false) context("message read receipts:") {
-
-            should("be empty when not read") {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Us", env.us, null)
-                    +roomUser("Bob", env.bob, null)
-                    +roomUser("Alice", env.alice, null)
-                }
-                val cut = env.cutMessageReadReceipts(env.alice, event[0])
-                cut shouldBeUsers emptySet()
-                cancelNeverEndingCoroutines()
+        should("be false when not read by anyone but us and we sent a message after it") {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutMessageIsRead(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+                +timelineEventOf(env.us, event[1])
             }
-
-            should("contain users from read markers") {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutMessageReadReceipts(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Us", env.us, null)
-                    +roomUser("Bob", env.bob, null)
-                    +roomUser("Alice", env.alice, null)
-                }
-                cut shouldBeUsers emptySet()
-                // receipts.value = mapOf(eventIdByAlice to setOf(bob))
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Bob", env.bob, event[0])
-                }
-                cut shouldBeUsers setOf(env.bob)
-                cancelNeverEndingCoroutines()
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Alice", env.alice, event[0])
+                +roomUser("Martin", env.us, event[1])
             }
+            cut shouldBeRead false
+            cancelNeverEndingCoroutines()
+        }
 
-            should("contain sender of subsequent events") {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutMessageReadReceipts(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Bob", env.bob, event[0])
-                }
-                // cut shouldBeUsers emptySet()
-                // cut shouldBeUsers setOf(bob)
-                timeline.addEvents {
-                    +timelineEventOf(env.bob, event[1])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Bob", env.bob, event[0])
-                }
-                cut shouldBeUsers setOf(env.bob)
-                cancelNeverEndingCoroutines()
+        should("be false when not read by anyone and only the same user sent a message after it") {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutMessageIsRead(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+                +timelineEventOf(env.alice, event[1])
             }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Alice", env.alice, event[1])
+            }
+            cut shouldBeRead false
+            cancelNeverEndingCoroutines()
+        }
 
-            should("not contain us from read marker") {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Us", env.us, event[0])
-                    +roomUser("Bob", env.bob, event[0])
-                }
-                // receipts.value = mapOf(eventIdByAlice to setOf(us, bob))
-                val cut = env.cutMessageReadReceipts(env.alice, event[0])
-                cut shouldBeUsers setOf(env.bob)
-                cancelNeverEndingCoroutines()
+        should("be false when only we read the event") {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutMessageIsRead(env.alice, event[0])
+            // receipts.value = mapOf(eventIdByAlice to setOf(us))
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
             }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Martin", env.us, event[0])
+            }
+            cut shouldBeRead false
+            cancelNeverEndingCoroutines()
+        }
 
-            should("not contain us from subsequent events") {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                    +timelineEventOf(env.us, event[1])
-                }
-                // roomUsers(userServiceMock, roomId) {}
-                val cut = env.cutMessageReadReceipts(env.alice, event[0])
-                cut shouldBeUsers emptySet()
-                cancelNeverEndingCoroutines()
+        should("be false when only the sender read the event") {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutMessageIsRead(env.alice, event[0])
+            // receipts.value = mapOf(eventIdByAlice to setOf(alice))
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
             }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Alice", env.alice, event[0])
+            }
+            cut shouldBeRead false
+            cancelNeverEndingCoroutines()
+        }
 
-            should("not contain sender from subsequent events") {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, _, event) = env
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                    +timelineEventOf(env.alice, event[1])
-                }
-                val cut = env.cutMessageReadReceipts(env.alice, event[0])
-                cut shouldBeUsers emptySet()
-                cancelNeverEndingCoroutines()
+        should("be true when read by third user") {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutMessageIsRead(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
             }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Us", env.us, null)
+                +roomUser("Bob", env.bob, null)
+                +roomUser("Alice", env.alice, event[0])
+            }
+            cut shouldBeRead false
+            // receipts.value = mapOf(eventIdByAlice to setOf(bob))
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", env.bob, event[0])
+            }
+            cut shouldBeRead true
+            cancelNeverEndingCoroutines()
+        }
 
-            should("not contain sender from read marker") {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Bob", env.bob, event[0])
-                    +roomUser("Alice", env.alice, event[0])
-                }
-                val cut = env.cutMessageReadReceipts(env.alice, event[0])
-                cut shouldBeUsers setOf(env.bob)
-                cancelNeverEndingCoroutines()
+        should("be true when message from third user after it") {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutMessageIsRead(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
             }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Us", env.us, null)
+                +roomUser("Bob", env.bob, null)
+                +roomUser("Alice", env.alice, event[0])
+            }
+            cut shouldBeRead false
+            timeline.addEvents {
+                // Should be ignored.
+                +timelineEventOf(env.alice, event[1])
+                +timelineEventOf(env.bob, event[2])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", env.bob, event[0])
+            }
+            cut shouldBeRead true
+            cancelNeverEndingCoroutines()
+        }
+
+        should("be empty when not read") {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Us", env.us, null)
+                +roomUser("Bob", env.bob, null)
+                +roomUser("Alice", env.alice, null)
+            }
+            val cut = env.cutMessageReadReceipts(env.alice, event[0])
+            cut shouldBeUsers emptySet()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("contain users from read markers") {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutMessageReadReceipts(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Us", env.us, null)
+                +roomUser("Bob", env.bob, null)
+                +roomUser("Alice", env.alice, null)
+            }
+            cut shouldBeUsers emptySet()
+            // receipts.value = mapOf(eventIdByAlice to setOf(bob))
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", env.bob, event[0])
+            }
+            cut shouldBeUsers setOf(env.bob)
+            cancelNeverEndingCoroutines()
+        }
+
+        should("contain sender of subsequent events") {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutMessageReadReceipts(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", env.bob, event[0])
+            }
+            // cut shouldBeUsers emptySet()
+            // cut shouldBeUsers setOf(bob)
+            timeline.addEvents {
+                +timelineEventOf(env.bob, event[1])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", env.bob, event[0])
+            }
+            cut shouldBeUsers setOf(env.bob)
+            cancelNeverEndingCoroutines()
+        }
+
+        should("not contain us from read marker") {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Us", env.us, event[0])
+                +roomUser("Bob", env.bob, event[0])
+            }
+            // receipts.value = mapOf(eventIdByAlice to setOf(us, bob))
+            val cut = env.cutMessageReadReceipts(env.alice, event[0])
+            cut shouldBeUsers setOf(env.bob)
+            cancelNeverEndingCoroutines()
+        }
+
+        should("not contain us from subsequent events") {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+                +timelineEventOf(env.us, event[1])
+            }
+            // roomUsers(userServiceMock, roomId) {}
+            val cut = env.cutMessageReadReceipts(env.alice, event[0])
+            cut shouldBeUsers emptySet()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("not contain sender from subsequent events") {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, _, event) = env
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+                +timelineEventOf(env.alice, event[1])
+            }
+            val cut = env.cutMessageReadReceipts(env.alice, event[0])
+            cut shouldBeUsers emptySet()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("not contain sender from read marker") {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", env.bob, event[0])
+                +roomUser("Alice", env.alice, event[0])
+            }
+            val cut = env.cutMessageReadReceipts(env.alice, event[0])
+            cut shouldBeUsers setOf(env.bob)
+            cancelNeverEndingCoroutines()
         }
 
         should("not contain sender from read marker 2") {

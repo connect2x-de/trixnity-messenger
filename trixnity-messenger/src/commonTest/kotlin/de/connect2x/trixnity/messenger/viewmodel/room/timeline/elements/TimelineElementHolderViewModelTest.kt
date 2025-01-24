@@ -23,6 +23,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
@@ -98,6 +99,9 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             )
         }
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+
+        every { userServiceMock.getAllReceipts(any()) } returns MutableStateFlow(mapOf())
+        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns emptyFlow()
     }
 
     init {
