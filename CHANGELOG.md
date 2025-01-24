@@ -22,7 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated SysNotify to 1.7.0
 - Moved from Realm to Androidx Room database
 - Enabled Encryption for Androidx Room database
 - Image detail view UI overhaul

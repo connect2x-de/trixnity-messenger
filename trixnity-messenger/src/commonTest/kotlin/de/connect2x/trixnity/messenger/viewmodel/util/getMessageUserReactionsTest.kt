@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomUserBuilder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineBuilder
@@ -12,6 +11,7 @@ import dev.mokkery.every
 import dev.mokkery.mock
 import io.kotest.assertions.failure
 import io.kotest.assertions.withClue
+import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
 import io.kotest.engine.runBlocking
@@ -30,56 +30,50 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 
+@ExperimentalKotest
 class getMessageUserReactionsTest : ShouldSpec() {
-    override fun timeout(): Long = 5_000
 
-    private val us = UserId("martin", "localhost")
+    data class Mocks(
+        val matrixClientMock: MatrixClient = mock<MatrixClient>(),
+        val roomServiceMock: RoomService = mock<RoomService>(),
+        val userServiceMock: UserService = mock<UserService>(),
+    )
 
-    val matrixClientMock = mock<MatrixClient>()
-    val roomServiceMock = mock<RoomService>()
-    val userServiceMock = mock<UserService>()
+    fun setupMocks(us: UserId, mocks: Mocks) {
+        every { mocks.matrixClientMock.di } returns koinApplication {
+            modules(
+                module {
+                    single { mocks.roomServiceMock }
+                    single { mocks.userServiceMock }
+                }
+            )
+        }.koin
+        every { mocks.matrixClientMock.userId } returns us
+    }
 
     init {
         coroutineTestScope = true
+        concurrency = 8
+        timeout = 5_000
 
-        beforeEach {
-            resetMocks(
-                matrixClientMock,
-                roomServiceMock,
-                userServiceMock,
-            )
-            every { matrixClientMock.di } returns koinApplication {
-                modules(
-                    module {
-                        single { roomServiceMock }
-                        single { userServiceMock }
-                    }
-                )
-            }.koin
-            every { matrixClientMock.userId } returns us
-        }
-
-        // Because Mokkery is a bitch and doesn't reinitialize mocks correctly
-        // we need to differentiate the parameters by each test case.
-        var runId = 0
-
+        // Mokkery fails to properly update existing mocks.
         data class TestEnv(
-            // Increment runId during the first val field assignment!
-            val roomId: RoomId = RoomId("room_${runId++}", "localhost"),
-            val timeline: TimelineMock = timeline(roomServiceMock, roomId) {},
-            val roomUsers: RoomUserBuilder = roomUsers(userServiceMock, roomId) {},
-            val eventIds: List<EventId> = (0..2).map { EventId("event_${runId}_$it") },
-            val us: UserId = this@getMessageUserReactionsTest.us, // Stays constant.
-            val alice: UserId = UserId("alice_$runId", "localhost"),
-            val bob: UserId = UserId("bob_$runId", "localhost"),
-            val testScope: TestScope, // Place this last so it so param deconstruct is cleaner.
+            val roomId: RoomId = RoomId("room", "localhost"),
+            val mocks: Mocks = Mocks(),
+            val timeline: TimelineMock = timeline(mocks.roomServiceMock, roomId) {},
+            val roomUsers: RoomUserBuilder = roomUsers(mocks.userServiceMock, roomId) {},
+            val eventIds: List<EventId> = (0..2).map { EventId("event_$it") },
+            val us: UserId = UserId("martin", "localhost").also { setupMocks(it, mocks) },
+            val alice: UserId = UserId("alice", "localhost"),
+            val bob: UserId = UserId("bob", "localhost"),
+            val testScope: TestScope,
         )
 
         fun TestEnv.cutMessageReactions(eventId: EventId) =
             koinApplication {
                 modules(
                     createTestDefaultTrixnityMessengerModules(
-                        mapOf(us to matrixClientMock)
+                        mapOf(us to mocks.matrixClientMock)
                     )
                 )
             }.koin.let { di ->
@@ -97,7 +91,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
 
             should("get nothing on other message without reactions") {
                 val env = TestEnv(testScope = this)
-                val (_, timeline, _, event) = env
+                val (_, _, timeline, _, event) = env
                 timeline.addEvents {
                     +textMessageBy(env.alice, event[0])
                 }
@@ -108,7 +102,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
 
             should("get nothing on our message without reactions") {
                 val env = TestEnv(testScope = this)
-                val (_, timeline, _, event) = env
+                val (_, _, timeline, _, event) = env
                 timeline.addEvents {
                     +textMessageBy(env.us, event[0])
                 }
@@ -121,7 +115,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
 
             should("get reaction from other user on other message") {
                 val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
+                val (_, _, timeline, roomUsers, event) = env
                 timeline.addEvents {
                     +textMessageBy(env.alice, event[0])
                     +reactionBy(env.bob, event[0], "🥳")
@@ -138,7 +132,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
 
             should("continuously get reactions from other user on own message") {
                 val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
+                val (_, _, timeline, roomUsers, event) = env
                 timeline.addEvents {
                     +textMessageBy(env.us, event[0])
                     +reactionBy(env.alice, event[0], "😄")
@@ -162,7 +156,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
 
             should("get reaction from ourselves on other message") {
                 val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
+                val (_, _, timeline, roomUsers, event) = env
                 timeline.addEvents {
                     +textMessageBy(env.alice, event[0])
                     +reactionBy(env.us, event[0], "😄")
@@ -180,7 +174,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
 
             should("get reaction from ourselves on own message") {
                 val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
+                val (_, _, timeline, roomUsers, event) = env
                 timeline.addEvents {
                     +textMessageBy(env.us, event[0])
                     +reactionBy(env.us, event[0], "😄")
@@ -197,7 +191,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
 
             should("get all reactions from multiple users on other message") {
                 val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
+                val (_, _, timeline, roomUsers, event) = env
                 timeline.addEvents {
                     +textMessageBy(env.alice, event[0])
                     +reactionBy(env.bob, event[0], "😄")
@@ -219,7 +213,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
 
             should("get all reactions from multiple users on onw message") {
                 val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
+                val (_, _, timeline, roomUsers, event) = env
                 timeline.addEvents {
                     +textMessageBy(env.us, event[0])
                     +reactionBy(env.bob, event[0], "😄")
@@ -241,7 +235,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
 
             should("get all reactions from multiple users and ourselves on other message") {
                 val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
+                val (_, _, timeline, roomUsers, event) = env
                 timeline.addEvents {
                     +textMessageBy(env.bob, event[0])
                     +reactionBy(env.us, event[0], "😄")
@@ -265,7 +259,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
 
             should("get all reactions from multiple users and ourselves on onw message") {
                 val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
+                val (_, _, timeline, roomUsers, event) = env
                 timeline.addEvents {
                     +textMessageBy(env.us, event[0])
                     +reactionBy(env.us, event[0], "🙂")
@@ -291,7 +285,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
 
             should("get nothing for message with no reactions") {
                 val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
+                val (_, _, timeline, roomUsers, event) = env
                 timeline.addEvents {
                     +textMessageBy(env.alice, event[0])
                 }
@@ -304,7 +298,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
 
             should("get count for single reaction") {
                 val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
+                val (_, _, timeline, roomUsers, event) = env
                 timeline.addEvents {
                     +textMessageBy(env.us, event[0])
                     +reactionBy(env.bob, event[0], "🙂")
@@ -322,7 +316,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
 
             should("get counts for single reactions") {
                 val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
+                val (_, _, timeline, roomUsers, event) = env
                 timeline.addEvents {
                     +textMessageBy(env.us, event[0])
                     +reactionBy(env.us, event[0], "🙂")
@@ -347,7 +341,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
 
             should("get counts for reactions") {
                 val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
+                val (_, _, timeline, roomUsers, event) = env
                 timeline.addEvents {
                     +textMessageBy(env.us, event[0])
                     +reactionBy(env.us, event[0], "🙂")
