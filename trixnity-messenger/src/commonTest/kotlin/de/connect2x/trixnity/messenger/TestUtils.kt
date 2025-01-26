@@ -29,7 +29,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(FlowPreview::class)
-suspend fun <T> Flow<T>.firstWithClue(duration: Duration = 1.seconds, expected: (T) -> T): T {
+suspend inline fun <T> Flow<T>.firstWithClue(duration: Duration = 1.seconds, crossinline expected: (T) -> T): T {
     var clueCount = 0
     return try {
         withClue("waited for $duration but didn't found expected value in flow") {
@@ -47,11 +47,11 @@ suspend fun <T> Flow<T>.firstWithClue(duration: Duration = 1.seconds, expected: 
     }
 }
 
-suspend fun <T> Flow<T>.firstWithClue(expectedValue: T, duration: Duration = 1.seconds): T =
+suspend inline fun <T> Flow<T>.firstWithClue(expectedValue: T, duration: Duration = 1.seconds): T =
     firstWithClue(duration) { expectedValue }
 
 @OptIn(FlowPreview::class)
-suspend fun <T> Flow<T?>.firstNotNullWithClue(duration: Duration = 1.seconds): T {
+suspend inline fun <T> Flow<T?>.firstNotNullWithClue(duration: Duration = 1.seconds): T {
     var clueCount = 0
     return try {
         withClue("waited for $duration but didn't found non null value in flow") {

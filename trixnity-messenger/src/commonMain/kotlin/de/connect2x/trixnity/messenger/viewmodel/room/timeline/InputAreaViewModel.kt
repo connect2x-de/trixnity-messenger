@@ -403,7 +403,7 @@ open class InputAreaViewModelImpl(
 
     private val repliedTimelineElementHolderViewModelFactory = get<RepliedTimelineElementHolderViewModelFactory>()
     private val repliedElementCache = MutableStateFlow<TimelineElementViewModelWrapper?>(null)
-    override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> = // FIXME add test!
+    override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> =
         currentReply.map { roomIdAndEventId ->
             if (roomIdAndEventId == null) return@map null
             val (roomId, eventId) = roomIdAndEventId
