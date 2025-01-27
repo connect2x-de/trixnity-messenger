@@ -27,6 +27,7 @@ import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.theme.messengerColors
@@ -44,7 +45,7 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         RoomMessageTimelineElementViewModel.FileBased.Audio::class
 
     override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.FileBased.Audio) {
-        // no-op (has default size)
+        // NO-OP (has default size)
     }
 
     @Composable
@@ -55,15 +56,7 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-            overlay = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${shortenFileName(element)}, ${element.duration?.let { formatDuration(it.milliseconds) }} ${element.size}",
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                        maxLines = 1,
-                    )
-                }
-            }
+            overlay = { FileMessageElementOverlay(element) },
         ) { showActionMenu, onSave ->
             MessageAudio(element, showActionMenu, onSave)
         }
@@ -73,11 +66,12 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     override fun createAsMessagePreview(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.Audio,
+        config: MessageBubbleDisplayConfig.() -> Unit,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-            config = { applyPreviewConfig() },
+            config = { applyPreviewConfig(config) },
         ) { showActionMenu, onSave ->
             MessageAudio(element, showActionMenu, onSave)
         }
@@ -92,7 +86,19 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.FileBased.Audio) {
         ReplyMessageAudio(element)
     }
+}
 
+@Composable
+internal fun FileMessageElementOverlay(element: RoomMessageTimelineElementViewModel.FileBased.Audio) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            "${shortenFileName(element)}, ${
+                element.duration?.let { formatDuration(it.milliseconds) }
+            } ${element.size}",
+            color = MaterialTheme.messengerColors.metaDataPreview,
+            maxLines = 1,
+        )
+    }
 }
 
 @Composable

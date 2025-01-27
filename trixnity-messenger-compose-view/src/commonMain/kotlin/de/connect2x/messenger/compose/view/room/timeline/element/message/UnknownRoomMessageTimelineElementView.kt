@@ -10,6 +10,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import kotlin.reflect.KClass
@@ -20,7 +21,7 @@ class UnknownRoomMessageTimelineElementView : TimelineElementView<RoomMessageTim
         RoomMessageTimelineElementViewModel.Unknown::class
 
     override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.Unknown) {
-        // no-op (has default size)
+        // NO-OP (has default size)
     }
 
     @Composable
@@ -28,9 +29,16 @@ class UnknownRoomMessageTimelineElementView : TimelineElementView<RoomMessageTim
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.Unknown,
     ) {
-        Column(Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)) {
-            Text(element.fallbackBody, style = MaterialTheme.typography.bodyMedium)
-        }
+        UnknownMessageElement(element)
+    }
+
+    @Composable
+    override fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: RoomMessageTimelineElementViewModel.Unknown,
+        config: MessageBubbleDisplayConfig.() -> Unit,
+    ) {
+        UnknownMessageElement(element)
     }
 
     @Composable
@@ -53,5 +61,13 @@ class UnknownRoomMessageTimelineElementView : TimelineElementView<RoomMessageTim
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
+    }
+
+}
+
+@Composable
+internal fun UnknownMessageElement(element: RoomMessageTimelineElementViewModel.Unknown) {
+    Column(Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)) {
+        Text(element.fallbackBody, style = MaterialTheme.typography.bodyMedium)
     }
 }

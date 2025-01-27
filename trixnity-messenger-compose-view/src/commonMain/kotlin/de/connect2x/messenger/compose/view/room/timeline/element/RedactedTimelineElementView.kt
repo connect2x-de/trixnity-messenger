@@ -20,6 +20,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -42,7 +43,21 @@ class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementV
         element: RedactedTimelineElementViewModel,
     ) {
         MessageBubble(
-            holder = holder,
+            holder,
+        ) {
+            Redacted(element)
+        }
+    }
+
+    @Composable
+    override fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: RedactedTimelineElementViewModel,
+        config: MessageBubbleDisplayConfig.() -> Unit,
+    ) {
+        MessageBubble(
+            holder,
+            config = { applyPreviewConfig(config) },
         ) {
             Redacted(element)
         }
@@ -56,19 +71,6 @@ class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementV
     @Composable
     override fun createReplyInSendMessage(element: RedactedTimelineElementViewModel) {
         Redacted(element)
-    }
-
-    @Composable
-    override fun createAsMessagePreview(
-        holder: BaseTimelineElementHolderViewModel,
-        element: RedactedTimelineElementViewModel
-    ) {
-        MessageBubble(
-            holder = holder,
-            config = { applyPreviewConfig() },
-        ) {
-            Redacted(element)
-        }
     }
 }
 

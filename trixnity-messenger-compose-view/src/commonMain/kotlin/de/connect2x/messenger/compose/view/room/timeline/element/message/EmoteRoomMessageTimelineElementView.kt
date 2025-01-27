@@ -2,6 +2,8 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInSendMessage
 import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -14,7 +16,7 @@ class EmoteRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         RoomMessageTimelineElementViewModel.TextBased.Emote::class
 
     override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.TextBased.Emote) {
-        // no-op (has default size)
+        // NO-OP (has default size)
     }
 
     @Composable
@@ -23,6 +25,15 @@ class EmoteRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         element: RoomMessageTimelineElementViewModel.TextBased.Emote,
     ) {
         TextBasedRoomMessageTimelineElementView(holder, element)
+    }
+
+    @Composable
+    override fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: RoomMessageTimelineElementViewModel.TextBased.Emote,
+        config: MessageBubbleDisplayConfig.() -> Unit,
+    ) {
+        TextBasedRoomMessageTimelineElementView(holder, element) { applyPreviewConfig(config) }
     }
 
     @Composable

@@ -19,16 +19,19 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedWaitTimelineElementViewModel
 import kotlin.reflect.KClass
 
+
 class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimelineElementViewModel> {
     override val supports: KClass<EncryptedWaitTimelineElementViewModel> = EncryptedWaitTimelineElementViewModel::class
 
     override suspend fun waitFor(element: EncryptedWaitTimelineElementViewModel) {
-        // no-op (has default size)
+        // NO-OP (has default size)
     }
 
     @Composable
@@ -38,6 +41,20 @@ class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimeli
     ) {
         MessageBubble(
             holder = holder,
+        ) { _ ->
+            EncryptedMessage()
+        }
+    }
+
+    @Composable
+    override fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: EncryptedWaitTimelineElementViewModel,
+        config: MessageBubbleDisplayConfig.() -> Unit,
+    ) {
+        MessageBubble(
+            holder = holder,
+            config = { applyPreviewConfig(config) },
         ) { _ ->
             EncryptedMessage()
         }

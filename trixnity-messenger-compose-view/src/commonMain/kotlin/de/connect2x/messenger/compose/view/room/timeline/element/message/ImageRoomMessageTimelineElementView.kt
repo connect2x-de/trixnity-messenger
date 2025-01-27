@@ -31,6 +31,7 @@ import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.theme.dp
@@ -48,7 +49,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         RoomMessageTimelineElementViewModel.FileBased.Image::class
 
     override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
-        // no-op (has default size)
+        // NO-OP (has default size)
     }
 
     @Composable
@@ -59,15 +60,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-            overlay = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${shortenFileName(element)} ${element.size}",
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                        maxLines = 1,
-                    )
-                }
-            },
+            overlay = { ImageMessageElementOverlay(element) },
         ) { showActionMenu, onSave ->
             MessageImage(element, showActionMenu, onSave)
         }
@@ -77,11 +70,12 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     override fun createAsMessagePreview(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.Image,
+        config: MessageBubbleDisplayConfig.() -> Unit,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-            config = { applyPreviewConfig() },
+            config = { applyPreviewConfig(config) },
         ) { showActionMenu, onSave ->
             MessageImage(element, showActionMenu, onSave)
         }
@@ -95,6 +89,17 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     @Composable
     override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
         ReplyImage(element)
+    }
+}
+
+@Composable
+internal fun ImageMessageElementOverlay(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            "${shortenFileName(element)} ${element.size}",
+            color = MaterialTheme.messengerColors.metaDataPreview,
+            maxLines = 1,
+        )
     }
 }
 

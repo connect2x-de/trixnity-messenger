@@ -39,6 +39,7 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.verification.AcceptSasStart
 import de.connect2x.messenger.compose.view.verification.CompareEmojisOrNumbers
 import de.connect2x.messenger.compose.view.verification.DeviceVerificationWaitForOther
@@ -60,7 +61,7 @@ class VerificationRequestRoomMessageTimelineElementView :
         RoomMessageTimelineElementViewModel.VerificationRequest::class
 
     override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.VerificationRequest) {
-        // no-op (has default size)
+        // NO-OP (has default size)
     }
 
     @Composable
@@ -69,6 +70,15 @@ class VerificationRequestRoomMessageTimelineElementView :
         element: RoomMessageTimelineElementViewModel.VerificationRequest,
     ) {
         UserVerification(holder, element)
+    }
+
+    @Composable
+    override fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: RoomMessageTimelineElementViewModel.VerificationRequest,
+        config: MessageBubbleDisplayConfig.() -> Unit,
+    ) {
+        // NO-OP
     }
 
     @Composable
@@ -89,7 +99,6 @@ private fun UserVerification(
     val sender = holder.sender.collectAsState().value
     val isActive = element.isActive.collectAsState().value == true
     val reachedEndState = element.reachedEndState.collectAsState().value
-
     ProvideTextStyle(TextStyle(fontSize = 12.sp)) {
         Box(
             Modifier

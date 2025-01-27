@@ -6,6 +6,7 @@ import androidx.compose.runtime.collectAsState
 import de.connect2x.messenger.compose.view.room.timeline.Indicator
 import de.connect2x.messenger.compose.view.room.timeline.IndicatorText
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.AvatarStateTimelineElementViewModel
 import kotlinx.coroutines.flow.filterNotNull
@@ -22,7 +23,7 @@ class AvatarStateTimelineElementView : TimelineElementView<AvatarStateTimelineEl
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: AvatarStateTimelineElementViewModel
+        element: AvatarStateTimelineElementViewModel,
     ) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.let {
@@ -30,5 +31,14 @@ class AvatarStateTimelineElementView : TimelineElementView<AvatarStateTimelineEl
                 IndicatorText(it, MaterialTheme.colorScheme.onTertiary)
             }
         }
+    }
+
+    @Composable
+    override fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: AvatarStateTimelineElementViewModel,
+        config: MessageBubbleDisplayConfig.() -> Unit,
+    ) {
+        // NO-OP
     }
 }

@@ -32,6 +32,7 @@ import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.theme.dp
@@ -51,7 +52,7 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         RoomMessageTimelineElementViewModel.FileBased.Video::class
 
     override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
-        // no-op (has default size)
+        // NO-OP (has default size)
     }
 
     @Composable
@@ -62,15 +63,7 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-            overlay = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${shortenFileName(element)}, ${element.duration?.let { formatDuration(it.milliseconds) }} ${element.size}",
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                        maxLines = 1,
-                    )
-                }
-            }
+            overlay = { VideoMessageElementOverlay(element) }
         ) { showMenuAction, onSave ->
             MessageVideo(holder, element, showMenuAction, onSave)
         }
@@ -80,11 +73,12 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     override fun createAsMessagePreview(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.Video,
+        config: MessageBubbleDisplayConfig.() -> Unit,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-            config = { applyPreviewConfig() },
+            config = { applyPreviewConfig(config) },
         ) { showMenuAction, onSave ->
             MessageVideo(holder, element, showMenuAction, onSave)
         }
@@ -98,6 +92,21 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     @Composable
     override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
         ReplyVideo(element)
+    }
+}
+
+@Composable
+internal fun VideoMessageElementOverlay(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            "${shortenFileName(element)}, ${
+                element.duration?.let {
+                    formatDuration(it.milliseconds)
+                }
+            } ${element.size}",
+            color = MaterialTheme.messengerColors.metaDataPreview,
+            maxLines = 1,
+        )
     }
 }
 

@@ -11,16 +11,19 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedErrorTimelineElementViewModel
 import kotlin.reflect.KClass
+
 
 class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTimelineElementViewModel> {
     override val supports: KClass<EncryptedErrorTimelineElementViewModel> =
         EncryptedErrorTimelineElementViewModel::class
 
     override suspend fun waitFor(element: EncryptedErrorTimelineElementViewModel) {
-        // no-op (has default size)
+        // NO-OP (has default size)
     }
 
     @Composable
@@ -36,6 +39,20 @@ class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTime
     }
 
     @Composable
+    override fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: EncryptedErrorTimelineElementViewModel,
+        config: MessageBubbleDisplayConfig.() -> Unit,
+    ) {
+        MessageBubble(
+            holder = holder,
+            config = { applyPreviewConfig(config) },
+        ) { _ ->
+            EncryptedError()
+        }
+    }
+
+    @Composable
     override fun createReplyInTimeline(element: EncryptedErrorTimelineElementViewModel) {
         EncryptedError()
     }
@@ -44,7 +61,6 @@ class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTime
     override fun createReplyInSendMessage(element: EncryptedErrorTimelineElementViewModel) {
         EncryptedError()
     }
-
 }
 
 @Composable

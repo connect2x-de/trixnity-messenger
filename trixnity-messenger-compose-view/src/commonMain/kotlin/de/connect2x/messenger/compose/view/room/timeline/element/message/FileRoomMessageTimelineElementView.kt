@@ -30,6 +30,7 @@ import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
@@ -42,7 +43,7 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
         RoomMessageTimelineElementViewModel.FileBased.File::class
 
     override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.FileBased.File) {
-        // no-op (has default size)
+        // NO-OP (has default size)
     }
 
     @Composable
@@ -62,11 +63,12 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
     override fun createAsMessagePreview(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.File,
+        config: MessageBubbleDisplayConfig.() -> Unit,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-            config = { applyPreviewConfig() },
+            config = { applyPreviewConfig(config) },
         ) { showActionMenu, onSave ->
             MessageFile(element, showActionMenu, onSave)
         }

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -11,22 +12,30 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.reflect.KClass
 
+
 private val log = KotlinLogging.logger {}
 
 interface TimelineElementViewSelector {
     suspend fun waitFor(element: TimelineElementViewModel<*>)
 
     @Composable
-    fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: TimelineElementViewModel<*>)
+    fun createInTimeline(
+        holder: BaseTimelineElementHolderViewModel,
+        element: TimelineElementViewModel<*>,
+    )
+
+    @Composable
+    fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: TimelineElementViewModel<*>,
+        config: MessageBubbleDisplayConfig.() -> Unit = {},
+    )
 
     @Composable
     fun createReplyInTimeline(element: TimelineElementViewModel<*>)
 
     @Composable
     fun createReplyInSendMessage(element: TimelineElementViewModel<*>)
-
-    @Composable
-    fun createAsMessagePreview(holder: BaseTimelineElementHolderViewModel, element: TimelineElementViewModel<*>)
 }
 
 @Composable
@@ -78,9 +87,10 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
     override fun createAsMessagePreview(
         holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
+        config: MessageBubbleDisplayConfig.() -> Unit,
     ) {
         val factory = rememberSelectFactory(element)
-        factory?.createAsMessagePreview(holder, element)
+        factory?.createAsMessagePreview(holder, element, config)
     }
 
     @Composable

@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInSendMessage
 import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInTimeline
@@ -15,7 +16,7 @@ class TextRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
         RoomMessageTimelineElementViewModel.TextBased.Text::class
 
     override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.TextBased.Text) {
-        // no-op (has default size)
+        // NO-OP (has default size)
     }
 
     @Composable
@@ -27,6 +28,15 @@ class TextRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
     }
 
     @Composable
+    override fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: RoomMessageTimelineElementViewModel.TextBased.Text,
+        config: MessageBubbleDisplayConfig.() -> Unit,
+    ) {
+        TextBasedRoomMessageTimelineElementView(holder, element) { applyPreviewConfig(config) }
+    }
+
+    @Composable
     override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.TextBased.Text) {
         TextReplyInTimeline(element)
     }
@@ -34,13 +44,5 @@ class TextRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
     @Composable
     override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.TextBased.Text) {
         TextReplyInSendMessage(element)
-    }
-
-    @Composable
-    override fun createAsMessagePreview(
-        holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.TextBased.Text,
-    ) {
-        TextBasedRoomMessageTimelineElementView(holder, element, { applyPreviewConfig() })
     }
 }
