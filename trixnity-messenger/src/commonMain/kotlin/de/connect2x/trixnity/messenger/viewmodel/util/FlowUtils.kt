@@ -5,6 +5,8 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.transform
@@ -31,10 +33,26 @@ fun <T> Flow<T>.throttleFirst(delay: Long): Flow<T> =
 fun <T> Flow<T>.throttleFirst(delay: Duration): Flow<T> =
     throttleFirst(delay.inWholeMilliseconds)
 
+fun <T> Flow<T>.debounceAfterFirst(delay: Duration): Flow<T> =
+    channelFlow {
+        var didEmitFirst = false
+        collectLatest {
+            if (didEmitFirst) delay(delay)
+            send(it)
+            didEmitFirst = true
+        }
+    }
+
 fun <T : Any> Value<T>.toFlow(): Flow<T> = callbackFlow {
     val cancelable = subscribe { trySend(it) }
     awaitClose {
         cancelable.cancel()
+    }
+}
+
+fun <T : Any> List<T>.asReversedFlow(): Flow<T> = flow {
+    for (index in lastIndex downTo 0) {
+        emit(get(index))
     }
 }
 

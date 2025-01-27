@@ -182,12 +182,12 @@ class TimelineViewImpl : TimelineView {
                 val unreadMarkerOnFirstLoad = remember {
                     (timelineElementHolderViewModels.indexOfLast {
                         it is TimelineElementHolderViewModel && it.showUnreadMarker.value
-                    } + 1).coerceAtMost(timelineElementHolderViewModels.size - 1)
+                    })
                 }
                 val listState =
                     rememberLazyListState(initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else 0)
 
-                val uiState by remember {
+                val visible by remember {
                     derivedStateOf {
                         val visibleItems = listState.layoutInfo.visibleItemsInfo
                         val lastVisible =
@@ -205,24 +205,30 @@ class TimelineViewImpl : TimelineView {
                                 val key = it.key
                                 key as? String
                             }
-                        if (firstVisible != null && lastVisible != null)
-                            TimelineViewModel.ViewState(
-                                firstVisible,
-                                lastVisible,
-                                timelineElementHolderViewModels.last().key,
-                                timelineElementHolderViewModels.first().key,
-                                isFocused,
-                            )
-                        else null
+                        if (firstVisible != null && lastVisible != null) {
+                            firstVisible to lastVisible
+                        } else null
                     }
                 }
-                LaunchedEffect(uiState) {
-                    timelineViewModel.viewState.value = uiState
+                LaunchedEffect(visible, timelineElementHolderViewModels, isFocused) {
+                    visible?.let {
+                        timelineViewModel.viewState.value = TimelineViewModel.ViewState(
+                            firstVisibleElement = it.first,
+                            lastVisibleElement = it.second,
+                            firstLoadedElement = timelineElementHolderViewModels.last().key,
+                            lastLoadedElement = timelineElementHolderViewModels.first().key,
+                            windowIsFocused = isFocused,
+                        ).also {
+                            log.debug { "viewState: $it" }
+                        }
+                    }
                 }
 
                 LaunchedEffect(scrollTo, timelineElementHolderViewModels) {
                     if (scrollTo != null) {
-                        val index = timelineElementHolderViewModels.indexOfFirst { it.key == scrollTo }
+                        val index = withTimeoutOrNull(5.seconds) {
+                            timelineElementHolderViewModels.indexOfFirst { it.key == scrollTo }
+                        } ?: -1
                         if (index >= 0) {
                             log.debug { "scrolling to $scrollTo (index=$index)" }
                             listState.animateScrollToItem(index)
