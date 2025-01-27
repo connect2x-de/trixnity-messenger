@@ -35,6 +35,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -45,6 +46,7 @@ import androidx.compose.ui.Alignment.Companion.BottomCenter
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
@@ -88,6 +90,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.MessageMetadataVi
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MessageUserInteraction
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
@@ -97,6 +100,8 @@ import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
+
+private val log = KotlinLogging.logger {}
 
 // TODO: Move to utils?
 /**
@@ -264,6 +269,12 @@ private class ThrottledMutableState<T> private constructor(value: MutableState<T
     }
 }
 
+private val userItemHeight = 48.dp
+private val filterBarHeight = 48.dp
+private val contentPadding = 20.dp
+private val smallSpacing = 10.dp
+private val largeSpacing = 20.dp
+
 interface MessageMetadataView {
     @Composable
     fun create(
@@ -280,31 +291,25 @@ fun MessageMetadata(
     DI.get<MessageMetadataView>().create(viewModel, stackPosition, isSinglePane)
 }
 
-private val userItemHeight = 48.dp
-private val filterBarHeight = 48.dp
-
 class MessageMetadataViewImpl : MessageMetadataView {
     @Composable
     override fun create(
         viewModel: MessageMetadataViewModel,
         stackPosition: Int, isSinglePane: Boolean,
     ) {
+        val i18n = DI.get<I18nView>()
+        val density = LocalDensity.current
+
         val message = viewModel.messagePreview.collectAsState().value
         val reactionCounts = viewModel.reactionCounts.collectAsState().value
         val userInteractions = viewModel.userInteractions.collectAsState().value
         val error = viewModel.error.collectAsState().value
-
-        val i18n = DI.get<I18nView>()
-        val density = LocalDensity.current
-        val smallSpacing = 10.dp
-        val largeSpacing = 20.dp
 
         val scrollState = rememberScrollState()
         val paneBounds = ThrottledMutableState { density.verticalBounds() }
         val interactionsBounds = ThrottledMutableState { density.verticalBounds() }
         val interactionFilterByReaction = remember { mutableStateOf<ReactionKey?>(null) }
         val interactionsOffset = interactionsBounds.get().offsetRelativeTo(paneBounds.get()) ?: 0.dp
-
         val filterOffset = min(
             interactionsOffset + userItemHeight * userInteractions.size + smallSpacing,
             paneBounds.get().height - filterBarHeight,
@@ -330,7 +335,7 @@ class MessageMetadataViewImpl : MessageMetadataView {
                     Column(
                         Modifier
                             .verticalScroll(scrollState)
-                            .padding(horizontal = 20.dp)
+                            .padding(horizontal = contentPadding)
                     ) {
                         Spacer(Modifier.size(largeSpacing))
                         Text(
@@ -359,20 +364,24 @@ class MessageMetadataViewImpl : MessageMetadataView {
                         ) {
                             if (isInteractionsVisible) {
                                 // TODO: Move this into the viewmodel?
-                                val interactions = (interactionFilterByReaction.value
-                                    ?.let { filter -> userInteractions.filter { it.reactions.contains(filter) } }
-                                    ?: userInteractions).sortedByDescending { it.reactions.firstOrNull()?.hashCode() }
+                                val interactions = interactionFilterByReaction.value.let { filter ->
+                                    if (filter != null) userInteractions.filter { it.reactions.contains(filter) }
+                                    else userInteractions
+                                }.sortedByDescending { it.reactions.firstOrNull()?.hashCode() }
+                                log.debug { "interactions:${userInteractions.size} filtered:${interactions.size}" }
                                 if (interactions.isEmpty() && interactionFilterByReaction.value != null) {
                                     // Reset the filter if it's set but yields no results.
                                     interactionFilterByReaction.value = null
                                     // TODO: Add state that will trigger the filter row to scroll back to its beginning.
                                 }
-                                UserInteractions(
-                                    interactions = interactions,
-                                    paneBounds = paneBounds.get(),
-                                    visibleListOffset = interactionsOffset,
-                                    visibleListHeight = filterOffset - interactionsOffset,
-                                )
+                                key(interactions) {
+                                    UserInteractions(
+                                        interactions = interactions,
+                                        paneBounds = paneBounds.get(),
+                                        visibleListOffset = interactionsOffset,
+                                        visibleListHeight = filterOffset - interactionsOffset,
+                                    )
+                                }
                             }
                             // Provide some space so the user interactions list
                             // can appear while scrolling down.
@@ -480,7 +489,7 @@ private fun MessageContent(
                     createAsMessagePreview(holder, element, { minifyBubble = true })
                 }
             }
-            Spacer(Modifier.size(10.dp))
+            Spacer(Modifier.size(smallSpacing))
         }
     }
 }
@@ -501,10 +510,10 @@ private fun UserInteractions(
             i18n.messageMetadataReadersAndReactionsNone(),
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier
-                .height(128.dp)
+                .height(filterBarHeight + largeSpacing)
                 .align(CenterHorizontally)
                 .paddingFromBaseline(0.dp)
-                .padding(start = 10.dp),
+                .padding(start = smallSpacing),
         )
         else interactions.forEachIndexed { index, interaction ->
             Box(
@@ -525,7 +534,9 @@ private fun UserInteractions(
                                 && itemOffset < visibleListOffset + visibleListHeight + cullOffset
                                 && itemOffset > -cullOffset
                     } == true
-                if (showItem) UserInfo(interaction.userInfo, interaction.reactions)
+                if (showItem) key(interaction.userId) {
+                    UserInfo(interaction.userInfo, interaction.reactions)
+                }
             }
         }
     }
@@ -559,7 +570,7 @@ private fun ReactionsFilter(
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onSurface,
             selectionIndicatorColor = MaterialTheme.colorScheme.primary,
-            edgePadding = 20.dp,
+            edgePadding = contentPadding,
             onTabClick = {
                 if (it > 0) interactionFilterByReaction.value =
                     reactionListWithSum[it].first
@@ -591,6 +602,7 @@ private fun ReactionsFilter(
                 }
             }
         }
+        HorizontalDivider(Modifier.align(TopCenter))
         // TODO: Use disappearing scrollbar?
         HorizontalScrollbar(Modifier.align(BottomCenter), filterScrollState, false)
     }
