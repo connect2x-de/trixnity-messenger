@@ -131,8 +131,8 @@ class MessageBubbleViewImpl : MessageBubbleView {
         val isRedactionInProgress =
             holder.asTimelineElementHolder()?.redactionInProgress?.collectAsState()?.value == true
         val showBigGap = holder.showBigGapBefore.collectAsState().value == true
+        val showReactions = remember { mutableStateOf(false) }
         val topPadding = if (showBigGap) 10.dp else 3.dp
-        val isReactionsOpen = remember { mutableStateOf(false) }
 
         BoxWithConstraints(
             Modifier.fillMaxWidth(),
@@ -157,7 +157,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
                     MessageBubbleContainer(
                         holder,
                         cfg,
-                        isReactionsOpen,
+                        showReactions,
                         additionalContextActions,
                         overlay,
                         content,
@@ -165,7 +165,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
                 }
                 if (cfg.showMessageReactions) MessageReactions(
                     holder,
-                    isReactionsOpen,
+                    showReactions,
                     modifier = Modifier.padding(start = 8.dp),
                 )
             }

@@ -81,12 +81,12 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
         ) { saveDialogOpen = false }
 
         FileBasedRoomMessageTimelineElementMessageBubble(
-            holder,
-            element,
-            config,
-            { saveDialogOpen = true },
-            overlay,
-            content,
+            holder = holder,
+            element = element,
+            config = config,
+            onSaveFile = { saveDialogOpen = true },
+            overlay = overlay,
+            content = content,
         )
     }
 }

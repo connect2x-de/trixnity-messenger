@@ -197,8 +197,12 @@ fun MessageBubbleContainer(
                     ),
                 elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
                 containerColor = with(MaterialTheme.colorScheme) {
-                    if (contentExpanded) primaryContainer.copy(alpha = 0.5f)
-                    else onPrimaryContainer.copy(alpha = 0.5f)
+                    if (contentExpanded) primaryContainer.copy(alpha = 0.75f)
+                    else onPrimaryContainer.copy(alpha = 0.75f)
+                },
+                contentColor = with(MaterialTheme.colorScheme) {
+                    if (contentExpanded) onPrimaryContainer
+                    else primaryContainer
                 },
             ) {
                 if (contentExpanded) Icon(Icons.Default.KeyboardArrowUp, i18n.commonCollapse())

@@ -44,7 +44,7 @@ class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementV
     ) {
         MessageBubble(
             holder,
-        ) {
+        ) { _ ->
             RedactedMessageElement(element)
         }
     }
@@ -58,7 +58,7 @@ class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementV
         MessageBubble(
             holder,
             config = { applyPreviewConfig(config) },
-        ) {
+        ) { _ ->
             RedactedMessageElement(element)
         }
     }

@@ -10,7 +10,7 @@ import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.common.ClickableText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.isDesktop
+import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
@@ -66,14 +66,16 @@ fun LocationMessageElement(
         holder = holder,
         config = config,
     ) { showMenuAction ->
-        // On Desktop: It makes sense to select the text and copy it.
         // On Android: This will consume long tap events, which we use for the context menu.
+        // On Desktop and Web: It makes sense to select the text and copy it.
+        val platform = Platform.current
         when {
-            Platform.current.isDesktop -> SelectionContainer {
+            platform.isMobile ->
+                LocationMessageContent(element, showMenuAction)
+
+            else -> SelectionContainer {
                 LocationMessageContent(element, showMenuAction)
             }
-
-            else -> LocationMessageContent(element, showMenuAction)
         }
     }
 }

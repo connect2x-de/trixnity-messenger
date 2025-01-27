@@ -22,6 +22,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.ui.BasicRichText
@@ -29,7 +30,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.isDesktop
+import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.mentionsUriHandler
@@ -49,14 +50,16 @@ fun TextBasedRoomMessageTimelineElementView(
         holder = holder,
         config = config,
     ) { openActionMenu ->
-        // On Desktop: It makes sense to select the text and copy it.
         // On Android: This will consume long tap events, which we use for the context menu.
+        // On Desktop and Web: It makes sense to select the text and copy it.
+        val platform = Platform.current
         when {
-            Platform.current.isDesktop -> SelectionContainer {
+            platform.isMobile ->
+                TextMessageContent(holder, element, openActionMenu)
+
+            else -> SelectionContainer {
                 TextMessageContent(holder, element, openActionMenu)
             }
-
-            else -> TextMessageContent(holder, element, openActionMenu)
         }
     }
 }
@@ -141,7 +144,8 @@ private fun MessageRichText(
             style = MaterialTheme.typography.bodyMedium.copy(
                 color = if (isByMe) MaterialTheme.colorScheme.onPrimary
                 else MaterialTheme.colorScheme.onSecondary
-            )
+            ),
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
