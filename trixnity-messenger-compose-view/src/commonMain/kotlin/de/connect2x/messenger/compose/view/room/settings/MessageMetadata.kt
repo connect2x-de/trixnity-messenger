@@ -344,7 +344,7 @@ class MessageMetadataViewImpl : MessageMetadataView {
                             style = MaterialTheme.typography.titleMedium,
                         )
                         Spacer(Modifier.size(smallSpacing))
-                        MessageContents(message)
+                        MessageContent(message)
                         Spacer(Modifier.size(smallSpacing))
                         HorizontalDivider()
                         Spacer(Modifier.size(largeSpacing))
@@ -467,10 +467,9 @@ private fun UserInfo(
 }
 
 @Composable
-private fun MessageContents(
+private fun MessageContent(
     messageHolder: TimelineElementHolderViewModel?,
 ) {
-    val i18n = DI.get<I18nView>()
     messageHolder?.let { holder ->
         DateStickyHeader(messageHolder.formattedDate)
         holder.element.collectAsState().value?.let { element ->
@@ -478,9 +477,8 @@ private fun MessageContents(
                 Modifier.padding(end = 8.dp),
             ) {
                 with(DI.get<TimelineElementViewSelector>()) {
-                    createAsMessagePreview(holder, element)
+                    createAsMessagePreview(holder, element, { minifyBubble = true })
                 }
-                Spacer(Modifier.size(5.dp))
             }
             Spacer(Modifier.size(10.dp))
         }
@@ -503,7 +501,7 @@ private fun UserInteractions(
             i18n.messageMetadataReadersAndReactionsNone(),
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier
-                .height(userItemHeight * 2)
+                .height(128.dp)
                 .align(CenterHorizontally)
                 .paddingFromBaseline(0.dp)
                 .padding(start = 10.dp),

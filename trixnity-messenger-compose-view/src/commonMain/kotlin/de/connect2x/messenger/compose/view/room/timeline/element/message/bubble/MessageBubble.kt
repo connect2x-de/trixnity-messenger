@@ -64,35 +64,33 @@ data class MessageBubbleDisplayConfig(
     /**
      * Whether the message bubble should use a reasonable maximum height when rendered.
      */
-    var minifyBubble:Boolean = false,
-
-    /**
-     * Provide the padding from the message bubble to its container.
-     */
-    var bubblePadding: BoxWithConstraintsScope.(isRedactionInProgress: Boolean) -> Dp =
-        { isRedactionInProgress ->
-            (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (isRedactionInProgress) 16.dp else 0.dp)
-        },
+    var minifyBubble: Boolean = false,
 
     /**
      * Block click events on the message contents.
      */
     var preventUserInput: Boolean = false,
+
+    /**
+     * Provide the padding from the message bubble to its container.
+     */
+    var bubblePadding: BoxWithConstraintsScope.(isRedactionInProgress: Boolean) -> Dp = {
+        (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (it) 16.dp else 0.dp)
+    },
 ) {
     companion object {
         fun of(config: MessageBubbleDisplayConfig.() -> Unit) =
             MessageBubbleDisplayConfig().apply(config).copy()
 
         fun MessageBubbleDisplayConfig.applyPreviewConfig(
-            config: MessageBubbleDisplayConfig.() -> Unit = {},
+            additionalConfig: MessageBubbleDisplayConfig.() -> Unit = {},
         ) = this.apply {
             showMessageReactions = false
             showContextActionMenu = false
             showTimeAndEditedIndicator = true
             alwaysShowChatBubbleTail = true
-            bubblePadding = { _ -> 0.dp }
             preventUserInput = true
-            config.invoke(this)
+            additionalConfig.invoke(this)
         }
     }
 }
