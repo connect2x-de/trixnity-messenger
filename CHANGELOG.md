@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed jumping timeline on fast message sending
 - Fixed various issues, that unread marker is unnecessarily displayed
 - Fixed unnecessary re-computations on timeline re-init
+- Fixed typo in verification help text
 
 ### Security
 
