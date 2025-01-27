@@ -70,8 +70,10 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -163,6 +165,8 @@ interface TimelineViewModel {
      * Only for DnD on desktop: the absolute path of a dragged file.
      */
     val draggedFile: StateFlow<FileDescriptor?>
+
+    val unreadElements: StateFlow<String?>
 
     fun errorDismiss()
     fun leaveRoom()
@@ -277,6 +281,45 @@ class TimelineViewModelImpl(
         .shareIn(coroutineScope, Eagerly, replay = 50)
 
     private val readEventMarker = MutableStateFlow<Pair<RoomId, EventId>?>(null)
+
+    override val unreadElements: StateFlow<String?> =
+        readEvent.map {
+            it?.first
+        }.filterNotNull().map { matrixClient.room.getLastTimelineEvent(it) }.flatMapLatest { it }.filterNotNull()
+            .flatMapLatest { it }.combine(readEvent.filterNotNull()) { lastEventInTimeline, readEvent ->
+                coroutineScope {
+                    val searchBefore = async {
+                        val countedEvents = MutableStateFlow(0)
+                        matrixClient.room.getTimelineEvents(
+                            readEvent.first,
+                            lastEventInTimeline.eventId,
+                            GetEvents.Direction.BACKWARDS
+                        ) {
+                            decryptionTimeout = Duration.ZERO
+                        }
+                            .map { it.first() }
+                            .mapNotNull { timelineEvent ->
+                                when {
+                                    timelineEvent.roomId == readEvent.first && timelineEvent.eventId == readEvent.second -> countedEvents.value
+                                    timelineEvent.isFirst -> countedEvents.value
+                                    timelineEvent.roomId != roomId -> null // don't search between room upgrades
+                                    else -> {
+                                        countedEvents.value++
+                                        null
+                                    }
+                                }
+                            }.first()
+                    }
+                    searchBefore.await()
+                }
+            }.mapLatest {
+                when {
+                    it in 1..99 -> it.toString()
+                    it > 99 -> "99+"
+                    else -> null
+                }
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     private val outbox =
         matrixClient.room.getOutbox(roomId = roomId)
@@ -1055,6 +1098,7 @@ class PreviewTimelineViewModel : TimelineViewModel {
             instance = Wrapper.None,
         )
     )
+    override val unreadElements: StateFlow<String?> = MutableStateFlow(null)
 
     override val reportMessageStack: Value<ChildStack<ReportMessageRouter.Config, ReportMessageRouter.Wrapper>> =
         MutableValue(
