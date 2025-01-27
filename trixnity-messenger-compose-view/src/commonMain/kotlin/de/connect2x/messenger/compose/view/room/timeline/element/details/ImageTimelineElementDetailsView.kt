@@ -61,7 +61,7 @@ class ImageTimelineElementDetailsView :
     @Composable
     override fun create(
         element: RoomMessageTimelineElementViewModel.FileBased.Image,
-        onSave: () -> Unit,
+        onSaveAttachment: () -> Unit,
         onClose: () -> Unit,
     ) {
         val i18n = DI.get<I18nView>()

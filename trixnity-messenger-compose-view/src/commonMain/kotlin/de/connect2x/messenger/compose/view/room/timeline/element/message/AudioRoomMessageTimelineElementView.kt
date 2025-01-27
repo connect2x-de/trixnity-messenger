@@ -27,7 +27,6 @@ import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.theme.messengerColors
@@ -57,8 +56,8 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
             holder,
             element,
             overlay = { FileMessageElementOverlay(element) },
-        ) { openActionMenu, saveFile ->
-            MessageAudio(element, openActionMenu, saveFile)
+        ) { openActionMenu, saveAttachment ->
+            MessageAudio(element, openActionMenu, saveAttachment)
         }
     }
 
@@ -66,14 +65,13 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     override fun createAsMessagePreview(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.Audio,
-        config: MessageBubbleDisplayConfig.() -> Unit,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-            config = { applyPreviewConfig(config) },
-        ) { openActionMenu, saveFile ->
-            MessageAudio(element, openActionMenu, saveFile)
+            config = { applyPreviewConfig() },
+        ) { openActionMenu, saveAttachment ->
+            MessageAudio(element, openActionMenu, saveAttachment)
         }
     }
 
@@ -105,7 +103,7 @@ internal fun FileMessageElementOverlay(element: RoomMessageTimelineElementViewMo
 internal fun MessageAudio(
     element: RoomMessageTimelineElementViewModel.FileBased.Audio,
     onOpenActionMenu: () -> Unit,
-    onSaveFile: () -> Unit,
+    onSaveAttachment: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val downloadSuccessful = remember { element.downloadMediaResult.map { it != null } }.collectAsState(false)
@@ -128,7 +126,7 @@ internal fun MessageAudio(
                         .size(64.dp)
                         .pointerInput(Unit) {
                             detectTapGestures(
-                                onTap = { onSaveFile() },
+                                onTap = { onSaveAttachment() },
                                 onLongPress = { onOpenActionMenu() },
                             )
                         }

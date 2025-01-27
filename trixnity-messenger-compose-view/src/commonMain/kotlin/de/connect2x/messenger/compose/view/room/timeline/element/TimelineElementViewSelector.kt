@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -28,7 +27,6 @@ interface TimelineElementViewSelector {
     fun createAsMessagePreview(
         holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-        config: MessageBubbleDisplayConfig.() -> Unit = {},
     )
 
     @Composable
@@ -41,7 +39,7 @@ interface TimelineElementViewSelector {
 @Composable
 fun TimelineElementSelector(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
-    element: TimelineElementViewModel<*>
+    element: TimelineElementViewModel<*>,
 ) {
     with(DI.get<TimelineElementViewSelector>()) { createInTimeline(timelineElementHolderViewModel, element) }
 }
@@ -68,6 +66,15 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
     }
 
     @Composable
+    override fun createAsMessagePreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: TimelineElementViewModel<*>,
+    ) {
+        val factory = rememberSelectFactory(element)
+        factory?.createAsMessagePreview(holder, element)
+    }
+
+    @Composable
     override fun createReplyInTimeline(
         element: TimelineElementViewModel<*>,
     ) {
@@ -81,16 +88,6 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
     ) {
         val factory = rememberSelectFactory(element)
         factory?.createReplyInSendMessage(element)
-    }
-
-    @Composable
-    override fun createAsMessagePreview(
-        holder: BaseTimelineElementHolderViewModel,
-        element: TimelineElementViewModel<*>,
-        config: MessageBubbleDisplayConfig.() -> Unit,
-    ) {
-        val factory = rememberSelectFactory(element)
-        factory?.createAsMessagePreview(holder, element, config)
     }
 
     @Composable

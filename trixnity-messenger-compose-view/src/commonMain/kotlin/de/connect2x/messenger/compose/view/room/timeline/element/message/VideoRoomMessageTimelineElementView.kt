@@ -32,7 +32,6 @@ import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.theme.dp
@@ -64,8 +63,8 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
             holder,
             element,
             overlay = { VideoMessageElementOverlay(element) }
-        ) { showMenuAction, onSave ->
-            VideoMessageContent(holder, element, showMenuAction, onSave)
+        ) { openActionMenu, saveAttachment ->
+            VideoMessageContent(holder, element, openActionMenu, saveAttachment)
         }
     }
 
@@ -73,14 +72,13 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     override fun createAsMessagePreview(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.Video,
-        config: MessageBubbleDisplayConfig.() -> Unit,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-            config = { applyPreviewConfig(config) },
-        ) { showMenuAction, onSave ->
-            VideoMessageContent(holder, element, showMenuAction, onSave)
+            config = { applyPreviewConfig() },
+        ) { openActionMenu, saveAttachment ->
+            VideoMessageContent(holder, element, openActionMenu, saveAttachment)
         }
     }
 
@@ -114,8 +112,8 @@ internal fun VideoMessageElementOverlay(element: RoomMessageTimelineElementViewM
 internal fun ColumnScope.VideoMessageContent(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased.Video,
-    showMenuAction: () -> Unit,
-    onSave: () -> Unit,
+    onOpenActionMenu: () -> Unit,
+    onSaveAttachment: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val thumbnail = element.thumbnail.collectAsState().value
@@ -135,7 +133,7 @@ internal fun ColumnScope.VideoMessageContent(
                             .heightIn(64.dp, 400.dp) // FIXME getHeight? videoMessageViewModel.getHeight(400f).dp
                             .widthIn(64.dp, 400.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .openVideoOnTouch(element, onSave, showMenuAction)
+                            .openVideoOnTouch(element, onSaveAttachment, onOpenActionMenu)
                             .buttonPointerModifier(),
                         contentScale = ContentScale.Fit
                     )
@@ -145,7 +143,7 @@ internal fun ColumnScope.VideoMessageContent(
                         i18n.commonVideo(),
                         Modifier
                             .size(64.dp)
-                            .openVideoOnTouch(element, onSave, showMenuAction)
+                            .openVideoOnTouch(element, onSaveAttachment, onOpenActionMenu)
                             .buttonPointerModifier(),
                         tint = Color.DarkGray,
                     )
@@ -160,13 +158,13 @@ internal fun ColumnScope.VideoMessageContent(
 @Composable
 private fun Modifier.openVideoOnTouch(
     element: RoomMessageTimelineElementViewModel.FileBased.Video,
-    showMenuAction: () -> Unit,
-    onSave: () -> Unit,
+    onOpenActionMenu: () -> Unit,
+    onSaveAttachment: () -> Unit,
 ): Modifier {
     return this.then(pointerInput(Unit) {
         detectTapGestures(
-            onTap = { onSave() },
-            onLongPress = { showMenuAction() },
+            onTap = { onSaveAttachment() },
+            onLongPress = { onOpenActionMenu() },
         )
     })
 }

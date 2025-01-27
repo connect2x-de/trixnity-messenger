@@ -31,7 +31,6 @@ import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.theme.dp
@@ -61,8 +60,8 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
             holder,
             element,
             overlay = { ImageMessageElementOverlay(element) },
-        ) { openActionMenu, saveFile ->
-            ImageMessageContent(element, openActionMenu, saveFile)
+        ) { openActionMenu, saveAttachment ->
+            ImageMessageContent(element, openActionMenu, saveAttachment)
         }
     }
 
@@ -70,14 +69,13 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     override fun createAsMessagePreview(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.Image,
-        config: MessageBubbleDisplayConfig.() -> Unit,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-            config = { applyPreviewConfig(config) },
-        ) { openActionMenu, saveFile ->
-            ImageMessageContent(element, openActionMenu, saveFile)
+            config = { applyPreviewConfig() },
+        ) { openActionMenu, saveAttachment ->
+            ImageMessageContent(element, openActionMenu, saveAttachment)
         }
     }
 
@@ -107,22 +105,22 @@ internal fun ImageMessageElementOverlay(element: RoomMessageTimelineElementViewM
 internal fun ColumnScope.ImageMessageContent(
     element: RoomMessageTimelineElementViewModel.FileBased.Image,
     onOpenActionMenu: () -> Unit,
-    onSaveFile: () -> Unit,
+    onSaveAttachment: () -> Unit,
 ) {
     val image = element.thumbnail.collectAsState().value
     val bitmap = remember(image) {
         image?.toImageBitmap()
     }
     bitmap?.let {
-        MessageImageImpl(it, onOpenActionMenu, onSaveFile)
-    } ?: MessageImageFallback(element, onOpenActionMenu, onSaveFile)
+        MessageImageImpl(it, onOpenActionMenu, onSaveAttachment)
+    } ?: MessageImageFallback(element, onOpenActionMenu, onSaveAttachment)
 }
 
 @Composable
 internal fun ColumnScope.MessageImageImpl(
     image: ImageBitmap,
     onOpenActionMenu: () -> Unit,
-    onSaveFile: () -> Unit,
+    onSaveAttachment: () -> Unit,
 ) {
     Image(
         image,
@@ -140,7 +138,7 @@ internal fun ColumnScope.MessageImageImpl(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        onSaveFile()
+                        onSaveAttachment()
                     },
                     onLongPress = { onOpenActionMenu() },
                 )
@@ -154,7 +152,7 @@ internal fun ColumnScope.MessageImageImpl(
 internal fun MessageImageFallback(
     element: RoomMessageTimelineElementViewModel.FileBased.Image,
     onOpenActionMenu: () -> Unit,
-    onSaveFile: () -> Unit,
+    onSaveAttachment: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     Column(
@@ -169,9 +167,7 @@ internal fun MessageImageFallback(
             Modifier
                 .pointerInput(Unit) {
                     detectTapGestures(
-                        onTap = {
-                            onSaveFile()
-                        },
+                        onTap = { onSaveAttachment() },
                         onLongPress = { onOpenActionMenu() },
                     )
                 }

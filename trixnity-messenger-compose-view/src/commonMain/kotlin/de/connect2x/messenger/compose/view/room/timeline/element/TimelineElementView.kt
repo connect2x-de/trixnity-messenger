@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
 import androidx.compose.runtime.Composable
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import kotlin.reflect.KClass
@@ -19,7 +18,6 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
     fun createAsMessagePreview(
         holder: BaseTimelineElementHolderViewModel,
         element: V,
-        config: MessageBubbleDisplayConfig.() -> Unit,
     ) {
     }
 

@@ -5,7 +5,6 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,8 +32,8 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import net.folivo.trixnity.client.media.PlatformMedia
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import kotlin.reflect.KClass
+
 
 class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.File> {
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.File> =
@@ -44,11 +43,10 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         "application/pdf",
     )
 
-    @OptIn(ExperimentalResourceApi::class, ExperimentalLayoutApi::class)
     @Composable
     override fun create(
         element: RoomMessageTimelineElementViewModel.FileBased.File,
-        onSave: () -> Unit,
+        onSaveAttachment: () -> Unit,
         onClose: () -> Unit,
     ) {
         val media = element.downloadMediaResult.collectAsState().value

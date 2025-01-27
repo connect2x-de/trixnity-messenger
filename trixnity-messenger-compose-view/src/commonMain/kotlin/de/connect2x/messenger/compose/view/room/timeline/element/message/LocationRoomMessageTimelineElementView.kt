@@ -40,9 +40,8 @@ class LocationRoomMessageTimelineElementView : TimelineElementView<RoomMessageTi
     override fun createAsMessagePreview(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.Location,
-        config: MessageBubbleDisplayConfig.() -> Unit,
     ) {
-        LocationMessageElement(holder, element) { applyPreviewConfig(config) }
+        LocationMessageElement(holder, element) { applyPreviewConfig() }
     }
 
     @Composable
@@ -65,16 +64,16 @@ fun LocationMessageElement(
     MessageBubble(
         holder = holder,
         config = config,
-    ) { showMenuAction ->
+    ) { openActionMenu ->
         // On Android: This will consume long tap events, which we use for the context menu.
         // On Desktop and Web: It makes sense to select the text and copy it.
         val platform = Platform.current
         when {
             platform.isMobile ->
-                LocationMessageContent(element, showMenuAction)
+                LocationMessageContent(element, openActionMenu)
 
             else -> SelectionContainer {
-                LocationMessageContent(element, showMenuAction)
+                LocationMessageContent(element, openActionMenu)
             }
         }
     }
@@ -83,7 +82,7 @@ fun LocationMessageElement(
 @Composable
 internal fun LocationMessageContent(
     element: RoomMessageTimelineElementViewModel.Location,
-    showMenuAction: () -> Unit,
+    onOpenActionMenu: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val (geoUrl, pos) = element.geoUri
@@ -98,7 +97,7 @@ internal fun LocationMessageContent(
         onClick = {
             uriHandler.openUri(geoUrl)
         },
-        onLongPress = { showMenuAction() },
+        onLongPress = { onOpenActionMenu() },
         style = MaterialTheme.typography.bodySmall
     )
 }

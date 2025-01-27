@@ -90,6 +90,7 @@ data class MessageBubbleDisplayConfig(
             showTimeAndEditedIndicator = true
             alwaysShowChatBubbleTail = true
             preventUserInput = true
+            minifyBubble = true
             additionalConfig.invoke(this)
         }
     }

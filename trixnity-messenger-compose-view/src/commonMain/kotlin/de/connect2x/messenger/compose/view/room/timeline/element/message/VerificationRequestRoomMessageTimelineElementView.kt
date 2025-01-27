@@ -39,7 +39,6 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.verification.AcceptSasStart
 import de.connect2x.messenger.compose.view.verification.CompareEmojisOrNumbers
 import de.connect2x.messenger.compose.view.verification.DeviceVerificationWaitForOther
@@ -76,7 +75,6 @@ class VerificationRequestRoomMessageTimelineElementView :
     override fun createAsMessagePreview(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.VerificationRequest,
-        config: MessageBubbleDisplayConfig.() -> Unit,
     ) {
         // NO-OP
     }

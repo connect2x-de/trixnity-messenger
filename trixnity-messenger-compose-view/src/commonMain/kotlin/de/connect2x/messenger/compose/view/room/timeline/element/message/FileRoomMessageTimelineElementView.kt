@@ -30,7 +30,6 @@ import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
@@ -54,8 +53,8 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-        ) { openActionMenu, saveFile ->
-            FileMessageContent(element, openActionMenu, saveFile)
+        ) { openActionMenu, saveAttachment ->
+            FileMessageContent(element, openActionMenu, saveAttachment)
         }
     }
 
@@ -63,14 +62,13 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
     override fun createAsMessagePreview(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased.File,
-        config: MessageBubbleDisplayConfig.() -> Unit,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-            config = { applyPreviewConfig(config) },
-        ) { openActionMenu, saveFile ->
-            FileMessageContent(element, openActionMenu, saveFile)
+            config = { applyPreviewConfig() },
+        ) { openActionMenu, saveAttachment ->
+            FileMessageContent(element, openActionMenu, saveAttachment)
         }
     }
 
@@ -89,14 +87,14 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
 internal fun FileMessageContent(
     element: RoomMessageTimelineElementViewModel.FileBased.File,
     onOpenActionMenu: () -> Unit,
-    onSaveFile: () -> Unit,
+    onSaveAttachment: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val downloadSuccessful = remember { element.downloadMediaResult.map { it != null } }.collectAsState(false)
     Row(
         Modifier.pointerInput(Unit) {
             detectTapGestures(
-                onTap = { onSaveFile() },
+                onTap = { onSaveAttachment() },
                 onLongPress = { onOpenActionMenu() },
             )
         }

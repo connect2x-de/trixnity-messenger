@@ -486,7 +486,7 @@ private fun MessageContent(
                 Modifier.padding(end = 8.dp),
             ) {
                 with(DI.get<TimelineElementViewSelector>()) {
-                    createAsMessagePreview(holder, element, { minifyBubble = true })
+                    createAsMessagePreview(holder, element)
                 }
             }
             Spacer(Modifier.size(smallSpacing))

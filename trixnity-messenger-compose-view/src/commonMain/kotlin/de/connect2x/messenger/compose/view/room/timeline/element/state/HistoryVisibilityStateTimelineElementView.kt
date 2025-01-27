@@ -6,7 +6,6 @@ import androidx.compose.runtime.collectAsState
 import de.connect2x.messenger.compose.view.room.timeline.Indicator
 import de.connect2x.messenger.compose.view.room.timeline.IndicatorText
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.HistoryVisibilityStateTimelineElementViewModel
 import kotlinx.coroutines.flow.filterNotNull
@@ -39,7 +38,6 @@ class HistoryVisibilityStateTimelineElementView : TimelineElementView<HistoryVis
     override fun createAsMessagePreview(
         holder: BaseTimelineElementHolderViewModel,
         element: HistoryVisibilityStateTimelineElementViewModel,
-        config: MessageBubbleDisplayConfig.() -> Unit,
     ) {
         // NO-OP
     }

@@ -12,21 +12,21 @@ private val log = KotlinLogging.logger {}
 
 interface ElementDetailsViewSelector {
     @Composable
-    fun create(element: TimelineElementViewModel<*>, onSave: () -> Unit, onClose: () -> Unit)
+    fun create(element: TimelineElementViewModel<*>, onSaveAttachment: () -> Unit, onClose: () -> Unit)
 }
 
 @Composable
 fun ElementDetailsSelector(
     element: TimelineElementViewModel<*>,
-    onSave: () -> Unit,
+    onSaveAttachment: () -> Unit,
     onClose: () -> Unit,
 ) {
-    with(DI.get<ElementDetailsViewSelector>()) { create(element, onSave, onClose) }
+    with(DI.get<ElementDetailsViewSelector>()) { create(element, onSaveAttachment, onClose) }
 }
 
 class ElementDetailsViewSelectorImpl(val factories: List<TimelineElementDetailsView<*>>) : ElementDetailsViewSelector {
     @Composable
-    override fun create(element: TimelineElementViewModel<*>, onSave: () -> Unit, onClose: () -> Unit) {
+    override fun create(element: TimelineElementViewModel<*>, onSaveAttachment: () -> Unit, onClose: () -> Unit) {
         val factory = remember {
             val mimeType = (element as? RoomMessageTimelineElementViewModel.FileBased<*>)?.mimeType
             val foundFactory =
@@ -39,10 +39,10 @@ class ElementDetailsViewSelectorImpl(val factories: List<TimelineElementDetailsV
                 foundFactory as TimelineElementDetailsView<TimelineElementViewModel<*>>
             }
         }
-        factory?.create(element, onSave, onClose)
+        factory?.create(element, onSaveAttachment, onClose)
             ?: run { // in case we show no overlay, we directly save
                 log.warn { "no overlay found for ${element::class.simpleName} -> directly save" }
-                onSave()
+                onSaveAttachment()
             }
     }
 
