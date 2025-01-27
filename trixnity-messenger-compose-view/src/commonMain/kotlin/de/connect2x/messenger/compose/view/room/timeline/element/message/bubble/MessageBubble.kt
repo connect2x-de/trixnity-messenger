@@ -39,7 +39,7 @@ data class MessageBubbleDisplayConfig(
     /**
      * Whether the context menu should be available from the message bubble view.
      */
-    var showContextActionMenu: Boolean = true,
+    var enableContextActionMenu: Boolean = true,
 
     /**
      * Whether the bubble should provide the ability to add reactions and display existing ones.
@@ -86,7 +86,7 @@ data class MessageBubbleDisplayConfig(
             additionalConfig: MessageBubbleDisplayConfig.() -> Unit = {},
         ) = this.apply {
             showMessageReactions = false
-            showContextActionMenu = false
+            enableContextActionMenu = false
             showTimeAndEditedIndicator = true
             alwaysShowChatBubbleTail = true
             preventUserInput = true
@@ -102,7 +102,7 @@ interface MessageBubbleView {
         config: MessageBubbleDisplayConfig.() -> Unit = {},
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
         overlay: (@Composable BoxScope.() -> Unit)? = null,
-        content: @Composable (showActionMenu: () -> Unit) -> Unit,
+        content: @Composable (onOpenActionMenu: () -> Unit) -> Unit,
     )
 }
 
@@ -112,7 +112,7 @@ fun MessageBubble(
     config: MessageBubbleDisplayConfig.() -> Unit = {},
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
     overlay: (@Composable BoxScope.() -> Unit)? = null,
-    content: @Composable (showActionMenu: () -> Unit) -> Unit,
+    content: @Composable (onOpenActionMenu: () -> Unit) -> Unit,
 ) {
     DI.get<MessageBubbleView>()
         .create(holder, config, additionalContextActions, overlay, content)
@@ -125,7 +125,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
         config: MessageBubbleDisplayConfig.() -> Unit,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
         overlay: (@Composable BoxScope.() -> Unit)?,
-        content: @Composable (showActionMenu: () -> Unit) -> Unit,
+        content: @Composable (onOpenActionMenu: () -> Unit) -> Unit,
     ) {
         val cfg = MessageBubbleDisplayConfig.of(config)
         val isRedactionInProgress =

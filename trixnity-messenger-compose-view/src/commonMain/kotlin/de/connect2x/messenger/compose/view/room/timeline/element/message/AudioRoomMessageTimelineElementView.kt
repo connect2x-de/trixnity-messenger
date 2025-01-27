@@ -57,8 +57,8 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
             holder,
             element,
             overlay = { FileMessageElementOverlay(element) },
-        ) { showActionMenu, onSave ->
-            MessageAudio(element, showActionMenu, onSave)
+        ) { openActionMenu, saveFile ->
+            MessageAudio(element, openActionMenu, saveFile)
         }
     }
 
@@ -72,8 +72,8 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
             holder,
             element,
             config = { applyPreviewConfig(config) },
-        ) { showActionMenu, onSave ->
-            MessageAudio(element, showActionMenu, onSave)
+        ) { openActionMenu, saveFile ->
+            MessageAudio(element, openActionMenu, saveFile)
         }
     }
 
@@ -104,8 +104,8 @@ internal fun FileMessageElementOverlay(element: RoomMessageTimelineElementViewMo
 @Composable
 internal fun MessageAudio(
     element: RoomMessageTimelineElementViewModel.FileBased.Audio,
-    showActionMenu: () -> Unit,
-    onSave: () -> Unit,
+    onOpenActionMenu: () -> Unit,
+    onSaveFile: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val downloadSuccessful = remember { element.downloadMediaResult.map { it != null } }.collectAsState(false)
@@ -128,8 +128,8 @@ internal fun MessageAudio(
                         .size(64.dp)
                         .pointerInput(Unit) {
                             detectTapGestures(
-                                onTap = { onSave() },
-                                onLongPress = { showActionMenu() },
+                                onTap = { onSaveFile() },
+                                onLongPress = { onOpenActionMenu() },
                             )
                         }
                         .buttonPointerModifier())

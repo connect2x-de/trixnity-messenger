@@ -46,17 +46,17 @@ interface FileBasedRoomMessageTimelineElementView {
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
         config: MessageBubbleDisplayConfig.() -> Unit = {},
         overlay: @Composable BoxScope.() -> Unit,
-        content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
+        content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSaveFile: () -> Unit) -> Unit,
     )
 }
 
 @Composable
-fun FileBasedRoomMessageTimelineElement(
+internal fun FileBasedRoomMessageTimelineElement(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     config: MessageBubbleDisplayConfig.() -> Unit = {},
     overlay: @Composable BoxScope.() -> Unit = {},
-    content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
+    content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSaveFile: () -> Unit) -> Unit,
 ) {
     DI.get<FileBasedRoomMessageTimelineElementView>()
         .create(holder, element, config, overlay, content)
@@ -69,7 +69,7 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
         config: MessageBubbleDisplayConfig.() -> Unit,
         overlay: @Composable BoxScope.() -> Unit,
-        content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
+        content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSaveFile: () -> Unit) -> Unit,
     ) {
         val error = element.downloadMediaError.collectAsState().value
         var saveDialogOpen by remember { mutableStateOf(false) }
@@ -92,13 +92,13 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
 }
 
 @Composable
-fun FileBasedRoomMessageTimelineElementMessageBubble(
+internal fun FileBasedRoomMessageTimelineElementMessageBubble(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     config: MessageBubbleDisplayConfig.() -> Unit = {},
-    onSave: () -> Unit,
+    onSaveFile: () -> Unit,
     overlay: @Composable BoxScope.() -> Unit,
-    content: @Composable ColumnScope.(() -> Unit, () -> Unit) -> Unit,
+    content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSaveFile: () -> Unit) -> Unit,
 ) {
     val i18n = DI.current.get<I18nView>()
     MessageBubble(
@@ -109,7 +109,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
             contentNeedsMaxWidth = true
         },
         additionalContextActions = { onClose ->
-            // name
+            // Name:
             Tooltip(
                 { TooltipText("${element.name} " + (element.size ?: "")) } // full name
             ) {
@@ -120,14 +120,14 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
                 )
             }
             HorizontalDivider()
-            // download action
+            // Download action:
             BaseTimelineElementHolderContextMenuAction(
                 label = i18n.downloadMessage(),
-                action = onSave,
+                action = onSaveFile,
             ).render(onClose)
         },
-    ) { showActionMenu ->
-        FileBasedView(holder, element, onSave, showActionMenu, content)
+    ) { openActionMenu ->
+        FileBasedView(holder, element, onSaveFile, openActionMenu, content)
     }
 }
 
@@ -135,28 +135,27 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
 internal fun FileBasedView(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
-    onSave: () -> Unit,
-    showActionMenu: () -> Unit,
-    content: @Composable ColumnScope.(onShowActionMenu: () -> Unit, openElementDetails: () -> Unit) -> Unit,
+    onSaveFile: () -> Unit,
+    onOpenActionMenu: () -> Unit,
+    content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onOpenElementDetails: () -> Unit) -> Unit,
 ) {
     val downloadProgressElement = element.downloadMediaProgress.collectAsState()
     val uploadProgress = holder.asOutboxElementHolder()?.uploadProgress?.collectAsState()?.value
-
-    var openElementDetails by remember { mutableStateOf(false) }
+    var showElementDetails by remember { mutableStateOf(false) }
 
     Column(
         Modifier
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = { openElementDetails = true },
-                    onLongPress = { showActionMenu() },
+                    onTap = { showElementDetails = true },
+                    onLongPress = { onOpenActionMenu() },
                 )
             }
             .buttonPointerModifier()
     ) {
-        // content based on the actual file
-        content(showActionMenu) {
-            openElementDetails = true
+        // Content based on the actual file:
+        content(onOpenActionMenu) {
+            showElementDetails = true
         }
     }
 
@@ -183,9 +182,7 @@ internal fun FileBasedView(
         Spacer(Modifier.size(10.dp))
     }
 
-    if (openElementDetails) {
-        ElementDetailsSelector(element, onSave) {
-            openElementDetails = false
-        }
+    if (showElementDetails) ElementDetailsSelector(element, onSaveFile) {
+        showElementDetails = false
     }
 }

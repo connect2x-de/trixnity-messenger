@@ -22,14 +22,11 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxEl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
 
-// TODO: rename file to TimelineElementHolderMenuActions.kt or BaseTimelineElementHolderContextMenuActions.kt
-
 @Composable
-// TODO: rename to menuActions or contextMenuActions
-internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
+internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
     i18n: I18nView,
-    onInfo: () -> Unit,
-    onReact: () -> Unit,
+    onOpenMetadata: () -> Unit,
+    onReactToMessage: () -> Unit,
 ): List<BaseTimelineElementHolderContextMenuAction> {
     val canBeReactedTo = asTimelineElementHolder()?.canBeReactedTo?.collectAsState()?.value == true
     val canBeRepliedTo = asTimelineElementHolder()?.canBeRepliedTo?.collectAsState()?.value == true
@@ -39,17 +36,17 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
     val canRetrySend = asOutboxElementHolder()?.canRetrySend?.collectAsState()?.value == true
     val canAbortSend = asOutboxElementHolder()?.canAbortSend?.collectAsState()?.value == true
     return buildList {
-        if (this@baseMenuActions is TimelineElementHolderViewModel) {
+        if (this@contextMenuActions is TimelineElementHolderViewModel) {
             add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.infoMessage(),
-                    action = onInfo,
+                    action = onOpenMetadata,
                 )
             )
             if (canBeReactedTo) add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.reactMessage(),
-                    action = onReact,
+                    action = onReactToMessage,
                 )
             )
             if (canBeRepliedTo) add(
@@ -77,7 +74,7 @@ internal fun BaseTimelineElementHolderViewModel.baseMenuActions(
                 )
             )
         }
-        if (this@baseMenuActions is OutboxElementHolderViewModel) {
+        if (this@contextMenuActions is OutboxElementHolderViewModel) {
             if (canRetrySend) add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.retrySendMessage(),

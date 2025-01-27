@@ -48,27 +48,26 @@ fun TextBasedRoomMessageTimelineElementView(
     MessageBubble(
         holder = holder,
         config = config,
-    ) { showActionMenu ->
+    ) { openActionMenu ->
         // On Desktop: It makes sense to select the text and copy it.
         // On Android: This will consume long tap events, which we use for the context menu.
         when {
             Platform.current.isDesktop -> SelectionContainer {
-                MessageTextContent(holder, element, showActionMenu)
+                TextMessageContent(holder, element, openActionMenu)
             }
 
-            else -> MessageTextContent(holder, element, showActionMenu)
+            else -> TextMessageContent(holder, element, openActionMenu)
         }
     }
 }
 
 @Composable
-private fun MessageTextContent(
+private fun TextMessageContent(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.TextBased<*>,
-    showActionMenu: () -> Unit,
+    onOpenActionMenu: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-
     Column(Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)) {
         if (element is RoomMessageTimelineElementViewModel.TextBased.Notice) {
             Row {
@@ -90,14 +89,14 @@ private fun MessageTextContent(
             }.sortedByDescending { it.first.first }
 
         val message = element.formattedBody ?: element.body
-        val text = formatMessage(message, mentions)
+        val text = rememberFormattedMessageText(message, mentions)
         val richTextState = rememberSaveable(text, saver = RichTextState.Saver) {
             RichTextState().apply {
                 setHtml(text)
             }
         }.apply {
             config.linkColor =
-                if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
+                if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors.
                 else MaterialTheme.messengerColors.link
         }
 
@@ -116,7 +115,7 @@ private fun MessageTextContent(
                 uriHandler,
                 richTextState,
                 holder.isByMe,
-                showActionMenu,
+                onOpenActionMenu,
             )
         }
     }
@@ -127,7 +126,7 @@ private fun MessageRichText(
     uriHandler: UriHandler,
     state: RichTextState,
     isByMe: Boolean,
-    showActionMenu: () -> Unit
+    onOpenActionMenu: () -> Unit,
 ) {
     CompositionLocalProvider(
         LocalUriHandler provides uriHandler
@@ -136,7 +135,7 @@ private fun MessageRichText(
             state = state,
             modifier = Modifier.pointerInput(Unit) {
                 detectTapGestures(
-                    onLongPress = { showActionMenu() }
+                    onLongPress = { onOpenActionMenu() }
                 )
             },
             style = MaterialTheme.typography.bodyMedium.copy(
@@ -147,11 +146,8 @@ private fun MessageRichText(
     }
 }
 
-private val urlRegex =
-    Regex("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=;]*)")
-
 @Composable
-private fun formatMessage(
+private fun rememberFormattedMessageText(
     message: String,
     mentions: List<Pair<IntRange, TimelineElementMention?>>,
 ): String {
@@ -164,9 +160,12 @@ private fun formatMessage(
     }
 }
 
+private val urlRegex =
+    Regex("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=;]*)")
+
 internal fun String.formatMentions(
     mentions: List<Pair<IntRange, TimelineElementMention?>>,
-    eventPile: (String) -> String
+    eventPile: (String) -> String,
 ): String =
     mentions.foldIndexed(this) { index, currentText, (range, mention) ->
         val anchorContent = when (mention) {

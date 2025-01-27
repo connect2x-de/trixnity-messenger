@@ -38,7 +38,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
-import de.connect2x.messenger.compose.view.room.timeline.element.message.baseMenuActions
+import de.connect2x.messenger.compose.view.room.timeline.element.message.contextMenuActions
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import kotlinx.coroutines.launch
 
@@ -48,38 +48,38 @@ fun BoxScope.MessageBubbleActionMenu(
     holder: BaseTimelineElementHolderViewModel,
     hoverMessage: State<Boolean>,
     showActionMenu: MutableState<Boolean>,
-    onMessageInfo: () -> Unit,
+    onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     when {
         Platform.current.isMobile -> MessageBubbleActionMenuMobile(
-            showActionMenu,
-            additionalContextActions,
             holder,
-            onMessageInfo,
+            showActionMenu,
+            onOpenMetadata,
             onReactToMessage,
+            additionalContextActions,
         )
 
         else -> MessageBubbleActionMenuDefault(
-            showActionMenu,
             holder,
             hoverMessage,
-            additionalContextActions,
-            onMessageInfo,
+            showActionMenu,
+            onOpenMetadata,
             onReactToMessage,
+            additionalContextActions,
         )
     }
 }
 
 @Composable
 private fun BoxScope.MessageBubbleActionMenuDefault(
-    showActionMenu: MutableState<Boolean>,
     holder: BaseTimelineElementHolderViewModel,
     hoverMessage: State<Boolean>,
-    additionalContextActions: @Composable() (ColumnScope.(onClose: () -> Unit) -> Unit),
-    onMessageInfo: () -> Unit,
+    showActionMenu: MutableState<Boolean>,
+    onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
+    additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     val i18n = DI.current.get<I18nView>()
     val onClose = {
@@ -121,7 +121,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
                 .sizeIn(maxWidth = 300.dp),
         ) {
             additionalContextActions(onClose)
-            holder.baseMenuActions(i18n, onMessageInfo, onReactToMessage)
+            holder.contextMenuActions(i18n, onOpenMetadata, onReactToMessage)
                 .forEach { action -> action.render { onClose() } }
         }
     }
@@ -130,11 +130,11 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun MessageBubbleActionMenuMobile(
-    showActionMenu: MutableState<Boolean>,
-    additionalContextActions: @Composable() (ColumnScope.(onClose: () -> Unit) -> Unit),
     holder: BaseTimelineElementHolderViewModel,
-    onMessageInfo: () -> Unit,
+    showActionMenu: MutableState<Boolean>,
+    onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
+    additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     val i18n = DI.current.get<I18nView>()
     val coroutineScope = rememberCoroutineScope()
@@ -159,7 +159,7 @@ private fun MessageBubbleActionMenuMobile(
                 .padding(bottom = 40.dp)
         ) {
             additionalContextActions(onClose)
-            holder.baseMenuActions(i18n, onMessageInfo, onReactToMessage)
+            holder.contextMenuActions(i18n, onOpenMetadata, onReactToMessage)
                 .forEach { action -> action.render { onClose() } }
         }
     }

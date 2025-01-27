@@ -42,7 +42,7 @@ class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimeli
         MessageBubble(
             holder = holder,
         ) { _ ->
-            EncryptedMessage()
+            EncryptedMessageWaitElement()
         }
     }
 
@@ -56,23 +56,23 @@ class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimeli
             holder = holder,
             config = { applyPreviewConfig(config) },
         ) { _ ->
-            EncryptedMessage()
+            EncryptedMessageWaitElement()
         }
     }
 
     @Composable
     override fun createReplyInTimeline(element: EncryptedWaitTimelineElementViewModel) {
-        EncryptedMessage()
+        EncryptedMessageWaitElement()
     }
 
     @Composable
     override fun createReplyInSendMessage(element: EncryptedWaitTimelineElementViewModel) {
-        EncryptedMessage()
+        EncryptedMessageWaitElement()
     }
 }
 
 @Composable
-internal fun EncryptedMessage() {
+internal fun EncryptedMessageWaitElement() {
     val i18n = DI.get<I18nView>()
     Row(Modifier.padding(10.dp)) {
         Icon(

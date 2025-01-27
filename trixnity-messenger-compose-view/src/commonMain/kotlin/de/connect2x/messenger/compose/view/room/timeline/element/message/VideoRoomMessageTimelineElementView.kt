@@ -65,7 +65,7 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
             element,
             overlay = { VideoMessageElementOverlay(element) }
         ) { showMenuAction, onSave ->
-            MessageVideo(holder, element, showMenuAction, onSave)
+            VideoMessageContent(holder, element, showMenuAction, onSave)
         }
     }
 
@@ -80,18 +80,18 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
             element,
             config = { applyPreviewConfig(config) },
         ) { showMenuAction, onSave ->
-            MessageVideo(holder, element, showMenuAction, onSave)
+            VideoMessageContent(holder, element, showMenuAction, onSave)
         }
     }
 
     @Composable
     override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
-        ReplyVideo(element)
+        VideoReplyElement(element)
     }
 
     @Composable
     override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
-        ReplyVideo(element)
+        VideoReplyElement(element)
     }
 }
 
@@ -111,7 +111,7 @@ internal fun VideoMessageElementOverlay(element: RoomMessageTimelineElementViewM
 }
 
 @Composable
-internal fun ColumnScope.MessageVideo(
+internal fun ColumnScope.VideoMessageContent(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased.Video,
     showMenuAction: () -> Unit,
@@ -173,7 +173,7 @@ private fun Modifier.openVideoOnTouch(
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-internal fun ReplyVideo(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
+internal fun VideoReplyElement(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
     val i18n = DI.get<I18nView>()
     val videoImage = element.thumbnail.collectAsState().value
     videoImage?.let { videoImage ->

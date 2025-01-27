@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlin.reflect.KClass
 
+
 class AvatarStateTimelineElementView : TimelineElementView<AvatarStateTimelineElementViewModel> {
     override val supports: KClass<AvatarStateTimelineElementViewModel> = AvatarStateTimelineElementViewModel::class
 

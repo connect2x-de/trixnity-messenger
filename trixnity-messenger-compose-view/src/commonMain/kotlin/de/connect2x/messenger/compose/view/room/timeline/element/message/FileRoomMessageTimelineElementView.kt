@@ -54,8 +54,8 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-        ) { showActionMenu, onSave ->
-            MessageFile(element, showActionMenu, onSave)
+        ) { openActionMenu, saveFile ->
+            FileMessageContent(element, openActionMenu, saveFile)
         }
     }
 
@@ -69,35 +69,35 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
             holder,
             element,
             config = { applyPreviewConfig(config) },
-        ) { showActionMenu, onSave ->
-            MessageFile(element, showActionMenu, onSave)
+        ) { openActionMenu, saveFile ->
+            FileMessageContent(element, openActionMenu, saveFile)
         }
     }
 
     @Composable
     override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.FileBased.File) {
-        ReplyFile(element)
+        FileReplyElement(element)
     }
 
     @Composable
     override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.FileBased.File) {
-        ReplyFile(element)
+        FileReplyElement(element)
     }
 }
 
 @Composable
-internal fun MessageFile(
+internal fun FileMessageContent(
     element: RoomMessageTimelineElementViewModel.FileBased.File,
-    showActionMenu: () -> Unit,
-    onSave: () -> Unit,
+    onOpenActionMenu: () -> Unit,
+    onSaveFile: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val downloadSuccessful = remember { element.downloadMediaResult.map { it != null } }.collectAsState(false)
     Row(
         Modifier.pointerInput(Unit) {
             detectTapGestures(
-                onTap = { onSave() },
-                onLongPress = { showActionMenu() },
+                onTap = { onSaveFile() },
+                onLongPress = { onOpenActionMenu() },
             )
         }
             .padding(10.dp)
@@ -121,7 +121,7 @@ internal fun MessageFile(
             },
             Modifier.align(Alignment.CenterVertically)
         )
-        if (downloadSuccessful.value == true) {
+        if (downloadSuccessful.value) {
             Spacer(Modifier.size(10.dp))
             Icon(
                 Icons.Default.CheckCircle,
@@ -134,7 +134,7 @@ internal fun MessageFile(
 }
 
 @Composable
-internal fun ReplyFile(element: RoomMessageTimelineElementViewModel.FileBased.File) {
+internal fun FileReplyElement(element: RoomMessageTimelineElementViewModel.FileBased.File) {
     val i18n = DI.get<I18nView>()
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(

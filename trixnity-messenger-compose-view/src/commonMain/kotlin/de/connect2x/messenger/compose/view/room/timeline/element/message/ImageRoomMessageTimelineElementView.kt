@@ -61,8 +61,8 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
             holder,
             element,
             overlay = { ImageMessageElementOverlay(element) },
-        ) { showActionMenu, onSave ->
-            MessageImage(element, showActionMenu, onSave)
+        ) { openActionMenu, saveFile ->
+            ImageMessageContent(element, openActionMenu, saveFile)
         }
     }
 
@@ -76,19 +76,19 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
             holder,
             element,
             config = { applyPreviewConfig(config) },
-        ) { showActionMenu, onSave ->
-            MessageImage(element, showActionMenu, onSave)
+        ) { openActionMenu, saveFile ->
+            ImageMessageContent(element, openActionMenu, saveFile)
         }
     }
 
     @Composable
     override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
-        ReplyImage(element)
+        ImageReplyElement(element)
     }
 
     @Composable
     override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
-        ReplyImage(element)
+        ImageReplyElement(element)
     }
 }
 
@@ -104,25 +104,25 @@ internal fun ImageMessageElementOverlay(element: RoomMessageTimelineElementViewM
 }
 
 @Composable
-internal fun ColumnScope.MessageImage(
+internal fun ColumnScope.ImageMessageContent(
     element: RoomMessageTimelineElementViewModel.FileBased.Image,
-    showActionMenu: () -> Unit,
-    onSave: () -> Unit
+    onOpenActionMenu: () -> Unit,
+    onSaveFile: () -> Unit,
 ) {
     val image = element.thumbnail.collectAsState().value
     val bitmap = remember(image) {
         image?.toImageBitmap()
     }
     bitmap?.let {
-        MessageImageImpl(it, showActionMenu, onSave)
-    } ?: MessageImageFallback(element, showActionMenu, onSave)
+        MessageImageImpl(it, onOpenActionMenu, onSaveFile)
+    } ?: MessageImageFallback(element, onOpenActionMenu, onSaveFile)
 }
 
 @Composable
 internal fun ColumnScope.MessageImageImpl(
     image: ImageBitmap,
-    showActionMenu: () -> Unit,
-    onSave: () -> Unit,
+    onOpenActionMenu: () -> Unit,
+    onSaveFile: () -> Unit,
 ) {
     Image(
         image,
@@ -140,9 +140,9 @@ internal fun ColumnScope.MessageImageImpl(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        onSave()
+                        onSaveFile()
                     },
-                    onLongPress = { showActionMenu() },
+                    onLongPress = { onOpenActionMenu() },
                 )
             }
             .buttonPointerModifier(),
@@ -151,10 +151,10 @@ internal fun ColumnScope.MessageImageImpl(
 }
 
 @Composable
-internal fun ColumnScope.MessageImageFallback(
+internal fun MessageImageFallback(
     element: RoomMessageTimelineElementViewModel.FileBased.Image,
-    showActionMenu: () -> Unit,
-    onSave: () -> Unit,
+    onOpenActionMenu: () -> Unit,
+    onSaveFile: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     Column(
@@ -170,9 +170,9 @@ internal fun ColumnScope.MessageImageFallback(
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onTap = {
-                            onSave()
+                            onSaveFile()
                         },
-                        onLongPress = { showActionMenu() },
+                        onLongPress = { onOpenActionMenu() },
                     )
                 }
                 .size(64.dp)
@@ -182,20 +182,19 @@ internal fun ColumnScope.MessageImageFallback(
     }
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
-internal fun ReplyImage(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
+@OptIn(ExperimentalResourceApi::class)
+internal fun ImageReplyElement(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
     val i18n = DI.get<I18nView>()
-    val image = element.thumbnail.collectAsState().value
-
-    image?.let { image ->
-        Image(
-            image.decodeToImageBitmap(),
-            "",
-            Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)),
-            contentScale = ContentScale.Fit
-        )
-    } ?: run {
+    element.thumbnail.collectAsState().value
+        ?.let { image ->
+            Image(
+                image.decodeToImageBitmap(),
+                "",
+                Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Fit
+            )
+        } ?: run {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(10.dp)) {
             Icon(
                 MaterialTheme.messengerIcons.typeImage,

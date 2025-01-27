@@ -45,7 +45,7 @@ class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementV
         MessageBubble(
             holder,
         ) {
-            Redacted(element)
+            RedactedMessageElement(element)
         }
     }
 
@@ -59,23 +59,23 @@ class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementV
             holder,
             config = { applyPreviewConfig(config) },
         ) {
-            Redacted(element)
+            RedactedMessageElement(element)
         }
     }
 
     @Composable
     override fun createReplyInTimeline(element: RedactedTimelineElementViewModel) {
-        Redacted(element)
+        RedactedMessageElement(element)
     }
 
     @Composable
     override fun createReplyInSendMessage(element: RedactedTimelineElementViewModel) {
-        Redacted(element)
+        RedactedMessageElement(element)
     }
 }
 
 @Composable
-internal fun Redacted(element: RedactedTimelineElementViewModel) {
+internal fun RedactedMessageElement(element: RedactedTimelineElementViewModel) {
     val i18n = DI.get<I18nView>()
     val formattedMessage = element.message.collectAsState().value
     val redactedAt = element.redactedAt.collectAsState().value

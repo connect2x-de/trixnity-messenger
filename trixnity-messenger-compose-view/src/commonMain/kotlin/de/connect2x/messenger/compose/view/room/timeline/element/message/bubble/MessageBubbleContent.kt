@@ -42,7 +42,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 fun MessageBubbleContent(
     holder: BaseTimelineElementHolderViewModel,
     config: MessageBubbleDisplayConfig,
-    showActionMenu: () -> Unit,
+    onOpenActionMenu: () -> Unit,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
@@ -96,7 +96,7 @@ fun MessageBubbleContent(
             // The [hasRepliedElement] is needed to avoid layouting of already layouted elements which leads to this:
             // "Asking for intrinsic measurements of SubcomposeLayout layouts is not supported."
             if (config.contentNeedsMaxWidth || hasRepliedElement) {
-                content(showActionMenu)
+                content(onOpenActionMenu)
                 Row(
                     Modifier.align(Alignment.End).padding(5.dp),
                     verticalAlignment = Alignment.Bottom
@@ -106,7 +106,7 @@ fun MessageBubbleContent(
             } else {
                 Layout(
                     content = {
-                        content(showActionMenu)
+                        content(onOpenActionMenu)
                         Row(
                             modifier = Modifier.padding(
                                 start = 5.dp,

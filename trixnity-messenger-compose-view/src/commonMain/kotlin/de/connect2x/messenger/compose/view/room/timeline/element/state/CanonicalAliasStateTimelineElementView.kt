@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlin.reflect.KClass
 
+
 class CanonicalAliasStateTimelineElementView : TimelineElementView<CanonicalAliasStateTimelineElementViewModel> {
     override val supports: KClass<CanonicalAliasStateTimelineElementViewModel> =
         CanonicalAliasStateTimelineElementViewModel::class

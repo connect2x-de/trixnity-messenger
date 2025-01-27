@@ -69,7 +69,7 @@ fun MessageBubbleContainer(
     reactionsOpen: MutableState<Boolean>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
     overlay: (@Composable BoxScope.() -> Unit)? = null,
-    content: @Composable (showActionMenu: () -> Unit) -> Unit,
+    content: @Composable (onOpenActionMenu: () -> Unit) -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val isFirstInUserSequence = holder.isFirstInUserSequence.collectAsState().value == true
@@ -132,7 +132,7 @@ fun MessageBubbleContainer(
                     ) {
                         MessageBubbleContent(
                             holder, config,
-                            onShowActionMenu = { showActionMenu.value = true },
+                            onOpenActionMenu = { showActionMenu.value = true },
                             content = {
                                 Box(
                                     modifier = Modifier.heightIn(
@@ -171,11 +171,11 @@ fun MessageBubbleContainer(
                     // to the max amount (we only use padding in the Timeline).
                 )
             }
-            if (config.showContextActionMenu) MessageBubbleActionMenu(
+            if (config.enableContextActionMenu) MessageBubbleActionMenu(
                 holder,
                 hoverMessage,
                 showActionMenu,
-                onMessageInfo = {
+                onOpenMetadata = {
                     // TODO maybe add showMessageMetadata to BaseTimelineHolderElementVM?
                     if (holder is TimelineElementHolderViewModel) holder.openMessageMetadata()
                 },

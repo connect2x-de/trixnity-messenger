@@ -34,7 +34,7 @@ class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTime
         MessageBubble(
             holder = holder,
         ) { _ ->
-            EncryptedError()
+            EncryptedMessageErrorElement()
         }
     }
 
@@ -48,23 +48,23 @@ class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTime
             holder = holder,
             config = { applyPreviewConfig(config) },
         ) { _ ->
-            EncryptedError()
+            EncryptedMessageErrorElement()
         }
     }
 
     @Composable
     override fun createReplyInTimeline(element: EncryptedErrorTimelineElementViewModel) {
-        EncryptedError()
+        EncryptedMessageErrorElement()
     }
 
     @Composable
     override fun createReplyInSendMessage(element: EncryptedErrorTimelineElementViewModel) {
-        EncryptedError()
+        EncryptedMessageErrorElement()
     }
 }
 
 @Composable
-internal fun EncryptedError() {
+internal fun EncryptedMessageErrorElement() {
     val i18n = DI.get<I18nView>()
     Text(
         i18n.messageContentNoDecryption(),
