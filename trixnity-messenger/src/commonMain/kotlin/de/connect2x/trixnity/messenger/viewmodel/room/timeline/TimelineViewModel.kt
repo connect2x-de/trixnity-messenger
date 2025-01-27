@@ -318,8 +318,7 @@ class TimelineViewModelImpl(
                     it > 99 -> "99+"
                     else -> null
                 }
-            }
-            .stateIn(coroutineScope, WhileSubscribed(), null)
+            }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     private val outbox =
         matrixClient.room.getOutbox(roomId = roomId)
