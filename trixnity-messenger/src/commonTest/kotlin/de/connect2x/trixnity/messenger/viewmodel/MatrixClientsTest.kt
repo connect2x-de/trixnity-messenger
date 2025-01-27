@@ -147,6 +147,7 @@ class MatrixClientsTest : ShouldSpec() {
                     any(),
                     any(),
                     any(),
+                    any(),
                 )
             } calls { args ->
                 val username = args.args[0] as User
