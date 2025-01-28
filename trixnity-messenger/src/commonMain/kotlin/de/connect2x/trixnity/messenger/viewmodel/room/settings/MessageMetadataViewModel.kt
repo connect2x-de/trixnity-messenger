@@ -128,6 +128,7 @@ class MessageMetadataViewModelImpl(
                 showLoadingIndicatorBefore = flowOf(false),
                 showLoadingIndicatorAfter = flowOf(false),
                 showReplacedEvents = flowOf(false),
+                showUnreadMarker = flowOf(false),
                 onMessageReplace = { _, _ -> },
                 onMessageReply = { _, _ -> },
                 onMessageReport = { _, _ -> },

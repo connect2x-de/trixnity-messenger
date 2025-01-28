@@ -51,6 +51,7 @@ import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.room.RoomService
+import net.folivo.trixnity.client.room.getTimeline
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
@@ -138,6 +139,7 @@ class RoomViewModelTest : ShouldSpec() {
             } returns MutableStateFlow(null)
             every {
                 roomServiceMock.getTimeline(
+                    any(),
                     any(),
                     any<suspend (Flow<TimelineEvent>) -> Unit>(),
                 )

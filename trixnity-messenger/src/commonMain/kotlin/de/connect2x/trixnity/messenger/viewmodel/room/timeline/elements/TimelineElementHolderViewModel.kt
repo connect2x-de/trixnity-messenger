@@ -19,6 +19,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.getMessageIsRead
 import de.connect2x.trixnity.messenger.viewmodel.util.getMessageUserReactions
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
@@ -43,7 +45,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.getAccountData
 import net.folivo.trixnity.client.room.getTimelineEventReplaceAggregation
 import net.folivo.trixnity.client.room.message.react
 import net.folivo.trixnity.client.store.RoomOutboxMessage
@@ -62,14 +63,15 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
-import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.core.component.get
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.seconds
 
 
 private val log = KotlinLogging.logger {}
@@ -84,6 +86,7 @@ interface TimelineElementHolderViewModelFactory {
         sender: UserId,
         formattedDate: String,
         formattedTime: String,
+        showUnreadMarker: Flow<Boolean>,
         showLoadingIndicatorBefore: Flow<Boolean>,
         showLoadingIndicatorAfter: Flow<Boolean>,
         showReplacedEvents: Flow<Boolean>,
@@ -102,6 +105,7 @@ interface TimelineElementHolderViewModelFactory {
             senderUserId = sender,
             formattedDate = formattedDate,
             formattedTime = formattedTime,
+            showUnreadMarker = showUnreadMarker,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
             showReplacedEvents = showReplacedEvents,
@@ -167,6 +171,7 @@ class TimelineElementHolderViewModelImpl(
     private val senderUserId: UserId,
     override val formattedDate: String,
     override val formattedTime: String,
+    showUnreadMarker: Flow<Boolean>,
     showLoadingIndicatorBefore: Flow<Boolean>,
     showLoadingIndicatorAfter: Flow<Boolean>,
     showReplacedEvents: Flow<Boolean>,
@@ -184,11 +189,6 @@ class TimelineElementHolderViewModelImpl(
         get<TimelineElementViewModelFactorySelector>()
     private val repliedTimelineElementHolderViewModelFactory =
         get<RepliedTimelineElementHolderViewModelFactory>()
-
-    override val showLoadingIndicatorBefore = showLoadingIndicatorBefore
-        .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
-    override val showLoadingIndicatorAfter = showLoadingIndicatorAfter
-        .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
     override val showReplacedEvents = showReplacedEvents
         .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
@@ -204,13 +204,30 @@ class TimelineElementHolderViewModelImpl(
                 .drop(1)
         ).shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
+    @OptIn(FlowPreview::class)
     override val showUnreadMarker: StateFlow<Boolean> =
-        matrixClient.room.getAccountData<FullyReadEventContent>(roomId).flatMapLatest { fullyReadEvent ->
-            if (fullyReadEvent?.eventId == eventId) {
-                log.trace { "start compute unread marker at $eventId" }
-                nextSupportedTimelineEvent.map { it != null && it.sender != userId }
-            } else flowOf(false)
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+        showUnreadMarker
+            .flatMapLatest { showUnreadMarker ->
+                if (showUnreadMarker) {
+                    log.trace { "start compute unread marker at $eventId" }
+                    nextSupportedTimelineEvent.filterNotNull().map { it.sender != userId }
+                } else {
+                    flowOf(false)
+                }
+            }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+
+    @OptIn(FlowPreview::class)
+    override val showLoadingIndicatorBefore =
+        showLoadingIndicatorBefore
+            .debounce { if (it) 1.seconds else Duration.ZERO } // prevent indicator on fast loading
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+
+    @OptIn(FlowPreview::class)
+    override val showLoadingIndicatorAfter =
+        showLoadingIndicatorAfter
+            .debounce { if (it) 1.seconds else Duration.ZERO } // prevent indicator on fast loading
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override val isReplaced: StateFlow<Boolean> =
         matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId).map {
@@ -431,12 +448,16 @@ class TimelineElementHolderViewModelImpl(
                                 _redactionInProgress.value = false
                             }
                         }
-                    } else log.warn { "try to redact timeline event $eventId," +
-                            " but is no room message or it is not by this user" }
+                    } else log.warn {
+                        "try to redact timeline event $eventId," +
+                                " but is no room message or it is not by this user"
+                    }
                 }
             }
-        } else log.warn { "try to redact timeline event $eventId," +
-                " but is already marked for redaction" }
+        } else log.warn {
+            "try to redact timeline event $eventId," +
+                    " but is already marked for redaction"
+        }
     }
 
     override fun reply() {

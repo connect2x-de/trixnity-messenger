@@ -173,6 +173,7 @@ class MainViewModelTest : ShouldSpec() {
             every {
                 roomServiceMock.getTimeline(
                     any(),
+                    any(),
                     any<suspend (Flow<TimelineEvent>) -> Unit>()
                 )
             } returns

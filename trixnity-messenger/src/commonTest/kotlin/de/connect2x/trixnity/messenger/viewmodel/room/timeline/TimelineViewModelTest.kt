@@ -614,7 +614,7 @@ class TimelineViewModelTest : ShouldSpec() {
 
             // TODO: test is flaky
             should("scroll to the end when we put a message in the outbox") {
-                val timelineMock = timeline(roomServiceMock, roomId) {
+                timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello!")
                     }

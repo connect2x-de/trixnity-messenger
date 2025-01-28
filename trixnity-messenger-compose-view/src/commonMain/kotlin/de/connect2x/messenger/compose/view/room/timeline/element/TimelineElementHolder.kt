@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -26,7 +25,7 @@ interface TimelineElementHolderView {
 fun TimelineElementHolder(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
 ) {
-    with(DI.get<TimelineElementHolderView>()) { create(timelineElementHolderViewModel) }
+    DI.get<TimelineElementHolderView>().create(timelineElementHolderViewModel)
 }
 
 class TimelineElementHolderViewImpl : TimelineElementHolderView {
@@ -37,16 +36,16 @@ class TimelineElementHolderViewImpl : TimelineElementHolderView {
         Column {
             when (timelineElementHolderViewModel) {
                 is TimelineElementHolderViewModel -> {
+                    val showUnreadMarker = timelineElementHolderViewModel.showUnreadMarker.collectAsState().value
                     val showLoadingIndicatorBefore =
                         timelineElementHolderViewModel.showLoadingIndicatorBefore.collectAsState().value
                     val showLoadingIndicatorAfter =
                         timelineElementHolderViewModel.showLoadingIndicatorAfter.collectAsState().value
-                    val showUnreadMarker = timelineElementHolderViewModel.showUnreadMarker.collectAsState().value
-
-                    AnimatedVisibility(showLoadingIndicatorBefore, enter = EnterTransition.None) { LoadingSpinner() }
+                    
+                    AnimatedVisibility(showLoadingIndicatorBefore) { LoadingSpinner() }
                     TimelineElementHolderSwitch(timelineElementHolderViewModel)
                     AnimatedVisibility(showUnreadMarker) { UnreadMessagesIndicator() }
-                    AnimatedVisibility(showLoadingIndicatorAfter, enter = EnterTransition.None) { LoadingSpinner() }
+                    AnimatedVisibility(showLoadingIndicatorAfter) { LoadingSpinner() }
                 }
 
                 is OutboxElementHolderViewModel -> {

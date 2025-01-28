@@ -1829,7 +1829,7 @@ abstract class I18nView(
 
     fun selfVerificationHelpReason3() = translate {
         EN - "With the device verification, an attacker would not only need access to your account, but also to your recovery key or a already verified device. This second factor increases the security and trustworthiness."
-        DE - "Durch die Gerätefreischaltung benötigt ein Angreifer nun nicht nur Zugriff auf Ihr Konto, sondern muss zudem im Besitz des Generalschlüssels oder eine freigegebenen Gerätes sein. Dieser zweite Faktor erhöht die Sicherheit und Vertrauenswürdigkeit deutlich."
+        DE - "Durch die Gerätefreischaltung benötigt ein Angreifer nun nicht nur Zugriff auf Ihr Konto, sondern muss zudem im Besitz des Generalschlüssels oder eines freigegebenen Gerätes sein. Dieser zweite Faktor erhöht die Sicherheit und Vertrauenswürdigkeit deutlich."
     }
 
     fun selfVerificationMethodsTitle() = translate {
