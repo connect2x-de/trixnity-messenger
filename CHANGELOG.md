@@ -23,9 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Moved from Realm to Androidx Room database.
-- Enabled Encryption for Androidx Room database.
+- Moved from Realm to Androidx Room database
+- Enabled Encryption for Androidx Room database
 - Image detail view UI overhaul
+- Upgrade Trixnity to 4.12.0
 
 ### Deprecated
 
