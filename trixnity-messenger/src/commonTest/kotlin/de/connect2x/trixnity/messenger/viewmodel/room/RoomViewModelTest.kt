@@ -146,6 +146,7 @@ class RoomViewModelTest : ShouldSpec() {
             every {
                 roomServiceMock.getTimeline(
                     any(),
+                    any(),
                     any<suspend (Flow<TimelineEvent>) -> Unit>()
                 )
             } returns
