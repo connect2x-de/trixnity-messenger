@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed various issues, that unread marker is unnecessarily displayed
 - Fixed unnecessary re-computations on timeline re-init
 - Fixed typo in verification help text
+- Timing problem in UIA flow with confirmations being accepted before the internal state machine could react
 
 ### Security
 
