@@ -42,8 +42,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Image detail view UI overhaul
 - Upgrade Trixnity to 4.12.0
 
-### Deprecated
-
 ### Removed
 
 - Internal: removed strong skipping Compose mode as it is enabled by default now
@@ -61,8 +59,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed unnecessary re-computations on timeline re-init
 - Fixed typo in verification help text
 - Timing problem in UIA flow with confirmations being accepted before the internal state machine could react
-
-### Security
 
 ## 3.0.3
 
