@@ -32,6 +32,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMe
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactorySelector
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedFlow
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedIndexedFlow
@@ -63,6 +64,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
@@ -73,10 +75,11 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
@@ -166,7 +169,7 @@ interface TimelineViewModel {
      */
     val draggedFile: StateFlow<FileDescriptor?>
 
-    val unreadElements: StateFlow<String?>
+    val unreadCount: StateFlow<String?>
 
     fun errorDismiss()
     fun leaveRoom()
@@ -282,43 +285,30 @@ class TimelineViewModelImpl(
 
     private val readEventMarker = MutableStateFlow<Pair<RoomId, EventId>?>(null)
 
-    override val unreadElements: StateFlow<String?> =
-        readEvent.map {
-            it?.first
-        }.filterNotNull().map { matrixClient.room.getLastTimelineEvent(it) }.flatMapLatest { it }.filterNotNull()
-            .flatMapLatest { it }.combine(readEvent.filterNotNull()) { lastEventInTimeline, readEvent ->
-                coroutineScope {
-                    val searchBefore = async {
-                        val countedEvents = MutableStateFlow(0)
-                        matrixClient.room.getTimelineEvents(
-                            readEvent.first,
-                            lastEventInTimeline.eventId,
-                            GetEvents.Direction.BACKWARDS
-                        ) {
-                            decryptionTimeout = Duration.ZERO
-                        }
-                            .map { it.first() }
-                            .mapNotNull { timelineEvent ->
-                                when {
-                                    timelineEvent.roomId == readEvent.first && timelineEvent.eventId == readEvent.second -> countedEvents.value
-                                    timelineEvent.isFirst -> countedEvents.value
-                                    timelineEvent.roomId != roomId -> null // don't search between room upgrades
-                                    else -> {
-                                        countedEvents.value++
-                                        null
-                                    }
-                                }
-                            }.first()
+    private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
+
+    override val unreadCount: StateFlow<String?> =
+        readEvent.filterNotNull().flatMapLatest { readEvent ->
+            matrixClient.room.getTimelineEvents(
+                readEvent.first,
+                readEvent.second,
+                GetEvents.Direction.FORWARDS
+            ) {
+                decryptionTimeout = Duration.ZERO
+            }
+                .drop(1)
+                .filter(timelineElementViewModelFactorySelector::supports)
+                .map { it.first() }
+                .take(100)
+                .scan(0) { count, _ -> count + 1 }
+                .map {
+                    when {
+                        it in 1..99 -> it.toString()
+                        it > 99 -> "99+"
+                        else -> null
                     }
-                    searchBefore.await()
                 }
-            }.mapLatest {
-                when {
-                    it in 1..99 -> it.toString()
-                    it > 99 -> "99+"
-                    else -> null
-                }
-            }.stateIn(coroutineScope, WhileSubscribed(), null)
+        }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     private val outbox =
         matrixClient.room.getOutbox(roomId = roomId)
@@ -1097,7 +1087,7 @@ class PreviewTimelineViewModel : TimelineViewModel {
             instance = Wrapper.None,
         )
     )
-    override val unreadElements: StateFlow<String?> = MutableStateFlow(null)
+    override val unreadCount: StateFlow<String?> = MutableStateFlow(null)
 
     override val reportMessageStack: Value<ChildStack<ReportMessageRouter.Config, ReportMessageRouter.Wrapper>> =
         MutableValue(

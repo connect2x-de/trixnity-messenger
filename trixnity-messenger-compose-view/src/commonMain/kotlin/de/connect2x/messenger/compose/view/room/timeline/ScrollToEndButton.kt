@@ -42,7 +42,7 @@ fun BoxScope.ScrollToEndButton(timelineViewModel: TimelineViewModel, canScrollTo
 class ScrollToEndButtonViewImpl : ScrollToEndButtonView {
     @Composable
     override fun BoxScope.create(timelineViewModel: TimelineViewModel, canScrollToEnd: Boolean) {
-        val unreadCount = timelineViewModel.unreadElements.collectAsState().value
+        val unreadCount = timelineViewModel.unreadCount.collectAsState().value
 
         BadgedBox(
             modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp),
