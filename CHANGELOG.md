@@ -19,14 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Only show verification banner in RoomList, when the selected Account isn't verified
 - Change RedoSelfVerification to Wizard Framework
 - Don't start verification on startup, start it via the setup or the banner in the roomlist instead
+- Support for refresh tokens
 - Add badge with count of unread messages to scroll down button in rooms
 
 
 ### Changed
 
-- Moved from Realm to Androidx Room database.
-- Enabled Encryption for Androidx Room database.
+- Moved from Realm to Androidx Room database
+- Enabled Encryption for Androidx Room database
 - Image detail view UI overhaul
+- Upgrade Trixnity to 4.12.0
 
 ### Deprecated
 
@@ -45,6 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed jumping timeline on fast message sending
 - Fixed various issues, that unread marker is unnecessarily displayed
 - Fixed unnecessary re-computations on timeline re-init
+- Fixed typo in verification help text
+- Timing problem in UIA flow with confirmations being accepted before the internal state machine could react
 
 ### Security
 

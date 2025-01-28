@@ -8,6 +8,9 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
@@ -136,9 +139,14 @@ class UiaRouter(
     init {
         viewModelContext.coroutineScope.launch {
             authFlow.onRequestFlow.collectLatest { params ->
-                navigation.replaceAllSuspending(Config.UiaActionConfirmation(params.confirmationMessage, params.action))
-                params.onResult(onResult.first())
-                navigation.replaceAllSuspending(Config.None)
+                coroutineScope {
+                    val result = async(start = CoroutineStart.UNDISPATCHED) {
+                        onResult.first()
+                    }
+                    navigation.replaceAllSuspending(Config.UiaActionConfirmation(params.confirmationMessage, params.action))
+                    params.onResult(result.await())
+                    navigation.replaceAllSuspending(Config.None)
+                }
             }
         }
     }
