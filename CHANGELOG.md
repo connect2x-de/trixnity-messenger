@@ -19,13 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Only show verification banner in RoomList, when the selected Account isn't verified
 - Change RedoSelfVerification to Wizard Framework
 - don't start verification on startup, start it via the setup or the banner in the roomlist instead
-
+- Support for refresh tokens
 
 ### Changed
 
-- Moved from Realm to Androidx Room database.
-- Enabled Encryption for Androidx Room database.
+- Moved from Realm to Androidx Room database
+- Enabled Encryption for Androidx Room database
 - Image detail view UI overhaul
+- Upgrade Trixnity to 4.12.0
 
 ### Deprecated
 

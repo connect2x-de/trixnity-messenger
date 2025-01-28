@@ -21,6 +21,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewMode
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.NoOpTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
@@ -68,6 +69,7 @@ import net.folivo.trixnity.client.key.KeySecretService
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.key.KeyTrustService
 import net.folivo.trixnity.client.room.RoomService
+import net.folivo.trixnity.client.room.TimelineStateChange
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
@@ -183,11 +185,10 @@ class MainViewModelTest : ShouldSpec() {
             every {
                 roomServiceMock.getTimeline(
                     any(),
-                    any(),
-                    any<suspend (Flow<TimelineEvent>) -> Unit>()
+                    any<suspend (TimelineStateChange<TimelineViewModelImpl.TimelineElementWrapper>) -> Unit>(),
+                    any<suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper>(),
                 )
-            } returns
-                    NoOpTimeline
+            } returns NoOpTimeline()
             every { roomServiceMock.getById(any()) } returns MutableStateFlow(null)
             every {
                 roomServiceMock.getAccountData(any(), eq(FullyReadEventContent::class), any())
