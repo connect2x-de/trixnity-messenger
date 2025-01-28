@@ -168,6 +168,7 @@ class MatrixClientsTest : ShouldSpec() {
             mutableMatrixClients = MutableStateFlow(mapOf())
         }
 
+//          Using context causes timeout issues on the CI.
 //        context("login") {
             should("login and register new account locally") {
                 val cut = createCut()

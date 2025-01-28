@@ -52,7 +52,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
     }
 
     init {
-//        coroutineTestScope = true
+        coroutineTestScope = true
         concurrency = 8
         timeout = 5_000
 
