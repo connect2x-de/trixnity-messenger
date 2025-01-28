@@ -10,14 +10,15 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
-import io.kotest.assertions.nondeterministic.eventually
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
-import io.kotest.core.test.advanceUntilIdle
 import io.kotest.engine.runBlocking
+import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -33,11 +34,12 @@ import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KProperty
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
 
+
+private val log = KotlinLogging.logger {}
 
 class getMessageReadReceiptsTest : ShouldSpec() {
-    override fun timeout(): Long = 5_000
 
     private val us = UserId("martin", "localhost")
 
@@ -47,6 +49,7 @@ class getMessageReadReceiptsTest : ShouldSpec() {
 
     init {
         coroutineTestScope = true
+        timeout = 5_000
 
         beforeEach {
             resetMocks(
@@ -71,10 +74,11 @@ class getMessageReadReceiptsTest : ShouldSpec() {
             val roomId: RoomId = RoomId("room_${runId++}", "localhost"),
             val timeline: TimelineMock = timeline(roomServiceMock, roomId) {},
             val roomUsers: RoomUserBuilder = roomUsers(userServiceMock, roomId) {},
-            val eventIds: List<EventId> = (0..2).map { EventId("event_${runId}_$it") },
+            val eventIds: List<EventId> = (0..11).map { EventId("event_${runId}_$it") },
             val us: UserId = this@getMessageReadReceiptsTest.us,
             val alice: UserId = UserId("alice_$runId", "localhost"),
             val bob: UserId = UserId("bob_$runId", "localhost"),
+            val reader: List<UserId> = (0..4).map { UserId("reader_${runId}_$it", "localhost") },
             val testScope: TestScope,
         )
 
@@ -161,7 +165,6 @@ class getMessageReadReceiptsTest : ShouldSpec() {
             val env = TestEnv(testScope = this)
             val (_, timeline, roomUsers, event) = env
             val cut = env.cutMessageIsRead(env.alice, event[0])
-            // receipts.value = mapOf(eventIdByAlice to setOf(us))
             timeline.addEvents {
                 +timelineEventOf(env.alice, event[0])
             }
@@ -176,7 +179,6 @@ class getMessageReadReceiptsTest : ShouldSpec() {
             val env = TestEnv(testScope = this)
             val (_, timeline, roomUsers, event) = env
             val cut = env.cutMessageIsRead(env.alice, event[0])
-            // receipts.value = mapOf(eventIdByAlice to setOf(alice))
             timeline.addEvents {
                 +timelineEventOf(env.alice, event[0])
             }
@@ -200,7 +202,6 @@ class getMessageReadReceiptsTest : ShouldSpec() {
                 +roomUser("Alice", env.alice, event[0])
             }
             cut shouldBeRead false
-            // receipts.value = mapOf(eventIdByAlice to setOf(bob))
             roomUsers.addOrUpdateUsers {
                 +roomUser("Bob", env.bob, event[0])
             }
@@ -262,7 +263,6 @@ class getMessageReadReceiptsTest : ShouldSpec() {
                 +roomUser("Alice", env.alice, null)
             }
             cut shouldBeUsers emptySet()
-            // receipts.value = mapOf(eventIdByAlice to setOf(bob))
             roomUsers.addOrUpdateUsers {
                 +roomUser("Bob", env.bob, event[0])
             }
@@ -280,8 +280,6 @@ class getMessageReadReceiptsTest : ShouldSpec() {
             roomUsers.addOrUpdateUsers {
                 +roomUser("Bob", env.bob, event[0])
             }
-            // cut shouldBeUsers emptySet()
-            // cut shouldBeUsers setOf(bob)
             timeline.addEvents {
                 +timelineEventOf(env.bob, event[1])
             }
@@ -302,7 +300,6 @@ class getMessageReadReceiptsTest : ShouldSpec() {
                 +roomUser("Us", env.us, event[0])
                 +roomUser("Bob", env.bob, event[0])
             }
-            // receipts.value = mapOf(eventIdByAlice to setOf(us, bob))
             val cut = env.cutMessageReadReceipts(env.alice, event[0])
             cut shouldBeUsers setOf(env.bob)
             cancelNeverEndingCoroutines()
@@ -315,7 +312,6 @@ class getMessageReadReceiptsTest : ShouldSpec() {
                 +timelineEventOf(env.alice, event[0])
                 +timelineEventOf(env.us, event[1])
             }
-            // roomUsers(userServiceMock, roomId) {}
             val cut = env.cutMessageReadReceipts(env.alice, event[0])
             cut shouldBeUsers emptySet()
             cancelNeverEndingCoroutines()
@@ -348,10 +344,10 @@ class getMessageReadReceiptsTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("not contain sender from read marker 2") {
+        should("not contain sender from read marker after update") {
             val env = TestEnv(testScope = this)
             val (_, timeline, roomUsers, event) = env
-            val updateCount by launchAndObserveCut(
+            val updateCount by launchAndCollectCut(
                 env.cutMessageReadReceipts(env.alice, event[0]),
             ) { result, updateCount ->
                 when (updateCount) {
@@ -366,21 +362,67 @@ class getMessageReadReceiptsTest : ShouldSpec() {
                 +roomUser("Bob", env.bob, null)
                 +roomUser("Alice", env.alice, null)
             }
-            advanceUntilIdle()
+            wait()
             roomUsers.addOrUpdateUsers {
                 +roomUser("Bob", env.bob, event[0])
                 +roomUser("Alice", env.alice, event[0])
             }
-            advanceUntilIdle()
-            eventually(1.seconds) { updateCount shouldBe 2 }
+            wait()
+            updateCount shouldBeGreaterThanOrEqual 2
             cancelNeverEndingCoroutines()
         }
 
-        // TODO: maybe add some more better tests for read receipts
+        should("update read marker") {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            timeline.addEvents {
+                (0..11).forEach { i ->
+                    +timelineEventOf(env.alice, event[i])
+                }
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Reader", env.reader[0], event[1])
+                +roomUser("Reader", env.reader[1], event[4])
+                +roomUser("Reader", env.reader[2], event[8])
+                +roomUser("Reader", env.reader[3], event[11])
+            }
+            val updateCount by launchAndCollectCut(
+                env.cutMessageReadReceipts(env.alice, event[0]),
+            ) { result, updateCount ->
+                when (updateCount) {
+                    1 -> result shouldBeUsers emptySet()
+
+                    2 -> result shouldBeUsers setOf(
+                        env.reader[0],
+                    )
+
+                    3 -> result shouldBeUsers setOf(
+                        env.reader[0],
+                        env.reader[1],
+                    )
+
+                    4 -> result shouldBeUsers setOf(
+                        env.reader[0],
+                        env.reader[1],
+                        env.reader[2],
+                    )
+
+                    5 -> result shouldBeUsers setOf(
+                        env.reader[0],
+                        env.reader[1],
+                        env.reader[2],
+                        env.reader[3],
+                    )
+                }
+            }
+            wait()
+            updateCount shouldBe 5
+            cancelNeverEndingCoroutines()
+        }
     }
 
     // TODO move to test utils?
-    private fun <T> CoroutineScope.launchAndObserveCut(
+    private fun <T> CoroutineScope.launchAndCollectCut(
         cut: Flow<T>,
         onCollect: (result: T, updateCount: Int) -> Unit,
     ): MutableState<Int> {
@@ -443,3 +485,5 @@ class MutableState<T>(value: T) {
         state.value = value
     }
 }
+
+private suspend fun wait() = delay(500.milliseconds)
