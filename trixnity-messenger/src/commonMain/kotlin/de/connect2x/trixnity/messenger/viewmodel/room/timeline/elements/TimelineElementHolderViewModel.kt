@@ -204,7 +204,6 @@ class TimelineElementHolderViewModelImpl(
                 .drop(1)
         ).shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    @OptIn(FlowPreview::class)
     override val showUnreadMarker: StateFlow<Boolean> =
         showUnreadMarker
             .flatMapLatest { showUnreadMarker ->

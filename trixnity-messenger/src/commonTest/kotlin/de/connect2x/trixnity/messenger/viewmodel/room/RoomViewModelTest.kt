@@ -51,7 +51,6 @@ import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.getTimeline
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
@@ -188,7 +187,6 @@ class RoomViewModelTest : ShouldSpec() {
             every { userServiceMock.canSendEvent(any(), any()) } returns flowOf(true)
             every { userServiceMock.getReceiptsById(any(), any()) } returns flowOf(null)
             every { minimizeMessengerMock.invoke() } returns Unit
-
         }
 
         afterTest {
@@ -199,6 +197,7 @@ class RoomViewModelTest : ShouldSpec() {
             val cut = cutRoomViewModel()
             cut shouldShowTimeline true
             cut shouldShowExtras false
+            cancelNeverEndingCoroutines()
         }
 
         should("show room settings") {
@@ -206,6 +205,7 @@ class RoomViewModelTest : ShouldSpec() {
             cut shouldShowExtras false
             cut.openRoomSettings()
             cut shouldShowExtrasOfType RoomSettings::class
+            cancelNeverEndingCoroutines()
         }
 
         should("show room's settings when settings are activated") {
@@ -235,6 +235,7 @@ class RoomViewModelTest : ShouldSpec() {
             cut.openRoomSettings()
             cut.extrasAs<RoomSettings>().viewModel.openAddMembersView()
             cut shouldShowExtrasOfType AddMember::class
+            cancelNeverEndingCoroutines()
         }
 
         should("navigate from the timeline to export-room") {
@@ -243,6 +244,7 @@ class RoomViewModelTest : ShouldSpec() {
             cut.openRoomSettings()
             cut.extrasAs<RoomSettings>().viewModel.openExportRoomView()
             cut shouldShowExtrasOfType ExportRoom::class
+            cancelNeverEndingCoroutines()
         }
 
         should("navigate from the timeline to message-metadata") {
@@ -250,6 +252,7 @@ class RoomViewModelTest : ShouldSpec() {
             cut shouldShowExtras false
             cut.openMessageMetadata(EventId("1"))
             cut shouldShowExtrasOfType MessageMetadata::class
+            cancelNeverEndingCoroutines()
         }
 
         should("show message info") {
@@ -259,6 +262,7 @@ class RoomViewModelTest : ShouldSpec() {
             cut.openMessageMetadata(eventId)
             cut shouldShowExtras true
             cut shouldShowExtrasOfType MessageMetadata::class
+            cancelNeverEndingCoroutines()
         }
 
         should("return from message metadata") {
@@ -281,6 +285,7 @@ class RoomViewModelTest : ShouldSpec() {
             cut.openMessageMetadata(eventId)
             cut.extrasAs<MessageMetadata>().viewModel.back()
             cut shouldShowExtrasOfType RoomSettings::class
+            cancelNeverEndingCoroutines()
         }
 
         should("close extras when returning from settings") {

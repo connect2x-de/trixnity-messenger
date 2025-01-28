@@ -23,7 +23,7 @@ interface RoomSettingsViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        onBack: () -> Unit,
+        onLeaveRoom: () -> Unit,
         onOpenAddMembers: () -> Unit,
         onOpenExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
@@ -35,7 +35,7 @@ interface RoomSettingsViewModelFactory {
         onShowExportRoom = onOpenExportRoom,
         onCloseRoomSettings = onCloseRoomSettings,
         onOpenAvatarCutter = onOpenAvatarCutter,
-        onBack = onBack,
+        onLeaveRoom = onLeaveRoom,
     )
 
     companion object : RoomSettingsViewModelFactory
@@ -75,7 +75,7 @@ class RoomSettingsViewModelImpl(
     private val onShowAddMembers: () -> Unit,
     private val onShowExportRoom: () -> Unit,
     private val onCloseRoomSettings: () -> Unit,
-    private val onBack: () -> Unit,
+    private val onLeaveRoom: () -> Unit,
     private val onOpenAvatarCutter: OpenAvatarCutterCallback,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
 
@@ -174,7 +174,7 @@ class RoomSettingsViewModelImpl(
                 error.value = i18n.settingsRoomLeaveRoomErrorOffline()
             } else {
                 matrixClient.api.room.leaveRoom(selectedRoomId).fold(
-                    onSuccess = { onBack() },
+                    onSuccess = { onLeaveRoom() },
                     onFailure = {
                         if (it is CancellationException) {
                             return@launch

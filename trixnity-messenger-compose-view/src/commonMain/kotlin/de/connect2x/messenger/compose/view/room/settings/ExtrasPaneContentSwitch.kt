@@ -18,13 +18,15 @@ fun ExtrasPaneContentSwitch(
     Children(
         stack = stack,
         animation = stackAnimation(fade()),
-    ) {
-        when (val child = it.instance) {
+    ) { stackItem ->
+        val stackPosition = stack.value.items.size
+        val isBottomOfStack = stackPosition <= 2 // 1 is always None
+        when (val child = stackItem.instance) {
             is ExtrasRouter.Wrapper.RoomSettings -> RoomSettingsContainer(child.viewModel, isSinglePane)
             is ExtrasRouter.Wrapper.AddMember -> AddMembersContainer(child.viewModel)
             is ExtrasRouter.Wrapper.ExportRoom -> ExportRoomContainer(child.viewModel)
             is ExtrasRouter.Wrapper.MessageMetadata -> MessageMetadata(
-                child.viewModel, stack.value.items.size, isSinglePane,
+                child.viewModel, isBottomOfStack, isSinglePane,
             )
 
             is ExtrasRouter.Wrapper.None -> Box {}

@@ -87,7 +87,7 @@ private fun searchReaders(
     eventId: EventId,
     foundReaders: MutableSet<UserId> = mutableSetOf(), // Used internally to store cumulative results.
 ): Flow<IsReadSearchResult> = flow {
-    log.debug { "--- SEARCHING READ EVENT: $eventId in $roomId for $senderId" }
+    log.trace { "searching read events from: $eventId in $roomId for $senderId" }
     var firstResult = true
     getReceipts(client, roomId, senderId)
         .flatMapLatest { receipts ->
@@ -107,7 +107,7 @@ private fun searchReaders(
             val currentSenderId = timelineEvent.sender
             val currentEventId = timelineEvent.eventId
             val currentRoomId = timelineEvent.roomId
-            log.debug { "--- FOUND READ EVENT(#$index) $currentEventId in $currentRoomId for $currentSenderId" }
+            log.trace { "found read event(#$index) $currentEventId in $currentRoomId for $currentSenderId" }
             var needsToEmit = firstResult
             firstResult = false
             readReceipts[currentEventId]?.let {

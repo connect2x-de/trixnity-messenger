@@ -5,10 +5,9 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
-import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popSuspending
+import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
-import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.MessageMetadata
@@ -89,44 +88,47 @@ class ExtrasRouterImpl(
 
     override suspend fun back() {
         val config = stack.value.active.configuration
-        extrasNavigation.popSuspending { log.debug { "closed $config ${it.toSuccessString()}" } }
+        extrasNavigation.popSuspending {
+            log.debug { "closed $config ${it.toSuccessString()}" }
+        }
     }
 
     override suspend fun closeExtrasRouter() {
-        val config = None
-        extrasNavigation.replaceAllSuspending(config)
+        extrasNavigation.replaceAllSuspending(None) {
+            log.debug { "closed extras pane" }
+        }
     }
 
     override suspend fun openRoomSettings(roomId: RoomId) {
         val config = RoomSettings.Main(roomId)
-        extrasNavigation.replaceAllSuspending(config) {
+        extrasNavigation.replaceAllSuspending(None, config) {
             log.debug { "opened room settings for room: $roomId" }
         }
     }
 
     override suspend fun openAddMembers(roomId: RoomId) {
-        if (stack.value.items.find { it.configuration is RoomSettings.Main } == null) {
+        if (stack.value.active.configuration !is RoomSettings) {
             openRoomSettings(roomId)
         }
-        val config = AddMembers(roomId)
-        if (stack.value.active.configuration is AddMembers) {
-            extrasNavigation.replaceCurrentSuspending(config)
-        } else extrasNavigation.bringToFrontSuspending(config)
+        extrasNavigation.pushSuspending(AddMembers(roomId)) {
+            log.debug { "opened add members pane" }
+        }
     }
 
     override suspend fun openExportRoom(roomId: RoomId) {
-        if (stack.value.items.find { it.configuration is RoomSettings.Main } == null) {
+        if (stack.value.active.configuration !is RoomSettings) {
             openRoomSettings(roomId)
         }
-        val config = ExportRoom(roomId)
-        if (stack.value.active.configuration is ExportRoom) {
-            extrasNavigation.replaceCurrentSuspending(config)
-        } else extrasNavigation.bringToFrontSuspending(config)
+        extrasNavigation.pushSuspending(ExportRoom(roomId)) {
+            log.debug { "opened export room pane" }
+        }
     }
 
     override suspend fun openMessageMetadata(eventId: EventId, roomId: RoomId) {
         val config = MessageMetadata(eventId, roomId)
-        extrasNavigation.bringToFrontSuspending(config)
+        extrasNavigation.pushSuspending(config) {
+            log.debug { "opened message metadata pane" }
+        }
     }
 
     private fun createSettingsChild(
@@ -138,7 +140,7 @@ class ExtrasRouterImpl(
         is RoomSettings.Main -> Wrapper.RoomSettings(
             viewModelContext.get<RoomSettingsViewModelFactory>().create(
                 viewModelContext = viewModelContext.childContext(componentContext),
-                onBack = onCloseRoom, // TODO ::onBack?
+                onLeaveRoom = onCloseRoom,
                 selectedRoomId = config.roomId,
                 onOpenAddMembers = { onOpenAddMembers(config.roomId) },
                 onOpenExportRoom = { onOpenExportRoom(config.roomId) },

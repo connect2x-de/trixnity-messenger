@@ -279,23 +279,23 @@ interface MessageMetadataView {
     @Composable
     fun create(
         viewModel: MessageMetadataViewModel,
-        stackPosition: Int, isSinglePane: Boolean,
+        isBottomOfStack: Boolean, isSinglePane: Boolean,
     )
 }
 
 @Composable
 fun MessageMetadata(
     viewModel: MessageMetadataViewModel,
-    stackPosition: Int, isSinglePane: Boolean,
+    isBottomOfStack: Boolean, isSinglePane: Boolean,
 ) {
-    DI.get<MessageMetadataView>().create(viewModel, stackPosition, isSinglePane)
+    DI.get<MessageMetadataView>().create(viewModel, isBottomOfStack, isSinglePane)
 }
 
 class MessageMetadataViewImpl : MessageMetadataView {
     @Composable
     override fun create(
         viewModel: MessageMetadataViewModel,
-        stackPosition: Int, isSinglePane: Boolean,
+        isBottomOfStack: Boolean, isSinglePane: Boolean,
     ) {
         val i18n = DI.get<I18nView>()
         val density = LocalDensity.current
@@ -321,7 +321,7 @@ class MessageMetadataViewImpl : MessageMetadataView {
             i18n.messageMetadataTitle(),
             error,
             { viewModel.back() },
-            if (isSinglePane || stackPosition > 2) BACK else CLOSE,
+            if (isSinglePane || isBottomOfStack.not()) BACK else CLOSE,
         ) {
             Box(
                 Modifier
