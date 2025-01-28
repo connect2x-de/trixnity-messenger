@@ -10,22 +10,22 @@ import de.connect2x.messenger.compose.view.connecting.AddMatrixAccountView
 import de.connect2x.messenger.compose.view.connecting.AddMatrixAccountViewImpl
 import de.connect2x.messenger.compose.view.connecting.AdditionalConnectingWizardStep
 import de.connect2x.messenger.compose.view.connecting.AdditionalConnectingWizardStepImpl
+import de.connect2x.messenger.compose.view.connecting.MatrixClientInitializationFailureView
+import de.connect2x.messenger.compose.view.connecting.MatrixClientInitializationFailureViewImpl
 import de.connect2x.messenger.compose.view.connecting.MatrixClientInitializationView
 import de.connect2x.messenger.compose.view.connecting.MatrixClientInitializationViewImpl
-import de.connect2x.messenger.compose.view.connecting.MatrixClientLogoutView
-import de.connect2x.messenger.compose.view.connecting.MatrixClientLogoutViewImpl
 import de.connect2x.messenger.compose.view.connecting.PasswordLoginView
 import de.connect2x.messenger.compose.view.connecting.PasswordLoginViewImpl
 import de.connect2x.messenger.compose.view.connecting.RegisterNewAccountView
 import de.connect2x.messenger.compose.view.connecting.RegisterNewAccountViewImpl
+import de.connect2x.messenger.compose.view.connecting.RemoveMatrixAccountView
+import de.connect2x.messenger.compose.view.connecting.RemoveMatrixAccountViewImpl
 import de.connect2x.messenger.compose.view.connecting.SSOLoginView
 import de.connect2x.messenger.compose.view.connecting.SSOLoginViewImpl
 import de.connect2x.messenger.compose.view.connecting.ServerDiscoveryStateView
 import de.connect2x.messenger.compose.view.connecting.ServerDiscoveryStateViewImpl
 import de.connect2x.messenger.compose.view.connecting.ServerInputFieldView
 import de.connect2x.messenger.compose.view.connecting.ServerInputFieldViewImpl
-import de.connect2x.messenger.compose.view.connecting.StoreFailureView
-import de.connect2x.messenger.compose.view.connecting.StoreFailureViewImpl
 import de.connect2x.messenger.compose.view.i18n.i18nViewModule
 import de.connect2x.messenger.compose.view.profiles.ProfileCreationView
 import de.connect2x.messenger.compose.view.profiles.ProfileCreationViewImpl
@@ -255,12 +255,12 @@ import de.connect2x.messenger.compose.view.uia.UiaPasswordInputView
 import de.connect2x.messenger.compose.view.uia.UiaPasswordInputViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaRegistrationTokenView
 import de.connect2x.messenger.compose.view.uia.UiaRegistrationTokenViewImpl
-import de.connect2x.messenger.compose.view.verification.DeviceVerificationModalView
-import de.connect2x.messenger.compose.view.verification.DeviceVerificationModalViewImpl
-import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModalView
-import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModalViewImpl
-import de.connect2x.messenger.compose.view.verification.SelfVerificationModalView
-import de.connect2x.messenger.compose.view.verification.SelfVerificationModalViewImpl
+import de.connect2x.messenger.compose.view.verification.DeviceVerificationWizardView
+import de.connect2x.messenger.compose.view.verification.DeviceVerificationWizardViewImpl
+import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWizardView
+import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWizardViewImpl
+import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardView
+import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardViewImpl
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named
@@ -317,11 +317,11 @@ fun connectingViewModule() = module {
     single<ServerDiscoveryStateView> { ServerDiscoveryStateViewImpl() }
     single<ServerInputFieldView> { ServerInputFieldViewImpl() }
     single<MatrixClientInitializationView> { MatrixClientInitializationViewImpl() }
-    single<MatrixClientLogoutView> { MatrixClientLogoutViewImpl() }
+    single<RemoveMatrixAccountView> { RemoveMatrixAccountViewImpl() }
     single<PasswordLoginView> { PasswordLoginViewImpl() }
     single<RegisterNewAccountView> { RegisterNewAccountViewImpl() }
     single<SSOLoginView> { SSOLoginViewImpl() }
-    single<StoreFailureView> { StoreFailureViewImpl() }
+    single<MatrixClientInitializationFailureView> { MatrixClientInitializationFailureViewImpl() }
     single<AdditionalConnectingWizardStep> { AdditionalConnectingWizardStepImpl() }
     single<SyncOverlayView> { SyncOverlayViewImpl() }
 }
@@ -477,12 +477,12 @@ fun settingsViewModule() = module {
     single<UserSettingsView> { UserSettingsViewImpl() }
     single<AdditionalAccountSetupWizardStep> { AdditionalAccountSetupWizardStepImpl() }
     single<AccountSetupWizardStepList> { AccountSetupWizardStepListImpl() }
+    single<SelfVerificationWizardView> { SelfVerificationWizardViewImpl() }
+    single<DeviceVerificationWizardView> { DeviceVerificationWizardViewImpl() }
 }
 
 fun verificationViewModule() = module {
-    single<DeviceVerificationModalView> { DeviceVerificationModalViewImpl() }
-    single<RedoSelfVerificationModalView> { RedoSelfVerificationModalViewImpl() }
-    single<SelfVerificationModalView> { SelfVerificationModalViewImpl() }
+    single<RedoSelfVerificationWizardView> { RedoSelfVerificationWizardViewImpl() }
 }
 
 fun uiaViewModule() = module {

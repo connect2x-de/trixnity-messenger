@@ -147,6 +147,14 @@ open class AddMatrixAccountViewModelImpl(
                                         identityProvider = identityProvider,
                                         icon = icon,
                                     )
+                                }.ifEmpty {
+                                    listOf(
+                                        AddMatrixAccountMethod.SSO(
+                                            serverUrl = serverDiscoveryUrl.toString(),
+                                            identityProvider = null,
+                                            icon = null,
+                                        )
+                                    )
                                 }
 
                             else -> setOf()
@@ -160,11 +168,11 @@ open class AddMatrixAccountViewModelImpl(
                     emit(
                         ServerDiscoveryState.Success(
                             addMatrixAccountMethods =
-                            if (canRegisterNewUser)
-                                addMatrixAccountMethods + AddMatrixAccountMethod.Register(
-                                    serverDiscoveryUrl.toString()
-                                )
-                            else addMatrixAccountMethods
+                                if (canRegisterNewUser)
+                                    addMatrixAccountMethods + AddMatrixAccountMethod.Register(
+                                        serverDiscoveryUrl.toString()
+                                    )
+                                else addMatrixAccountMethods
                         )
                     )
                 }

@@ -58,10 +58,10 @@ fun initialSyncModule() = module {
                     .build()
 
                 val success = WorkManager.getInstance(get()).getWorkInfoByIdLiveData(workRequest.id).asFlow()
-                    .onEach { log.debug { "initial sync worker state: ${it.state.name}" } }
-                    .filter { it.state.isFinished }
+                    .onEach { log.debug { "initial sync worker state: ${it?.state?.name}" } }
+                    .filter { it?.state?.isFinished == true }
                     .map {
-                        if (it.state == WorkInfo.State.SUCCEEDED) {
+                        if (it?.state == WorkInfo.State.SUCCEEDED) {
                             log.debug { "operation success" }
                             true
                         } else {

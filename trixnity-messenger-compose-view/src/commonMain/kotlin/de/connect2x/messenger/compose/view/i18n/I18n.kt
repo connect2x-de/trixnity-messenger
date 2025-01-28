@@ -1787,6 +1787,11 @@ abstract class I18nView(
         DE - "Ordnen Sie das Gerät '$deviceName' Ihrem Konto zu."
     }
 
+    fun selfVerificationWaitingForMethods() = translate {
+        EN - "Waiting for initial sync to complete to gather available verification methods."
+        DE - "Warte auf Abschließen des initialen Ladevorgangs, um verfügbare Verifikationsmethoden zu erhalten."
+    }
+
     fun redoSelfVerificationTitle(userId: UserId) = translate {
         EN - "Cancel device verification for account '$userId'?"
         DE - "Gerätefreischaltung für Konto '$userId' abbrechen?"
@@ -1864,7 +1869,7 @@ abstract class I18nView(
 
     fun selfVerificationHelpReason3() = translate {
         EN - "With the device verification, an attacker would not only need access to your account, but also to your recovery key or a already verified device. This second factor increases the security and trustworthiness."
-        DE - "Durch die Gerätefreischaltung benötigt ein Angreifer nun nicht nur Zugriff auf Ihr Konto, sondern muss zudem im Besitz des Generalschlüssels oder eine freigegebenen Gerätes sein. Dieser zweite Faktor erhöht die Sicherheit und Vertrauenswürdigkeit deutlich."
+        DE - "Durch die Gerätefreischaltung benötigt ein Angreifer nun nicht nur Zugriff auf Ihr Konto, sondern muss zudem im Besitz des Generalschlüssels oder eines freigegebenen Gerätes sein. Dieser zweite Faktor erhöht die Sicherheit und Vertrauenswürdigkeit deutlich."
     }
 
     fun selfVerificationMethodsTitle() = translate {

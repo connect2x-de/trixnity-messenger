@@ -4,12 +4,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
-import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationModal
-import de.connect2x.messenger.compose.view.verification.SelfVerificationModal
+import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWizard
+import de.connect2x.messenger.compose.view.verification.SelfVerificationWizard
 import de.connect2x.messenger.previews.util.InitMessengerPreview
 import de.connect2x.trixnity.messenger.viewmodel.verification.RedoSelfVerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import net.folivo.trixnity.client.key.KeySecretService
 import net.folivo.trixnity.client.key.KeyTrustService
 import net.folivo.trixnity.client.store.KeySignatureTrustLevel
@@ -28,7 +29,7 @@ import net.folivo.trixnity.core.model.keys.SignedDeviceKeys
 @Composable
 private fun SelfVerificationPreview() {
     InitMessengerPreview {
-        SelfVerificationModal(SelfVerificationViewModelPreview())
+        SelfVerificationWizard(SelfVerificationViewModelPreview())
     }
 }
 
@@ -36,7 +37,7 @@ private fun SelfVerificationPreview() {
 @Composable
 private fun SelfVerificationPreviewWithRecoveryKey() {
     InitMessengerPreview {
-        SelfVerificationModal(
+        SelfVerificationWizard(
             SelfVerificationViewModelPreview(
                 aesHmacSha2RecoveryKey = aesHmacSha2RecoveryKey(),
             )
@@ -53,7 +54,7 @@ private fun SelfVerificationPreviewOnResetWarning() {
     }
 
     InitMessengerPreview {
-        SelfVerificationModal(model)
+        SelfVerificationWizard(model)
     }
 }
 
@@ -61,7 +62,7 @@ private fun SelfVerificationPreviewOnResetWarning() {
 @Composable
 private fun RedoSelfVerificationPreview() {
     InitMessengerPreview {
-        RedoSelfVerificationModal(RedoSelfVerificationViewModelPreview())
+        RedoSelfVerificationWizard(RedoSelfVerificationViewModelPreview())
     }
 }
 
@@ -108,6 +109,9 @@ private class SelfVerificationViewModelPreview(
             crossSignedDeviceVerification,
         ).filterNotNull().toSet()
     )
+    override val isVerified: StateFlow<Boolean?> = MutableStateFlow(false)
+    override val verificationMethodsLoaded: StateFlow<Boolean> = MutableStateFlow(true)
+    override val isSetup: StateFlow<Boolean> = MutableStateFlow(false)
     override val showPassphraseMethod = MutableStateFlow(aesHmacSha2RecoveryKeyWithPbkdf2Passphrase)
     override val showRecoveryKeyMethod = MutableStateFlow(aesHmacSha2RecoveryKey)
     override val showVerificationHelp: MutableStateFlow<Boolean> = MutableStateFlow(true)

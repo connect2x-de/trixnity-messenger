@@ -152,6 +152,7 @@ fun timeline(
     every {
         roomServiceMock.getTimeline(
             eq(roomId),
+            any<suspend (TimelineStateChange<TimelineViewModelImpl.TimelineElementWrapper>) -> Unit>(),
             any<suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper>()
         )
     } calls {
@@ -159,7 +160,7 @@ fun timeline(
         MockedTimeline(
             pageSize,
             timelineMock,
-            it.args[1] as (suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper)
+            it.args[2] as (suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper)
         )
     }
 
@@ -184,7 +185,7 @@ internal class MockedTimeline(
     private val pageSize: Int,
     private val timelineMock: TimelineMock,
     transformer: suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper
-) : TimelineBase<TimelineViewModelImpl.TimelineElementWrapper>(transformer) {
+) : TimelineBase<TimelineViewModelImpl.TimelineElementWrapper>({}, transformer) {
     private val eventsInStore = timelineMock.eventsInStore
 
     override suspend fun Flow<TimelineEvent>.canLoadBefore(): Flow<Boolean> = flowOf(true)

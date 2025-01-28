@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +21,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.crypto.core.SecureRandom
-import okio.ByteString.Companion.toByteString
+import net.folivo.trixnity.utils.nextString
 import org.koin.core.component.get
 import org.koin.core.component.inject
 
@@ -31,9 +32,9 @@ interface SSOLoginViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
         serverUrl: String,
-        providerId: String,
-        providerName: String,
-        initialState: String? = null,
+        providerId: String?,
+        providerName: String?,
+        initialState: String?,
         onLogin: () -> Unit,
         onBack: () -> Unit,
     ): SSOLoginViewModel {
@@ -54,7 +55,7 @@ interface SSOLoginViewModelFactory {
 interface SSOLoginViewModel {
     val isFirstMatrixClient: StateFlow<Boolean?>
     val serverUrl: String
-    val providerName: String
+    val providerName: String?
 
     val addMatrixAccountState: StateFlow<AddMatrixAccountState>
 
@@ -85,8 +86,8 @@ interface SSOLoginViewModel {
 open class SSOLoginViewModelImpl(
     viewModelContext: ViewModelContext,
     override val serverUrl: String,
-    private val providerId: String,
-    override val providerName: String,
+    private val providerId: String?,
+    override val providerName: String?,
     initialState: String? = null,
     private val onLogin: () -> Unit,
     private val onBack: () -> Unit,
@@ -96,8 +97,7 @@ open class SSOLoginViewModelImpl(
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
-    private val state: String = initialState
-        ?: SecureRandom.nextBytes(16).toByteString().base64Url()
+    private val state: String = initialState ?: SecureRandom.nextString(32)
     private val uriCaller = get<UriCaller>()
 
     override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> = MutableStateFlow(None)
@@ -112,7 +112,11 @@ open class SSOLoginViewModelImpl(
 
     private val loginUrl =
         URLBuilder(serverUrl).apply {
-            path("/_matrix/client/v3/login/sso/redirect/$providerId")
+            if (providerId != null) {
+                path("/_matrix/client/v3/login/sso/redirect/$providerId")
+            } else {
+                path("/_matrix/client/v3/login/sso/redirect")
+            }
             parameters.append("redirectUrl", redirectUrl.toString())
         }.build().toString()
 
@@ -169,7 +173,6 @@ open class SSOLoginViewModelImpl(
                 }
             }
             loginJob?.invokeOnCompletion {
-                it?.let { log.error { it } }
                 loginJob = null
                 isResumingLogin.value = false
             }
@@ -177,7 +180,7 @@ open class SSOLoginViewModelImpl(
     }
 
     override fun abortLogin() {
-        loginJob?.cancel()
+        loginJob?.cancel("abort login")
         coroutineScope.launch {
             log.debug { "Clearing stored sso login info" }
             waitForRedirect.value = false

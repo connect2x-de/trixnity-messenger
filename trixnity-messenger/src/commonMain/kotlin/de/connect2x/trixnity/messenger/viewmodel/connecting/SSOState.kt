@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 data class SSOState(
     val state: String,
     val serverUrl: String,
-    val providerId: String,
-    val providerName: String,
+    val providerId: String?,
+    val providerName: String?,
 )

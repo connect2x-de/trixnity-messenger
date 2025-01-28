@@ -182,6 +182,12 @@ class RoomListViewModelImpl(
                 pairs.filter { it.second.isVerified.not() }
                     .map { it.first }
             }
+        }.combine(activeAccount) { unverifiedAccounts, activeAccount ->
+            if (activeAccount != null) {
+                unverifiedAccounts.find {
+                    it == activeAccount
+                }?.let { listOf(it) } ?: listOf()
+            } else unverifiedAccounts
         }
         .stateIn(coroutineScope, WhileSubscribed(), listOf())
 

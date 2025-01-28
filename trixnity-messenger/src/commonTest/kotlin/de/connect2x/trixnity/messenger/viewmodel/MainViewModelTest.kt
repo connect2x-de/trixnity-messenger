@@ -183,6 +183,7 @@ class MainViewModelTest : ShouldSpec() {
             every {
                 roomServiceMock.getTimeline(
                     any(),
+                    any(),
                     any<suspend (Flow<TimelineEvent>) -> Unit>()
                 )
             } returns
@@ -455,7 +456,7 @@ class MainViewModelTest : ShouldSpec() {
             } returns Result.success(Unit)
 
             val cut = mainViewModel()
-
+            cut.selfVerificationRouter.showSelfVerification(UserId("test", "server"), true)
 
             eventually(2.seconds) {
                 cut.selfVerificationStack.value.active.configuration should beOfType<SelfVerificationRouter.Config.SelfVerification>()
@@ -510,13 +511,19 @@ class MainViewModelTest : ShouldSpec() {
                 matrixClientMock2.syncOnce(any(), any(), any<suspend (Sync.Response) -> Unit>())
             } returns Result.success(Unit)
 
+            val user1 = UserId("test", "server")
+            val user2 = UserId("test2", "server")
+
 
             val cut = mainViewModel(
                 mapOf(
-                    UserId("test", "server") to matrixClientMock,
-                    UserId("test2", "server") to matrixClientMock2
+                    user1 to matrixClientMock,
+                    user2 to matrixClientMock2
                 )
             )
+
+            cut.selfVerificationRouter.showSelfVerification(user1, true)
+            cut.selfVerificationRouter.showSelfVerification(user2, true)
 
             eventually(2.seconds) {
                 val configuration = cut.selfVerificationStack.value.active.configuration

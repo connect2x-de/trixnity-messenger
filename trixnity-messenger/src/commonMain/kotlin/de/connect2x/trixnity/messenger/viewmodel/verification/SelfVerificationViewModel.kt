@@ -1,15 +1,25 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
+import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 import net.folivo.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKey
@@ -27,7 +37,7 @@ private val log = KotlinLogging.logger { }
 interface SelfVerificationViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        onCloseSelfVerification: () -> Unit,
+        onCloseSelfVerification: (Boolean) -> Unit,
         onResetRecovery: () -> Unit,
     ): SelfVerificationViewModel {
         return SelfVerificationViewModelImpl(viewModelContext, onCloseSelfVerification, onResetRecovery)
@@ -46,6 +56,9 @@ interface SelfVerificationViewModel {
     val recoveryKeyWrong: MutableStateFlow<Boolean>
     val passphraseWrong: MutableStateFlow<Boolean>
     val error: MutableStateFlow<String?>
+    val isVerified: StateFlow<Boolean?>
+    val verificationMethodsLoaded: StateFlow<Boolean>
+    val isSetup: StateFlow<Boolean>
 
     fun waitForAvailableVerificationMethods()
     fun launchVerification(selfVerificationMethod: SelfVerificationMethod)
@@ -61,7 +74,7 @@ interface SelfVerificationViewModel {
 
 open class SelfVerificationViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    private val onCloseSelfVerification: () -> Unit,
+    private val onCloseSelfVerification: (Boolean) -> Unit,
     private val onResetRecovery: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, SelfVerificationViewModel {
 
@@ -77,6 +90,24 @@ open class SelfVerificationViewModelImpl(
     override val passphraseWrong = MutableStateFlow(false)
 
     override val error = MutableStateFlow<String?>(null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val isVerified: StateFlow<Boolean?> =
+        matrixClients.map { it[userId] }.filterNotNull()
+            .map { it.key.getTrustLevel(userId, it.deviceId).map { it.isVerified } }.flatMapLatest { it }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    override val verificationMethodsLoaded: StateFlow<Boolean> = selfVerificationMethods.map { !it.isEmpty() }.stateIn(
+        coroutineScope,
+        SharingStarted.WhileSubscribed(), false
+    )
+
+    override val isSetup =
+        get<MatrixMessengerSettingsHolder>().map { it.base.accounts[userId]?.base?.accountSetupFinished == false }
+            .stateIn(
+                coroutineScope,
+                SharingStarted.WhileSubscribed(), false
+            )
 
     override fun waitForAvailableVerificationMethods() {
         coroutineScope.launch {
@@ -126,7 +157,7 @@ open class SelfVerificationViewModelImpl(
                             log.error(it) { "device verification failed" }
                         }
                     log.debug { "close self verification view" }
-                    onCloseSelfVerification()
+                    onCloseSelfVerification(true)
                 }
             }
 
@@ -150,7 +181,7 @@ open class SelfVerificationViewModelImpl(
                 verifyAccount.verify(recoveryKeyMethod, recoveryKey).fold(
                     onSuccess = {
                         log.debug { "successfully verified with recovery key" }
-                        onCloseSelfVerification()
+                        onCloseSelfVerification(true)
                     },
                     onFailure = {
                         if (it is RecoveryKeyInvalidException) {
@@ -175,7 +206,7 @@ open class SelfVerificationViewModelImpl(
                 verifyAccount.verify(passphraseMethod, passphrase).fold(
                     onSuccess = {
                         log.debug { "successfully verified with passphrase" }
-                        onCloseSelfVerification()
+                        onCloseSelfVerification(true)
                     },
                     onFailure = {
                         // internally, the passphrase is used to re-create the recovery key
@@ -199,6 +230,7 @@ open class SelfVerificationViewModelImpl(
     override fun backToChoose() {
         resetMethods()
         showResetRecoveryWarning.value = false
+        showVerificationHelp.value = false
         waitForAvailableVerificationMethods()
     }
 
@@ -223,6 +255,6 @@ open class SelfVerificationViewModelImpl(
     }
 
     override fun close() {
-        onCloseSelfVerification()
+        onCloseSelfVerification(!showVerificationHelp.value)
     }
 }

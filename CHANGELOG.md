@@ -14,17 +14,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show users typing in room list
 - Allow sending attachments with Enter (desktop)
 - Check server capabilities for setting display name and avatar and prevent editing if not supported
+- More conservative MatrixClient initialization failure handling.
+- Inform the user that additional sync methods might be available after the initial sync during the Verification Wizard
+- Only show verification banner in RoomList, when the selected Account isn't verified
+- Change RedoSelfVerification to Wizard Framework
+- don't start verification on startup, start it via the setup or the banner in the roomlist instead
 - Add User Profile Screen
 
 ### Changed
 
+- Moved from Realm to Androidx Room database.
+- Enabled Encryption for Androidx Room database.
 - Image detail view UI overhaul
 
 ### Deprecated
 
 ### Removed
 
-- Internal: removed strong skipping Compose mode as it is enabled by default now 
+- Internal: removed strong skipping Compose mode as it is enabled by default now
 
 ### Fixed
 
@@ -32,6 +39,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show sender, when state event before element
 - Text colors in message bubbles and input field (Desktop) adjusted for dark mode
 - Removed ability to block yourself
+- Fixed show SSO login option with empty identity provider list
+- Don't show "Image could not be loaded" message while loading an image
+- Fixed jumping timeline on fast message sending
+- Fixed various issues, that unread marker is unnecessarily displayed
+- Fixed unnecessary re-computations on timeline re-init
+- Fixed typo in verification help text
 
 ### Security
 

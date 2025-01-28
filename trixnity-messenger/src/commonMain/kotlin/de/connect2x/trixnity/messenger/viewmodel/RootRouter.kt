@@ -4,13 +4,14 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.benasher44.uuid.uuid4
-import de.connect2x.trixnity.messenger.LoadStoreException
+import de.connect2x.trixnity.messenger.MatrixClientInitializationException
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.getOrNull
+import de.connect2x.trixnity.messenger.util.launchNavigate
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.launchReplaceAll
@@ -18,18 +19,18 @@ import de.connect2x.trixnity.messenger.util.replaceAllSuspending
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationFailureViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationFailureViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModel
-import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterNewAccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModel
-import de.connect2x.trixnity.messenger.viewmodel.connecting.StoreFailureViewModelFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.flow.collectLatest
@@ -67,17 +68,7 @@ class RootRouter(
                         viewModelContext = viewModelContext.childContext(componentContext),
                         onNoAccounts = ::showAddMatrixAccount,
                         onInitializationSuccess = ::showMain,
-                        onInitializationFailure = ::showAddMatrixAccount,
-                        onStoreFailure = ::showStoreFailure,
-                    )
-            )
-
-            is Config.RemoveMatrixAccount -> Wrapper.MatrixClientLogout(
-                viewModelContext.get<RemoveMatrixAccountViewModelFactory>()
-                    .create(
-                        viewModelContext = viewModelContext.childContext(componentContext),
-                        userId = config.userId,
-                        onRemoveCompleted = { }, // do nothing as the MainViewModel will show a sync
+                        onInitializationFailure = ::onInitializationFailure,
                     )
             )
 
@@ -87,6 +78,24 @@ class RootRouter(
                     onAddMatrixAccountMethod = ::showAddMatrixAccountMethod,
                     onCancel = ::cancelAddMatrixAccount,
                 )
+            )
+
+            is Config.RegisterMatrixAccount -> Wrapper.RegisterMatrixAccount(
+                viewModelContext.get<RegisterMatrixAccountViewModelFactory>().create(
+                    viewModelContext = viewModelContext.childContext(componentContext),
+                    serverUrl = config.serverUrl,
+                    onLogin = ::showMainOnLogin,
+                    onBack = ::backToAddMatrixAccount,
+                )
+            )
+
+            is Config.RemoveMatrixAccount -> Wrapper.RemoveMatrixAccount(
+                viewModelContext.get<RemoveMatrixAccountViewModelFactory>()
+                    .create(
+                        viewModelContext = viewModelContext.childContext(componentContext),
+                        userId = config.userId,
+                        onRemoveCompleted = { }, // do nothing as the MainViewModel will show a sync
+                    )
             )
 
             is Config.PasswordLogin -> Wrapper.PasswordLogin(
@@ -110,15 +119,6 @@ class RootRouter(
                 )
             )
 
-            is Config.RegisterNewAccount -> Wrapper.RegisterNewAccount(
-                viewModelContext.get<RegisterNewAccountViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
-                    serverUrl = config.serverUrl,
-                    onLogin = ::showMainOnLogin,
-                    onBack = ::backToAddMatrixAccount,
-                )
-            )
-
             is Config.Main -> {
                 log.debug { "MatrixClients: $matrixClients" }
                 Wrapper.Main(
@@ -130,8 +130,8 @@ class RootRouter(
                 )
             }
 
-            is Config.StoreFailure -> Wrapper.StoreFailure(
-                viewModelContext.get<StoreFailureViewModelFactory>().create(
+            is Config.MatrixClientInitializationFailure -> Wrapper.MatrixClientInitializationFailure(
+                viewModelContext.get<MatrixClientInitializationFailureViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     userId = config.userId,
                     exception = config.exception,
@@ -154,10 +154,6 @@ class RootRouter(
         }
     }
 
-    fun showNone() {
-        navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.None)
-    }
-
     fun showInitialization() {
         log.debug { "showInitialization" }
         navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.MatrixClientInitialization)
@@ -178,11 +174,17 @@ class RootRouter(
     }
 
     private fun showAddMatrixAccount() {
-        log.debug { "showAddMatrixAccount" }
-        navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.AddMatrixAccount)
+        navigation.launchNavigate(viewModelContext.coroutineScope) {
+            if (it.contains(Config.AddMatrixAccount)) it
+            else {
+                log.debug { "showAddMatrixAccount" }
+                listOf(Config.AddMatrixAccount)
+            }
+        }
     }
 
     private fun cancelAddMatrixAccount() = viewModelContext.coroutineScope.launch {
+        log.debug { "cancelAddMatrixAccount" }
         if (matrixClients.value.isEmpty()) {
             log.info { "There are no MatrixClients configured yet, so close the app" }
             viewModelContext.getOrNull<CloseApp>()?.invoke()
@@ -190,7 +192,6 @@ class RootRouter(
             navigation.replaceAllSuspending(Config.MatrixClientInitialization)
         }
     }
-
 
     private fun showAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
         log.debug { "showAddMatrixAccountMethod: $addMatrixAccountMethod" }
@@ -204,14 +205,14 @@ class RootRouter(
                 viewModelContext.coroutineScope,
                 Config.SSOLogin(
                     serverUrl = addMatrixAccountMethod.serverUrl,
-                    providerId = addMatrixAccountMethod.identityProvider.id,
-                    providerName = addMatrixAccountMethod.identityProvider.name
+                    providerId = addMatrixAccountMethod.identityProvider?.id,
+                    providerName = addMatrixAccountMethod.identityProvider?.name
                 )
             )
 
             is AddMatrixAccountMethod.Register -> navigation.launchPush(
                 viewModelContext.coroutineScope,
-                Config.RegisterNewAccount(serverUrl = addMatrixAccountMethod.serverUrl)
+                Config.RegisterMatrixAccount(serverUrl = addMatrixAccountMethod.serverUrl)
             )
         }
     }
@@ -221,9 +222,12 @@ class RootRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun showStoreFailure(userId: UserId, exception: LoadStoreException) {
+    private fun onInitializationFailure(userId: UserId, exception: MatrixClientInitializationException) {
         log.debug { "showStoreFailure" }
-        navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.StoreFailure(userId, exception))
+        navigation.launchReplaceAll(
+            viewModelContext.coroutineScope,
+            Config.MatrixClientInitializationFailure(userId, exception)
+        )
     }
 
     private fun showRemoveAccount(userId: UserId) {
@@ -233,7 +237,7 @@ class RootRouter(
     }
 
     private suspend fun resumeSsoLogin(redirectUrl: Url) {
-        log.debug { "resumeSsoLogin" }
+        log.debug { "requested resume ssl login" }
         val state = settings.value.base.ssoState
         if (state != null) {
             log.info { "resume sso login" }
@@ -246,7 +250,7 @@ class RootRouter(
                 instance.viewModel.resumeLogin(redirectUrl)
             }
         } else {
-            log.warn { "cannot resume sso login" }
+            log.warn { "cannot resume sso login (no state saved)" }
         }
     }
 
@@ -261,17 +265,14 @@ class RootRouter(
 
     sealed class Wrapper {
         data object None : Wrapper()
-        class MatrixClientInitialization(val viewModel: MatrixClientInitializationViewModel) :
-            Wrapper()
-
-        class MatrixClientLogout(val viewModel: RemoveMatrixAccountViewModel) : Wrapper()
-
+        class MatrixClientInitialization(val viewModel: MatrixClientInitializationViewModel) : Wrapper()
+        class MatrixClientInitializationFailure(val viewModel: MatrixClientInitializationFailureViewModel) : Wrapper()
         class Main(val viewModel: MainViewModel) : Wrapper()
         class AddMatrixAccount(val viewModel: AddMatrixAccountViewModel) : Wrapper()
+        class RegisterMatrixAccount(val viewModel: RegisterMatrixAccountViewModel) : Wrapper()
+        class RemoveMatrixAccount(val viewModel: RemoveMatrixAccountViewModel) : Wrapper()
         class PasswordLogin(val viewModel: PasswordLoginViewModel) : Wrapper()
         class SSOLogin(val viewModel: SSOLoginViewModel) : Wrapper()
-        class RegisterNewAccount(val viewModel: RegisterNewAccountViewModel) : Wrapper()
-        class StoreFailure(val viewModel: StoreFailureViewModel) : Wrapper()
     }
 
     @Serializable
@@ -297,18 +298,18 @@ class RootRouter(
         @Serializable
         data class SSOLogin(
             val serverUrl: String,
-            val providerId: String,
-            val providerName: String,
+            val providerId: String?,
+            val providerName: String?,
             val initialState: String? = null,
         ) : Config()
 
         @Serializable
-        data class RegisterNewAccount(val serverUrl: String) : Config()
+        data class RegisterMatrixAccount(val serverUrl: String) : Config()
 
         @Serializable
-        data class StoreFailure(
+        data class MatrixClientInitializationFailure(
             val userId: UserId,
-            val exception: LoadStoreException,
+            val exception: MatrixClientInitializationException,
         ) : Config()
     }
 }

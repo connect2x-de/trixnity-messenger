@@ -6,11 +6,11 @@ import org.koin.core.module.Module
 
 interface CreateRepositoriesModule {
     suspend fun create(userId: UserId): CreateResult
-    suspend fun load(userId: UserId, databasePassword: SecretByteArray?): Module
+    suspend fun load(userId: UserId, databaseKey: SecretByteArray?): Module
 
     data class CreateResult(
         val module: Module,
-        val databasePassword: SecretByteArray?,
+        val databaseKey: SecretByteArray?,
     )
 }
 

@@ -284,9 +284,9 @@ abstract class I18n(
     }
 
     fun verificationMethodSasDevice() = translate {
-        EN - """Please compare a set of emojis on this device and another device where this account is active.
+        EN - """        Please compare a set of emojis on this device and another device where this account is active.
         In case the emojis are different, please contact your administrator.""".trimIndent()
-        DE - """Vergleichen Sie eine Reihe von Emojis an diesem Gerät und einem anderen Gerät, auf dem Ihr Konto aktiviert ist.
+        DE - """        Vergleichen Sie eine Reihe von Emojis an diesem Gerät und einem anderen Gerät, auf dem Ihr Konto aktiviert ist.
         Sollten die Emojis nicht übereinstimmen, kontaktieren Sie bitte Ihren Administrator.""".trimIndent()
     }
 
@@ -401,8 +401,8 @@ abstract class I18n(
     }
 
     fun connectingErrorForbidden() = translate {
-        EN - "Your username or password are not correct."
-        DE - "Der Nutzername oder das Passwort sind nicht korrekt."
+        EN - "Your credentials are not correct."
+        DE - "Die Zugangsdaten sind nicht korrekt."
     }
 
     fun connectingErrorNotFound() = translate {
