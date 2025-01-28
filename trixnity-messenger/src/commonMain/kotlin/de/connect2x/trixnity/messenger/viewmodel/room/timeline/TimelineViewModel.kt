@@ -586,7 +586,6 @@ class TimelineViewModelImpl(
             showUnreadMarker = showUnreadMarker,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
-            showReplacedEvents = flowOf(false),
             onMessageReplace = ::onMessageReplace,
             onMessageReply = ::onMessageReply,
             onMessageReport = ::onShowReportMessageModal,

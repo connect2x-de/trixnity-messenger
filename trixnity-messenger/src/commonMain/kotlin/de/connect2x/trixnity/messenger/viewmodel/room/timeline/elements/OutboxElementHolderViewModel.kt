@@ -110,7 +110,6 @@ class OutboxElementHolderViewModelImpl(
                 Result.success(outboxMessage.content),
                 roomId,
                 EventIdOrTransactionId(transactionId),
-                false,
                 onOpenMention,
             ).also {
                 elementCache.value = TimelineElementViewModelWrapper(it, lifecycle)

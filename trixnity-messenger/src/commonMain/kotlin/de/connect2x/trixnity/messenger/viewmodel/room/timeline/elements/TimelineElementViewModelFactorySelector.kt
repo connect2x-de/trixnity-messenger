@@ -28,7 +28,6 @@ interface TimelineElementViewModelFactorySelector {
         content: Result<RoomEventContent>?,
         roomId: RoomId,
         eventId: EventIdOrTransactionId,
-        showReplacedEvents: Boolean,
         onOpenMention: OpenMentionCallback,
     ): TimelineElementViewModel<*>
 }
@@ -42,7 +41,7 @@ class TimelineElementViewModelFactorySelectorImpl(
     private sealed interface Mapping {
         data object None : Mapping
         data class Exist(
-            val factory: TimelineElementViewModelFactory<RoomEventContent>
+            val factory: TimelineElementViewModelFactory<RoomEventContent>,
         ) : Mapping
 
         fun getOrNull() = when (this) {
@@ -68,17 +67,13 @@ class TimelineElementViewModelFactorySelectorImpl(
     private suspend fun supports(content: Result<RoomEventContent>?): Boolean =
         content == null || content.fold(onFailure = { true }, onSuccess = { findFactory(it) != null })
 
-    private var showReplacedEvents = false
-
     override suspend fun create(
         viewModelContext: MatrixClientViewModelContext,
         content: Result<RoomEventContent>?,
         roomId: RoomId,
         eventId: EventIdOrTransactionId,
-        showReplacedEvents: Boolean,
         onOpenMention: OpenMentionCallback,
     ): TimelineElementViewModel<*> {
-        this.showReplacedEvents = showReplacedEvents
         return when {
             content == null -> encryptedWaitTimelineElementViewModelFactory.create(
                 viewModelContext = viewModelContext,
@@ -109,7 +104,7 @@ class TimelineElementViewModelFactorySelectorImpl(
     private suspend fun findFactory(
         content: RoomEventContent,
     ): TimelineElementViewModelFactory<RoomEventContent>? {
-        if (showReplacedEvents.not() && isReplaceEvent(content)) return null
+        if (isReplaceEvent(content)) return null
 
         val contentClass = content::class
         return (factoryMapping.read { get(contentClass) }
