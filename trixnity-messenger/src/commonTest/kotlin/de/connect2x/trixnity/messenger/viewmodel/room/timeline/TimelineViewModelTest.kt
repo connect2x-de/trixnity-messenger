@@ -750,7 +750,7 @@ class TimelineViewModelTest : ShouldSpec() {
 
                 cut.unreadCount.launchIn(coroutineScope)
 
-                eventually(3.seconds) {
+                continually(2.seconds) {
                     cut.unreadCount.first() shouldBe null
                 }
                 timelineMock.addEvents {
@@ -830,14 +830,18 @@ class TimelineViewModelTest : ShouldSpec() {
 
                 cut.unreadCount.launchIn(coroutineScope)
 
-                eventually(3.seconds) {
+                continually(2.seconds) {
                     cut.unreadCount.first() shouldBe null
                 }
 
                 timelineMock.addEvents {
-                    +messageEvent(sender = alice) {
-                        text("Supported message")
-                    }
+                    +MessageEvent(
+                        sender = alice,
+                        id = EventId("2"),
+                        roomId = roomId,
+                        originTimestamp = 234,
+                        content = RoomMessageEventContent.TextBased.Text("Supported message")
+                    )
                 }
 
                 eventually(3.seconds) {
@@ -846,7 +850,7 @@ class TimelineViewModelTest : ShouldSpec() {
 
                 timelineMock.fullyReadEventIndex.value = 1
 
-                continually(3.seconds) {
+                continually(2.seconds) {
                     cut.unreadCount.first() shouldBe "1"
                 }
 
