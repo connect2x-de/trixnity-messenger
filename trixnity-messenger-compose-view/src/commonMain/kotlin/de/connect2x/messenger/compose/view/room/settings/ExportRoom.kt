@@ -41,6 +41,10 @@ import de.connect2x.trixnity.messenger.export.Destination
 import de.connect2x.trixnity.messenger.export.FileBasedExportRoomProperties
 import de.connect2x.trixnity.messenger.export.PlainTextFileBasedExportRoomProperties
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModel
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+
+private val log = KotlinLogging.logger {}
 
 @Composable
 fun ExportRoomContainer(exportRoomViewModel: ExportRoomViewModel) {
@@ -218,6 +222,7 @@ fun ExportRoomProperties(exportRoomViewModel: ExportRoomViewModel) {
         "txt" -> {
             val selectedProperties = properties as? PlainTextFileBasedExportRoomProperties
             SelectExportDestination(selectedProperties) { destination ->
+                log.debug { "exporting room as txt to: $destination" }
                 if (destination != null)
                     exportRoomViewModel.properties.value =
                         selectedProperties?.copy(destination = destination)
@@ -228,6 +233,7 @@ fun ExportRoomProperties(exportRoomViewModel: ExportRoomViewModel) {
         "csv" -> {
             val selectedProperties = properties as? CSVFileBasedExportRoomProperties
             SelectExportDestination(selectedProperties) { destination ->
+                log.debug { "exporting room as csv to: $destination" }
                 if (destination != null)
                     exportRoomViewModel.properties.value =
                         selectedProperties?.copy(destination = destination)
@@ -236,7 +242,9 @@ fun ExportRoomProperties(exportRoomViewModel: ExportRoomViewModel) {
             }
         }
 
-        else -> {}
+        else -> {
+            log.warn { "invalid room export target" }
+        }
     }
 }
 

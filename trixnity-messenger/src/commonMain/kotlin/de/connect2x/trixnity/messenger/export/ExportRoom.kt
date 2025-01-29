@@ -4,16 +4,16 @@ import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.Decryptio
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.MissingMedia
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.chunked
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -79,6 +79,7 @@ interface ExportRoom {
 class ExportRoomImpl(
     private val sinkFactories: List<ExportRoomSinkFactory>,
 ) : ExportRoom {
+    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun invoke(
         roomId: RoomId,
         properties: ExportRoomSinkProperties,
@@ -226,23 +227,4 @@ internal val exportTimestampFormat by lazy {
 
 private val allowedFileNameChars by lazy {
     ('0'..'9') + ('a'..'z') + ('A'..'Z') + '-' + '.' + '_'
-}
-
-// TODO remove with kotlinx-coroutines >= 1.9.0
-private fun <T> Flow<T>.chunked(size: Int): Flow<List<T>> {
-    require(size >= 1) { "Expected positive chunk size, but got $size" }
-    return flow {
-        var result: ArrayList<T>? = null // Do not preallocate anything
-        collect { value ->
-            // Allocate if needed
-            val acc = result ?: ArrayList<T>(size).also { result = it }
-            acc.add(value)
-            if (acc.size == size) {
-                emit(acc)
-                // Cleanup, but don't allocate -- it might've been the case this is the last element
-                result = null
-            }
-        }
-        result?.let { emit(it) }
-    }
 }
