@@ -12,11 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -38,22 +42,41 @@ fun BoxScope.ScrollToEndButton(timelineViewModel: TimelineViewModel, canScrollTo
 class ScrollToEndButtonViewImpl : ScrollToEndButtonView {
     @Composable
     override fun BoxScope.create(timelineViewModel: TimelineViewModel, canScrollToEnd: Boolean) {
-        AnimatedVisibility(
-            visible = canScrollToEnd,
+        val unreadCount = timelineViewModel.unreadCount.collectAsState().value
+
+        BadgedBox(
             modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp),
-            enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessVeryLow)),
-            exit = fadeOut()
-        ) {
-            FloatingActionButton(
-                onClick = { timelineViewModel.jumpToEndOfTimeline() },
-                modifier = Modifier
-                    .size(40.dp)
-                    .buttonPointerModifier()
-                    .indication(indication = null, interactionSource = MutableInteractionSource()),
-                elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
+            badge = {
+                AnimatedVisibility(
+                    visible = canScrollToEnd,
+                    enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessVeryLow)),
+                    exit = fadeOut()
+                ) {
+                    unreadCount?.let {
+                        Badge(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        ) {
+                            Text(unreadCount)
+                        }
+                    }
+                }
+            }) {
+            AnimatedVisibility(
+                visible = canScrollToEnd,
+                enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessVeryLow)),
+                exit = fadeOut()
             ) {
-                Icon(Icons.Default.KeyboardArrowDown, "")
+                FloatingActionButton(
+                    onClick = { timelineViewModel.jumpToEndOfTimeline() },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .buttonPointerModifier()
+                        .indication(indication = null, interactionSource = MutableInteractionSource()),
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
+                ) {
+                    Icon(Icons.Default.KeyboardArrowDown, "")
+                }
             }
         }
     }
