@@ -47,6 +47,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomOutboxMessage
@@ -747,8 +748,6 @@ class TimelineViewModelTest : ShouldSpec() {
 
                 val cut = timelineViewModel()
 
-                val coroutineScope = CoroutineScope(Dispatchers.Default)
-
                 cut.unreadCount.launchIn(coroutineScope)
 
                 eventually(3.seconds) {
@@ -773,8 +772,6 @@ class TimelineViewModelTest : ShouldSpec() {
                 timelineMock.fullyReadEventIndex.value = 0
 
                 val cut = timelineViewModel()
-
-                val coroutineScope = CoroutineScope(Dispatchers.Default)
 
                 cut.unreadCount.launchIn(coroutineScope)
 
@@ -803,12 +800,54 @@ class TimelineViewModelTest : ShouldSpec() {
 
                 val cut = timelineViewModel()
 
-                val coroutineScope = CoroutineScope(Dispatchers.Default)
-
                 cut.unreadCount.launchIn(coroutineScope)
 
                 eventually(3.seconds) {
                     cut.unreadCount.first() shouldBe "99+"
+                }
+
+                coroutineScope.cancel()
+            }
+            should("not count unsupported timeline events") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) { text("Read message") }
+                    +MessageEvent(
+                        sender = alice,
+                        id = EventId("1"),
+                        roomId = roomId,
+                        originTimestamp = 123,
+                        content = RoomMessageEventContent.Unknown(
+                            "Unsupported Event",
+                            body = "Unsupported",
+                            raw = JsonObject(content = HashMap())
+                        )
+                    )
+                }
+
+                timelineMock.fullyReadEventIndex.value = 0
+
+                val cut = timelineViewModel()
+
+                cut.unreadCount.launchIn(coroutineScope)
+
+                eventually(3.seconds) {
+                    cut.unreadCount.first() shouldBe null
+                }
+
+                timelineMock.addEvents {
+                    +messageEvent(sender = alice) {
+                        text("Supported message")
+                    }
+                }
+
+                eventually(3.seconds) {
+                    cut.unreadCount.first() shouldBe "1"
+                }
+
+                timelineMock.fullyReadEventIndex.value = 1
+
+                continually(3.seconds) {
+                    cut.unreadCount.first() shouldBe "1"
                 }
 
                 coroutineScope.cancel()

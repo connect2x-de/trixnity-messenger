@@ -298,7 +298,6 @@ class TimelineViewModelImpl(
             }
                 .drop(1)
                 .filter(timelineElementViewModelFactorySelector::supports)
-                .map { it.first() }
                 .take(100)
                 .scan(0) { count, _ -> count + 1 }
                 .map {
