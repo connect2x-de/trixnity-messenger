@@ -113,9 +113,9 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
 
     val roomsApiClientMock = mock<RoomApiClient>()
 
-    val roomNameMock = mock<RoomName>()
+    private val roomNameMock = mock<RoomName>()
 
-    val profileManagerMock = mock<ProfileManager>()
+    private val profileManagerMock = mock<ProfileManager>()
 
     private val onRoomSelectedMock = mock<Function2<UserId, RoomId, Unit>>()
 
@@ -546,6 +546,46 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
+        should("display only users with a sync error") {
+            every { roomServiceMock1.getAll() } returns MutableStateFlow(emptyMap())
+            every { roomServiceMock2.getAll() } returns MutableStateFlow(emptyMap())
+            every { roomServiceMock3.getAll() } returns MutableStateFlow(emptyMap())
+            val syncState1 = MutableStateFlow(SyncState.STARTED)
+            val syncState2 = MutableStateFlow(SyncState.STARTED)
+            val syncState3 = MutableStateFlow(SyncState.STARTED)
+            syncStateMocker1 returns syncState1
+            syncStateMocker2 returns syncState2
+            syncStateMocker3 returns syncState3
+
+            val cut = roomListViewModel(coroutineContext)
+            val subscriberJob = subscribe(cut)
+
+            syncState1.value = SyncState.INITIAL_SYNC
+            syncState2.value = SyncState.INITIAL_SYNC
+            syncState3.value = SyncState.INITIAL_SYNC
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.syncStateErroredUsers.value shouldBe setOf()
+            cut.isSyncErroringAllUsers.value shouldBe false
+
+            syncState1.value = SyncState.ERROR
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.syncStateErroredUsers.value shouldBe setOf(me1)
+            cut.isSyncErroringAllUsers.value shouldBe false
+
+            syncState2.value = SyncState.ERROR
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.syncStateErroredUsers.value shouldBe setOf(me1, me2)
+            cut.isSyncErroringAllUsers.value shouldBe false
+
+            syncState3.value = SyncState.ERROR
+            testCoroutineScheduler.advanceUntilIdle()
+            cut.syncStateErroredUsers.value shouldBe setOf(me1, me2, me3)
+            cut.isSyncErroringAllUsers.value shouldBe true
+
+            subscriberJob.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
         should("display info message when trying to join a room while the client is not connected to the server") {
             val room = Room(roomId1, createEventContent = roomCreateEventContent, membership = Membership.INVITE)
             every { roomServiceMock1.getById(roomId1) } returns flowOf(room)
@@ -790,6 +830,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         launch { cut.errorType.collect() }
         launch { cut.elements.collect() }
         launch { cut.syncStateErroredUsers.collect() }
+        launch { cut.isSyncErroringAllUsers.collect() }
         launch { cut.initialSyncFinished.collect() }
         launch { cut.showSearch.collect() }
         launch { cut.searchTerm.collect() }
@@ -818,25 +859,16 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
                                         onUserSettingsSelected: () -> Unit,
                                         onUserProfileSelected: () -> Unit,
                                         onShowAppInfo: () -> Unit
-                                    ): AccountViewModel {
-                                        return object : AccountViewModel {
-                                            override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
-                                            override val isSingleAccount: StateFlow<Boolean> = MutableStateFlow(false)
-                                            override val accounts: StateFlow<List<AccountInfo>> =
-                                                MutableStateFlow(listOf())
+                                    ): AccountViewModel = object : AccountViewModel {
+                                        override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
+                                        override val isSingleAccount: StateFlow<Boolean> = MutableStateFlow(false)
+                                        override val accounts: StateFlow<List<AccountInfo>> =
+                                            MutableStateFlow(listOf())
 
-                                            override fun selectActiveAccount(userId: UserId?) {
-                                            }
-
-                                            override fun openUserSettings() {
-                                            }
-
-                                            override fun openUserProfile() {
-                                            }
-
-                                            override fun openAppInfo() {
-                                            }
-                                        }
+                                        override fun selectActiveAccount(userId: UserId?) {}
+                                        override fun openUserSettings() {}
+                                        override fun openUserProfile() {}
+                                        override fun openAppInfo() {}
                                     }
                                 }
                             }
@@ -886,7 +918,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         roomId,
         userId,
         "user1",
-        memberEvent(roomId, userId)
+        memberEvent(roomId, userId),
     )
 
     private fun memberEvent(roomId: RoomId, sender: UserId) = StateEvent(
