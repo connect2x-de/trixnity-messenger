@@ -81,25 +81,24 @@ fun Banner(
 @Composable
 fun SyncErrorBanner(roomListViewModel: RoomListViewModel) {
     val i18n = DI.get<I18nView>()
-    val syncStateError = roomListViewModel.syncStateError.collectAsState().value
-    val allSyncError = roomListViewModel.allSyncError.collectAsState().value
-    val visible = syncStateError.any { (_, error) -> error }
+    val syncErroringUsers = roomListViewModel.syncStateErroredUsers.collectAsState().value
+    val isErroringAll = roomListViewModel.isSyncErroringAllUsers.collectAsState().value
     Banner(
-        visible,
+        syncErroringUsers.isNotEmpty(),
         background = MaterialTheme.colorScheme.errorContainer,
     ) {
         Row(Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.CloudOff, i18n.roomListSyncErrorNoConnection())
             Spacer(Modifier.size(12.dp))
             Column(verticalArrangement = Arrangement.Center) {
-                if (allSyncError) {
+                if (isErroringAll) {
                     Text(
                         i18n.roomListSyncErrorNoInternet(),
                         style = MaterialTheme.typography.labelLarge,
                     )
                 } else {
                     Text(
-                        i18n.roomListSyncErrorAccounts(syncStateError.keys.joinToString { it.full }),
+                        i18n.roomListSyncErrorAccounts(syncErroringUsers.joinToString { it.full }),
                         style = MaterialTheme.typography.labelLarge,
                     )
                 }

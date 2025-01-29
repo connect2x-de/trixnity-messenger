@@ -744,18 +744,18 @@ class MainViewModelTest : ShouldSpec() {
                                     onSendLogs: () -> Unit,
                                     onOpenAccountsOverview: () -> Unit,
                                     onAccountSelected: () -> Unit,
-                                ): RoomListViewModel {
-                                    return object : RoomListViewModel {
+                                ): RoomListViewModel =
+                                    object : RoomListViewModel {
                                         override val selectedRoomId: StateFlow<RoomId?> = MutableStateFlow(null)
                                         override val error: MutableStateFlow<String?> = MutableStateFlow(null)
                                         override val errorType: MutableStateFlow<ErrorType> =
                                             MutableStateFlow(ErrorType.JUST_DISMISS)
                                         override val elements: StateFlow<List<RoomListElementViewModel>> =
                                             MutableStateFlow(emptyList())
-                                        override val syncStateError: StateFlow<Map<UserId, Boolean>> = MutableStateFlow(
-                                            emptyMap()
-                                        )
-                                        override val allSyncError: StateFlow<Boolean> = MutableStateFlow(false)
+                                        override val syncStateErroredUsers: StateFlow<Set<UserId>> =
+                                            MutableStateFlow(emptySet())
+                                        override val isSyncErroringAllUsers: StateFlow<Boolean> =
+                                            MutableStateFlow(false)
                                         override val initialSyncFinished: StateFlow<Boolean> = MutableStateFlow(true)
                                         override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
                                         override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
@@ -770,44 +770,21 @@ class MainViewModelTest : ShouldSpec() {
                                             override val accounts: StateFlow<List<AccountInfo>> =
                                                 MutableStateFlow(listOf())
 
-                                            override fun selectActiveAccount(userId: UserId?) {
-                                            }
-
-                                            override fun openUserSettings() {
-                                            }
-
-                                            override fun openUserProfile() {
-                                            }
-
-                                            override fun openAppInfo() {
-                                            }
+                                            override fun selectActiveAccount(userId: UserId?) {}
+                                            override fun openUserSettings() {}
+                                            override fun openUserProfile() {}
+                                            override fun openAppInfo() {}
                                         }
 
-                                        override fun createNewRoom() {
-                                        }
-
-                                        override fun createNewRoomFor(userId: UserId) {
-                                        }
-
-                                        override fun selectRoom(roomId: RoomId) {
-                                        }
-
-                                        override fun errorDismiss() {
-                                        }
-
-                                        override fun sendLogs() {
-                                        }
-
-                                        override fun openAccountsOverview() {
-                                        }
-
-                                        override fun closeProfile() {
-                                        }
-
-                                        override fun verifyAccount(userId: UserId) {
-                                        }
+                                        override fun createNewRoom() {}
+                                        override fun createNewRoomFor(userId: UserId) {}
+                                        override fun selectRoom(roomId: RoomId) {}
+                                        override fun errorDismiss() {}
+                                        override fun sendLogs() {}
+                                        override fun openAccountsOverview() {}
+                                        override fun closeProfile() {}
+                                        override fun verifyAccount(userId: UserId) {}
                                     }
-                                }
                             }
                         }
                     })

@@ -95,13 +95,13 @@ interface RoomListViewModelFactory {
 
 interface RoomListViewModel {
     val selectedRoomId: StateFlow<RoomId?>
+    val elements: StateFlow<List<RoomListElementViewModel>>
     val error: StateFlow<String?>
     val errorType: StateFlow<ErrorType>
-    val elements: StateFlow<List<RoomListElementViewModel>>
 
-    val syncStateError: StateFlow<Map<UserId, Boolean>>
-    val allSyncError: StateFlow<Boolean>
     val initialSyncFinished: StateFlow<Boolean>
+    val syncStateErroredUsers: StateFlow<Set<UserId>>
+    val isSyncErroringAllUsers: StateFlow<Boolean>
 
     val showSearch: MutableStateFlow<Boolean>
     val searchTerm: MutableStateFlow<String>
@@ -156,8 +156,8 @@ class RoomListViewModelImpl(
     override val elements: StateFlow<List<RoomListElementViewModel>>
 
     private val syncState: StateFlow<Map<UserId, SyncState>>
-    override val syncStateError: StateFlow<Map<UserId, Boolean>>
-    override val allSyncError: StateFlow<Boolean>
+    override val syncStateErroredUsers: StateFlow<Set<UserId>>
+    override val isSyncErroringAllUsers: StateFlow<Boolean>
     override val initialSyncFinished: StateFlow<Boolean>
 
     override val showSearch = MutableStateFlow(false)
@@ -357,16 +357,25 @@ class RoomListViewModelImpl(
             }
         }.stateIn(coroutineScope, WhileSubscribed(), mapOf())
 
-        syncStateError = syncState.map {
-            it.entries.associate { (userId, syncState) ->
-                userId to (syncState == SyncState.ERROR)
+        syncStateErroredUsers = syncState
+            .map {
+                it.mapNotNull { (userId, state) ->
+                    when (state) {
+                        SyncState.ERROR -> userId
+                        else -> null
+                    }
+                }.toSet()
             }
-        }
             .debounce(3.seconds)
-            .stateIn(coroutineScope, WhileSubscribed(), mapOf())
-        allSyncError = syncStateError.map {
-            it.all { (_, error) -> error }
-        }.stateIn(coroutineScope, WhileSubscribed(), false)
+            .stateIn(coroutineScope, WhileSubscribed(), setOf())
+
+        isSyncErroringAllUsers = syncState
+            .map {
+                it.all { (_, state) -> state == SyncState.ERROR }
+            }
+            .debounce(3.seconds)
+            .stateIn(coroutineScope, WhileSubscribed(), false)
+
         var initialSyncFinishedOnce = false
         initialSyncFinished = syncState
             .filterNot { it.isEmpty() }
@@ -493,8 +502,8 @@ class PreviewRoomListViewModel : RoomListViewModel {
                 PreviewRoomListElementViewModel3(),
             )
         )
-    override val syncStateError: MutableStateFlow<Map<UserId, Boolean>> = MutableStateFlow(mapOf())
-    override val allSyncError: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val syncStateErroredUsers: MutableStateFlow<Set<UserId>> = MutableStateFlow(setOf())
+    override val isSyncErroringAllUsers: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val initialSyncFinished: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
