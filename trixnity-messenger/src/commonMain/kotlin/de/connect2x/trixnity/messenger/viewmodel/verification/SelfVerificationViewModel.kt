@@ -28,6 +28,7 @@ import net.folivo.trixnity.client.verification.VerificationService.SelfVerificat
 import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.CrossSigningEnabled
 import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.NoCrossSigningEnabled
 import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet
+import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.crypto.key.RecoveryKeyInvalidException
 import org.koin.core.component.get
@@ -57,7 +58,7 @@ interface SelfVerificationViewModel {
     val passphraseWrong: MutableStateFlow<Boolean>
     val error: MutableStateFlow<String?>
     val isVerified: StateFlow<Boolean?>
-    val verificationMethodsLoaded: StateFlow<Boolean>
+    val verificationMethodsLoaded: StateFlow<Boolean?>
     val isSetup: StateFlow<Boolean>
 
     fun waitForAvailableVerificationMethods()
@@ -97,10 +98,12 @@ open class SelfVerificationViewModelImpl(
             .map { it.key.getTrustLevel(userId, it.deviceId).map { it.isVerified } }.flatMapLatest { it }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    override val verificationMethodsLoaded: StateFlow<Boolean> = selfVerificationMethods.map { !it.isEmpty() }.stateIn(
-        coroutineScope,
-        SharingStarted.WhileSubscribed(), false
-    )
+    override val verificationMethodsLoaded: StateFlow<Boolean?> =
+        matrixClient.syncState.map { it != SyncState.INITIAL_SYNC }.stateIn(
+            coroutineScope,
+            SharingStarted.WhileSubscribed(),
+            null
+        )
 
     override val isSetup =
         get<MatrixMessengerSettingsHolder>().map { it.base.accounts[userId]?.base?.accountSetupFinished == false }
