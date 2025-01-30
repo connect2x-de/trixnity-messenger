@@ -22,7 +22,7 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
 
         object : CreateRepositoriesModule {
             override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult {
-                fileSystem.createDirectory(rootPath.forAccountDatabase(userId), mustCreate = false)
+                fileSystem.createDirectories(rootPath.forAccountDatabase(userId), mustCreate = false)
                 return CreateRepositoriesModule.CreateResult(
                     module = createRoomRepositoriesModule(db(userId)),
                     databaseKey = null,

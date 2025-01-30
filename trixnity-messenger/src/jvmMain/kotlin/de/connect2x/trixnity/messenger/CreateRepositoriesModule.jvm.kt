@@ -26,7 +26,7 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
 
         object : CreateRepositoriesModule {
             override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult {
-                fileSystem.createDirectory(rootPath.forAccountDatabase(userId), mustCreate = false)
+                fileSystem.createDirectories(rootPath.forAccountDatabase(userId), mustCreate = false)
                 val databaseKey = SecureRandom.nextBytes(EncryptedSQLiteDriver.KEY_SIZE)
                 return CreateRepositoriesModule.CreateResult(
                     module = createRoomRepositoriesModule(db(userId, databaseKey)),

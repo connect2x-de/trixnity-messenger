@@ -31,8 +31,8 @@ class OkioFileBasedExportRoomSinkWriter(
     private lateinit var fileSink: BufferedSink
     private val mediaPath = destination.resolve("media")
     override suspend fun start() {
-        fileSystem.createDirectory(destination, mustCreate = false)
-        fileSystem.createDirectory(mediaPath, mustCreate = false)
+        fileSystem.createDirectories(destination, mustCreate = false)
+        fileSystem.createDirectories(mediaPath, mustCreate = false)
         fileSink = fileSystem.appendingSink(filePath).buffer()
     }
 
