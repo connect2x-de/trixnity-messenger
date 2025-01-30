@@ -24,6 +24,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
@@ -53,6 +54,33 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
     private val testUser = UserId("test", "server")
 
     private val roomId = RoomId("room", "localhost")
+
+    private val roomUserAlice = RoomUser(
+        roomId, alice, "Alice", StateEvent(
+            MemberEventContent(membership = Membership.JOIN),
+            EventId(""),
+            alice,
+            roomId,
+            0,
+            stateKey = ""
+        )
+    )
+
+    private val roomUserAliceFlow = MutableStateFlow(roomUserAlice)
+
+    private val roomUserBob = RoomUser(
+        roomId, bob, "Bob", StateEvent(
+            MemberEventContent(membership = Membership.JOIN),
+            EventId(""),
+            bob,
+            roomId,
+            0,
+            stateKey = ""
+        )
+    )
+
+    private val roomUserBobFlow = MutableStateFlow(roomUserBob)
+
 
     val matrixClientMock = mock<MatrixClient>()
 
@@ -90,6 +118,9 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
             every { matrixClientMock.api } returns matrixClientServerApiMock
             every { matrixClientServerApiMock.room } returns roomsApiClientMock
+
+            every { userServiceMock.getById(eq(roomId), eq(alice)) } returns roomUserAliceFlow
+            every { userServiceMock.getById(eq(roomId), eq(bob)) } returns roomUserBobFlow
 
             every {
                 roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "")
