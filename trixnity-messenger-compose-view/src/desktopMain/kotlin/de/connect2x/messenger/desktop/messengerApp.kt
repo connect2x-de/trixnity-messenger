@@ -40,16 +40,15 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import okio.FileSystem
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import java.awt.GraphicsEnvironment
 import java.awt.Taskbar
 import java.awt.dnd.DropTarget
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 
+
 private val log = KotlinLogging.logger {}
 
-@OptIn(ExperimentalResourceApi::class)
 fun CoroutineScope.messengerApp(
     matrixMultiMessenger: MatrixMultiMessenger,
     lifecycle: LifecycleRegistry,

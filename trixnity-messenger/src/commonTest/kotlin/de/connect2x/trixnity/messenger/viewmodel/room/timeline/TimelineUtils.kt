@@ -283,26 +283,26 @@ internal class MockedTimeline(
     }
 }
 
-object NoOpTimeline : Timeline<Unit> {
-    override val state: Flow<TimelineState<Unit>> = flowOf(TimelineState())
+class NoOpTimeline<T> : Timeline<T> {
+    override val state: Flow<TimelineState<T>> = flowOf(TimelineState())
 
     override suspend fun init(
         startFrom: EventId,
         configStart: GetTimelineEventConfig.() -> Unit,
         configBefore: GetTimelineEventsConfig.() -> Unit,
         configAfter: GetTimelineEventsConfig.() -> Unit
-    ): TimelineStateChange<Unit> = TimelineStateChange()
+    ): TimelineStateChange<T> = TimelineStateChange()
 
-    override suspend fun loadBefore(config: GetTimelineEventsConfig.() -> Unit): TimelineStateChange<Unit> =
+    override suspend fun loadBefore(config: GetTimelineEventsConfig.() -> Unit): TimelineStateChange<T> =
         TimelineStateChange()
 
-    override suspend fun loadAfter(config: GetTimelineEventsConfig.() -> Unit): TimelineStateChange<Unit> =
+    override suspend fun loadAfter(config: GetTimelineEventsConfig.() -> Unit): TimelineStateChange<T> =
         TimelineStateChange()
 
-    override suspend fun dropBefore(roomId: RoomId, eventId: EventId): TimelineStateChange<Unit> =
+    override suspend fun dropBefore(roomId: RoomId, eventId: EventId): TimelineStateChange<T> =
         TimelineStateChange()
 
-    override suspend fun dropAfter(roomId: RoomId, eventId: EventId): TimelineStateChange<Unit> =
+    override suspend fun dropAfter(roomId: RoomId, eventId: EventId): TimelineStateChange<T> =
         TimelineStateChange()
 }
 

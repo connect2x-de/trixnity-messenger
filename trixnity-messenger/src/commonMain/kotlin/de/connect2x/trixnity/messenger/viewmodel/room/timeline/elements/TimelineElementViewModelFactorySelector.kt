@@ -22,6 +22,7 @@ private val log = KotlinLogging.logger {}
 
 interface TimelineElementViewModelFactorySelector {
     fun nextSupportedTimelineEvent(timelineEvents: Flow<Flow<TimelineEvent>>): Flow<TimelineEvent?>
+    suspend fun supports(timelineEvent:Flow<TimelineEvent>): Boolean
 
     suspend fun create(
         viewModelContext: MatrixClientViewModelContext,
@@ -63,6 +64,9 @@ class TimelineElementViewModelFactorySelectorImpl(
             }
             emit(null) // if start of timeline reached
         }.distinctUntilChanged()
+
+    override  suspend fun supports(timelineEvent: Flow<TimelineEvent>): Boolean =
+        timelineEvent.map { supports(it.content) }.first()
 
     private suspend fun supports(content: Result<RoomEventContent>?): Boolean =
         content == null || content.fold(onFailure = { true }, onSuccess = { findFactory(it) != null })

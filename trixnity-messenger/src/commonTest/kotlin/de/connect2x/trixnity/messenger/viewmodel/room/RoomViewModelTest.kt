@@ -22,6 +22,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewMod
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Wrapper.View
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
@@ -51,6 +52,7 @@ import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.room.RoomService
+import net.folivo.trixnity.client.room.TimelineStateChange
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
@@ -139,10 +141,10 @@ class RoomViewModelTest : ShouldSpec() {
             every {
                 roomServiceMock.getTimeline(
                     any(),
-                    any(),
-                    any<suspend (Flow<TimelineEvent>) -> Unit>(),
+                    any<suspend (TimelineStateChange<TimelineViewModelImpl.TimelineElementWrapper>) -> Unit>(),
+                    any<suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper>(),
                 )
-            } returns NoOpTimeline
+            } returns NoOpTimeline()
             every { roomServiceMock.getById(any()) } returns flowOf(null)
             every {
                 roomServiceMock.getAccountData(any(), FullyReadEventContent::class, "")

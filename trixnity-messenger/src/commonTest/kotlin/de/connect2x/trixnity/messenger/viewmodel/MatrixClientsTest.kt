@@ -147,6 +147,7 @@ class MatrixClientsTest : ShouldSpec() {
                     any(),
                     any(),
                     any(),
+                    any(),
                 )
             } calls { args ->
                 val username = args.args[0] as User
@@ -159,7 +160,6 @@ class MatrixClientsTest : ShouldSpec() {
                 )
             }
             every { matrixClientServerApiClient.authentication } returns authenticationApiClient
-            every { matrixClientServerApiClient.accessToken } returns MutableStateFlow(null)
             everySuspend { authenticationApiClient.logout(any()) } returns Result.success(Unit)
             every { matrixClientMock1.close() } returns Unit
             every { matrixClientMock2.close() } returns Unit

@@ -99,7 +99,8 @@ class RegisterMatrixAccountViewModelImpl(
                             accountType = AccountType.USER,
                             username = username.value,
                             password = password.value,
-                            initialDeviceDisplayName = getDefaultDeviceDisplayName()
+                            initialDeviceDisplayName = getDefaultDeviceDisplayName(),
+                            refreshToken = true,
                         )
                     }
                 }
@@ -108,6 +109,7 @@ class RegisterMatrixAccountViewModelImpl(
                         log.info { "try to do UIA to retrieve access_token" }
                         val deviceId = result.uia.value.deviceId
                         val accessToken = result.uia.value.accessToken
+                        val refreshToken = result.uia.value.refreshToken
                         if (deviceId != null && accessToken != null) {
                             matrixClients.loginWithCatching(
                                 baseUrl = serverUrl,
@@ -115,6 +117,7 @@ class RegisterMatrixAccountViewModelImpl(
                                     userId = result.uia.value.userId,
                                     deviceId = deviceId,
                                     accessToken = accessToken,
+                                    refreshToken = refreshToken,
                                 ),
                                 addMatrixAccountState = addMatrixAccountState,
                                 i18n = i18n,
