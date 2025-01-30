@@ -9,6 +9,7 @@ import de.connect2x.trixnity.messenger.util.SecretByteArray
 import net.folivo.trixnity.client.store.repository.room.TrixnityRoomDatabase
 import net.folivo.trixnity.client.store.repository.room.createRoomRepositoriesModule
 import net.folivo.trixnity.core.model.UserId
+import okio.FileSystem
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -16,10 +17,12 @@ import org.koin.dsl.module
 actual fun platformCreateRepositoriesModuleModule(): Module = module {
     single<CreateRepositoriesModule> {
         val rootPath = get<RootPath>()
+        val fileSystem = get<FileSystem>()
         val context = get<Context>()
 
         object : CreateRepositoriesModule {
             override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult {
+                fileSystem.createDirectories(rootPath.forAccountDatabase(userId), mustCreate = false)
                 return CreateRepositoriesModule.CreateResult(
                     module = createRoomRepositoriesModule(db(userId)),
                     databaseKey = null,

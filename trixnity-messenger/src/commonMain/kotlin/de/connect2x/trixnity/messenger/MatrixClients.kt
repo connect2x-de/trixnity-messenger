@@ -22,7 +22,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.MatrixClient.LoginInfo
+import net.folivo.trixnity.clientserverapi.client.MatrixAuthProvider
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import net.folivo.trixnity.clientserverapi.client.classicInMemory
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
 import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
 import net.folivo.trixnity.core.model.UserId
@@ -110,11 +112,13 @@ class MatrixClientsImpl(
                     identifier = identifier,
                     password = password,
                     type = LoginType.Password,
-                    initialDeviceDisplayName = initialDeviceDisplayName
+                    initialDeviceDisplayName = initialDeviceDisplayName,
+                    refreshToken = true,
                 ).getOrThrow().let { login ->
                     LoginInfo(
                         userId = login.userId,
                         accessToken = login.accessToken,
+                        refreshToken = login.refreshToken,
                         deviceId = login.deviceId,
                     )
                 }
@@ -136,11 +140,13 @@ class MatrixClientsImpl(
                 api.authentication.login(
                     token = token,
                     type = LoginType.Token(),
-                    initialDeviceDisplayName = initialDeviceDisplayName
+                    initialDeviceDisplayName = initialDeviceDisplayName,
+                    refreshToken = true,
                 ).getOrThrow().let { login ->
                     LoginInfo(
                         userId = login.userId,
                         accessToken = login.accessToken,
+                        refreshToken = login.refreshToken,
                         deviceId = login.deviceId,
                     )
                 }
@@ -190,10 +196,13 @@ class MatrixClientsImpl(
             log.debug { "account ${loginInfo.userId} already exist -> logout" }
             MatrixClientServerApiClientImpl(
                 baseUrl,
+                authProvider = MatrixAuthProvider.classicInMemory(
+                    accessToken = loginInfo.accessToken,
+                    refreshToken = loginInfo.refreshToken
+                ),
                 httpClientEngine = config.httpClientEngine,
                 httpClientConfig = config.httpClientConfig
             ).use {
-                it.accessToken.value = loginInfo.accessToken
                 it.authentication.logout()
             }
                 .onFailure { log.error(it) { "could not logout of duplicate account" } }

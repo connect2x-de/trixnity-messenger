@@ -39,6 +39,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
@@ -46,6 +47,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomOutboxMessage
@@ -731,6 +733,125 @@ class TimelineViewModelTest : ShouldSpec() {
 
                 continually(500.milliseconds) {
                     scrollToCalled.value.shouldBeEmpty()
+                }
+
+                coroutineScope.cancel()
+            }
+        }
+        context(TimelineViewModel::unreadCount.name) {
+            should("count unread messages correctly when adding messages") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) { text("Read message") }
+                }
+
+                timelineMock.fullyReadEventIndex.value = 0
+
+                val cut = timelineViewModel()
+
+                cut.unreadCount.launchIn(coroutineScope)
+
+                continually(2.seconds) {
+                    cut.unreadCount.first() shouldBe null
+                }
+                timelineMock.addEvents {
+                    +messageEvent(sender = alice) { text("Unread message") }
+                }
+                eventually(3.seconds) {
+                    cut.unreadCount.first() shouldBe "1"
+                }
+
+                coroutineScope.cancel()
+            }
+            should("count unread messages correctly when last read event changes") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) { text("Read message") }
+                    +messageEvent(sender = alice) { text("Unread message") }
+                    +messageEvent(sender = alice) { text("Unread message") }
+                }
+
+                timelineMock.fullyReadEventIndex.value = 0
+
+                val cut = timelineViewModel()
+
+                cut.unreadCount.launchIn(coroutineScope)
+
+                eventually(3.seconds) {
+                    cut.unreadCount.first() shouldBe "2"
+                }
+                timelineMock.fullyReadEventIndex.value = 1
+                eventually(3.seconds) {
+                    cut.unreadCount.first() shouldBe "1"
+                }
+                timelineMock.fullyReadEventIndex.value = 2
+                eventually(3.seconds) {
+                    cut.unreadCount.first() shouldBe null
+                }
+                coroutineScope.cancel()
+            }
+            should("show an indicator when there are more than 99 unread messages") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) { text("Read message") }
+                    (1..100).forEach {
+                        +messageEvent(sender = alice) { text("Unread message number $it") }
+                    }
+                }
+
+                timelineMock.fullyReadEventIndex.value = 0
+
+                val cut = timelineViewModel()
+
+                cut.unreadCount.launchIn(coroutineScope)
+
+                eventually(3.seconds) {
+                    cut.unreadCount.first() shouldBe "99+"
+                }
+
+                coroutineScope.cancel()
+            }
+            should("not count unsupported timeline events") {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) { text("Read message") }
+                    +MessageEvent(
+                        sender = alice,
+                        id = EventId("1"),
+                        roomId = roomId,
+                        originTimestamp = 123,
+                        content = RoomMessageEventContent.Unknown(
+                            "Unsupported Event",
+                            body = "Unsupported",
+                            raw = JsonObject(content = HashMap())
+                        )
+                    )
+                }
+
+                timelineMock.fullyReadEventIndex.value = 0
+
+                val cut = timelineViewModel()
+
+                cut.unreadCount.launchIn(coroutineScope)
+
+                continually(2.seconds) {
+                    cut.unreadCount.first() shouldBe null
+                }
+
+                timelineMock.addEvents {
+                    +MessageEvent(
+                        sender = alice,
+                        id = EventId("2"),
+                        roomId = roomId,
+                        originTimestamp = 234,
+                        content = RoomMessageEventContent.TextBased.Text("Supported message")
+                    )
+                }
+
+                eventually(3.seconds) {
+                    cut.unreadCount.first() shouldBe "1"
+                }
+
+                timelineMock.fullyReadEventIndex.value = 1
+
+                continually(2.seconds) {
+                    cut.unreadCount.first() shouldBe "1"
                 }
 
                 coroutineScope.cancel()

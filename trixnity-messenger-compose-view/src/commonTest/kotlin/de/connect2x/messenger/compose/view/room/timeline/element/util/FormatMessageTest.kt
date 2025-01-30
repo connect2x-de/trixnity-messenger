@@ -146,4 +146,15 @@ class FormatMessageTest {
             formattedLink,
         )
     }
+
+    @Test
+    fun shouldFormatUrlWithComma() {
+        val link = "https://osmand.net/map/?pin=50.89774,13.69089#19/51.05483/13.74711"
+        val formattedLink = link.formatLinks()
+
+        assertEquals(
+            "<a href=\"${link}\">${link}</a>",
+            formattedLink,
+        )
+    }
 }
