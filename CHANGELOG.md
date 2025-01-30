@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Force database directory creation
+
 ### Deprecated
 
 ### Removed
@@ -37,7 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't start verification on startup, start it via the setup or the banner in the roomlist instead
 - Support for refresh tokens
 - Add badge with count of unread messages to scroll down button in rooms
-
 
 ### Changed
 
