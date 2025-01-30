@@ -23,8 +23,8 @@ actual fun platformCreateMediaStoreModule(): Module = module {
                         opfsDirectory.getDirectoryHandle(segment, FileSystemGetDirectoryOptions(create = true))
                 }
                 OpfsMediaStore(opfsDirectory)
-            } catch (exception: Throwable) {
-                log.error(exception) { "failed to use OPFS as MediaStore. Falling back to Indexeddb" }
+            } catch (error: Throwable) {
+                log.warn(error) { "failed to use OPFS as MediaStore. Falling back to Indexeddb" }
                 IndexedDBMediaStore(basePath.toString())
             }
         }
