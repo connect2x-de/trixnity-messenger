@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -169,12 +170,16 @@ class UserProfileViewModelImpl(
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val roomUserOriginalName = MutableStateFlow<String?>(null)
 
+    val isUserInRoom = matrixClient.user.getById(selectedRoomId, userId)
+        .map { it != null }
+        .shareIn(coroutineScope, SharingStarted.WhileSubscribed())
+
     override val userTrustLevel: StateFlow<UserTrustLevel?> = matrixClient.key.getTrustLevel(userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val userInfo: StateFlow<UserInfoElement?>
     override val role = MutableStateFlow(Role.USER)
     override val showRole = MutableStateFlow(false)
-    override val powerLevel = matrixClient.user.getPowerLevel(selectedRoomId, userId)
+    override val powerLevel = matrixClient.user.getPowerLevel(selectedRoomId, matrixClient.userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), 0)
     override val showPowerLevel = MutableStateFlow(false)
 
@@ -183,15 +188,29 @@ class UserProfileViewModelImpl(
 
     override val kickUserReason: MutableStateFlow<String> = MutableStateFlow("")
 
-    override val iHavePowerToKickUser = matrixClient.user.canKickUser(selectedRoomId, userId)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
-
-    override val iHavePowerToBanUser: StateFlow<Boolean> = matrixClient.user.canBanUser(selectedRoomId, userId)
+    override val iHavePowerToKickUser =
+       combine(
+           isUserInRoom,
+           matrixClient.user.canKickUser(selectedRoomId, userId)
+       ) { inRoom, canKick -> inRoom && canKick }
         .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+
+    override val iHavePowerToBanUser: StateFlow<Boolean> =
+       combine(
+           isUserInRoom,
+           matrixClient.user.canBanUser(selectedRoomId, userId)
+       ) { inRoom, canBan -> inRoom && canBan }
+        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+
     override val banReason: MutableStateFlow<String> = MutableStateFlow("")
 
-    override val iHavePowerToUnbanUser: StateFlow<Boolean> = matrixClient.user.canUnbanUser(selectedRoomId, userId)
+    override val iHavePowerToUnbanUser: StateFlow<Boolean> =
+        combine(
+            isUserInRoom,
+            matrixClient.user.canUnbanUser(selectedRoomId, userId),
+        ) { inRoom, canUnBan -> inRoom && canUnBan }
         .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+
     override val unbanReason: MutableStateFlow<String> = MutableStateFlow("")
 
     override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, userId)

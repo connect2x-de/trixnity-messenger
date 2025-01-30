@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
-import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
@@ -99,8 +98,13 @@ open class ChangePowerLevelViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, ChangePowerLevelViewModel {
 
     override val canSetPowerLevelToMax =
-        matrixClient.user.canSetPowerLevelToMax(selectedRoomId, userId)
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), 0)
+        combine(
+            matrixClient.user.getById(selectedRoomId, targetUser),
+            matrixClient.user.canSetPowerLevelToMax(selectedRoomId, targetUser)
+        ) { user, maxPowerLevel ->
+            maxPowerLevel.takeIf { user != null }
+        }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val combineSetPowerLevelToMaxAndCurrentPowerLevel =
         canSetPowerLevelToMax.combine(powerLevel) { maxPowerLevel, currentPowerLevel -> maxPowerLevel to currentPowerLevel }
