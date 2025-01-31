@@ -55,8 +55,8 @@ subprojects {
         apply(plugin = "maven-publish")
 
         val dokkaJar by tasks.registering(Jar::class) {
-            dependsOn(tasks.dokkaHtml)
-            from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+            dependsOn("dokkaGenerate")
+            from(dokka.dokkaPublications.html.flatMap { it.outputDirectory })
             archiveClassifier.set("javadoc")
             onlyIf { isCI }
         }
