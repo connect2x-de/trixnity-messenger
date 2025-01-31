@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Export directory resolution on Android
 - Handle commas in url correctly
+- Fixed faulty stale data cleanup on login leading to login error in Web
 
 ### Security
 
