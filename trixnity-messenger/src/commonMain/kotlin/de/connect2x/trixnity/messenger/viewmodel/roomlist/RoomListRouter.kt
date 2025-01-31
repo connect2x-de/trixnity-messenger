@@ -232,7 +232,7 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun goToRoom(userId: UserId, roomId: RoomId) = viewModelContext.coroutineScope.launch {
+    fun goToRoom(userId: UserId, roomId: RoomId) = viewModelContext.coroutineScope.launch {
         log.debug { "go to room $roomId" }
         selectedRoomId.value = roomId
         navigation.popSuspending()

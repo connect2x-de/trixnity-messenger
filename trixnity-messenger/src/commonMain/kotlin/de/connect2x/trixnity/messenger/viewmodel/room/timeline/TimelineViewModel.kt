@@ -124,6 +124,7 @@ interface TimelineViewModelFactory {
         roomId: RoomId,
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onShowSettings: () -> Unit,
+        onShowUserProfile: (UserId) -> Unit,
         onBack: () -> Unit,
         onOpenMention: OpenMentionCallback,
     ): TimelineViewModel {
@@ -132,6 +133,7 @@ interface TimelineViewModelFactory {
             roomId,
             isBackButtonVisible,
             onShowSettings,
+            onShowUserProfile,
             onBack,
             onOpenMention
         )
@@ -230,6 +232,7 @@ class TimelineViewModelImpl(
     private val roomId: RoomId,
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onShowSettings: () -> Unit,
+    private val onShowUserProfile: (UserId) -> Unit,
     private val onBack: () -> Unit,
     private val onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
@@ -347,6 +350,7 @@ class TimelineViewModelImpl(
             onBack = onBack,
             onVerifyUser = ::onVerifyUser,
             onShowRoomSettings = onShowSettings,
+            onShowUserProfile = onShowUserProfile,
         )
 
     override val inputAreaViewModel: InputAreaViewModel =

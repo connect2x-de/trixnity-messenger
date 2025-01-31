@@ -18,6 +18,7 @@ import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -63,7 +64,8 @@ class PotentialMembersViewModelTest : ShouldSpec() {
     private lateinit var syncStateMocker: BlockingAnsweringScope<StateFlow<SyncState>>
 
     init {
-        Dispatchers.setMain(Dispatchers.Unconfined)
+        coroutineTestScope = true
+
         beforeTest {
             resetMocks(
                 matrixClientMock,
@@ -278,7 +280,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
     }
 
 
-    private fun createPotentialMembersViewModel(): PotentialMembersViewModel {
+    private suspend fun createPotentialMembersViewModel(): PotentialMembersViewModel {
         return PotentialMembersViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
@@ -288,7 +290,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                     )
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = Dispatchers.Unconfined,
+                coroutineContext = currentCoroutineContext(),
             ),
             roomId = roomId
         )

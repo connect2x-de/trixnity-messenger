@@ -339,6 +339,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             onBack = mock(),
             onVerifyUser = mock(),
             onShowRoomSettings = mock(),
+            onShowUserProfile = mock(),
         )
         subscribe(roomHeaderViewModel)
         return roomHeaderViewModel

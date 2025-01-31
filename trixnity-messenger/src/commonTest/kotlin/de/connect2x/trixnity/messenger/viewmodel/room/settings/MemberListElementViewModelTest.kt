@@ -2,28 +2,25 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.ADMIN
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.MODERATOR
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel.Role.USER
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.*
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
 import dev.mokkery.every
-import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
-import dev.mokkery.verifySuspend
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CoroutineDispatcher
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -59,6 +56,7 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
@@ -202,71 +200,6 @@ class MemberListElementViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        context("kicking an user") {
-            beforeTest {
-                every {
-                    userServiceMock.getPowerLevel(eq(roomId), any())
-                } returns MutableStateFlow(50)
-            }
-
-            should("return to room settings after kicking an user") {
-                everySuspend {
-                    roomsApiClientMock.kickUser(
-                        eq(roomId),
-                        eq(alice),
-                        eqNull(),
-                        eqNull()
-                    )
-                } returns Result.success(Unit)
-
-                val cut = memberListElementViewModel(roomUserAlice)
-                cut.kickUser(alice)
-                delay(100.milliseconds)
-
-                cut.error.value shouldBe ""
-                verifySuspend {
-                    roomsApiClientMock.kickUser(eq(roomId), eq(alice), eqNull(), eqNull())
-                }
-                cut.memberOptionsOpen.value shouldBe false
-                cancelNeverEndingCoroutines()
-
-            }
-
-            should("show an error message when trying to kick an user and we are not connected") {
-                syncStateMocker returns MutableStateFlow(SyncState.ERROR)
-
-                val cut = memberListElementViewModel(roomUserAlice)
-                cut.kickUser(alice)
-
-                delay(100.milliseconds)
-                // we have not mocked roomsApiClientMock.kickUser(), so if they would be called, an exception would be thrown
-
-                cut.error.value shouldNotBe null
-                cancelNeverEndingCoroutines()
-            }
-
-            should("show an error message when kicking an user fails") {
-                everySuspend {
-                    roomsApiClientMock.kickUser(
-                        eq(roomId),
-                        eq(alice),
-                        eqNull(),
-                        eqNull()
-                    )
-                } returns
-                        Result.failure(RuntimeException("Oh nooo"))
-
-                val cut = memberListElementViewModel(roomUserAlice)
-                cut.kickUser(alice)
-
-                delay(100.milliseconds)
-                // we have not mocked roomsApiClientMock.kickUser(), so if they would be called, an exception would be thrown
-
-                cut.error.value shouldNotBe null
-                cancelNeverEndingCoroutines()
-            }
-        }
-
         context("role computation for the member list") {
             beforeTest {
                 every {
@@ -284,7 +217,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(100)
                     val cut = memberListElementViewModel(roomUserBob)
-                    cut.role.first { it != USER } shouldBe ADMIN
+                    cut.role.first { it != Role.USER } shouldBe Role.ADMIN
                     cancelNeverEndingCoroutines()
                 }
 
@@ -304,7 +237,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(50)
                     val cut = memberListElementViewModel(roomUserBob)
-                    cut.role.first { it != USER } shouldBe MODERATOR
+                    cut.role.first { it != Role.USER } shouldBe Role.MODERATOR
                     cancelNeverEndingCoroutines()
                 }
                 should("show role name in view") {
@@ -325,7 +258,7 @@ class MemberListElementViewModelTest : ShouldSpec() {
                         userServiceMock.getPowerLevel(roomId, bob)
                     } returns MutableStateFlow(0)
                     val cut = memberListElementViewModel(roomUserBob)
-                    cut.role.value shouldBe USER
+                    cut.role.value shouldBe Role.USER
                     cancelNeverEndingCoroutines()
                 }
                 should("do not show role name in view") {
@@ -359,8 +292,8 @@ class MemberListElementViewModelTest : ShouldSpec() {
                 coroutineContext = currentCoroutineContext(),
             ),
             roomUser,
-            error = MutableStateFlow(""),
-            selectedRoomId = roomId
+            selectedRoomId = roomId,
+            onShowUserProfile = mock()
         )
     }
 }
