@@ -11,19 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Force database directory creation
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
-- Export directory resolution on Android
+### Security
+
+## 3.1.1
+
+### Changed
+
+- Force database directory creation
+
+### Fixed
+
+- Fixed export directory resolution on Android
 - Handle commas in url correctly
 - Fixed faulty stale data cleanup on login leading to login error in Web
-
-### Security
 
 ## 3.1.0
 
