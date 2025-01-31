@@ -1133,6 +1133,11 @@ abstract class I18n(
         DE - "Sie können offline keine Teilnehmer bannen"
     }
 
+    fun userProfileMembershipChanging() = translate {
+        EN - "Membership is still changing at the momenet"
+        DE - "Mitgliedschaft wird aktuell noch verändert"
+    }
+
     fun settingsRoomMemberUnbanUserError() = translate {
         EN - "There was an error unbanning the user"
         DE - "Es gab einen Fehler beim Entbannen des Teilnehmers"

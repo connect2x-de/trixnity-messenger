@@ -24,8 +24,12 @@ private val log = KotlinLogging.logger {}
 
 interface SettingsRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
+
     suspend fun showSettings()
     suspend fun closeSettings()
+
+    suspend fun showUserProfile(userId: UserId)
+
     fun isShown(): Boolean
 
     sealed class Wrapper {
@@ -33,6 +37,7 @@ interface SettingsRouter {
         class View(val viewModel: RoomSettingsViewModel) : Wrapper()
         class AddMember(val viewModel: AddMembersViewModel) : Wrapper()
         class ExportRoom(val viewModel: ExportRoomViewModel) : Wrapper()
+        class ViewProfile(val viewModel: UserProfileViewModel) : Wrapper()
     }
 
     @Serializable
@@ -48,6 +53,9 @@ interface SettingsRouter {
 
         @Serializable
         data object ExportRoom : Config()
+
+        @Serializable
+        data class ViewProfile(val userId: UserId) : Config()
     }
 }
 
@@ -57,6 +65,7 @@ class SettingsRouterImpl(
     private val onSettingsBack: () -> Unit,
     private val onRoomBack: () -> Unit,
     private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+    private val goToRoom: (UserId, RoomId) -> Unit,
 ) : SettingsRouter {
 
     private val settingsNavigation = StackNavigation<Config>()
@@ -84,6 +93,7 @@ class SettingsRouterImpl(
                     onShowExportRoom = ::showExportRoom,
                     onCloseRoomSettings = onSettingsBack,
                     onOpenAvatarCutter = onOpenAvatarCutter,
+                    onShowUserProfile = ::showUserProfile,
                 )
             )
 
@@ -105,6 +115,16 @@ class SettingsRouterImpl(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     roomId = roomId,
                     onBack = ::closeExportRoom,
+                )
+            )
+
+            is Config.ViewProfile -> Wrapper.ViewProfile(
+                viewModelContext.get<UserProfileViewModelFactory>().create(
+                    viewModelContext = viewModelContext.childContext(componentContext),
+                    userId = settingsConfig.userId,
+                    selectedRoomId = roomId,
+                    goToRoom = goToRoom,
+                    onBack = ::closeUserProfile
                 )
             )
         }
@@ -132,6 +152,15 @@ class SettingsRouterImpl(
 
     private fun closeExportRoom() {
         settingsNavigation.launchPop(viewModelContext.coroutineScope)
+    }
+
+    override suspend fun showUserProfile(userId: UserId) {
+        settingsNavigation.launchBringToFront(viewModelContext.coroutineScope, Config.ViewProfile(userId))
+    }
+
+    private fun closeUserProfile() {
+        settingsNavigation.launchPop(viewModelContext.coroutineScope)
+        if (stack.value.active.configuration is Config.None) onSettingsBack()
     }
 
     override fun isShown(): Boolean = stack.value.active.configuration !is Config.None

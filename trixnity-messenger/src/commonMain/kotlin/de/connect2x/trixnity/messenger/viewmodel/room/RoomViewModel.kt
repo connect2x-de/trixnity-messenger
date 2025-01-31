@@ -29,6 +29,7 @@ interface RoomViewModelFactory {
         onRoomBack: () -> Unit,
         onOpenMention: OpenMentionCallback,
         onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+        goToRoom: (UserId, RoomId) -> Unit,
     ): RoomViewModel {
         return RoomViewModelImpl(
             viewModelContext = viewModelContext,
@@ -37,6 +38,7 @@ interface RoomViewModelFactory {
             isBackButtonVisible = isBackButtonVisible,
             onOpenMention = onOpenMention,
             onOpenAvatarCutter = onOpenAvatarCutter,
+            goToRoom = goToRoom,
         )
     }
 
@@ -47,10 +49,12 @@ interface RoomViewModel {
     val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>>
     val settingsStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>>
     val isShowSettings: StateFlow<Boolean>
+    val isShowUserProfile: StateFlow<Boolean>
     val isTwoPane: StateFlow<Boolean>
     fun onRoomBack()
     fun setSinglePane(twoPane: Boolean)
     fun showSettings()
+    fun showUserProfile(userId: UserId)
 }
 
 open class RoomViewModelImpl(
@@ -60,12 +64,14 @@ open class RoomViewModelImpl(
     onOpenMention: OpenMentionCallback,
     isBackButtonVisible: MutableStateFlow<Boolean>,
     onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+    goToRoom: (UserId, RoomId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
 
     override val isTwoPane = MutableStateFlow(false)
 
     override val isShowSettings = MutableStateFlow(false)
 
+    override val isShowUserProfile: StateFlow<Boolean> = MutableStateFlow(false)
 
     private val settingsRouter: SettingsRouter = SettingsRouterImpl(
         viewModelContext = viewModelContext,
@@ -73,12 +79,14 @@ open class RoomViewModelImpl(
         onRoomBack = onRoomBack,
         onSettingsBack = ::onSettingsBack,
         onOpenAvatarCutter = onOpenAvatarCutter,
+        goToRoom = goToRoom,
     )
 
     private val timelineRouter: TimelineRouter = TimelineRouterImpl(
         viewModelContext = viewModelContext,
         isBackButtonVisible = isBackButtonVisible,
         onShowSettings = ::onShowSettings,
+        onShowUserProfile = ::showUserProfile,
         onRoomBack = onRoomBack,
         onOpenMention = onOpenMention
     )
@@ -146,6 +154,16 @@ open class RoomViewModelImpl(
         }
     }
 
+    override fun showUserProfile(userId: UserId) {
+        coroutineScope.launch {
+            settingsRouter.showUserProfile(userId)
+            if (isTwoPane.value) {
+                timelineRouter.closeTimeline()
+            } else {
+                timelineRouter.showTimeline(roomId)
+            }
+        }
+    }
 }
 
 class PreviewRoomViewModel : RoomViewModel {
@@ -169,12 +187,13 @@ class PreviewRoomViewModel : RoomViewModel {
         )
 
     override val isShowSettings: StateFlow<Boolean> = MutableStateFlow(false)
+    override val isShowUserProfile: StateFlow<Boolean> = MutableStateFlow(false)
     override val isTwoPane: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun onRoomBack() {}
     override fun setSinglePane(twoPane: Boolean) {
         isTwoPane.value = twoPane
     }
 
-    override fun showSettings() {
-    }
+    override fun showSettings() {}
+    override fun showUserProfile(userId: UserId) {}
 }

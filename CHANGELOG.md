@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add User Profile Screen
+
 ### Changed
 
 ### Deprecated
@@ -44,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Inform the user that additional sync methods might be available after the initial sync during the Verification Wizard
 - Only show verification banner in RoomList, when the selected Account isn't verified
 - Change RedoSelfVerification to Wizard Framework
-- Don't start verification on startup, start it via the setup or the banner in the roomlist instead
+- don't start verification on startup, start it via the setup or the banner in the roomlist instead
 - Support for refresh tokens
 - Add badge with count of unread messages to scroll down button in rooms
 

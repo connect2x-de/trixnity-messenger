@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.router.stack.ChildStack
+import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackCallback
@@ -10,6 +11,7 @@ import com.arkivanov.essenty.lifecycle.doOnStart
 import com.arkivanov.essenty.lifecycle.doOnStop
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.settings.settingsView
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.MinimizeApp
@@ -153,6 +155,7 @@ open class MainViewModelImpl(
             onCloseRoom = ::closeDetailsAndShowList,
             onOpenMention = ::openMention,
             onOpenAvatarCutter = ::onOpenAvatarCutter,
+            goToRoom = roomListRouter::goToRoom,
         )
     override val roomRouterStack: Value<ChildStack<RoomRouter.Config, RoomRouter.Wrapper>> = roomRouter.stack
 
@@ -444,18 +447,32 @@ open class MainViewModelImpl(
         }
     }
 
+    private suspend fun selectRoom(userId: UserId, id: RoomId) {
+        roomRouter.showRoom(userId, id)
+        // hack for iOS, since the observe mechanism of line 236ff does not work
+        selectedRoomId.value = id
+
+        if (isSinglePane.value) {
+            roomListRouter.moveToBackStack()
+        } else {
+            roomListRouter.show()
+        }
+    }
+
     override fun onRoomSelected(userId: UserId, id: RoomId) {
         coroutineScope.launch {
             log.debug { "onRoomSelected: $id" }
-            roomRouter.showRoom(userId, id)
-            // hack for iOS, since the observe mechanism of line 236ff does not work
-            selectedRoomId.value = id
+            selectRoom(userId, id)
+        }
+    }
 
-            if (isSinglePane.value) {
-                roomListRouter.moveToBackStack()
-            } else {
-                roomListRouter.show()
-            }
+    private fun onOpenUserProfile(sourceUserId: UserId, roomId: RoomId, userId: UserId) {
+        coroutineScope.launch {
+            log.debug { "onOpenUserProfile: $userId" }
+            selectRoom(sourceUserId, roomId)
+
+            val instance = roomRouter.stack.active.instance as? RoomRouter.Wrapper.View
+            instance?.viewModel?.showUserProfile(userId)
         }
     }
 
@@ -508,9 +525,16 @@ open class MainViewModelImpl(
     override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {
         when (timelineElementMention) {
             is TimelineElementMention.User -> {
-                val user = timelineElementMention.user.userId
-                // TODO: implement and open user view (profile)
-                log.warn { "UserView to display $user not implemented yet" }
+                val otherUserId = timelineElementMention.user.userId
+
+                // TODO: find out where the mentioned userId is located instead of assuming the mention source
+                val roomId = selectedRoomId.value ?: run {
+                    log.warn { "Could not open User Profile $otherUserId, no room selected" }
+                    return
+                }
+
+                log.warn { "Opening User Profile $otherUserId" }
+                onOpenUserProfile(userId, roomId, otherUserId)
             }
 
             is TimelineElementMention.Room -> {
