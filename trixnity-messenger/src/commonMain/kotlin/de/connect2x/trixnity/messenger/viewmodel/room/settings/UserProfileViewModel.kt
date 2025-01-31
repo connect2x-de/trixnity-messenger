@@ -138,7 +138,7 @@ class UserProfileViewModelImpl(
     override val isMyself = userId == matrixClient.userId
 
     private val roomUser = matrixClient.user.getById(selectedRoomId, userId)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        .shareIn(coroutineScope, SharingStarted.WhileSubscribed())
 
     override val canOpenChat =
             matrixClient.user.getAccountData<DirectEventContent>().map { directEvent ->

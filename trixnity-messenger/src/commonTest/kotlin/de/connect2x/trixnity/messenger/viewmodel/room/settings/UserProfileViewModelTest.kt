@@ -50,6 +50,7 @@ import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.clientserverapi.client.UserApiClient
+import net.folivo.trixnity.clientserverapi.model.users.GetProfile
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -72,6 +73,7 @@ class UserProfileViewModelTest : ShouldSpec() {
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
+    private val carol = UserId("carol", "localhost")
 
     private val roomId = RoomId("room", "localhost")
 
@@ -161,6 +163,7 @@ class UserProfileViewModelTest : ShouldSpec() {
             every { matrixClientMock.api } returns matrixClientServerApiMock
 
             every { matrixClientServerApiMock.room } returns roomsApiClientMock
+            every { matrixClientServerApiMock.user } returns usersApiClientMock
 
             every { matrixClientMock.userId } returns me
 
@@ -170,6 +173,7 @@ class UserProfileViewModelTest : ShouldSpec() {
             every { userServiceMock.getAll(eq(roomId)) } returns roomUserMapFlow
             every { userServiceMock.getById(eq(roomId), eq(alice)) } returns roomUserAliceFlow
             every { userServiceMock.getById(eq(roomId), eq(bob)) } returns roomUserBobFlow
+            every { userServiceMock.getById(eq(roomId), eq(carol)) } returns flowOf(null)
             every { userServiceMock.canKickUser(eq(roomId), any()) } returns MutableStateFlow(true)
             every { userServiceMock.canBanUser(eq(roomId), any()) } returns MutableStateFlow(true)
             every { userServiceMock.canUnbanUser(eq(roomId), any()) } returns MutableStateFlow(true)
@@ -206,6 +210,14 @@ class UserProfileViewModelTest : ShouldSpec() {
             every { userServiceMock.userPresence } returns MutableStateFlow(
                 mapOf(me to PresenceEventContent(Presence.OFFLINE))
             )
+
+
+            everySuspend { usersApiClientMock.getProfile(eq(carol)) } returns Result.success(
+                GetProfile.Response(
+                    displayName = "Carol",
+                    avatarUrl = null,
+                )
+            )
         }
 
 
@@ -233,6 +245,22 @@ class UserProfileViewModelTest : ShouldSpec() {
             testCoroutineScheduler.advanceTimeBy(200)
 
             cut.userInfo.value?.userId shouldBe memberElementAlice.userId
+
+            cancelNeverEndingCoroutines()
+        }
+
+        should("Fetch Profile from users not in room") {
+            val cut = userProfileViewModel(coroutineContext, carol)
+
+            launch { cut.userInfo.collect() }
+
+            testCoroutineScheduler.advanceTimeBy(200)
+
+            val info = cut.userInfo.value
+            requireNotNull(info)
+
+            info.name shouldBe "Carol"
+            info.userId shouldBe carol
 
             cancelNeverEndingCoroutines()
         }
