@@ -259,33 +259,43 @@ class UserProfileViewModelImpl(
         }
 
         userInfo = roomUser.mapNotNull {
-            it?.let { roomUser ->
-                roomUserOriginalName.value = roomUser.originalName
+            val name: String
+            val avatarUrl: String?
 
-                UserInfoElement(
-                    roomUser.name,
-                    roomUser.userId,
-                    initials.compute(roomUser.name),
-                    getImageLazy(
-                        matrixClient,
-                        roomUser
-                    ),
-                )
+            if (it == null) {
+                val profile = matrixClient.api.user.getProfile(userId).getOrNull() ?: return@mapNotNull null
+                name = profile.displayName ?: return@mapNotNull null
+                avatarUrl = profile.avatarUrl
+            } else {
+                roomUserOriginalName.value = it.originalName
+                name = it.name
+                avatarUrl = it.avatarUrl
             }
+
+            UserInfoElement(
+                name,
+                userId,
+                initials.compute(name),
+                getImageLazy(
+                    matrixClient,
+                    userId,
+                    avatarUrl
+                )
+            )
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     }
 
-    private fun getImageLazy(matrixClient: MatrixClient, user: RoomUser) = flow {
-        emit(getImage(matrixClient, user))
+    private fun getImageLazy(matrixClient: MatrixClient, userId: UserId, avatarUrl: String?) = flow {
+        emit(getImage(matrixClient, userId, avatarUrl))
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    private suspend fun getImage(matrixClient: MatrixClient, user: RoomUser): ByteArray? {
+    private suspend fun getImage(matrixClient: MatrixClient, userId: UserId, avatarUrl: String?): ByteArray? {
         val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
-        return user.avatarUrl?.let { url ->
+        return avatarUrl?.let { url ->
             matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
                 onSuccess = {
                     it.limitedByteArrayOrNull(maxAvatarSize) {
-                        log.error { "User avatar for user ${user.userId} exceeds max preview size, so it is not displayed" }
+                        log.error { "User avatar for user $userId exceeds max preview size, so it is not displayed" }
                     }
                 },
                 onFailure = { null }
