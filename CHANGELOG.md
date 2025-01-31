@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add User Profile Screen
-
 ### Changed
 
 ### Deprecated
@@ -20,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## 3.2.0
+
+### Added
+
+- Add User Profile Screen
+
+### Fixed
+
+- Fixed cache issues in Web by upgrading Trixnity
 
 ## 3.1.1
 
