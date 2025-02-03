@@ -98,9 +98,7 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
                 is Wrapper.SelectVerificationMethod -> {
                     OkButton {
                         selectedVerificationMethod.value?.let {
-                            child.viewModel.acceptVerificationMethod(
-                                it
-                            )
+                            child.viewModel.acceptVerificationMethod(it)
                         }
                     }
                 }
@@ -178,7 +176,6 @@ fun DeviceVerificationWizardSelectVerificationMethod(
     selectedVerificationMethod: MutableState<VerificationMethod?>
 ) {
     SelectVerificationMethodContent(selectVerificationMethodViewModel, selectedVerificationMethod)
-
 }
 
 @Composable
