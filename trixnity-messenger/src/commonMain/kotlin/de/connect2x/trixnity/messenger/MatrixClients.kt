@@ -208,9 +208,10 @@ class MatrixClientsImpl(
                 .onFailure { log.error(it) { "could not logout of duplicate account" } }
                 .getOrNull()
             throw AccountAlreadyExistsException(loginInfo.userId)
+        } else {
+            log.debug { "account ${loginInfo.userId} does not exist -> delete possible stale data" }
+            remove(loginInfo.userId)
         }
-        // always remove possibly stale data
-        remove(loginInfo.userId)
     }
 
     override suspend fun initFromStore(): InitFromStoreResult = coroutineScope {

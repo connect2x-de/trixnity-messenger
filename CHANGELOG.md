@@ -19,7 +19,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed stuck device verification (button did nothing)
+
 ### Security
+
+## 3.2.0
+
+### Added
+
+- Add User Profile Screen
+
+### Fixed
+
+- Fixed cache issues in Web by upgrading Trixnity
+
+## 3.1.1
+
+### Changed
+
+- Force database directory creation
+
+### Fixed
+
+- Fixed export directory resolution on Android
+- Handle commas in url correctly
+- Fixed faulty stale data cleanup on login leading to login error in Web
+- Fix license entries
 
 ## 3.1.0
 
@@ -36,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change RedoSelfVerification to Wizard Framework
 - don't start verification on startup, start it via the setup or the banner in the roomlist instead
 - Support for refresh tokens
+- Add badge with count of unread messages to scroll down button in rooms
 
 ### Changed
 

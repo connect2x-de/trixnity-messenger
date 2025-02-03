@@ -32,6 +32,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMe
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactorySelector
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedFlow
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedIndexedFlow
@@ -63,6 +64,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
@@ -70,11 +72,14 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
@@ -119,6 +124,7 @@ interface TimelineViewModelFactory {
         roomId: RoomId,
         isBackButtonVisible: MutableStateFlow<Boolean>,
         onShowSettings: () -> Unit,
+        onShowUserProfile: (UserId) -> Unit,
         onBack: () -> Unit,
         onOpenMention: OpenMentionCallback,
     ): TimelineViewModel {
@@ -127,6 +133,7 @@ interface TimelineViewModelFactory {
             roomId,
             isBackButtonVisible,
             onShowSettings,
+            onShowUserProfile,
             onBack,
             onOpenMention
         )
@@ -163,6 +170,8 @@ interface TimelineViewModel {
      * Only for DnD on desktop: the absolute path of a dragged file.
      */
     val draggedFile: StateFlow<FileDescriptor?>
+
+    val unreadCount: StateFlow<String?>
 
     fun errorDismiss()
     fun leaveRoom()
@@ -223,6 +232,7 @@ class TimelineViewModelImpl(
     private val roomId: RoomId,
     private val isBackButtonVisible: MutableStateFlow<Boolean>,
     private val onShowSettings: () -> Unit,
+    private val onShowUserProfile: (UserId) -> Unit,
     private val onBack: () -> Unit,
     private val onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
@@ -278,6 +288,30 @@ class TimelineViewModelImpl(
 
     private val readEventMarker = MutableStateFlow<Pair<RoomId, EventId>?>(null)
 
+    private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
+
+    override val unreadCount: StateFlow<String?> =
+        readEvent.filterNotNull().flatMapLatest { readEvent ->
+            matrixClient.room.getTimelineEvents(
+                readEvent.first,
+                readEvent.second,
+                GetEvents.Direction.FORWARDS
+            ) {
+                decryptionTimeout = Duration.ZERO
+            }
+                .drop(1)
+                .filter(timelineElementViewModelFactorySelector::supports)
+                .take(100)
+                .scan(0) { count, _ -> count + 1 }
+                .map {
+                    when {
+                        it in 1..99 -> it.toString()
+                        it > 99 -> "99+"
+                        else -> null
+                    }
+                }
+        }.stateIn(coroutineScope, WhileSubscribed(), null)
+
     private val outbox =
         matrixClient.room.getOutbox(roomId = roomId)
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
@@ -316,6 +350,7 @@ class TimelineViewModelImpl(
             onBack = onBack,
             onVerifyUser = ::onVerifyUser,
             onShowRoomSettings = onShowSettings,
+            onShowUserProfile = onShowUserProfile,
         )
 
     override val inputAreaViewModel: InputAreaViewModel =
@@ -1055,6 +1090,7 @@ class PreviewTimelineViewModel : TimelineViewModel {
             instance = Wrapper.None,
         )
     )
+    override val unreadCount: StateFlow<String?> = MutableStateFlow(null)
 
     override val reportMessageStack: Value<ChildStack<ReportMessageRouter.Config, ReportMessageRouter.Wrapper>> =
         MutableValue(

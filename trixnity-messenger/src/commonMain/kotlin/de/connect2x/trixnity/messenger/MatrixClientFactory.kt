@@ -51,13 +51,11 @@ class MatrixClientFactoryImpl(
             matrixClient = MatrixClient.loginWith(
                 baseUrl = baseUrl,
                 repositoriesModuleFactory = { loginInfo ->
-                    checkExisting(loginInfo)
                     createRepositoriesModuleOrThrow(loginInfo.userId).also {
                         databaseKey = it.databaseKey
                     }.module
                 },
                 mediaStoreFactory = { loginInfo ->
-                    checkExisting(loginInfo)
                     createMediaStore(loginInfo.userId)
                 },
                 getLoginInfo = {

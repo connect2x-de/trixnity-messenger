@@ -30,6 +30,7 @@ interface RoomSettingsViewModelFactory {
         onShowExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
         onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+        onShowUserProfile: suspend (UserId) -> Unit,
     ): RoomSettingsViewModel {
         return RoomSettingsViewModelImpl(
             viewModelContext = viewModelContext,
@@ -39,6 +40,7 @@ interface RoomSettingsViewModelFactory {
             onCloseRoomSettings = onCloseRoomSettings,
             onBack = onBack,
             onOpenAvatarCutter = onOpenAvatarCutter,
+            onOpenUserProfile = onShowUserProfile,
         )
     }
 
@@ -71,6 +73,7 @@ interface RoomSettingsViewModel {
     fun openLeaveRoomWarningDialog()
     fun closeLeaveRoomWarningDialog()
     fun close()
+    fun showUserProfile(userId: UserId)
 }
 
 class RoomSettingsViewModelImpl(
@@ -81,6 +84,7 @@ class RoomSettingsViewModelImpl(
     private val onCloseRoomSettings: () -> Unit,
     private val onBack: () -> Unit,
     private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+    private val onOpenUserProfile: suspend (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
 
     private val backCallback = BackCallback {
@@ -146,7 +150,9 @@ class RoomSettingsViewModelImpl(
     override val memberListViewModel: MemberListViewModel =
         get<MemberListViewModelFactory>().create(
             viewModelContext = childContext("memberList-${selectedRoomId}"),
-            selectedRoomId = selectedRoomId, error = error
+            selectedRoomId = selectedRoomId,
+            error = error,
+            onShowUserProfile = ::showUserProfile
         )
 
     override val hasPowerToInvite: StateFlow<Boolean> =
@@ -215,6 +221,12 @@ class RoomSettingsViewModelImpl(
     override fun openExportRoomView() {
         onShowExportRoom()
     }
+
+    override fun showUserProfile(userId: UserId) {
+        coroutineScope.launch {
+            onOpenUserProfile(userId)
+        }
+    }
 }
 
 class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
@@ -222,8 +234,7 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val roomSettingsTopicViewModel: PreviewRoomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
     override val roomSettingsNotificationsViewModel: PreviewRoomSettingsNotificationsViewModel =
         PreviewRoomSettingsNotificationsViewModel()
-    override val roomSettingsAliasViewModel: RoomSettingsAliasViewModel
-        = PreviewRoomSettingsAliasViewModel()
+    override val roomSettingsAliasViewModel: RoomSettingsAliasViewModel = PreviewRoomSettingsAliasViewModel()
     override val roomSettingsHistoryVisibilityViewModel: PreviewRoomSettingsHistoryVisibilityViewModel =
         PreviewRoomSettingsHistoryVisibilityViewModel()
     override val roomSettingsJoinRulesViewModel: PreviewRoomSettingsJoinRulesViewModel =
@@ -258,5 +269,8 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     }
 
     override fun close() {
+    }
+
+    override fun showUserProfile(userId: UserId) {
     }
 }

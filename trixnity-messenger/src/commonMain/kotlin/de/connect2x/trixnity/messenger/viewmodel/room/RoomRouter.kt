@@ -26,6 +26,7 @@ interface RoomRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
     suspend fun closeRoom()
     suspend fun showRoom(userId: UserId, roomId: RoomId)
+
     fun isShown(): Boolean
 
     @Serializable
@@ -49,6 +50,7 @@ class RoomRouterImpl(
     private val onCloseRoom: () -> Unit,
     private val onOpenMention: OpenMentionCallback,
     private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
+    private val goToRoom: (UserId, RoomId) -> Unit,
 ) : RoomRouter {
 
     private val roomNavigation = StackNavigation<Config>()
@@ -75,6 +77,7 @@ class RoomRouterImpl(
                     onRoomBack = onCloseRoom,
                     onOpenMention = onOpenMention,
                     onOpenAvatarCutter = onOpenAvatarCutter,
+                    goToRoom = goToRoom,
                 ).also {
                     log.debug { "::: created viewModel for ${roomConfig.userId}" }
                 }
