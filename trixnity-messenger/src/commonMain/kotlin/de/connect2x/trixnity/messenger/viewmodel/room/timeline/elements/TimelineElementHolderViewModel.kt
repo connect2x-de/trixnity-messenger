@@ -278,7 +278,9 @@ class TimelineElementHolderViewModelImpl(
             currentElement?.lifecycle?.destroy()
 
             log.trace { "compute element (timelineEvent=$timelineEvent, newContent=$newContent)" }
-            val content = newContent?.let { Result.success(it) } ?: timelineEvent.content
+            val content =
+                if (timelineEvent.event.content is RedactedEventContent) timelineEvent.content
+                else newContent?.let { Result.success(it) } ?: timelineEvent.content
 
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
