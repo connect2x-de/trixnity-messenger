@@ -561,7 +561,7 @@ class TimelineViewModelImpl(
             canLoadBefore -> firstElement
             else -> null
         }
-    }.shareIn(coroutineScope, WhileSubscribed())
+    }.shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
     private val loadingIndicatorAfter = combine(
         timelineState,
@@ -575,7 +575,7 @@ class TimelineViewModelImpl(
             canLoadAfter -> lastElement
             else -> null
         }
-    }.shareIn(coroutineScope, WhileSubscribed())
+    }.shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
 
     @OptIn(FlowPreview::class)

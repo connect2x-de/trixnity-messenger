@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -179,7 +180,7 @@ class TimelineElementHolderViewModelImpl(
     private val onMessageReport: (RoomId, EventId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
-    private val timelineEventFlow = timelineEventFlow.shareIn(coroutineScope, whileSubscribedWithTimeout)
+    private val timelineEventFlow = timelineEventFlow.shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
     private val config = get<MatrixMessengerConfiguration>()
 
     private val initials = get<Initials>()
@@ -497,7 +498,7 @@ class TimelineElementHolderViewModelImpl(
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override fun redact() {
-        if (redactionInProgress.value.not()) {
+        if (_redactionInProgress.getAndUpdate { true }.not()) {
             coroutineScope.launch {
                 timelineEventFlow.first().let { timelineEvent ->
                     if (matrixClient.user.canRedactEvent(
@@ -505,28 +506,22 @@ class TimelineElementHolderViewModelImpl(
                             timelineEvent.eventId
                         ).first()
                     ) {
-                        launch {
-                            _redactionInProgress.value = true
-                            _redactionError.value = null
-                            matrixClient.api.room.redactEvent(
-                                roomId,
-                                timelineEvent.eventId,
-                                txnId = uuid4().toString()
-                            ).onSuccess {
-                                log.debug { "successfully redacted event ${timelineEvent.eventId}" }
-                            }.onFailure {
-                                log.error(it) { "could not redact event ${timelineEvent.eventId}" }
-                                _redactionError.value = i18n.timelineElementRedactError()
-                            }.also {
-                                _redactionInProgress.value = false
-                            }
+                        _redactionError.value = null
+                        matrixClient.api.room.redactEvent(
+                            roomId,
+                            timelineEvent.eventId,
+                            txnId = uuid4().toString()
+                        ).onSuccess {
+                            log.debug { "successfully redacted event ${timelineEvent.eventId}" }
+                        }.onFailure {
+                            log.error(it) { "could not redact event ${timelineEvent.eventId}" }
+                            _redactionError.value = i18n.timelineElementRedactError()
                         }
                     } else {
                         log.warn { "try to redact timeline event $eventId, but is no room message or it is not by this user" }
-
                     }
                 }
-            }
+            }.invokeOnCompletion { _redactionInProgress.value = false }
         } else {
             log.warn { "try to redact timeline event $eventId, but is already marked for redaction" }
         }
