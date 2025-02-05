@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.util
 
 import com.ibm.icu.text.BreakIterator
 
-actual val String.graphemeClusters: Int
+actual val String.graphemeCount: Int
     get() {
         val iterator = BreakIterator.getCharacterInstance()
         iterator.setText(this)

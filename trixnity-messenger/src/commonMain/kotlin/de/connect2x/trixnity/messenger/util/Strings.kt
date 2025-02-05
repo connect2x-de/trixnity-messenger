@@ -5,4 +5,4 @@ package de.connect2x.trixnity.messenger.util
  * (or perceived characters) of this string instance.
  * This takes into account ZWJs, modifiers and diacritics.
  */
-expect val String.graphemeClusters: Int
+expect val String.graphemeCount: Int
