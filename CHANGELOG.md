@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Introduced String.graphemeCount extension for counting perceived emojis
+- Introduced String.graphemeCount extension for counting perceived chars
+- Introduced String.forEachGrapheme extension for iterating perceived chars
 
 ### Changed
 
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed stuck device verification (button did nothing)
+- Make initials computation fully Unicode compliant
 
 ### Security
 
