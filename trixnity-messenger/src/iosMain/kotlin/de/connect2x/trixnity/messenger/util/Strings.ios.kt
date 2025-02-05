@@ -18,3 +18,7 @@ actual val String.graphemeCount: Int
         }
         return count
     }
+
+actual inline fun String.forEachGrapheme(consumer: (graph: String, index: Int) -> Unit) {
+    // TODO: Implement for iOS
+}
