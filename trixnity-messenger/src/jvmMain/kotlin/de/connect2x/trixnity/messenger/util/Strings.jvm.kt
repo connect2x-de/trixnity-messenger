@@ -13,7 +13,7 @@ actual val String.graphemeCount: Int
         return count
     }
 
-actual inline fun String.forEachGrapheme(consumer: (graph: String, index: Int) -> Unit) {
+actual inline fun String.forEachGrapheme(crossinline consumer: (graph: String, index: Int) -> Unit) {
     val iterator = BreakIterator.getCharacterInstance()
     iterator.setText(this)
     var start = iterator.first()

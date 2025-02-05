@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.util
 
 expect val String.graphemeCount: Int
 
-expect inline fun String.forEachGrapheme(consumer: (graph: String, index: Int) -> Unit)
+expect inline fun String.forEachGrapheme(crossinline consumer: (graph: String, index: Int) -> Unit)
 
 fun Sequence<Char>.takeGraphemes(count: Int): Sequence<Char> {
     var buffer = ""

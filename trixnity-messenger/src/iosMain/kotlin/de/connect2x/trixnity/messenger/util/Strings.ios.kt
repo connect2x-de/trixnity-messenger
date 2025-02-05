@@ -19,6 +19,14 @@ actual val String.graphemeCount: Int
         return count
     }
 
-actual inline fun String.forEachGrapheme(consumer: (graph: String, index: Int) -> Unit) {
-    // TODO: Implement for iOS
+@OptIn(ExperimentalForeignApi::class)
+actual inline fun String.forEachGrapheme(crossinline consumer: (graph: String, index: Int) -> Unit) {
+    var index = 0
+    (this as NSString).enumerateSubstringsInRange(
+        range = NSMakeRange(0U, length.toULong()),
+        options = NSStringEnumerationByComposedCharacterSequences
+    ) { graph, _, _, _ ->
+        consumer(requireNotNull(graph), index)
+        ++index
+    }
 }
