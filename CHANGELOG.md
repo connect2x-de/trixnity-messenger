@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed stuck device verification (button did nothing)
 - Fixed redactions of message edits
+- Don't render replace events even when not decryptable
 
 ### Security
 

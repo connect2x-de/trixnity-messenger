@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
@@ -224,9 +225,19 @@ class TimelineElementHolderViewModelImpl(
             .debounce { if (it) 1.seconds else Duration.ZERO } // prevent indicator on fast loading
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
+    private fun getNewContentIfAvailable(msg: RoomOutboxMessage<*>?) =
+        (msg?.content?.relatesTo as? RelatesTo.Replace)?.takeIf { it.eventId == eventId }?.newContent
+
+    private val newContentIfReplaced = matrixClient.room.getOutbox(roomId).flatten()
+        .map { it.reversed().firstNotNullOfOrNull(::getNewContentIfAvailable) }
+        .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+
     override val isReplaced: StateFlow<Boolean> =
-        matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId).map {
-            it.replacedBy != null
+        combine(
+            newContentIfReplaced,
+            matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId)
+        ) { newContentIfReplaced, replaceAggregation ->
+            newContentIfReplaced != null || replaceAggregation.replacedBy != null
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, true)
 
     override val canBeReactedTo: StateFlow<Boolean> =
@@ -258,12 +269,6 @@ class TimelineElementHolderViewModelImpl(
             editInProgress || replyToInProgress
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
-    private fun getNewContentIfAvailable(msg: RoomOutboxMessage<*>?) =
-        (msg?.content?.relatesTo as? RelatesTo.Replace)?.takeIf { it.eventId == eventId }?.newContent
-
-    private val newContentIfReplaced = matrixClient.room.getOutbox(roomId).flatten()
-        .map { it.reversed().firstNotNullOfOrNull(::getNewContentIfAvailable) }
-
     private data class TimelineElementViewModelWrapper(
         val viewModel: TimelineElementViewModel<*>,
         val lifecycle: LifecycleRegistry,
@@ -287,6 +292,7 @@ class TimelineElementHolderViewModelImpl(
             lifecycle.start()
             timelineElementViewModelFactorySelector.create(
                 childContextWithOwnLifecycle(lifecycle),
+                timelineEvent.event.content,
                 content,
                 roomId,
                 EventIdOrTransactionId(eventId),
