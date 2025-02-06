@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.*
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.Role
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -40,13 +40,13 @@ interface MemberListElementViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         roomUser: RoomUser,
         selectedRoomId: RoomId,
-        onShowUserProfile: (UserId) -> Unit
+        onOpenUserProfile: (UserId) -> Unit
     ): MemberListElementViewModel {
         return MemberListElementViewModelImpl(
             viewModelContext = viewModelContext,
             roomUser = roomUser,
             selectedRoomId = selectedRoomId,
-            onShowUserProfile = onShowUserProfile
+            onOpenUserProfile = onOpenUserProfile,
         )
     }
 
@@ -67,7 +67,7 @@ interface MemberListElementViewModel {
     val isUserBlocked: StateFlow<Boolean>
     val presence: StateFlow<Presence>
 
-    fun showUserProfile()
+    fun openUserProfile()
 
     data class MemberElement(
         val image: ByteArray?,
@@ -107,7 +107,7 @@ class MemberListElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomUser: RoomUser,
     private val selectedRoomId: RoomId,
-    private val onShowUserProfile: (UserId) -> Unit
+    private val onOpenUserProfile: (UserId) -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, MemberListElementViewModel {
     override val memberUserId = roomUser.userId
     override val member: StateFlow<MemberListElementViewModel.MemberElement?>
@@ -165,8 +165,8 @@ class MemberListElementViewModelImpl(
         }.buffer(0).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     }
 
-    override fun showUserProfile() {
-        onShowUserProfile(memberUserId)
+    override fun openUserProfile() {
+        onOpenUserProfile(memberUserId)
     }
 
     private suspend fun getImage(matrixClient: MatrixClient, user: RoomUser): ByteArray? {

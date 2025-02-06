@@ -10,7 +10,7 @@ include(
 buildCache {
     local {
         directory = File(rootDir, ".gradle").resolve("build-cache")
-        removeUnusedEntriesAfterDays = 30
+        removeUnusedEntriesAfterDays = 30 // TODO: deprecated
     }
 }
 

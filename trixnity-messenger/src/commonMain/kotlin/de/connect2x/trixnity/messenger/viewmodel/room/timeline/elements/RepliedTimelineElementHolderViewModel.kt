@@ -39,7 +39,7 @@ import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
 
 
-private val log = KotlinLogging.logger { }
+private val log = KotlinLogging.logger {}
 
 interface RepliedTimelineElementHolderViewModelFactory {
     fun create(
@@ -86,8 +86,8 @@ interface RepliedTimelineElementHolderViewModel {
 
 class RepliedTimelineElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    protected val timelineEventFlow: Flow<TimelineEvent?>,
-    protected val roomId: RoomId,
+    private val timelineEventFlow: Flow<TimelineEvent?>,
+    private val roomId: RoomId,
     override val eventId: EventId,
     private val onOpenMention: OpenMentionCallback,
 ) : RepliedTimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
@@ -160,7 +160,7 @@ class RepliedTimelineElementHolderViewModelImpl(
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 }
 
-class PreviewRepliedTimelineElementViewModel1 : RepliedTimelineElementHolderViewModel {
+class PreviewRepliedTimelineElementViewModel : RepliedTimelineElementHolderViewModel {
     override val eventId: EventId = EventId("\$1:localhost")
     override val element: StateFlow<TimelineElementViewModel<*>?> =
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
@@ -168,7 +168,7 @@ class PreviewRepliedTimelineElementViewModel1 : RepliedTimelineElementHolderView
             override val formattedBody: String = "Hello <b/>everyone!"
             override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
             override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
-            override fun openMention(timelineElementMention: TimelineElementMention) {}
+            override fun openMention(mention: TimelineElementMention) {}
         })
     override val isByMe: StateFlow<Boolean> = MutableStateFlow(true)
     override val sender: StateFlow<UserInfoElement?> = MutableStateFlow(null)

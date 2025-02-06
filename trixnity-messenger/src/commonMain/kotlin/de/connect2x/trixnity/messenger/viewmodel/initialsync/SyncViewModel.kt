@@ -4,7 +4,6 @@ import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,19 +14,19 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
-private val log = KotlinLogging.logger { }
+
+private val log = KotlinLogging.logger {}
 
 enum class AccountSync {
-    INITIAL_SYNC, DONE
+    INITIAL_SYNC, DONE,
 }
 
 interface SyncViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
         onSyncDone: () -> Unit,
-    ): SyncViewModel {
-        return SyncViewModelImpl(viewModelContext, onSyncDone)
-    }
+    ): SyncViewModel =
+        SyncViewModelImpl(viewModelContext, onSyncDone)
 
     companion object : SyncViewModelFactory
 }
@@ -44,7 +43,7 @@ open class SyncViewModelImpl(
     override val accountSyncStates: MutableStateFlow<Map<UserId, AccountSync>?> = MutableStateFlow(null)
     private val isNetworkAvailable = get<IsNetworkAvailable>()
     private val runInitialSync = get<RunInitialSync>()
-    
+
     init {
         coroutineScope.launch { doSync() }
     }
@@ -79,7 +78,7 @@ open class SyncViewModelImpl(
                     }
             }
             log.info { "initial sync done" }
-        }
+        } else log.warn { "unable to sync due to missing network connection" }
         onSyncDone()
     }
 }

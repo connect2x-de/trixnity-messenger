@@ -73,7 +73,7 @@ suspend fun MatrixMessengerWithRoot.login(
         }.active.instance
     }
     if (verification == null) {
-        mainViewModel.showSelfVerification(UserId(username))
+        mainViewModel.openSelfVerification(UserId(username))
         val verificationView = mainViewModel.selfVerificationStack.waitFor(SelfVerificationRouter.Wrapper.View::class)
         if (recoveryKey != null) {
             selfVerify(verificationView, recoveryKey)

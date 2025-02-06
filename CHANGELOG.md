@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Use password type keyboard to enter recovery key
+- Refactored app view routing
 
 ### Deprecated
 
@@ -61,11 +62,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show users typing in room list
 - Allow sending attachments with Enter (desktop)
 - Check server capabilities for setting display name and avatar and prevent editing if not supported
-- More conservative MatrixClient initialization failure handling.
+- More conservative MatrixClient initialization failure handling
 - Inform the user that additional sync methods might be available after the initial sync during the Verification Wizard
 - Only show verification banner in RoomList, when the selected Account isn't verified
 - Change RedoSelfVerification to Wizard Framework
-- don't start verification on startup, start it via the setup or the banner in the roomlist instead
+- Don't start verification on startup, start it via the setup or the banner in the room list instead
 - Support for refresh tokens
 - Add badge with count of unread messages to scroll down button in rooms
 
@@ -75,6 +76,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enabled Encryption for Androidx Room database
 - Image detail view UI overhaul
 - Upgrade Trixnity to 4.12.0
+
+### Deprecated
 
 ### Removed
 

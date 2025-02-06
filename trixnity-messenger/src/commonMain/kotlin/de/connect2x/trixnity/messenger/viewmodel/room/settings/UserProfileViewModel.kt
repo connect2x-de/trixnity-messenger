@@ -5,7 +5,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.*
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.Role
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -34,7 +34,6 @@ import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.originalName
@@ -60,14 +59,14 @@ interface UserProfileViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         userId: UserId,
         selectedRoomId: RoomId,
-        goToRoom: (UserId, RoomId) -> Unit,
+        onOpenRoom: (UserId, RoomId) -> Unit,
         onBack: () -> Unit
     ): UserProfileViewModel {
         return UserProfileViewModelImpl(
             viewModelContext = viewModelContext,
             userId = userId,
             selectedRoomId = selectedRoomId,
-            goToRoom = goToRoom,
+            onOpenRoom = onOpenRoom,
             onBack = onBack
         )
     }
@@ -132,7 +131,7 @@ class UserProfileViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val userId: UserId,
     private val selectedRoomId: RoomId,
-    private val goToRoom: (UserId, RoomId) -> Unit,
+    private val onOpenRoom: (UserId, RoomId) -> Unit,
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, UserProfileViewModel {
     override val isMyself = userId == matrixClient.userId
@@ -496,7 +495,7 @@ class UserProfileViewModelImpl(
         if (openingChat.compareAndSet(expect = false, update = true)) {
             coroutineScope.launch {
                 getOrCreateRoom()?.also { roomId ->
-                    goToRoom(matrixClient.userId, roomId)
+                    onOpenRoom(matrixClient.userId, roomId)
                 } ?: run {
                     error.value = i18n.createNewChatError()
                 }

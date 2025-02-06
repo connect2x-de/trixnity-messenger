@@ -17,7 +17,7 @@ private fun RoomSettingsPreview() {
     InitMessengerPreview {
         Row(Modifier.sizeIn(maxWidth = 500.dp)) {
             val settingsModel = PreviewRoomSettingsViewModel()
-            RoomSettingsContainer(roomSettingsViewModel = settingsModel, isTwoPane = false)
+            RoomSettingsContainer(roomSettingsViewModel = settingsModel, isSinglePane = false)
         }
     }
 }

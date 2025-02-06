@@ -33,12 +33,16 @@ interface CreateNewChatViewModelFactory {
         onCreateGroup: (UserId) -> Unit,
         onSearchGroup: (UserId) -> Unit,
         onCancel: () -> Unit,
-        goToRoom: (UserId, RoomId) -> Unit,
-    ): CreateNewChatViewModel {
-        return CreateNewChatViewModelImpl(
-            viewModelContext, createNewRoomViewModel, onCreateGroup, onSearchGroup, onCancel, goToRoom
+        onOpenRoom: (UserId, RoomId) -> Unit,
+    ): CreateNewChatViewModel =
+        CreateNewChatViewModelImpl(
+            viewModelContext = viewModelContext,
+            createNewRoomViewModel = createNewRoomViewModel,
+            onCreateGroup = onCreateGroup,
+            onSearchGroup = onSearchGroup,
+            onCancel = onCancel,
+            onOpenRoom = onOpenRoom,
         )
-    }
 
     companion object : CreateNewChatViewModelFactory
 }
@@ -61,7 +65,7 @@ open class CreateNewChatViewModelImpl(
     private val onCreateGroup: (UserId) -> Unit,
     private val onSearchGroup: (UserId) -> Unit,
     private val onCancel: () -> Unit,
-    private val goToRoom: (UserId, RoomId) -> Unit,
+    private val onOpenRoom: (UserId, RoomId) -> Unit,
 ) : CreateNewChatViewModel,
     MatrixClientViewModelContext by viewModelContext {
 
@@ -109,7 +113,7 @@ open class CreateNewChatViewModelImpl(
                     membership == Membership.JOIN || membership == Membership.INVITE || membership == Membership.KNOCK
                 }?.let {
                     log.info { "go to existing room with $userId" }
-                    goToRoom(matrixClient.userId, it)
+                    onOpenRoom(matrixClient.userId, it)
                 } ?: run {
                     createNewRoom(userId)
                 }
@@ -143,7 +147,7 @@ open class CreateNewChatViewModelImpl(
         ).fold(
             onSuccess = { roomId ->
                 log.debug { "created room ${roomId.full}" }
-                goToRoom(matrixClient.userId, roomId)
+                onOpenRoom(matrixClient.userId, roomId)
             },
             onFailure = {
                 log.error(it) { "Cannot create room." }
