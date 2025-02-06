@@ -66,36 +66,36 @@ import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
-import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel
 import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.core.model.events.m.room.Membership
 
+
 @Composable
-fun RoomUserProfileContainer(userProfileViewModel: UserProfileViewModel) {
+fun UserProfileContainer(userProfileViewModel: UserProfileViewModel) {
     Box(Modifier.fillMaxWidth()) {
         Box(
             Modifier
                 .fillMaxHeight()
                 .align(Alignment.CenterEnd)
         ) {
-            RoomUserProfile(userProfileViewModel)
+            UserProfile(userProfileViewModel)
         }
     }
 }
 
-interface RoomUserProfileView {
+interface UserProfileView {
     @Composable
     fun create(userProfileViewModel: UserProfileViewModel)
 }
 
 @Composable
-fun RoomUserProfile(userProfileViewModel: UserProfileViewModel) {
-    DI.get<RoomUserProfileView>().create(userProfileViewModel)
+fun UserProfile(userProfileViewModel: UserProfileViewModel) {
+    DI.get<UserProfileView>().create(userProfileViewModel)
 }
 
-class RoomUserProfileViewImpl : RoomUserProfileView {
+class UserProfileViewImpl : UserProfileView {
     @Composable
     override fun create(userProfileViewModel: UserProfileViewModel) {
         val error = userProfileViewModel.error.collectAsState()
@@ -112,9 +112,6 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
         val openingChat = userProfileViewModel.openingChat.collectAsState().value
         val verifying = userProfileViewModel.verifying.collectAsState().value
         val canOpenChat = userProfileViewModel.canOpenChat.collectAsState().value
-
-
-
 
         Column(
             Modifier
@@ -231,7 +228,6 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
                         )
                     }
 
-
                     RoomOptions(userProfileViewModel, i18n)
                 }
             }
@@ -241,7 +237,6 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
 
 @Composable
 private fun RoomOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
-
     val iHavePowerToBanUser = userProfileViewModel.iHavePowerToBanUser.collectAsState().value
     val iHavePowerToUnbanUser = userProfileViewModel.iHavePowerToUnbanUser.collectAsState().value
     val iHavePowerToKickUser = userProfileViewModel.iHavePowerToKickUser.collectAsState().value
@@ -587,7 +582,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
 private fun MenuElement(
     modifier: Modifier = Modifier,
     arrangement: Arrangement.Horizontal = Arrangement.Start,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     Row(
         modifier.fillMaxWidth().padding(horizontal = 10.dp).minimumInteractiveComponentSize(),
@@ -599,7 +594,7 @@ private fun MenuElement(
 }
 
 @Composable
-private fun StatusRow(text: String, positive: Boolean = true, icon: @Composable () -> Unit,) {
+private fun StatusRow(text: String, positive: Boolean = true, icon: @Composable () -> Unit) {
     SuggestionChip(
         enabled = false,
         onClick = {},
@@ -617,7 +612,6 @@ private fun StatusRow(text: String, positive: Boolean = true, icon: @Composable 
                         modifier = Modifier.widthIn(max = maxWidth * .5f)
                     )
                 }
-
             }
         },
         colors = SuggestionChipDefaults.suggestionChipColors().copy(
@@ -629,4 +623,6 @@ private fun StatusRow(text: String, positive: Boolean = true, icon: @Composable 
 
 @Composable
 private fun defaultColorForState(enabled: Boolean) =
-    LocalContentColor.current.run { if (!enabled) { copy(alpha = 0.6f) } else { this } }
+    LocalContentColor.current.run {
+        if (!enabled) copy(alpha = 0.6f) else this
+    }

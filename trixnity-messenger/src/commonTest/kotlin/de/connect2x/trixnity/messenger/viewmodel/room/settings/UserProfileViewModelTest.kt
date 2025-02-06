@@ -45,7 +45,6 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
@@ -448,8 +447,8 @@ class UserProfileViewModelTest : ShouldSpec() {
             ),
             userId = userId,
             selectedRoomId = roomId,
+            onOpenRoom = mock(),
             onBack = mock(),
-            goToRoom = mock(),
         )
     }
 }

@@ -4,10 +4,11 @@ import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouter
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.SettingsRouterImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouterImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.OpenAvatarCutterCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
@@ -17,6 +18,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.None as ExtrasNone
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.None as ExtrasWrapperNone
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Config.None as TimelineNone
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Wrapper.None as TimelineWrapperNone
 
 
 private val log = KotlinLogging.logger {}
@@ -25,145 +30,134 @@ interface RoomViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        isBackButtonVisible: MutableStateFlow<Boolean>,
-        onRoomBack: () -> Unit,
+        onOpenRoom: (UserId, RoomId) -> Unit,
+        onCloseRoom: () -> Unit,
         onOpenMention: OpenMentionCallback,
-        onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
-        goToRoom: (UserId, RoomId) -> Unit,
-    ): RoomViewModel {
-        return RoomViewModelImpl(
-            viewModelContext = viewModelContext,
-            roomId = selectedRoomId,
-            onRoomBack = onRoomBack,
-            isBackButtonVisible = isBackButtonVisible,
-            onOpenMention = onOpenMention,
-            onOpenAvatarCutter = onOpenAvatarCutter,
-            goToRoom = goToRoom,
-        )
-    }
+        onOpenAvatarCutter: OpenAvatarCutterCallback,
+    ): RoomViewModel = RoomViewModelImpl(
+        viewModelContext = viewModelContext,
+        roomId = selectedRoomId,
+        onOpenRoom = onOpenRoom,
+        onCloseRoom = onCloseRoom,
+        onOpenMention = onOpenMention,
+        onOpenAvatarCutter = onOpenAvatarCutter,
+    )
 
     companion object : RoomViewModelFactory
 }
 
+/**
+ * The view model that is active when a room is selected from the room list.
+ */
 interface RoomViewModel {
+    /**
+     * Holds the content of the messenger timeline related to the selected room.
+     */
     val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>>
-    val settingsStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>>
-    val isShowSettings: StateFlow<Boolean>
-    val isShowUserProfile: StateFlow<Boolean>
-    val isTwoPane: StateFlow<Boolean>
-    fun onRoomBack()
-    fun setSinglePane(twoPane: Boolean)
-    fun showSettings()
-    fun showUserProfile(userId: UserId)
+
+    /**
+     * Holds the content of the selected details or settings related to the selected room.
+     */
+    val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>>
+
+    /**
+     * Indicates whether any actual content should be shown.
+     * @return `true` if any or more configs besides
+     * [ExtrasRouter.Config.None] are currently active.
+     */
+    val isShown: StateFlow<Boolean>
+
+    /**
+     * Indicates whether any of the room settings should be shown.
+     * @return `true` if any of the following configs are active:
+     * * [RoomSettings.Main]
+     * * [RoomSettings.AddMembers]
+     * * [RoomSettings.ExportRoom]
+     */
+    val isRoomSettingsShown: StateFlow<Boolean>
+
+    /**
+     * Requests to close the currently selected room.
+     */
+    fun closeRoom()
+
+    /**
+     * Opens [RoomSettings.Main] and replaces any other currently active extras configs.
+     */
+    fun openRoomSettings()
+
+    /**
+     * Opens [ExtrasRouter.Config.Details.UserProfile]
+     * for the [userId] and currently selected room.
+     */
+    fun openUserProfile(userId: UserId)
 }
 
 open class RoomViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
-    private val onRoomBack: () -> Unit,
+    onOpenRoom: (UserId, RoomId) -> Unit,
+    private val onCloseRoom: () -> Unit,
     onOpenMention: OpenMentionCallback,
-    isBackButtonVisible: MutableStateFlow<Boolean>,
-    onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
-    goToRoom: (UserId, RoomId) -> Unit,
+    onOpenAvatarCutter: OpenAvatarCutterCallback,
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
 
-    override val isTwoPane = MutableStateFlow(false)
+    override val isRoomSettingsShown = MutableStateFlow(false)
+    override val isShown = MutableStateFlow(false)
 
-    override val isShowSettings = MutableStateFlow(false)
+    override fun closeRoom() {
+        onCloseRoom()
+    }
 
-    override val isShowUserProfile: StateFlow<Boolean> = MutableStateFlow(false)
+    override fun openRoomSettings() {
+        onOpenRoomSettings()
+    }
 
-    private val settingsRouter: SettingsRouter = SettingsRouterImpl(
+    override fun openUserProfile(userId: UserId) {
+        onOpenUserProfile(userId)
+    }
+
+    private val extrasRouter: ExtrasRouter = ExtrasRouterImpl(
         viewModelContext = viewModelContext,
-        roomId = roomId,
-        onRoomBack = onRoomBack,
-        onSettingsBack = ::onSettingsBack,
+        onOpenRoom = onOpenRoom,
+        onCloseRoom = ::onCloseRoom,
         onOpenAvatarCutter = onOpenAvatarCutter,
-        goToRoom = goToRoom,
     )
+    override val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>> =
+        extrasRouter.stack
 
     private val timelineRouter: TimelineRouter = TimelineRouterImpl(
         viewModelContext = viewModelContext,
-        isBackButtonVisible = isBackButtonVisible,
-        onShowSettings = ::onShowSettings,
-        onShowUserProfile = ::showUserProfile,
-        onRoomBack = onRoomBack,
-        onOpenMention = onOpenMention
+        onOpenRoomSettings = ::onOpenRoomSettings,
+        onOpenUserProfile = ::onOpenUserProfile,
+        onOpenMention = onOpenMention,
+        onCloseRoom = ::onCloseRoom,
     )
-
     override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
         timelineRouter.stack
-    override val settingsStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>> =
-        settingsRouter.stack
 
     init {
-        log.debug { "create RoomViewModel " + roomId.full }
-        coroutineScope.launch { timelineRouter.showTimeline(roomId) }
-        settingsStack.subscribe {
-            isShowSettings.value = it.active.instance !is SettingsRouter.Wrapper.None
+        log.debug { "create RoomViewModel for: ${roomId.full} " }
+        coroutineScope.launch { timelineRouter.openTimeline(roomId) }
+        extrasStack.subscribe {
+            isRoomSettingsShown.value = it.active.configuration is RoomSettings
+            isShown.value = it.active.configuration !is ExtrasNone
         }
     }
 
-    override fun onRoomBack() {
-        this.onRoomBack.invoke()
+    private fun onCloseRoom() {
+        this.onCloseRoom.invoke()
     }
 
-    override fun setSinglePane(singlePane: Boolean) {
-        if (singlePane != isTwoPane.value) {
-            isTwoPane.value = singlePane
-            if (singlePane) {
-                switchToSinglePane()
-            } else {
-                switchToMultiPane()
-            }
-        }
-    }
-
-    override fun showSettings() {
-        onShowSettings()
-    }
-
-    private fun switchToMultiPane() = coroutineScope.launch {
-        if (settingsRouter.isShown()) {
-            timelineRouter.showTimeline(roomId)
-            settingsRouter.showSettings()
-        } else {
-            timelineRouter.showTimeline(roomId)
-        }
-    }
-
-    private fun switchToSinglePane() = coroutineScope.launch {
-        if (settingsRouter.isShown()) {
-            timelineRouter.closeTimeline()
-        } else {
-            timelineRouter.showTimeline(roomId)
-        }
-    }
-
-    internal fun onSettingsBack() = coroutineScope.launch {
-        settingsRouter.closeSettings()
-        timelineRouter.showTimeline(roomId)
-    }
-
-    internal fun onShowSettings() = coroutineScope.launch {
-        settingsRouter.showSettings()
-        if (isTwoPane.value) {
-            timelineRouter.closeTimeline()
-        } else {
-            timelineRouter.showTimeline(roomId)
-        }
-    }
-
-    override fun showUserProfile(userId: UserId) {
+    private fun onOpenRoomSettings() =
         coroutineScope.launch {
-            settingsRouter.showUserProfile(userId)
-            if (isTwoPane.value) {
-                timelineRouter.closeTimeline()
-            } else {
-                timelineRouter.showTimeline(roomId)
-            }
+            extrasRouter.openRoomSettings(roomId)
         }
-    }
+
+    private fun onOpenUserProfile(userId: UserId) =
+        coroutineScope.launch {
+            extrasRouter.openUserProfile(userId, roomId)
+        }
 }
 
 class PreviewRoomViewModel : RoomViewModel {
@@ -171,29 +165,23 @@ class PreviewRoomViewModel : RoomViewModel {
         MutableValue(
             ChildStack(
                 active = Child.Created(
-                    configuration = TimelineRouter.Config.None,
-                    instance = TimelineRouter.Wrapper.None,
+                    configuration = TimelineNone,
+                    instance = TimelineWrapperNone,
                 )
             )
         )
-    override val settingsStack: Value<ChildStack<SettingsRouter.Config, SettingsRouter.Wrapper>> =
+    override val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>> =
         MutableValue(
             ChildStack(
                 active = Child.Created(
-                    configuration = SettingsRouter.Config.None,
-                    instance = SettingsRouter.Wrapper.None,
+                    configuration = ExtrasNone,
+                    instance = ExtrasWrapperNone,
                 )
             )
         )
-
-    override val isShowSettings: StateFlow<Boolean> = MutableStateFlow(false)
-    override val isShowUserProfile: StateFlow<Boolean> = MutableStateFlow(false)
-    override val isTwoPane: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override fun onRoomBack() {}
-    override fun setSinglePane(twoPane: Boolean) {
-        isTwoPane.value = twoPane
-    }
-
-    override fun showSettings() {}
-    override fun showUserProfile(userId: UserId) {}
+    override val isRoomSettingsShown = MutableStateFlow(false)
+    override val isShown = MutableStateFlow(false)
+    override fun closeRoom() {}
+    override fun openRoomSettings() {}
+    override fun openUserProfile(userId: UserId) {}
 }

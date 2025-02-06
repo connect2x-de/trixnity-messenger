@@ -449,7 +449,7 @@ class MemberListViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext,
             ),
             selectedRoomId = roomId,
-            onShowUserProfile = mock(),
+            onOpenUserProfile = mock(),
             error = MutableStateFlow("")
         ).also {
             launch {

@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
+import com.arkivanov.decompose.DelicateDecomposeApi
 import com.arkivanov.decompose.router.stack.StackNavigator
 import com.arkivanov.decompose.router.stack.bringToFront
 import com.arkivanov.decompose.router.stack.navigate
@@ -14,9 +15,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+
 // TODO use context receivers for CoroutineScope in future Kotlin version
 
-private val log = KotlinLogging.logger { }
+private val log = KotlinLogging.logger {}
 
 /**
  * @see [com.arkivanov.decompose.router.stack.navigate]
@@ -94,6 +96,7 @@ fun <C : Any> StackNavigator<C>.launchReplaceAll(
 /**
  * @see [com.arkivanov.decompose.router.stack.push]
  */
+@OptIn(DelicateDecomposeApi::class)
 suspend fun <C : Any> StackNavigator<C>.pushSuspending(
     configuration: C,
     onComplete: () -> Unit = {},
@@ -105,6 +108,7 @@ suspend fun <C : Any> StackNavigator<C>.pushSuspending(
 /**
  * @see [com.arkivanov.decompose.router.stack.push]
  */
+@OptIn(DelicateDecomposeApi::class)
 fun <C : Any> StackNavigator<C>.launchPush(
     scope: CoroutineScope,
     configuration: C,
@@ -170,7 +174,7 @@ suspend fun <C : Any> StackNavigator<C>.popWhileSuspending(
 /**
  * @see [com.arkivanov.decompose.router.stack.popWhile]
  */
-suspend fun <C : Any> StackNavigator<C>.launchPopWhile(
+fun <C : Any> StackNavigator<C>.launchPopWhile(
     scope: CoroutineScope,
     predicate: (C) -> Boolean,
     onComplete: (isSuccess: Boolean) -> Unit,
