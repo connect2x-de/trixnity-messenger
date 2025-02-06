@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.verification
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
@@ -17,6 +18,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -402,6 +405,11 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                             modifier = Modifier.weight(1.0f, fill = true),
                             isError = recoveryKeyWrong.value,
                             placeholder = { Text("#### ".repeat(11) + "####", color = Color.LightGray) },
+                            keyboardOptions = KeyboardOptions(
+                                capitalization = KeyboardCapitalization.None,
+                                autoCorrectEnabled = false,
+                                keyboardType = KeyboardType.Password,
+                            ),
                             label = { Text(i18n.commonRecoveryKey()) })
                     }
                     if (recoveryKeyWrong.value) {
