@@ -14,9 +14,9 @@ internal fun String.splitGraphemes(): Array<String> {
 actual val String.graphemeCount: Int
     get() = splitGraphemes().size
 
-actual inline fun String.forEachGrapheme(crossinline consumer: (graph: String, index: Int) -> Unit) {
+actual inline fun String.forEachGrapheme(crossinline consumer: (graph: String, index: Int) -> Boolean) {
     val segments = splitGraphemes()
     for (i in segments.indices) {
-        consumer(segments[i], i)
+        if(!consumer(segments[i], i)) break
     }
 }
