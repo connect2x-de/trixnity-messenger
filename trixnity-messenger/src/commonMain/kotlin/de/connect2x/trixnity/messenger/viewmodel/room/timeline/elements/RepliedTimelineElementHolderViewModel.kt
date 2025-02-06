@@ -12,8 +12,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whi
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -86,7 +84,6 @@ interface RepliedTimelineElementHolderViewModel {
     val showSender: StateFlow<Boolean?>
 }
 
-@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class RepliedTimelineElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     protected val timelineEventFlow: Flow<TimelineEvent?>,
@@ -127,6 +124,7 @@ class RepliedTimelineElementHolderViewModelImpl(
             lifecycle.start()
             timelineElementViewModelFactorySelector.create(
                 childContextWithOwnLifecycle(lifecycle),
+                timelineEvent.event.content,
                 content,
                 roomId,
                 EventIdOrTransactionId(eventId),
