@@ -11,10 +11,10 @@ internal fun String.splitGraphemes(): Array<String> {
         .unsafeCast<Array<String>>()
 }
 
-actual val String.graphemeCount: Int
+actual val String.graphCount: Int
     get() = splitGraphemes().size
 
-actual inline fun String.forEachGrapheme(crossinline consumer: (graph: String, index: Int) -> Boolean) {
+actual inline fun String.forEachGraph(crossinline consumer: (graph: String, index: Int) -> Boolean) {
     val segments = splitGraphemes()
     for (i in segments.indices) {
         if(!consumer(segments[i], i)) break

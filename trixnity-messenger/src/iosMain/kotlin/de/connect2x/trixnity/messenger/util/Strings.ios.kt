@@ -10,7 +10,7 @@ import platform.Foundation.NSStringEnumerationByComposedCharacterSequences
 import platform.Foundation.enumerateSubstringsInRange
 
 @OptIn(ExperimentalForeignApi::class)
-actual val String.graphemeCount: Int
+actual val String.graphCount: Int
     get() {
         var count = 0
         (this as NSString).enumerateSubstringsInRange(
@@ -23,7 +23,7 @@ actual val String.graphemeCount: Int
     }
 
 @OptIn(ExperimentalForeignApi::class)
-actual inline fun String.forEachGrapheme(crossinline consumer: (graph: String, index: Int) -> Boolean) {
+actual inline fun String.forEachGraph(crossinline consumer: (graph: String, index: Int) -> Boolean) {
     var index = 0
     (this as NSString).enumerateSubstringsInRange(
         range = NSMakeRange(0U, length.toULong()),

@@ -1,16 +1,16 @@
 package de.connect2x.trixnity.messenger.util
 
-expect val String.graphemeCount: Int
+expect val String.graphCount: Int
 
-expect inline fun String.forEachGrapheme(crossinline consumer: (graph: String, index: Int) -> Boolean)
+expect inline fun String.forEachGraph(crossinline consumer: (graph: String, index: Int) -> Boolean)
 
-fun String.subGraph(start: Int, end: Int = graphemeCount - 1): String {
+fun String.subGraph(start: Int, end: Int = graphCount - 1): String {
     if (isEmpty()) return ""
     var buffer = ""
-    forEachGrapheme { graph, index ->
+    forEachGraph { graph, index ->
         when {
-            index < start -> return@forEachGrapheme true
-            index > end -> return@forEachGrapheme false
+            index < start -> return@forEachGraph true
+            index > end -> return@forEachGraph false
         }
         buffer += graph
         true
@@ -21,7 +21,7 @@ fun String.subGraph(start: Int, end: Int = graphemeCount - 1): String {
 fun String.firstGraph(): String {
     if (isEmpty()) return ""
     var buffer = ""
-    forEachGrapheme { graph, index ->
+    forEachGraph { graph, index ->
         buffer = graph
         false
     }

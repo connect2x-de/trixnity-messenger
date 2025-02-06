@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.util
 
 import android.icu.text.BreakIterator
 
-actual val String.graphemeCount: Int
+actual val String.graphCount: Int
     get() {
         val iterator = BreakIterator.getCharacterInstance()
         iterator.setText(this)
@@ -13,7 +13,7 @@ actual val String.graphemeCount: Int
         return count
     }
 
-actual inline fun String.forEachGrapheme(crossinline consumer: (graph: String, index: Int) -> Boolean) {
+actual inline fun String.forEachGraph(crossinline consumer: (graph: String, index: Int) -> Boolean) {
     val iterator = BreakIterator.getCharacterInstance()
     iterator.setText(this)
     var start = iterator.first()
