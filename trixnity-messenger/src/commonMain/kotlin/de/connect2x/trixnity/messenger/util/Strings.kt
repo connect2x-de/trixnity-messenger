@@ -19,6 +19,7 @@ fun String.subGraph(start: Int, end: Int = graphemeCount - 1): String {
 }
 
 fun String.firstGraph(): String {
+    if (isEmpty()) return ""
     var buffer = ""
     forEachGrapheme { graph, index ->
         buffer = graph
