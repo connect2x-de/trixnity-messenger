@@ -67,6 +67,8 @@ import de.connect2x.messenger.compose.view.room.settings.RoomSettingsView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsViewImpl
 import de.connect2x.messenger.compose.view.room.settings.SearchUsersSettingsView
 import de.connect2x.messenger.compose.view.room.settings.SearchUsersSettingsViewImpl
+import de.connect2x.messenger.compose.view.room.settings.UserProfileView
+import de.connect2x.messenger.compose.view.room.settings.UserProfileViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.AudioReplyView
 import de.connect2x.messenger.compose.view.room.timeline.AudioReplyViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.FileReplyView
@@ -265,6 +267,7 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
+
 fun composeViewModule(): Module = module {
     includes(
         i18nViewModule(),
@@ -384,6 +387,7 @@ fun roomSettingsViewModule() = module {
     single<RoomSettingsJoinRulesView> { RoomSettingsJoinRulesViewImpl() }
     single<ExportRoomView> { ExportRoomViewImpl() }
     single<AddMembersToRoomView> { AddMembersToRoomViewImpl() }
+    single<UserProfileView> { UserProfileViewImpl() }
 }
 
 inline fun <reified F : TimelineElementView<*>> Module.timelineElementView(

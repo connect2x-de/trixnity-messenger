@@ -124,6 +124,7 @@ class RepliedTimelineElementHolderViewModelImpl(
             lifecycle.start()
             timelineElementViewModelFactorySelector.create(
                 childContextWithOwnLifecycle(lifecycle),
+                timelineEvent.event.content,
                 content,
                 roomId,
                 EventIdOrTransactionId(eventId),

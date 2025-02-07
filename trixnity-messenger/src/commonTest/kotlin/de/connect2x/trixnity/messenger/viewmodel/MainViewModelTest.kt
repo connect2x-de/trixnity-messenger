@@ -29,10 +29,10 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
+import de.connect2x.trixnity.messenger.withCleanup
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -236,7 +236,7 @@ class MainViewModelTest : ShouldSpec() {
             lifecycle.destroy()
         }
 
-        should("select no room initially") {
+        should("select no room initially").withCleanup {
             everySuspend {
                 matrixClientMock.syncOnce(any(), any(), any<suspend (Sync.Response) -> Unit>())
             } returns Result.success(Unit)
@@ -249,10 +249,9 @@ class MainViewModelTest : ShouldSpec() {
                 cut shouldShowRoom false
                 cut shouldShowList true
             }
-            cancelNeverEndingCoroutines()
         }
 
-        should("show room when room is selected") {
+        should("show room when room is selected").withCleanup {
             val cut = mainViewModel()
             val roomId = RoomId("!Room:localhost")
             cut.onRoomSelected(UserId("test", "server"), roomId)
@@ -261,10 +260,9 @@ class MainViewModelTest : ShouldSpec() {
                 cut.selectedRoomId.value shouldBe roomId
                 cut shouldShowRoom true
             }
-            cancelNeverEndingCoroutines()
         }
 
-        should("show room list when the room view is closed") {
+        should("show room list when the room view is closed").withCleanup {
             val cut = mainViewModel()
             val roomId = RoomId("!Room:localhost")
             cut.onRoomSelected(UserId("test", "server"), roomId)
@@ -277,10 +275,9 @@ class MainViewModelTest : ShouldSpec() {
                 cut shouldShowRoom false
                 cut shouldShowList true
             }
-            cancelNeverEndingCoroutines()
         }
 
-        should("show room list when the room view is left with the back button") {
+        should("show room list when the room view is left with the back button").withCleanup {
             val cut = mainViewModel()
             val roomId = RoomId("!Room:localhost")
             cut.onRoomSelected(UserId("test", "server"), roomId)
@@ -292,10 +289,9 @@ class MainViewModelTest : ShouldSpec() {
                 cut shouldShowListOfType RoomListRouter.Wrapper.List::class
                 cut shouldShowRoom false
             }
-            cancelNeverEndingCoroutines()
         }
 
-        should("show self verification modal when self verification is needed") {
+        should("show self verification modal when self verification is needed").withCleanup {
             selfVerificationMethods returns MutableStateFlow(
                 VerificationService.SelfVerificationMethods.CrossSigningEnabled(
                     setOf(
@@ -326,10 +322,9 @@ class MainViewModelTest : ShouldSpec() {
             eventually(2.seconds) {
                 cut.selfVerificationStack.value.active.configuration should beOfType<SelfVerificationRouter.Config.None>()
             }
-            cancelNeverEndingCoroutines()
         }
 
-        should("show multiple self verifications sequentially if needed") {
+        should("show multiple self verifications sequentially if needed").withCleanup {
             // test
             selfVerificationMethods returns MutableStateFlow(
                 VerificationService.SelfVerificationMethods.CrossSigningEnabled(
@@ -402,10 +397,9 @@ class MainViewModelTest : ShouldSpec() {
             eventually(2.seconds) {
                 cut.selfVerificationStack.value.active.configuration.shouldBeInstanceOf<SelfVerificationRouter.Config.None>()
             }
-            cancelNeverEndingCoroutines()
         }
 
-        should("not show self verification when at least one account isn't bootstrapped") {
+        should("not show self verification when at least one account isn't bootstrapped").withCleanup {
             selfVerificationMethods returns MutableStateFlow(
                 VerificationService.SelfVerificationMethods.CrossSigningEnabled(
                     setOf(
@@ -432,12 +426,10 @@ class MainViewModelTest : ShouldSpec() {
                 )
             }
             val cut = mainViewModel()
-
             continually(2.seconds) { cut.selfVerificationStack.value.active.configuration.shouldBeInstanceOf<SelfVerificationRouter.Config.None>() }
-            cancelNeverEndingCoroutines()
         }
 
-        should("skip initial sync when initial sync is already done") {
+        should("skip initial sync when initial sync is already done").withCleanup {
             syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
             initialSyncDone returns MutableStateFlow(true)
@@ -447,14 +439,12 @@ class MainViewModelTest : ShouldSpec() {
             }
 
             val cut = mainViewModel()
-
-            eventually(300.milliseconds) {
+            eventually(300.milliseconds) { // TODO: remove
                 cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncRouter.Config.None>()
             }
-            cancelNeverEndingCoroutines()
         }
 
-        should("perform initial sync whe not yet done") {
+        should("perform initial sync whe not yet done").withCleanup {
             syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
             val initialSyncDoneFlow = MutableStateFlow(false)
@@ -468,34 +458,32 @@ class MainViewModelTest : ShouldSpec() {
 
             // initial state is: InitialSyncConfig.Undefined, but is switched so quickly, we cannot assert it here
 
-            eventually(300.milliseconds) {
+            eventually(300.milliseconds) { // TODO: remove
                 val configuration = cut.initialSyncStack.value.active.configuration
                 configuration.shouldBeTypeOf<InitialSyncRouter.Config.Sync>()
             }
 
             initialSyncDoneFlow.value = true
-            eventually(2.seconds) {
+            eventually(2.seconds) { // TODO: remove
                 cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncRouter.Config.None>()
                 verifySuspend { matrixClientMock.startSync() }
             }
-            cancelNeverEndingCoroutines()
         }
 
-        should("directly switch to regular sync when no network is available") {
+        should("directly switch to regular sync when no network is available").withCleanup {
             syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns false
             initialSyncDone returns MutableStateFlow(false)
 
             val cut = mainViewModel()
 
-            eventually(800.milliseconds) {
+            eventually(800.milliseconds) { // TODO: remove
                 cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncRouter.Config.None>()
                 verifySuspend { matrixClientMock.startSync() }
             }
-            cancelNeverEndingCoroutines()
         }
 
-        should("cancel the sync when the app is stopped and restart the sync when the app is resumed again") {
+        should("cancel the sync when the app is stopped and restart the sync when the app is resumed again").withCleanup {
             syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
             initialSyncDone returns MutableStateFlow(true)
@@ -521,10 +509,9 @@ class MainViewModelTest : ShouldSpec() {
                     matrixClientMock.startSync()
                 }
             }
-            cancelNeverEndingCoroutines()
         }
 
-        should("set the presence to OFFLINE when settings change to private and set presence to ONLINE when settings change to public") {
+        should("set the presence to OFFLINE when settings change to private and set presence to ONLINE when settings change to public").withCleanup {
             val cut = mainViewModel()
             delay(300.milliseconds) // give viewmodel time to start first sync
             messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
@@ -551,7 +538,6 @@ class MainViewModelTest : ShouldSpec() {
                 Presence.OFFLINE,
                 Presence.ONLINE,
             )
-            cancelNeverEndingCoroutines()
         }
     }
 
@@ -599,7 +585,8 @@ class MainViewModelTest : ShouldSpec() {
                                     selectedRoomId: RoomId,
                                     onBack: () -> Unit,
                                     onVerifyUser: () -> Unit,
-                                    onShowRoomSettings: () -> Unit,
+                                    onOpenRoomSettings: () -> Unit,
+                                    onOpenUserProfile: (UserId) -> Unit,
                                 ): RoomHeaderViewModel = roomHeaderViewModelMock
                             }
                         }

@@ -104,6 +104,7 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import org.koin.core.component.get
 import kotlin.time.Duration
@@ -119,16 +120,19 @@ interface TimelineViewModelFactory {
         roomId: RoomId,
         onBack: () -> Unit,
         onOpenRoomSettings: () -> Unit,
+        onOpenUserProfile: (UserId) -> Unit,
         onOpenMention: OpenMentionCallback,
         onOpenMetadata: (eventId: EventId) -> Unit,
-    ): TimelineViewModel = TimelineViewModelImpl(
-        viewModelContext = viewModelContext,
-        roomId = roomId,
-        onBack = onBack,
-        onOpenSettings = onOpenRoomSettings,
-        onOpenMention = onOpenMention,
-        onOpenMetadata = onOpenMetadata,
-    )
+    ): TimelineViewModel =
+        TimelineViewModelImpl(
+            viewModelContext = viewModelContext,
+            roomId = roomId,
+            onBack = onBack,
+            onOpenSettings = onOpenRoomSettings,
+            onOpenUserProfile = onOpenUserProfile,
+            onOpenMention = onOpenMention,
+            onOpenMetadata = onOpenMetadata,
+        )
 
     companion object : TimelineViewModelFactory
 }
@@ -223,6 +227,7 @@ class TimelineViewModelImpl(
     private val roomId: RoomId,
     private val onBack: () -> Unit,
     onOpenSettings: () -> Unit,
+    private val onOpenUserProfile: (UserId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
     private val onOpenMetadata: (eventId: EventId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
@@ -338,7 +343,8 @@ class TimelineViewModelImpl(
             selectedRoomId = roomId,
             onBack = onBack,
             onVerifyUser = ::onVerifyUser,
-            onShowRoomSettings = onOpenSettings,
+            onOpenRoomSettings = onOpenSettings,
+            onOpenUserProfile = onOpenUserProfile,
         )
 
     override val inputAreaViewModel: InputAreaViewModel =
@@ -549,7 +555,7 @@ class TimelineViewModelImpl(
             canLoadBefore -> firstElement
             else -> null
         }
-    }.shareIn(coroutineScope, WhileSubscribed())
+    }.shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
     private val loadingIndicatorAfter = combine(
         timelineState,
@@ -563,7 +569,7 @@ class TimelineViewModelImpl(
             canLoadAfter -> lastElement
             else -> null
         }
-    }.shareIn(coroutineScope, WhileSubscribed())
+    }.shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
 
     @OptIn(FlowPreview::class)
@@ -823,11 +829,11 @@ class TimelineViewModelImpl(
 
                 log.trace {
                     """
-                            continuouslyLoadAndScroll (check):
-                            indexOfFirstVisibleTimelineElement=$indexOfFirstVisibleTimelineElement (isInBufferBefore=$isInBufferBefore)
-                            indexOfLastVisibleTimelineElement=$indexOfLastVisibleTimelineElement (isInBufferAfter=$isInBufferAfter)
-                            timelineSize=$timelineSize (timelineElementViewModels=${elements.map { it.key }})
-                        """.trimIndent()
+                    continuouslyLoadAndScroll (check):
+                    indexOfFirstVisibleTimelineElement=$indexOfFirstVisibleTimelineElement (isInBufferBefore=$isInBufferBefore)
+                    indexOfLastVisibleTimelineElement=$indexOfLastVisibleTimelineElement (isInBufferAfter=$isInBufferAfter)
+                    timelineSize=$timelineSize (timelineElementViewModels=${elements.map { it.key }})
+                    """.trimIndent()
                 }
 
                 if (isInBufferBefore) {

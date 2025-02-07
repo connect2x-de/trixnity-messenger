@@ -16,13 +16,14 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.key
@@ -33,6 +34,7 @@ import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
@@ -47,14 +49,17 @@ interface RoomHeaderViewModelFactory {
         selectedRoomId: RoomId,
         onBack: () -> Unit,
         onVerifyUser: () -> Unit,
-        onShowRoomSettings: () -> Unit,
-    ): RoomHeaderViewModel = RoomHeaderViewModelImpl(
-        viewModelContext = viewModelContext,
-        selectedRoomId = selectedRoomId,
-        onBack = onBack,
-        onVerifyUser = onVerifyUser,
-        onOpenRoomSettings = onShowRoomSettings,
-    )
+        onOpenRoomSettings: () -> Unit,
+        onOpenUserProfile: (UserId) -> Unit,
+    ): RoomHeaderViewModel =
+        RoomHeaderViewModelImpl(
+            viewModelContext = viewModelContext,
+            selectedRoomId = selectedRoomId,
+            onBack = onBack,
+            onVerifyUser = onVerifyUser,
+            onOpenRoomSettings = onOpenRoomSettings,
+            onOpenUserProfile = onOpenUserProfile,
+        )
 
     companion object : RoomHeaderViewModelFactory
 }
@@ -115,10 +120,13 @@ interface RoomHeaderViewModel {
     val canUnblockUser: StateFlow<Boolean>
     val isUserBlocked: StateFlow<Boolean>
 
+    val isDirectChat: StateFlow<Boolean>
+
     fun blockUser()
     fun unblockUser()
     fun verifyUser()
     fun openRoomSettings()
+    fun openUserProfile()
     fun back()
 }
 
@@ -129,6 +137,7 @@ open class RoomHeaderViewModelImpl(
     private val onBack: () -> Unit,
     private val onVerifyUser: () -> Unit,
     private val onOpenRoomSettings: () -> Unit,
+    private val onOpenUserProfile: (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomHeaderViewModel {
     private val directRoom = get<DirectRoom>()
     private val userPresence = get<UserPresence>()
@@ -178,7 +187,7 @@ open class RoomHeaderViewModelImpl(
             )
         }.stateIn(
             coroutineScope,
-            SharingStarted.WhileSubscribed(),
+            WhileSubscribed(),
             RoomHeaderInfo(
                 roomName = "",
                 roomTopic = "",
@@ -195,7 +204,7 @@ open class RoomHeaderViewModelImpl(
             it.firstOrNull()?.let { userId ->
                 matrixClient.key.getTrustLevel(userId)
             } ?: flowOf(null)
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val canVerifyUser: StateFlow<Boolean> =
         combine(
@@ -205,18 +214,18 @@ open class RoomHeaderViewModelImpl(
             val otherUserVerified =
                 userTrustLevel is UserTrustLevel.CrossSigned && userTrustLevel.verified
             otherUsers.size == 1 && otherUserVerified.not()
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val usersTyping = matrixClient.room.usersTyping.map { map ->
         map[selectedRoomId]?.let { typingInfo(matrixClient, selectedRoomId, i18n, it) }
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val canBlockUser: StateFlow<Boolean> = combine(
         directRoom.getUsers(matrixClient, selectedRoomId),
         matrixClient.user.getAccountData<IgnoredUserListEventContent>(),
     ) { otherUsers, ignoredUserListEventContent ->
         otherUsers.size == 1 && (ignoredUserListEventContent?.ignoredUsers?.containsKey(otherUsers[0])?.not() ?: false)
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val canUnblockUser: StateFlow<Boolean> = combine(
         directRoom.getUsers(matrixClient, selectedRoomId),
@@ -224,12 +233,25 @@ open class RoomHeaderViewModelImpl(
     ) { otherUsers, ignoredUserListEventContent ->
         otherUsers.size == 1 && (ignoredUserListEventContent?.ignoredUsers?.containsKey(otherUsers[0]))
                 ?: false
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val isUserBlocked: StateFlow<Boolean> =
         directRoom.getUsers(matrixClient, selectedRoomId).flatMapLatest { userIds ->
             if (userIds.size == 1) userBlocking.isUserBlocked(matrixClient, userIds[0]) else flowOf(false)
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        }.stateIn(coroutineScope, WhileSubscribed(), false)
+
+    private val otherDirectUser = directRoom.getUsers(matrixClient, selectedRoomId).mapLatest { userIds ->
+        if (userIds.size == 1) userIds[0] else null
+    }.stateIn(coroutineScope, WhileSubscribed(), null)
+
+    override val isDirectChat = otherDirectUser.mapLatest { it != null }
+        .stateIn(coroutineScope, WhileSubscribed(), false)
+
+    override fun openUserProfile() {
+        otherDirectUser.value?.also { userId ->
+            onOpenUserProfile(userId)
+        }
+    }
 
     override fun verifyUser() {
         onVerifyUser()
@@ -289,10 +311,12 @@ class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
     override val canBlockUser: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canUnblockUser: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val isUserBlocked: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isDirectChat: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     override fun verifyUser() {}
     override fun blockUser() {}
     override fun unblockUser() {}
     override fun openRoomSettings() {}
+    override fun openUserProfile() {}
     override fun back() {}
 }

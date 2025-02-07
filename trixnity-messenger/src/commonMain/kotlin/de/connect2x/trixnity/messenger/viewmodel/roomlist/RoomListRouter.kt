@@ -70,6 +70,13 @@ class RoomListRouter(
         }
     }
 
+    fun openRoom(userId: UserId, roomId: RoomId) = viewModelContext.coroutineScope.launch {
+        log.debug { "go to room $roomId" }
+        selectedRoomId.value = roomId
+        navigation.popSuspending()
+        onRoomSelected(userId, roomId)
+    }
+
     private fun createChild(
         roomListConfig: Config,
         componentContext: ComponentContext,
@@ -108,7 +115,7 @@ class RoomListRouter(
                         onCreateGroup = ::onCreateGroup,
                         onSearchGroup = ::onSearchGroup,
                         onCancel = ::onCancelCreateNewChat,
-                        goToRoom = ::goToRoom,
+                        onOpenRoom = ::openRoom,
                     )
             )
 
@@ -229,13 +236,6 @@ class RoomListRouter(
     private fun onCancelCreateNewChat() {
         log.debug { "on cancel create new chat" }
         navigation.launchPop(viewModelContext.coroutineScope)
-    }
-
-    private fun goToRoom(userId: UserId, roomId: RoomId) = viewModelContext.coroutineScope.launch {
-        log.debug { "go to room $roomId" }
-        selectedRoomId.value = roomId
-        navigation.popSuspending()
-        onRoomSelected(userId, roomId)
     }
 
     private fun onCreateGroup(userId: UserId) {

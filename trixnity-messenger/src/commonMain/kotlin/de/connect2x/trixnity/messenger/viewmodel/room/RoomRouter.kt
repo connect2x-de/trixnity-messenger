@@ -44,6 +44,7 @@ interface RoomRouter {
 
 class RoomRouterImpl(
     private val viewModelContext: ViewModelContext,
+    private val onOpenRoom: (UserId, RoomId) -> Unit,
     private val onCloseRoom: () -> Unit,
     private val onOpenMention: OpenMentionCallback,
     private val onOpenAvatarCutter: OpenAvatarCutterCallback,
@@ -61,7 +62,7 @@ class RoomRouterImpl(
 
     private fun createRoomChild(
         roomConfig: Config,
-        componentContext: ComponentContext
+        componentContext: ComponentContext,
     ): Wrapper =
         when (roomConfig) {
             is Config.None -> Wrapper.None
@@ -69,6 +70,7 @@ class RoomRouterImpl(
                 viewModelContext.get<RoomViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, roomConfig.userId),
                     selectedRoomId = RoomId(roomConfig.roomId),
+                    onOpenRoom = onOpenRoom,
                     onCloseRoom = onCloseRoom,
                     onOpenMention = onOpenMention,
                     onOpenAvatarCutter = onOpenAvatarCutter,

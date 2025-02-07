@@ -10,7 +10,8 @@ import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.MessageMetadata
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.Details.MessageMetadata
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.Details.UserProfile
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.None
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.AddMembers
@@ -21,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 
@@ -28,20 +30,22 @@ private val log = KotlinLogging.logger {}
 
 interface ExtrasRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
-    fun isShown(): Boolean
+
     suspend fun back()
-    suspend fun closeExtrasRouter()
+    suspend fun closeAll()
     suspend fun openRoomSettings(roomId: RoomId)
     suspend fun openAddMembers(roomId: RoomId)
     suspend fun openExportRoom(roomId: RoomId)
+    suspend fun openUserProfile(userId: UserId, roomId: RoomId)
     suspend fun openMessageMetadata(eventId: EventId, roomId: RoomId)
 
     sealed class Wrapper {
         data object None : Wrapper()
+        class UserProfile(val viewModel: UserProfileViewModel) : Wrapper()
+        class MessageMetadata(val viewModel: MessageMetadataViewModel) : Wrapper()
         class RoomSettings(val viewModel: RoomSettingsViewModel) : Wrapper()
         class AddMember(val viewModel: AddMembersViewModel) : Wrapper()
         class ExportRoom(val viewModel: ExportRoomViewModel) : Wrapper()
-        class MessageMetadata(val viewModel: MessageMetadataViewModel) : Wrapper()
     }
 
     @Serializable
@@ -61,7 +65,14 @@ interface ExtrasRouter {
         }
 
         @Serializable
-        data class MessageMetadata(val eventId: EventId, val roomId: RoomId) : Config
+        sealed interface Details : Config {
+
+            @Serializable
+            data class UserProfile(val userId: UserId, val roomId: RoomId) : RoomSettings
+
+            @Serializable
+            data class MessageMetadata(val eventId: EventId, val roomId: RoomId) : Config
+        }
 
         @Serializable
         data object None : Config
@@ -70,6 +81,7 @@ interface ExtrasRouter {
 
 class ExtrasRouterImpl(
     private val viewModelContext: MatrixClientViewModelContext,
+    private val onOpenRoom: (UserId, RoomId) -> Unit,
     private val onCloseRoom: () -> Unit,
     private val onOpenAvatarCutter: OpenAvatarCutterCallback,
 ) : ExtrasRouter {
@@ -83,26 +95,22 @@ class ExtrasRouterImpl(
         childFactory = ::createSettingsChild,
     )
 
-    override fun isShown(): Boolean =
-        stack.value.active.configuration !is None
-
     override suspend fun back() {
         val config = stack.value.active.configuration
         extrasNavigation.popSuspending {
-            log.debug { "closed $config ${it.toSuccessString()}" }
+            log.debug { "extras: closed $config ${it.toSuccessString()}" }
         }
     }
 
-    override suspend fun closeExtrasRouter() {
+    override suspend fun closeAll() {
         extrasNavigation.replaceAllSuspending(None) {
-            log.debug { "closed extras pane" }
+            log.debug { "extras: closed pane" }
         }
     }
 
     override suspend fun openRoomSettings(roomId: RoomId) {
-        val config = RoomSettings.Main(roomId)
-        extrasNavigation.replaceAllSuspending(None, config) {
-            log.debug { "opened room settings for room: $roomId" }
+        extrasNavigation.replaceAllSuspending(None, RoomSettings.Main(roomId)) {
+            log.debug { "extras: opened room settings for room: $roomId" }
         }
     }
 
@@ -111,7 +119,7 @@ class ExtrasRouterImpl(
             openRoomSettings(roomId)
         }
         extrasNavigation.pushSuspending(AddMembers(roomId)) {
-            log.debug { "opened add members pane" }
+            log.debug { "extras: opened add members for room: $roomId" }
         }
     }
 
@@ -120,14 +128,19 @@ class ExtrasRouterImpl(
             openRoomSettings(roomId)
         }
         extrasNavigation.pushSuspending(ExportRoom(roomId)) {
-            log.debug { "opened export room pane" }
+            log.debug { "extras: opened export room for room: $roomId" }
+        }
+    }
+
+    override suspend fun openUserProfile(userId: UserId, roomId: RoomId) {
+        extrasNavigation.pushSuspending(UserProfile(userId, roomId)) {
+            log.debug { "extras: opened user profile for user: $userId in room: $roomId" }
         }
     }
 
     override suspend fun openMessageMetadata(eventId: EventId, roomId: RoomId) {
-        val config = MessageMetadata(eventId, roomId)
-        extrasNavigation.pushSuspending(config) {
-            log.debug { "opened message metadata pane" }
+        extrasNavigation.pushSuspending(MessageMetadata(eventId, roomId)) {
+            log.debug { "extras: opened message metadata for event: $eventId from room $roomId" }
         }
     }
 
@@ -146,6 +159,7 @@ class ExtrasRouterImpl(
                 onOpenExportRoom = { onOpenExportRoom(config.roomId) },
                 onCloseRoomSettings = ::onCloseRoomSettings,
                 onOpenAvatarCutter = onOpenAvatarCutter,
+                onOpenUserProfile = ::onOpenUserProfile,
             )
         )
 
@@ -170,6 +184,16 @@ class ExtrasRouterImpl(
             )
         )
 
+        is UserProfile -> Wrapper.UserProfile(
+            viewModelContext.get<UserProfileViewModelFactory>().create(
+                viewModelContext = viewModelContext.childContext(componentContext),
+                userId = config.userId,
+                selectedRoomId = config.roomId,
+                onOpenRoom = onOpenRoom,
+                onBack = ::onBack,
+            )
+        )
+
         is MessageMetadata -> Wrapper.MessageMetadata(
             viewModelContext.get<MessageMetadataViewModelFactory>().create(
                 viewModelContext = viewModelContext.childContext(componentContext),
@@ -180,21 +204,30 @@ class ExtrasRouterImpl(
         )
     }
 
-    private fun onBack() = viewModelContext.coroutineScope.launch {
-        back()
-    }
+    private fun onBack() =
+        viewModelContext.coroutineScope.launch {
+            back()
+        }
 
-    private fun onOpenAddMembers(roomId: RoomId) = viewModelContext.coroutineScope.launch {
-        openAddMembers(roomId)
-    }
+    private fun onOpenAddMembers(roomId: RoomId) =
+        viewModelContext.coroutineScope.launch {
+            openAddMembers(roomId)
+        }
 
-    private fun onOpenExportRoom(roomId: RoomId) = viewModelContext.coroutineScope.launch {
-        openExportRoom(roomId)
-    }
+    private fun onOpenExportRoom(roomId: RoomId) =
+        viewModelContext.coroutineScope.launch {
+            openExportRoom(roomId)
+        }
 
-    private fun onCloseRoomSettings() = viewModelContext.coroutineScope.launch {
-        closeExtrasRouter()
-    }
+    private fun onCloseRoomSettings() =
+        viewModelContext.coroutineScope.launch {
+            closeAll()
+        }
+
+    private fun onOpenUserProfile(userId: UserId, roomId: RoomId) =
+        viewModelContext.coroutineScope.launch {
+            openUserProfile(userId, roomId)
+        }
 
     private fun Boolean.toSuccessString() =
         if (this) "successfully" else "failed"

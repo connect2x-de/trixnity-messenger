@@ -22,14 +22,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -47,32 +47,9 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.SelectVerification
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCancelledViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCompareViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRejectedViewModel
-import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRequestViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepSuccessViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepTimeoutViewModel
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationMethod
-
-@Composable
-fun DeviceVerificationRequest(verificationStepRequestViewModel: VerificationStepRequestViewModel) {
-    val i18n = DI.get<I18nView>()
-    val theirDisplayName = verificationStepRequestViewModel.theirDisplayName.collectAsState().value
-    val deviceDisplayName = verificationStepRequestViewModel.theirDeviceDisplayName.collectAsState().value
-    val isFromOwnAccount = verificationStepRequestViewModel.isFromOwnAccount
-    Column {
-        if (isFromOwnAccount == false) theirDisplayName?.let {
-            Text(i18n.deviceVerificationInitiatedBy(it))
-            Spacer(Modifier.size(10.dp))
-        }
-        Text(i18n.deviceVerificationToAccount(deviceDisplayName ?: ""))
-        Spacer(Modifier.size(20.dp))
-        Row(Modifier.fillMaxWidth()) {
-            Spacer(Modifier.weight(1.0f, fill = true))
-            Button(verificationStepRequestViewModel::next, Modifier.buttonPointerModifier()) {
-                Text(i18n.commonNext().capitalize(Locale.current))
-            }
-        }
-    }
-}
 
 @Composable
 fun ColumnScope.DeviceVerificationWaitForOtherContent() {
@@ -108,8 +85,8 @@ fun SelectVerificationMethodContent(
 ) {
     val verificationMethods = selectVerificationMethodViewModel.verificationMethods
     Column {
-        verificationMethods.forEach { (verificationMethod, explanation) ->
-            if (selectVerificationMethodViewModel.hasSelection) {
+        if (selectVerificationMethodViewModel.hasSelection) {
+            verificationMethods.forEach { (verificationMethod, explanation) ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.clickable { selectedVerificationMethod.value = verificationMethod }
@@ -120,7 +97,16 @@ fun SelectVerificationMethodContent(
                     )
                     Text(explanation)
                 }
-            } else Text(explanation)
+            }
+        } else {
+            val singleVerificationMethod by remember { mutableStateOf(verificationMethods.firstOrNull()) }
+            LaunchedEffect(singleVerificationMethod) {
+                selectedVerificationMethod.value = singleVerificationMethod?.first
+            }
+            val explanation = singleVerificationMethod?.second
+            if (explanation != null) {
+                Text(explanation)
+            }
         }
     }
 }
@@ -186,29 +172,29 @@ fun BoxScope.CompareEmojisOrNumbersContent(verificationStepCompareViewModel: Ver
     }
 }
 
-    @Composable
-    fun BoxScope.CompareEmojisOrNumbers(verificationStepCompareViewModel: VerificationStepCompareViewModel) {
-        val i18n = DI.get<I18nView>()
+@Composable
+fun BoxScope.CompareEmojisOrNumbers(verificationStepCompareViewModel: VerificationStepCompareViewModel) {
+    val i18n = DI.get<I18nView>()
 
-        CompareEmojisOrNumbersContent(verificationStepCompareViewModel)
+    CompareEmojisOrNumbersContent(verificationStepCompareViewModel)
+    Spacer(Modifier.size(20.dp))
+    Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+        Button(
+            verificationStepCompareViewModel::decline,
+            Modifier.buttonPointerModifier().weight(1.0f, fill = false),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+        ) {
+            Text(i18n.verificationNotMatch(), color = Color.White)
+        }
         Spacer(Modifier.size(20.dp))
-        Row(horizontalArrangement = Arrangement.SpaceEvenly) {
-            Button(
-                verificationStepCompareViewModel::decline,
-                Modifier.buttonPointerModifier().weight(1.0f, fill = false),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-            ) {
-                Text(i18n.verificationNotMatch(), color = Color.White)
-            }
-            Spacer(Modifier.size(20.dp))
-            Button(
-                verificationStepCompareViewModel::accept,
-                Modifier.buttonPointerModifier().weight(1.0f, fill = false)
-            ) {
-                Text(i18n.verificationMatch())
-            }
+        Button(
+            verificationStepCompareViewModel::accept,
+            Modifier.buttonPointerModifier().weight(1.0f, fill = false)
+        ) {
+            Text(i18n.verificationMatch())
         }
     }
+}
 
 
 @Composable

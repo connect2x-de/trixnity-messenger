@@ -16,6 +16,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrap
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.ExportRoom
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.MessageMetadata
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.RoomSettings
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.UserProfile
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.NoOpTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
@@ -25,6 +26,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Wr
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.withCleanup
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -65,6 +67,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
+import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
@@ -173,6 +176,8 @@ class RoomViewModelTest : ShouldSpec() {
             )
             every { keyServiceMock.getTrustLevel(any<UserId>(), any()) } returns
                     flowOf(DeviceTrustLevel.Valid(false))
+            every { keyServiceMock.getTrustLevel(any<UserId>()) } returns
+                    flowOf(UserTrustLevel.Blocked)
             everySuspend {
                 userServiceMock.loadMembers(RoomId(any()), any())
             } returns Unit
@@ -181,7 +186,13 @@ class RoomViewModelTest : ShouldSpec() {
             every { userServiceMock.getAll(roomId) } returns MutableStateFlow(mapOf())
             every { userServiceMock.getAllReceipts(eq(roomId)) } returns MutableStateFlow(emptyMap())
             every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(false)
+            every { userServiceMock.canKickUser(roomId, any()) } returns MutableStateFlow(false)
+            every { userServiceMock.canBanUser(roomId, any()) } returns MutableStateFlow(false)
+            every { userServiceMock.canUnbanUser(roomId, any()) } returns MutableStateFlow(false)
+            every { userServiceMock.canSetPowerLevelToMax(roomId, any()) } returns MutableStateFlow(0L)
             every { userServiceMock.getAccountData(DirectEventContent::class, "") } returns
+                    MutableStateFlow(null)
+            every { userServiceMock.getAccountData(IgnoredUserListEventContent::class, "") } returns
                     MutableStateFlow(null)
             every { userServiceMock.getAccountData(PushRulesEventContent::class, "") } returns
                     MutableStateFlow(null)
@@ -195,22 +206,20 @@ class RoomViewModelTest : ShouldSpec() {
             lifecycle.destroy()
         }
 
-        should("show selected room without settings initially") {
+        should("show selected room without settings initially").withCleanup {
             val cut = cutRoomViewModel()
             cut shouldShowTimeline true
             cut shouldShowExtras false
-            cancelNeverEndingCoroutines()
         }
 
-        should("show room settings") {
+        should("show room settings").withCleanup {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
             cut.openRoomSettings()
             cut shouldShowExtrasOfType RoomSettings::class
-            cancelNeverEndingCoroutines()
         }
 
-        should("show room's settings when settings are activated") {
+        should("show room's settings when settings are activated").withCleanup {
             val cut = cutRoomViewModel()
             cut shouldShowTimeline true
             cut shouldShowExtras false
@@ -218,56 +227,50 @@ class RoomViewModelTest : ShouldSpec() {
                 .roomHeaderViewModel.openRoomSettings()
             cut shouldShowExtras true
             cut shouldShowExtrasOfType RoomSettings::class
-            cancelNeverEndingCoroutines()
         }
 
-        should("return from settings") {
+        should("return from settings").withCleanup {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
             cut.openRoomSettings()
             cut.extrasAs<RoomSettings>().viewModel.close()
             cut shouldShowTimeline true
             cut shouldShowExtras false
-            cancelNeverEndingCoroutines()
         }
 
-        should("navigate from the timeline to add-members") {
+        should("navigate from the timeline to add-members").withCleanup {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
             cut.openRoomSettings()
             cut.extrasAs<RoomSettings>().viewModel.openAddMembersView()
             cut shouldShowExtrasOfType AddMember::class
-            cancelNeverEndingCoroutines()
         }
 
-        should("navigate from the timeline to export-room") {
+        should("navigate from the timeline to export-room").withCleanup {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
             cut.openRoomSettings()
             cut.extrasAs<RoomSettings>().viewModel.openExportRoomView()
             cut shouldShowExtrasOfType ExportRoom::class
-            cancelNeverEndingCoroutines()
         }
 
-        should("navigate from the timeline to message-metadata") {
+        should("navigate from the timeline to message-metadata").withCleanup {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
             cut.openMessageMetadata(EventId("1"))
             cut shouldShowExtrasOfType MessageMetadata::class
-            cancelNeverEndingCoroutines()
         }
 
-        should("show message info") {
+        should("show message info").withCleanup {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
             val eventId = EventId("event0")
             cut.openMessageMetadata(eventId)
             cut shouldShowExtras true
             cut shouldShowExtrasOfType MessageMetadata::class
-            cancelNeverEndingCoroutines()
         }
 
-        should("return from message metadata") {
+        should("return from message metadata").withCleanup {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
             val eventId = EventId("event2")
@@ -275,7 +278,6 @@ class RoomViewModelTest : ShouldSpec() {
             cut.extrasAs<MessageMetadata>().viewModel.back()
             cut shouldShowTimeline true
             cut shouldShowExtras false
-            cancelNeverEndingCoroutines()
         }
 
         should("return to settings from message metadata") {
@@ -283,25 +285,49 @@ class RoomViewModelTest : ShouldSpec() {
             cut shouldShowExtras false
             cut.openRoomSettings()
             cut shouldShowExtrasOfType RoomSettings::class
-            val eventId = EventId("event3")
-            cut.openMessageMetadata(eventId)
+            cut.openMessageMetadata(EventId("event4"))
             cut.extrasAs<MessageMetadata>().viewModel.back()
             cut shouldShowExtrasOfType RoomSettings::class
             cancelNeverEndingCoroutines()
         }
 
-        should("close extras when returning from settings") {
+        should("navigate from the timeline to the user profile").withCleanup {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
-            val eventId = EventId("event4")
-            cut.openMessageMetadata(eventId)
-            cut shouldShowExtrasOfType MessageMetadata::class
+            cut.openUserProfile(UserId("user1"))
+            cut shouldShowExtras true
+            cut shouldShowExtrasOfType UserProfile::class
+        }
+
+        should("return from the user profile").withCleanup {
+            val cut = cutRoomViewModel()
+            cut shouldShowExtras false
+            cut.openUserProfile(UserId("user1"))
+            cut.extrasAs<UserProfile>().viewModel.back()
+            cut shouldShowTimeline true
+            cut shouldShowExtras false
+        }
+
+        should("return to settings from the user profile").withCleanup {
+            val cut = cutRoomViewModel()
+            cut shouldShowExtras false
+            cut.openRoomSettings()
+            cut shouldShowExtrasOfType RoomSettings::class
+            cut.openUserProfile(UserId("user1"))
+            cut.extrasAs<UserProfile>().viewModel.back()
+            cut shouldShowExtrasOfType RoomSettings::class
+        }
+
+        should("close extras when returning from the settings").withCleanup {
+            val cut = cutRoomViewModel()
+            cut shouldShowExtras false
+            cut.openUserProfile(UserId("user1"))
+            cut shouldShowExtrasOfType UserProfile::class
             cut.openRoomSettings()
             cut shouldShowExtrasOfType RoomSettings::class
             cut.extrasAs<RoomSettings>().viewModel.close()
             cut shouldShowTimeline true
             cut shouldShowExtras false
-            cancelNeverEndingCoroutines()
         }
     }
 
@@ -335,7 +361,8 @@ class RoomViewModelTest : ShouldSpec() {
                                         selectedRoomId: RoomId,
                                         onBack: () -> Unit,
                                         onVerifyUser: () -> Unit,
-                                        onShowRoomSettings: () -> Unit,
+                                        onOpenRoomSettings: () -> Unit,
+                                        onOpenUserProfile: (UserId) -> Unit,
                                     ): RoomHeaderViewModel = object : RoomHeaderViewModel {
                                         override val error: StateFlow<String?> = MutableStateFlow(null)
                                         override val roomHeaderInfo: StateFlow<RoomHeaderInfo> = MutableStateFlow(
@@ -347,10 +374,12 @@ class RoomViewModelTest : ShouldSpec() {
                                         override val canBlockUser: StateFlow<Boolean> = MutableStateFlow(false)
                                         override val canUnblockUser: StateFlow<Boolean> = MutableStateFlow(false)
                                         override val isUserBlocked: StateFlow<Boolean> = MutableStateFlow(false)
+                                        override val isDirectChat: StateFlow<Boolean> = MutableStateFlow(false)
                                         override fun blockUser() {}
                                         override fun unblockUser() {}
                                         override fun verifyUser() {}
-                                        override fun openRoomSettings() = onShowRoomSettings()
+                                        override fun openRoomSettings() = onOpenRoomSettings()
+                                        override fun openUserProfile() = onOpenUserProfile(UserId("user1"))
                                         override fun back() = onBack()
                                     }
                                 }
@@ -361,6 +390,7 @@ class RoomViewModelTest : ShouldSpec() {
                 coroutineContext = currentCoroutineContext(),
             ),
             roomId = roomId,
+            onOpenRoom = mock(),
             onCloseRoom = mock(),
             onOpenAvatarCutter = { _, _, _ -> },
             onOpenMention = mock(),

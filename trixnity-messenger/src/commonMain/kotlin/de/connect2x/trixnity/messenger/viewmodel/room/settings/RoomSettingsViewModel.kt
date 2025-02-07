@@ -14,6 +14,7 @@ import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 
@@ -27,15 +28,17 @@ interface RoomSettingsViewModelFactory {
         onOpenAddMembers: () -> Unit,
         onOpenExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
+        onOpenUserProfile: (UserId, RoomId) -> Unit,
         onOpenAvatarCutter: OpenAvatarCutterCallback,
     ): RoomSettingsViewModel = RoomSettingsViewModelImpl(
         viewModelContext = viewModelContext,
         selectedRoomId = selectedRoomId,
-        onShowAddMembers = onOpenAddMembers,
-        onShowExportRoom = onOpenExportRoom,
+        onOpenAddMembers = onOpenAddMembers,
+        onOpenExportRoom = onOpenExportRoom,
         onCloseRoomSettings = onCloseRoomSettings,
         onOpenAvatarCutter = onOpenAvatarCutter,
         onLeaveRoom = onLeaveRoom,
+        onOpenUserProfile = onOpenUserProfile,
     )
 
     companion object : RoomSettingsViewModelFactory
@@ -67,16 +70,18 @@ interface RoomSettingsViewModel {
     fun openLeaveRoomWarningDialog()
     fun closeLeaveRoomWarningDialog()
     fun close()
+    fun openUserProfile(userId: UserId)
 }
 
 class RoomSettingsViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
-    private val onShowAddMembers: () -> Unit,
-    private val onShowExportRoom: () -> Unit,
+    private val onOpenAddMembers: () -> Unit,
+    private val onOpenExportRoom: () -> Unit,
     private val onCloseRoomSettings: () -> Unit,
     private val onLeaveRoom: () -> Unit,
     private val onOpenAvatarCutter: OpenAvatarCutterCallback,
+    private val onOpenUserProfile: (UserId, RoomId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
 
     private val backCallback = BackCallback {
@@ -140,6 +145,7 @@ class RoomSettingsViewModelImpl(
         get<MemberListViewModelFactory>().create(
             viewModelContext = childContext("memberList-${selectedRoomId}"),
             selectedRoomId = selectedRoomId,
+            onOpenUserProfile = ::openUserProfile,
             error = error,
         )
 
@@ -204,11 +210,15 @@ class RoomSettingsViewModelImpl(
     }
 
     override fun openAddMembersView() {
-        onShowAddMembers()
+        onOpenAddMembers()
     }
 
     override fun openExportRoomView() {
-        onShowExportRoom()
+        onOpenExportRoom()
+    }
+
+    override fun openUserProfile(userId: UserId) {
+        onOpenUserProfile(userId, selectedRoomId)
     }
 }
 
@@ -233,6 +243,7 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val isEncrypted = MutableStateFlow(false)
     override fun openAddMembersView() {}
     override fun openExportRoomView() {}
+    override fun openUserProfile(userId: UserId) {}
     override fun leaveRoom() {}
     override fun openLeaveRoomWarningDialog() {}
     override fun closeLeaveRoomWarningDialog() {}

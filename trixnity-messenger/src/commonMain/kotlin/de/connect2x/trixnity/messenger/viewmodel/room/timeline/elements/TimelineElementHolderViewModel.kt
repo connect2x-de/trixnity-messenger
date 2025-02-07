@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
@@ -38,6 +39,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -177,7 +179,7 @@ class TimelineElementHolderViewModelImpl(
     private val onOpenMetadata: (eventId: EventId) -> Unit,
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timelineEventFlow = timelineEventFlow
-        .shareIn(coroutineScope, whileSubscribedWithTimeout)
+        .shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
     private val config = get<MatrixMessengerConfiguration>()
     private val initials = get<Initials>()
     private val timelineElementViewModelFactorySelector =
@@ -221,9 +223,19 @@ class TimelineElementHolderViewModelImpl(
             .debounce { if (it) 1.seconds else Duration.ZERO } // prevent indicator on fast loading
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
+    private fun getNewContentIfAvailable(msg: RoomOutboxMessage<*>?) =
+        (msg?.content?.relatesTo as? RelatesTo.Replace)?.takeIf { it.eventId == eventId }?.newContent
+
+    private val newContentIfReplaced = matrixClient.room.getOutbox(roomId).flatten()
+        .map { it.reversed().firstNotNullOfOrNull(::getNewContentIfAvailable) }
+        .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+
     override val isReplaced: StateFlow<Boolean> =
-        matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId).map {
-            it.replacedBy != null
+        combine(
+            newContentIfReplaced,
+            matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId)
+        ) { newContentIfReplaced, replaceAggregation ->
+            newContentIfReplaced != null || replaceAggregation.replacedBy != null
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, true)
 
     override val canBeReactedTo: StateFlow<Boolean> =
@@ -255,12 +267,6 @@ class TimelineElementHolderViewModelImpl(
             editInProgress || replyToInProgress
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
-    private fun getNewContentIfAvailable(msg: RoomOutboxMessage<*>?) =
-        (msg?.content?.relatesTo as? RelatesTo.Replace)?.takeIf { it.eventId == eventId }?.newContent
-
-    private val newContentIfReplaced = matrixClient.room.getOutbox(roomId).flatten()
-        .map { it.reversed().firstNotNullOfOrNull(::getNewContentIfAvailable) }
-
     private data class TimelineElementViewModelWrapper(
         val viewModel: TimelineElementViewModel<*>,
         val lifecycle: LifecycleRegistry,
@@ -276,12 +282,15 @@ class TimelineElementHolderViewModelImpl(
             currentElement?.lifecycle?.destroy()
 
             log.trace { "compute element (timelineEvent=$timelineEvent, newContent=$newContent)" }
-            val content = newContent?.let { Result.success(it) } ?: timelineEvent.content
+            val content =
+                if (timelineEvent.event.content is RedactedEventContent) timelineEvent.content
+                else newContent?.let { Result.success(it) } ?: timelineEvent.content
 
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
             timelineElementViewModelFactorySelector.create(
                 childContextWithOwnLifecycle(lifecycle),
+                timelineEvent.event.content,
                 content,
                 roomId,
                 EventIdOrTransactionId(eventId),
@@ -414,7 +423,7 @@ class TimelineElementHolderViewModelImpl(
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override fun redact() {
-        if (redactionInProgress.value.not()) {
+        if (_redactionInProgress.getAndUpdate { true }.not()) {
             coroutineScope.launch {
                 timelineEventFlow.first().let { timelineEvent ->
                     if (matrixClient.user.canRedactEvent(
@@ -422,28 +431,23 @@ class TimelineElementHolderViewModelImpl(
                             timelineEvent.eventId,
                         ).first()
                     ) {
-                        launch {
-                            _redactionInProgress.value = true
-                            _redactionError.value = null
-                            matrixClient.api.room.redactEvent(
-                                roomId,
-                                timelineEvent.eventId,
-                                txnId = uuid4().toString()
-                            ).onSuccess {
-                                log.debug { "successfully redacted event ${timelineEvent.eventId}" }
-                            }.onFailure {
-                                log.error(it) { "could not redact event ${timelineEvent.eventId}" }
-                                _redactionError.value = i18n.timelineElementRedactError()
-                            }.also {
-                                _redactionInProgress.value = false
-                            }
+                        _redactionError.value = null
+                        matrixClient.api.room.redactEvent(
+                            roomId,
+                            timelineEvent.eventId,
+                            txnId = uuid4().toString()
+                        ).onSuccess {
+                            log.debug { "successfully redacted event ${timelineEvent.eventId}" }
+                        }.onFailure {
+                            log.error(it) { "could not redact event ${timelineEvent.eventId}" }
+                            _redactionError.value = i18n.timelineElementRedactError()
                         }
                     } else log.warn {
                         "try to redact timeline event $eventId," +
                                 " but is no room message or it is not by this user"
                     }
                 }
-            }
+            }.invokeOnCompletion { _redactionInProgress.value = false }
         } else log.warn {
             "try to redact timeline event $eventId," +
                     " but is already marked for redaction"

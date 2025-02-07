@@ -28,14 +28,15 @@ interface MemberListViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        error: MutableStateFlow<String?>
-    ): MemberListViewModel {
-        return MemberListViewModelImpl(
+        error: MutableStateFlow<String?>,
+        onOpenUserProfile: (UserId) -> Unit,
+    ): MemberListViewModel =
+        MemberListViewModelImpl(
             viewModelContext = viewModelContext,
             selectedRoomId = selectedRoomId,
-            error = error
+            error = error,
+            onOpenUserProfile = onOpenUserProfile,
         )
-    }
 
     companion object : MemberListViewModelFactory
 }
@@ -51,6 +52,7 @@ open class MemberListViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
     override val error: MutableStateFlow<String?>,
+    private val onOpenUserProfile: (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, MemberListViewModel {
 
     override val showLoadingSpinner = matrixClient.room.getById(selectedRoomId).map {
@@ -101,8 +103,8 @@ open class MemberListViewModelImpl(
                             .create(
                                 viewModelContext = childContextWithOwnLifecycle(lifecycle),
                                 roomUser,
-                                error = error,
                                 selectedRoomId = selectedRoomId,
+                                onOpenUserProfile = onOpenUserProfile
                             ).also {
                                 elementCache[userId] = MemberListElementViewModelWrapper(it, lifecycle)
                             }

@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.router.stack.ChildStack
+import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackCallback
@@ -145,6 +146,7 @@ open class MainViewModelImpl(
     private val roomRouter: RoomRouter =
         RoomRouterImpl(
             viewModelContext = viewModelContext,
+            onOpenRoom = roomListRouter::openRoom,
             onCloseRoom = ::closeDetailsAndShowList,
             onOpenMention = ::openMention,
             onOpenAvatarCutter = ::onOpenAvatarCutter,
@@ -436,12 +438,25 @@ open class MainViewModelImpl(
     override fun onRoomSelected(userId: UserId, id: RoomId) {
         coroutineScope.launch {
             log.debug { "onRoomSelected: $id" }
-            roomRouter.openRoom(userId, id)
-            // TODO: What hack exactly? Comment might be outdated!
-            // Hack for iOS: Since the observe mechanism of line 236ff does not work.
-            selectedRoomId.value = id
-            roomListRouter.show()
+            selectRoom(userId, id)
         }
+    }
+
+    private fun onOpenUserProfile(sourceUserId: UserId, roomId: RoomId, userId: UserId) {
+        coroutineScope.launch {
+            log.debug { "onOpenUserProfile: $userId" }
+            selectRoom(sourceUserId, roomId)
+            (roomRouter.stack.active.instance as? RoomRouter.Wrapper.View)
+                ?.viewModel?.openUserProfile(userId)
+        }
+    }
+
+    private suspend fun selectRoom(userId: UserId, id: RoomId) {
+        roomRouter.openRoom(userId, id)
+        // TODO: What hack exactly? Comment might be outdated!
+        // Hack for iOS: Since the observe mechanism of line 236ff does not work.
+        selectedRoomId.value = id
+        roomListRouter.show()
     }
 
     override fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor) {
@@ -465,9 +480,16 @@ open class MainViewModelImpl(
     override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {
         when (timelineElementMention) {
             is TimelineElementMention.User -> {
-                val user = timelineElementMention.user.userId
-                // TODO: implement and open user view (profile)
-                log.warn { "UserView to display $user not implemented yet" }
+                val otherUserId = timelineElementMention.user.userId
+
+                // TODO: find out where the mentioned userId is located instead of assuming the mention source
+                val roomId = selectedRoomId.value ?: run {
+                    log.warn { "Could not open User Profile $otherUserId, no room selected" }
+                    return
+                }
+
+                log.warn { "Opening User Profile $otherUserId" }
+                onOpenUserProfile(userId, roomId, otherUserId)
             }
 
             is TimelineElementMention.Room -> {

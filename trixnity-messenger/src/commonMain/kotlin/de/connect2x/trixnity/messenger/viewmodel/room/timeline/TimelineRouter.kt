@@ -15,6 +15,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 
@@ -24,7 +25,6 @@ interface TimelineRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
     suspend fun openTimeline(id: RoomId)
     suspend fun closeTimeline()
-    fun isShown(): Boolean
 
     @Serializable
     sealed class Config {
@@ -45,6 +45,7 @@ class TimelineRouterImpl(
     private val viewModelContext: MatrixClientViewModelContext,
     private val onCloseRoom: () -> Unit,
     private val onOpenRoomSettings: () -> Unit,
+    private val onOpenUserProfile: (UserId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
     private val onOpenMetadata: (eventId: EventId) -> Unit,
 ) : TimelineRouter {
@@ -71,6 +72,7 @@ class TimelineRouterImpl(
                     roomId = RoomId(timelineConfig.roomId),
                     onBack = onCloseRoom,
                     onOpenRoomSettings = onOpenRoomSettings,
+                    onOpenUserProfile = onOpenUserProfile,
                     onOpenMention = onOpenMention,
                     onOpenMetadata = onOpenMetadata,
                 )
@@ -85,10 +87,4 @@ class TimelineRouterImpl(
     override suspend fun closeTimeline() {
         timelineNavigation.popWhileSuspending { it !is Config.None }
     }
-
-    override fun isShown(): Boolean =
-        when (stack.value.active.configuration) {
-            is Config.View -> true
-            is Config.None -> false
-        }
 }

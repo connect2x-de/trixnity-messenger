@@ -10,10 +10,11 @@ import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.shouldGroup
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.withCleanup
 import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -24,41 +25,36 @@ import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.fail
+import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.clientserverapi.client.AuthenticationApiClient
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType.User
 import net.folivo.trixnity.clientserverapi.model.authentication.Login
 import net.folivo.trixnity.core.model.UserId
-import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
+
+@ExperimentalKotest
+//@OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class MatrixClientsTest : ShouldSpec() {
-    override fun timeout(): Long = 5_000
-
     private lateinit var mutableMatrixClients: MutableStateFlow<Map<UserId, MatrixClient>>
     private lateinit var loginState: MutableStateFlow<MatrixClient.LoginState>
 
-    val matrixClientMock1 = mock<MatrixClient>()
-
-    val matrixClientMock2 = mock<MatrixClient>()
-
-    val matrixClientServerApiClient = mock<MatrixClientServerApiClient>()
-
-    val authenticationApiClient = mock<AuthenticationApiClient>()
-
-    val matrixClientFactory = mock<MatrixClientFactory>()
-
-    val deleteAccountData = mock<DeleteAccountData>()
+    private val matrixClientMock1 = mock<MatrixClient>()
+    private val matrixClientMock2 = mock<MatrixClient>()
+    private val matrixClientServerApiClient = mock<MatrixClientServerApiClient>()
+    private val authenticationApiClient = mock<AuthenticationApiClient>()
+    private val matrixClientFactory = mock<MatrixClientFactory>()
+    private val deleteAccountData = mock<DeleteAccountData>()
 
     lateinit var settings: MatrixMessengerSettingsHolder
 
@@ -72,8 +68,9 @@ class MatrixClientsTest : ShouldSpec() {
 
     init {
         coroutineTestScope = true
+        timeout = 10_000
 
-        beforeTest {
+        beforeEach {
             settings = createTestMatrixMessengerSettingsHolder()
             loginCalled = false
             logoutCalled = false
@@ -141,13 +138,13 @@ class MatrixClientsTest : ShouldSpec() {
             }
             everySuspend {
                 authenticationApiClient.login(
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
+                    identifier = any(),
+                    password = any(),
+                    token = any(),
+                    type = any(),
+                    deviceId = any(),
+                    initialDeviceDisplayName = any(),
+                    refreshToken = any(),
                 )
             } calls { args ->
                 val username = args.args[0] as User
@@ -155,7 +152,7 @@ class MatrixClientsTest : ShouldSpec() {
                     Login.Response(
                         UserId(username.user, "server"),
                         accessToken = "",
-                        deviceId = ""
+                        deviceId = "",
                     )
                 )
             }
@@ -168,18 +165,16 @@ class MatrixClientsTest : ShouldSpec() {
             mutableMatrixClients = MutableStateFlow(mapOf())
         }
 
-//          Using context causes timeout issues on the CI.
-//        context("login") {
-            should("login and register new account locally") {
+        shouldGroup("login") {
+            should("login and register new account locally").withCleanup {
                 val cut = createCut()
                 cut.login(Url("https://example.org"), User("test1"), "password", "")
                     .getOrThrow()
                 cut.value shouldBe mapOf(UserId("test1", "server") to matrixClientMock1)
                 loginCalled shouldBe true
-
-                cancelNeverEndingCoroutines()
             }
-            should("login for another account and create additional MatrixClient") {
+
+            should("login for another account and create additional MatrixClient").withCleanup {
                 val cut = createCut()
                 cut.login(Url("https://example.org"), User("test1"), "password", "").getOrThrow()
                 cut.login(Url("https://example2.org"), User("test2"), "password2", "").getOrThrow()
@@ -188,32 +183,29 @@ class MatrixClientsTest : ShouldSpec() {
                     UserId("test1", "server") to matrixClientMock1,
                     UserId("test2", "server") to matrixClientMock2,
                 )
-
-                cancelNeverEndingCoroutines()
             }
-            should("not login again, if MatrixClient already present for account") {
+
+            should("not login again, if MatrixClient already present for account").withCleanup {
                 val cut = createCut()
                 cut.login(Url("https://example.org"), User("test1"), "password", "").getOrThrow()
                 loginCalled = false
                 cut.login(Url("https://example.org"), User("test1"), "password", "") shouldBe
                         Result.failure(AccountAlreadyExistsException(UserId("test1", "server")))
                 loginCalled shouldBe false // use the existing MatrixClient and do not log in again
-
-                cancelNeverEndingCoroutines()
             }
-            should("return exception in Result if login is not possible") {
+
+            should("return exception in Result if login is not possible").withCleanup {
                 val cut = createCut()
                 val exception = IllegalHeaderValueException("header", 0)
                 login returns Result.failure(exception)
 
                 val result = cut.login(Url("https://example.org"), User("test1"), "password", "")
                 result shouldBe Result.failure(exception)
-
-                cancelNeverEndingCoroutines()
             }
-//        }
-//        context("initFromStore") {
-            should("init from the store and settings") {
+        }
+
+        shouldGroup("initFromStore") {
+            should("init from the store and settings").withCleanup {
                 val cut = createCut()
                 settings.update(UserId("test1", "server")) { it }
                 settings.update(UserId("test2", "server")) { it }
@@ -230,10 +222,9 @@ class MatrixClientsTest : ShouldSpec() {
                     UserId("test2", "server") to matrixClientMock2,
                 )
                 initFromStoreCalled shouldBe true
-
-                cancelNeverEndingCoroutines()
             }
-            should("skip init from store when matrix client is already present") {
+
+            should("skip init from store when matrix client is already present").withCleanup {
                 val cut = createCut()
                 settings.update(UserId("test1", "server")) { it }
                 settings.update(UserId("test2", "server")) { it }
@@ -250,10 +241,9 @@ class MatrixClientsTest : ShouldSpec() {
                     UserId("test2", "server") to matrixClientMock2,
                 )
                 initFromStoreCalledCount shouldBe 1
-
-                cancelNeverEndingCoroutines()
             }
-            should("has failure when init from store is not possible") {
+
+            should("have failure when init from store is not possible").withCleanup {
                 val cut = createCut()
                 settings.update(UserId("test1", "server")) { it }
                 initFromStore calls {
@@ -269,10 +259,9 @@ class MatrixClientsTest : ShouldSpec() {
                 )
                 cut.value shouldBe mapOf()
                 initFromStoreCalled shouldBe true
-
-                cancelNeverEndingCoroutines()
             }
-            should("has failure on exception") {
+
+            should("have failure on exception").withCleanup {
                 val cut = createCut()
                 settings.update(UserId("test1", "server")) { it }
                 initFromStore calls {
@@ -282,12 +271,11 @@ class MatrixClientsTest : ShouldSpec() {
                     success = setOf(),
                     failures = mapOf(UserId("test1", "server") to DatabaseLockedException("The database is locked."))
                 )
-
-                cancelNeverEndingCoroutines()
             }
-//        }
-//        context("logout") {
-            should("logout matrix client") {
+        }
+
+        shouldGroup("logout") {
+            should("logout matrix client").withCleanup {
                 val cut = createCut()
                 settings.update(UserId("test1", "server")) { it }
                 settings.update(UserId("test2", "server")) { it }
@@ -309,12 +297,11 @@ class MatrixClientsTest : ShouldSpec() {
                 verifySuspend {
                     deleteAccountData.invoke(UserId("test1", "server"))
                 }
-
-                cancelNeverEndingCoroutines()
             }
-//        }
-//        context("external logout") {
-            should("remove matrix client") {
+        }
+
+        shouldGroup("external logout") {
+            should("remove matrix client").withCleanup {
                 val cut = createCut()
                 settings.update(UserId("test1", "server")) { it }
                 mutableMatrixClients.value = mapOf(
@@ -322,9 +309,8 @@ class MatrixClientsTest : ShouldSpec() {
                 )
 
                 loginState.value = MatrixClient.LoginState.LOGGED_OUT
-                testCoroutineScheduler.advanceTimeBy(1.seconds)
 
-                cut.value shouldBe mapOf()
+                cut.filterNotNull().first { it.isEmpty() }
                 logoutCalled shouldBe false
                 settings.value.base.accounts.keys shouldBe setOf()
                 verify {
@@ -333,12 +319,11 @@ class MatrixClientsTest : ShouldSpec() {
                 verifySuspend {
                     deleteAccountData.invoke(UserId("test1", "server"))
                 }
-
-                cancelNeverEndingCoroutines()
             }
-//        }
-//        context("remove") {
-            should("remove matrix client") {
+        }
+
+        shouldGroup("remove") {
+            should("remove matrix client").withCleanup {
                 val cut = createCut()
                 settings.update<MatrixMessengerAccountSettingsBase>(UserId("test1", "server")) { it }
                 settings.update<MatrixMessengerAccountSettingsBase>(UserId("test2", "server")) { it }
@@ -360,13 +345,11 @@ class MatrixClientsTest : ShouldSpec() {
                 verifySuspend {
                     deleteAccountData.invoke(UserId("test1", "server"))
                 }
-
-                cancelNeverEndingCoroutines()
             }
-//        }
+        }
     }
 
-    suspend fun createCut(): MatrixClients =
+    private suspend fun createCut(): MatrixClients =
         MatrixClientsImpl(
             factory = matrixClientFactory,
             deleteAccountData = deleteAccountData,

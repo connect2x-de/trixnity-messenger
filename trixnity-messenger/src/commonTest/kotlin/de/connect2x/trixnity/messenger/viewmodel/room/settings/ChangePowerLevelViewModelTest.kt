@@ -8,7 +8,6 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImp
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
-import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
@@ -51,6 +50,8 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
     private val bob = UserId("bob", "localhost")
     private val alice = UserId("alice", "localhost")
     private val roomId = RoomId("room", "localhost")
+    private val testUser = UserId("test", "server")
+
     private val roomUserAlice = RoomUser(
         roomId, alice, "Alice", StateEvent(
             MemberEventContent(membership = Membership.JOIN),
@@ -62,13 +63,28 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
         )
     )
 
+    private val roomUserAliceFlow = MutableStateFlow(roomUserAlice)
+
+    private val roomUserBob = RoomUser(
+        roomId, bob, "Bob", StateEvent(
+            MemberEventContent(membership = Membership.JOIN),
+            EventId(""),
+            bob,
+            roomId,
+            0L,
+            stateKey = "",
+        )
+    )
+
+    private val roomUserBobFlow = MutableStateFlow(roomUserBob)
+
+
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
     val roomsApiClientMock = mock<RoomApiClient>()
     private val matrixClientServerApiMock = mock<MatrixClientServerApiClient>()
     private lateinit var syncStateMocker: BlockingAnsweringScope<StateFlow<SyncState>>
-    private val closeMemberOptions = mock<Function0<Unit>>()
 
     init {
         coroutineTestScope = true
@@ -80,7 +96,6 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 userServiceMock,
                 matrixClientServerApiMock,
                 roomsApiClientMock,
-                closeMemberOptions
             )
             every { matrixClientMock.di } returns koinApplication {
                 modules(
@@ -95,6 +110,9 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
             every { matrixClientMock.api } returns matrixClientServerApiMock
             every { matrixClientServerApiMock.room } returns roomsApiClientMock
+
+            every { userServiceMock.getById(eq(roomId), eq(alice)) } returns roomUserAliceFlow
+            every { userServiceMock.getById(eq(roomId), eq(bob)) } returns roomUserBobFlow
 
             every {
                 roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "")
@@ -115,16 +133,14 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
             beforeTest {
                 every {
-                    userServiceMock.canSetPowerLevelToMax(roomId, alice)
+                    userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(alice))
+                } returns MutableStateFlow(100L)
+                every {
+                    userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(testUser))
                 } returns MutableStateFlow(100L)
             }
 
             should("close member options after changing the user role") {
-
-                var closeMemberOptionsWasCalled = false
-                every { closeMemberOptions.invoke() } calls {
-                    closeMemberOptionsWasCalled = true
-                }
 
                 everySuspend {
                     roomsApiClientMock.sendStateEvent(
@@ -136,12 +152,12 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns Result.success(EventId(""))
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setRoleToAdmin()
                 delay(100.milliseconds)
 
-                cut.error.value shouldBe ""
+                cut.error.value shouldBe null
                 verifySuspend {
                     roomsApiClientMock.sendStateEvent(
                         eq(roomId),
@@ -151,26 +167,19 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     )
                 }
 
-                closeMemberOptionsWasCalled shouldBe true
                 cancelNeverEndingCoroutines()
             }
 
             should("show an error message when trying to change a role and we are not connected") {
                 syncStateMocker returns MutableStateFlow(SyncState.ERROR)
 
-                var closeMemberOptionsWasCalled = false
-                every { closeMemberOptions.invoke() } calls {
-                    closeMemberOptionsWasCalled = true
-                }
-
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setRoleToAdmin()
                 delay(100.milliseconds)
 
                 cut.error.value shouldNotBe null
-                closeMemberOptionsWasCalled shouldBe false
                 cancelNeverEndingCoroutines()
             }
 
@@ -186,7 +195,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns Result.failure(Throwable())
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setRoleToAdmin()
                 delay(100.milliseconds)
@@ -206,11 +215,6 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
             should("close member options after changing the power level successfully") {
 
-                var closeMemberOptionsWasCalled = false
-                every { closeMemberOptions.invoke() } calls {
-                    closeMemberOptionsWasCalled = true
-                }
-
                 everySuspend {
                     roomsApiClientMock.sendStateEvent(
                         eq(roomId),
@@ -221,12 +225,12 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns Result.success(EventId(""))
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setPowerLevelTo(99L)
                 delay(100.milliseconds)
 
-                cut.error.value shouldBe ""
+                cut.error.value shouldBe null
                 verifySuspend {
                     roomsApiClientMock.sendStateEvent(
                         eq(roomId),
@@ -236,7 +240,6 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     )
                 }
 
-                closeMemberOptionsWasCalled shouldBe true
                 cancelNeverEndingCoroutines()
             }
 
@@ -244,19 +247,13 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
                 syncStateMocker returns MutableStateFlow(SyncState.ERROR)
 
-                var closeMemberOptionsWasCalled = false
-                every { closeMemberOptions.invoke() } calls {
-                    closeMemberOptionsWasCalled = true
-                }
-
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setPowerLevelTo(99L)
                 delay(100.milliseconds)
 
                 cut.error.value shouldNotBe null
-                closeMemberOptionsWasCalled shouldBe false
                 cancelNeverEndingCoroutines()
             }
 
@@ -272,7 +269,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns Result.failure(Throwable())
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
                 cut.setPowerLevelTo(99L)
                 delay(100.milliseconds)
@@ -291,7 +288,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns MutableStateFlow(100L)
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
 
                 cut.onPowerLevelEntered("")
@@ -309,7 +306,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns MutableStateFlow(100L)
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
 
                 cut.onPowerLevelEntered(".,")
@@ -327,7 +324,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns MutableStateFlow(100)
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
 
                 cut.onPowerLevelEntered("-56")
@@ -345,7 +342,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns MutableStateFlow(56)
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(56L)
+                    coroutineContext, alice, MutableStateFlow(56L)
                 )
 
                 cut.onPowerLevelEntered("57")
@@ -361,7 +358,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 } returns MutableStateFlow(null)
 
                 val cut = changePowerLevelViewModel(
-                    coroutineContext, roomUserAlice, MutableStateFlow(100L)
+                    coroutineContext, alice, MutableStateFlow(100L)
                 )
 
                 cut.onPowerLevelEntered("57")
@@ -374,7 +371,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
     private fun changePowerLevelViewModel(
         coroutineContext: CoroutineContext,
-        roomUser: RoomUser,
+        userId: UserId,
         powerLevel: StateFlow<Long>,
     ): ChangePowerLevelViewModelImpl {
         Dispatchers.setMain(Dispatchers.Unconfined)
@@ -383,20 +380,15 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
                     modules(
-                        createTestDefaultTrixnityMessengerModules(
-                            mapOf(
-                                UserId("test", "server") to matrixClientMock
-                            ),
-                        ),
+                        createTestDefaultTrixnityMessengerModules(mapOf(userId to matrixClientMock)),
                     )
                 }.koin,
-                userId = UserId("test", "server"),
+                userId = userId,
                 coroutineContext = coroutineContext,
             ),
-            roomUser = roomUser,
-            error = MutableStateFlow(""),
+            targetUser = userId,
+            error = MutableStateFlow(null),
             selectedRoomId = roomId,
-            closeMemberOptions = closeMemberOptions,
             powerLevel = powerLevel,
         )
     }

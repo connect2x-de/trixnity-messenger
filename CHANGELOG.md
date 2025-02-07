@@ -9,8 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Introduced String.graphemeCount extension for counting perceived chars
+- Introduced String.forEachGrapheme extension for iterating perceived chars
+
 ### Changed
 
+- Use password type keyboard to enter recovery key
+- Refactored app view routing
 - Moved message metadata into a unified view with a new design
 
 ### Deprecated
@@ -19,9 +24,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Export directory resolution on Android
+- Fixed stuck device verification (button did nothing)
+- Make initials computation fully Unicode compliant
+- Fixed redactions of message edits
+- Don't render replace events even when not decryptable
 
 ### Security
+
+## 3.2.0
+
+### Added
+
+- Add User Profile Screen
+
+### Fixed
+
+- Fixed cache issues in Web by upgrading Trixnity
+
+## 3.1.1
+
+### Changed
+
+- Force database directory creation
+
+### Fixed
+
+- Fixed export directory resolution on Android
+- Handle commas in url correctly
+- Fixed faulty stale data cleanup on login leading to login error in Web
+- Fix license entries
 
 ## 3.1.0
 

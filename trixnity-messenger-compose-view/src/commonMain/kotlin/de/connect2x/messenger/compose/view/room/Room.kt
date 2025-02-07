@@ -38,7 +38,7 @@ class RoomViewImpl : RoomView {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val isSinglePane = this@BoxWithConstraints.maxWidth < TWO_PANE_THRESHOLD.dp
             val isSettingsShown = roomViewModel.isRoomSettingsShown.collectAsState().value
-            val isExtrasShown = roomViewModel.isExtrasShown.collectAsState().value
+            val isExtrasShown = roomViewModel.isShown.collectAsState().value
             Row(modifier = Modifier.fillMaxSize()) {
 
                 // Timeline Column

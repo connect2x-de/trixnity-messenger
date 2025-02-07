@@ -26,7 +26,8 @@ import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
 
-typealias OpenAvatarCutterCallback = (UserId, RoomId, FileDescriptor) -> Unit
+typealias OpenAvatarCutterCallback =
+            (userId: UserId, selectedRoomId: RoomId, avatarPicture: FileDescriptor) -> Unit
 
 interface ChangeRoomAvatarViewModelFactory {
     fun create(

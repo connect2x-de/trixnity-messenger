@@ -277,6 +277,7 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                                         viewModelContext: MatrixClientViewModelContext,
                                         selectedRoomId: RoomId,
                                         error: MutableStateFlow<String?>,
+                                        onOpenUserProfile: (UserId) -> Unit,
                                     ): MemberListViewModel = object : MemberListViewModel {
                                         override val elements: StateFlow<List<MemberListElementViewModel>> =
                                             MutableStateFlow(listOf())
@@ -284,7 +285,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                                             MutableStateFlow(emptyMap())
                                         override val showLoadingSpinner: StateFlow<Boolean> = MutableStateFlow(false)
                                         override val error: StateFlow<String?> = MutableStateFlow(null)
-
                                     }
                                 }
                             }
@@ -298,8 +298,9 @@ class RoomSettingsViewModelTest : ShouldSpec() {
             onLeaveRoom = onBackMock,
             onCloseRoomSettings = mock(),
             onOpenAvatarCutter = { _, _, _ -> },
-            onShowAddMembers = mock(),
-            onShowExportRoom = mock(),
+            onOpenAddMembers = mock(),
+            onOpenExportRoom = mock(),
+            onOpenUserProfile = mock(),
         )
     }
 }

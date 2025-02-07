@@ -113,6 +113,7 @@ kotlin {
             dependencies {
                 implementation(libs.bundles.jna)
                 implementation(libs.androidx.sqlite3mc.bundled)
+                implementation(libs.icu4j)
             }
         }
         androidMain {

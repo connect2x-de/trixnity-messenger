@@ -22,10 +22,11 @@ private val log = KotlinLogging.logger {}
 
 interface TimelineElementViewModelFactorySelector {
     fun nextSupportedTimelineEvent(timelineEvents: Flow<Flow<TimelineEvent>>): Flow<TimelineEvent?>
-    suspend fun supports(timelineEvent:Flow<TimelineEvent>): Boolean
+    suspend fun supports(timelineEvent: Flow<TimelineEvent>): Boolean
 
     suspend fun create(
         viewModelContext: MatrixClientViewModelContext,
+        originalContent: RoomEventContent,
         content: Result<RoomEventContent>?,
         roomId: RoomId,
         eventId: EventIdOrTransactionId,
@@ -57,7 +58,7 @@ class TimelineElementViewModelFactorySelectorImpl(
         flow {
             timelineEvents.collect { timelineEvent ->
                 timelineEvent
-                    .map { supports(it.content) }
+                    .map { supports(it.event.content, it.content) }
                     // TODO: check if it really should emmit timeline-event from outside of the mapped onEach every time that's called
                     .onEach { if (it) emitAll(timelineEvent) else emit(null) }
                     .first { !it }
@@ -65,44 +66,47 @@ class TimelineElementViewModelFactorySelectorImpl(
             emit(null) // if start of timeline reached
         }.distinctUntilChanged()
 
-    override  suspend fun supports(timelineEvent: Flow<TimelineEvent>): Boolean =
-        timelineEvent.map { supports(it.content) }.first()
+    override suspend fun supports(timelineEvent: Flow<TimelineEvent>): Boolean =
+        timelineEvent.map { supports(it.event.content, it.content) }.first()
 
-    private suspend fun supports(content: Result<RoomEventContent>?): Boolean =
-        content == null || content.fold(onFailure = { true }, onSuccess = { findFactory(it) != null })
+    private suspend fun supports(originalContent: RoomEventContent, content: Result<RoomEventContent>?): Boolean =
+        isReplaceEvent(originalContent).not() &&
+                (content == null || content.fold(onFailure = { true }, onSuccess = { findFactory(it) != null }))
 
     override suspend fun create(
         viewModelContext: MatrixClientViewModelContext,
+        originalContent: RoomEventContent,
         content: Result<RoomEventContent>?,
         roomId: RoomId,
         eventId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-    ): TimelineElementViewModel<*> {
-        return when {
-            content == null -> encryptedWaitTimelineElementViewModelFactory.create(
-                viewModelContext = viewModelContext,
-            ) ?: TimelineElementViewModel.Empty
+    ): TimelineElementViewModel<*> = when {
 
-            else -> content.fold(
-                onFailure = { error ->
-                    encryptedErrorTimelineElementViewModelFactory.create(
+        isReplaceEvent(originalContent) -> TimelineElementViewModel.Empty
+
+        content == null -> encryptedWaitTimelineElementViewModelFactory.create(
+            viewModelContext = viewModelContext,
+        ) ?: TimelineElementViewModel.Empty
+
+        else -> content.fold(
+            onFailure = { error ->
+                encryptedErrorTimelineElementViewModelFactory.create(
+                    viewModelContext = viewModelContext,
+                    error = error,
+                ) ?: TimelineElementViewModel.Empty
+            },
+            onSuccess = { decryptedContent ->
+                findFactory(decryptedContent)
+                    ?.create(
                         viewModelContext = viewModelContext,
-                        error = error,
-                    ) ?: TimelineElementViewModel.Empty
-                },
-                onSuccess = { roomEventContent ->
-                    findFactory(roomEventContent)
-                        ?.create(
-                            viewModelContext = viewModelContext,
-                            content = roomEventContent,
-                            roomId = roomId,
-                            eventId = eventId,
-                            onOpenMention = onOpenMention,
-                        )
-                        ?: TimelineElementViewModel.Empty
-                }
-            )
-        }
+                        content = decryptedContent,
+                        roomId = roomId,
+                        eventId = eventId,
+                        onOpenMention = onOpenMention,
+                    )
+                    ?: TimelineElementViewModel.Empty
+            },
+        )
     }
 
     private suspend fun findFactory(
