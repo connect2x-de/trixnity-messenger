@@ -52,13 +52,15 @@ interface MessageMetadataViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         eventId: EventId,
         roomId: RoomId,
+        onOpenUserProfile: (UserId) -> Unit,
         onBack: () -> Unit,
     ): MessageMetadataViewModel =
         MessageMetadataViewModelImpl(
-            viewModelContext,
-            eventId,
-            roomId,
-            onBack,
+            viewModelContext = viewModelContext,
+            eventId = eventId,
+            roomId = roomId,
+            onOpenUserProfile = onOpenUserProfile,
+            onBack = onBack,
         )
 
     companion object : MessageMetadataViewModelFactory
@@ -71,6 +73,7 @@ interface MessageMetadataViewModel {
     val userInteractions: StateFlow<List<MessageUserInteraction>>
     val reactionCounts: StateFlow<Map<ReactionKey, UInt>>
     val error: StateFlow<String?>
+    fun openUserProfile(userId: UserId)
     fun back()
 }
 
@@ -78,6 +81,7 @@ class MessageMetadataViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val eventId: EventId,
     private val roomId: RoomId,
+    private val onOpenUserProfile: (UserId) -> Unit,
     private val onBack: () -> Unit,
 ) : MessageMetadataViewModel, MatrixClientViewModelContext by viewModelContext {
     private val config = get<MatrixMessengerConfiguration>()
@@ -94,6 +98,10 @@ class MessageMetadataViewModelImpl(
 
     override fun back() {
         onBack()
+    }
+
+    override fun openUserProfile(userId: UserId) {
+        onOpenUserProfile(userId)
     }
 
     private val message: StateFlow<TimelineEvent?> =

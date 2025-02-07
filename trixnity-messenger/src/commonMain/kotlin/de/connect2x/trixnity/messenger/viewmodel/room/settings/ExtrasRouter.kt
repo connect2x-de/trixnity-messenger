@@ -159,7 +159,7 @@ class ExtrasRouterImpl(
                 onOpenExportRoom = { onOpenExportRoom(config.roomId) },
                 onCloseRoomSettings = ::onCloseRoomSettings,
                 onOpenAvatarCutter = onOpenAvatarCutter,
-                onOpenUserProfile = ::onOpenUserProfile,
+                onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
             )
         )
 
@@ -199,6 +199,7 @@ class ExtrasRouterImpl(
                 viewModelContext = viewModelContext.childContext(componentContext),
                 eventId = config.eventId,
                 roomId = config.roomId,
+                onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
                 onBack = ::onBack,
             )
         )

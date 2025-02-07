@@ -98,6 +98,7 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.core.model.UserId
 import kotlin.time.Duration.Companion.milliseconds
 
 
@@ -342,7 +343,10 @@ class MessageMetadataViewImpl : MessageMetadataView {
                             text = i18n.messageMetadataSender(),
                             style = MaterialTheme.typography.titleMedium,
                         )
-                        UserInfo(viewModel.senderInfo)
+                        UserInfo(
+                            viewModel.senderInfo,
+                            onOpenUserProfile = viewModel::openUserProfile,
+                        )
                         Spacer(Modifier.size(smallSpacing))
                         Text(
                             text = i18n.messageMetadataMessage(),
@@ -380,6 +384,7 @@ class MessageMetadataViewImpl : MessageMetadataView {
                                         paneBounds = paneBounds.get(),
                                         visibleListOffset = interactionsOffset,
                                         visibleListHeight = filterOffset - interactionsOffset,
+                                        onOpenUserProfile = viewModel::openUserProfile,
                                     )
                                 }
                             }
@@ -405,6 +410,7 @@ class MessageMetadataViewImpl : MessageMetadataView {
 private fun UserInfo(
     userInfoFlow: StateFlow<UserInfoElement?>,
     reactions: Set<ReactionKey> = setOf(),
+    onOpenUserProfile: (UserId) -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val userInfo = userInfoFlow.collectAsState().value
@@ -431,8 +437,7 @@ private fun UserInfo(
                 .fillMaxWidth()
                 .height(userItemHeight)
                 .clickable {
-                    // Noop for hover effect.
-                    // TODO: Open user profile.
+                    onOpenUserProfile(userInfo.userId)
                 }
         ) {
             Box(
@@ -501,6 +506,7 @@ private fun UserInteractions(
     paneBounds: VerticalBounds,
     visibleListOffset: Dp,
     visibleListHeight: Dp,
+    onOpenUserProfile: (UserId) -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val density = LocalDensity.current
@@ -535,7 +541,7 @@ private fun UserInteractions(
                                 && itemOffset > -cullOffset
                     } == true
                 if (showItem) key(interaction.userId) {
-                    UserInfo(interaction.userInfo, interaction.reactions)
+                    UserInfo(interaction.userInfo, interaction.reactions, onOpenUserProfile)
                 }
             }
         }
