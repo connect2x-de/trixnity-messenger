@@ -140,6 +140,12 @@ fun TestScope.testMatrixClientViewModelContext(di: Koin, userId: UserId) = objec
     override val coroutineScope = CoroutineScope(coroutineContext)
 }
 
+
+// Normally one could use the context("...") method, however
+// when setting the dispatcher in an outer beforeTest scope like here
+// (Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher])))
+// this seems to misbehave in inner contexts: https://github.com/kotest/kotest/issues/3577
+
 /**
  * Drop in replacement for [io.kotest.core.spec.style.scopes.ShouldSpecRootScope.context]
  * since it appears to have some issues that are causing timeouts.

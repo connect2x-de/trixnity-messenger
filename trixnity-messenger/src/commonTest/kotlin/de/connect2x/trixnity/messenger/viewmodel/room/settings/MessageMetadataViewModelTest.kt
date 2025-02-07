@@ -1,11 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.shouldGroup
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.roomUsers
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.withCleanup
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
@@ -92,11 +93,12 @@ class MessageMetadataViewModelTest : ShouldSpec() {
                     ),
                     eventId = eventId,
                     roomId = roomId,
+                    onOpenUserProfile = {},
                     onBack = {},
                 )
             }
 
-        should("return the message content and sender info") {
+        should("return the message content and sender info").withCleanup {
             val env = TestEnv()
             timeline(roomServiceMock, env.roomId) {
                 +messageEvent(sender = env.them, eventId = env.theirEventId) { text("Hi!") }
@@ -121,139 +123,139 @@ class MessageMetadataViewModelTest : ShouldSpec() {
                 it.userId shouldBe env.them
                 it.name shouldBe "Alice"
             }
-            cancelNeverEndingCoroutines()
         }
 
-        should("see if and by whom a message has been read") {
-            val env = TestEnv()
-            timeline(roomServiceMock, env.roomId) {
-                +messageEvent(sender = us, eventId = env.ourEventId) { text("Hi!") }
-            }
-            roomUsers(userServiceMock, env.roomId) {
-                +roomUser("Martin", env.us, env.ourEventId)
-                +roomUser("Alice", env.them, null)
-                +roomUser("Reader1", env.reader1, env.ourEventId)
-                +roomUser("Reader2", env.reader2, env.ourEventId)
-                +roomUser("Reader3", env.reader3, env.ourEventId)
-            }
-            val cut = cutMessageMetadataViewModel(env.roomId, env.ourEventId)
-            launch { cut.userInteractions.collect() }
-            advanceUntilIdle()
-            val interactions = cut.userInteractions.value
-            interactions shouldHaveSize 3
-            interactions.forEach {
-                when (it.userId) {
-                    env.reader1,
-                    env.reader2,
-                    env.reader3 ->
-                        it.hasRead shouldBe true
+        shouldGroup("reader info") {
 
-                    else ->
-                        it.hasRead shouldBe false
+            should("see if and by whom a message has been read").withCleanup {
+                val env = TestEnv()
+                timeline(roomServiceMock, env.roomId) {
+                    +messageEvent(sender = us, eventId = env.ourEventId) { text("Hi!") }
                 }
-            }
-            cancelNeverEndingCoroutines()
-        }
-
-        should("see if a message hasn't been read") {
-            val env = TestEnv()
-            timeline(roomServiceMock, env.roomId) {
-                +messageEvent(sender = env.them, eventId = env.theirEventId) { text("Hi!") }
-                +messageEvent(sender = env.us, eventId = env.ourEventId) { text("Hi!") }
-            }
-            roomUsers(userServiceMock, env.roomId) {
-                +roomUser("Martin", env.us, env.ourEventId)
-                +roomUser("Alice", env.them, null)
-                +roomUser("Reader1", env.reader1, env.theirEventId)
-                +roomUser("Reader2", env.reader2, null)
-                +roomUser("Reader3", env.reader3, null)
-            }
-            val cut = cutMessageMetadataViewModel(env.roomId, env.ourEventId)
-            launch { cut.userInteractions.collect() }
-            advanceUntilIdle()
-            val interactions = cut.userInteractions.value
-            interactions shouldHaveSize 0
-            interactions.forEach {
-                withClue("user ${it.userId} shouldn't have read the message") {
-                    it.hasRead shouldBe false
+                roomUsers(userServiceMock, env.roomId) {
+                    +roomUser("Martin", env.us, env.ourEventId)
+                    +roomUser("Alice", env.them, null)
+                    +roomUser("Reader1", env.reader1, env.ourEventId)
+                    +roomUser("Reader2", env.reader2, env.ourEventId)
+                    +roomUser("Reader3", env.reader3, env.ourEventId)
                 }
-            }
-            cancelNeverEndingCoroutines()
-        }
-
-        should("see if and by whom a message has received reactions from") {
-            val env = TestEnv()
-            timeline(roomServiceMock, env.roomId) {
-                +messageEvent(sender = env.them, eventId = env.theirEventId) { text("Hi!") }
-                +messageEvent(sender = env.reader1) { reaction(env.theirEventId, "😄") }
-                +messageEvent(sender = env.reader1) { reaction(env.theirEventId, "🙂") }
-                +messageEvent(sender = env.reader1) { reaction(env.theirEventId, "🥳") }
-                +messageEvent(sender = env.reader2) { reaction(env.theirEventId, "😄") }
-                +messageEvent(sender = env.reader2) { reaction(env.theirEventId, "🙂") }
-                +messageEvent(sender = env.us) { reaction(env.theirEventId, "🙂") }
-            }
-            roomUsers(userServiceMock, env.roomId) {
-                +roomUser("Alice", env.them, env.theirEventId)
-                +roomUser("Martin", env.us, env.theirEventId)
-                +roomUser("Reader1", env.reader1, env.theirEventId)
-                +roomUser("Reader2", env.reader2, env.theirEventId)
-                +roomUser("Reader3", env.reader3, env.theirEventId)
-            }
-            val cut = cutMessageMetadataViewModel(env.roomId, env.theirEventId)
-            launch { cut.userInteractions.collect() }
-            launch { cut.reactionCounts.collect() }
-            advanceUntilIdle()
-            cut.userInteractions.value.let { interactions ->
-                interactions shouldHaveSize 4
+                val cut = cutMessageMetadataViewModel(env.roomId, env.ourEventId)
+                launch { cut.userInteractions.collect() }
+                advanceUntilIdle()
+                val interactions = cut.userInteractions.value
+                interactions shouldHaveSize 3
                 interactions.forEach {
                     when (it.userId) {
-                        env.reader1 -> it.reactions shouldBe setOf("😄", "🙂", "🥳")
-                        env.reader2 -> it.reactions shouldBe setOf("😄", "🙂")
-                        env.us -> it.reactions shouldBe setOf("🙂")
-                        else -> it.reactions shouldBe setOf()
+                        env.reader1,
+                        env.reader2,
+                        env.reader3,
+                            -> it.hasRead shouldBe true
+
+                        else -> it.hasRead shouldBe false
                     }
                 }
             }
-            cut.reactionCounts.value.let { reactions ->
-                reactions shouldHaveSize 3
-                reactions.forEach {
-                    when (it.key) {
-                        "🙂" -> it.value shouldBe 3u
-                        "😄" -> it.value shouldBe 2u
-                        "🥳" -> it.value shouldBe 1u
-                        else -> it.value shouldBe 0u
+
+            should("see if a message hasn't been read").withCleanup {
+                val env = TestEnv()
+                timeline(roomServiceMock, env.roomId) {
+                    +messageEvent(sender = env.them, eventId = env.theirEventId) { text("Hi!") }
+                    +messageEvent(sender = env.us, eventId = env.ourEventId) { text("Hi!") }
+                }
+                roomUsers(userServiceMock, env.roomId) {
+                    +roomUser("Martin", env.us, env.ourEventId)
+                    +roomUser("Alice", env.them, null)
+                    +roomUser("Reader1", env.reader1, env.theirEventId)
+                    +roomUser("Reader2", env.reader2, null)
+                    +roomUser("Reader3", env.reader3, null)
+                }
+                val cut = cutMessageMetadataViewModel(env.roomId, env.ourEventId)
+                launch { cut.userInteractions.collect() }
+                advanceUntilIdle()
+                val interactions = cut.userInteractions.value
+                interactions shouldHaveSize 0
+                interactions.forEach {
+                    withClue("user ${it.userId} shouldn't have read the message") {
+                        it.hasRead shouldBe false
                     }
                 }
             }
-            cancelNeverEndingCoroutines()
         }
 
-        should("see if a message hasn't received any reactions") {
-            val env = TestEnv()
-            timeline(roomServiceMock, env.roomId) {
-                +messageEvent(sender = env.us, eventId = env.ourEventId) { text("Hi!") }
-            }
-            roomUsers(userServiceMock, env.roomId) {
-                +roomUser("Martin", env.us, env.ourEventId)
-                +roomUser("Alice", env.them, env.ourEventId)
-                +roomUser("Reader1", env.reader1, env.ourEventId)
-                +roomUser("Reader2", env.reader2, env.ourEventId)
-                +roomUser("Reader3", env.reader3, env.ourEventId)
-            }
-            val cut = cutMessageMetadataViewModel(env.roomId, env.ourEventId)
-            launch { cut.userInteractions.collect() }
-            launch { cut.reactionCounts.collect() }
-            advanceUntilIdle()
-            cut.userInteractions.value.let { interactions ->
-                interactions shouldHaveSize 4
-                interactions.forEach {
-                    it.reactions shouldBe setOf()
+        shouldGroup("message reactions") {
+
+            should("see if and by whom a message has received reactions from").withCleanup {
+                val env = TestEnv()
+                timeline(roomServiceMock, env.roomId) {
+                    +messageEvent(sender = env.them, eventId = env.theirEventId) { text("Hi!") }
+                    +messageEvent(sender = env.reader1) { reaction(env.theirEventId, "😄") }
+                    +messageEvent(sender = env.reader1) { reaction(env.theirEventId, "🙂") }
+                    +messageEvent(sender = env.reader1) { reaction(env.theirEventId, "🥳") }
+                    +messageEvent(sender = env.reader2) { reaction(env.theirEventId, "😄") }
+                    +messageEvent(sender = env.reader2) { reaction(env.theirEventId, "🙂") }
+                    +messageEvent(sender = env.us) { reaction(env.theirEventId, "🙂") }
+                }
+                roomUsers(userServiceMock, env.roomId) {
+                    +roomUser("Alice", env.them, env.theirEventId)
+                    +roomUser("Martin", env.us, env.theirEventId)
+                    +roomUser("Reader1", env.reader1, env.theirEventId)
+                    +roomUser("Reader2", env.reader2, env.theirEventId)
+                    +roomUser("Reader3", env.reader3, env.theirEventId)
+                }
+                val cut = cutMessageMetadataViewModel(env.roomId, env.theirEventId)
+                launch { cut.userInteractions.collect() }
+                launch { cut.reactionCounts.collect() }
+                advanceUntilIdle()
+                cut.userInteractions.value.let { interactions ->
+                    interactions shouldHaveSize 4
+                    interactions.forEach {
+                        when (it.userId) {
+                            env.reader1 -> it.reactions shouldBe setOf("😄", "🙂", "🥳")
+                            env.reader2 -> it.reactions shouldBe setOf("😄", "🙂")
+                            env.us -> it.reactions shouldBe setOf("🙂")
+                            else -> it.reactions shouldBe setOf()
+                        }
+                    }
+                }
+                cut.reactionCounts.value.let { reactions ->
+                    reactions shouldHaveSize 3
+                    reactions.forEach {
+                        when (it.key) {
+                            "🙂" -> it.value shouldBe 3u
+                            "😄" -> it.value shouldBe 2u
+                            "🥳" -> it.value shouldBe 1u
+                            else -> it.value shouldBe 0u
+                        }
+                    }
                 }
             }
-            cut.reactionCounts.value.let { reactions ->
-                reactions shouldHaveSize 0
+
+            should("see if a message hasn't received any reactions").withCleanup {
+                val env = TestEnv()
+                timeline(roomServiceMock, env.roomId) {
+                    +messageEvent(sender = env.us, eventId = env.ourEventId) { text("Hi!") }
+                }
+                roomUsers(userServiceMock, env.roomId) {
+                    +roomUser("Martin", env.us, env.ourEventId)
+                    +roomUser("Alice", env.them, env.ourEventId)
+                    +roomUser("Reader1", env.reader1, env.ourEventId)
+                    +roomUser("Reader2", env.reader2, env.ourEventId)
+                    +roomUser("Reader3", env.reader3, env.ourEventId)
+                }
+                val cut = cutMessageMetadataViewModel(env.roomId, env.ourEventId)
+                launch { cut.userInteractions.collect() }
+                launch { cut.reactionCounts.collect() }
+                advanceUntilIdle()
+                cut.userInteractions.value.let { interactions ->
+                    interactions shouldHaveSize 4
+                    interactions.forEach {
+                        it.reactions shouldBe setOf()
+                    }
+                }
+                cut.reactionCounts.value.let { reactions ->
+                    reactions shouldHaveSize 0
+                }
             }
-            cancelNeverEndingCoroutines()
         }
     }
 }

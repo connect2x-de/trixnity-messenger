@@ -25,7 +25,6 @@ import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.fail
-import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.engine.mock.*
@@ -43,8 +42,6 @@ import net.folivo.trixnity.clientserverapi.model.authentication.Login
 import net.folivo.trixnity.core.model.UserId
 
 
-@ExperimentalKotest
-//@OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class MatrixClientsTest : ShouldSpec() {
     private lateinit var mutableMatrixClients: MutableStateFlow<Map<UserId, MatrixClient>>
     private lateinit var loginState: MutableStateFlow<MatrixClient.LoginState>
