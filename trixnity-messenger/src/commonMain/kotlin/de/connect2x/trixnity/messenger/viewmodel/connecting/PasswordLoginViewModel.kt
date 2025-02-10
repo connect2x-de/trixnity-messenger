@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
@@ -41,8 +43,8 @@ interface PasswordLoginViewModel {
 
     val canLogin: StateFlow<Boolean>
 
-    val username: MutableStateFlow<String>
-    val password: MutableStateFlow<String>
+    val username: TextFieldViewModel
+    val password: TextFieldViewModel
 
     val addMatrixAccountState: StateFlow<AddMatrixAccountState>
     fun tryLogin()
@@ -60,8 +62,8 @@ open class PasswordLoginViewModelImpl(
     override val isFirstMatrixClient: StateFlow<Boolean?> = matrixClients.map { it.isEmpty() }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    final override val username: MutableStateFlow<String> = MutableStateFlow("")
-    final override val password: MutableStateFlow<String> = MutableStateFlow("")
+    final override val username = TextFieldViewModelImpl()
+    final override val password = TextFieldViewModelImpl()
 
     override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> =
         MutableStateFlow(AddMatrixAccountState.None)
@@ -71,18 +73,18 @@ open class PasswordLoginViewModelImpl(
             username,
             password,
         ) { username, password ->
-            log.trace { "canLogin: username=$username, serverUrl=$serverUrl, password=${if (password.isNotBlank()) "***" else ""}" }
-            username.isNotBlank() && password.isNotBlank() && serverUrl.isNotBlank()
+            log.trace { "canLogin: username=$username, serverUrl=$serverUrl, password=${if (password.text.isNotBlank()) "***" else ""}" }
+            username.text.isNotBlank() && password.text.isNotBlank() && serverUrl.isNotBlank()
         }.stateIn(coroutineScope, SharingStarted.Eagerly, false) // eagerly because value is used below
 
     override fun tryLogin() {
         coroutineScope.launch {
-            log.debug { "Try to login into $serverUrl with username=${username.value} and password=password=${if (password.value.isNotBlank()) "***" else ""}." }
+            log.debug { "Try to login into $serverUrl with username=${username.value} and password=password=${if (password.value.text.isNotBlank()) "***" else ""}." }
             if (canLogin.value && addMatrixAccountState.value !is AddMatrixAccountState.Connecting) {
                 matrixClients.loginCatching(
                     serverUrl = serverUrl,
-                    username = username.value,
-                    password = password.value,
+                    username = username.value.text,
+                    password = password.value.text,
                     initialDeviceDisplayName = getDefaultDeviceDisplayName(),
                     addMatrixAccountState = addMatrixAccountState,
                     i18n = i18n,
@@ -103,8 +105,8 @@ class PreviewPasswordLoginViewModel : PasswordLoginViewModel {
     override val serverUrl: String = "https://timmy-messenger.de"
     override val isFirstMatrixClient: StateFlow<Boolean?> = MutableStateFlow(false)
     override val canLogin: StateFlow<Boolean> = MutableStateFlow(false)
-    override val username: MutableStateFlow<String> = MutableStateFlow("user")
-    override val password: MutableStateFlow<String> = MutableStateFlow("password")
+    override val username = TextFieldViewModelImpl()
+    override val password = TextFieldViewModelImpl()
     override val addMatrixAccountState: StateFlow<AddMatrixAccountState> =
         MutableStateFlow(AddMatrixAccountState.Failure("dino"))
 

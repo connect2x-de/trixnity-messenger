@@ -673,26 +673,6 @@ abstract class I18n(
         DE - "Sie können offline keine Nutzer entfernen."
     }
 
-    fun settingsRoomMemberListKickUserWarningMessageChat() = translate {
-        EN - "The user will not be able to access the contents of the chat afterwards."
-        DE - "Der Nutzer kann danach nicht mehr auf die Inhalte des Chats zugreifen."
-    }
-
-    fun settingsRoomMemberListKickUserWarningMessageGroup() = translate {
-        EN - "The user will not be able to access the contents of the group afterwards."
-        DE - "Der Nutzer kann danach nicht mehr auf die Inhalte der Gruppe zugreifen."
-    }
-
-    fun settingsRoomMemberListKickUserWarningTitleChat(username: String) = translate {
-        EN - "Remove user $username from chat?"
-        DE - "Nutzer $username aus dem Chat entfernen?"
-    }
-
-    fun settingsRoomMemberListKickUserWarningTitleGroup(username: String) = translate {
-        EN - "Remove user $username from group?"
-        DE - "Nutzer $username aus der Gruppe entfernen?"
-    }
-
     fun settingsRoomMemberListRoleAdmin() = translate {
         EN - "Administrator"
         DE - "Administrator"

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Introduced String.graphemeCount extension for counting perceived chars
 - Introduced String.forEachGrapheme extension for iterating perceived chars
+- Introduce TextFieldViewModel for cleaner text input synchronization
 
 ### Changed
 
@@ -27,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make initials computation fully Unicode compliant
 - Fixed redactions of message edits
 - Don't render replace events even when not decryptable
+- Fixed various text field and typing issues
 
 ### Security
 

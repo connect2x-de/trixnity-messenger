@@ -2,6 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -62,7 +64,7 @@ interface RoomSettingsAliasViewModel {
 
     val isUpdating: StateFlow<Boolean>
 
-    val newAlias: MutableStateFlow<String>
+    val newAlias: TextFieldViewModel
 
     fun addNewAlias(onlyLocalpart: Boolean = false)
     fun changeMainAlias(alias: RoomAliasId?)
@@ -108,12 +110,12 @@ class RoomSettingsAliasViewModelImpl(
     private val _isUpdating = MutableStateFlow(false)
     override val isUpdating: StateFlow<Boolean> = _isUpdating.asStateFlow()
 
-    override val newAlias: MutableStateFlow<String> = MutableStateFlow("")
+    override val newAlias = TextFieldViewModelImpl()
 
     internal val i18n = get<I18n>()
 
     override fun addNewAlias(onlyLocalpart: Boolean) {
-        val currentNewAlias = if (onlyLocalpart) "#${newAlias.value}:$domain" else newAlias.value
+        val currentNewAlias = if (onlyLocalpart) "#${newAlias.value.text}:$domain" else newAlias.value.text
 
         if (_isUpdating.getAndUpdate { true }) {
             log.debug { "Cancelled add Alias $currentNewAlias due to event still updating" }
@@ -238,7 +240,7 @@ class RoomSettingsAliasViewModelImpl(
                     }
                 )
 
-                newAlias.value = ""
+                newAlias.update("")
                 newAliasError.value = null
             }.invokeOnCompletion { _isUpdating.value = false }
         }
@@ -439,7 +441,7 @@ class PreviewRoomSettingsAliasViewModel : RoomSettingsAliasViewModel {
     override val domain: String = "example.org"
     override val moreAliases: MutableStateFlow<Set<String>> = MutableStateFlow(emptySet())
     override val isUpdating: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val newAlias: MutableStateFlow<String> = MutableStateFlow("")
+    override val newAlias = TextFieldViewModelImpl()
 
     override fun addNewAlias(onlyLocalpart: Boolean) {
     }

@@ -28,7 +28,8 @@ fun TextMessageBubblePreview() {
     holder.showSender.value = true
     val userInfoElement = UserInfoElement(
         name = "Martin",
-        userId = UserId("@martin:localhost")
+        userId = UserId("@martin:localhost"),
+        initials = "M",
     )
     holder.sender.value = userInfoElement
     holder.isFirstInUserSequence.value = true
@@ -64,7 +65,8 @@ fun ImageMessageBubblePreview() {
     holder.showSender.value = true
     holder.sender.value = UserInfoElement(
         name = "Martin",
-        userId = UserId("@martin:localhost")
+        userId = UserId("@martin:localhost"),
+        initials = "M",
     )
     holder.isFirstInUserSequence.value = true
     holder.showBigGapBefore.value = true
@@ -104,7 +106,8 @@ fun FileMessageBubblePreview() {
     holder.showSender.value = true
     holder.sender.value = UserInfoElement(
         name = "Martin",
-        userId = UserId("@martin:localhost")
+        userId = UserId("@martin:localhost"),
+        initials = "M",
     )
     holder.isFirstInUserSequence.value = true
     holder.showBigGapBefore.value = true

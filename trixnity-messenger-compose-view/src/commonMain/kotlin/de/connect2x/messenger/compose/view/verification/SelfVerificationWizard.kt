@@ -1,12 +1,30 @@
 package de.connect2x.messenger.compose.view.verification
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -20,12 +38,20 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.*
+import de.connect2x.messenger.compose.view.common.ErrorView
+import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.common.MoreInfo
+import de.connect2x.messenger.compose.view.common.PasswordField
+import de.connect2x.messenger.compose.view.common.RunningText
+import de.connect2x.messenger.compose.view.common.SmallSpacer
+import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
+import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerColors
@@ -457,7 +483,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
         step: SelfVerificationWizardStep,
         i18n: I18nView
     ): WizardStep {
-        val passphrase = mutableStateOf("")
+        val passphrase = mutableStateOf(TextFieldValue(""))
         return WizardStep(
             id = step.stepId,
             title = { i18n.deviceVerification() },
@@ -475,7 +501,6 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                     Spacer(Modifier.size(10.dp))
                     PasswordField(
                         password = passphrase,
-                        onPasswordChange = { passphrase.value = it },
                         label = { Text(i18n.commonRecoveryPassphrase()) },
                     )
                     if (passphraseWrong.value) {
@@ -496,7 +521,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                     Button(
                         modifier = Modifier.buttonPointerModifier(),
                         onClick = {
-                            selfVerificationViewModel.verifyWithPassphrase(passphrase.value)
+                            selfVerificationViewModel.verifyWithPassphrase(passphrase.value.text)
                         }) {
                         Text(i18n.commonNext())
                     }

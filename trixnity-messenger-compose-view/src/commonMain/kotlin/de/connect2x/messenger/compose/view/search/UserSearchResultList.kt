@@ -41,11 +41,19 @@ import kotlinx.coroutines.flow.map
 
 interface UserSearchResultListView {
     @Composable
-    fun create(userSearchHandler: UserSearchHandler, shouldScroll: Boolean, userClickReaction: suspend (SearchUserElement) -> Unit,)
+    fun create(
+        userSearchHandler: UserSearchHandler,
+        shouldScroll: Boolean,
+        userClickReaction: suspend (SearchUserElement) -> Unit,
+    )
 }
 
 @Composable
-fun UserSearchResultList(userSearchHandler: UserSearchHandler, shouldScroll: Boolean, userClickReaction: suspend (SearchUserElement) -> Unit,) {
+fun UserSearchResultList(
+    userSearchHandler: UserSearchHandler,
+    shouldScroll: Boolean,
+    userClickReaction: suspend (SearchUserElement) -> Unit,
+) {
     DI.get<UserSearchResultListView>().create(userSearchHandler, shouldScroll, userClickReaction)
 }
 
@@ -54,16 +62,22 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
     override fun create(
         userSearchHandler: UserSearchHandler,
         shouldScroll: Boolean,
-        userClickReaction: suspend (SearchUserElement) -> Unit, ) {
+        userClickReaction: suspend (SearchUserElement) -> Unit,
+    ) {
         val i18n = DI.get<I18nView>()
         val users = userSearchHandler.foundUsers.collectAsState().value
         val waitForResults = userSearchHandler.waitForUserResults.collectAsState().value
-        val searchWasApplied = userSearchHandler.searchTerm.map { it.isNotBlank() }.collectAsState(false).value
+        val searchWasApplied =
+            remember { userSearchHandler.searchTerm.map { it.text.isNotBlank() } }.collectAsState(false).value
 
         val clickedUser = remember { mutableStateOf<SearchUserElement?>(null) }
         val scroll = rememberScrollState()
         val modifier = remember(shouldScroll) {
-            if (shouldScroll) { Modifier.verticalScroll(scroll) } else { Modifier }
+            if (shouldScroll) {
+                Modifier.verticalScroll(scroll)
+            } else {
+                Modifier
+            }
         }
 
 
@@ -121,7 +135,8 @@ private fun UserElement(
         Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .buttonPointerModifier()) {
+            .buttonPointerModifier()
+    ) {
         Row(
             Modifier.padding(horizontal = 10.dp, vertical = 20.dp),
             verticalAlignment = Alignment.CenterVertically

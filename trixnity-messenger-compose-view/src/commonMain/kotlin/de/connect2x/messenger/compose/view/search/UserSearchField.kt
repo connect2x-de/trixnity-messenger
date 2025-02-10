@@ -11,11 +11,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
+import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
@@ -35,18 +38,18 @@ class UserSearchFieldViewImpl : UserSearchFieldView {
     @Composable
     override fun create(userSearchHandler: UserSearchHandler) {
         val i18n = DI.get<I18nView>()
-        val userSearchTerm = userSearchHandler.searchTerm.collectAsStateForTextField().value
+        var userSearchTerm by userSearchHandler.searchTerm.collectAsTextFieldValueState()
 
         OutlinedTextField(
             value = userSearchTerm,
-            onValueChange = { userSearchHandler.searchTerm.value = it },
+            onValueChange = { userSearchTerm = it },
             modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 20.dp),
             leadingIcon = { Icon(Icons.Default.Search, i18n.userSearchSearchPeople()) },
             trailingIcon = {
-                if (userSearchTerm.isNotBlank()) Icon(
+                if (userSearchTerm.text.isNotBlank()) Icon(
                     Icons.Default.Clear,
                     i18n.commonDelete(),
-                    Modifier.clickable { userSearchHandler.searchTerm.value = "" }.buttonPointerModifier()
+                    Modifier.clickable { userSearchTerm = TextFieldValue("") }.buttonPointerModifier()
                 )
             },
             placeholder = { Text(i18n.userSearchNameOrMatrixId()) },

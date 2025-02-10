@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.uia
 
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModelPreview.PreviewMode.BLANK
@@ -40,7 +42,7 @@ interface UiaStepRegistrationTokenViewModelFactory {
 }
 
 interface UiaStepRegistrationTokenViewModel {
-    val registrationToken: MutableStateFlow<String>
+    val registrationToken: TextFieldViewModel
     val isSubmitting: StateFlow<Boolean>
     val error: StateFlow<String?>
     fun submit()
@@ -54,7 +56,7 @@ class UiaStepRegistrationTokenViewModelImpl(
     private val onCancel: () -> Unit,
     private val onError: (MatrixServerException) -> Unit,
 ) : ViewModelContext by viewModelContext, UiaStepRegistrationTokenViewModel {
-    override val registrationToken: MutableStateFlow<String> = MutableStateFlow("")
+    override val registrationToken = TextFieldViewModelImpl()
     override val error = MutableStateFlow<String?>(null)
     override val isSubmitting: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
@@ -62,7 +64,7 @@ class UiaStepRegistrationTokenViewModelImpl(
         if (isSubmitting.getAndUpdate { true }.not()) {
             coroutineScope.launch {
                 error.value = null
-                val authRequest = AuthenticationRequest.RegistrationToken(registrationToken.value)
+                val authRequest = AuthenticationRequest.RegistrationToken(registrationToken.value.text)
                 uiaStep.authenticate(authRequest)
                     .onSuccess {
                         if (it is UIA.Error) {
@@ -100,7 +102,7 @@ class UiaStepRegistrationTokenViewModelImpl(
 }
 
 class UiaStepRegistrationTokenViewModelPreview(mode: PreviewMode = BLANK) : UiaStepRegistrationTokenViewModel {
-    override val registrationToken = MutableStateFlow(if (mode == FILLED) "12345678" else "")
+    override val registrationToken = TextFieldViewModelImpl(if (mode == FILLED) "12345678" else "")
     override val error = MutableStateFlow(if (mode == ERROR) "Error!" else null)
     override val isSubmitting = MutableStateFlow(mode == SUBMITTING)
     override fun submit() {}

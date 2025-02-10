@@ -123,6 +123,7 @@ fun MessageReactionPreview() {
                             sender = UserInfoElement(
                                 name = "Martin",
                                 userId = UserId("@martin:local"),
+                                initials = "M",
                             ),
                             isMe = false,
                         )
@@ -140,6 +141,7 @@ fun MessageReactionPreview() {
                             sender = UserInfoElement(
                                 name = "Jan",
                                 userId = UserId("@jan:local"),
+                                initials = "M",
                             ),
                             isMe = false,
                         )

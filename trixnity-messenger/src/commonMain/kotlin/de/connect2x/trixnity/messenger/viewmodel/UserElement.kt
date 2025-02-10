@@ -17,9 +17,9 @@ import net.folivo.trixnity.core.model.UserId
 private val log = KotlinLogging.logger { }
 
 class UserInfoElement(
-    val name: String,
     val userId: UserId,
-    val initials: String? = null,
+    val name: String,
+    val initials: String,
     val image: StateFlow<ByteArray?>? = null,
 )
 
@@ -45,3 +45,10 @@ fun RoomUser?.toUserInfoElement(
             }.stateIn(coroutineScope, WhileSubscribed(), null)
         }
     )
+
+fun RoomUser.toUserInfoElement(
+    coroutineScope: CoroutineScope,
+    matrixClient: MatrixClient,
+    initials: Initials,
+    maxAvatarSize: Long,
+): UserInfoElement = toUserInfoElement(coroutineScope, matrixClient, initials, maxAvatarSize, userId)

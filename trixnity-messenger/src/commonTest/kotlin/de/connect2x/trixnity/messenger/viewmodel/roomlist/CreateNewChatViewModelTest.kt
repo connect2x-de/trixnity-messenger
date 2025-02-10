@@ -171,7 +171,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
 
             val cut = createNewChatViewModel()
             val searchHandler = cut.createNewRoomViewModel.searchHandler
-            searchHandler.searchTerm.value = "u"
+            searchHandler.searchTerm.update("u")
             searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
@@ -284,7 +284,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
 
             val cut = createNewChatViewModel()
             val searchHandler = cut.createNewRoomViewModel.searchHandler
-            searchHandler.searchTerm.value = "u"
+            searchHandler.searchTerm.update("u")
             searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
@@ -361,7 +361,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
 
             val cut = createNewChatViewModel()
             val searchHandler = cut.createNewRoomViewModel.searchHandler
-            searchHandler.searchTerm.value = "u"
+            searchHandler.searchTerm.update("u")
             searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }

@@ -77,7 +77,7 @@ class UserProfileViewModelTest : ShouldSpec() {
     private val roomId = RoomId("room", "localhost")
 
     private val memberElementAlice =
-        UserInfoElement("Alice", alice, "A", null )
+        UserInfoElement(alice, "Alice", "A", null)
 
     private val roomUserAlice = RoomUser(
         roomId, alice, "Alice", StateEvent(
