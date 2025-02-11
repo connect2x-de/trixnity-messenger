@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Introduced String.graphemeCount extension for counting perceived chars
 - Introduced String.forEachGrapheme extension for iterating perceived chars
+- Possibility to change MatrixClientServerApiClientFactory via the DI
 
 ### Changed
 
