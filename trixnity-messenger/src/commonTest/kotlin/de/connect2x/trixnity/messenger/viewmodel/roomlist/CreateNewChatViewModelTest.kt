@@ -70,7 +70,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
     val userServiceMock = mock<UserService>()
 
     private val onCancelMock = mock<Function0<Unit>>()
-    private val openRoomMock = mock<Function2<UserId, RoomId, Unit>>()
+    private val onRoomCreatedMock = mock<(UserId, RoomId) -> Unit>()
 
     init {
         Dispatchers.setMain(Dispatchers.Unconfined)
@@ -83,7 +83,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                 roomsApiClientMock,
                 userServiceMock,
                 onCancelMock,
-                openRoomMock,
+                onRoomCreatedMock,
             )
             every { matrixClientMock.di } returns koinApplication {
                 modules(
@@ -98,7 +98,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             every { matrixClientServerApiClientMock.user } returns usersApiClientMock
             every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
 
-            every { openRoomMock.invoke(any(), any()) } returns Unit
+            every { onRoomCreatedMock.invoke(any(), any()) } returns Unit
 
         }
 
@@ -177,7 +177,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             }
 
             cut.onUserClick(user2)
-            verify { openRoomMock.invoke(userId1, roomId) }
+            verify { onRoomCreatedMock.invoke(userId1, roomId) }
             createRoomCalled shouldBe false
         }
 
@@ -212,7 +212,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
 
             val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
             cut.onUserClick(user2)
-            verify { openRoomMock.invoke(userId1, roomId) }
+            verify { onRoomCreatedMock.invoke(userId1, roomId) }
         }
 
         should("create a new room if a direct room can be found, but not in the room list") {
@@ -384,8 +384,8 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                     asUserId = any(),
                 )
             }
-            verify { openRoomMock.invoke(userId1, roomId) }
-            verifyNoMoreCalls(openRoomMock)
+            verify { onRoomCreatedMock.invoke(userId1, roomId) }
+            verifyNoMoreCalls(onRoomCreatedMock)
         }
 
         should("display error message when direct message could not be created") {
@@ -447,7 +447,6 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             onCreateGroup = mock(),
             onSearchGroup = mock(),
             onCancel = onCancelMock,
-            onOpenRoom = openRoomMock,
         )
     }
 
@@ -462,7 +461,8 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                 }.koin,
                 userId = UserId("test", "server"),
                 coroutineContext = Dispatchers.Unconfined,
-            )
+            ),
+            onRoomCreated = onRoomCreatedMock,
         )
     }
 }

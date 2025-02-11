@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Use password type keyboard to enter recovery key
 - Refactored app view routing
+- Standardized reaction when a room (chat or group) has been created
 
 ### Deprecated
 

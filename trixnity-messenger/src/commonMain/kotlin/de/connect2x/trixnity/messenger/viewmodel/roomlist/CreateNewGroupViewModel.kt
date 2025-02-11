@@ -15,8 +15,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PRIVATE
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PUBLIC
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
@@ -29,10 +27,9 @@ interface CreateNewGroupViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         createNewRoomViewModel: CreateNewRoomViewModel,
         onBack: () -> Unit,
-        onGroupCreated: (UserId, RoomId) -> Unit,
     ): CreateNewGroupViewModel {
         return CreateNewGroupViewModelImpl(
-            viewModelContext, createNewRoomViewModel, onBack, onGroupCreated
+            viewModelContext, createNewRoomViewModel, onBack
         )
     }
 
@@ -70,7 +67,6 @@ open class CreateNewGroupViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val createNewRoomViewModel: CreateNewRoomViewModel,
     private val onBack: () -> Unit,
-    private val onGroupCreated: (UserId, RoomId) -> Unit,
 ) : CreateNewGroupViewModel,
     MatrixClientViewModelContext by viewModelContext {
     override val isPrivate = MutableStateFlow(true)
@@ -131,7 +127,7 @@ open class CreateNewGroupViewModelImpl(
             ).fold(
                 onSuccess = { roomId ->
                     log.debug { "created room ${roomId.full}" }
-                    onGroupCreated(userId, roomId)
+                    createNewRoomViewModel.onRoomCreated(userId, roomId)
                 },
                 onFailure = {
                     log.error(it) { "Cannot create a group." }
