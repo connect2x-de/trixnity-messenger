@@ -82,10 +82,12 @@ class ProfileViewModelTest : ShouldSpec() {
                     versions = GetVersions.Response(),
                     mediaConfig = GetMediaConfig.Response(),
                     capabilities = GetCapabilities.Response(
-                        capabilities = Capabilities(setOf(
-                            Capability.SetDisplayName(enabled = true),
-                            Capability.SetAvatarUrl(enabled = true),
-                        ))
+                        capabilities = Capabilities(
+                            setOf(
+                                Capability.SetDisplayName(enabled = true),
+                                Capability.SetAvatarUrl(enabled = true),
+                            )
+                        )
                     ),
                 )
             )
@@ -117,10 +119,12 @@ class ProfileViewModelTest : ShouldSpec() {
                     versions = GetVersions.Response(),
                     mediaConfig = GetMediaConfig.Response(),
                     capabilities = GetCapabilities.Response(
-                        capabilities = Capabilities(setOf(
-                            Capability.SetDisplayName(enabled = true),
-                            Capability.SetAvatarUrl(enabled = true),
-                        ))
+                        capabilities = Capabilities(
+                            setOf(
+                                Capability.SetDisplayName(enabled = true),
+                                Capability.SetAvatarUrl(enabled = true),
+                            )
+                        )
                     ),
                 )
             )
@@ -186,8 +190,8 @@ class ProfileViewModelTest : ShouldSpec() {
             profilesOfAccounts.first { it.size == 2 }
 
             eventually(1.seconds) {
-                profilesOfAccounts.value[0].editDisplayName.value shouldBe "Bob"
-                profilesOfAccounts.value[0].editDisplayName.value = "Bobby"
+                profilesOfAccounts.value[0].editDisplayName.textValue shouldBe "Bob"
+                profilesOfAccounts.value[0].editDisplayName.update("Bobby")
             }
 
             cut.saveDisplayName(ownUserId)
@@ -220,7 +224,7 @@ class ProfileViewModelTest : ShouldSpec() {
             val profilesOfAccounts = cut.profileSingleViewModels
             profilesOfAccounts.first { it.size == 2 }
 
-            profilesOfAccounts.value[0].editDisplayName.value = "Nobby"
+            profilesOfAccounts.value[0].editDisplayName.update("Nobby")
             cut.saveDisplayName(ownUserId)
 
             eventually(1.seconds) {
@@ -254,7 +258,7 @@ class ProfileViewModelTest : ShouldSpec() {
             val profilesOfAccounts = cut.profileSingleViewModels
             profilesOfAccounts.first { it.size == 2 }
 
-            profilesOfAccounts.value[0].editDisplayName.value = "Nobby"
+            profilesOfAccounts.value[0].editDisplayName.update("Nobby")
             cut.saveDisplayName(ownUserId)
 
 
@@ -295,7 +299,7 @@ class ProfileViewModelTest : ShouldSpec() {
             }
         }
 
-        should("compute the display name correctly when an explicit display name is not set") {
+        should("has empty display name when an explicit display name is not set") {
             every { matrixClientMock.displayName } returns MutableStateFlow(null)
             everySuspend {
                 mediaServiceMock.getThumbnail(
@@ -310,7 +314,7 @@ class ProfileViewModelTest : ShouldSpec() {
             val cut = profileViewModel()
             val profilesOfAccounts = cut.profileSingleViewModels
             profilesOfAccounts.first { it.size == 2 }
-            cut.profileSingleViewModels.value[0].displayName.value shouldBe "bob"
+            cut.profileSingleViewModels.value[0].displayName.value shouldBe ""
         }
     }
 

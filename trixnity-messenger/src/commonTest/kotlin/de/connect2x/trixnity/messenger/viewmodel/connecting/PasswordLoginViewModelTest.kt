@@ -171,8 +171,8 @@ class PasswordLoginViewModelTest : ShouldSpec() {
             onLogin = onLoginMock,
             onBack = onBackMock,
         ).apply {
-            username.value = "timmy"
-            password.value = "sup3rs3cr3t"
+            username.update("timmy")
+            password.update("sup3rs3cr3t")
         }
     }
 }

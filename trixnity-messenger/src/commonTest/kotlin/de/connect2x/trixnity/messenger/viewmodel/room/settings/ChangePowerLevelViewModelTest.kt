@@ -291,10 +291,12 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(100L)
                 )
 
-                cut.onPowerLevelEntered("")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
-                cut.onPowerLevelEntered("  ")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+                cut.changingPowerLevelDialogInput.update("")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
+                cut.changingPowerLevelDialogInput.update("  ")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
 
                 cancelNeverEndingCoroutines()
             }
@@ -309,10 +311,12 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(100L)
                 )
 
-                cut.onPowerLevelEntered(".,")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
-                cut.onPowerLevelEntered("hjjku")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+                cut.changingPowerLevelDialogInput.update(".,")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
+                cut.changingPowerLevelDialogInput.update("hjjku")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
 
                 cancelNeverEndingCoroutines()
             }
@@ -327,10 +331,12 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(100L)
                 )
 
-                cut.onPowerLevelEntered("-56")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
-                cut.onPowerLevelEntered("124")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+                cut.changingPowerLevelDialogInput.update("-56")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
+                cut.changingPowerLevelDialogInput.update("124")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
 
                 cancelNeverEndingCoroutines()
             }
@@ -345,8 +351,9 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(56L)
                 )
 
-                cut.onPowerLevelEntered("57")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+                cut.changingPowerLevelDialogInput.update("57")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
 
                 cancelNeverEndingCoroutines()
             }
@@ -361,8 +368,9 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(100L)
                 )
 
-                cut.onPowerLevelEntered("57")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+                cut.changingPowerLevelDialogInput.update("57")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
 
                 cancelNeverEndingCoroutines()
             }

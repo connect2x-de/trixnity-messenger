@@ -148,7 +148,7 @@ class ReportMessageViewModelTest : ShouldSpec() {
             val cut = reportToMessageViewModel()
             val subscriberJob = subscribe(cut)
 
-            cut.messageReportReason.value = "Report Reason"
+            cut.messageReportReason.update("Report Reason")
             delay(500.milliseconds)
 
             cut.submitReportToMessage()
@@ -157,7 +157,7 @@ class ReportMessageViewModelTest : ShouldSpec() {
             verify {
                 onMessageReportFinished.invoke()
             }
-            cut.messageReportReason.value shouldBe null
+            cut.messageReportReason.textValue shouldBe ""
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()

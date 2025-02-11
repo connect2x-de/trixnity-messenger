@@ -18,12 +18,12 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MatrixUsername
 import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.TabInTextField
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepPasswordViewModel
@@ -58,15 +58,13 @@ class UiaPasswordInputViewImpl : UiaPasswordInputView {
                 if (isSubmitting) LoadingSpinner()
                 Spacer(Modifier.height(20.dp))
                 MatrixUsername(
-                    username = uiaStepPasswordViewModel.username.collectAsStateForTextField(),
-                    setUsername = { uiaStepPasswordViewModel.username.value = it },
+                    username = uiaStepPasswordViewModel.username.collectAsTextFieldValueState(),
                     label = i18n.addMatrixClientMatrixUsername(),
                     modifier = tabToNextAndEnterSend,
                 )
                 Spacer(Modifier.height(20.dp))
                 PasswordField(
-                    password = uiaStepPasswordViewModel.password.collectAsStateForTextField(),
-                    onPasswordChange = { uiaStepPasswordViewModel.password.value = it },
+                    password = uiaStepPasswordViewModel.password.collectAsTextFieldValueState(),
                     modifier = tabToNextAndEnterSend
                 ) { Text(i18n.addMatrixClientPassword()) }
                 Spacer(Modifier.height(40.dp))

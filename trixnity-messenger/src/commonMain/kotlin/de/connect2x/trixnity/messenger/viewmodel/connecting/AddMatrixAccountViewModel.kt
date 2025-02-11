@@ -2,6 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -49,7 +51,7 @@ interface AddMatrixAccountViewModelFactory {
 interface AddMatrixAccountViewModel {
     val isFirstMatrixClient: StateFlow<Boolean?>
 
-    val serverUrl: MutableStateFlow<String>
+    val serverUrl: TextFieldViewModel
     val serverDiscoveryState: StateFlow<ServerDiscoveryState>
 
     sealed interface ServerDiscoveryState {
@@ -74,17 +76,18 @@ open class AddMatrixAccountViewModelImpl(
             .map { it.isEmpty() }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    final override val serverUrl = MutableStateFlow(get<MatrixMessengerConfiguration>().defaultHomeServer ?: "")
+    final override val serverUrl =
+        TextFieldViewModelImpl(get<MatrixMessengerConfiguration>().defaultHomeServer ?: "")
 
     private val config = get<MatrixMessengerConfiguration>()
 
     final override val serverDiscoveryState =
         serverUrl.debounce(1.seconds).transformLatest { serverUrl ->
             when {
-                serverUrl.isBlank() -> ServerDiscoveryState.None
+                serverUrl.text.isBlank() -> ServerDiscoveryState.None
                 else -> {
                     emit(ServerDiscoveryState.Loading)
-                    serverUrl.serverDiscovery(
+                    serverUrl.text.serverDiscovery(
                         httpClientEngine = config.httpClientEngine,
                         httpClientConfig = config.httpClientConfig
                     ).onFailure {
@@ -182,7 +185,7 @@ open class AddMatrixAccountViewModelImpl(
 
 class PreviewAddMatrixAccountViewModel : AddMatrixAccountViewModel {
     override val isFirstMatrixClient: MutableStateFlow<Boolean?> = MutableStateFlow(true)
-    override val serverUrl: MutableStateFlow<String> = MutableStateFlow("")
+    override val serverUrl = TextFieldViewModelImpl("matrix.org")
     override val serverDiscoveryState: MutableStateFlow<ServerDiscoveryState> =
         MutableStateFlow(ServerDiscoveryState.None)
 

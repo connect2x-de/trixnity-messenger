@@ -16,20 +16,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MoreOptions
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
@@ -53,8 +55,8 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
         val error = createNewGroupViewModel.error.collectAsState()
         val isPrivate by createNewGroupViewModel.isPrivate.collectAsState()
         val isEncrypted by createNewGroupViewModel.isEncrypted.collectAsState()
-        val optionalRoomName by createNewGroupViewModel.optionalRoomName.collectAsStateForTextField()
-        val optionalRoomTopic by createNewGroupViewModel.optionalGroupTopic.collectAsStateForTextField()
+        val optionalRoomName = createNewGroupViewModel.optionalRoomName.collectAsTextFieldValueState()
+        val optionalRoomTopic = createNewGroupViewModel.optionalGroupTopic.collectAsTextFieldValueState()
 
         val roomOptionsString = buildString {
             append(i18n.roomType())
@@ -94,9 +96,9 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                                     CreateGroupOptions(createNewGroupViewModel)
                                 }
                                 Spacer(Modifier.height(15.dp))
-                                OptionalRoomNameInput(createNewGroupViewModel, optionalRoomName)
+                                OptionalRoomNameInput(optionalRoomName)
                                 Spacer(Modifier.height(15.dp))
-                                OptionalRoomTopicInput(createNewGroupViewModel, optionalRoomTopic)
+                                OptionalRoomTopicInput(optionalRoomTopic)
                                 UsersInGroup(createNewGroupViewModel)
                             },
                             body = { shouldScroll ->
@@ -144,13 +146,12 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
 
 @Composable
 fun OptionalRoomNameInput(
-    createNewGroupViewModel: CreateNewGroupViewModel,
-    optionalRoomName: String
+    value: MutableState<TextFieldValue>,
 ) {
     val i18n = DI.get<I18nView>()
     OutlinedTextField(
-        value = optionalRoomName,
-        onValueChange = { createNewGroupViewModel.optionalRoomName.value = it },
+        value = value.value,
+        onValueChange = { value.value = it },
         placeholder = { Text(i18n.optionalGroupNamePlaceholder()) },
         modifier = Modifier
             .fillMaxWidth()
@@ -160,13 +161,12 @@ fun OptionalRoomNameInput(
 
 @Composable
 fun OptionalRoomTopicInput(
-    createNewGroupViewModel: CreateNewGroupViewModel,
-    optionalRoomTopic: String
+    value: MutableState<TextFieldValue>,
 ) {
     val i18n = DI.get<I18nView>()
     OutlinedTextField(
-        value = optionalRoomTopic,
-        onValueChange = { createNewGroupViewModel.optionalGroupTopic.value = it },
+        value = value.value,
+        onValueChange = { value.value = it },
         placeholder = { Text(i18n.optionalGroupTopicPlaceholder()) },
         modifier = Modifier
             .fillMaxWidth()

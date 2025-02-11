@@ -630,7 +630,7 @@ class MainViewModelTest : ShouldSpec() {
                                     override val allSyncError: StateFlow<Boolean> = MutableStateFlow(false)
                                     override val initialSyncFinished: StateFlow<Boolean> = MutableStateFlow(true)
                                     override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
-                                    override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
+                                    override val searchTerm = TextFieldViewModelImpl("")
                                     override val canCreateNewRoomWithAccount: StateFlow<Boolean> =
                                         MutableStateFlow(true)
                                     override val unverifiedAccounts: StateFlow<List<UserId>> =

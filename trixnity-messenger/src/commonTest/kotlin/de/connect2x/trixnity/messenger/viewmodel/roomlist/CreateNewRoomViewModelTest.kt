@@ -127,7 +127,7 @@ class CreateNewRoomViewModelTest : ShouldSpec() {
             val searchHandler = cut.searchHandler
 
             println("search: 'us'")
-            searchHandler.searchTerm.value = "us"
+            searchHandler.searchTerm.update("us")
             searchHandler.foundUsers.first {
                 it == listOf(
                     Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U"),
@@ -135,14 +135,14 @@ class CreateNewRoomViewModelTest : ShouldSpec() {
                 )
             }
             println("search: 'user3'")
-            searchHandler.searchTerm.value = "user3"
+            searchHandler.searchTerm.update("user3")
             searchHandler.foundUsers.first {
                 it == listOf(
                     Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
                 )
             }
             println("search: 'user1'")
-            searchHandler.searchTerm.value = "user1"
+            searchHandler.searchTerm.update("user1")
             searchHandler.foundUsers.first {
                 it == emptyList<SearchUserElement>()
             }
