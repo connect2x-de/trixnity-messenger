@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make initials computation fully Unicode compliant
 - Fixed redactions of message edits
 - Don't render replace events even when not decryptable
-- Showing sync erroring users only on the info banner
+- Only show users with sync errors in the info banner
 
 ### Security
 
