@@ -581,7 +581,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             syncState3.value = SyncState.ERROR
             testCoroutineScheduler.advanceUntilIdle()
             cut.syncStates.value.failedFor shouldBe setOf(me1, me2, me3)
-            cut.syncStates.value.succeededFor shouldBe setOf()
+            cut.syncStates.value.operationalFor shouldBe setOf()
             cut.syncStates.value.failedForAll shouldBe true
 
             subscriberJob.cancel()

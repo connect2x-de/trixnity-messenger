@@ -136,12 +136,11 @@ interface RoomListViewModel {
     fun closeProfile()
 
     data class UserSyncStates(
-        val succeededFor: Set<UserId>,
+        val operationalFor: Set<UserId>,
         val failedFor: Set<UserId>,
-        // TODO: pendingFor: Set<UserId>,
     ) {
-        val succeededForAll get() = succeededFor.isNotEmpty() && failedFor.isEmpty()
-        val failedForAll get() = succeededFor.isEmpty() && failedFor.isNotEmpty()
+        val operationalForAll get() = operationalFor.isNotEmpty() && failedFor.isEmpty()
+        val failedForAll get() = operationalFor.isEmpty() && failedFor.isNotEmpty()
         fun joinFailedToString() = failedFor.joinToString { it.full }
     }
 }
@@ -383,20 +382,14 @@ class RoomListViewModelImpl(
                 it.map { (userId, syncState) ->
                     when (syncState) {
                         SyncState.ERROR,
-                            // TODO: SyncState.TIMEOUT,
+                        SyncState.TIMEOUT,
                             -> failed.add(userId)
 
-                        // TODO: SyncState.STOPPED,
                         else -> succeeded.add(userId)
-
-                        // TODO: SyncState.INITIAL_SYNC,
-                        // TODO: SyncState.STARTED,
-                        // TODO: SyncState.RUNNING,
-                        // TODO: -> pending
                     }
                 }
                 UserSyncStates(
-                    succeededFor = succeeded.toSet(),
+                    operationalFor = succeeded.toSet(),
                     failedFor = failed.toSet(),
                 )
             }
@@ -404,7 +397,7 @@ class RoomListViewModelImpl(
 
         syncStateError = syncStates
             .mapLatest {
-                it.failedFor.associateWith { true } + it.succeededFor.associateWith { false }
+                it.failedFor.associateWith { true } + it.operationalFor.associateWith { false }
             }.stateIn(coroutineScope, WhileSubscribed(), mapOf())
 
         allSyncError = syncStates
