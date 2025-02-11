@@ -14,15 +14,21 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.VerticalScrollbar
+import kotlinx.coroutines.delay
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.time.Duration.Companion.milliseconds
 
 
 @Composable
@@ -30,9 +36,16 @@ fun EmojiSelector(
     onTextAdded: (String) -> Unit,
 ) {
     val scrollState = rememberScrollState()
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        delay(100.milliseconds)
+        focusRequester.requestFocus()
+    }
 
     Column(
         modifier = Modifier
+            .focusRequester(focusRequester)
             // Make the emoji selector focusable so it can steal focus from TextField
             .focusTarget()
     ) {
