@@ -12,7 +12,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Co
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -23,9 +22,8 @@ private val log = KotlinLogging.logger {}
 
 interface TimelineRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
-    suspend fun showTimeline(id: RoomId)
+    suspend fun openTimeline(id: RoomId)
     suspend fun closeTimeline()
-    fun isShown(): Boolean
 
     @Serializable
     sealed class Config {
@@ -44,10 +42,9 @@ interface TimelineRouter {
 
 class TimelineRouterImpl(
     private val viewModelContext: MatrixClientViewModelContext,
-    private val isBackButtonVisible: MutableStateFlow<Boolean>,
-    private val onShowSettings: () -> Unit,
-    private val onShowUserProfile: (UserId) -> Unit,
-    private val onRoomBack: () -> Unit,
+    private val onCloseRoom: () -> Unit,
+    private val onOpenRoomSettings: () -> Unit,
+    private val onOpenUserProfile: (UserId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
 ) : TimelineRouter {
 
@@ -63,7 +60,7 @@ class TimelineRouterImpl(
 
     private fun createTimelineChild(
         timelineConfig: Config,
-        componentContext: ComponentContext
+        componentContext: ComponentContext,
     ): Wrapper =
         when (timelineConfig) {
             is Config.None -> Wrapper.None
@@ -71,17 +68,15 @@ class TimelineRouterImpl(
                 viewModelContext.get<TimelineViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     roomId = RoomId(timelineConfig.roomId),
-                    isBackButtonVisible = isBackButtonVisible,
-                    onShowSettings = onShowSettings,
-                    onShowUserProfile = onShowUserProfile,
-                    onBack = onRoomBack,
+                    onBack = onCloseRoom,
+                    onOpenRoomSettings = onOpenRoomSettings,
+                    onOpenUserProfile = onOpenUserProfile,
                     onOpenMention = onOpenMention,
                 )
             )
         }
 
-
-    override suspend fun showTimeline(id: RoomId) {
+    override suspend fun openTimeline(id: RoomId) {
         log.debug { "show timeline: $id" }
         timelineNavigation.bringToFrontSuspending(Config.View(roomId = id.full))
     }
@@ -89,10 +84,4 @@ class TimelineRouterImpl(
     override suspend fun closeTimeline() {
         timelineNavigation.popWhileSuspending { it !is Config.None }
     }
-
-    override fun isShown(): Boolean =
-        when (stack.value.active.configuration) {
-            is Config.View -> true
-            is Config.None -> false
-        }
 }

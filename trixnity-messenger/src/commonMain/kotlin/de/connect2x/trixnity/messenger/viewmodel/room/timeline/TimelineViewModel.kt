@@ -109,12 +109,13 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
-import net.folivo.trixnity.core.model.events.m.ReceiptType.Read
+import net.folivo.trixnity.core.model.events.m.ReceiptType
 import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+
 
 private val log = KotlinLogging.logger {}
 
@@ -122,22 +123,19 @@ interface TimelineViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId,
-        isBackButtonVisible: MutableStateFlow<Boolean>,
-        onShowSettings: () -> Unit,
-        onShowUserProfile: (UserId) -> Unit,
         onBack: () -> Unit,
+        onOpenRoomSettings: () -> Unit,
+        onOpenUserProfile: (UserId) -> Unit,
         onOpenMention: OpenMentionCallback,
-    ): TimelineViewModel {
-        return TimelineViewModelImpl(
-            viewModelContext,
-            roomId,
-            isBackButtonVisible,
-            onShowSettings,
-            onShowUserProfile,
-            onBack,
-            onOpenMention
+    ): TimelineViewModel =
+        TimelineViewModelImpl(
+            viewModelContext = viewModelContext,
+            roomId = roomId,
+            onBack = onBack,
+            onOpenSettings = onOpenRoomSettings,
+            onOpenUserProfile = onOpenUserProfile,
+            onOpenMention = onOpenMention,
         )
-    }
 
     companion object : TimelineViewModelFactory
 }
@@ -211,7 +209,6 @@ interface TimelineViewModel {
         val windowIsFocused: Boolean,
     )
 
-
     sealed class Wrapper {
         data object None : Wrapper()
         class View(val viewModel: SendAttachmentViewModel) : Wrapper()
@@ -224,16 +221,16 @@ interface TimelineViewModel {
     }
 }
 
+
 // TODO many calculations do not support future room upgrades. Either every usage of roomId considers room upgrades or
 //  instead, the room list should re-initialize the timeline with the new roomId!
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class TimelineViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
-    private val isBackButtonVisible: MutableStateFlow<Boolean>,
-    private val onShowSettings: () -> Unit,
-    private val onShowUserProfile: (UserId) -> Unit,
     private val onBack: () -> Unit,
+    onOpenSettings: () -> Unit,
+    private val onOpenUserProfile: (UserId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
 
@@ -346,11 +343,10 @@ class TimelineViewModelImpl(
         get<RoomHeaderViewModelFactory>().create(
             viewModelContext = childContext("roomHeaderViewModel"),
             selectedRoomId = roomId,
-            isBackButtonVisible = isBackButtonVisible,
             onBack = onBack,
             onVerifyUser = ::onVerifyUser,
-            onShowRoomSettings = onShowSettings,
-            onShowUserProfile = onShowUserProfile,
+            onOpenRoomSettings = onOpenSettings,
+            onOpenUserProfile = onOpenUserProfile,
         )
 
     override val inputAreaViewModel: InputAreaViewModel =
@@ -393,7 +389,7 @@ class TimelineViewModelImpl(
 
     private fun createChild(
         config: Config,
-        componentContext: ComponentContext
+        componentContext: ComponentContext,
     ): Wrapper = when (config) {
         is Config.None -> Wrapper.None
         is Config.SendAttachmentView -> Wrapper.View(
@@ -561,7 +557,7 @@ class TimelineViewModelImpl(
             canLoadBefore -> firstElement
             else -> null
         }
-    }.shareIn(coroutineScope, WhileSubscribed())
+    }.shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
     private val loadingIndicatorAfter = combine(
         timelineState,
@@ -575,7 +571,7 @@ class TimelineViewModelImpl(
             canLoadAfter -> lastElement
             else -> null
         }
-    }.shareIn(coroutineScope, WhileSubscribed())
+    }.shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
 
     @OptIn(FlowPreview::class)
@@ -592,6 +588,7 @@ class TimelineViewModelImpl(
         log.trace { "compute timeline element $eventId" }
         val lifecycleRegistry = LifecycleRegistry()
         lifecycleRegistry.start()
+
         val showUnreadMarker = readEventMarker
             // prevent fast re-computations
             .debounce(300.milliseconds)
@@ -834,11 +831,11 @@ class TimelineViewModelImpl(
 
                 log.trace {
                     """
-                            continuouslyLoadAndScroll (check):
-                            indexOfFirstVisibleTimelineElement=$indexOfFirstVisibleTimelineElement (isInBufferBefore=$isInBufferBefore)
-                            indexOfLastVisibleTimelineElement=$indexOfLastVisibleTimelineElement (isInBufferAfter=$isInBufferAfter)
-                            timelineSize=$timelineSize (timelineElementViewModels=${elements.map { it.key }})
-                        """.trimIndent()
+                    continuouslyLoadAndScroll (check):
+                    indexOfFirstVisibleTimelineElement=$indexOfFirstVisibleTimelineElement (isInBufferBefore=$isInBufferBefore)
+                    indexOfLastVisibleTimelineElement=$indexOfLastVisibleTimelineElement (isInBufferAfter=$isInBufferAfter)
+                    timelineSize=$timelineSize (timelineElementViewModels=${elements.map { it.key }})
+                    """.trimIndent()
                 }
 
                 if (isInBufferBefore) {
@@ -1040,7 +1037,7 @@ class TimelineViewModelImpl(
                                     receipts
                                         .mapNotNull { (key, value) ->
                                             if (key == userId) null
-                                            else value.receipts[Read]
+                                            else value.receipts[ReceiptType.Read]
                                                 ?.let { it.eventId to key }
                                         }
                                         .groupBy { it.first }
@@ -1064,7 +1061,6 @@ class TimelineViewModelImpl(
                 }
         }
     }
-
 
     private fun EventId.asKey(roomId: RoomId? = null) = (roomId ?: this@TimelineViewModelImpl.roomId).full + "-" + full
     private fun String.asKey(roomId: RoomId? = null) = (roomId ?: this@TimelineViewModelImpl.roomId).full + "-" + this

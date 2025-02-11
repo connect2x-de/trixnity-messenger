@@ -26,18 +26,17 @@ import org.koin.core.component.get
 
 interface MemberListViewModelFactory {
     fun create(
-            viewModelContext: MatrixClientViewModelContext,
-            selectedRoomId: RoomId,
-            error: MutableStateFlow<String?>,
-            onShowUserProfile: (UserId) -> Unit,
-        ): MemberListViewModel {
-        return MemberListViewModelImpl(
+        viewModelContext: MatrixClientViewModelContext,
+        selectedRoomId: RoomId,
+        error: MutableStateFlow<String?>,
+        onOpenUserProfile: (UserId) -> Unit,
+    ): MemberListViewModel =
+        MemberListViewModelImpl(
             viewModelContext = viewModelContext,
             selectedRoomId = selectedRoomId,
             error = error,
-            onShowUserProfile = onShowUserProfile
+            onOpenUserProfile = onOpenUserProfile,
         )
-    }
 
     companion object : MemberListViewModelFactory
 }
@@ -53,7 +52,7 @@ open class MemberListViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
     override val error: MutableStateFlow<String?>,
-    private val onShowUserProfile: (UserId) -> Unit
+    private val onOpenUserProfile: (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, MemberListViewModel {
 
     override val showLoadingSpinner = matrixClient.room.getById(selectedRoomId).map {
@@ -105,7 +104,7 @@ open class MemberListViewModelImpl(
                                 viewModelContext = childContextWithOwnLifecycle(lifecycle),
                                 roomUser,
                                 selectedRoomId = selectedRoomId,
-                                onShowUserProfile = onShowUserProfile
+                                onOpenUserProfile = onOpenUserProfile
                             ).also {
                                 elementCache[userId] = MemberListElementViewModelWrapper(it, lifecycle)
                             }

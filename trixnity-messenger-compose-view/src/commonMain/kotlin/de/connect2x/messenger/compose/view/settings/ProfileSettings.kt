@@ -60,6 +60,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModel
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 interface ProfileSettingsView {
     @Composable
@@ -231,7 +232,7 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
     }
     LaunchedEffect(editMode.value) {
         if (editMode.value) {
-            delay(200)
+            delay(200.milliseconds)
             focusRequester.requestFocus()
         }
     }
