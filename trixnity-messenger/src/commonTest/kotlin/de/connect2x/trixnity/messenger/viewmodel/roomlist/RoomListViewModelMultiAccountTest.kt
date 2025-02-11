@@ -564,23 +564,25 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             syncState2.value = SyncState.INITIAL_SYNC
             syncState3.value = SyncState.INITIAL_SYNC
             testCoroutineScheduler.advanceUntilIdle()
-            cut.syncStateErroredUsers.value shouldBe setOf()
-            cut.isSyncErroringAllUsers.value shouldBe false
+            cut.syncStates.value.failedFor shouldBe setOf()
+            cut.syncStates.value.failedForAll shouldBe false
 
             syncState1.value = SyncState.ERROR
             testCoroutineScheduler.advanceUntilIdle()
-            cut.syncStateErroredUsers.value shouldBe setOf(me1)
-            cut.isSyncErroringAllUsers.value shouldBe false
+            cut.syncStates.value.failedFor shouldBe setOf(me1)
+            cut.syncStates.value.failedForAll shouldBe false
 
             syncState2.value = SyncState.ERROR
             testCoroutineScheduler.advanceUntilIdle()
-            cut.syncStateErroredUsers.value shouldBe setOf(me1, me2)
-            cut.isSyncErroringAllUsers.value shouldBe false
+            cut.syncStates.value.failedFor shouldBe setOf(me1, me2)
+            cut.syncStates.value.joinFailedToString() shouldBe "${me1.full}, ${me2.full}"
+            cut.syncStates.value.failedForAll shouldBe false
 
             syncState3.value = SyncState.ERROR
             testCoroutineScheduler.advanceUntilIdle()
-            cut.syncStateErroredUsers.value shouldBe setOf(me1, me2, me3)
-            cut.isSyncErroringAllUsers.value shouldBe true
+            cut.syncStates.value.failedFor shouldBe setOf(me1, me2, me3)
+            cut.syncStates.value.succeededFor shouldBe setOf()
+            cut.syncStates.value.failedForAll shouldBe true
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
@@ -829,8 +831,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
         launch { cut.error.collect() }
         launch { cut.errorType.collect() }
         launch { cut.elements.collect() }
-        launch { cut.syncStateErroredUsers.collect() }
-        launch { cut.isSyncErroringAllUsers.collect() }
+        launch { cut.syncStates.collect() }
         launch { cut.initialSyncFinished.collect() }
         launch { cut.showSearch.collect() }
         launch { cut.searchTerm.collect() }

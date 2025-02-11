@@ -1124,7 +1124,6 @@ class RoomListViewModelTest : ShouldSpec() {
         launch { cut.error.collect() }
         launch { cut.errorType.collect() }
         launch { cut.elements.collect() }
-        launch { cut.syncStateErroredUsers.collect() }
         launch { cut.initialSyncFinished.collect() }
         launch { cut.showSearch.collect() }
         launch { cut.searchTerm.collect() }
