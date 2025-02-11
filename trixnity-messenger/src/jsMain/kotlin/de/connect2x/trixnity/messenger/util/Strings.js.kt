@@ -4,19 +4,26 @@ import js.intl.Granularity
 import js.intl.Segmenter
 import js.intl.SegmenterOptions
 
-@PublishedApi
-internal fun String.splitGraphemes(): Array<String> {
-    return Segmenter("en", SegmenterOptions.invoke(Granularity.grapheme))
-        .segment(this)
-        .unsafeCast<Array<String>>()
-}
-
 actual val String.graphCount: Int
-    get() = splitGraphemes().size
+    get() {
+        val segments: dynamic = Segmenter("en", SegmenterOptions.invoke(Granularity.grapheme)).segment(this)
+        val iterator = segments.iterator()
+        var count = 0
+        while (iterator.hasNext()) {
+            if (iterator.next().done as Boolean) break
+            ++count
+        }
+        return count
+    }
 
 actual inline fun String.forEachGraph(crossinline consumer: (graph: String, index: Int) -> Boolean) {
-    val segments = splitGraphemes()
-    for (i in segments.indices) {
-        if(!consumer(segments[i], i)) break
+    val segments: dynamic = Segmenter("en", SegmenterOptions.invoke(Granularity.grapheme)).segment(this)
+    val iterator = segments.iterator()
+    var index = 0
+    while (iterator.hasNext()) {
+        val segment = iterator.next()
+        if (segment.done as Boolean) break
+        consumer(segment.segment, index)
+        ++index
     }
 }
