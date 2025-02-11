@@ -576,11 +576,11 @@ class RoomListViewModelTest : ShouldSpec() {
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.searchTerm.value = ""
+            cut.searchTerm.update("")
             testCoroutineScheduler.advanceUntilIdle()
             cut.elements.value shouldHaveSize 2
 
-            cut.searchTerm.value = "  "
+            cut.searchTerm.update("  ")
             testCoroutineScheduler.runCurrent()
             cut.elements.value shouldHaveSize 2
 
@@ -606,7 +606,7 @@ class RoomListViewModelTest : ShouldSpec() {
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.searchTerm.value = "2"
+            cut.searchTerm.update("2")
             testCoroutineScheduler.advanceTimeBy(500) // debounce
             testCoroutineScheduler.runCurrent()
 
@@ -637,10 +637,10 @@ class RoomListViewModelTest : ShouldSpec() {
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.searchTerm.value = "2"
+            cut.searchTerm.update("2")
             testCoroutineScheduler.advanceTimeBy(500) // debounce
             testCoroutineScheduler.runCurrent()
-            cut.searchTerm.value = "1"
+            cut.searchTerm.update("1")
             testCoroutineScheduler.advanceTimeBy(500) // debounce
             testCoroutineScheduler.runCurrent()
 
@@ -668,7 +668,7 @@ class RoomListViewModelTest : ShouldSpec() {
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.searchTerm.value = "2"
+            cut.searchTerm.update("2")
             testCoroutineScheduler.advanceTimeBy(500) // debounce
             testCoroutineScheduler.runCurrent()
             cut.elements.value.should(containRoomListElementViewModelsFor(listOf(roomId2)))
@@ -706,7 +706,7 @@ class RoomListViewModelTest : ShouldSpec() {
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.searchTerm.value = "2"
+            cut.searchTerm.update("2")
             testCoroutineScheduler.advanceTimeBy(500) // debounce
             testCoroutineScheduler.runCurrent()
             cut.elements.value.should(
@@ -744,7 +744,7 @@ class RoomListViewModelTest : ShouldSpec() {
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.searchTerm.value = "2"
+            cut.searchTerm.update("2")
             testCoroutineScheduler.advanceTimeBy(500) // debounce
             testCoroutineScheduler.runCurrent()
 
@@ -779,7 +779,7 @@ class RoomListViewModelTest : ShouldSpec() {
             val cut = roomListViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.searchTerm.value = "1"
+            cut.searchTerm.update("1")
             testCoroutineScheduler.advanceTimeBy(500) // debounce
             testCoroutineScheduler.runCurrent()
             cut.elements.value.should(containRoomListElementViewModelsFor(listOf(roomId1)))

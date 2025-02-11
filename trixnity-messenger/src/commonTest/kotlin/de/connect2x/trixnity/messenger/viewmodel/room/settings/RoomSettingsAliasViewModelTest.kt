@@ -167,7 +167,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                 viewModel.canChangeRoomAlias.value shouldBe true
             }
 
-            viewModel.newAlias.value = "#epicroom:127.0.0.1"
+            viewModel.newAlias.update("#epicroom:127.0.0.1")
             viewModel.addNewAlias()
 
             eventually(10.seconds) {
@@ -196,7 +196,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                 viewModel.canChangeRoomAlias.value shouldBe true
             }
 
-            viewModel.newAlias.value = "epicroom:127.0.0.1"
+            viewModel.newAlias.update("epicroom:127.0.0.1")
             viewModel.addNewAlias()
 
             eventually(2.seconds) {
@@ -221,7 +221,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                     viewModel.canChangeRoomAlias.value shouldBe true
                 }
 
-                viewModel.newAlias.value = "#epicroom:127.0.0.1"
+                viewModel.newAlias.update("#epicroom:127.0.0.1")
                 viewModel.addNewAlias()
 
                 eventually(2.seconds) {
@@ -264,7 +264,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                     viewModel.canChangeRoomAlias.value shouldBe true
                 }
 
-                viewModel.newAlias.value = "#epicroom:127.0.0.1"
+                viewModel.newAlias.update("#epicroom:127.0.0.1")
                 viewModel.addNewAlias()
 
                 eventually(2.seconds) {
@@ -316,7 +316,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                     viewModel.canChangeRoomAlias.value shouldBe true
                 }
 
-                viewModel.newAlias.value = "#epicroom:127.0.0.1"
+                viewModel.newAlias.update("#epicroom:127.0.0.1")
                 viewModel.addNewAlias()
 
                 eventually(2.seconds) {
@@ -357,7 +357,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                     viewModel.canChangeRoomAlias.value shouldBe true
                 }
 
-                viewModel.newAlias.value = "#epicroom:127.0.0.1"
+                viewModel.newAlias.update("#epicroom:127.0.0.1")
                 viewModel.addNewAlias()
 
                 eventually(2.seconds) {
@@ -366,7 +366,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                     viewModel.moreAliases.value shouldContain "#epicroom:127.0.0.1"
                 }
 
-                viewModel.newAlias.value = "#awesomeroom:127.0.0.1"
+                viewModel.newAlias.update("#awesomeroom:127.0.0.1")
                 viewModel.addNewAlias()
 
                 eventually(2.seconds) {
@@ -433,7 +433,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                 viewModel.canChangeRoomAlias.value shouldBe true
             }
 
-            viewModel.newAlias.value = "#epicroom:127.0.0.1"
+            viewModel.newAlias.update("#epicroom:127.0.0.1")
             viewModel.addNewAlias()
 
             eventually(2.seconds) {
@@ -477,7 +477,7 @@ class RoomSettingsAliasViewModelTest : ShouldSpec() {
                 viewModel.canChangeRoomAlias.value shouldBe true
             }
 
-            viewModel.newAlias.value = "#epicroom:127.0.0.1"
+            viewModel.newAlias.update("#epicroom:127.0.0.1")
             viewModel.addNewAlias()
 
             eventually(2.seconds) {

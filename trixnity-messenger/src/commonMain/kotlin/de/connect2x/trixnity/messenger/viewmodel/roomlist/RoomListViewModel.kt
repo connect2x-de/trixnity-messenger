@@ -9,6 +9,8 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.getOrNull
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel.UserSyncStates
@@ -110,7 +112,7 @@ interface RoomListViewModel {
     val allSyncError: StateFlow<Boolean>
 
     val showSearch: MutableStateFlow<Boolean>
-    val searchTerm: MutableStateFlow<String>
+    val searchTerm: TextFieldViewModel
 
     val accountViewModel: AccountViewModel
     val canCreateNewRoomWithAccount: StateFlow<Boolean>
@@ -177,7 +179,7 @@ class RoomListViewModelImpl(
     override val allSyncError: StateFlow<Boolean>
 
     override val showSearch = MutableStateFlow(false)
-    override val searchTerm = MutableStateFlow("")
+    override val searchTerm = TextFieldViewModelImpl()
 
     override val canCreateNewRoomWithAccount: StateFlow<Boolean>
 
@@ -285,9 +287,9 @@ class RoomListViewModelImpl(
         val searchedRoomsFlow =
             combine(
                 allRoomsFlow.map { it.keys },
-                searchTerm.debounce { if (it.isBlank()) 0.milliseconds else 300.milliseconds },
+                searchTerm.debounce { if (it.text.isBlank()) 0.milliseconds else 300.milliseconds },
             ) { allRoomIds, currentSearchTerm ->
-                allRoomIds to currentSearchTerm
+                allRoomIds to currentSearchTerm.text
             }.flatMapLatest { (allRoomIds, currentSearchTerm) ->
                 if (currentSearchTerm.isNotBlank()) {
                     allRoomNamesFlow.map { allRoomNames ->
@@ -435,7 +437,7 @@ class RoomListViewModelImpl(
         coroutineScope.launch {
             showSearch.drop(1).collect {
                 if (it.not()) {
-                    searchTerm.value = ""
+                    searchTerm.update("")
                 }
             }
         }
@@ -534,7 +536,7 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override val syncStates: StateFlow<UserSyncStates> = MutableStateFlow(UserSyncStates(setOf(), setOf()))
     override val initialSyncFinished: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
+    override val searchTerm = TextFieldViewModelImpl()
     override val accountViewModel: AccountViewModel = PreviewAccountViewModel()
     override val canCreateNewRoomWithAccount: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val unverifiedAccounts: StateFlow<List<UserId>> = MutableStateFlow(listOf())

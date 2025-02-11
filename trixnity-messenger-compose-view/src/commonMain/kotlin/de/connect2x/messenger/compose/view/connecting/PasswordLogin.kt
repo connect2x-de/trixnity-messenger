@@ -14,10 +14,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.MatrixUsername
 import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.TabInTextField
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
@@ -41,19 +41,19 @@ class PasswordLoginViewImpl : PasswordLoginView {
         val canLogin = passwordLoginViewModel.canLogin.collectAsState().value
         val tabToNextAndEnterSend = TabInTextField(canLogin, passwordLoginViewModel::tryLogin)
         val i18n = DI.get<I18nView>()
+        val username = passwordLoginViewModel.username.collectAsTextFieldValueState()
+        val password = passwordLoginViewModel.password.collectAsTextFieldValueState()
 
         Column {
             MatrixUsername(
-                username = passwordLoginViewModel.username.collectAsStateForTextField(),
-                setUsername = { passwordLoginViewModel.username.value = it },
+                username = username,
                 label = i18n.addMatrixClientMatrixUsername(),
                 enabled = passwordLoginViewModel.addMatrixAccountState.collectAsState().value.inputEnabled(),
                 modifier = tabToNextAndEnterSend,
             )
             Spacer(Modifier.height(20.dp))
             PasswordField(
-                password = passwordLoginViewModel.password.collectAsStateForTextField(),
-                onPasswordChange = { passwordLoginViewModel.password.value = it },
+                password = password,
                 enabled = passwordLoginViewModel.addMatrixAccountState.collectAsState().value.inputEnabled(),
                 modifier = tabToNextAndEnterSend,
             ) { Text(i18n.addMatrixClientPassword()) }

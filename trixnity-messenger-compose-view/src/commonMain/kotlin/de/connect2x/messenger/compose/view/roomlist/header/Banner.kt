@@ -31,7 +31,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -45,7 +47,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
+import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.thenNullable
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -146,7 +148,7 @@ fun NotVerifiedBanner(roomListViewModel: RoomListViewModel) {
 fun SearchRoomsBanner(roomListViewModel: RoomListViewModel) {
     val i18n = DI.get<I18nView>()
     val showSearch = roomListViewModel.showSearch.collectAsState().value
-    val searchTerm = roomListViewModel.searchTerm.collectAsStateForTextField().value
+    var searchTerm by roomListViewModel.searchTerm.collectAsTextFieldValueState()
     val focusRequester = remember { FocusRequester() }
     Banner(
         showSearch,
@@ -159,7 +161,7 @@ fun SearchRoomsBanner(roomListViewModel: RoomListViewModel) {
             ) {
                 OutlinedTextField(
                     value = searchTerm,
-                    onValueChange = { roomListViewModel.searchTerm.value = it },
+                    onValueChange = { searchTerm = it },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(10.dp)

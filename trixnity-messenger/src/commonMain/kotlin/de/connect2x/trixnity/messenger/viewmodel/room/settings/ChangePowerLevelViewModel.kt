@@ -2,11 +2,20 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.*
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.Role
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
@@ -51,7 +60,8 @@ interface ChangePowerLevelViewModel {
 
     val canSetPowerLevelToMax: StateFlow<Long?>
 
-    val changingPowerLevelDialogInput: MutableStateFlow<InputWrapper>
+    val changingPowerLevelDialogError: StateFlow<String?>
+    val changingPowerLevelDialogInput: TextFieldViewModel
 
     fun openChangingRoleWarningDialog(role: Role)
     fun closeChangingRoleWarningDialog()
@@ -66,13 +76,6 @@ interface ChangePowerLevelViewModel {
     fun setRoleToModerator()
     fun setRoleToAdmin()
     fun setPowerLevelTo(level: Long)
-
-    fun onPowerLevelEntered(input: String)
-
-    data class InputWrapper(
-        val value: String = "",
-        val errorId: String? = null
-    )
 
     enum class Role {
         USER {
@@ -133,10 +136,22 @@ open class ChangePowerLevelViewModelImpl(
 
     override val changingPowerLevelDialogOpen = MutableStateFlow(false)
 
-    override val changingPowerLevelDialogInput =
-        MutableStateFlow(InputWrapper())
+    override val changingPowerLevelDialogError = MutableStateFlow<String?>(null)
+    override val changingPowerLevelDialogInput = TextFieldViewModelImpl()
 
     override val showPowerLevelHelp = MutableStateFlow(false)
+
+    init {
+        coroutineScope.launch {
+            changingPowerLevelDialogInput.text.collect {
+                changingPowerLevelDialogError.value = validateNewPowerLevelInput(
+                    it,
+                    maxPowerLevel = canSetPowerLevelToMax.value,
+                    i18n
+                )
+            }
+        }
+    }
 
     override fun setRoleToUser() =
         setUserToPowerLevel(Role.USER.getMinPowerLevel())
@@ -200,19 +215,8 @@ open class ChangePowerLevelViewModelImpl(
                             error.value = i18n.settingsRoomMemberListChangePowerLevelError(targetUser.full)
                         })
             }
-            changingPowerLevelDialogInput.value =
-                changingPowerLevelDialogInput.value.copy(value = "", null)
+            changingPowerLevelDialogInput.update("")
         }
-    }
-
-    override fun onPowerLevelEntered(input: String) {
-        val errorId = validateNewPowerLevelInput(
-            input,
-            maxPowerLevel = canSetPowerLevelToMax.value,
-            i18n
-        )
-        changingPowerLevelDialogInput.value =
-            changingPowerLevelDialogInput.value.copy(value = input, errorId = errorId)
     }
 
     private fun validateNewPowerLevelInput(

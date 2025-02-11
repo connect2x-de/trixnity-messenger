@@ -1,11 +1,14 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -18,7 +21,7 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 interface UserSearchHandler {
-    val searchTerm: MutableStateFlow<String>
+    val searchTerm: TextFieldViewModel
     val initialUsers: StateFlow<List<Search.SearchUserElement>>
     val foundUsers: MutableStateFlow<List<Search.SearchUserElement>>
     val waitForUserResults: StateFlow<Boolean>
@@ -40,7 +43,7 @@ class DefaultUserSearchHandler(
             Regex("""${UserId.sigilCharacter}([a-zA-Z\d.\-_=/]+):(${MatrixRegex.domain.pattern})""")
     }
 
-    override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
+    override val searchTerm = TextFieldViewModelImpl()
     override val initialUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val foundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val waitForUserResults: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -51,6 +54,8 @@ class DefaultUserSearchHandler(
 
     private suspend fun searchUsers() {
         searchTerm
+            .map { it.text }
+            .distinctUntilChanged()
             .onEach { if (it.isBlank()) foundUsers.value = initialUsers.value }
             .debounce(debounceDuration)
             .filter { it.isNotBlank() }
@@ -67,7 +72,7 @@ class DefaultUserSearchHandler(
 }
 
 object PreviewUserSearchHandler : UserSearchHandler {
-    override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
+    override val searchTerm = TextFieldViewModelImpl("bla")
     override val initialUsers: StateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val foundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val waitForUserResults: StateFlow<Boolean> = MutableStateFlow(false)

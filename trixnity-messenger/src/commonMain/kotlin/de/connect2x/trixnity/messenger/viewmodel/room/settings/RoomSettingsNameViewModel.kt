@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.util.EditableTextFieldViewModel
-import de.connect2x.trixnity.messenger.viewmodel.util.EditableTextFieldViewModelImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.PreviewEditableTextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.PreviewApprovableTextFieldViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -37,7 +37,7 @@ interface RoomSettingsNameViewModel {
     val canViewRoomName: StateFlow<Boolean>
 
     /** Access the state and value of the room name. */
-    val roomName: EditableTextFieldViewModel
+    val roomName: ApprovableTextFieldViewModel
 }
 
 class RoomSettingsNameViewModelImpl(
@@ -55,8 +55,8 @@ class RoomSettingsNameViewModelImpl(
             .map { it?.isDirect?.not() ?: false }
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
-    override val roomName: EditableTextFieldViewModel =
-        EditableTextFieldViewModelImpl(
+    override val roomName: ApprovableTextFieldViewModel =
+        ApprovableTextFieldViewModelImpl(
             serverValue = matrixClient.room
                 .getById(selectedRoomId)
                 .map { it?.name?.explicitName ?: "" },
@@ -71,7 +71,7 @@ class RoomSettingsNameViewModelImpl(
 }
 
 class PreviewRoomSettingsNameViewModel : RoomSettingsNameViewModel {
-    override val roomName: EditableTextFieldViewModel = PreviewEditableTextFieldViewModel()
+    override val roomName: ApprovableTextFieldViewModel = PreviewApprovableTextFieldViewModel()
     override val canChangeRoomName: StateFlow<Boolean> = MutableStateFlow(true)
     override val canViewRoomName: StateFlow<Boolean> = MutableStateFlow(true)
 }

@@ -1,9 +1,10 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -28,7 +29,7 @@ interface ProfileCreationViewModel {
      */
     val canCreateProfile: StateFlow<Boolean>
 
-    val profileName: MutableStateFlow<String>
+    val profileName: TextFieldViewModel
     fun createProfile()
 }
 
@@ -43,22 +44,22 @@ class ProfileCreationViewModelImpl(
     private val profileManager = di.get<ProfileManager>()
     private val i18n = di.get<I18n>()
 
-    override val profileName: MutableStateFlow<String> = MutableStateFlow("")
+    override val profileName = TextFieldViewModelImpl()
     override val error: StateFlow<String?> =
         combine(profileManager.profiles, profileName) { existingProfiles, currentProfileName ->
             when {
-                existingProfiles.any { (_, settings) -> settings.base.displayName == currentProfileName } -> i18n.profileCreationDuplicate()
+                existingProfiles.any { (_, settings) -> settings.base.displayName == currentProfileName.text } -> i18n.profileCreationDuplicate()
                 else -> null
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val canCreateProfile: StateFlow<Boolean> = error.map { it == null }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, true) // used in createProfile()
+        .stateIn(coroutineScope, SharingStarted.Eagerly, false) // used in createProfile()
 
     override fun createProfile() {
         if (canCreateProfile.value) {
             coroutineScope.launch {
                 val id = profileManager.createProfile(
-                    settings = MatrixMultiMessengerProfileSettingsBase(displayName = profileName.value)
+                    settings = MatrixMultiMessengerProfileSettingsBase(displayName = profileName.value.text)
                 )
                 profileManager.selectProfile(id)
             }

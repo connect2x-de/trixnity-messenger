@@ -13,9 +13,10 @@ import org.koin.core.component.get
 
 interface CreateNewRoomViewModelFactory {
     fun create(
-        viewModelContext: MatrixClientViewModelContext
+        viewModelContext: MatrixClientViewModelContext,
+        onRoomCreated: (UserId, RoomId) -> Unit,
     ): CreateNewRoomViewModel {
-        return CreateNewRoomViewModelImpl(viewModelContext)
+        return CreateNewRoomViewModelImpl(viewModelContext, onRoomCreated)
     }
 
     companion object : CreateNewRoomViewModelFactory
@@ -25,10 +26,12 @@ interface CreateNewRoomViewModel {
     val searchHandler: UserSearchHandler
     val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>>
     val error: MutableStateFlow<String?>
+    val onRoomCreated: (UserId, RoomId) -> Unit
 }
 
 open class CreateNewRoomViewModelImpl(
-    viewModelContext: MatrixClientViewModelContext
+    viewModelContext: MatrixClientViewModelContext,
+    override val onRoomCreated: (UserId, RoomId) -> Unit
 ) : CreateNewRoomViewModel, MatrixClientViewModelContext by viewModelContext {
     private val maxAvatarSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     override val searchHandler: UserSearchHandler =
@@ -41,4 +44,5 @@ class PreviewCreateNewRoomViewModel : CreateNewRoomViewModel {
     override val searchHandler: UserSearchHandler = PreviewUserSearchHandler
     override val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>> = MutableStateFlow(emptyMap())
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val onRoomCreated: (UserId, RoomId) -> Unit = { _, _ -> }
 }
