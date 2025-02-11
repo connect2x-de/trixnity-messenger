@@ -40,13 +40,13 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.milliseconds
 
+
 class OutboxElementHolderViewModelTest : ShouldSpec() {
 
     private val roomId = RoomId("room1", "localhost")
     private val eventId = EventId("event")
 
     private val us = UserId("mimi", "localhost")
-    private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
 
     private val matrixClientMock = mock<MatrixClient>()
@@ -86,7 +86,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                             sender = userId,
                             roomId = roomId,
                             originTimestamp = 0L,
-                            stateKey = userId.full
+                            stateKey = userId.full,
                         )
                     )
                 )

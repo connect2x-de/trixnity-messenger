@@ -24,7 +24,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -196,150 +195,6 @@ class MemberListViewModelTest : ShouldSpec() {
             every { userServiceMock.userPresence } returns MutableStateFlow(
                 mapOf(me to PresenceEventContent(Presence.OFFLINE))
             )
-        }
-
-        should("ban user from room") {
-            val powerLevelsEventContent = PowerLevelsEventContent(users = mapOf(alice to 1, bob to 1, me to 100))
-            val powerLevelEvent = StateEvent(
-                powerLevelsEventContent,
-                EventId("I'm an EventId"),
-                sender = me,
-                originTimestamp = 123,
-                roomId = roomId,
-                stateKey = ""
-            )
-            every {
-                roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "")
-            } returns MutableStateFlow(powerLevelEvent)
-
-            val createEvent = StateEvent(
-                CreateEventContent(creator = me),
-                EventId("I'm an EventId too"),
-                sender = bob,
-                originTimestamp = 122,
-                roomId = roomId,
-                stateKey = ""
-            )
-            every {
-                roomServiceMock.getState(roomId, CreateEventContent::class, "")
-            } returns MutableStateFlow(createEvent)
-            every { userServiceMock.getPowerLevel(eq(roomId), eq(me)) } returns flowOf(100)
-
-            every {
-                userServiceMock.getPowerLevel(
-                    alice,
-                    bob,
-                    powerLevelsEventContent = powerLevelsEventContent,
-                )
-            } returns 1
-
-            every {
-                userServiceMock.getPowerLevel(
-                    bob,
-                    bob,
-                    powerLevelsEventContent = powerLevelsEventContent,
-                )
-            } returns 1
-
-            every {
-                userServiceMock.getPowerLevel(
-                    me,
-                    bob,
-                    powerLevelsEventContent = powerLevelsEventContent,
-                )
-            } returns 100
-
-            val cut = memberListViewModel(coroutineContext)
-
-            eventually(2.seconds) {
-                cut.elements.value.size shouldBe 3
-            }
-
-            val memberListElementViewModel = cut.elements.value[1]
-            val roomUser =
-                userServiceMock.getById(roomId, memberListElementViewModel.memberUserId) as MutableStateFlow<RoomUser?>
-
-            memberListElementViewModel.banUser("Test reason")
-            eventually(2.seconds) {
-                requireNotNull(roomUser.value).membership shouldBe Membership.BAN
-            }
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("unban user from room") {
-            val powerLevelsEventContent = PowerLevelsEventContent(users = mapOf(alice to 1, bob to 1, me to 100))
-            val powerLevelEvent = StateEvent(
-                powerLevelsEventContent,
-                EventId("I'm an EventId"),
-                sender = me,
-                originTimestamp = 123,
-                roomId = roomId,
-                stateKey = ""
-            )
-            every {
-                roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "")
-            } returns MutableStateFlow(powerLevelEvent)
-
-            val createEvent = StateEvent(
-                CreateEventContent(creator = me),
-                EventId("I'm an EventId too"),
-                sender = bob,
-                originTimestamp = 122,
-                roomId = roomId,
-                stateKey = ""
-            )
-            every {
-                roomServiceMock.getState(roomId, CreateEventContent::class, "")
-            } returns MutableStateFlow(createEvent)
-            every { userServiceMock.getPowerLevel(eq(roomId), eq(me)) } returns flowOf(100)
-
-            every {
-                userServiceMock.getPowerLevel(
-                    alice,
-                    bob,
-                    powerLevelsEventContent = powerLevelsEventContent,
-                )
-            } returns 1
-
-            every {
-                userServiceMock.getPowerLevel(
-                    bob,
-                    bob,
-                    powerLevelsEventContent = powerLevelsEventContent,
-                )
-            } returns 1
-
-            every {
-                userServiceMock.getPowerLevel(
-                    me,
-                    bob,
-                    powerLevelsEventContent = powerLevelsEventContent,
-                )
-            } returns 100
-
-            val cut = memberListViewModel(coroutineContext)
-
-            eventually(2.seconds) {
-                cut.elements.value.size shouldBe 3
-            }
-
-            val memberListElementViewModel = cut.elements.value[1]
-            val roomUser =
-                userServiceMock.getById(roomId, memberListElementViewModel.memberUserId) as MutableStateFlow<RoomUser?>
-
-            setMemberEventContentOf(roomUser, MemberEventContent(membership = Membership.BAN))
-            eventually(2.seconds) {
-                requireNotNull(roomUser.value).membership shouldBe Membership.BAN
-            }
-
-            memberListElementViewModel.unbanUser(null)
-            val allUsers = userServiceMock.getAll(roomId) as MutableStateFlow<Map<UserId, Flow<RoomUser?>>>
-            eventually(2.seconds) {
-                allUsers.value.size shouldBe 2
-            }
-
-            cancelNeverEndingCoroutines()
         }
 
         should("create List of sorted MemberListElementViewModels after initiation and subscription") {
@@ -594,7 +449,7 @@ class MemberListViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext,
             ),
             selectedRoomId = roomId,
-
+            onOpenUserProfile = mock(),
             error = MutableStateFlow("")
         ).also {
             launch {

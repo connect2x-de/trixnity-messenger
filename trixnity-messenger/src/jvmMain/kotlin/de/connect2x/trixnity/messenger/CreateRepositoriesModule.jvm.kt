@@ -5,7 +5,6 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.SQLiteDriver
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import androidx.sqlite.use
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException.DatabaseAccessException
 import de.connect2x.trixnity.messenger.util.ConvertSecretByteArray
 import de.connect2x.trixnity.messenger.util.RootPath
@@ -14,16 +13,19 @@ import net.folivo.trixnity.client.store.repository.room.TrixnityRoomDatabase
 import net.folivo.trixnity.client.store.repository.room.createRoomRepositoriesModule
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.crypto.core.SecureRandom
+import okio.FileSystem
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 actual fun platformCreateRepositoriesModuleModule(): Module = module {
     single<CreateRepositoriesModule> {
         val rootPath = get<RootPath>()
+        val fileSystem = get<FileSystem>()
         val convertSecretByteArray = get<ConvertSecretByteArray>()
 
         object : CreateRepositoriesModule {
             override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult {
+                fileSystem.createDirectories(rootPath.forAccountDatabase(userId), mustCreate = false)
                 val databaseKey = SecureRandom.nextBytes(EncryptedSQLiteDriver.KEY_SIZE)
                 return CreateRepositoriesModule.CreateResult(
                     module = createRoomRepositoriesModule(db(userId, databaseKey)),
@@ -43,7 +45,10 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
                 Room.databaseBuilder<TrixnityRoomDatabase>(
                     rootPath.forAccountDatabase(userId).resolve("database").toString()
                 ).apply {
-                    setDriver(databaseKey?.let(::EncryptedSQLiteDriver) ?: throw DatabaseAccessException("No Encryption Key given"))
+                    setDriver(
+                        databaseKey?.let(::EncryptedSQLiteDriver)
+                            ?: throw DatabaseAccessException("No Encryption Key given")
+                    )
                 }
         }
     }

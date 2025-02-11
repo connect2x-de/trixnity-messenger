@@ -56,6 +56,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNotif
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsSecurityViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportToMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
@@ -164,6 +165,7 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
+
 data class MatrixClientConfigurationHolder(val matrixClientConfiguration: MatrixClientConfiguration.() -> Unit)
 
 fun interface DebugName {
@@ -191,7 +193,8 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                         modulesFactories += {
                             module {
                                 single<EventContentSerializerMappings> {
-                                    eventContentSerializerMappings.fold(DefaultEventContentSerializerMappings) { a, b -> a + b }
+                                    eventContentSerializerMappings
+                                        .fold(DefaultEventContentSerializerMappings) { a, b -> a + b }
                                 }
                             }
                         }
@@ -255,10 +258,10 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
     ::roomSettingsViewModels,
     ::exportModule,
 
-    // platform-specific view models
+    // Platform-specific view models:
     ::platformNotificationSettingsSingleAccountViewModelFactoryModule,
 
-// platform-specific implementations
+    // Platform-specific implementations:
     ::platformModule,
     ::platformPathsModule,
     ::platformCreateRepositoriesModuleModule,
@@ -280,7 +283,8 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
 )
 
 /*
- * Factories for view models; provide your own factory to change or enhance behaviour of existing view models
+ * Factories for view models: Provide your own factory to
+ * change or enhance behaviours of existing view models.
  */
 
 private fun connectingViewModels() = module {
@@ -325,11 +329,11 @@ private fun settingsViewModels() = module {
 }
 
 inline fun <reified F : TimelineElementViewModelFactory<*>> Module.timelineElementViewModelFactory(
-    noinline definition: Scope.(ParametersHolder) -> F
+    noinline definition: Scope.(ParametersHolder) -> F,
 ) = single<F>(named<F>(), definition = definition).bind<TimelineElementViewModelFactory<*>>()
 
 private fun timelineElementViewModels() = module {
-    // message
+    // Message:
     timelineElementViewModelFactory<FileRoomMessageTimelineElementViewModelFactory> { FileRoomMessageTimelineElementViewModelFactory }
     timelineElementViewModelFactory<ImageRoomMessageTimelineElementViewModelFactory> { ImageRoomMessageTimelineElementViewModelFactory }
     timelineElementViewModelFactory<VideoRoomMessageTimelineElementViewModelFactory> { VideoRoomMessageTimelineElementViewModelFactory }
@@ -340,7 +344,7 @@ private fun timelineElementViewModels() = module {
     timelineElementViewModelFactory<LocationRoomMessageTimelineElementViewModelFactory> { LocationRoomMessageTimelineElementViewModelFactory }
     timelineElementViewModelFactory<VerificationRequestRoomMessageTimelineElementViewModelFactory> { VerificationRequestRoomMessageTimelineElementViewModelFactory }
 
-    // state
+    // State:
     timelineElementViewModelFactory<CreateStateTimelineElementViewModelFactory> { CreateStateTimelineElementViewModelFactory }
     timelineElementViewModelFactory<NameStateTimelineElementViewModelFactory> { NameStateTimelineElementViewModelFactory }
     timelineElementViewModelFactory<TopicStateTimelineElementViewModelFactory> { TopicStateTimelineElementViewModelFactory }
@@ -350,10 +354,10 @@ private fun timelineElementViewModels() = module {
     timelineElementViewModelFactory<HistoryVisibilityStateTimelineElementViewModelFactory> { HistoryVisibilityStateTimelineElementViewModelFactory }
     timelineElementViewModelFactory<EncryptionStateTimelineElementViewModelFactory> { EncryptionStateTimelineElementViewModelFactory }
 
-    // common
+    // Common:
     timelineElementViewModelFactory<RedactedTimelineElementViewModelFactory> { RedactedTimelineElementViewModelFactory }
 
-    // select from timelineElementViewModelFactory
+    // Select from timelineElementViewModelFactory:
     single<EncryptedWaitTimelineElementViewModelFactory> { EncryptedWaitTimelineElementViewModelFactory }
     single<EncryptedErrorTimelineElementViewModelFactory> { EncryptedErrorTimelineElementViewModelFactory }
     single<TimelineElementViewModelFactorySelector> {
@@ -373,7 +377,6 @@ private fun roomViewModels() = module {
 }
 
 private fun roomSettingsViewModels() = module {
-    single<AddMembersViewModelFactory> { AddMembersViewModelFactory }
     single<ChangePowerLevelViewModelFactory> { ChangePowerLevelViewModelFactory }
     single<ChangeRoomAvatarViewModelFactory> { ChangeRoomAvatarViewModelFactory }
     single<MemberListElementViewModelFactory> { MemberListElementViewModelFactory }
@@ -387,12 +390,14 @@ private fun roomSettingsViewModels() = module {
     single<RoomSettingsAliasViewModelFactory> { RoomSettingsAliasViewModelFactory }
     single<RoomSettingsJoinRulesViewModelFactory> { RoomSettingsJoinRulesViewModelFactory }
     single<RoomSettingsSecurityViewModelFactory> { RoomSettingsSecurityViewModelFactory }
+    single<UserProfileViewModelFactory> { UserProfileViewModelFactory }
+    single<AddMembersViewModelFactory> { AddMembersViewModelFactory }
+    single<ExportRoomViewModelFactory> { ExportRoomViewModelFactory }
 }
 
 private fun timelineViewModels() = module {
     single<InputAreaViewModelFactory> { InputAreaViewModelFactory }
     single<ReportToMessageViewModelFactory> { ReportToMessageViewModelFactory }
-    single<ExportRoomViewModelFactory> { ExportRoomViewModelFactory }
     single<RoomHeaderViewModelFactory> { RoomHeaderViewModelFactory }
     single<SendAttachmentViewModelFactory> { SendAttachmentViewModelFactory }
     single<TimelineViewModelFactory> { TimelineViewModelFactory }

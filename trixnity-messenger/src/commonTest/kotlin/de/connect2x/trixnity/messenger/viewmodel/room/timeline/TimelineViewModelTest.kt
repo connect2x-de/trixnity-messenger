@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.shouldGroup
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
@@ -15,6 +16,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.TextBasedRoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.withCleanup
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -39,6 +41,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
@@ -46,6 +49,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomOutboxMessage
@@ -70,9 +74,9 @@ import kotlin.test.DefaultAsserter.fail
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class TimelineViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 10_000
 
     private lateinit var lifecycleRegistry: LifecycleRegistry
 
@@ -82,20 +86,13 @@ class TimelineViewModelTest : ShouldSpec() {
     private val bob = UserId("bob", "localhost")
 
     val matrixClientMock = mock<MatrixClient>()
-
     val roomServiceMock = mock<RoomService>()
-
     val userServiceMock = mock<UserService>()
-
-    val matrixClientServerApiMock = mock<MatrixClientServerApiClient>()
-
     val roomsApiClientMock = mock<RoomApiClient>()
-
     val roomHeaderViewModelMock = mock<RoomHeaderViewModel>()
-
     val inputAreaViewModelMock = mock<InputAreaViewModel>()
-
-    val clock = mock<Clock>()
+    private val matrixClientServerApiMock = mock<MatrixClientServerApiClient>()
+    private val clock = mock<Clock>()
 
     lateinit var coroutineScope: CoroutineScope
 
@@ -116,6 +113,8 @@ class TimelineViewModelTest : ShouldSpec() {
     )
 
     init {
+        timeout = 10_000
+
         Dispatchers.setMain(Dispatchers.Unconfined)
         beforeTest {
             coroutineScope = CoroutineScope(Dispatchers.Default)
@@ -163,8 +162,7 @@ class TimelineViewModelTest : ShouldSpec() {
 
             every { roomServiceMock.getTimelineEvent(any(), any(), any()) } returns dummyEvent
             every { roomServiceMock.getNextTimelineEvent(any(), any()) } returns flowOf(null)
-            every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
-                    MutableStateFlow(emptyMap())
+            every { roomServiceMock.getTimelineEventRelations(eq(roomId), any(), any()) } returns flowOf(null)
 
             every {
                 userServiceMock.getAll(roomId)
@@ -231,8 +229,8 @@ class TimelineViewModelTest : ShouldSpec() {
             coroutineScope.cancel()
         }
 
-        context(TimelineViewModel::elements.name) {
-            should("show new messages when at the end of timeline (end of timeline has been starting element)") {
+        shouldGroup(TimelineViewModel::elements.name) {
+            should("show new messages when at the end of timeline (end of timeline has been starting element)").withCleanup {
                 val timelineMock = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello")
@@ -262,7 +260,8 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.elements waitForSize 3
                 cut.elements.value.last().key shouldBe "$roomId-2"
             }
-            should("only show outbox messages of this room") {
+
+            should("only show outbox messages of this room").withCleanup {
                 outboxMessagesFlow.value =
                     listOf(
                         RoomOutboxMessage(
@@ -293,7 +292,8 @@ class TimelineViewModelTest : ShouldSpec() {
 
                 cut.elements waitForSize 2  // 1 message + 1 outbox message
             }
-            should("filter outbox message that is already in the timeline") {
+
+            should("filter outbox message that is already in the timeline").withCleanup {
                 outboxMessagesFlow.value =
                     listOf(
                         RoomOutboxMessage(
@@ -321,7 +321,8 @@ class TimelineViewModelTest : ShouldSpec() {
 
                 cut.elements.first() shouldHaveSize 2
             }
-            should("add new outbox message and when it is received as timeline event from the server not show as outbox message") {
+
+            should("add new outbox message and when it is received as timeline event from the server not show as outbox message").withCleanup {
                 val timelineMock = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = me, transactionId = "1") {
                         text("Hello")
@@ -352,7 +353,8 @@ class TimelineViewModelTest : ShouldSpec() {
                     cut.elements.first()[1].key shouldBe "$roomId-transactionId-1"
                 }
             }
-            should("only contain the newest version of a replace event") {
+
+            should("only contain the newest version of a replace event").withCleanup {
                 timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello!!!")
@@ -396,8 +398,9 @@ class TimelineViewModelTest : ShouldSpec() {
                 job.cancel()
             }
         }
-        context(TimelineViewModel::viewState.name) {
-            should("load more messages before") {
+
+        shouldGroup(TimelineViewModel::viewState.name) {
+            should("load more messages before").withCleanup {
                 val timelineMock = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello")
@@ -422,7 +425,8 @@ class TimelineViewModelTest : ShouldSpec() {
                 )
                 cut.elements waitForSize 20
             }
-            should("not load more messages before") {
+
+            should("not load more messages before").withCleanup {
                 val timelineMock = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello")
@@ -448,7 +452,8 @@ class TimelineViewModelTest : ShouldSpec() {
                     cut.elements.value.size shouldBe 11
                 }
             }
-            should("load more messages after") {
+
+            should("load more messages after").withCleanup {
                 val timelineMock = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello")
@@ -474,7 +479,8 @@ class TimelineViewModelTest : ShouldSpec() {
                 )
                 cut.elements waitForSize 20
             }
-            should("load more messages after when outbox is last message") {
+
+            should("load more messages after when outbox is last message").withCleanup {
                 val timelineMock = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello")
@@ -510,7 +516,8 @@ class TimelineViewModelTest : ShouldSpec() {
 
                 cut.elements waitForSize 3
             }
-            should("not load more messages after") {
+
+            should("not load more messages after").withCleanup {
                 val timelineMock = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello")
@@ -539,8 +546,9 @@ class TimelineViewModelTest : ShouldSpec() {
                 }
             }
         }
-        context(TimelineViewModel::jumpToEndOfTimeline.name) {
-            should("directly jump to the end of the timeline if the last event is already in the timeline") {
+
+        shouldGroup(TimelineViewModel::jumpToEndOfTimeline.name) {
+            should("directly jump to the end of the timeline if the last event is already in the timeline").withCleanup {
                 timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello")
@@ -558,7 +566,8 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.jumpToEndOfTimeline()
                 cut.elements waitForSize 10
             }
-            should("load the last event of the room and add it to the timeline if it is not yet present in the timeline") {
+
+            should("load the last event of the room and add it to the timeline if it is not yet present in the timeline").withCleanup {
                 val timelineMock = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello")
@@ -584,8 +593,9 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.elements.first { it.last().key == "$roomId-11" }
             }
         }
-        context(TimelineViewModel::leaveRoom.name) {
-            should("show an error message when trying to leave a room and we are not connected") {
+
+        shouldGroup(TimelineViewModel::leaveRoom.name) {
+            should("show an error message when trying to leave a room and we are not connected").withCleanup {
                 syncStateMocker returns MutableStateFlow(SyncState.ERROR)
                 timeline(roomServiceMock, roomId) {}
 
@@ -598,13 +608,10 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.errorDismiss()
                 cut.error.value shouldBe null
             }
-            should("show an error message when leaving the room fails") {
+
+            should("show an error message when leaving the room fails").withCleanup {
                 everySuspend {
-                    roomsApiClientMock.leaveRoom(
-                        roomId,
-                        any(),
-                        eqNull()
-                    )
+                    roomsApiClientMock.leaveRoom(roomId, any(), eqNull())
                 } returns Result.failure(RuntimeException("Oh no!"))
 
                 timeline(roomServiceMock, roomId) {}
@@ -616,8 +623,9 @@ class TimelineViewModelTest : ShouldSpec() {
                 cut.error.filterNotNull().first()
             }
         }
-        context(TimelineViewModel::scrollTo.name) {
-            should("scroll to the end when we put a message in the outbox") {
+
+        shouldGroup(TimelineViewModel::scrollTo.name) {
+            should("scroll to the end when we put a message in the outbox").withCleanup {
                 timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello!")
@@ -635,7 +643,7 @@ class TimelineViewModelTest : ShouldSpec() {
                         transactionId = "transactionId-1",
                         roomId = roomId,
                         content = RoomMessageEventContent.TextBased.Text(body = "Hello to you!"),
-                        createdAt = Instant.fromEpochMilliseconds(0)
+                        createdAt = Instant.fromEpochMilliseconds(0),
                     ),
                 )
                 cut.elements waitForSize 2
@@ -645,13 +653,13 @@ class TimelineViewModelTest : ShouldSpec() {
                         transactionId = "transactionId-1",
                         roomId = roomId,
                         content = RoomMessageEventContent.TextBased.Text(body = "Hello to you!"),
-                        createdAt = Instant.fromEpochMilliseconds(0)
+                        createdAt = Instant.fromEpochMilliseconds(0),
                     ),
                     RoomOutboxMessage(
                         transactionId = "transactionId-2",
                         roomId = roomId,
                         content = RoomMessageEventContent.TextBased.Text(body = "My second message."),
-                        createdAt = Instant.fromEpochMilliseconds(1)
+                        createdAt = Instant.fromEpochMilliseconds(1),
                     )
                 )
                 cut.elements waitForSize 3
@@ -660,7 +668,7 @@ class TimelineViewModelTest : ShouldSpec() {
                 coroutineScope.cancel()
             }
 
-            should("scroll to the end when a new message is added at the end of the timeline where the user is active") {
+            should("scroll to the end when a new message is added at the end of the timeline where the user is active").withCleanup {
                 val timelineMock = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello!")
@@ -674,7 +682,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     lastVisibleElement = "$roomId-0",
                     firstLoadedElement = "notRelevant",
                     lastLoadedElement = "notRelevant",
-                    windowIsFocused = true
+                    windowIsFocused = true,
                 )
                 delay(200) // give the viewmodel time to compute derived values
 
@@ -695,7 +703,7 @@ class TimelineViewModelTest : ShouldSpec() {
                 coroutineScope.cancel()
             }
 
-            should("not scroll to the end when a new message is added, but the end of the timeline is not visible") {
+            should("not scroll to the end when a new message is added, but the end of the timeline is not visible").withCleanup {
                 val timelineMock = timeline(roomServiceMock, roomId) {
                     +messageEvent(sender = alice) {
                         text("Hello!")
@@ -736,6 +744,129 @@ class TimelineViewModelTest : ShouldSpec() {
                 coroutineScope.cancel()
             }
         }
+
+        shouldGroup(TimelineViewModel::unreadCount.name) {
+            should("count unread messages correctly when adding messages").withCleanup {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) { text("Read message") }
+                }
+
+                timelineMock.fullyReadEventIndex.value = 0
+
+                val cut = timelineViewModel()
+
+                cut.unreadCount.launchIn(coroutineScope)
+
+                continually(2.seconds) {
+                    cut.unreadCount.first() shouldBe null
+                }
+                timelineMock.addEvents {
+                    +messageEvent(sender = alice) { text("Unread message") }
+                }
+                eventually(3.seconds) {
+                    cut.unreadCount.first() shouldBe "1"
+                }
+
+                coroutineScope.cancel()
+            }
+
+            should("count unread messages correctly when last read event changes").withCleanup {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) { text("Read message") }
+                    +messageEvent(sender = alice) { text("Unread message") }
+                    +messageEvent(sender = alice) { text("Unread message") }
+                }
+
+                timelineMock.fullyReadEventIndex.value = 0
+
+                val cut = timelineViewModel()
+
+                cut.unreadCount.launchIn(coroutineScope)
+
+                eventually(3.seconds) {
+                    cut.unreadCount.first() shouldBe "2"
+                }
+                timelineMock.fullyReadEventIndex.value = 1
+                eventually(3.seconds) {
+                    cut.unreadCount.first() shouldBe "1"
+                }
+                timelineMock.fullyReadEventIndex.value = 2
+                eventually(3.seconds) {
+                    cut.unreadCount.first() shouldBe null
+                }
+                coroutineScope.cancel()
+            }
+
+            should("show an indicator when there are more than 99 unread messages").withCleanup {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) { text("Read message") }
+                    (1..100).forEach {
+                        +messageEvent(sender = alice) { text("Unread message number $it") }
+                    }
+                }
+
+                timelineMock.fullyReadEventIndex.value = 0
+
+                val cut = timelineViewModel()
+
+                cut.unreadCount.launchIn(coroutineScope)
+
+                eventually(3.seconds) {
+                    cut.unreadCount.first() shouldBe "99+"
+                }
+
+                coroutineScope.cancel()
+            }
+
+            should("not count unsupported timeline events").withCleanup {
+                val timelineMock = timeline(roomServiceMock, roomId) {
+                    +messageEvent(sender = alice) { text("Read message") }
+                    +MessageEvent(
+                        sender = alice,
+                        id = EventId("1"),
+                        roomId = roomId,
+                        originTimestamp = 123,
+                        content = RoomMessageEventContent.Unknown(
+                            "Unsupported Event",
+                            body = "Unsupported",
+                            raw = JsonObject(content = HashMap())
+                        )
+                    )
+                }
+
+                timelineMock.fullyReadEventIndex.value = 0
+
+                val cut = timelineViewModel()
+
+                cut.unreadCount.launchIn(coroutineScope)
+
+                continually(2.seconds) {
+                    cut.unreadCount.first() shouldBe null
+                }
+
+                timelineMock.addEvents {
+                    +MessageEvent(
+                        sender = alice,
+                        id = EventId("2"),
+                        roomId = roomId,
+                        originTimestamp = 234,
+                        content = RoomMessageEventContent.TextBased.Text("Supported message")
+                    )
+                }
+
+                eventually(3.seconds) {
+                    cut.unreadCount.first() shouldBe "1"
+                }
+
+                timelineMock.fullyReadEventIndex.value = 1
+
+                continually(2.seconds) {
+                    cut.unreadCount.first() shouldBe "1"
+                }
+
+                coroutineScope.cancel()
+            }
+        }
     }
 
     private suspend fun timelineViewModel(
@@ -749,10 +880,7 @@ class TimelineViewModelTest : ShouldSpec() {
                     modules(
                         createTestDefaultTrixnityMessengerModules(
                             mapOf(
-                                UserId(
-                                    "test",
-                                    "server"
-                                ) to matrixClientMock
+                                UserId("test", "server") to matrixClientMock
                             )
                         ) + module {
                             single { clock }
@@ -769,10 +897,10 @@ class TimelineViewModelTest : ShouldSpec() {
                                     override fun create(
                                         viewModelContext: MatrixClientViewModelContext,
                                         selectedRoomId: RoomId,
-                                        isBackButtonVisible: MutableStateFlow<Boolean>,
                                         onBack: () -> Unit,
                                         onVerifyUser: () -> Unit,
-                                        onShowRoomSettings: () -> Unit,
+                                        onOpenRoomSettings: () -> Unit,
+                                        onOpenUserProfile: (UserId) -> Unit,
                                     ): RoomHeaderViewModel {
                                         return roomHeaderViewModelMock
                                     }
@@ -786,7 +914,7 @@ class TimelineViewModelTest : ShouldSpec() {
                                         onMessageReplaceFinished: (RoomId, EventId) -> Unit,
                                         onMessageReplyFinished: (RoomId, EventId) -> Unit,
                                         onShowAttachmentSendView: (FileDescriptor) -> Unit,
-                                        onOpenMention: OpenMentionCallback
+                                        onOpenMention: OpenMentionCallback,
                                     ): InputAreaViewModel {
                                         return inputAreaViewModelMock
                                     }
@@ -798,10 +926,10 @@ class TimelineViewModelTest : ShouldSpec() {
                 coroutineContext = currentCoroutineContext(),
             ),
             roomId = roomId,
-            isBackButtonVisible = MutableStateFlow(false),
-            onShowSettings = mock(),
+            onOpenSettings = mock(),
             onBack = onBackMock,
             onOpenMention = mock(),
+            onOpenUserProfile = mock()
         )
     }
 }

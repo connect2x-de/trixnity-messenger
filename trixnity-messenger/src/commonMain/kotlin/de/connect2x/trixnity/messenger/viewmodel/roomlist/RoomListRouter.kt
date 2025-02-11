@@ -12,7 +12,6 @@ import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
-import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModelFactory
@@ -41,7 +40,7 @@ import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 
-private val log = KotlinLogging.logger { }
+private val log = KotlinLogging.logger {}
 
 class RoomListRouter(
     private val viewModelContext: ViewModelContext,
@@ -52,7 +51,7 @@ class RoomListRouter(
     private val onCreateNewAccount: () -> Unit,
     private val onRemoveAccount: (userId: UserId) -> Unit,
     private val onAccountSelected: () -> Unit,
-    private val onStartAccountSetup : (userId : UserId) -> Unit
+    private val onStartAccountSetup: (userId: UserId) -> Unit,
 ) {
 
     private val navigation = StackNavigation<Config>()
@@ -71,9 +70,16 @@ class RoomListRouter(
         }
     }
 
+    fun openRoom(userId: UserId, roomId: RoomId) = viewModelContext.coroutineScope.launch {
+        log.debug { "go to room $roomId" }
+        selectedRoomId.value = roomId
+        navigation.popSuspending()
+        onRoomSelected(userId, roomId)
+    }
+
     private fun createChild(
         roomListConfig: Config,
-        componentContext: ComponentContext
+        componentContext: ComponentContext,
     ): Wrapper =
         when (roomListConfig) {
             is Config.None -> Wrapper.None
@@ -88,7 +94,7 @@ class RoomListRouter(
                     onOpenAppInfo = ::onOpenAppInfo,
                     onSendLogs = onSendLogs,
                     onOpenAccountsOverview = ::onOpenAccountsOverview,
-                    onAccountSelected = onAccountSelected
+                    onAccountSelected = onAccountSelected,
                 )
             )
 
@@ -109,7 +115,7 @@ class RoomListRouter(
                         onCreateGroup = ::onCreateGroup,
                         onSearchGroup = ::onSearchGroup,
                         onCancel = ::onCancelCreateNewChat,
-                        goToRoom = ::goToRoom,
+                        onOpenRoom = ::openRoom,
                     )
             )
 
@@ -230,13 +236,6 @@ class RoomListRouter(
     private fun onCancelCreateNewChat() {
         log.debug { "on cancel create new chat" }
         navigation.launchPop(viewModelContext.coroutineScope)
-    }
-
-    private fun goToRoom(userId: UserId, roomId: RoomId) = viewModelContext.coroutineScope.launch {
-        log.debug { "go to room $roomId" }
-        selectedRoomId.value = roomId
-        navigation.popSuspending()
-        onRoomSelected(userId, roomId)
     }
 
     private fun onCreateGroup(userId: UserId) {
@@ -363,20 +362,15 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onShowAccountSetup (userId: UserId) {
+    private fun onShowAccountSetup(userId: UserId) {
         val messengerSettings = viewModelContext.get<MatrixMessengerSettingsHolder>()
         viewModelContext.coroutineScope.launch {
             log.debug { "Reset account setup for account $userId" }
-            messengerSettings.update<MatrixMessengerAccountSettingsBase>(userId) {it.copy(accountSetupFinished = false)}
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(userId) {
+                it.copy(accountSetupFinished = false)
+            }
         }
         onStartAccountSetup(userId)
-    }
-
-    suspend fun moveToBackStack() {
-        if (stack.value.active.configuration !is Config.None) {
-            log.debug { "move active view to back (push Config.None)" }
-            navigation.pushSuspending(Config.None)
-        }
     }
 
     suspend fun show() {
@@ -389,10 +383,6 @@ class RoomListRouter(
     suspend fun close() {
         log.debug { "close" }
         navigation.popSuspending()
-    }
-
-    fun isShown(): Boolean {
-        return stack.value.active.configuration is Config.RoomList
     }
 
     @Serializable

@@ -59,7 +59,7 @@ class FileBasedExportRoomSinkBase(
 
     override suspend fun processTimelineEvent(
         timelineEvent: TimelineEvent,
-        media: ExportRoomSink.Media?
+        media: ExportRoomSink.Media?,
     ): Result<Unit> = kotlin.runCatching {
         val nextContent = converter.convert(timelineEvent, media?.fileName)
         if (nextContent != null) {

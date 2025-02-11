@@ -63,6 +63,8 @@ import de.connect2x.messenger.compose.view.room.settings.RoomSettingsTopicView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsTopicViewImpl
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsViewImpl
+import de.connect2x.messenger.compose.view.room.settings.UserProfileView
+import de.connect2x.messenger.compose.view.room.settings.UserProfileViewImpl
 import de.connect2x.messenger.compose.view.room.settings.SearchUsersSettingsView
 import de.connect2x.messenger.compose.view.room.settings.SearchUsersSettingsViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.AudioReplyView
@@ -119,7 +121,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElement
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelectorImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ImageTimelineElementDetailsView
-import de.connect2x.messenger.compose.view.room.timeline.element.details.PdfTimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.details.TimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementView
@@ -384,6 +385,8 @@ fun roomSettingsViewModule() = module {
     single<RoomSettingsJoinRulesView> { RoomSettingsJoinRulesViewImpl() }
     single<ExportRoomView> { ExportRoomViewImpl() }
     single<AddMembersToRoomView> { AddMembersToRoomViewImpl() }
+    single<UserProfileView> { UserProfileViewImpl() }
+
 }
 
 inline fun <reified F : TimelineElementView<*>> Module.timelineElementView(

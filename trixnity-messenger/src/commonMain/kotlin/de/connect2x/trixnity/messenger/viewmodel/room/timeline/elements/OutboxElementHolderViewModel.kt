@@ -107,6 +107,7 @@ class OutboxElementHolderViewModelImpl(
             lifecycle.start()
             timelineElementViewModelFactorySelector.create(
                 childContextWithOwnLifecycle(lifecycle),
+                outboxMessage.content,
                 Result.success(outboxMessage.content),
                 roomId,
                 EventIdOrTransactionId(transactionId),

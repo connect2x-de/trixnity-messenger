@@ -158,17 +158,21 @@ open class RoomListElementViewModelImpl(
     override val isEncrypted: StateFlow<Boolean?> =
         roomFlow.map { it.encrypted }
             .stateIn(coroutineScope, WhileSubscribed(), null)
+
     override val isPublic: StateFlow<Boolean?> =
         matrixClient.room.getState<JoinRulesEventContent>(roomId).map {
             it?.content?.joinRule == JoinRulesEventContent.JoinRule.Public
         }.stateIn(coroutineScope, WhileSubscribed(), null)
+
     override val roomName: StateFlow<String?> =
         roomNameCalculations.getRoomName(roomId, matrixClient).map { it }
             .stateIn(coroutineScope, WhileSubscribed(), null)
+
     override val roomImageInitials: StateFlow<String?> =
         roomNameCalculations.getRoomName(roomId, matrixClient, formatted = false)
             .map { initials.compute(it) }
             .stateIn(coroutineScope, WhileSubscribed(), null)
+
     override val roomImage: StateFlow<ByteArray?> =
         roomFlow.map { room ->
             room.avatarUrl?.let { avatarUrl ->
@@ -204,7 +208,7 @@ open class RoomListElementViewModelImpl(
                         matrixClient.room.getById(roomId).map { it?.isDirect == true }
                             .distinctUntilChanged(),
                     ) { lastTimelineEventSender, isDirect ->
-                        val message = lastTimelineEventType(lastTimelineEvent)
+                        val message = timelineEventTypeDescription(lastTimelineEvent)
                         val isByMe = matrixClient.userId == lastTimelineEvent.event.sender
                         val sender = if (isByMe) {
                             i18n.roomListYou()
@@ -227,7 +231,7 @@ open class RoomListElementViewModelImpl(
             }
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
-    override val usersTyping: StateFlow<String?> =  matrixClient.room.usersTyping.map { map ->
+    override val usersTyping: StateFlow<String?> = matrixClient.room.usersTyping.map { map ->
         map[roomId]?.let { typingInfo(matrixClient, roomId, i18n, it) }
     }.stateIn(coroutineScope, WhileSubscribed(), null)
 
@@ -240,6 +244,7 @@ open class RoomListElementViewModelImpl(
                 ?.let { formatTimestamp(it, clock, timeZone) }
             ?: ""
         }.stateIn(coroutineScope, WhileSubscribed(), null)
+
     override val unreadMessages: StateFlow<String?> =
         combine(roomFlow, isInvite.filterNotNull()) { room, isInvite ->
             when {
@@ -249,6 +254,7 @@ open class RoomListElementViewModelImpl(
                 else -> room.unreadMessageCount.toString()
             }
         }.stateIn(coroutineScope, WhileSubscribed(), null)
+
     override val presence: StateFlow<Presence?> =
         userPresence.presentEventContentFlow(matrixClient, roomId)
             .map { it?.presence }
@@ -315,22 +321,22 @@ open class RoomListElementViewModelImpl(
         }
     }
 
-    private fun lastTimelineEventType(lastTimelineEvent: TimelineEvent): String =
-        if (lastTimelineEvent.content?.isSuccess == true) {
-            val content = lastTimelineEvent.content?.getOrNull()
-            if (content is RoomMessageEventContent)
-                when (content) {
-                    is FileBased.Image -> i18n.roomListContentImage()
-                    is FileBased.Video -> i18n.roomListContentVideo()
-                    is FileBased.Audio -> i18n.roomListContentAudio()
-                    is FileBased.File -> i18n.roomListContentFile()
-                    is TextBased,
-                    is Location,
-                    is VerificationRequest,
-                    is Unknown -> content.bodyWithoutFallback
-                }
-            else ""
-        } else ""
+    private fun timelineEventTypeDescription(event: TimelineEvent): String =
+        event.content?.getOrNull().let { content ->
+            when (content) {
+                !is RoomMessageEventContent -> ""
+                is FileBased.Image -> i18n.roomListContentImage()
+                is FileBased.Video -> i18n.roomListContentVideo()
+                is FileBased.Audio -> i18n.roomListContentAudio()
+                is FileBased.File -> i18n.roomListContentFile()
+                is TextBased,
+                is Location,
+                is VerificationRequest,
+                is Unknown -> content.bodyWithoutFallback
+
+                else -> ""
+            }
+        }
 }
 
 class PreviewRoomListElementViewModel1 : RoomListElementViewModel {

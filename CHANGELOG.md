@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Introduced String.graphemeCount extension for counting perceived chars
+- Introduced String.forEachGrapheme extension for iterating perceived chars
+
 ### Changed
+
+- Use password type keyboard to enter recovery key
+- Refactored app view routing
 
 ### Deprecated
 
@@ -17,9 +23,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed stuck device verification (button did nothing)
+- Make initials computation fully Unicode compliant
+- Fixed redactions of message edits
+- Don't render replace events even when not decryptable
 - Showing sync erroring users only on the info banner
 
 ### Security
+
+## 3.2.0
+
+### Added
+
+- Add User Profile Screen
+
+### Fixed
+
+- Fixed cache issues in Web by upgrading Trixnity
+
+## 3.1.1
+
+### Changed
+
+- Force database directory creation
+
+### Fixed
+
+- Fixed export directory resolution on Android
+- Handle commas in url correctly
+- Fixed faulty stale data cleanup on login leading to login error in Web
+- Fix license entries
 
 ## 3.1.0
 
@@ -30,12 +63,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show users typing in room list
 - Allow sending attachments with Enter (desktop)
 - Check server capabilities for setting display name and avatar and prevent editing if not supported
-- More conservative MatrixClient initialization failure handling.
+- More conservative MatrixClient initialization failure handling
 - Inform the user that additional sync methods might be available after the initial sync during the Verification Wizard
 - Only show verification banner in RoomList, when the selected Account isn't verified
 - Change RedoSelfVerification to Wizard Framework
-- don't start verification on startup, start it via the setup or the banner in the roomlist instead
+- Don't start verification on startup, start it via the setup or the banner in the room list instead
 - Support for refresh tokens
+- Add badge with count of unread messages to scroll down button in rooms
 
 ### Changed
 

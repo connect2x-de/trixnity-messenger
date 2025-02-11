@@ -21,7 +21,8 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 
-private val log = KotlinLogging.logger { }
+
+private val log = KotlinLogging.logger {}
 
 interface RoomName {
     fun getRoomName(
@@ -159,5 +160,4 @@ open class RoomNameImpl(
         heroes: List<UserId>,
         index: Int
     ) = (roomUser?.name ?: heroes[index].full)
-
 }

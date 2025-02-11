@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.room.timeline
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -32,6 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,23 +53,31 @@ import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
 
+
 interface RoomHeaderView {
     @Composable
-    fun create(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean)
+    fun create(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean, showBackButton: Boolean)
 }
 
 @Composable
-fun RoomHeader(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean = true) {
-    with(DI.get<RoomHeaderView>()) { create(roomHeaderViewModel, showSettingsButton) }
+fun RoomHeader(
+    roomHeaderViewModel: RoomHeaderViewModel,
+    showSettingsButton: Boolean,
+    showBackButton: Boolean,
+) {
+    with(DI.get<RoomHeaderView>()) { create(roomHeaderViewModel, showSettingsButton, showBackButton) }
 }
 
 class RoomHeaderViewImpl : RoomHeaderView {
     @Composable
-    override fun create(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean) {
+    override fun create(
+        roomHeaderViewModel: RoomHeaderViewModel,
+        showSettingsButton: Boolean,
+        showBackButton: Boolean,
+    ) {
         val roomHeaderElement = roomHeaderViewModel.roomHeaderInfo.collectAsState().value
-        val isBackButtonVisible = roomHeaderViewModel.isBackButtonVisible.collectAsState().value
         val usersTyping = roomHeaderViewModel.usersTyping.collectAsState().value
-
+        val canShowUserProfile = roomHeaderViewModel.isDirectChat.collectAsState().value
         Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
             Column {
                 Row(
@@ -75,37 +85,42 @@ class RoomHeaderViewImpl : RoomHeaderView {
                         .fillMaxWidth()
                         .align(Alignment.CenterHorizontally)
                 ) {
-                    if (isBackButtonVisible) {
+                    if (showBackButton) {
                         RoomBackButton(roomHeaderViewModel)
                     }
                     Row(
                         Modifier
-                            .padding(vertical = 4.dp, horizontal = if (isBackButtonVisible) 0.dp else 10.dp)
+                            .padding(vertical = 4.dp, horizontal = if (showBackButton) 0.dp else 10.dp)
                             .align(Alignment.CenterVertically),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Box {
-                            AvatarWithPresence(
-                                roomHeaderElement.roomImage,
-                                roomHeaderElement.roomImageInitials,
-                                roomHeaderElement.presence,
-                            )
-                            if (roomHeaderElement.isPublic) {
-                                PublicIcon()
-                            }
-                        }
-                        Spacer(Modifier.size(5.dp))
-                        UserState(roomHeaderViewModel.userTrustLevel, roomHeaderViewModel.isUserBlocked)
-                        if (roomHeaderElement.isEncrypted.not()) {
-                            UnencryptedIcon()
-                            Spacer(Modifier.size(5.dp))
-                        }
-
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .weight(1f)
+                                .let {
+                                    if (canShowUserProfile) it.clip(MaterialTheme.shapes.extraLarge)
+                                        .clickable { roomHeaderViewModel.openUserProfile() } else it
+                                }
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
+                            Box {
+                                AvatarWithPresence(
+                                    roomHeaderElement.roomImage,
+                                    roomHeaderElement.roomImageInitials,
+                                    roomHeaderElement.presence,
+                                )
+                                if (roomHeaderElement.isPublic) {
+                                    PublicIcon()
+                                }
+                            }
+                            Spacer(Modifier.size(5.dp))
+                            UserState(roomHeaderViewModel.userTrustLevel, roomHeaderViewModel.isUserBlocked)
+                            if (roomHeaderElement.isEncrypted.not()) {
+                                UnencryptedIcon()
+                                Spacer(Modifier.size(5.dp))
+                            }
+
+                            Column {
                                 RoomName(roomHeaderElement)
                                 if (usersTyping != null) {
                                     UsersTyping(usersTyping)
@@ -113,8 +128,8 @@ class RoomHeaderViewImpl : RoomHeaderView {
                                     RoomTopic(roomHeaderElement)
                                 }
                             }
-                            RoomExtras(roomHeaderViewModel, showSettingsButton)
                         }
+                        RoomExtras(roomHeaderViewModel, showSettingsButton)
                     }
                 }
                 HorizontalDivider(Modifier.fillMaxWidth())
@@ -127,7 +142,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
 fun RowScope.RoomBackButton(roomHeaderViewModel: RoomHeaderViewModel) {
     val i18n = DI.get<I18nView>()
     IconButton(
-        onClick = { roomHeaderViewModel.goBack() },
+        onClick = { roomHeaderViewModel.back() },
         modifier = Modifier.align(Alignment.CenterVertically).buttonPointerModifier()
     ) {
         Icon(Icons.AutoMirrored.Default.KeyboardArrowLeft, i18n.commonBack())
@@ -174,7 +189,7 @@ fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Light,
             overflow = TextOverflow.Ellipsis,
-            maxLines = 1
+            maxLines = 1,
         )
     }
 }
@@ -182,7 +197,7 @@ fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
 @Composable
 fun RoomExtras(
     roomHeaderViewModel: RoomHeaderViewModel,
-    showSettingsButton: Boolean = true,
+    showSettingsButton: Boolean,
 ) {
     val contextMenuOpen = remember { mutableStateOf(false) }
     val isMobile = Platform.current.isMobile
@@ -190,7 +205,7 @@ fun RoomExtras(
     when {
         isMobile -> {
             if (showSettingsButton) IconButton(
-                onClick = { roomHeaderViewModel.showRoomSettings() },
+                onClick = { roomHeaderViewModel.openRoomSettings() },
                 Modifier.wrapContentSize()
             ) {
                 Icon(Icons.Default.Settings, i18n.roomHeaderSettings())
@@ -207,7 +222,7 @@ fun RoomExtras(
 
         else -> {
             if (showSettingsButton) IconButton(
-                onClick = { roomHeaderViewModel.showRoomSettings() },
+                onClick = { roomHeaderViewModel.openRoomSettings() },
                 Modifier.buttonPointerModifier().then(
                     Modifier.wrapContentSize(unbounded = true)
                 )
@@ -232,7 +247,7 @@ fun RoomExtras(
 @Composable
 fun RoomContextMenu(
     contextMenuOpen: MutableState<Boolean>,
-    roomHeaderViewModel: RoomHeaderViewModel
+    roomHeaderViewModel: RoomHeaderViewModel,
 ) {
     val i18n = DI.get<I18nView>()
     val canVerifyUser = roomHeaderViewModel.canVerifyUser.collectAsState().value
@@ -259,43 +274,40 @@ fun RoomContextMenu(
             contentPadding = PaddingValues(horizontal = 10.dp),
             enabled = canVerifyUser,
         )
-        if (canBlockUser) {
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        i18n.roomHeaderBlockUser(),
-                        Modifier.buttonPointerModifier(canBlockUser),
-                        color = textColor(canBlockUser),
-                    )
-                },
-                onClick = {
-                    contextMenuOpen.value = false
-                    roomHeaderViewModel.blockUser()
-                },
-                contentPadding = PaddingValues(horizontal = 10.dp),
-                enabled = canBlockUser,
-            )
-        }
-        if (canUnblockUser) {
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        i18n.roomHeaderUnblockUser(),
-                        Modifier.buttonPointerModifier(canUnblockUser),
-                        color = textColor(canUnblockUser),
-                    )
-                },
-                onClick = {
-                    contextMenuOpen.value = false
-                    roomHeaderViewModel.unblockUser()
-                },
-                contentPadding = PaddingValues(horizontal = 10.dp),
-                enabled = canUnblockUser,
-            )
-        }
+        if (canBlockUser) DropdownMenuItem(
+            text = {
+                Text(
+                    i18n.roomHeaderBlockUser(),
+                    Modifier.buttonPointerModifier(canBlockUser),
+                    color = textColor(canBlockUser),
+                )
+            },
+            onClick = {
+                contextMenuOpen.value = false
+                roomHeaderViewModel.blockUser()
+            },
+            contentPadding = PaddingValues(horizontal = 10.dp),
+            enabled = canBlockUser,
+        )
+        if (canUnblockUser) DropdownMenuItem(
+            text = {
+                Text(
+                    i18n.roomHeaderUnblockUser(),
+                    Modifier.buttonPointerModifier(canUnblockUser),
+                    color = textColor(canUnblockUser),
+                )
+            },
+            onClick = {
+                contextMenuOpen.value = false
+                roomHeaderViewModel.unblockUser()
+            },
+            contentPadding = PaddingValues(horizontal = 10.dp),
+            enabled = canUnblockUser,
+        )
     }
 }
 
 @Composable
 private fun textColor(enabled: Boolean) =
-    if (enabled) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
+    if (enabled) MaterialTheme.colorScheme.onBackground
+    else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)

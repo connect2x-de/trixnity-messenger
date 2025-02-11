@@ -332,6 +332,46 @@ abstract class I18nView(
         DE - "Verkleinern"
     }
 
+    fun ban() = translate {
+        EN - "ban"
+        DE - "Bannen"
+    }
+
+    fun banned() = translate {
+        EN - "Banned"
+        DE - "Gebannt"
+    }
+
+    fun unban() = translate {
+        EN - "unban"
+        DE - "Entbannen"
+    }
+
+    fun block() = translate {
+        EN - "block"
+        DE - "Blockieren"
+    }
+
+    fun unblock() = translate {
+        EN - "unblock"
+        DE - "Entblockieren"
+    }
+
+    fun secure() = translate {
+        EN - "secure"
+        DE - "Sicher"
+    }
+
+    fun insecure() = translate {
+        EN - "insecure"
+        DE - "Unsicher"
+    }
+
+    fun contact() = translate {
+        EN - "contact"
+        DE - "Kontakt"
+    }
+
     fun newMessage() = translate {
         EN - "new message"
         DE - "neue Nachricht"
@@ -757,19 +797,19 @@ abstract class I18nView(
         DE - "Diese Aktion kann eventuell nicht mehr rückgängig gemacht werden."
     }
 
-    fun memberListRoleAdministrator() = translate {
+    fun userProfileRoleAdministrator() = translate {
         EN - "administrator"
         DE - "Administrator"
     }
 
-    fun memberListRoleModerator() = translate {
+    fun userProfileRoleModerator() = translate {
         EN - "moderator"
         DE - "Moderator"
     }
 
-    fun memberListRoleUser() = translate {
-        EN - "user"
-        DE - "Nutzer"
+    fun userProfileRoleUser() = translate {
+        EN - "default"
+        DE - "Standard"
     }
 
     fun memberListChangeTo(role: String) = translate {
@@ -777,17 +817,17 @@ abstract class I18nView(
         DE - "zum $role machen"
     }
 
-    fun memberListChangePowerLevel() = translate {
+    fun userProfileChangePowerLevel() = translate {
         EN - "change power level"
         DE - "Berechtigungslevel festlegen"
     }
 
-    fun memberListNote() = translate {
+    fun userProfileNote() = translate {
         EN - "Note:"
         DE - "Hinweis:"
     }
 
-    fun memberListNoteText() = translate {
+    fun userProfileNoteText() = translate {
         EN - """Every user in a chat/group is given a value between 0 and 100.
             |This value determines the rights a user has in this chat or group.
             |
@@ -806,29 +846,59 @@ abstract class I18nView(
         """.trimMargin()
     }
 
-    fun memberListRemoveUser() = translate {
+    fun userProfileContact() = translate {
+        EN - "contact user"
+        DE - "Teilnehmer kontaktieren"
+    }
+
+    fun userProfileVerification() = translate {
+        EN - "start user verification"
+        DE - "Vertrauensprüfung starten"
+    }
+
+    fun userProfileRemoveUser() = translate {
         EN - "remove user"
         DE - "Teilnehmer entfernen"
     }
 
-    fun memberListBanUser() = translate {
+    fun userProfileBanUser() = translate {
         EN - "ban user"
         DE - "Teilnehmer bannen"
     }
 
-    fun memberListRemoveUserConfirmation() = translate {
+    fun userProfileBlockUser() = translate {
+        EN - "block user"
+        DE - "Teilnehmer blockieren"
+    }
+
+    fun userProfileRemoveUserConfirmation() = translate {
         EN - "Yes, remove user"
         DE - "Ja, Teilnehmer entfernen"
     }
 
-    fun memberListBanUserConfirmation() = translate {
+    fun userProfileBanUserConfirmation() = translate {
         EN - "Yes, ban user"
         DE - "Ja, Teilnehmer bannen"
     }
 
-    fun memberListBanTitle() = translate {
+    fun userProfileBanReason() = translate {
+        EN - "ban reason"
+        DE - "Bangrund"
+    }
+
+    fun userProfileBanUserConfirmationSure() = translate {
         EN - "Are you sure to ban this user?"
         DE - "Möchten Sie den Teilnehmer wirklich bannen?"
+    }
+
+    fun userProfileRoomOptions() = translate {
+        EN - "Room Options"
+        DE - "Raumoptionen"
+    }
+
+    fun userProfileUserOptions() = translate {
+        EN - "User Options"
+        DE - "Benutzeroptionen"
     }
 
     fun unbannable() = translate {
@@ -897,7 +967,7 @@ abstract class I18nView(
     }
 
     fun roomSettingsMembers() = translate {
-        EN - "members"
+        EN - "Members"
         DE - "Mitglieder"
     }
 
@@ -2569,6 +2639,11 @@ abstract class I18nView(
         EN - "The selected file exceeds the maximum preview size of ${formatSize(maxUploadSize)}."
     }
 
+
+    fun roomNoEncryptionFound() = translate {
+        EN - "No encryption found"
+        DE - "Keine Verschlüsselung gefunden"
+    }
 }
 
 fun i18nViewModule() = module {
