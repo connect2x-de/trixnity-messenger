@@ -39,6 +39,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import kotlinx.coroutines.flow.combine
 
 interface MessageReactionsView {
     @Composable
@@ -78,6 +79,7 @@ class MessageReactionsViewImpl : MessageReactionsView {
         }.collectAsState()
 
         val reactionList = remember(reactions) {
+            // TODO: sort in the VM instead?
             reactions.entries.sortedByDescending { it.value.size }.map { it.key }
         }
 
@@ -106,7 +108,7 @@ class MessageReactionsViewImpl : MessageReactionsView {
                         reaction = reaction,
                         reactionEvents = reactionEvents,
                         count = reactionEvents.size,
-                        myReaction = reactionEvents.firstOrNull { it.isMe },
+                        myReaction = reactionEvents.firstOrNull { it.isByMe },
                         onAddReaction = timelineElementHolderViewModel::addReaction,
                         onRemoveReaction = timelineElementHolderViewModel::removeReaction,
                     )
@@ -121,7 +123,6 @@ class MessageReactionsViewImpl : MessageReactionsView {
         }
     }
 }
-
 
 @Composable
 internal fun MessageReactionDisplay(
@@ -153,7 +154,11 @@ internal fun MessageReactionButton(
     onAddReaction: (reaction: String) -> Unit,
     onRemoveReaction: (reaction: TimelineElementHolderViewModel.ReactionEvent) -> Unit,
 ) {
-    Tooltip({ TooltipText(reactionEvents.joinToString { it.sender.name }) }) {
+    // TODO: remember?
+    val flows = reactionEvents.map { it.senderFlow }
+    val senderList = combine(flows) { it.filterNotNull() }
+        .collectAsState(listOf()).value
+    Tooltip({ TooltipText(senderList.joinToString { it.name }) }) {
         if (myReaction != null) {
             FilledTonalButton(
                 onClick = { onRemoveReaction(myReaction) },

@@ -27,6 +27,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxEl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel1
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel2
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReadReceiptsViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -87,7 +88,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.GetTimelineEventsConfig
 import net.folivo.trixnity.client.room.Timeline
@@ -109,8 +109,6 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
-import net.folivo.trixnity.core.model.events.m.ReceiptType
-import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -640,6 +638,8 @@ class TimelineViewModelImpl(
         )
     }
 
+    private val reads = ReadReceiptsViewModelImpl(viewModelContext)
+
     private val outboxElementCache = mutableMapOf<String, OutboxElementWrapper>()
 
     private suspend fun computeOutbox(
@@ -1024,10 +1024,15 @@ class TimelineViewModelImpl(
         }.join()
     }
 
-    private val getReceiptsByEventCache = concurrentMutableMap<RoomId, Flow<Map<EventId, Set<UserId>>>>()
+
+    // TODO
+//    private val getReceiptsByEventCache = concurrentMutableMap<RoomId, Flow<Map<EventId, Set<UserId>>>>()
     private fun getReceipts(roomId: RoomId): Flow<Map<EventId, Set<UserId>>> =
         flow {
             emitAll(
+                reads.testGet(roomId)
+
+                /*
                 getReceiptsByEventCache.read { get(roomId) }
                     ?: getReceiptsByEventCache.write {
                         getOrPut(roomId) {
@@ -1046,6 +1051,7 @@ class TimelineViewModelImpl(
                                 .stateIn(coroutineScope, WhileSubscribed(), emptyMap())
                         }
                     }
+                 */
             )
         }
 

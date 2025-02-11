@@ -2,21 +2,28 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReadReceiptsViewModel.ReadEvent
 import de.connect2x.trixnity.messenger.viewmodel.util.debounceAfterFirst
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.eventId
@@ -29,9 +36,9 @@ import net.folivo.trixnity.core.model.events.m.ReceiptType.Read
 import net.folivo.trixnity.utils.concurrentMutableMap
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sign
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 
 private val log = KotlinLogging.logger {}
@@ -41,46 +48,34 @@ interface ReadReceiptsViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
 //        key: String,
 //        timelineEventFlow: Flow<TimelineEvent>,
-//        roomId: RoomId,
     ): ReadReceiptsViewModel =
-        ReadReceiptsViewModelImpl(
-            viewModelContext = viewModelContext,
-//            roomId = roomId,
-        )
+        ReadReceiptsViewModelImpl(viewModelContext = viewModelContext)
 
     companion object : ReadReceiptsViewModelFactory
 }
 
+// TODO: rename to ReadReceiptsManager because it should kept alive between different VMs
 interface ReadReceiptsViewModel {
-//    val roomId: RoomId
-//    val eventId: EventId
-
-
 //    val isRead: StateFlow<Boolean?>
 //    val reactions: StateFlow<Map<ReactionKey, Set<ReactionEvent>>>
 
-    fun readReceipts(roomId: RoomId, eventId: EventId): StateFlow<Map<UserId, Flow<UserInfoElement?>>>
+    fun readReceipts(roomId: RoomId, eventId: EventId): StateFlow<Map<UserId, ReadEvent>>
     fun isRead(roomId: RoomId, eventId: EventId): StateFlow<Boolean>
 
-//    data class ReactionEvent(
-//        val eventId: EventId,
-//        val senderFlow: StateFlow<UserInfoElement?>,
-//        val isByMe: Boolean,
-//    )
+    fun testGet(roomId: RoomId): StateFlow<Map<EventId, MutableSet<UserId>>>
+
+    data class ReadEvent(
+        val eventId: EventId,
+        val senderFlow: StateFlow<UserInfoElement?>,
+    )
 }
 
-//@OptIn(ExperimentalCoroutinesApi::class)
 class ReadReceiptsViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-//    override val roomId: RoomId,
 ) : ReadReceiptsViewModel, MatrixClientViewModelContext by viewModelContext {
 
 
-//    private val receipts = getReceipts()
-//        .state
-
-
-    override fun readReceipts(roomId: RoomId, eventId: EventId): StateFlow<Map<UserId, Flow<UserInfoElement?>>> {
+    override fun readReceipts(roomId: RoomId, eventId: EventId): StateFlow<Map<UserId, ReadEvent>> {
         TODO("Not yet implemented")
     }
 
@@ -89,6 +84,14 @@ class ReadReceiptsViewModelImpl(
     }
 
     private val receiptsByEventCache = concurrentMutableMap<RoomId, Flow<Map<EventId, ReadReceiptResult>>>()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun testGet(roomId: RoomId) = getCachedReceipts(roomId)
+        .mapLatest {
+            it.mapValues { (eventId, receipt) ->
+                receipt.usersByEvent
+            }
+        }.stateIn(coroutineScope, WhileSubscribed(), emptyMap())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun getCachedReceipts(roomId: RoomId): Flow<Map<EventId, ReadReceiptResult>> =
@@ -103,51 +106,72 @@ class ReadReceiptsViewModelImpl(
                                 val receiptsList = getReceiptsList(roomId, true)
 
                                 // Load all the read events that are in the cache.
-                                // TODO: filter by most early
-                                receiptsByEvent.keys.map { eventId ->
-                                    coroutineScope.async {
-                                        matrixClient.room.getTimelineEvent(roomId, eventId) {
-                                            decryptionTimeout = ZERO
-                                            fetchTimeout = ZERO
-                                            fetchSize = 1
-                                            allowReplaceContent = false
-                                        }.first { it != null }
-                                    }
-                                }.awaitAll().forEach {
-                                    it?.let { event ->
-                                        val eventId = event.eventId
-                                        val timestamp = event.originTimestamp
-                                        val readers = receiptsByEvent[eventId]?.usersByEvent
-                                        if (!readers.isNullOrEmpty()) {
-                                            receiptsList.value.add(ReadEvent(timestamp, eventId, readers))
-                                        }
-                                    }
-                                }
+//                                fetchAllReadEventsFromCache(roomId, receiptsByEvent)
 
                                 receiptsByEvent
+
                             }
+                            .orderingCache(roomId)
                             .stateIn(coroutineScope, WhileSubscribed(), emptyMap())
                     }
                 }
             )
         }
 
-    data class ReadEvent(val timestamp: Long, val eventId: EventId, val readers: Set<UserId>)
+    private fun fetchAllReadEventsFromCache(roomId: RoomId, receiptsByEvent: Map<EventId, ReadReceiptResult>) {
+        eventFetchJob.value?.cancel()
+        eventFetchJob.value = coroutineScope.launch {
+            val receiptsList = getReceiptsList(roomId, false)
+            // TODO: filter by most early
+            log.debug { "fetching up to ${receiptsByEvent.size} read events from cache" }
+            combine(receiptsByEvent.keys.map { eventId ->
+//                coroutineScope.async {
+                matrixClient.room.getTimelineEvent(roomId, eventId) {
+                    decryptionTimeout = ZERO
+                    fetchTimeout = ZERO
+                    fetchSize = 1
+                    allowReplaceContent = false
+                }.mapNotNull {
+                    log.debug { "===== fetch ${it?.eventId}" }
+                    it
+                }
+//                    .catch {
+//                    log.debug { "===== error fetch" }
+//                    emit(null)
+//                }
+//                        .first { it != null }
+//                }
+            }) {
 
-    //    private val _receiptsLists = concurrentMutableMap<RoomId, SortedLinkedList<ReadEvent>>()
-    private val _receiptsLists =
-        MutableStateFlow<MutableMap<RoomId, MutableStateFlow<SortedLinkedList<ReadEvent>>>>(mutableMapOf())
+//            }
 
-    //        concurrentMutableMap<RoomId, SortedLinkedList<ReadEvent>>()
-    private fun getReceiptsList(roomId: RoomId, clear: Boolean): MutableStateFlow<SortedLinkedList<ReadEvent>> =
-        clear.let {
-            if (it) _receiptsLists.value.remove(roomId)
-            _receiptsLists.value.getOrPut(roomId) {
-                MutableStateFlow(SortedLinkedList { a, b ->
-                    (a.timestamp - b.timestamp).sign
-                })
+//                .awaitAll().let {
+                log.debug { "received ${it.size} read events from cache" }
+                receiptsList.transaction {
+                    it.forEach { event ->
+                        val eventId = event.eventId
+                        val timestamp = event.originTimestamp
+                        val readers = receiptsByEvent[eventId]?.usersByEvent
+                        if (!readers.isNullOrEmpty()) {
+                            add(OrderedReadEvent(timestamp, eventId, readers))
+                        }
+                    }
+                }
             }
         }
+    }
+
+    private val eventFetchJob = MutableStateFlow<Job?>(null)
+
+    private val _receiptsLists = MutableStateFlow<MutableMap<RoomId, ReadEventsOrdering>>(mutableMapOf())
+
+
+    private fun getReceiptsList(roomId: RoomId, clear: Boolean): ReadEventsOrdering =
+        clear.let {
+            if (it) _receiptsLists.value.remove(roomId)
+            _receiptsLists.value.getOrPut(roomId) { ReadEventsOrdering() }
+        }
+
 
     /**
      * @return All users with read receipts for the selected room
@@ -183,164 +207,122 @@ class ReadReceiptsViewModelImpl(
                         }
                     }
                 }
-                /*
-                // TODO: do all in one mutable map
-                val mostEarly = mutableMapOf<EventId, Long>()
-                val mostRecent = mutableMapOf<EventId, Long>()
-                val usersByEvent = buildMap<EventId, MutableSet<UserId>> {
-                    userReceipts.entries.forEach { (userId, receipt) ->
-                        receipt.receipts.entries.forEach { (type, receipt) ->
-                            val time = receipt.receipt.timestamp
-                            val eventId = receipt.eventId
-                            mostEarly[eventId]
-                                ?.let { mostEarly[eventId] = min(it, time) }
-                                ?: let { mostEarly[eventId] = time }
-                            mostRecent[eventId]
-                                ?.let { mostRecent[eventId] = max(it, time) }
-                                ?: let { mostRecent[eventId] = time }
-                            when (type) {
-                                Read -> if (exclude.contains(userId).not()) {
-                                    getOrPut(eventId) { mutableSetOf() }
-                                        .apply { add(userId) }
-                                }
-                            }
-                        }
-                    }
-                }
-                usersByEvent.mapValues { (eventId, users) ->
-                    ReadReceiptResult(
-                        timestampMostEarly = mostEarly[eventId] ?: 0L,
-                        timestampMostRecent = mostRecent[eventId] ?: 0L,
-                        usersByEvent = users,
-                    )
-                }
-                 */
             }
 
+
+    init {
+//        val order = ReadEventsOrdering()
+//        order.transaction {
+//            (1..12).forEach {
+//                add(OrderedReadEvent(it * 1_000L, EventId("ev-$it"), setOf()))
+//            }
+//        }
+//        order.print()
+//        listOf(-1000, 500, 2500, 3000, 999, 1234, 500000).forEach { num ->
+//            order.findEncompassing(num.toLong())
+//                .let { log.debug { "=== FOUND $num between ${it.first?.timestamp} and ${it.second?.timestamp}" } }
+//        }
+    }
+
+
     private data class ReadReceiptResult(
-        var timestampMostEarly: Long? = null,
-        var timestampMostRecent: Long? = null,
+        var timestampMostEarly: Long? = null, // Cutoff for fetching anything older than the selected event.
+        var timestampMostRecent: Long? = null, // Prioritizing for this increases the chances to get the relevant events first.
         var usersByEvent: MutableSet<UserId> = mutableSetOf(),
     )
 
-    init {
-        log.debug { "===== READ RECEIPTS" }
-        val s = SortedLinkedList<Int> { a, b ->
-            (a - b).sign
+    private fun Flow<Map<EventId, ReadReceiptResult>>.orderingCache(roomId: RoomId) =
+        channelFlow<Map<EventId, ReadReceiptResult>> {
+            val orderedEvents = MutableStateFlow(ReadEventsOrdering())
+            this.launch {
+                // State machine loop until everyone unsubscribes.
+                while (true) {
+                    delay(10.milliseconds) // Skip frames to not lock up the routine.
+                }
+            }.invokeOnCompletion {
+                log.debug { "--- completed state machine loop" }
+            }
+            collectLatest { receiptsByEventId ->
+                orderedEvents.value.clear()
+                send(receiptsByEventId)
+                this.launch {
+                    log.debug { "--- launch fetch of up to ${receiptsByEventId.size} read events" }
+                    receiptsByEventId.forEach { (eventId, receipt) ->
+                        withTimeout(1.seconds) {
+                            matrixClient.room.getTimelineEvent(roomId, eventId) {
+                                decryptionTimeout = ZERO
+                                fetchTimeout = ZERO
+                                fetchSize = 1
+                                allowReplaceContent = false
+                            }
+                        }.first()?.let { event ->
+                            orderedEvents.value.transaction {
+                                val timestamp = event.originTimestamp
+                                val readers = receiptsByEventId[event.eventId]?.usersByEvent
+                                if (!readers.isNullOrEmpty()) {
+                                    add(OrderedReadEvent(timestamp, event.eventId, readers))
+                                    log.debug { "--- added ordered event: ${event.eventId} at: $timestamp with ${readers.size} readers to container of size: ${orderedEvents.value.size}" }
+                                }
+                            }
+//                            orderedEvents.value.print()
+                        }
+                    }
+                }.invokeOnCompletion {
+                    log.debug { "--- completed fetch loop" }
+                }
+            }
         }
-        (1..12).shuffled()
-//        listOf(2, 4, 3, 9, 8, 7, 5, 10, 6, 1)
-            .also {
-                log.debug { "===== TEST DATA: ${it}" }
-            }
-            .forEach {
-                log.debug { "===== TEST ADD: $it CURR: ${s.toSortedList()}" }
-                s.add(it)
-            }
-        log.debug { "===== TEST SLL: ${s.toSortedList()}" }
-        s.first.let { while (it.hasNext()) log.debug { "--- FROM START: ${it.next()}" } }
-        s.last.let { while (it.hasNext()) log.debug { "--- FROM END: ${it.next()}" } }
-    }
 
-    private class ReadEventsOrdering : MutableList<ReadEvent> by mutableListOf() {
-        fun add(transaction: AddTransaction.() -> Unit) {
+    private class ReadEventsOrdering {
+        //    private val _events = MutableStateFlow(mutableListOf<OrderedReadEvent>())
+        private var _events = mutableListOf<OrderedReadEvent>()
+
+        operator fun get(index: Int) = _events[index]
+
+        fun transaction(transaction: AddTransaction.() -> Unit) {
             transaction(object : AddTransaction {
-                override fun add(event: ReadEvent) {
-                    this.add(event)
+                override fun add(event: OrderedReadEvent) {
+                    _events.add(event)
                 }
             })
-            this.sortBy { it.timestamp }
+            _events = _events
+                .distinctBy { it.eventId }
+                .sortedBy { it.timestamp }
+                .toMutableList()
         }
 
         interface AddTransaction {
-            fun add(event: ReadEvent)
+            fun add(event: OrderedReadEvent)
         }
-    }
-}
 
-private class SortedLinkedList<T>(
-    private val sortBy: Comparator<T>,
-) {
-    private var _size: Int = 0
-    val size: Int get() = _size
+        val size get() = _events.size
 
-    private var _nodes: MutableList<Node<T>> = mutableListOf()
+        fun clear() {
+            _events = mutableListOf()
+        }
 
-    private var _first: Node<T>? = null
-    val first: Iterator<T>
-        get() = object : Iterator<T> {
-            private var _next: Node<T>? = _first
-            override fun hasNext(): Boolean = _next != null
-            override fun next(): T {
-                val current = _next ?: throw NoSuchElementException()
-                return current.value.let {
-                    _next = current.next
-                    it
+        fun print() {
+            _events.forEachIndexed { i, v -> log.debug { "--- #$i \t ${v.timestamp}" } }
+        }
+
+        fun findEncompassing(timestamp: Long): Pair<OrderedReadEvent?, OrderedReadEvent?> {
+            var past: OrderedReadEvent? = null
+            for (i in (_events.size - 1) downTo 0) {
+                past = _events[i]
+                if (timestamp >= past.timestamp) {
+                    val next = if (i + 1 < _events.size) _events[i + 1] else null
+                    return Pair(next, past)
                 }
             }
+            return Pair(past, null)
         }
-    private var _last: Node<T>? = null
-    val last: Iterator<T>
-        get() = object : Iterator<T> {
-            private var _past: Node<T>? = _last
-            override fun hasNext(): Boolean = _past != null
-            override fun next(): T {
-                val current = _past ?: throw NoSuchElementException()
-                return current.value.let {
-                    _past = current.past
-                    it
-                }
-            }
-        }
-
-    fun add(value: T) {
-        _add(value)
-//        _nodes = toSortedList()
     }
 
-    private fun _add(value: T) {
-        val node = Node(value)
-        val first = _first
-        _size++
-        if (first == null) {
-            _first = node
-            _last = _first
-            return
-        }
-        var iter: Node<T>? = first
-        var last: Node<T> = first
-        while (iter != null) {
-            if (sortBy.compare(value, iter.value) <= 0) {
-                val past = iter.past
-                iter.past = node
-                node.next = iter
-                if (past != null) {
-                    past.next = node
-                    node.past = past
-                } else {
-                    _first = node
-                }
-                return
-            }
-            last = iter
-            iter = iter.next
-        }
-        last.next = node
-        node.past = last
-        _last = node
-    }
-
-    // No remove function since it's currently not needed.
-
-    fun toSortedList(): List<T> =
-        ArrayList<T>(_size).also { result ->
-            first.let { while (it.hasNext()) result.add(it.next()) }
-        }
-
-    private data class Node<T>(
-        val value: T,
-        var next: Node<T>? = null,
-        var past: Node<T>? = null,
+    private data class OrderedReadEvent(
+        val timestamp: Long,
+        val eventId: EventId,
+        val readers: Set<UserId>,
+        var gapsToNext: Boolean = false,
+        var gapsToPast: Boolean = false,
     )
 }
-
