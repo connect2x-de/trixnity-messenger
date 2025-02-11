@@ -66,7 +66,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
     val userServiceMock = mock<UserService>()
 
     private val onBackMock = mock<Function0<Unit>>()
-    private val onGroupCreatedMock = mock<Function2<UserId, RoomId, Unit>>()
+    private val onRoomCreatedMock = mock<(UserId, RoomId) -> Unit>()
 
     init {
         Dispatchers.setMain(Dispatchers.Unconfined)
@@ -78,7 +78,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                 roomsApiClientMock,
                 userServiceMock,
                 onBackMock,
-                onGroupCreatedMock
+                onRoomCreatedMock
             )
             every { matrixClientMock.di } returns koinApplication {
                 modules(
@@ -201,7 +201,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
         should("create group with all selected users") {
             val roomId = RoomId("room1", "localhost")
             every {
-                onGroupCreatedMock.invoke(any(), any())
+                onRoomCreatedMock.invoke(any(), any())
             } returns Unit
             everySuspend {
                 roomsApiClientMock.createRoom(
@@ -255,7 +255,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
 
             eventually(3.seconds) {
                 verify {
-                    onGroupCreatedMock.invoke(UserId("test", "server"), roomId)
+                    onRoomCreatedMock.invoke(UserId("test", "server"), roomId)
                 }
             }
         }
@@ -264,7 +264,7 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             val roomId = RoomId("room1", "localhost")
             val topicText = "This is a room for testing!"
             every {
-                onGroupCreatedMock.invoke(any(), any())
+                onRoomCreatedMock.invoke(any(), any())
             } returns Unit
             everySuspend {
                 roomsApiClientMock.createRoom(
@@ -294,14 +294,14 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
 
             eventually(3.seconds) {
                 verify {
-                    onGroupCreatedMock.invoke(UserId("test", "server"), roomId)
+                    onRoomCreatedMock.invoke(UserId("test", "server"), roomId)
                 }
             }
         }
 
         should("show error message when group cannot be created") {
             var groupCreatedWasCalled = false
-            every { onGroupCreatedMock.invoke(any(), any()) } calls {
+            every { onRoomCreatedMock.invoke(any(), any()) } calls {
                 groupCreatedWasCalled = true
             }
 
@@ -382,7 +382,6 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
             ),
             createNewRoomViewModel = createNewRoomViewModel(),
             onBack = onBackMock,
-            onGroupCreated = onGroupCreatedMock,
         )
         return createNewGroupViewModelImpl
     }
@@ -399,7 +398,8 @@ class CreateNewGroupViewModelTest : ShouldSpec() {
                 }.koin,
                 userId = UserId("test", "server"),
                 coroutineContext = Dispatchers.Unconfined
-            )
+            ),
+            onRoomCreated = onRoomCreatedMock,
         )
     }
 }

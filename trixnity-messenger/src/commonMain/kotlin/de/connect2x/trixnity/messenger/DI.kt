@@ -156,6 +156,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.ModuleFactory
+import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
 import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
 import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
 import org.koin.core.module.Module
@@ -164,7 +165,6 @@ import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.bind
 import org.koin.dsl.module
-
 
 data class MatrixClientConfigurationHolder(val matrixClientConfiguration: MatrixClientConfiguration.() -> Unit)
 
@@ -189,15 +189,18 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                     httpClientConfig = config.httpClientConfig
                     lastRelevantEventFilter =
                         { relevantTimelineEvents.isRelevantTimelineEvent(it.content) }
-                    if (eventContentSerializerMappings.isNotEmpty())
+                    if (eventContentSerializerMappings.isNotEmpty()) {
                         modulesFactories += {
                             module {
                                 single<EventContentSerializerMappings> {
-                                    eventContentSerializerMappings
-                                        .fold(DefaultEventContentSerializerMappings) { a, b -> a + b }
+                                    eventContentSerializerMappings.fold(DefaultEventContentSerializerMappings) { a, b -> a + b }
                                 }
                             }
                         }
+                    }
+                    getOrNull<MatrixClientServerApiClientFactory>()?.let {
+                        matrixClientServerApiClientFactory = it
+                    }
                 }
             }
 
