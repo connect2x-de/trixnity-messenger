@@ -112,7 +112,7 @@ actual fun SaveFileDialog(
                                     try {
                                         context.startActivity(intent)
                                     } catch (exc: ActivityNotFoundException) {
-                                        println(exc)
+                                        log.error(exc) { "intent could not be called" }
                                     }
                                 }
                             } ?: throw IOException("Failed to open output stream.")

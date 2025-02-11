@@ -28,6 +28,8 @@ interface TextFieldViewModel : StateFlow<TextFieldViewModel.State> {
      *
      * @property text The current text in the text field.
      * @property selection The range of the current selection, or `null` if no selection exists.
+     * @property epoch The current epoch of the State. A higher epoch means, that the state one is likely newer than the other.
+     *           This is useful to prevent unnecessary updates in the UI (depending on the implementation).
      */
     class State(
         val text: String,
@@ -39,8 +41,9 @@ interface TextFieldViewModel : StateFlow<TextFieldViewModel.State> {
         private fun IntRange.coerceIn(text: String): IntRange =
             if (text.isEmpty()) IntRange(0, 0)
             else {
-                val range = 0..text.length
-                IntRange(first.coerceIn(range), last.coerceIn(range))
+                val firstWithinLimits = first.coerceIn(0..text.length)
+                val lastWithinLimits = last.coerceIn(firstWithinLimits..text.length)
+                IntRange(firstWithinLimits, lastWithinLimits)
             }
 
         operator fun component1() = text
@@ -131,7 +134,7 @@ open class TextFieldViewModelImpl private constructor(
 }
 
 interface ApprovableTextFieldViewModel : TextFieldViewModel {
-    val isEditing: StateFlow<Boolean>
+    val isEdit: StateFlow<Boolean>
     val isLoading: StateFlow<Boolean>
     val error: StateFlow<String?>
     fun startEdit()
@@ -150,7 +153,7 @@ class ApprovableTextFieldViewModelImpl(
         .stateIn(coroutineScope, Eagerly, "")
 
     private val _isEditing = MutableStateFlow(false)
-    override val isEditing: StateFlow<Boolean> = _isEditing.asStateFlow()
+    override val isEdit: StateFlow<Boolean> = _isEditing.asStateFlow()
 
     private val _isLoading = MutableStateFlow(true)
     override val isLoading = _isLoading.asStateFlow()
@@ -161,7 +164,7 @@ class ApprovableTextFieldViewModelImpl(
     init {
         coroutineScope.launch {
             serverStateValue.collect {
-                if (isLoading.value || isEditing.value.not()) {
+                if (isLoading.value || isEdit.value.not()) {
                     forceSetText(it)
                     _isLoading.value = false
                 }
@@ -199,12 +202,10 @@ class ApprovableTextFieldViewModelImpl(
     }
 
     private fun forceSetText(text: String) {
-        println("force: $text")
         super.update(text, null, null)
     }
 
     override fun update(text: String, selection: IntRange?, epoch: ULong?) {
-        println("update: $text")
         if (_isEditing.value) {
             super.update(text, selection, epoch)
         } else {
@@ -218,7 +219,7 @@ class PreviewApprovableTextFieldViewModel : ApprovableTextFieldViewModel, StateF
 MutableStateFlow(TextFieldViewModel.State("", null, 0UL)) {
     override val isLoading: StateFlow<Boolean> = MutableStateFlow(false)
     override val error: StateFlow<String?> = MutableStateFlow("error")
-    override val isEditing: StateFlow<Boolean> = MutableStateFlow(true)
+    override val isEdit: StateFlow<Boolean> = MutableStateFlow(true)
 
     override fun startEdit() {}
     override fun cancelEdit() {}

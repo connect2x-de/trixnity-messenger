@@ -33,7 +33,7 @@ import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModel
 
 
 @Composable
-fun EditableTextField(
+fun ApprovableTextField(
     viewModel: ApprovableTextFieldViewModel,
     isEditable: Boolean,
     textCaption: String = "",
@@ -41,7 +41,7 @@ fun EditableTextField(
     textInfoCannotChange: String = "",
 ) {
     val i18n = DI.get<I18nView>()
-    val isEditing by viewModel.isEditing.collectAsState()
+    val isEdit by viewModel.isEdit.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     var value by viewModel.collectAsTextFieldValueState()
 
@@ -56,7 +56,7 @@ fun EditableTextField(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (isEditing) {
+                    if (isEdit) {
                         IconButton(
                             onClick = viewModel::cancelEdit,
                             modifier = Modifier.buttonPointerModifier(),
@@ -68,19 +68,19 @@ fun EditableTextField(
                     OutlinedTextField(
                         value = value,
                         onValueChange = { value = it },
-                        enabled = isEditing,
+                        enabled = isEdit,
                         placeholder = { Text(textPlaceholder) },
                         modifier = Modifier.weight(1.0f, fill = true)
                             .pointerInput(Unit) {
                                 detectTapGestures(onPress = {
-                                    if (!isEditing) viewModel.startEdit()
+                                    if (!isEdit) viewModel.startEdit()
                                 })
                             },
                         colors = TextFieldDefaults.colors(
                             disabledTextColor = MaterialTheme.colorScheme.surfaceTint,
                         )
                     )
-                    if (isEditing) {
+                    if (isEdit) {
                         Spacer(Modifier.size(10.dp))
                         IconButton(
                             onClick = viewModel::approveEdit,

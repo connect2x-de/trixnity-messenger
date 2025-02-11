@@ -35,7 +35,7 @@ class EditableTextFieldViewModelTest : ShouldSpec() {
         withCoroutinesShould("initialize the view model in the correct state") {
             val viewModel = editableTextFieldModel(coroutineContext)
             viewModel.textValue shouldBe ""
-            viewModel.isEditing.value shouldBe false
+            viewModel.isEdit.value shouldBe false
             viewModel.isLoading.value shouldBe true
 
             advanceUntilIdle()
@@ -46,12 +46,12 @@ class EditableTextFieldViewModelTest : ShouldSpec() {
         withCoroutinesShould("reflect external changes in the local value") {
             val viewModel = editableTextFieldModel(coroutineContext)
             advanceUntilIdle()
-            viewModel.isEditing.value shouldBe false
+            viewModel.isEdit.value shouldBe false
             viewModel.textValue shouldBe "old value"
 
             serverValue.value = "new value"
             advanceUntilIdle()
-            viewModel.isEditing.value shouldBe false
+            viewModel.isEdit.value shouldBe false
             viewModel.textValue shouldBe "new value"
         }
 
@@ -60,7 +60,7 @@ class EditableTextFieldViewModelTest : ShouldSpec() {
             val viewModel = editableTextFieldModel(coroutineContext)
             advanceUntilIdle()
             viewModel.startEdit()
-            viewModel.isEditing.value shouldBe true
+            viewModel.isEdit.value shouldBe true
 
             viewModel.update("edited value")
             viewModel.textValue shouldBe "edited value"
@@ -69,7 +69,7 @@ class EditableTextFieldViewModelTest : ShouldSpec() {
 
             viewModel.approveEdit()
             advanceUntilIdle()
-            viewModel.isEditing.value shouldBe false
+            viewModel.isEdit.value shouldBe false
             viewModel.isLoading.value shouldBe false
             serverValue.value shouldBe "edited value"
             numCallsOnApplyValue.value shouldBe 1
@@ -80,7 +80,7 @@ class EditableTextFieldViewModelTest : ShouldSpec() {
             val viewModel = editableTextFieldModel(coroutineContext)
             advanceUntilIdle()
             viewModel.startEdit()
-            viewModel.isEditing.value shouldBe true
+            viewModel.isEdit.value shouldBe true
 
             viewModel.update("edited value")
             viewModel.textValue shouldBe "edited value"
@@ -90,7 +90,7 @@ class EditableTextFieldViewModelTest : ShouldSpec() {
             viewModel.cancelEdit()
             viewModel.isLoading.value shouldBe false
             advanceUntilIdle()
-            viewModel.isEditing.value shouldBe false
+            viewModel.isEdit.value shouldBe false
             serverValue.value shouldBe "current value"
             numCallsOnApplyValue.value shouldBe 0
         }
@@ -109,7 +109,7 @@ class EditableTextFieldViewModelTest : ShouldSpec() {
 
             viewModel.approveEdit()
             advanceUntilIdle()
-            viewModel.isEditing.value shouldBe true
+            viewModel.isEdit.value shouldBe true
             viewModel.textValue shouldBe "new value"
             viewModel.error.value shouldBe "test error"
             viewModel.isLoading.value shouldBe false
