@@ -170,12 +170,11 @@ class RoomListViewModelImpl(
 
     override val elements: StateFlow<List<RoomListElementViewModel>>
 
+    override val initialSyncFinished: StateFlow<Boolean>
     private val _syncState: StateFlow<Map<UserId, SyncState>>
     override val syncStates: StateFlow<UserSyncStates>
     override val syncStateError: StateFlow<Map<UserId, Boolean>>
     override val allSyncError: StateFlow<Boolean>
-
-    override val initialSyncFinished: StateFlow<Boolean>
 
     override val showSearch = MutableStateFlow(false)
     override val searchTerm = MutableStateFlow("")
@@ -377,7 +376,7 @@ class RoomListViewModelImpl(
         syncStates = _syncState
             .debounce(3.seconds)
             .mapLatest {
-                val succeeded = mutableSetOf<UserId>()
+                val ok = mutableSetOf<UserId>()
                 val failed = mutableSetOf<UserId>()
                 it.map { (userId, syncState) ->
                     when (syncState) {
@@ -385,11 +384,11 @@ class RoomListViewModelImpl(
                         SyncState.TIMEOUT,
                             -> failed.add(userId)
 
-                        else -> succeeded.add(userId)
+                        else -> ok.add(userId)
                     }
                 }
                 UserSyncStates(
-                    operationalFor = succeeded.toSet(),
+                    operationalFor = ok.toSet(),
                     failedFor = failed.toSet(),
                 )
             }
