@@ -11,6 +11,7 @@ import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel.UserSyncStates
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
@@ -35,6 +36,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -98,10 +100,14 @@ interface RoomListViewModel {
     val elements: StateFlow<List<RoomListElementViewModel>>
     val error: StateFlow<String?>
     val errorType: StateFlow<ErrorType>
-
     val initialSyncFinished: StateFlow<Boolean>
-    val syncStateErroredUsers: StateFlow<Set<UserId>>
-    val isSyncErroringAllUsers: StateFlow<Boolean>
+    val syncStates: StateFlow<UserSyncStates>
+
+    @Deprecated("Api cleanup", ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
+    val syncStateError: StateFlow<Map<UserId, Boolean>>
+
+    @Deprecated("Api cleanup", ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
+    val allSyncError: StateFlow<Boolean>
 
     val showSearch: MutableStateFlow<Boolean>
     val searchTerm: MutableStateFlow<String>
@@ -128,6 +134,16 @@ interface RoomListViewModel {
      * Close the current profile to allow other users (tenants) to use the app without exposing personal data.
      */
     fun closeProfile()
+
+    data class UserSyncStates(
+        val succeededFor: Set<UserId>,
+        val failedFor: Set<UserId>,
+        // TODO: pendingFor: Set<UserId>,
+    ) {
+        val succeededForAll get() = succeededFor.isNotEmpty() && failedFor.isEmpty()
+        val failedForAll get() = succeededFor.isEmpty() && failedFor.isNotEmpty()
+        fun joinFailedToString() = failedFor.joinToString { it.full }
+    }
 }
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
@@ -155,9 +171,11 @@ class RoomListViewModelImpl(
 
     override val elements: StateFlow<List<RoomListElementViewModel>>
 
-    private val syncState: StateFlow<Map<UserId, SyncState>>
-    override val syncStateErroredUsers: StateFlow<Set<UserId>>
-    override val isSyncErroringAllUsers: StateFlow<Boolean>
+    private val _syncState: StateFlow<Map<UserId, SyncState>>
+    override val syncStates: StateFlow<UserSyncStates>
+    override val syncStateError: StateFlow<Map<UserId, Boolean>>
+    override val allSyncError: StateFlow<Boolean>
+
     override val initialSyncFinished: StateFlow<Boolean>
 
     override val showSearch = MutableStateFlow(false)
@@ -349,7 +367,7 @@ class RoomListViewModelImpl(
                 }.toList()
             }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
-        syncState = matrixClients.flatMapLatest { matrixClients ->
+        _syncState = matrixClients.flatMapLatest { matrixClients ->
             combine(matrixClients.map { (userId, matrixClient) ->
                 matrixClient.syncState.map { userId to it }
             }) {
@@ -357,27 +375,44 @@ class RoomListViewModelImpl(
             }
         }.stateIn(coroutineScope, WhileSubscribed(), mapOf())
 
-        syncStateErroredUsers = syncState
-            .map {
-                it.mapNotNull { (userId, state) ->
-                    when (state) {
-                        SyncState.ERROR -> userId
-                        else -> null
-                    }
-                }.toSet()
-            }
+        syncStates = _syncState
             .debounce(3.seconds)
-            .stateIn(coroutineScope, WhileSubscribed(), setOf())
+            .mapLatest {
+                val succeeded = mutableSetOf<UserId>()
+                val failed = mutableSetOf<UserId>()
+                it.map { (userId, syncState) ->
+                    when (syncState) {
+                        SyncState.ERROR,
+                            // TODO: SyncState.TIMEOUT,
+                            -> failed.add(userId)
 
-        isSyncErroringAllUsers = syncState
-            .map {
-                it.all { (_, state) -> state == SyncState.ERROR }
+                        // TODO: SyncState.STOPPED,
+                        else -> succeeded.add(userId)
+
+                        // TODO: SyncState.INITIAL_SYNC,
+                        // TODO: SyncState.STARTED,
+                        // TODO: SyncState.RUNNING,
+                        // TODO: -> pending
+                    }
+                }
+                UserSyncStates(
+                    succeededFor = succeeded.toSet(),
+                    failedFor = failed.toSet(),
+                )
             }
-            .debounce(3.seconds)
+            .stateIn(coroutineScope, WhileSubscribed(), UserSyncStates(setOf(), setOf()))
+
+        syncStateError = syncStates
+            .mapLatest {
+                it.failedFor.associateWith { true } + it.succeededFor.associateWith { false }
+            }.stateIn(coroutineScope, WhileSubscribed(), mapOf())
+
+        allSyncError = syncStates
+            .mapLatest { it.failedForAll }
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
         var initialSyncFinishedOnce = false
-        initialSyncFinished = syncState
+        initialSyncFinished = _syncState
             .filterNot { it.isEmpty() }
             .map { initialSyncFinishedOnce.not() && it.values.all { syncState -> syncState == SyncState.RUNNING } }
             .map {
@@ -434,7 +469,7 @@ class RoomListViewModelImpl(
                 matrixClient.room.getById(roomId).filterNotNull().map { it.membership == Membership.INVITE }.first()
             log.debug { "switch to room $roomId (isInvite: $isInvite)" }
             when {
-                isInvite && syncState.value[matrixClient.userId] == SyncState.ERROR -> {
+                isInvite && _syncState.value[matrixClient.userId] == SyncState.ERROR -> {
                     log.debug { "try to join room while not connected" }
                     _errorType.value = ErrorType.JUST_DISMISS
                     _error.value = i18n.roomListInvitationOffline()
@@ -502,8 +537,9 @@ class PreviewRoomListViewModel : RoomListViewModel {
                 PreviewRoomListElementViewModel3(),
             )
         )
-    override val syncStateErroredUsers: MutableStateFlow<Set<UserId>> = MutableStateFlow(setOf())
-    override val isSyncErroringAllUsers: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val syncStateError: MutableStateFlow<Map<UserId, Boolean>> = MutableStateFlow(mapOf())
+    override val allSyncError: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val syncStates: StateFlow<UserSyncStates> = MutableStateFlow(UserSyncStates(setOf(), setOf()))
     override val initialSyncFinished: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
