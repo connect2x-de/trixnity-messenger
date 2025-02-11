@@ -15,7 +15,6 @@ import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
-import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
@@ -33,7 +32,6 @@ interface CreateNewChatViewModelFactory {
         onCreateGroup: (UserId) -> Unit,
         onSearchGroup: (UserId) -> Unit,
         onCancel: () -> Unit,
-        onOpenRoom: (UserId, RoomId) -> Unit,
     ): CreateNewChatViewModel =
         CreateNewChatViewModelImpl(
             viewModelContext = viewModelContext,
@@ -41,7 +39,6 @@ interface CreateNewChatViewModelFactory {
             onCreateGroup = onCreateGroup,
             onSearchGroup = onSearchGroup,
             onCancel = onCancel,
-            onOpenRoom = onOpenRoom,
         )
 
     companion object : CreateNewChatViewModelFactory
@@ -65,7 +62,6 @@ open class CreateNewChatViewModelImpl(
     private val onCreateGroup: (UserId) -> Unit,
     private val onSearchGroup: (UserId) -> Unit,
     private val onCancel: () -> Unit,
-    private val onOpenRoom: (UserId, RoomId) -> Unit,
 ) : CreateNewChatViewModel,
     MatrixClientViewModelContext by viewModelContext {
 
@@ -113,7 +109,7 @@ open class CreateNewChatViewModelImpl(
                     membership == Membership.JOIN || membership == Membership.INVITE || membership == Membership.KNOCK
                 }?.let {
                     log.info { "go to existing room with $userId" }
-                    onOpenRoom(matrixClient.userId, it)
+                    createNewRoomViewModel.onRoomCreated(matrixClient.userId, it)
                 } ?: run {
                     createNewRoom(userId)
                 }
@@ -147,7 +143,7 @@ open class CreateNewChatViewModelImpl(
         ).fold(
             onSuccess = { roomId ->
                 log.debug { "created room ${roomId.full}" }
-                onOpenRoom(matrixClient.userId, roomId)
+                createNewRoomViewModel.onRoomCreated(matrixClient.userId, roomId)
             },
             onFailure = {
                 log.error(it) { "Cannot create room." }

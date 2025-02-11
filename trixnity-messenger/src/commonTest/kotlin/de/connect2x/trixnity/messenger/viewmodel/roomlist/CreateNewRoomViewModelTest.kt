@@ -25,6 +25,7 @@ import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.client.UserApiClient
 import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
+import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -46,6 +47,7 @@ class CreateNewRoomViewModelTest : ShouldSpec() {
     val roomsApiClientMock = mock<RoomApiClient>()
 
     val userServiceMock = mock<UserService>()
+    val onRoomCreatedMock = mock<(UserId, RoomId) -> Unit>()
 
     init {
         Dispatchers.setMain(Dispatchers.Unconfined)
@@ -55,7 +57,8 @@ class CreateNewRoomViewModelTest : ShouldSpec() {
                 matrixClientServerApiClientMock,
                 userServiceMock,
                 usersApiClientMock,
-                roomsApiClientMock
+                roomsApiClientMock,
+                onRoomCreatedMock,
             )
             every { matrixClientMock.di } returns koinApplication {
                 modules(
@@ -157,7 +160,8 @@ class CreateNewRoomViewModelTest : ShouldSpec() {
                 }.koin,
                 userId = UserId("test", "server"),
                 coroutineContext = Dispatchers.Unconfined
-            )
+            ),
+            onRoomCreated = onRoomCreatedMock,
         )
     }
 }
