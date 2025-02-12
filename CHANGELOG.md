@@ -27,10 +27,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed stuck device verification (button did nothing)
+<<<<<<< Updated upstream
 - Make initials computation fully Unicode compliant
 - Fixed redactions of message edits
 - Don't render replace events even when not decryptable
 - Fixed various text field and typing issues
+=======
+- Fixed String.graphCount and String.forEachGraph extensions in JS implementation
+>>>>>>> Stashed changes
 
 ### Security
 
