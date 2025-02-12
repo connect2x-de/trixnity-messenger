@@ -27,6 +27,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel.UserSyncStates
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
@@ -628,6 +629,7 @@ class MainViewModelTest : ShouldSpec() {
                                         emptyMap()
                                     )
                                     override val allSyncError: StateFlow<Boolean> = MutableStateFlow(false)
+                                    override val syncStates = MutableStateFlow(UserSyncStates(setOf(), setOf()))
                                     override val initialSyncFinished: StateFlow<Boolean> = MutableStateFlow(true)
                                     override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
                                     override val searchTerm = TextFieldViewModelImpl("")
