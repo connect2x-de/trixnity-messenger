@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Only show users with sync errors in the info banner
+
+### Security
+
+## 3.3.0
+
+### Added
+
 - Introduced String.graphemeCount extension for counting perceived chars
 - Introduced String.forEachGrapheme extension for iterating perceived chars
 - Possibility to change MatrixClientServerApiClientFactory via the DI
@@ -20,10 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored app view routing
 - Standardized reaction when a room (chat or group) has been created
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Fixed stuck device verification (button did nothing)
@@ -31,9 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed redactions of message edits
 - Don't render replace events even when not decryptable
 - Fixed various text field and typing issues
-- Only show users with sync errors in the info banner
-
-### Security
+- Fixed String.graphCount and String.forEachGraph extensions in JS implementation
 
 ## 3.2.0
 
