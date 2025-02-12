@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.util.EditableTextFieldViewModel
-import de.connect2x.trixnity.messenger.viewmodel.util.EditableTextFieldViewModelImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.PreviewEditableTextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.PreviewApprovableTextFieldViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -38,7 +38,7 @@ interface RoomSettingsTopicViewModel {
     val canViewRoomTopic: StateFlow<Boolean>
 
     /** Access the state and value of the room topic. */
-    val roomTopic: EditableTextFieldViewModel
+    val roomTopic: ApprovableTextFieldViewModel
 }
 
 class RoomSettingsTopicViewModelImpl(
@@ -56,8 +56,8 @@ class RoomSettingsTopicViewModelImpl(
             .map { it?.isDirect?.not() ?: false }
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
-    override val roomTopic: EditableTextFieldViewModel =
-        EditableTextFieldViewModelImpl(
+    override val roomTopic: ApprovableTextFieldViewModel =
+        ApprovableTextFieldViewModelImpl(
             serverValue = matrixClient.room
                 .getState<TopicEventContent>(roomId = selectedRoomId)
                 .map { it?.content?.topic ?: "" },
@@ -72,7 +72,7 @@ class RoomSettingsTopicViewModelImpl(
 }
 
 class PreviewRoomSettingsTopicViewModel : RoomSettingsTopicViewModel {
-    override val roomTopic: EditableTextFieldViewModel = PreviewEditableTextFieldViewModel()
+    override val roomTopic: ApprovableTextFieldViewModel = PreviewApprovableTextFieldViewModel()
     override val canChangeRoomTopic: StateFlow<Boolean> = MutableStateFlow(true)
     override val canViewRoomTopic: StateFlow<Boolean> = MutableStateFlow(true)
 }

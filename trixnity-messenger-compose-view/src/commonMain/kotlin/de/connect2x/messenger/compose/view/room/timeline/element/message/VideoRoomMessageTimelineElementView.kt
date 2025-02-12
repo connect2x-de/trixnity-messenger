@@ -107,7 +107,7 @@ internal fun ColumnScope.MessageVideo(
                         it,
                         "",
                         Modifier
-                            .heightIn(64.dp, 400.dp) // FIXME getHeight? videoMessageViewModel.getHeight(400f).dp
+                            .heightIn(64.dp, 400.dp)
                             .widthIn(64.dp, 400.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .openVideoOnTouch(element, onSave, showMenuAction)

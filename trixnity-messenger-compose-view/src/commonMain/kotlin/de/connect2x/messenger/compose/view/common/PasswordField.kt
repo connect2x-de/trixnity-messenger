@@ -10,13 +10,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -26,8 +27,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 
 @Composable
 fun PasswordField(
-    password: State<String>,
-    onPasswordChange: (String) -> Unit,
+    password: MutableState<TextFieldValue>,
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
     label: @Composable () -> Unit,
@@ -37,7 +37,7 @@ fun PasswordField(
 
     OutlinedTextField(
         value = password.value,
-        onValueChange = onPasswordChange,
+        onValueChange = { password.value = it },
         label = label,
         enabled = enabled,
         singleLine = true,

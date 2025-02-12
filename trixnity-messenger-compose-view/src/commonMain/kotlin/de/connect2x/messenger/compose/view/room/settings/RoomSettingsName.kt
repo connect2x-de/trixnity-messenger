@@ -3,7 +3,7 @@ package de.connect2x.messenger.compose.view.room.settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.EditableTextField
+import de.connect2x.messenger.compose.view.common.ApprovableTextField
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModel
@@ -22,7 +22,7 @@ class RoomSettingsNameViewImpl : RoomSettingsNameView {
     @Composable
     override fun create(roomSettingsNameViewModel: RoomSettingsNameViewModel) {
         val i18n = DI.get<I18nView>()
-        EditableTextField(
+        ApprovableTextField(
             viewModel = roomSettingsNameViewModel.roomName,
             isEditable = roomSettingsNameViewModel.canChangeRoomName.collectAsState().value,
             textCaption = i18n.roomSettingsRoomName(),

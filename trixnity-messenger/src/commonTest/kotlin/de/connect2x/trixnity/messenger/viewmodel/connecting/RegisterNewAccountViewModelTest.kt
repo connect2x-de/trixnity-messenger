@@ -30,7 +30,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.clientserverapi.client.UIA
@@ -71,8 +70,8 @@ class RegisterNewAccountViewModelTest : ShouldSpec() {
         should("register") {
             val cut = registerNewAccountViewModel(serverUrl = "http://myMatrixServer:55678")
             cut.canRegisterNewUser.value shouldBe false
-            cut.username.update { "user1" }
-            cut.password.update { "user1-password" }
+            cut.username.update("user1")
+            cut.password.update("user1-password")
             cut.canRegisterNewUser.firstWithClue { true }
 
             cut.register()

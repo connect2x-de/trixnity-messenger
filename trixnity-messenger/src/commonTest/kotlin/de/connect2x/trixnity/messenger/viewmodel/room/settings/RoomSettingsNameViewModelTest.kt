@@ -121,7 +121,7 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
             roomGetById returns MutableStateFlow<Room?>(room("room name"))
             val viewModel = roomSettingsNameViewModel(coroutineContext)
             eventually(2.seconds) {
-                viewModel.roomName.state.value.value shouldBe "room name"
+                viewModel.roomName.textValue shouldBe "room name"
             }
         }
 
@@ -137,8 +137,8 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
             val viewModel = roomSettingsNameViewModel(coroutineContext)
             viewModel.roomName.isLoading.first { it.not() }
             viewModel.roomName.startEdit()
-            viewModel.roomName.state.value.setEdit("edited name")
-            viewModel.roomName.applyEdit()
+            viewModel.roomName.update("edited name")
+            viewModel.roomName.approveEdit()
             homeServerHandle.numCallsToHomeServer.first { it == 1 }
         }
     }
@@ -146,7 +146,7 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
     private fun room(name: String) =
         Room(roomId, name = RoomDisplayName(explicitName = name, summary = null), isDirect = false)
 
-    private suspend fun mockSendToHomeServer(expectedRequestContent: NameEventContent): MockHomeServerHandle {
+    private fun mockSendToHomeServer(expectedRequestContent: NameEventContent): MockHomeServerHandle {
         val handle = MockHomeServerHandle()
         everySuspend {
             roomsApiClientMock.sendStateEvent(eq(roomId), eq(expectedRequestContent), any(), any())

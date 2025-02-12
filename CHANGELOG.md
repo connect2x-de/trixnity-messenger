@@ -11,11 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Introduced String.graphemeCount extension for counting perceived chars
 - Introduced String.forEachGrapheme extension for iterating perceived chars
+- Possibility to change MatrixClientServerApiClientFactory via the DI
+- Introduce TextFieldViewModel for cleaner text input synchronization
 
 ### Changed
 
 - Use password type keyboard to enter recovery key
 - Refactored app view routing
+- Standardized reaction when a room (chat or group) has been created
 
 ### Deprecated
 
@@ -27,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make initials computation fully Unicode compliant
 - Fixed redactions of message edits
 - Don't render replace events even when not decryptable
+- Fixed various text field and typing issues
 
 ### Security
 

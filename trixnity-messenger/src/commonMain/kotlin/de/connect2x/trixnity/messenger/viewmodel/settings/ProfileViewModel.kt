@@ -39,6 +39,7 @@ interface ProfileViewModelFactory {
     companion object : ProfileViewModelFactory
 }
 
+// TODO !!! This is totally cursed. The parent should not manipulate the child !!!
 interface ProfileViewModel {
     val profileSingleViewModels: StateFlow<List<ProfileSingleViewModel>>
     val error: MutableStateFlow<String?>
@@ -95,13 +96,14 @@ class ProfileViewModelImpl(
     }
 
     override fun cancelEditDisplayName(userId: UserId) {
-        getEditDisplayNameFlow(userId)?.value =
-            getDisplayNameFlow(userId)?.value ?: ""
+        getEditDisplayNameFlow(userId)?.also {
+            it.update(getDisplayNameFlow(userId)?.value ?: "")
+        }
     }
 
 
     override fun saveDisplayName(userId: UserId) {
-        val newDisplayName = getEditDisplayNameFlow(userId)?.value
+        val newDisplayName = getEditDisplayNameFlow(userId)?.value?.text
         if (newDisplayName != getDisplayNameFlow(userId)?.value) {
             coroutineScope.launch {
                 val matrixClient = getMatrixClient(userId)

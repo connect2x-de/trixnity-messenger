@@ -2,13 +2,22 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.clientserverapi.model.rooms.GetPublicRoomsWithFilter
@@ -31,7 +40,7 @@ interface SearchGroupViewModelFactory {
 }
 
 interface SearchGroupViewModel {
-    val searchTerm: MutableStateFlow<String>
+    val searchTerm: TextFieldViewModel
     val foundGroups: StateFlow<List<SearchGroup>>
     val groupSearchInProgress: StateFlow<Boolean>
     val joinGroupInProgress: StateFlow<Boolean>
@@ -66,11 +75,13 @@ class SearchGroupViewModelImpl(
 
     private val initials = get<Initials>()
 
-    override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
+    override val searchTerm = TextFieldViewModelImpl()
     override val groupSearchInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val joinGroupInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override val foundGroups: StateFlow<List<SearchGroupViewModel.SearchGroup>> = searchTerm
+        .map { it.text }
+        .distinctUntilChanged()
         .debounce(300.milliseconds)
         .scopedMapLatest { searchTerm ->
             groupSearchInProgress.update { true }
