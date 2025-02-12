@@ -86,4 +86,39 @@ class StringsTest {
             true
         }
     }
+
+    @Test
+    fun checkEmptyStringIsNotEmoji() {
+        "".isEmoji() shouldBe false
+    }
+
+    @Test
+    fun checkAsciiCharIsNotEmoji() {
+        "H".isEmoji() shouldBe false
+    }
+
+    @Test
+    fun checkAsciiStringIsNotEmoji() {
+        "Hello".isEmoji() shouldBe false
+    }
+
+    @Test
+    fun checkAsciiStringWithSpaceIsNotEmoji() {
+        "Hello World".isEmoji() shouldBe false
+    }
+
+    @Test
+    fun checkSurrogatePairIsEmoji() {
+        "🦈".isEmoji() shouldBe true
+    }
+
+    @Test
+    fun checkFlagIsEmoji() {
+        "🇹🇦".isEmoji() shouldBe true
+    }
+
+    @Test
+    fun checkSkinToneModifiedEmojiIsEmoji() {
+        "👧🏿".isEmoji() shouldBe true
+    }
 }
