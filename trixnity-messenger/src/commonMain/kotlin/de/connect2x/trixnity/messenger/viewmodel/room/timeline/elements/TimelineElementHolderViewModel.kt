@@ -16,7 +16,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whi
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
-import de.connect2x.trixnity.messenger.viewmodel.util.getMessageIsRead
 import de.connect2x.trixnity.messenger.viewmodel.util.getMessageReadReceipts
 import de.connect2x.trixnity.messenger.viewmodel.util.getMessageUserReactions
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -44,6 +43,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -188,22 +189,23 @@ class TimelineElementHolderViewModelImpl(
         get<RepliedTimelineElementHolderViewModelFactory>()
     private val readReceipts = get<ReadReceiptsRepository>()
 
-    init {
-        coroutineScope.launch {
-            val filter = setOf(userId, senderUserId)
-            val reads = readReceipts
-                .getReadReceipts(matrixClient, eventId, roomId, filter, coroutineScope)
-            reads.isRead.collectLatest {
-                log.debug { "----- ISRED($eventId): $it" }
-            }
-            reads.readReceiptsCumulative.collectLatest {
-                log.debug { "----- SINREC($eventId): $it" }
-            }
-            reads.readReceiptsCumulative.collectLatest {
-                log.debug { "----- CUMREC($eventId): $it" }
-            }
-        }
-    }
+//    init {
+//        coroutineScope.launch {
+//            val filter = setOf(userId, senderUserId)
+//            readReceipts
+//                .getReadReceipts(matrixClient, eventId, roomId, filter, coroutineScope).collectLatest {
+//                    it.isRead.collectLatest {
+//                        log.debug { "=== ISRED($eventId): $it" }
+//                    }
+//                    it.readReceiptsCumulative.collectLatest {
+//                        log.debug { "=== SINREC($eventId): $it" }
+//                    }
+//                    it.readReceiptsCumulative.collectLatest {
+//                        log.debug { "=== CUMREC($eventId): $it" }
+//                    }
+//                }
+//        }
+//    }
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -386,9 +388,12 @@ class TimelineElementHolderViewModelImpl(
 
     override val isByMe: Boolean = senderUserId == userId
 
-    override val isRead: StateFlow<Boolean?> =
-        getMessageIsRead(matrixClient, senderUserId, roomId, eventId)
-            .stateIn(coroutineScope, Lazily, false) // Lazily to not unnecessary recompute.
+    override val isRead = readReceipts
+        .getReadReceipts(matrixClient, eventId, roomId, setOf(), coroutineScope)
+        .flatMapLatest { it.isRead }
+        .onEach { log.debug { "=== is read by view: $eventId" } }
+        .onCompletion { log.debug { "=== is disposed by view: $eventId" } }
+        .stateIn(coroutineScope, Lazily, false)
 
     override val isReadBy: StateFlow<List<UserInfoElement>?> =
         getMessageReadReceipts(matrixClient, senderUserId, roomId, eventId)

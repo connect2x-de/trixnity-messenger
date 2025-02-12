@@ -18,17 +18,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -58,33 +57,33 @@ import kotlin.time.Duration.Companion.seconds
 private val log = KotlinLogging.logger {}
 
 interface ReadReceiptsRepository {
-    suspend fun getReadReceipts(
+    fun getReadReceipts(
         client: MatrixClient,
         eventId: EventId,
         roomId: RoomId,
         filter: Set<UserId>,
         scope: CoroutineScope,
-    ): ReadReceiptsHandle
+    ): Flow<ReadReceiptsHandle>
 
     interface ReadReceiptsHandle {
         val eventId: EventId
         val roomId: RoomId
         val filtered: Set<UserId>
-        val isRead: StateFlow<Boolean>
-        val readReceiptsCumulative: StateFlow<Set<UserId>>
-        val readReceiptsSingle: StateFlow<Set<UserId>>
+        val isRead: Flow<Boolean>
+        val readReceiptsCumulative: Flow<Set<UserId>>
+        val readReceiptsSingle: Flow<Set<UserId>>
     }
 
     interface ReadReceipts {
         operator fun get(eventId: EventId): Deferred<SortedReadEvent?>
         val fromLatestToEarliest: Deferred<Iterator<SortedReadEvent>>
         fun isCompleteFrom(eventId: EventId): Deferred<Boolean> // Useful to indicate further loading.
-        val relevantEventsTracker: MutableSharedFlow<EventId> // For notifying how far the current receipts cache should fetch.
+        fun trackCollector(eventId: EventId)
 
         class EmptyReceipts(private val scope: CoroutineScope) : ReadReceipts {
             override fun isCompleteFrom(eventId: EventId) = scope.async { false }
             override fun get(eventId: EventId) = scope.async { null }
-            override val relevantEventsTracker get() = MutableSharedFlow<EventId>()
+            override fun trackCollector(eventId: EventId) {}
             override val fromLatestToEarliest: Deferred<Iterator<SortedReadEvent>>
                 get() = scope.async {
                     object : Iterator<SortedReadEvent> {
@@ -105,44 +104,53 @@ class ReadReceiptsRepositoryImpl(
 
     // Don't use ConcurrentMap as it saves its contents twice. Not ideal for caching flows.
     private val receiptsHandleCache = MutexCache<ReceiptsHandleCacheKey, ReadReceiptsHandle>()
-    override suspend fun getReadReceipts(
+    override fun getReadReceipts(
         client: MatrixClient,
         eventId: EventId,
         roomId: RoomId,
         filter: Set<UserId>,
         scope: CoroutineScope,
-    ): ReadReceiptsHandle =
-        receiptsHandleCache.getOrSet(
-            ReceiptsHandleCacheKey(client.userId, eventId, roomId, filter),
-        ) {
-            ReadReceiptsHandleImpl(
-                eventId = eventId,
-                roomId = roomId,
-                filtered = filter,
-                scope = scope,
-                receipts = getReceiptsFlow(eventId, roomId, filter, client, scope),
-            )
+    ): Flow<ReadReceiptsHandle> =
+        flow {
+            val key = ReceiptsHandleCacheKey(client.userId, eventId, roomId, filter)
+            emit(
+                receiptsHandleCache.getOrSet(key) {
+                    ReadReceiptsHandleImpl(
+                        eventId = eventId,
+                        roomId = roomId,
+                        filtered = filter,
+                        scope = scope,
+                        receipts = getReceiptsFlow(roomId, filter, client, scope)
+                            .onCompletion {
+                                receiptsHandleCache.flagAsDestroyed(key)
+                                log.debug { "=== so long cruel world! $eventId" }
+                            },
+                    )
+                })
         }
 
     // Don't use ConcurrentMap as it saves its contents twice. Not ideal for caching flows.
-    private val receiptsFlowCache = MutexCache<RoomId, StateFlow<ReadReceipts>>()
-    private fun getReceiptsFlow(
-        eventId: EventId,
+    private val receiptsFlowCache = MutexCache<RoomId, Flow<ReadReceipts>>()
+    private suspend fun getReceiptsFlow(
         roomId: RoomId,
         filter: Set<UserId>,
         client: MatrixClient,
         scope: CoroutineScope,
     ): Flow<ReadReceipts> =
-        flow {
-            emitAll(receiptsFlowCache.getOrSet(roomId) {
-                client
-                    .getReceipts(roomId, filter)
-                    .orderingCache(roomId, client)
-                    // TODO: could be dangerous to give out state flows from potentially different and cancelled coroutines
-                    // TODO: maybe use on completion to clear the cache from dead entries
-                    .stateIn(scope, WhileSubscribed(), EmptyReceipts(scope))
-                    .also { it.onCompletion { log.debug { "--- elvis has left the building: $eventId" } } }
-            })
+        receiptsFlowCache.getOrSet(roomId) {
+            client
+                .getReceipts(roomId, filter)
+                .orderingCache(roomId, client)
+                // TODO: could be dangerous to give out state flows from potentially different and cancelled coroutines
+                // TODO: maybe use on completion to clear the cache from dead entries
+                .onCompletion {
+                    receiptsFlowCache.flagAsDestroyed(roomId)
+                    log.debug { "=== elvis has left the building: $roomId" }
+                }
+                .stateIn(scope, WhileSubscribed(), EmptyReceipts(scope))
+                .onCompletion {
+                    log.debug { "=== the king still lives: $roomId" }
+                }
         }
 
     @OptIn(InternalDecomposeApi::class)
@@ -339,33 +347,37 @@ class ReadReceiptsHandleImpl(
     scope: CoroutineScope,
     receipts: Flow<ReadReceipts>,
 ) : ReadReceiptsHandle {
+    init {
+        log.debug { "=== new handle for $eventId in $roomId" }
+    }
+
     private val _receipts = receipts
-        .map {
-            val a = it.fromLatestToEarliest.await()
-            val b = it[eventId].await()
-            val bescheid = it.relevantEventsTracker.tryEmit(eventId)
-            log.debug { "=== handle for $eventId got receipts and notified channel: $bescheid" }
-        }
+        .onCompletion { log.debug { "=== IS DED 0 1: $eventId" } }
+        .onEach { it.trackCollector(eventId) }
         .stateIn(scope, WhileSubscribed(), EmptyReceipts(scope))
+        .onEach { log.debug { "=== REC $eventId" } }
+        .onCompletion { log.debug { "=== IS DED 0 2: $eventId" } }
 
     override val isRead = _receipts
-        .map { true }
-        .stateIn(scope, WhileSubscribed(), false)
+        .map { true } // TODO: impl
 
     override val readReceiptsCumulative = _receipts
-        .map { setOf<UserId>() }
-        .stateIn(scope, WhileSubscribed(), setOf())
+        .map { setOf<UserId>() } // TODO: impl
 
     override val readReceiptsSingle = _receipts
-        .map { setOf<UserId>() }
-        .stateIn(scope, WhileSubscribed(), setOf())
+        .map { setOf<UserId>() } // TODO: impl
 }
 
 private class ConcurrentReadEventsOrderingReceipts(
     private val receipts: Concurrent<ReadEventsOrdering, ReadEventsOrdering>,
-    override val relevantEventsTracker: MutableSharedFlow<EventId>,
+    private val relevantEventsTracker: MutableSharedFlow<EventId>,
     private val scope: CoroutineScope,
 ) : ReadReceipts {
+
+    override fun trackCollector(eventId: EventId) {
+        val bescheid = relevantEventsTracker.tryEmit(eventId)
+        log.debug { "=== handle for $eventId got receipts and notified channel: $bescheid" }
+    }
 
     override fun get(eventId: EventId): Deferred<SortedReadEvent?> =
         scope.async {
@@ -470,7 +482,7 @@ class MutexCache<K, V> {
     private val map = mutableMapOf<K, V>()
     private val flaggedForDestruction = mutableSetOf<K>()
 
-    suspend fun getOrSet(key: K, constructor: () -> V): V =
+    suspend fun getOrSet(key: K, constructor: suspend () -> V): V =
         mutex.withLock {
             if (flaggedForDestruction.contains(key)) {
                 flaggedForDestruction.remove(key)
@@ -479,14 +491,22 @@ class MutexCache<K, V> {
             } else map.getOrPut(key) { constructor() }
         }
 
-    suspend fun flagDestroyed(key: K): Unit =
+    suspend fun flagAsDestroyed(key: K): Unit =
         mutex.withLock {
+            // Defer deletion to avoid problems during nested mutex calls.
             flaggedForDestruction.add(key)
         }
 
-    suspend fun clear(key: K): Unit =
+    suspend fun clear(exempt: Set<K> = setOf()): Unit =
         mutex.withLock {
-            flaggedForDestruction.clear()
-            map.clear()
+            if (exempt.isEmpty()) {
+                flaggedForDestruction.clear()
+                map.clear()
+            } else map
+                .filter { exempt.contains(it.key) }
+                .also {
+                    map.clear()
+                    map.putAll(it)
+                }
         }
 }
