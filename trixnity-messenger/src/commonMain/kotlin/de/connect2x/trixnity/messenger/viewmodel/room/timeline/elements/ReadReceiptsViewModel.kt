@@ -2,11 +2,15 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReadReceiptsManager.ReadReceipts
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReadReceiptsViewModel.ReadEvent
+import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.debounceAfterFirst
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,11 +23,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.eventId
@@ -42,6 +49,107 @@ import kotlin.time.Duration.Companion.seconds
 
 
 private val log = KotlinLogging.logger {}
+
+interface ReadReceiptsManager {
+    suspend fun getReadReceipts(
+        client: MatrixClient,
+        eventId: EventId,
+        roomId: RoomId,
+        filter: Set<UserId>,
+        coroutineScope: CoroutineScope,
+    ): ReadReceipts
+
+    interface ReadReceipts {
+        val eventId: EventId
+        val roomId: RoomId
+        val filtered: Set<UserId>
+        val isRead: StateFlow<Boolean>
+        val readReceiptsCumulative: StateFlow<Set<UserId>>
+        val readReceiptsSingle: StateFlow<Set<UserId>>
+    }
+}
+
+class ReadReceiptsManagerImpl(
+//    private val matrixClient: MatrixClient,
+    private val initials: Initials,
+) : ReadReceiptsManager {
+    override suspend fun getReadReceipts(
+        client: MatrixClient,
+        eventId: EventId,
+        roomId: RoomId,
+        filter: Set<UserId>,
+        coroutineScope: CoroutineScope
+    ): ReadReceipts = coroutineScope {
+
+
+        val a = getCachedReceipts(roomId, client, coroutineScope)
+            .stateIn(coroutineScope, WhileSubscribed(), 0)
+
+
+        TODO("Not yet implemented")
+    }
+
+    val off = MutableStateFlow<EventId?>(null)
+
+    private val receiptsByEventCache = concurrentMutableMap<RoomId, StateFlow<ReadReceipts>>()
+    private fun getCachedReceipts(
+        eventId: EventId,
+        roomId: RoomId,
+        client: MatrixClient,
+        scope: CoroutineScope,
+    ): Flow<ReadReceipts> =
+        flow {
+            emitAll(receiptsByEventCache.read { get(roomId) }
+                ?: receiptsByEventCache.write {
+                    getOrPut(roomId) {
+                        receiptsFlow(eventId, roomId, client, scope)
+                            // TODO: could be dangerous to give out state flows from potentially different and cancelled coroutines
+                            // TODO: maybe use on completion to clear the cache from dead entries
+                            .stateIn(scope, WhileSubscribed(), ReadReceiptsImpl(eventId, roomId, setOf(), scope, off))
+                            .also { it.onCompletion { log.debug { "--- elvis has left the building" } } }
+                    }
+                }
+            )
+        }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun receiptsFlow(
+        eventId: EventId,
+        roomId: RoomId,
+        client: MatrixClient,
+        scope: CoroutineScope,
+    ): Flow<ReadReceipts> =
+        client.user.getAllReceipts(roomId)
+            .debounceAfterFirst(10.milliseconds)
+            .distinctUntilChanged()
+            .flattenNotNull()
+            // TODO: channelflow using "off"
+            .mapLatest { userReceipts ->
+                ReadReceiptsImpl(eventId, roomId, setOf(), scope, off)
+            }
+}
+
+class ReadReceiptsImpl(
+    override val eventId: EventId,
+    override val roomId: RoomId,
+    override val filtered: Set<UserId>,
+    scope: CoroutineScope,
+    private val offsetter: MutableStateFlow<EventId?>,
+) : ReadReceipts {
+
+    override val isRead: StateFlow<Boolean> =
+        flowOf(true)
+            .stateIn(scope, WhileSubscribed(), false)
+
+    override val readReceiptsCumulative: StateFlow<Set<UserId>> =
+        flowOf(setOf<UserId>())
+            .stateIn(scope, WhileSubscribed(), setOf())
+
+    override val readReceiptsSingle: StateFlow<Set<UserId>> =
+        flowOf(setOf<UserId>())
+            .stateIn(scope, WhileSubscribed(), setOf())
+}
+
 
 interface ReadReceiptsViewModelFactory {
     fun create(

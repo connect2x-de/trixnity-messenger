@@ -21,6 +21,7 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.ByteArrayFlow
 
+
 @Preview
 @Composable
 fun TextMessageBubblePreview() {
@@ -37,8 +38,8 @@ fun TextMessageBubblePreview() {
         "🎉" to setOf(
             TimelineElementHolderViewModel.ReactionEvent(
                 eventId = EventId("1"),
-                sender = userInfoElement,
-                isMe = false,
+                senderFlow = MutableStateFlow(userInfoElement),
+                isByMe = false,
             )
         )
     )

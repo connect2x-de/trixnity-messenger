@@ -65,6 +65,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedErrorTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedWaitTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReadReceiptsManager
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReadReceiptsManagerImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RepliedTimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
@@ -228,6 +230,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<Search> { SearchImpl(get(), get()) }
             single<RunInitialSync> { RunInitialSync }
             single<DragAndDropHandler> { DragAndDropHandlerBase() }
+            single<ReadReceiptsManager> { ReadReceiptsManagerImpl(get()) }
             single<AccountSetupViewModelFactory> { AccountSetupViewModelFactory }
 
             single<RootViewModelFactory> { RootViewModelFactory }
