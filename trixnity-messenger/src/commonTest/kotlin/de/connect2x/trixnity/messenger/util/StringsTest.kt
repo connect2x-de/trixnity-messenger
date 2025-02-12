@@ -1,52 +1,89 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.messenger.shouldBe
 import kotlin.test.Test
-import kotlin.test.assertEquals
 
 class StringsTest {
     @Test
-    fun `Determine grapheme cluster count in empty string`() {
-        assertEquals(0, "".graphCount)
+    fun emptyGraphCount() {
+        "".graphCount shouldBe 0
     }
 
     @Test
-    fun `Determine grapheme cluster count in string without emojis`() {
+    fun asciiGraphCount() {
         val string = "The quick brown fox jumps over the lazy brown dog"
-        assertEquals(string.length, string.graphCount)
+        string.graphCount shouldBe string.length
     }
 
     @Test
-    fun `Determine grapheme cluster count in string with emojis`() {
-        assertEquals(2, "\uD83E\uDD8A\uD83D\uDC36".graphCount)
+    fun multipleEmojiGraphCount() {
+        "\uD83E\uDD8A\uD83D\uDC36".graphCount shouldBe 2
     }
 
     @Test
-    fun `Determine grapheme cluster count of regular emoji`() {
-        assertEquals(1, "\uD83E\uDD8A".graphCount)
+    fun singleEmojiGraphCount() {
+        "\uD83E\uDD8A".graphCount shouldBe 1
     }
 
     @Test
-    fun `Determine grapheme cluster count of regional indicator emoji`() {
-        assertEquals(1, "\uD83C\uDDE6".graphCount)
+    fun regionalIndicatorGraphCount() {
+        "\uD83C\uDDE6".graphCount shouldBe 1
     }
 
     @Test
-    fun `Determine grapheme cluster count of flag emoji`() {
-        assertEquals(1, "\uD83C\uDDE9\uD83C\uDDEA".graphCount)
+    fun flagGraphCount() {
+        "\uD83C\uDDE9\uD83C\uDDEA".graphCount shouldBe 1
     }
 
     @Test
-    fun `Determine grapheme cluster count of emoji with skin tone modifier`() {
-        assertEquals(1, "\uD83D\uDC4C\uD83C\uDFFE".graphCount)
+    fun skinToneModifierGraphCount() {
+        "\uD83D\uDC4C\uD83C\uDFFE".graphCount shouldBe 1
     }
 
     @Test
-    fun `Determine grapheme cluster count of diacritic`() {
-        assertEquals(1, "t̃".graphCount)
+    fun singleDiacriticGraphCount() {
+        "t̃".graphCount shouldBe 1
     }
 
     @Test
-    fun `Determine grapheme cluster count of multiple diacritics`() {
-        assertEquals(4, "t̃est̃".graphCount)
+    fun multipleDiacriticsGraphCount() {
+        "t̃est̃".graphCount shouldBe 4
+    }
+
+    @Test
+    fun forEachGraphInAsciiString() {
+        val string = "Hello"
+        string.forEachGraph { graph, index ->
+            graph shouldBe string[index]
+            true
+        }
+    }
+
+    @Test
+    fun forEachGraphInEmojiString() {
+        val string = "\uD83E\uDD8A\uD83D\uDC3A\uD83D\uDC10"
+        string.forEachGraph { graph, index ->
+            when(index) {
+                0 -> graph shouldBe "\uD83E\uDD8A"
+                1 -> graph shouldBe "\uD83D\uDC3A"
+                2 -> graph shouldBe "\uD83D\uDC10"
+            }
+            true
+        }
+    }
+
+    @Test
+    fun forEachGraphInMixedString() {
+        val string = "\uD83E\uDD8A&\uD83D\uDC3A&\uD83D\uDC10"
+        string.forEachGraph { graph, index ->
+            when(index) {
+                0 -> graph shouldBe "\uD83E\uDD8A"
+                1 -> graph shouldBe "&"
+                2 -> graph shouldBe "\uD83D\uDC3A"
+                3 -> graph shouldBe "&"
+                4 -> graph shouldBe "\uD83D\uDC10"
+            }
+            true
+        }
     }
 }

@@ -1,29 +1,26 @@
 package de.connect2x.trixnity.messenger.util
 
 import js.intl.Granularity
+import js.intl.SegmentData
 import js.intl.Segmenter
 import js.intl.SegmenterOptions
+import js.iterable.JsIterable
+
+// Define our own external for this since kotlin.browser doesn't provide iterable bindings without going through dynamic
+internal external interface Segments : JsIterable<SegmentData>
 
 actual val String.graphCount: Int
     get() {
-        val segments: dynamic = Segmenter("en", SegmenterOptions.invoke(Granularity.grapheme)).segment(this)
-        val iterator = segments.iterator()
+        val segments = Segmenter("en", SegmenterOptions(Granularity.grapheme)).segment(this).unsafeCast<Segments>()
         var count = 0
-        while (iterator.hasNext()) {
-            if (iterator.next().done as Boolean) break
-            ++count
-        }
+        for (segment in segments) ++count
         return count
     }
 
 actual inline fun String.forEachGraph(crossinline consumer: (graph: String, index: Int) -> Boolean) {
-    val segments: dynamic = Segmenter("en", SegmenterOptions.invoke(Granularity.grapheme)).segment(this)
-    val iterator = segments.iterator()
+    val segments = Segmenter("en", SegmenterOptions(Granularity.grapheme)).segment(this).unsafeCast<Segments>()
     var index = 0
-    while (iterator.hasNext()) {
-        val segment = iterator.next()
-        if (segment.done as Boolean) break
-        consumer(segment.segment, index)
-        ++index
+    for (segment in segments) {
+        consumer(segment.segment, index++)
     }
 }
