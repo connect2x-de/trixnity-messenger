@@ -27,7 +27,6 @@ import io.kotest.core.test.config.TestConfig
 import io.kotest.matchers.nulls.shouldNotBeNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.timeout
@@ -37,84 +36,11 @@ import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.Koin
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.TimeSource
-
 
 private val log = KotlinLogging.logger {}
-
-@PublishedApi
-internal val defaultInterval: Duration = 100.milliseconds
-
-// Kotest-esque DSL to ease migration
-
-inline infix fun <reified T> T.shouldBe(expected: T) {
-    assertEquals(expected, this)
-}
-
-infix fun CharSequence.shouldContain(subSequence: CharSequence) {
-    assertTrue(subSequence in this)
-}
-
-infix fun <T> Collection<T>.shouldContain(element: T) {
-    assertTrue(element in this)
-}
-
-infix fun <T> Collection<T>.shouldContainExactly(elements: Collection<T>) {
-    assertTrue(size == elements.size && containsAll(elements))
-}
-
-infix fun <T> Collection<T>.shouldNotContain(element: T) {
-    assertTrue(element !in this)
-}
-
-inline infix fun <reified T> T.shouldNotBe(illegal: T) {
-    assertNotEquals(illegal, this)
-}
-
-inline fun <reified T> Any.shouldBeInstanceOf(): T {
-    assertTrue(this is T)
-    return this
-}
-
-suspend inline fun continually(
-    timeout: Duration,
-    interval: Duration = defaultInterval,
-    block: suspend () -> Unit
-) {
-    val startTime = TimeSource.Monotonic.markNow()
-    while (startTime.elapsedNow() < timeout) {
-        block()
-        delay(interval)
-    }
-}
-
-suspend inline fun eventually(
-    timeout: Duration,
-    interval: Duration = defaultInterval,
-    block: suspend () -> Unit
-) {
-    val startTime = TimeSource.Monotonic.markNow()
-    var lastException: Throwable? = null
-    while (startTime.elapsedNow() < timeout) {
-        try {
-            block()
-            return // If successful, return
-        } catch (exception: Throwable) {
-            lastException = exception
-        }
-        delay(interval)
-    }
-    throw lastException?.let { IllegalStateException("eventually block timed out after $timeout: $lastException") }
-        ?: IllegalStateException("eventually block timed out after $timeout")
-}
-
-// Old Kotest functions - TODO: rewrite these to not use Kotest APIs
 
 @OptIn(FlowPreview::class)
 suspend inline fun <T> Flow<T>.firstWithClue(duration: Duration = 1.seconds, crossinline expected: (T) -> T): T {

@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
-import de.connect2x.trixnity.messenger.shouldBe
+import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 
 class StringsTest {
