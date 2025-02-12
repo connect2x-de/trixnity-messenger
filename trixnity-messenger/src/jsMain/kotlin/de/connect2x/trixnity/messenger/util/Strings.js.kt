@@ -21,6 +21,6 @@ actual inline fun String.forEachGraph(crossinline consumer: (graph: String, inde
     val segments = Segmenter("en", SegmenterOptions(Granularity.grapheme)).segment(this).unsafeCast<Segments>()
     var index = 0
     for (segment in segments) {
-        consumer(segment.segment, index++)
+        if(!consumer(segment.segment, index++)) break
     }
 }
