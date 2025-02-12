@@ -12,6 +12,8 @@ import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
+import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository
+import de.connect2x.trixnity.messenger.util.ReadReceiptsRepositoryImpl
 import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
@@ -65,8 +67,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedErrorTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedWaitTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReadReceiptsManager
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReadReceiptsManagerImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RepliedTimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
@@ -230,7 +230,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<Search> { SearchImpl(get(), get()) }
             single<RunInitialSync> { RunInitialSync }
             single<DragAndDropHandler> { DragAndDropHandlerBase() }
-            single<ReadReceiptsManager> { ReadReceiptsManagerImpl(get()) }
+            single<ReadReceiptsRepository> { ReadReceiptsRepositoryImpl(get()) }
             single<AccountSetupViewModelFactory> { AccountSetupViewModelFactory }
 
             single<RootViewModelFactory> { RootViewModelFactory }

@@ -27,7 +27,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxEl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel1
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel2
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReadReceiptsViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -75,6 +74,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.scan
@@ -638,8 +638,6 @@ class TimelineViewModelImpl(
         )
     }
 
-    private val reads = ReadReceiptsViewModelImpl(viewModelContext)
-
     private val outboxElementCache = mutableMapOf<String, OutboxElementWrapper>()
 
     private suspend fun computeOutbox(
@@ -1030,7 +1028,8 @@ class TimelineViewModelImpl(
     private fun getReceipts(roomId: RoomId): Flow<Map<EventId, Set<UserId>>> =
         flow {
             emitAll(
-                reads.testGet(roomId)
+                flowOf()
+//                reads.testGet(roomId)
 
                 /*
                 getReceiptsByEventCache.read { get(roomId) }

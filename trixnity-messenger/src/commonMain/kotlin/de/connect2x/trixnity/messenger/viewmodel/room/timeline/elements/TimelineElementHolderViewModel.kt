@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -188,11 +189,25 @@ class TimelineElementHolderViewModelImpl(
         get<TimelineElementViewModelFactorySelector>()
     private val repliedTimelineElementHolderViewModelFactory =
         get<RepliedTimelineElementHolderViewModelFactory>()
+    private val readReceipts = get<ReadReceiptsRepository>()
 
     init {
         coroutineScope.launch {
-            getReceipts(roomId).collect {
-                log.debug { "received ${it.size} receipts" }
+//            getReceipts(roomId).collect {
+//                log.debug { "received ${it.size} receipts" }
+//            }
+
+            val filter = setOf(userId, senderUserId)
+            val reads = readReceipts
+                .getReadReceipts(matrixClient, eventId, roomId, filter, coroutineScope)
+            reads.isRead.collectLatest {
+                log.debug { "----- ISRED($eventId): $it" }
+            }
+            reads.readReceiptsCumulative.collectLatest {
+                log.debug { "----- SINREC($eventId): $it" }
+            }
+            reads.readReceiptsCumulative.collectLatest {
+                log.debug { "----- CUMREC($eventId): $it" }
             }
         }
     }
