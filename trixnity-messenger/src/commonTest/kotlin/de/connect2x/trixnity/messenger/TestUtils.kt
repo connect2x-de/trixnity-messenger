@@ -66,7 +66,7 @@ infix fun <T> Collection<T>.shouldContain(element: T) {
 }
 
 infix fun <T> Collection<T>.shouldContainExactly(elements: Collection<T>) {
-    assertTrue(containsAll(elements))
+    assertTrue(size == elements.size && containsAll(elements))
 }
 
 infix fun <T> Collection<T>.shouldNotContain(element: T) {
