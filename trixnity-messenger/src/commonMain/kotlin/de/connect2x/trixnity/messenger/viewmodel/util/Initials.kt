@@ -8,6 +8,7 @@ interface Initials {
         val graphs = name.split(matchBlankSpace)
             .map { it.firstGraph().uppercase() }
             .filter { it.isNotEmpty() }
+        if(graphs.isEmpty()) return ""
         val isFirstEmoji = graphs.first().first().isHighSurrogate()
         return graphs.take(if(isFirstEmoji) 1 else 2).joinToString(separator = "")
     }
