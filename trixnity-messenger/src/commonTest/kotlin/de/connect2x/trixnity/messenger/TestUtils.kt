@@ -40,7 +40,6 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-
 private val log = KotlinLogging.logger {}
 
 @OptIn(FlowPreview::class)
