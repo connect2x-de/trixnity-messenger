@@ -78,12 +78,12 @@ interface ReadReceiptsRepository {
         operator fun get(eventId: EventId): Deferred<SortedReadEvent?>
         val fromLatestToEarliest: Deferred<Iterator<SortedReadEvent>>
         fun isCompleteFrom(eventId: EventId): Deferred<Boolean> // Useful to indicate further loading.
-        fun trackCollector(eventId: EventId)
+        fun trackTimelineFetchPosition(eventId: EventId)
 
         class EmptyReceipts(private val scope: CoroutineScope) : ReadReceipts {
             override fun isCompleteFrom(eventId: EventId) = scope.async { false }
             override fun get(eventId: EventId) = scope.async { null }
-            override fun trackCollector(eventId: EventId) {}
+            override fun trackTimelineFetchPosition(eventId: EventId) {}
             override val fromLatestToEarliest: Deferred<Iterator<SortedReadEvent>>
                 get() = scope.async {
                     object : Iterator<SortedReadEvent> {
@@ -121,10 +121,7 @@ class ReadReceiptsRepositoryImpl(
                         filtered = filter,
                         scope = scope,
                         receipts = getReceiptsFlow(roomId, filter, client, scope)
-                            .onCompletion {
-                                receiptsHandleCache.flagAsDestroyed(key)
-                                log.debug { "=== so long cruel world! $eventId" }
-                            },
+                            .onCompletion { receiptsHandleCache.remove(key) },
                     )
                 })
         }
@@ -144,13 +141,10 @@ class ReadReceiptsRepositoryImpl(
                 // TODO: could be dangerous to give out state flows from potentially different and cancelled coroutines
                 // TODO: maybe use on completion to clear the cache from dead entries
                 .onCompletion {
-                    receiptsFlowCache.flagAsDestroyed(roomId)
-                    log.debug { "=== elvis has left the building: $roomId" }
+                    receiptsFlowCache.remove(roomId)
+                    receiptsHandleCache.removeIf { key, _ -> key.roomId == roomId }
                 }
                 .stateIn(scope, WhileSubscribed(), EmptyReceipts(scope))
-                .onCompletion {
-                    log.debug { "=== the king still lives: $roomId" }
-                }
         }
 
     @OptIn(InternalDecomposeApi::class)
@@ -347,16 +341,9 @@ class ReadReceiptsHandleImpl(
     scope: CoroutineScope,
     receipts: Flow<ReadReceipts>,
 ) : ReadReceiptsHandle {
-    init {
-        log.debug { "=== new handle for $eventId in $roomId" }
-    }
-
     private val _receipts = receipts
-        .onCompletion { log.debug { "=== IS DED 0 1: $eventId" } }
-        .onEach { it.trackCollector(eventId) }
-        .stateIn(scope, WhileSubscribed(), EmptyReceipts(scope))
-        .onEach { log.debug { "=== REC $eventId" } }
-        .onCompletion { log.debug { "=== IS DED 0 2: $eventId" } }
+        .onEach { it.trackTimelineFetchPosition(eventId) }
+        .stateIn(scope, WhileSubscribed(), EmptyReceipts(scope)) // Persist for this handle instance.
 
     override val isRead = _receipts
         .map { true } // TODO: impl
@@ -374,25 +361,23 @@ private class ConcurrentReadEventsOrderingReceipts(
     private val scope: CoroutineScope,
 ) : ReadReceipts {
 
-    override fun trackCollector(eventId: EventId) {
-        val bescheid = relevantEventsTracker.tryEmit(eventId)
-        log.debug { "=== handle for $eventId got receipts and notified channel: $bescheid" }
+    override fun trackTimelineFetchPosition(eventId: EventId) {
+        relevantEventsTracker.tryEmit(eventId)
     }
 
     override fun get(eventId: EventId): Deferred<SortedReadEvent?> =
         scope.async {
             receipts.read {
-                val list = toList()
-                list.find { it.eventId == eventId }
+                toList().find { it.eventId == eventId }
             }
         }
 
     override val fromLatestToEarliest: Deferred<Iterator<SortedReadEvent>>
         get() = scope.async {
             receipts.read {
-                val list = toList()
-                var index = list.size - 1
                 object : Iterator<SortedReadEvent> {
+                    private val list = toList()
+                    private var index = list.size - 1
                     override fun hasNext() = index >= 0
                     override fun next() =
                         if (hasNext().not()) throw NoSuchElementException()
@@ -480,33 +465,27 @@ private data class OrderableReadEvent(
 class MutexCache<K, V> {
     private val mutex = Mutex()
     private val map = mutableMapOf<K, V>()
-    private val flaggedForDestruction = mutableSetOf<K>()
 
     suspend fun getOrSet(key: K, constructor: suspend () -> V): V =
         mutex.withLock {
-            if (flaggedForDestruction.contains(key)) {
-                flaggedForDestruction.remove(key)
-                constructor()
-                    .also { map[key] = it }
-            } else map.getOrPut(key) { constructor() }
+            val has = map.contains(key)
+            map.getOrPut(key) { constructor() }
+                .also { log.debug { "=== ${if (has) "getting" else "added"}: $key - ${map.size} items now cached" } }
         }
 
-    suspend fun flagAsDestroyed(key: K): Unit =
+    suspend fun remove(key: K): Unit =
         mutex.withLock {
-            // Defer deletion to avoid problems during nested mutex calls.
-            flaggedForDestruction.add(key)
+            map.remove(key)
+            log.debug { "=== removed: $key - ${map.size} cached items remaining" }
         }
 
-    suspend fun clear(exempt: Set<K> = setOf()): Unit =
+    suspend fun removeIf(predicate: (K, V) -> Boolean): Unit =
         mutex.withLock {
-            if (exempt.isEmpty()) {
-                flaggedForDestruction.clear()
+            val oldSize = map.size
+            map.filter { predicate(it.key, it.value).not() }.let {
                 map.clear()
-            } else map
-                .filter { exempt.contains(it.key) }
-                .also {
-                    map.clear()
-                    map.putAll(it)
-                }
+                map.putAll(it)
+            }
+            log.debug { "=== removed many: $oldSize -> ${map.size} cached items remaining" }
         }
 }

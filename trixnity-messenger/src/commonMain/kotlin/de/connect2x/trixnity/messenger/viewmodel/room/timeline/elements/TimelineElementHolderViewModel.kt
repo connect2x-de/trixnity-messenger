@@ -43,8 +43,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -391,8 +389,6 @@ class TimelineElementHolderViewModelImpl(
     override val isRead = readReceipts
         .getReadReceipts(matrixClient, eventId, roomId, setOf(), coroutineScope)
         .flatMapLatest { it.isRead }
-        .onEach { log.debug { "=== is read by view: $eventId" } }
-        .onCompletion { log.debug { "=== is disposed by view: $eventId" } }
         .stateIn(coroutineScope, Lazily, false)
 
     override val isReadBy: StateFlow<List<UserInfoElement>?> =
