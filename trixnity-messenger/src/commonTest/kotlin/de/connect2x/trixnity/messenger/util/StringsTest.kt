@@ -54,7 +54,7 @@ class StringsTest {
     fun forEachGraphInAsciiString() {
         val string = "Hello"
         string.forEachGraph { graph, index ->
-            graph shouldBe string[index]
+            graph shouldBe string[index].toString()
             true
         }
     }
@@ -63,7 +63,7 @@ class StringsTest {
     fun forEachGraphInEmojiString() {
         val string = "\uD83E\uDD8A\uD83D\uDC3A\uD83D\uDC10"
         string.forEachGraph { graph, index ->
-            when(index) {
+            when (index) {
                 0 -> graph shouldBe "\uD83E\uDD8A"
                 1 -> graph shouldBe "\uD83D\uDC3A"
                 2 -> graph shouldBe "\uD83D\uDC10"
@@ -76,7 +76,7 @@ class StringsTest {
     fun forEachGraphInMixedString() {
         val string = "\uD83E\uDD8A&\uD83D\uDC3A&\uD83D\uDC10"
         string.forEachGraph { graph, index ->
-            when(index) {
+            when (index) {
                 0 -> graph shouldBe "\uD83E\uDD8A"
                 1 -> graph shouldBe "&"
                 2 -> graph shouldBe "\uD83D\uDC3A"
