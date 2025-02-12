@@ -1,5 +1,8 @@
 package de.connect2x.trixnity.messenger.util
 
+private val emojiPattern: Regex =
+    Regex("^([\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+|[\\u203C-\\u3299]|[\\u0023-\\u0039]\\uFE0F?\\u20E3|[\\u00A9\\u00AE\\u2122\\u3030]|\\uFE0F)+$")
+
 expect val String.graphCount: Int
 
 expect inline fun String.forEachGraph(crossinline consumer: (graph: String, index: Int) -> Boolean)
@@ -27,3 +30,5 @@ fun String.firstGraph(): String {
     }
     return buffer
 }
+
+fun String.isEmoji(): Boolean = emojiPattern.matches(this)
