@@ -94,7 +94,6 @@ interface TimelineElementHolderViewModelFactory {
         showUnreadMarker: Flow<Boolean>,
         showLoadingIndicatorBefore: Flow<Boolean>,
         showLoadingIndicatorAfter: Flow<Boolean>,
-        getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
         onMessageReplace: (RoomId, EventId) -> Unit,
         onMessageReply: (RoomId, EventId) -> Unit,
         onMessageReport: (RoomId, EventId) -> Unit,
@@ -112,7 +111,6 @@ interface TimelineElementHolderViewModelFactory {
             showUnreadMarker = showUnreadMarker,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
-            getReceipts = getReceipts,
             onMessageReplace = onMessageReplace,
             onMessageReply = onMessageReply,
             onMessageReport = onMessageReport,
@@ -175,7 +173,6 @@ class TimelineElementHolderViewModelImpl(
     showUnreadMarker: Flow<Boolean>,
     showLoadingIndicatorBefore: Flow<Boolean>,
     showLoadingIndicatorAfter: Flow<Boolean>,
-    private val getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
     private val onMessageReplace: (RoomId, EventId) -> Unit,
     private val onMessageReply: (RoomId, EventId) -> Unit,
     private val onMessageReport: (RoomId, EventId) -> Unit,
@@ -193,10 +190,6 @@ class TimelineElementHolderViewModelImpl(
 
     init {
         coroutineScope.launch {
-//            getReceipts(roomId).collect {
-//                log.debug { "received ${it.size} receipts" }
-//            }
-
             val filter = setOf(userId, senderUserId)
             val reads = readReceipts
                 .getReadReceipts(matrixClient, eventId, roomId, filter, coroutineScope)

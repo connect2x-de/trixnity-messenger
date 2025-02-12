@@ -66,15 +66,12 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.dropWhile
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.scan
@@ -622,7 +619,6 @@ class TimelineViewModelImpl(
             showUnreadMarker = showUnreadMarker,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
-            getReceipts = ::getReceipts,
             onMessageReplace = ::onMessageReplace,
             onMessageReply = ::onMessageReply,
             onMessageReport = ::onShowReportMessageModal,
@@ -1021,38 +1017,6 @@ class TimelineViewModelImpl(
                 .onSuccess { log.debug { "successfully set read marker for message: $nextReadUntil in $nextReadUntilRoomId" } }
         }.join()
     }
-
-
-    // TODO
-//    private val getReceiptsByEventCache = concurrentMutableMap<RoomId, Flow<Map<EventId, Set<UserId>>>>()
-    private fun getReceipts(roomId: RoomId): Flow<Map<EventId, Set<UserId>>> =
-        flow {
-            emitAll(
-                flowOf()
-//                reads.testGet(roomId)
-
-                /*
-                getReceiptsByEventCache.read { get(roomId) }
-                    ?: getReceiptsByEventCache.write {
-                        getOrPut(roomId) {
-                            matrixClient.user.getAllReceipts(roomId)
-                                .flattenNotNull()
-                                .map { receipts ->
-                                    receipts
-                                        .mapNotNull { (key, value) ->
-                                            if (key == userId) null
-                                            else value.receipts[ReceiptType.Read]
-                                                ?.let { it.eventId to key }
-                                        }
-                                        .groupBy { it.first }
-                                        .mapValues { it.value.map { it.second }.toSet() }
-                                }.distinctUntilChanged()
-                                .stateIn(coroutineScope, WhileSubscribed(), emptyMap())
-                        }
-                    }
-                 */
-            )
-        }
 
     private fun onVerifyUser() {
         coroutineScope.launch {
