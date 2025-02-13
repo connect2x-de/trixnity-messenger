@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import de.connect2x.messenger.compose.view.room.timeline.element.ReactionsAndReadByInfo
+import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository.ReadReceiptsHandle.Reader
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -15,7 +16,7 @@ actual fun InfoPopup(
     isOpen: Boolean,
     focusRequester: FocusRequester,
     onDismiss: () -> Unit,
-    readers: List<UserInfoElement>,
+    readers: Set<Reader>,
     reactors: Map<String, List<UserInfoElement>>,
     modifier: Modifier
 ) {

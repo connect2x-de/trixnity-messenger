@@ -230,7 +230,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<Search> { SearchImpl(get(), get()) }
             single<RunInitialSync> { RunInitialSync }
             single<DragAndDropHandler> { DragAndDropHandlerBase() }
-            single<ReadReceiptsRepository> { ReadReceiptsRepositoryImpl(get()) }
+            single<ReadReceiptsRepository> { ReadReceiptsRepositoryImpl(get(), get()) }
             single<AccountSetupViewModelFactory> { AccountSetupViewModelFactory }
 
             single<RootViewModelFactory> { RootViewModelFactory }

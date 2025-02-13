@@ -42,7 +42,7 @@ class MessageInfoViewImpl : MessageInfoView {
         }
 
         if (infoOpen.value) {
-            var readers = timelineElementHolderViewModel.isReadBy.collectAsState().value ?: emptyList()
+            val readers = timelineElementHolderViewModel.isReadBy.collectAsState().value
             val reactions = timelineElementHolderViewModel.reactions.collectAsState().value
             val focusRequester = remember { FocusRequester() }
 
@@ -53,7 +53,8 @@ class MessageInfoViewImpl : MessageInfoView {
                     infoOpen.value = false
                 },
                 readers = readers,
-                reactors = reactions.mapValues { (_, value) -> value.map { it.sender } }
+//                reactors = reactions.mapValues { (_, value) -> value.map { it.sender } }
+                reactors = mapOf() // TODO
             )
         }
     }
