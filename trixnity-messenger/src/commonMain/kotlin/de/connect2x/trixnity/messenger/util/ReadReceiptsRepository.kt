@@ -182,7 +182,7 @@ class ReadReceiptsRepositoryImpl(
     private fun Flow<Map<EventId, ReadReceiptResult>>.orderingCache(roomId: RoomId, client: MatrixClient) =
         channelFlow<ReadReceipts> {
             val scope = this
-            val orderedEvents = concurrentOf { ReadEventsOrdering() }
+            val orderedEvents = concurrentOf { ReadEventsOrdering() } // TODO: mutex?
             val fetchCutoffTracker = MutableSharedFlow<Long>(replay = 0, extraBufferCapacity = 32)
             val updateWrapper = ConcurrentReadEventsOrderingReceipts(orderedEvents, fetchCutoffTracker, scope)
             val receiptsByEventId = MutableStateFlow<Map<EventId, ReadReceiptResult>>(mapOf()) // Atomic changes.
@@ -210,23 +210,8 @@ class ReadReceiptsRepositoryImpl(
             // Because without we can't tell if other event's readers already got past it or not.
             // And with, checking the read state is trivial.
 
-            // Listen for eventIds to set the fetch range cutoff.
-            scope.launch {
-                fetchCutoffTracker.collect { timestamp ->
-                    val currentLimit = fetchLimit.value
-                    when {
-                        currentLimit <= 0L || timestamp <= 0L -> {}
-                        currentLimit <= 0L -> fetchLimit.value = timestamp
-                        else -> fetchLimit.value = min(currentLimit, timestamp)
-                    }
-                    // TODO: re-query previously ignored items
-                    if (currentLimit != fetchLimit.value) log
-                        .debug { "=== changed fetch timestamp cutoff: $currentLimit -> ${fetchLimit.value} for: $roomId" }
-                }
-            }
-
             val receiptsTimestampRetrievalJob = MutableStateFlow<Job?>(null)
-            fun launchReceiptsTimestampRetrieval(receipts: Map<EventId, ReadReceiptResult>) =
+            fun launchReceiptsTimestampRetrieval(): Unit = receiptsByEventId.value.let { receipts ->
                 receiptsTimestampRetrievalJob.apply {
                     data class FetchRequest(
                         val eventId: EventId,
@@ -244,11 +229,11 @@ class ReadReceiptsRepositoryImpl(
                                     receipt.timestampMostEarly ?: 0L,
                                     receipt.timestampMostRecent ?: 0L,
                                 )
-                            }.filter { it.timestampMostEarly >= limit }
+                            }
+                                .filter { it.timestampMostEarly >= limit }
                                 .sortedByDescending { it.timestampMostRecent }
                         }
                         val fetchQueue = ArrayDeque(prioritized) // TODO concurrency safe?
-                        // TODO: sort by most recent and re-fetch from server
                         while (fetchQueue.isNotEmpty()) {
                             fetchQueue.removeFirstOrNull()?.let { request ->
                                 client
@@ -280,6 +265,22 @@ class ReadReceiptsRepositoryImpl(
                         invokeOnCompletion { log.debug { "====== completed fetch loop" } }
                     }
                 }
+            }
+
+            // Listen for eventIds to set the fetch range cutoff.
+            scope.launch {
+                fetchCutoffTracker.collect { timestamp ->
+                    val currentLimit = fetchLimit.value
+                    when {
+                        currentLimit <= 0L || timestamp <= 0L -> {}
+                        currentLimit <= 0L -> fetchLimit.value = timestamp
+                        else -> fetchLimit.value = min(currentLimit, timestamp)
+                    }
+                    launchReceiptsTimestampRetrieval()
+                    if (currentLimit != fetchLimit.value) log
+                        .debug { "=== changed fetch timestamp cutoff: $currentLimit -> ${fetchLimit.value} for: $roomId" }
+                }
+            }
 
             collectLatest { receipts ->
                 receiptsByEventId.value = receipts
@@ -288,7 +289,7 @@ class ReadReceiptsRepositoryImpl(
                 orderedEvents.write { clear() }
 
                 // Load or re-load all read events from the store cache.
-                launchReceiptsTimestampRetrieval(receipts)
+                launchReceiptsTimestampRetrieval()
             }
         }
 
