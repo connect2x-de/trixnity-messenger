@@ -36,30 +36,33 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 
-//interface MessageReactionsHandleFactory {
-//    fun create(
-//        roomId: RoomId,
-//        eventId: EventId,
-//        senderId: UserId,
-//        client: MatrixClient,
-//        scope: CoroutineScope,
-//    ): MessageReactionsHandle =
-//        MessageReactionsHandleImpl()
-//
-//    companion object : MessageReactionsHandleFactory
-//}
-
-interface MessageReactionsHandleFactory {
-    fun getMessageReactions(
-
+interface MessageReactionsHandle {
+    fun getMessageReactionsHandle(
+        roomId: RoomId,
+        eventId: EventId,
+        initials: Initials,
+        client: MatrixClient,
+        config: MatrixMessengerConfiguration,
+        scope: CoroutineScope,
     ): Flow<MessageUserReactions>
 }
 
-//val reactions: StateFlow<Map<ReactionKey, Set<ReactionEvent>>> =;
-
-interface MessageReactionsHandle {
-    val byUser: Map<UserId, UserReactions>
-    val byReaction: Map<ReactionKey, Set<ReactionEvent>>
+class MessageReactionsHandleImpl : MessageReactionsHandle {
+    override fun getMessageReactionsHandle(
+        roomId: RoomId,
+        eventId: EventId,
+        initials: Initials,
+        client: MatrixClient,
+        config: MatrixMessengerConfiguration,
+        scope: CoroutineScope
+    ): Flow<MessageUserReactions> = getMessageReactionsContinuousFlow(
+        roomId = roomId,
+        eventId = eventId,
+        initials = initials,
+        client = client,
+        config = config,
+        scope = scope,
+    )
 }
 
 data class MessageUserReactions(
@@ -82,14 +85,14 @@ data class MessageUserReactions(
     }
 }
 
-private fun getMessageReactionsStats(
+private fun getMessageReactionsContinuousFlow(
     roomId: RoomId,
     eventId: EventId,
     initials: Initials,
     client: MatrixClient,
     config: MatrixMessengerConfiguration,
     scope: CoroutineScope,
-) = client
+): Flow<MessageUserReactions> = client
     .getReactions(roomId, eventId)
     .debounceAfterFirst(125.milliseconds)
     .map {
@@ -165,40 +168,5 @@ private fun MatrixClient.getReactions(roomId: RoomId, eventId: EventId) =
                 }
             }
         }
-
-//class MessageReactionsHandleImpl : MessageReactionsHandle {
-//
-//    // TODO: should consider outbox to get immediate feedback
-//    @OptIn(ExperimentalCoroutinesApi::class)
-//    fun getMessageUserReactions(
-//        client: MatrixClient,
-//        roomId: RoomId,
-//        eventId: EventId,
-//    ): Flow<MessageUserReactions> =
-//        client.room.getTimelineEventReactionAggregation(roomId, eventId)
-//            .mapLatest { reactions ->
-//                val reactionsAggregation = reactions.reactions
-//                if (reactionsAggregation.isEmpty()) {
-//                    return@mapLatest MessageUserReactions.Empty
-//                }
-//                val byUser: MutableMap<UserId, MutableSet<ReactionKey>> = mutableMapOf()
-//                val byCount: Map<ReactionKey, ReactionCount> = reactionsAggregation
-//                    .mapValues { (key, events) ->
-//                        events.forEach {
-//                            byUser.getOrPut(it.sender) { mutableSetOf() }.add(key)
-//                        }
-//                        ReactionCount(events)
-//                    }
-//                MessageUserReactions(
-//                    byUser = byUser.mapValues { (userId, reactionKeys) ->
-//                        UserReactions(
-//                            client.user.getById(roomId, userId),
-//                            reactions = reactionKeys.toSet(),
-//                        )
-//                    },
-//                    byCount = byCount,
-//                )
-//            }
-//}
 
 typealias ReactionKey = String

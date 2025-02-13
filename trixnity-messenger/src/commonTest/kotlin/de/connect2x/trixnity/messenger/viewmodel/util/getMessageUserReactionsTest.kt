@@ -368,7 +368,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
     private fun TimelineBuilder.reactionBy(userId: UserId, reactionTo: EventId, reactionKey: ReactionKey) =
         messageEvent(sender = userId) { reaction(reactionTo, reactionKey) }
 
-    private suspend infix fun Flow<MessageUserReactions?>.shouldReturnReactionsByUsers(
+    private suspend infix fun Flow<MessageUserReactionsOld?>.shouldReturnReactionsByUsers(
         expected: Map<UserId, Set<ReactionKey>>,
     ) {
         this.firstOrNull()?.let { reactions ->
@@ -391,7 +391,7 @@ class getMessageUserReactionsTest : ShouldSpec() {
         } ?: throw failure("no reaction data received")
     }
 
-    private suspend infix fun Flow<MessageUserReactions?>.shouldReturnReactionsByCount(
+    private suspend infix fun Flow<MessageUserReactionsOld?>.shouldReturnReactionsByCount(
         expected: List<Pair<ReactionKey, Int>>,
     ) {
         this.firstOrNull()?.let { reactions ->

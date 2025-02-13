@@ -11,16 +11,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import de.connect2x.messenger.compose.view.room.timeline.element.ReactionsAndReadByInfo
+import de.connect2x.trixnity.messenger.util.ReactionKey
 import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository.ReadReceiptsHandle.Reader
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 actual fun InfoPopup(
     isOpen: Boolean,
     focusRequester: FocusRequester,
     onDismiss: () -> Unit,
-    readers: Set<Reader>,
-    reactors: Map<String, List<UserInfoElement>>,
+    readers: Collection<Reader>,
+    reactors: Map<ReactionKey, Collection<StateFlow<UserInfoElement?>>>,
     modifier: Modifier
 ) {
     if (isOpen) {

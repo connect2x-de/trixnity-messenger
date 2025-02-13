@@ -23,7 +23,7 @@ import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository.ReadReceiptsH
 
 @Composable
 fun ReadByInfo(
-    readers: Set<Reader>,
+    readers: Collection<Reader>,
     focusRequester: FocusRequester,
 ) {
     val scrollState = rememberScrollState()

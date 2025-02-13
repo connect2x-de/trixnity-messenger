@@ -216,22 +216,17 @@ class ReadReceiptsRepositoryImpl(
                     data class FetchRequest(
                         val eventId: EventId,
                         val fetchTimeout: Duration,
-                        val timestampMostEarly: Long,
-                        val timestampMostRecent: Long,
                     )
                     value?.cancel()
                     value = scope.launch {
+
                         log.debug { "============= launch fetch of up to ${receipts.size} read events" }
+
                         val prioritized = fetchLimit.value.let { limit ->
-                            receipts.map { (eventId, receipt) ->
-                                FetchRequest(
-                                    eventId, fetchTimeout = ZERO,
-                                    receipt.timestampMostEarly ?: 0L,
-                                    receipt.timestampMostRecent ?: 0L,
-                                )
-                            }
-                                .filter { it.timestampMostEarly >= limit }
-                                .sortedByDescending { it.timestampMostRecent }
+                            receipts.entries
+                                .filter { (_, receipt) -> (receipt.timestampMostEarly ?: 0L) >= limit }
+                                .sortedByDescending { (_, receipt) -> receipt.timestampMostRecent }
+                                .map { (eventId, _) -> FetchRequest(eventId, fetchTimeout = ZERO) }
                         }
                         val fetchQueue = ArrayDeque(prioritized) // TODO concurrency safe?
                         while (fetchQueue.isNotEmpty()) {

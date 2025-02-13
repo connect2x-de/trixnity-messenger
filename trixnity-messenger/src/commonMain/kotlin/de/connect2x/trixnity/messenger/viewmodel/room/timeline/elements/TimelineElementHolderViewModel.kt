@@ -5,19 +5,20 @@ import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.MessageReactionsHandle
+import de.connect2x.trixnity.messenger.util.MessageUserReactions
+import de.connect2x.trixnity.messenger.util.MessageUserReactions.ReactionEvent
+import de.connect2x.trixnity.messenger.util.ReactionKey
 import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository
 import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository.ReadReceiptsHandle.Reader
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel.ReactionEvent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
-import de.connect2x.trixnity.messenger.viewmodel.util.getMessageUserReactions
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -128,7 +129,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
 
     val isRead: StateFlow<Boolean>
     val isReadBy: StateFlow<Set<Reader>>
-    val reactions: StateFlow<Map<ReactionKey, Set<ReactionEvent>>>
+    val reactions: StateFlow<MessageUserReactions>
     val canBeReactedTo: StateFlow<Boolean>
     val isReplaced: StateFlow<Boolean>
 
@@ -150,13 +151,6 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     fun report()
     fun addReaction(reaction: ReactionKey)
     fun removeReaction(reaction: ReactionEvent)
-
-    data class ReactionEvent(
-        // TODO: move to Reaction Handle
-        val eventId: EventId,
-        val senderFlow: StateFlow<UserInfoElement?>,
-        val isByMe: Boolean,
-    )
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -378,28 +372,11 @@ class TimelineElementHolderViewModelImpl(
         .flatMapLatest { it.readReceiptsCumulative }
         .stateIn(coroutineScope, WhileSubscribed(), setOf())
 
-    override val reactions: StateFlow<Map<ReactionKey, Set<ReactionEvent>>> =
-        getMessageUserReactions(matrixClient, roomId, eventId)
-            .map { reactions ->
-                reactions.byCount.mapValues { (_, reactionCount) ->
-                    reactionCount.events.mapTo(mutableSetOf()) { event ->
-                        ReactionEvent(
-                            eventId = event.eventId,
-                            isByMe = event.sender == userId,
-                            senderFlow = (reactions.byUser[event.sender]?.roomUserFlow?.map {
-                                it?.toUserInfoElement(
-                                    coroutineScope = coroutineScope,
-                                    matrixClient = matrixClient,
-                                    initials = initials,
-                                    config.avatarMaxSize,
-                                    it.userId,
-                                )
-                            } ?: flowOf(null))
-                                .stateIn(coroutineScope, whileSubscribedWithTimeout, null),
-                        )
-                    }
-                }
-            }.stateIn(coroutineScope, whileSubscribedWithTimeout, emptyMap())
+    private val _messageReactionsHandle = get<MessageReactionsHandle>()
+
+    override val reactions = _messageReactionsHandle
+        .getMessageReactionsHandle(roomId, eventId, initials, matrixClient, config, coroutineScope)
+        .stateIn(coroutineScope, WhileSubscribed(), MessageUserReactions.Empty)
 
     override val canBeEdited: StateFlow<Boolean> = timelineEventFlow
         .filterNotNull()
@@ -535,8 +512,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val reactions: MutableStateFlow<Map<String, Set<ReactionEvent>>> =
-        MutableStateFlow(emptyMap())
+    override val reactions = MutableStateFlow(MessageUserReactions.Empty)
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun replace() {}
     override fun endReplace() {}
@@ -583,8 +559,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val reactions: MutableStateFlow<Map<String, Set<ReactionEvent>>> =
-        MutableStateFlow(emptyMap())
+    override val reactions = MutableStateFlow(MessageUserReactions.Empty)
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun replace() {}
     override fun endReplace() {}

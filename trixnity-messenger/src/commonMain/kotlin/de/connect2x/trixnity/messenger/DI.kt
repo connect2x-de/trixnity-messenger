@@ -12,6 +12,8 @@ import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
+import de.connect2x.trixnity.messenger.util.MessageReactionsHandle
+import de.connect2x.trixnity.messenger.util.MessageReactionsHandleImpl
 import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository
 import de.connect2x.trixnity.messenger.util.ReadReceiptsRepositoryImpl
 import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
@@ -248,6 +250,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
 
             single<ShareDataViewModelFactory> { ShareDataViewModelFactory }
             single<SharedDataHandler> { SharedDataHandlerImpl() }
+            single<MessageReactionsHandle> { MessageReactionsHandleImpl() }
         }
     },
     ::connectingViewModels,

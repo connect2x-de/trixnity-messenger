@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactions.ReactionCount
+import de.connect2x.trixnity.messenger.util.ReactionKey
+import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactionsOld.ReactionCount
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapLatest
@@ -22,12 +23,12 @@ fun getMessageUserReactions(
     client: MatrixClient,
     roomId: RoomId,
     eventId: EventId,
-): Flow<MessageUserReactions> =
+): Flow<MessageUserReactionsOld> =
     client.room.getTimelineEventReactionAggregation(roomId, eventId)
         .mapLatest { reactions ->
             val reactionsAggregation = reactions.reactions
             if (reactionsAggregation.isEmpty()) {
-                return@mapLatest MessageUserReactions()
+                return@mapLatest MessageUserReactionsOld()
             }
             val byUser: MutableMap<UserId, MutableSet<ReactionKey>> = mutableMapOf()
             val byCount: Map<ReactionKey, ReactionCount> = reactionsAggregation
@@ -37,9 +38,9 @@ fun getMessageUserReactions(
                     }
                     ReactionCount(events)
                 }
-            MessageUserReactions(
+            MessageUserReactionsOld(
                 byUser = byUser.mapValues { (userId, reactionKeys) ->
-                    MessageUserReactions.UserReactions(
+                    MessageUserReactionsOld.UserReactions(
                         client.user.getById(roomId, userId),
                         reactions = reactionKeys.toSet(),
                     )
@@ -48,9 +49,7 @@ fun getMessageUserReactions(
             )
         }
 
-typealias ReactionKey = String
-
-data class MessageUserReactions(
+data class MessageUserReactionsOld(
     val byUser: Map<UserId, UserReactions> = emptyMap(),
     val byCount: Map<ReactionKey, ReactionCount> = emptyMap(),
 ) {

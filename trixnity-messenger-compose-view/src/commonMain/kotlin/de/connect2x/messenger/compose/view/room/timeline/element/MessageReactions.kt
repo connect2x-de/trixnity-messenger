@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +36,7 @@ import de.connect2x.messenger.compose.view.common.EmojiPopup
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.util.MessageUserReactions.ReactionEvent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import kotlinx.coroutines.flow.combine
@@ -74,10 +74,7 @@ class MessageReactionsViewImpl : MessageReactionsView {
         val i18n = DI.current.get<I18nView>()
         val focusRequester = remember { FocusRequester() }
 
-        val reactions by remember(timelineElementHolderViewModel) {
-            timelineElementHolderViewModel.reactions
-        }.collectAsState()
-
+        val reactions = timelineElementHolderViewModel.reactions.collectAsState().value.byReaction
         val reactionList = remember(reactions) {
             // TODO: sort in the VM instead?
             reactions.entries.sortedByDescending { it.value.size }.map { it.key }
@@ -148,14 +145,14 @@ private val buttonModifier = Modifier.buttonPointerModifier()
 @Composable
 internal fun MessageReactionButton(
     reaction: String,
-    reactionEvents: Set<TimelineElementHolderViewModel.ReactionEvent>,
+    reactionEvents: Set<ReactionEvent>,
     count: Int,
-    myReaction: TimelineElementHolderViewModel.ReactionEvent?,
+    myReaction: ReactionEvent?,
     onAddReaction: (reaction: String) -> Unit,
-    onRemoveReaction: (reaction: TimelineElementHolderViewModel.ReactionEvent) -> Unit,
+    onRemoveReaction: (reaction: ReactionEvent) -> Unit,
 ) {
     // TODO: remember?
-    val flows = reactionEvents.map { it.senderFlow }
+    val flows = reactionEvents.map { it.userInfo }
     val senderList = combine(flows) { it.filterNotNull() }
         .collectAsState(listOf()).value
     Tooltip({ TooltipText(senderList.joinToString { it.name }) }) {
