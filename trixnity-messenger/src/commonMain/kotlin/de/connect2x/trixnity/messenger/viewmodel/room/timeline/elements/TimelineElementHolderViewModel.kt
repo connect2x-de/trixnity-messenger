@@ -151,7 +151,8 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     fun addReaction(reaction: ReactionKey)
     fun removeReaction(reaction: ReactionEvent)
 
-    data class ReactionEvent( // TODO: move to Reaction Handle
+    data class ReactionEvent(
+        // TODO: move to Reaction Handle
         val eventId: EventId,
         val senderFlow: StateFlow<UserInfoElement?>,
         val isByMe: Boolean,
@@ -184,8 +185,6 @@ class TimelineElementHolderViewModelImpl(
         get<TimelineElementViewModelFactorySelector>()
     private val repliedTimelineElementHolderViewModelFactory =
         get<RepliedTimelineElementHolderViewModelFactory>()
-    private val readReceipts = get<ReadReceiptsRepository>()
-        .getReadReceipts(matrixClient, eventId, roomId, setOf(/*TODO*/), coroutineScope)
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -368,11 +367,14 @@ class TimelineElementHolderViewModelImpl(
 
     override val isByMe: Boolean = senderUserId == userId
 
-    override val isRead = readReceipts
+    private val _readReceiptsHandle = get<ReadReceiptsRepository>()
+        .getReadReceipts(matrixClient, eventId, roomId, setOf(/*TODO*/), coroutineScope)
+
+    override val isRead = _readReceiptsHandle
         .flatMapLatest { it.isRead }
         .stateIn(coroutineScope, WhileSubscribed(), false)
 
-    override val isReadBy = readReceipts
+    override val isReadBy = _readReceiptsHandle
         .flatMapLatest { it.readReceiptsCumulative }
         .stateIn(coroutineScope, WhileSubscribed(), setOf())
 

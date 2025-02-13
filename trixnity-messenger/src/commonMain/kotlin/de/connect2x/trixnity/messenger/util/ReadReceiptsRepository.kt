@@ -2,17 +2,19 @@ package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository.ReadReceipts
-import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository.ReadReceipts.EmptyReceipts
 import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository.ReadReceiptsHandle
+import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository.ReadReceiptsHandle.Reader
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.debounceAfterFirst
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -24,13 +26,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -72,33 +76,44 @@ interface ReadReceiptsRepository {
         val eventId: EventId
         val roomId: RoomId
         val filtered: Set<UserId>
-        val isRead: Flow<Boolean>
-        val readReceiptsCumulative: Flow<Set<Reader>>
-        val readReceiptsSingle: Flow<Set<Reader>>
+        val isRead: StateFlow<Boolean>
+        val readReceiptsCumulative: StateFlow<Set<Reader>>
+        val readReceiptsSingle: StateFlow<Set<Reader>>
 
         data class Reader(
             val userId: UserId,
             val userInfo: StateFlow<UserInfoElement?>,
-        )
+        ) { // For correct handling in Sets, only compare userIds
+            override fun hashCode() = userId.hashCode()
+            override fun equals(other: Any?) =
+                other is Reader && other.userId == userId
+        }
+
+        object Empty : ReadReceiptsHandle {
+            override val eventId = EventId("")
+            override val roomId = RoomId("")
+            override val filtered = setOf<UserId>()
+            override val isRead = MutableStateFlow(false)
+            override val readReceiptsCumulative = MutableStateFlow(setOf<Reader>())
+            override val readReceiptsSingle = MutableStateFlow(setOf<Reader>())
+        }
     }
 
     interface ReadReceipts {
         operator fun get(eventId: EventId): Deferred<SortedReadEvent?>
         val fromLatestToEarliest: Deferred<Iterator<SortedReadEvent>>
         fun isCompleteFrom(eventId: EventId): Deferred<Boolean> // Useful to indicate further loading.
-        fun registerTimelineFetchPosition(eventId: EventId)
+        fun registerTimelineFetchPosition(timestamp: Long)
 
-        class EmptyReceipts(private val scope: CoroutineScope) : ReadReceipts {
-            override fun isCompleteFrom(eventId: EventId) = scope.async { false }
-            override fun get(eventId: EventId) = scope.async { null }
-            override fun registerTimelineFetchPosition(eventId: EventId) {}
-            override val fromLatestToEarliest: Deferred<Iterator<SortedReadEvent>>
-                get() = scope.async {
-                    object : Iterator<SortedReadEvent> {
-                        override fun hasNext() = false
-                        override fun next() = throw NoSuchElementException()
-                    }
-                }
+        object Empty : ReadReceipts {
+            override fun get(eventId: EventId) = CompletableDeferred<SortedReadEvent?>(value = null)
+            override fun isCompleteFrom(eventId: EventId) = CompletableDeferred(value = false)
+            override fun registerTimelineFetchPosition(timestamp: Long) {}
+            override val fromLatestToEarliest = CompletableDeferred<Iterator<SortedReadEvent>>(value =
+                object : Iterator<SortedReadEvent> {
+                    override fun hasNext() = false
+                    override fun next() = throw NoSuchElementException()
+                })
         }
     }
 }
@@ -149,22 +164,27 @@ class ReadReceiptsRepositoryImpl(
         receiptsFlowCache.getOrSet(roomId) {
             client
                 .getReceipts(roomId, filter)
+                .orderingCache(roomId, client)
                 .onCompletion {
+                    // TODO: The timeline purges all the element holders before it creates new ones.
+                    //  This means that onComplete is called even though the channel flow should be kept alive.
+                    //  Solution 1: have the timeline VM subscribe to this.
+                    //  Solution 2: build and save a timer flow which subscribes to this and deletes it after
+                    //      some time and there's been no new cache retrievals for this flow.
                     receiptsFlowCache.remove(roomId)
                     receiptsHandleCache.removeIf { key, _ -> key.roomId == roomId }
                 }
-                .orderingCache(roomId, client)
                 // Persist the current receipts data and update channel for all by room.
                 // Note: the coroutine scopes are set to the one when this shared item is created but not when it's retrieved.
-                .stateIn(scope, WhileSubscribed(), EmptyReceipts(scope))
+                .stateIn(scope, WhileSubscribed(), ReadReceipts.Empty)
         }
 
     private fun Flow<Map<EventId, ReadReceiptResult>>.orderingCache(roomId: RoomId, client: MatrixClient) =
         channelFlow<ReadReceipts> {
             val scope = this
             val orderedEvents = concurrentOf { ReadEventsOrdering() }
-            val relevantEventsTracker = MutableSharedFlow<EventId>(replay = 0, extraBufferCapacity = 32)
-            val updateWrapper = ConcurrentReadEventsOrderingReceipts(orderedEvents, relevantEventsTracker, scope)
+            val fetchCutoffTracker = MutableSharedFlow<Long>(replay = 0, extraBufferCapacity = 32)
+            val updateWrapper = ConcurrentReadEventsOrderingReceipts(orderedEvents, fetchCutoffTracker, scope)
             val receiptsByEventId = MutableStateFlow<Map<EventId, ReadReceiptResult>>(mapOf()) // Atomic changes.
             val fetchLimit = MutableStateFlow(Long.MAX_VALUE)
 
@@ -175,12 +195,12 @@ class ReadReceiptsRepositoryImpl(
                 val readers = receiptsByEventId.value[eventId]?.usersByEvent ?: return
                 val timestamp = event.originTimestamp
                 val orderable = OrderableReadEvent(timestamp, eventId, readers)
-                val collectedReads = orderedEvents.read { size } // TODO: remove
+//                val collectedReads = orderedEvents.read { size } // TODO: remove
                 orderedEvents.write {
                     transaction {
                         if (orderable.readers.isNotEmpty()) {
                             add(orderable)
-                            log.debug { "--- added ordered event: ${orderable.eventId} at: ${orderable.timestamp} with ${orderable.readers.size} readers to container of size: $collectedReads" }
+//                            log.debug { "--- added ordered event: ${orderable.eventId} at: ${orderable.timestamp} with ${orderable.readers.size} readers to container of size: $collectedReads" }
                         }
                     }
                 }
@@ -192,27 +212,16 @@ class ReadReceiptsRepositoryImpl(
 
             // Listen for eventIds to set the fetch range cutoff.
             scope.launch {
-                relevantEventsTracker.collect { eventId ->
-                    log.debug { "============= RECEIVED RELEVANT: $eventId" }
-                    client
-                        .fetchTimelineEvent(roomId, eventId, 30.seconds)
-                        .map {
-                            it?.also { event ->
-                                onReceiveTimestamp(event)
-                                val currentLimit = fetchLimit.value
-                                val timestamp = event.originTimestamp
-                                when {
-                                    currentLimit <= 0L || timestamp <= 0L -> {}
-                                    currentLimit <= 0L -> fetchLimit.value = timestamp
-                                    else -> fetchLimit.value = min(currentLimit, timestamp)
-                                }
-                                // TODO: re-query previously ignored items
-
-                                log.debug { "============= FETCHED RELEVANT: $eventId -> ${event.originTimestamp} - changed: $currentLimit -> ${fetchLimit.value}" }
-                            }
-                                ?: also { log.debug { "============= FAILED RELEVANT: $eventId" } } // TODO: retry
-                        }
-                        .first()
+                fetchCutoffTracker.collect { timestamp ->
+                    val currentLimit = fetchLimit.value
+                    when {
+                        currentLimit <= 0L || timestamp <= 0L -> {}
+                        currentLimit <= 0L -> fetchLimit.value = timestamp
+                        else -> fetchLimit.value = min(currentLimit, timestamp)
+                    }
+                    // TODO: re-query previously ignored items
+                    if (currentLimit != fetchLimit.value) log
+                        .debug { "=== changed fetch timestamp cutoff: $currentLimit -> ${fetchLimit.value} for: $roomId" }
                 }
             }
 
@@ -283,31 +292,6 @@ class ReadReceiptsRepositoryImpl(
             }
         }
 
-    private suspend fun MatrixClient.fetchTimelineEvent(
-        roomId: RoomId,
-        eventId: EventId,
-        timeout: Duration,
-    ): Flow<TimelineEvent?> =
-        withTimeout(10.seconds) {
-            room.getTimelineEvent(roomId, eventId) {
-                decryptionTimeout = ZERO
-                fetchTimeout = timeout
-                fetchSize = 1
-                allowReplaceContent = false
-            }
-                // mapNotNull might make the thread hold
-                // while map might skip results
-                .map { event ->
-                    if (event != null) {
-                        return@map if (event.eventId != eventId) {
-                            log.warn { "event id mismatch $eventId -> ${event.eventId}; skipping timeline event" }
-                            null
-                        } else event
-                    }
-                    null
-                }
-        }
-
     /**
      * @return All users with read receipts for the selected room
      * grouped by read receipt event ids and containing the timestamp range
@@ -321,7 +305,7 @@ class ReadReceiptsRepositoryImpl(
         exclude: Set<UserId>,
     ): Flow<Map<EventId, ReadReceiptResult>> =
         user.getAllReceipts(roomId)
-            .debounceAfterFirst(125.milliseconds)
+            .debounceAfterFirst(500.milliseconds)
             .distinctUntilChanged()
             .flattenNotNull()
             .mapLatest { userReceipts ->
@@ -351,6 +335,31 @@ class ReadReceiptsRepositoryImpl(
     )
 }
 
+private suspend fun MatrixClient.fetchTimelineEvent(
+    roomId: RoomId,
+    eventId: EventId,
+    timeout: Duration,
+): Flow<TimelineEvent?> =
+    withTimeout(10.seconds) {
+        room.getTimelineEvent(roomId, eventId) {
+            decryptionTimeout = ZERO
+            fetchTimeout = timeout
+            fetchSize = 1
+            allowReplaceContent = false
+        }
+            // mapNotNull might make the thread hold
+            // while map might skip results
+            .map { event ->
+                if (event != null) {
+                    return@map if (event.eventId != eventId) {
+                        log.warn { "event id mismatch $eventId -> ${event.eventId}; skipping timeline event" }
+                        null
+                    } else event
+                }
+                null
+            }
+    }
+
 class ReadReceiptsHandleImpl(
     override val eventId: EventId,
     override val roomId: RoomId,
@@ -361,33 +370,69 @@ class ReadReceiptsHandleImpl(
     private val initials: Initials,
     receipts: Flow<ReadReceipts>,
 ) : ReadReceiptsHandle {
-    private val _receipts = receipts
-        .onEach { it.registerTimelineFetchPosition(eventId) }
-        .stateIn(scope, WhileSubscribed(), EmptyReceipts(scope)) // Persist for this handle instance.
+    private val timestamp: StateFlow<Long> =
+        combine(
+            receipts,
+            client.room.getTimelineEvent(roomId, eventId),
+        ) { receipts, event ->
+            event?.originTimestamp
+                ?.also { receipts.registerTimelineFetchPosition(it) }
+        }
+            .filterNotNull()
+            .stateIn(scope, WhileSubscribed(), Long.MAX_VALUE)
 
-    override val isRead = _receipts
-        .map { true } // TODO: impl
+    @OptIn(FlowPreview::class)
+    override val isRead =
+        combine(receipts, timestamp)
+        { receipts, timestamp ->
+            receipts.fromLatestToEarliest.await().let { iter ->
+                iter.hasNext() && iter.next().timestamp >= timestamp
+            }
+        }
+            .debounce(16.milliseconds) // Avoid initial empty events to be propagated.
+            .stateIn(scope, WhileSubscribed(), false)
 
-    override val readReceiptsCumulative = _receipts
-        .map {
-            it.fromLatestToEarliest.await().let { iter ->
-                while (iter.hasNext()) {
-                    val event = iter.next()
+    @OptIn(FlowPreview::class)
+    override val readReceiptsCumulative =
+        combine(receipts, timestamp)
+        { receipts, timestamp ->
+            buildSet {
 
+                log.debug { "====== accumulating readers for: $eventId" }
+
+                receipts.fromLatestToEarliest.await().let { iter ->
+                    while (iter.hasNext()) {
+                        // TODO: check join events and visibility setting and
+                        //  filter out corresponding users accordingly since
+                        //  they could not have read a message not accessible to them
+                        //  AFTER they joined the room.
+                        val event = iter.next()
+                        if (event.timestamp < timestamp) break
+                        // TODO: filter users by sender and current user
+                        // TODO: check if the channel flow is triggering any updates
+                        addAll(event.readers.map { it.toReader() })
+
+                        log.debug { "=== added readers: ${event.readers} for: $eventId" }
+                    }
                 }
             }
         }
-        .map {
-            setOf(UserId("test").toReader())
-        } // TODO: impl
+            .debounce(16.milliseconds) // Avoid initial empty events to be propagated.
+            .stateIn(scope, WhileSubscribed(), setOf())
 
-    override val readReceiptsSingle = _receipts
-        .map {
-            setOf(UserId("test").toReader())
-        } // TODO: impl
+    @OptIn(FlowPreview::class)
+    override val readReceiptsSingle =
+        receipts
+            .map { receipts ->
+                receipts[eventId].await()?.readers
+                    ?.map { userId -> userId.toReader() }?.toSet()
+                    ?: setOf()
+            }
+            .debounce(16.milliseconds) // Avoid initial empty events to be propagated.
+            .stateIn(scope, WhileSubscribed(), setOf())
 
     private fun UserId.toReader() =
-        ReadReceiptsHandle.Reader(
+        Reader(
             userId = this,
             userInfo = this.toUserInfoFlow()
                 .stateIn(scope, whileSubscribedWithTimeout, null),
@@ -408,12 +453,12 @@ class ReadReceiptsHandleImpl(
 
 private class ConcurrentReadEventsOrderingReceipts(
     private val receipts: Concurrent<ReadEventsOrdering, ReadEventsOrdering>,
-    private val relevantEventsTracker: MutableSharedFlow<EventId>,
+    private val relevantEventsTracker: MutableSharedFlow<Long>,
     private val scope: CoroutineScope,
 ) : ReadReceipts {
 
-    override fun registerTimelineFetchPosition(eventId: EventId) {
-        relevantEventsTracker.tryEmit(eventId)
+    override fun registerTimelineFetchPosition(timestamp: Long) {
+        relevantEventsTracker.tryEmit(timestamp)
     }
 
     override fun get(eventId: EventId): Deferred<SortedReadEvent?> =
@@ -521,13 +566,13 @@ class MutexCache<K, V> {
         mutex.withLock {
             val has = map.contains(key)
             map.getOrPut(key) { constructor() }
-                .also { log.debug { "=== ${if (has) "getting" else "added"}: $key - ${map.size} items now cached" } }
+//                .also { log.debug { "=== ${if (has) "getting" else "added"}: $key - ${map.size} items now cached" } }
         }
 
     suspend fun remove(key: K): Unit =
         mutex.withLock {
             map.remove(key)
-            log.debug { "=== removed: $key - ${map.size} cached items remaining" }
+//            log.debug { "=== removed: $key - ${map.size} cached items remaining" }
         }
 
     suspend fun removeIf(predicate: (K, V) -> Boolean): Unit =
@@ -537,6 +582,6 @@ class MutexCache<K, V> {
                 map.clear()
                 map.putAll(it)
             }
-            log.debug { "=== removed many: $oldSize -> ${map.size} cached items remaining" }
+//            log.debug { "=== removed many: $oldSize -> ${map.size} cached items remaining" }
         }
 }
