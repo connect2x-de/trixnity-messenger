@@ -9,13 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Introduced String.graphemeCount extension for counting perceived chars
-- Introduced String.forEachGrapheme extension for iterating perceived chars
-
 ### Changed
-
-- Use password type keyboard to enter recovery key
-- Refactored app view routing
 
 ### Deprecated
 
@@ -23,12 +17,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Only show users with sync errors in the info banner
+
+### Security
+
+## 3.3.0
+
+### Added
+
+- Introduced String.graphemeCount extension for counting perceived chars
+- Introduced String.forEachGrapheme extension for iterating perceived chars
+- Possibility to change MatrixClientServerApiClientFactory via the DI
+- Introduce TextFieldViewModel for cleaner text input synchronization
+
+### Changed
+
+- Use password type keyboard to enter recovery key
+- Refactored app view routing
+- Standardized reaction when a room (chat or group) has been created
+
+### Fixed
+
 - Fixed stuck device verification (button did nothing)
 - Make initials computation fully Unicode compliant
 - Fixed redactions of message edits
 - Don't render replace events even when not decryptable
-
-### Security
+- Fixed various text field and typing issues
+- Fixed String.graphCount and String.forEachGraph extensions in JS implementation
 
 ## 3.2.0
 
@@ -76,8 +91,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enabled Encryption for Androidx Room database
 - Image detail view UI overhaul
 - Upgrade Trixnity to 4.12.0
-
-### Deprecated
 
 ### Removed
 

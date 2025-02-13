@@ -1,12 +1,21 @@
 package de.connect2x.messenger.compose.view.common
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -16,20 +25,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.VerticalScrollbar
+import kotlinx.coroutines.delay
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.time.Duration.Companion.milliseconds
 
 
 @Composable
 fun EmojiSelector(
     onTextAdded: (String) -> Unit,
-    focusRequester: FocusRequester
 ) {
     val scrollState = rememberScrollState()
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        delay(100.milliseconds)
+        focusRequester.requestFocus()
+    }
 
     Column(
         modifier = Modifier
-            .focusRequester(focusRequester) // Requests focus when the Emoji selector is displayed
+            .focusRequester(focusRequester)
             // Make the emoji selector focusable so it can steal focus from TextField
             .focusTarget()
     ) {

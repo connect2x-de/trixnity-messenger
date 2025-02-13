@@ -16,7 +16,7 @@ class FormatMessageTest {
     fun shouldReplaceBasicUserMention() {
         val message = "Hallo @user:acme.com! How are you?"
         val mention =
-            listOf(Pair(6..19, TimelineElementMention.User(UserInfoElement("user", UserId("user", "acme.org")))))
+            listOf(Pair(6..19, TimelineElementMention.User(UserInfoElement(UserId("user", "acme.org"), "user", "U"))))
 
         assertEquals(
             "Hallo <a href=\"timmy-data:0\">user</a>! How are you?",
@@ -74,7 +74,7 @@ class FormatMessageTest {
     fun shouldReplaceUriUserMention() {
         val message = "Hallo matrix:u/user:acme.com?action=chat! How are you?"
         val mention =
-            listOf(Pair(6..39, TimelineElementMention.User(UserInfoElement("user", UserId("user", "acme.org")))))
+            listOf(Pair(6..39, TimelineElementMention.User(UserInfoElement(UserId("user", "acme.org"), "user", "U"))))
 
         assertEquals(
             "Hallo <a href=\"timmy-data:0\">user</a>! How are you?",
@@ -86,7 +86,7 @@ class FormatMessageTest {
     fun shouldReplaceLinkUserMention() {
         val message = "Hallo https://matrix.to/#/%40alice%3Aexample.org! How are you?"
         val mention =
-            listOf(Pair(6..47, TimelineElementMention.User(UserInfoElement("user", UserId("user", "acme.org")))))
+            listOf(Pair(6..47, TimelineElementMention.User(UserInfoElement(UserId("user", "acme.org"), "user", "U"))))
 
         assertEquals(
             "Hallo <a href=\"timmy-data:0\">user</a>! How are you?",
@@ -98,8 +98,8 @@ class FormatMessageTest {
     fun shouldReplaceMultipleMentions() {
         val message = "Hallo @user:acme.com! How are you? Want to meet up with @user2:acme.com?"
         val mention = listOf(
-            56..70 to TimelineElementMention.User(UserInfoElement("user2", UserId("user2", "acme.org"))),
-            6..19 to TimelineElementMention.User(UserInfoElement("user", UserId("user", "acme.org")))
+            56..70 to TimelineElementMention.User(UserInfoElement(UserId("user2", "acme.org"), "user2", "U")),
+            6..19 to TimelineElementMention.User(UserInfoElement(UserId("user", "acme.org"), "user", "U"))
         )
 
         assertEquals(

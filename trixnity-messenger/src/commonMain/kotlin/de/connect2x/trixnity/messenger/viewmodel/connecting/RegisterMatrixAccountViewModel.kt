@@ -2,6 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState.None
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -44,8 +46,8 @@ interface RegisterMatrixAccountViewModel {
     val error: StateFlow<String?>
     val serverUrl: String
 
-    val username: MutableStateFlow<String>
-    val password: MutableStateFlow<String>
+    val username: TextFieldViewModel
+    val password: TextFieldViewModel
 
     val isRegisteringNewUser: StateFlow<Boolean>
     val canRegisterNewUser: StateFlow<Boolean>
@@ -70,14 +72,14 @@ class RegisterMatrixAccountViewModelImpl(
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
-    override val username: MutableStateFlow<String> = MutableStateFlow("")
-    override val password: MutableStateFlow<String> = MutableStateFlow("")
+    override val username = TextFieldViewModelImpl()
+    override val password = TextFieldViewModelImpl()
 
     override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> = MutableStateFlow(None)
 
     override val isRegisteringNewUser: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canRegisterNewUser: StateFlow<Boolean> = combine(
-        username, password
+        username.text, password.text
     ) { username, password ->
         log.debug { "canRegisterNewUser: username=$username" }
         username.isNotBlank() && password.isNotBlank()
@@ -97,8 +99,8 @@ class RegisterMatrixAccountViewModelImpl(
                     authorizeUia {
                         it.authentication.register(
                             accountType = AccountType.USER,
-                            username = username.value,
-                            password = password.value,
+                            username = username.textValue,
+                            password = password.textValue,
                             initialDeviceDisplayName = getDefaultDeviceDisplayName(),
                             refreshToken = true,
                         )
@@ -160,8 +162,8 @@ class PreviewRegisterMatrixAccountViewModel : RegisterMatrixAccountViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isFirstMatrixClient: StateFlow<Boolean?> = MutableStateFlow(false)
     override val serverUrl: String = "http://localhost:8008"
-    override val username: MutableStateFlow<String> = MutableStateFlow("user1")
-    override val password: MutableStateFlow<String> = MutableStateFlow("user1-password")
+    override val username = TextFieldViewModelImpl("user1")
+    override val password = TextFieldViewModelImpl("user1-password")
     override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> = MutableStateFlow(None)
     override val isRegisteringNewUser: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canRegisterNewUser: MutableStateFlow<Boolean> = MutableStateFlow(true)

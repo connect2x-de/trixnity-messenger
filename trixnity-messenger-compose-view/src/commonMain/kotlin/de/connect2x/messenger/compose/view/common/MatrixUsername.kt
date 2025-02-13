@@ -5,18 +5,18 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 
 interface MatrixUsernameView {
     @Composable
     fun create(
-        username: State<String>,
-        setUsername: (String) -> Unit,
+        username: MutableState<TextFieldValue>,
         label: String,
         enabled: Boolean,
         modifier: Modifier,
@@ -26,21 +26,19 @@ interface MatrixUsernameView {
 
 @Composable
 fun MatrixUsername(
-    username: State<String>,
-    setUsername: (String) -> Unit,
+    username: MutableState<TextFieldValue>,
     label: String,
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
     trailingIcon: @Composable (() -> Unit)? = null,
 ) {
-    DI.get<MatrixUsernameView>().create(username, setUsername, label, enabled, modifier, trailingIcon)
+    DI.get<MatrixUsernameView>().create(username, label, enabled, modifier, trailingIcon)
 }
 
 class MatrixUsernameViewImpl : MatrixUsernameView {
     @Composable
     override fun create(
-        username: State<String>,
-        setUsername: (String) -> Unit,
+        username: MutableState<TextFieldValue>,
         label: String,
         enabled: Boolean,
         modifier: Modifier,
@@ -50,7 +48,7 @@ class MatrixUsernameViewImpl : MatrixUsernameView {
             enabled = enabled,
             value = username.value,
             singleLine = true,
-            onValueChange = { setUsername(it) },
+            onValueChange = { username.value = it },
             modifier = Modifier.fillMaxWidth().then(modifier),
             label = { Text(label) },
             trailingIcon = trailingIcon,

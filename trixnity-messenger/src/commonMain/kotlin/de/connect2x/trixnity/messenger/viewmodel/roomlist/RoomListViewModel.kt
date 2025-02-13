@@ -9,8 +9,11 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.getOrNull
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel.UserSyncStates
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
@@ -35,6 +38,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -95,16 +99,20 @@ interface RoomListViewModelFactory {
 
 interface RoomListViewModel {
     val selectedRoomId: StateFlow<RoomId?>
+    val elements: StateFlow<List<RoomListElementViewModel>>
     val error: StateFlow<String?>
     val errorType: StateFlow<ErrorType>
-    val elements: StateFlow<List<RoomListElementViewModel>>
-
-    val syncStateError: StateFlow<Map<UserId, Boolean>>
-    val allSyncError: StateFlow<Boolean>
     val initialSyncFinished: StateFlow<Boolean>
+    val syncStates: StateFlow<UserSyncStates>
+
+    @Deprecated("Api cleanup", ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
+    val syncStateError: StateFlow<Map<UserId, Boolean>>
+
+    @Deprecated("Api cleanup", ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
+    val allSyncError: StateFlow<Boolean>
 
     val showSearch: MutableStateFlow<Boolean>
-    val searchTerm: MutableStateFlow<String>
+    val searchTerm: TextFieldViewModel
 
     val accountViewModel: AccountViewModel
     val canCreateNewRoomWithAccount: StateFlow<Boolean>
@@ -128,6 +136,15 @@ interface RoomListViewModel {
      * Close the current profile to allow other users (tenants) to use the app without exposing personal data.
      */
     fun closeProfile()
+
+    data class UserSyncStates(
+        val operationalFor: Set<UserId>,
+        val failedFor: Set<UserId>,
+    ) {
+        val operationalForAll get() = operationalFor.isNotEmpty() && failedFor.isEmpty()
+        val failedForAll get() = operationalFor.isEmpty() && failedFor.isNotEmpty()
+        fun joinFailedToString() = failedFor.joinToString { it.full }
+    }
 }
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
@@ -155,13 +172,14 @@ class RoomListViewModelImpl(
 
     override val elements: StateFlow<List<RoomListElementViewModel>>
 
-    private val syncState: StateFlow<Map<UserId, SyncState>>
+    override val initialSyncFinished: StateFlow<Boolean>
+    private val _syncState: StateFlow<Map<UserId, SyncState>>
+    override val syncStates: StateFlow<UserSyncStates>
     override val syncStateError: StateFlow<Map<UserId, Boolean>>
     override val allSyncError: StateFlow<Boolean>
-    override val initialSyncFinished: StateFlow<Boolean>
 
     override val showSearch = MutableStateFlow(false)
-    override val searchTerm = MutableStateFlow("")
+    override val searchTerm = TextFieldViewModelImpl()
 
     override val canCreateNewRoomWithAccount: StateFlow<Boolean>
 
@@ -269,9 +287,9 @@ class RoomListViewModelImpl(
         val searchedRoomsFlow =
             combine(
                 allRoomsFlow.map { it.keys },
-                searchTerm.debounce { if (it.isBlank()) 0.milliseconds else 300.milliseconds },
+                searchTerm.debounce { if (it.text.isBlank()) 0.milliseconds else 300.milliseconds },
             ) { allRoomIds, currentSearchTerm ->
-                allRoomIds to currentSearchTerm
+                allRoomIds to currentSearchTerm.text
             }.flatMapLatest { (allRoomIds, currentSearchTerm) ->
                 if (currentSearchTerm.isNotBlank()) {
                     allRoomNamesFlow.map { allRoomNames ->
@@ -349,7 +367,7 @@ class RoomListViewModelImpl(
                 }.toList()
             }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
-        syncState = matrixClients.flatMapLatest { matrixClients ->
+        _syncState = matrixClients.flatMapLatest { matrixClients ->
             combine(matrixClients.map { (userId, matrixClient) ->
                 matrixClient.syncState.map { userId to it }
             }) {
@@ -357,18 +375,38 @@ class RoomListViewModelImpl(
             }
         }.stateIn(coroutineScope, WhileSubscribed(), mapOf())
 
-        syncStateError = syncState.map {
-            it.entries.associate { (userId, syncState) ->
-                userId to (syncState == SyncState.ERROR)
-            }
-        }
+        syncStates = _syncState
             .debounce(3.seconds)
-            .stateIn(coroutineScope, WhileSubscribed(), mapOf())
-        allSyncError = syncStateError.map {
-            it.all { (_, error) -> error }
-        }.stateIn(coroutineScope, WhileSubscribed(), false)
+            .mapLatest {
+                val ok = mutableSetOf<UserId>()
+                val failed = mutableSetOf<UserId>()
+                it.map { (userId, syncState) ->
+                    when (syncState) {
+                        SyncState.ERROR,
+                        SyncState.TIMEOUT,
+                            -> failed.add(userId)
+
+                        else -> ok.add(userId)
+                    }
+                }
+                UserSyncStates(
+                    operationalFor = ok.toSet(),
+                    failedFor = failed.toSet(),
+                )
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), UserSyncStates(setOf(), setOf()))
+
+        syncStateError = syncStates
+            .mapLatest {
+                it.failedFor.associateWith { true } + it.operationalFor.associateWith { false }
+            }.stateIn(coroutineScope, WhileSubscribed(), mapOf())
+
+        allSyncError = syncStates
+            .mapLatest { it.failedForAll }
+            .stateIn(coroutineScope, WhileSubscribed(), false)
+
         var initialSyncFinishedOnce = false
-        initialSyncFinished = syncState
+        initialSyncFinished = _syncState
             .filterNot { it.isEmpty() }
             .map { initialSyncFinishedOnce.not() && it.values.all { syncState -> syncState == SyncState.RUNNING } }
             .map {
@@ -399,7 +437,7 @@ class RoomListViewModelImpl(
         coroutineScope.launch {
             showSearch.drop(1).collect {
                 if (it.not()) {
-                    searchTerm.value = ""
+                    searchTerm.update("")
                 }
             }
         }
@@ -425,7 +463,7 @@ class RoomListViewModelImpl(
                 matrixClient.room.getById(roomId).filterNotNull().map { it.membership == Membership.INVITE }.first()
             log.debug { "switch to room $roomId (isInvite: $isInvite)" }
             when {
-                isInvite && syncState.value[matrixClient.userId] == SyncState.ERROR -> {
+                isInvite && _syncState.value[matrixClient.userId] == SyncState.ERROR -> {
                     log.debug { "try to join room while not connected" }
                     _errorType.value = ErrorType.JUST_DISMISS
                     _error.value = i18n.roomListInvitationOffline()
@@ -495,9 +533,10 @@ class PreviewRoomListViewModel : RoomListViewModel {
         )
     override val syncStateError: MutableStateFlow<Map<UserId, Boolean>> = MutableStateFlow(mapOf())
     override val allSyncError: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val syncStates: StateFlow<UserSyncStates> = MutableStateFlow(UserSyncStates(setOf(), setOf()))
     override val initialSyncFinished: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
+    override val searchTerm = TextFieldViewModelImpl()
     override val accountViewModel: AccountViewModel = PreviewAccountViewModel()
     override val canCreateNewRoomWithAccount: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val unverifiedAccounts: StateFlow<List<UserId>> = MutableStateFlow(listOf())

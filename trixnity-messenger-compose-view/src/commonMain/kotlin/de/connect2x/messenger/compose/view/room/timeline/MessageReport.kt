@@ -6,12 +6,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.NextButton
@@ -26,7 +28,7 @@ fun MessageReport(
 
     val i18n = DI.get<I18nView>()
     val focusRequester = remember { FocusRequester() }
-    val reason = reportToMessageViewModel.messageReportReason.collectAsState().value
+    var reason by reportToMessageViewModel.messageReportReason.collectAsTextFieldValueState()
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -41,8 +43,8 @@ fun MessageReport(
             modifier = Modifier
                 .focusRequester(focusRequester)
                 .fillMaxWidth(),
-            value = reason ?: "",
-            onValueChange = { reportToMessageViewModel.messageReportReason.value = it },
+            value = reason,
+            onValueChange = { reason = it },
             minLines = 3,
             maxLines = 5,
             textStyle = MaterialTheme.typography.bodyMedium,

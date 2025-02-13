@@ -121,7 +121,7 @@ class AddMatrixAccountViewModelTest : ShouldSpec() {
                     }
                 }
             }
-            cut.serverUrl.value = "server.host"
+            cut.serverUrl.update("server.host")
 
             cut.serverDiscoveryState.first { it is ServerDiscoveryState.Success } shouldBe ServerDiscoveryState.Success(
                 setOf(
@@ -182,7 +182,7 @@ class AddMatrixAccountViewModelTest : ShouldSpec() {
                     }
                 }
             }
-            cut.serverUrl.value = "server.host"
+            cut.serverUrl.update("server.host")
 
             cut.serverDiscoveryState.first { it is ServerDiscoveryState.Success } shouldBe ServerDiscoveryState.Success(
                 setOf(AddMatrixAccountMethod.Password("https://server.host"))

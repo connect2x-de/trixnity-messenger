@@ -43,8 +43,8 @@ import de.connect2x.messenger.compose.view.theme.md_theme_light_surfaceVariant
 import de.connect2x.messenger.compose.view.theme.md_theme_light_tertiary
 import de.connect2x.messenger.compose.view.theme.md_theme_light_tertiaryContainer
 import de.connect2x.messenger.previews.util.InitMessengerPreview
+import de.connect2x.trixnity.messenger.util.MessageUserReactions.ReactionEvent
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import kotlinx.coroutines.flow.MutableStateFlow
 import net.folivo.trixnity.core.model.EventId
@@ -52,9 +52,9 @@ import net.folivo.trixnity.core.model.UserId
 
 
 private fun previewReactionEvent(sender: String, initials: Initials, isMe: Boolean = false) =
-    TimelineElementHolderViewModel.ReactionEvent(
+    ReactionEvent(
         eventId = EventId(""),
-        senderFlow = MutableStateFlow(
+        userInfo = MutableStateFlow(
             UserInfoElement(
                 name = sender,
                 userId = UserId("@kirill:local"),
@@ -121,16 +121,17 @@ fun MessageReactionPreview() {
                 MessageReactionButton(
                     reaction = "\uD83D\uDC4D",
                     reactionEvents = setOf(
-                        TimelineElementHolderViewModel.ReactionEvent(
+                        ReactionEvent(
                             eventId = EventId(""),
-                            senderFlow = MutableStateFlow(
+                            userInfo = MutableStateFlow(
                                 UserInfoElement(
                                     name = "Martin",
                                     userId = UserId("@martin:local"),
-                                )
+                                    initials = "M",
+                                ),
                             ),
                             isByMe = false,
-                        )
+                        ),
                     ),
                     count = 3,
                     myReaction = null,
@@ -140,16 +141,17 @@ fun MessageReactionPreview() {
                 MessageReactionButton(
                     reaction = "\uD83D\uDC4D",
                     reactionEvents = setOf(
-                        TimelineElementHolderViewModel.ReactionEvent(
+                        ReactionEvent(
                             eventId = EventId(""),
-                            senderFlow = MutableStateFlow(
+                            userInfo = MutableStateFlow(
                                 UserInfoElement(
                                     name = "Jan",
                                     userId = UserId("@jan:local"),
-                                )
+                                    initials = "J",
+                                ),
                             ),
                             isByMe = false,
-                        )
+                        ),
                     ),
                     count = 2,
                     myReaction = previewReactionEvent("username", initials, isMe = false),

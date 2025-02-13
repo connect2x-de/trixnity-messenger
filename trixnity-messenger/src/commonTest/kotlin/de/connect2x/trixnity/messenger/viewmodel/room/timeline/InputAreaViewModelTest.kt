@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
@@ -183,8 +184,8 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            eventually(2.seconds) {
-                cut.message.value shouldBe ""
+            eventually(300.milliseconds) {
+                cut.textField.textValue shouldBe ""
                 cut.isSendEnabled.replayCache[0] shouldBe false
             }
 
@@ -196,14 +197,14 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "a"
-            eventually(2.seconds) {
+            cut.textField.update("a")
+            eventually(300.milliseconds) {
                 cut.isAllowedToSendMessages.value shouldBe true
                 cut.isSendEnabled.replayCache[0] shouldBe true
             }
-            cut.message.value = ""
+            cut.textField.update("")
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 cut.isSendEnabled.replayCache[0] shouldBe false
             }
 
@@ -216,9 +217,9 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "I want to write!"
+            cut.textField.update("I want to write!")
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 cut.isAllowedToSendMessages.value shouldBe false
             }
 
@@ -228,28 +229,20 @@ class InputAreaViewModelTest : ShouldSpec() {
 
         should("show the original message text and focus the input area when a message is edited") {
             val cut = inputAreaViewModel(coroutineContext)
-            var shouldFocusCalled = false
-            val shouldFocusJob = launch {
-                cut.shouldFocus.collect {
-                    shouldFocusCalled = true
-                }
-            }
             val subscriberJob = subscribe(cut)
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 cut.isReplace.value shouldBe false
-                cut.message.value shouldBe ""
+                cut.textField.textValue shouldBe ""
             }
 
             cut.replaceMessage(roomId, eventId)
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 cut.isReplace.value shouldBe true
-                cut.message.value shouldBe "Hello"
-                shouldFocusCalled shouldBe true
+                cut.textField.textValue shouldBe "Hello"
             }
 
-            shouldFocusJob.cancel()
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
@@ -260,16 +253,16 @@ class InputAreaViewModelTest : ShouldSpec() {
 
             cut.replaceMessage(roomId, eventId)
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 cut.isReplace.value shouldBe true
             }
 
-            cut.message.value = "Hello World!"
+            cut.textField.update("Hello World!")
             cut.sendMessage()
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 cut.isReplace.value shouldBe false
-                cut.message.value shouldBe ""
+                cut.textField.textValue shouldBe ""
             }
 
             verify {
@@ -286,15 +279,15 @@ class InputAreaViewModelTest : ShouldSpec() {
 
             cut.replaceMessage(roomId, eventId)
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 cut.isReplace.value shouldBe true
             }
 
             cut.cancelReplace()
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 cut.isReplace.value shouldBe false
-                cut.message.value shouldBe ""
+                cut.textField.textValue shouldBe ""
             }
 
             verify {
@@ -317,9 +310,9 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "a"
+            cut.textField.update("a")
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 setTypingWasCalled shouldBe true
             }
 
@@ -342,21 +335,21 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "a"
+            cut.textField.update("a")
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 setTypingCancelWasCalled shouldBe false
             }
 
-            cut.message.value = "ab"
+            cut.textField.update("ab")
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 setTypingCancelWasCalled shouldBe false
             }
 
-            cut.message.value = "abc"
+            cut.textField.update("abc")
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 setTypingCancelWasCalled shouldBe false
             }
 
@@ -369,7 +362,6 @@ class InputAreaViewModelTest : ShouldSpec() {
         }
 
         should("set 'is not typing' when the message is deleted (i_e_, it is empty again)") {
-            println("+++++++++++++")
             var setTypingCancelWasCalled = false
             everySuspend {
                 roomsApiClientMock.setTyping(any(), any(), eq(false), any(), eqNull())
@@ -384,16 +376,16 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "a"
+            cut.textField.update("a")
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 setTypingCancelWasCalled shouldBe false
             }
             delay(100.milliseconds)
 
-            cut.message.value = ""
+            cut.textField.update("")
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 setTypingCancelWasCalled shouldBe true
             }
 
@@ -416,16 +408,16 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "a"
+            cut.textField.update("a")
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 setTypingCancelWasCalled shouldBe false
             }
             delay(100.milliseconds)
 
             cut.sendMessage()
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 setTypingCancelWasCalled shouldBe true
             }
 
@@ -433,14 +425,14 @@ class InputAreaViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("set the list of potential mentions to empty when the message does not prompt it") {
+        should("set the list of potential mentions to null when the message does not prompt it") {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "Hello! at"
+            cut.textField.update("Hello! at")
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe emptyList()
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value shouldBe null
             }
 
             subscriberJob.cancel()
@@ -451,26 +443,21 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "Hello! @Al"
+            cut.textField.update("Hello! @Al", IntRange(10, 10))
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe listOf(
-                    Username(aliceUserId, "Alice", "A", flowOf(null)),
-                    Username(alvinUserId, "Alvin", "A", flowOf(null)),
-                )
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId)
             }
 
-            cut.message.value = "Hello! @Ali"
+            cut.textField.update("Hello! @Ali", IntRange(11, 11))
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe listOf(
-                    Username(aliceUserId, "Alice", "A", flowOf(null)),
-                )
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId)
             }
 
-            cut.message.value = "Hello! @Alin"
+            cut.textField.update("Hello! @Alin", IntRange(12, 12))
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 cut.listOfMentions.value shouldBe emptyList()
             }
 
@@ -482,13 +469,10 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "Hello! @al"
+            cut.textField.update("Hello! @al", IntRange(10, 10))
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe listOf(
-                    Username(aliceUserId, "Alice", "A", flowOf(null)),
-                    Username(alvinUserId, "Alvin", "A", flowOf(null)),
-                )
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId)
             }
 
             subscriberJob.cancel()
@@ -499,9 +483,9 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "Hello! @Bo"
+            cut.textField.update("Hello! @Bo", IntRange(10, 10))
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 cut.listOfMentions.value shouldBe emptyList()
             }
 
@@ -513,12 +497,10 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "Hello!\n\nThis is great.\n@Zoo"
+            cut.textField.update("Hello!\n\nThis is great.\n@Zoo", IntRange(30, 30))
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe listOf(
-                    Username(zoopUserId, "Zoop", "Z", flowOf(null)),
-                )
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId)
             }
 
             subscriberJob.cancel()
@@ -529,23 +511,15 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "Hello! @"
+            cut.textField.update("Hello! @", IntRange(8, 8))
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe listOf(
-                    Username(aliceUserId, "Alice", "A", flowOf(null)),
-                    Username(alvinUserId, "Alvin", "A", flowOf(null)),
-                    Username(zoopUserId, "Zoop", "Z", flowOf(null)),
-                )
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId, zoopUserId)
             }
-            cut.message.value = "Hello! \n\n@"
+            cut.textField.update("Hello! \n\n@", IntRange(12, 12))
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe listOf(
-                    Username(aliceUserId, "Alice", "A", flowOf(null)),
-                    Username(alvinUserId, "Alvin", "A", flowOf(null)),
-                    Username(zoopUserId, "Zoop", "Z", flowOf(null)),
-                )
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId, zoopUserId)
             }
 
             subscriberJob.cancel()
@@ -556,20 +530,16 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "Hello! @compl"
+            cut.textField.update("Hello! @compl", IntRange(13, 13))
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe listOf(
-                    Username(zoopUserId, "Zoop", "Z", flowOf(null)),
-                )
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId)
             }
 
-            cut.message.value = "Hello! @another"
+            cut.textField.update("Hello! @another", IntRange(15, 15))
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe listOf(
-                    Username(zoopUserId, "Zoop", "Z", flowOf(null)),
-                )
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId)
             }
 
             subscriberJob.cancel()
@@ -580,22 +550,16 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "Hello! @ce and @Zoop" // search in name
-            cut.currentCursorPosition.value = 10
+            cut.textField.update("Hello! @ce and @Zoop", IntRange(10, 10)) // search in name
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe listOf(
-                    Username(aliceUserId, "Alice", "A", flowOf(null))
-                )
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId)
             }
 
-            cut.message.value = "Hello! @pla and @Zoop" //search in userId
-            cut.currentCursorPosition.value = 11
+            cut.textField.update("Hello! @pla and @Zoop", IntRange(11, 11)) //search in userId
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe listOf(
-                    Username(zoopUserId, "Zoop", "Z", flowOf(null))
-                )
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId)
             }
 
             subscriberJob.cancel()
@@ -606,67 +570,55 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "Hello! @Ali it goes on..."
+            cut.textField.update("Hello! @Ali it goes on...")
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe emptyList()
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value shouldBe null
             }
 
-            cut.currentCursorPosition.value = 11
+            cut.textField.update("Hello! @Ali it goes on...", IntRange(11, 11))
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe listOf(
-                    Username(aliceUserId, "Alice", "A", flowOf(null))
-                )
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId)
             }
 
-            cut.currentCursorPosition.value = 10
+            cut.textField.update("Hello! @Ali it goes on...", IntRange(10, 10))
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe listOf(
-                    Username(aliceUserId, "Alice", "A", flowOf(null)),
-                    Username(alvinUserId, "Alvin", "A", flowOf(null)),
-                )
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId)
             }
 
-            cut.message.value = "Hello!\n @Ali it goes on..."
-            cut.currentCursorPosition.value = 12
+            cut.textField.update("Hello!\n @Ali it goes on...", IntRange(12, 12))
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe listOf(
-                    Username(aliceUserId, "Alice", "A", flowOf(null))
-                )
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId)
             }
 
-            cut.message.value = "Hello!\n @Ali @Zoo it goes on..."
-            cut.currentCursorPosition.value = 17
+            cut.textField.update("Hello!\n @Ali @Zoo it goes on...", IntRange(17, 17))
 
-            eventually(2.seconds) {
-                cut.listOfMentions.value shouldBe listOf(
-                    Username(zoopUserId, "Zoop", "Z", flowOf(null))
-                )
+            eventually(300.milliseconds) {
+                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId)
             }
 
             subscriberJob.cancel()
             cancelNeverEndingCoroutines()
         }
 
-        should("set the loading flag correctly: null when no loading needed, true when still loading and false when loading has finished") {
+        should("set the loading flag correctly: true when still loading and false when loading has finished") {
             val roomUsers = MutableSharedFlow<Map<UserId, Flow<RoomUser>>>()
-            allRoomUsersMock returns roomUsers
+            allRoomUsersMock returns roomUsers.transform {
+                delay(50.milliseconds)
+                emit(it)
+            }
 
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            eventually(2.seconds) {
-                cut.listOfMentionsLoading.value shouldBe null
-            }
+            cut.textField.update("Hello! @compl", IntRange(13, 13))
 
-            cut.message.value = "Hello! @compl"
-
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 cut.listOfMentionsLoading.value shouldBe true
-                cut.listOfMentions.value shouldBe emptyList()
+                cut.listOfMentions.value shouldBe null
             }
 
             roomUsers.emit(
@@ -675,27 +627,9 @@ class InputAreaViewModelTest : ShouldSpec() {
                 )
             )
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 cut.listOfMentionsLoading.value shouldBe false
-                cut.listOfMentions.value shouldBe listOf(
-                    Username(zoopUserId, "Zoop", "Z", flowOf(null)),
-                )
-            }
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("set the currently selected user's userId when cursor is null") {
-            val cut = inputAreaViewModel(coroutineContext)
-            val subscriberJob = subscribe(cut)
-
-            cut.message.value = "Hello!\n\nHola.\n@Ali"
-
-            cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
-
-            eventually(2.seconds) {
-                cut.message.value shouldBe "Hello!\n\nHola.\n@${aliceUserId.full} "
+                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId)
             }
 
             subscriberJob.cancel()
@@ -706,40 +640,37 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "@Ali"
-            cut.currentCursorPosition.value = 3
+            cut.textField.update("@Ali", IntRange(4, 4))
 
-            cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
+            delay(50.milliseconds)
+            cut.selectMention(aliceUserId)
 
-            eventually(2.seconds) {
-                cut.message.value shouldBe "${aliceUserId.full} "
+            eventually(300.milliseconds) {
+                cut.textField.textValue shouldBe aliceUserId.full
             }
 
-            cut.message.value = "Hello! @Ali"
-            cut.currentCursorPosition.value = 11
+            cut.textField.update("Hello! @Ali", IntRange(11, 11))
 
-            cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
+            cut.selectMention(aliceUserId)
 
-            eventually(2.seconds) {
-                cut.message.value shouldBe "Hello! ${aliceUserId.full} "
+            eventually(300.milliseconds) {
+                cut.textField.textValue shouldBe "Hello! ${aliceUserId.full}"
             }
 
-            cut.message.value = "Hello! @Ali something more"
-            cut.currentCursorPosition.value = 11
+            cut.textField.update("Hello! @Ali something more", IntRange(11, 11))
 
-            cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
+            cut.selectMention(aliceUserId)
 
-            eventually(2.seconds) {
-                cut.message.value shouldBe "Hello! ${aliceUserId.full} something more"
+            eventually(300.milliseconds) {
+                cut.textField.textValue shouldBe "Hello! ${aliceUserId.full} something more"
             }
 
-            cut.message.value = "Hello!\n\nHola.\n@Ali something more"
+            cut.textField.update("Hello!\n\nHola.\n@Ali something more", IntRange(18, 18))
 
-            cut.currentCursorPosition.value = 18
-            cut.selectMention(Username(aliceUserId, "Alice", "A", flowOf(null)))
+            cut.selectMention(aliceUserId)
 
-            eventually(2.seconds) {
-                cut.message.value = "Hello!\n\nHola.\n${aliceUserId.full} something more"
+            eventually(300.milliseconds) {
+                cut.textField.update("Hello!\n\nHola.\n${aliceUserId.full} something more")
             }
 
             subscriberJob.cancel()
@@ -750,22 +681,22 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "@Ali @Zo @Alv"
-            cut.currentCursorPosition.value = 8
+            cut.textField.update("@Ali @Zo @Alv", IntRange(8, 8))
 
-            cut.selectMention(Username(zoopUserId, "Zoop", "Z", flowOf(null)))
+            delay(50.milliseconds)
+            cut.selectMention(zoopUserId)
 
-            eventually(2.seconds) {
-                cut.message.value shouldBe "@Ali ${zoopUserId.full} @Alv"
+            eventually(300.milliseconds) {
+                cut.textField.textValue shouldBe "@Ali ${zoopUserId.full} @Alv"
             }
 
-            cut.message.value = "@Ali\n @Ali\n @Ali @Zo @Alv\n @Alv"
-            cut.currentCursorPosition.value = 18 // after @Zo
+            cut.textField.update("@Ali\n @Ali\n @Ali @Zo @Alv\n @Alv", IntRange(20, 20))
 
-            cut.selectMention(Username(zoopUserId, "Zoop", "Z", flowOf(null)))
+            delay(50.milliseconds)
+            cut.selectMention(zoopUserId)
 
-            eventually(2.seconds) {
-                cut.message.value shouldBe "@Ali\n @Ali\n @Ali ${zoopUserId.full} @Alv\n @Alv"
+            eventually(300.milliseconds) {
+                cut.textField.textValue shouldBe "@Ali\n @Ali\n @Ali ${zoopUserId.full} @Alv\n @Alv"
             }
 
             subscriberJob.cancel()
@@ -776,13 +707,12 @@ class InputAreaViewModelTest : ShouldSpec() {
             val cut = inputAreaViewModel(coroutineContext)
             val subscriberJob = subscribe(cut)
 
-            cut.message.value = "@Ali Zo Alv"
-            cut.currentCursorPosition.value = 7
+            cut.textField.update("@Ali Zo Alv", IntRange(7, 7))
 
-            cut.selectMention(Username(zoopUserId, "Zoop", "Z", flowOf(null)))
+            cut.selectMention(zoopUserId)
 
-            eventually(2.seconds) {
-                cut.message.value shouldBe "@Ali Zo Alv"
+            eventually(300.milliseconds) {
+                cut.textField.textValue shouldBe "@Ali Zo Alv"
             }
 
             subscriberJob.cancel()
@@ -839,33 +769,34 @@ class InputAreaViewModelTest : ShouldSpec() {
                 Checkout [Tammy](https://gitlab.com/connect2x/tammy) btw :^)
             """.trimIndent()
 
-            val html =
-                """<h1>The train station and Sony</h1><h2>Origins</h2><p>There once was an amazing train station. It was so amazing that people in Germany began to say</p><blockquote><p>I only understand train station</p></blockquote><p>But then the Playstation arrived and people adopted it <em>fast</em> so the Deutsche Bahn gave up and neglected
-the development of their railway network.</p><h2>Story time</h2><p>One day the people of the Playstation started adopting other forms of media such as YouTube. Due to 
-its relation to Tubes through whom trains drive, YouTube encourage people to embrace trains again.</p><p>The Playstation overlords didn't like <strong>that</strong> 😠 so they started filing copyright cases on YouTube.
-This annoyed the following people:</p><ul><li>the pirates as they couldn't sail now</li><li>the airports as they were overfilled with pirates now</li></ul><p>So ✨ <code>the coders</code> ✨ started greeting the world for which they used magic glyphs Computers could understand
-for example:</p><pre><code>fun main() {
-    println(&quot;Hello World 👋👋👋&quot;)
-}
-</code></pre><p>The empire of Playstation however is based on a group of coders developing the devilish Unix flavour.
-The republic of Germany however does not rely on them due to ancient technology for which the people of
-the Tube mock them. There are three Locations which get endorsed by them for their advanced technology:</p><ol><li>North America</li><li>China</li><li>Baltics</li></ol><p>The Deutsch Bahn didn't like that. So they rolled out the Deutschlandticket and began modernising their
-infrastructure. This way the people of the Tube are able to produce more Europe Transport &gt; America Transport
-video and ignore the technological issues.</p><p>At this point I forgot what the story was about but I markdown complete now. 
-Hope you had a good read? It's mostly non-sense
-Checkout <a href="https://gitlab.com/connect2x/tammy">Tammy</a> btw :^)</p>"""
+            val html = """
+                <h1>The train station and Sony</h1><h2>Origins</h2><p>There once was an amazing train station. It was so amazing that people in Germany began to say</p><blockquote><p>I only understand train station</p></blockquote><p>But then the Playstation arrived and people adopted it <em>fast</em> so the Deutsche Bahn gave up and neglected
+                the development of their railway network.</p><h2>Story time</h2><p>One day the people of the Playstation started adopting other forms of media such as YouTube. Due to 
+                its relation to Tubes through whom trains drive, YouTube encourage people to embrace trains again.</p><p>The Playstation overlords didn't like <strong>that</strong> 😠 so they started filing copyright cases on YouTube.
+                This annoyed the following people:</p><ul><li>the pirates as they couldn't sail now</li><li>the airports as they were overfilled with pirates now</li></ul><p>So ✨ <code>the coders</code> ✨ started greeting the world for which they used magic glyphs Computers could understand
+                for example:</p><pre><code>fun main() {
+                    println(&quot;Hello World 👋👋👋&quot;)
+                }
+                </code></pre><p>The empire of Playstation however is based on a group of coders developing the devilish Unix flavour.
+                The republic of Germany however does not rely on them due to ancient technology for which the people of
+                the Tube mock them. There are three Locations which get endorsed by them for their advanced technology:</p><ol><li>North America</li><li>China</li><li>Baltics</li></ol><p>The Deutsch Bahn didn't like that. So they rolled out the Deutschlandticket and began modernising their
+                infrastructure. This way the people of the Tube are able to produce more Europe Transport &gt; America Transport
+                video and ignore the technological issues.</p><p>At this point I forgot what the story was about but I markdown complete now. 
+                Hope you had a good read? It's mostly non-sense
+                Checkout <a href="https://gitlab.com/connect2x/tammy">Tammy</a> btw :^)</p>
+            """.trimIndent()
             val cut = inputAreaViewModel(coroutineContext)
             val job = subscribe(cut)
 
-            cut.message.value = markdown
+            cut.textField.update(markdown)
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 cut.isSendEnabled.value shouldBe true
             }
 
             cut.sendMessage()
 
-            eventually(2.seconds) {
+            eventually(300.milliseconds) {
                 body shouldBe markdown
                 formattedBody shouldBe html
             }
