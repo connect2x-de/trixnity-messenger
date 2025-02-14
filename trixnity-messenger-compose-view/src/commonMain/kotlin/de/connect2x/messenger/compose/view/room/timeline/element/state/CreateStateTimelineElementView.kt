@@ -45,12 +45,4 @@ class CreateStateTimelineElementView : TimelineElementView<CreateStateTimelineEl
             }
         }
     }
-
-    @Composable
-    override fun createAsMessagePreview(
-        holder: BaseTimelineElementHolderViewModel,
-        element: CreateStateTimelineElementViewModel,
-    ) {
-        // NO-OP
-    }
 }

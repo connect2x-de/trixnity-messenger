@@ -46,12 +46,4 @@ class EncryptionStateTimelineElementView : TimelineElementView<EncryptionStateTi
             }
         }
     }
-
-    @Composable
-    override fun createAsMessagePreview(
-        holder: BaseTimelineElementHolderViewModel,
-        element: EncryptionStateTimelineElementViewModel,
-    ) {
-        // NO-OP
-    }
 }

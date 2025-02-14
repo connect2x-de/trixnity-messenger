@@ -24,13 +24,6 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
     )
 
     @Composable
-    fun createAsMessagePreview(
-        holder: BaseTimelineElementHolderViewModel,
-        element: V,
-    ) {
-    }
-
-    @Composable
     fun createReplyInTimeline(element: V) {
     }
 

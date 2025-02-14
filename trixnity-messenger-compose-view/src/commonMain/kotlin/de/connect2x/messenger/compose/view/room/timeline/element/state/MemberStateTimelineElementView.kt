@@ -23,7 +23,7 @@ class MemberStateTimelineElementView : TimelineElementView<MemberStateTimelineEl
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: MemberStateTimelineElementViewModel
+        element: MemberStateTimelineElementViewModel,
     ) {
         StateElement(element)
     }
@@ -44,13 +44,5 @@ class MemberStateTimelineElementView : TimelineElementView<MemberStateTimelineEl
                 IndicatorText(changeMessage, MaterialTheme.colorScheme.onTertiary)
             }
         }
-    }
-
-    @Composable
-    override fun createAsMessagePreview(
-        holder: BaseTimelineElementHolderViewModel,
-        element: MemberStateTimelineElementViewModel,
-    ) {
-        // NO-OP
     }
 }

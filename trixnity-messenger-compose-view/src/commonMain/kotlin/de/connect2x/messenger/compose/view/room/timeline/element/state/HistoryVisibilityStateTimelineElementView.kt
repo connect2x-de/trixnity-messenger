@@ -46,12 +46,4 @@ class HistoryVisibilityStateTimelineElementView : TimelineElementView<HistoryVis
             }
         }
     }
-
-    @Composable
-    override fun createAsMessagePreview(
-        holder: BaseTimelineElementHolderViewModel,
-        element: HistoryVisibilityStateTimelineElementViewModel,
-    ) {
-        // NO-OP
-    }
 }
