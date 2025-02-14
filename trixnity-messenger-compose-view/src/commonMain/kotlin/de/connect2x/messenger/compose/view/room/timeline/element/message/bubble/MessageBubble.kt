@@ -65,15 +65,17 @@ data class MessageBubbleDisplayConfig(
     var preventUserInput: Boolean = false,
 
     ) {
-    fun MessageBubbleDisplayConfig.applyPreviewConfig(
-        additionalConfig: MessageBubbleDisplayConfig.() -> Unit = {},
-    ) = this.apply {
-        showMessageReactions = false
-        enableContextActionMenu = false
-        alwaysShowChatBubbleTail = true
-        preventUserInput = true
-        minifyBubble = true
-        additionalConfig.invoke(this)
+    companion object {
+        fun MessageBubbleDisplayConfig.applyPreviewConfig(
+            additionalConfig: MessageBubbleDisplayConfig.() -> Unit = {},
+        ) = this.apply {
+            showMessageReactions = false
+            enableContextActionMenu = false
+            alwaysShowChatBubbleTail = true
+            preventUserInput = true
+            minifyBubble = true
+            additionalConfig.invoke(this)
+        }
     }
 }
 

@@ -208,7 +208,6 @@ fun MessageBubbleContainer(
                 else Icon(Icons.Default.KeyboardArrowDown, i18n.commonExpand())
             }
         }
-        if (config.minifyBubble && contentExpanded) Box(Modifier.height(48.dp))
     }
 }
 

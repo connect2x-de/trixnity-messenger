@@ -23,17 +23,17 @@ interface ElementDetailsViewSelector {
 @Composable
 fun ElementDetailsSelector(
     element: TimelineElementViewModel<*>,
-    onSaveAttachment: () -> Unit,
+    onSave: () -> Unit,
     onClose: () -> Unit,
 ) {
-    with(DI.get<ElementDetailsViewSelector>()) { create(element, onSaveAttachment, onClose) }
+    with(DI.get<ElementDetailsViewSelector>()) { create(element, onSave, onClose) }
 }
 
 class ElementDetailsViewSelectorImpl(
     private val factories: List<TimelineElementDetailsView<*>>,
 ) : ElementDetailsViewSelector {
     @Composable
-    override fun create(element: TimelineElementViewModel<*>, onSaveAttachment: () -> Unit, onClose: () -> Unit) {
+    override fun create(element: TimelineElementViewModel<*>, onSave: () -> Unit, onClose: () -> Unit) {
         val factory = remember {
             val mimeType = (element as? RoomMessageTimelineElementViewModel.FileBased<*>)?.mimeType
             val foundFactory =
@@ -46,10 +46,10 @@ class ElementDetailsViewSelectorImpl(
                 foundFactory as TimelineElementDetailsView<TimelineElementViewModel<*>>
             }
         }
-        factory?.create(element, onSaveAttachment, onClose)
+        factory?.create(element, onSave, onClose)
             ?: run { // in case we show no overlay, we directly save
                 log.warn { "no overlay found for ${element::class.simpleName} -> directly save" }
-                onSaveAttachment()
+                onSave()
             }
     }
 }
