@@ -11,13 +11,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.reflect.KClass
 
+
 private val log = KotlinLogging.logger {}
 
 interface TimelineElementViewSelector {
     suspend fun waitFor(element: TimelineElementViewModel<*>)
 
     @Composable
-    fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: TimelineElementViewModel<*>)
+    fun createInTimeline(
+        holder: BaseTimelineElementHolderViewModel,
+        element: TimelineElementViewModel<*>,
+    )
+
+    @Composable
+    fun createAsPreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: TimelineElementViewModel<*>,
+    )
 
     @Composable
     fun createReplyInTimeline(element: TimelineElementViewModel<*>)
@@ -29,7 +39,7 @@ interface TimelineElementViewSelector {
 @Composable
 fun TimelineElementSelector(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
-    element: TimelineElementViewModel<*>
+    element: TimelineElementViewModel<*>,
 ) {
     with(DI.get<TimelineElementViewSelector>()) { createInTimeline(timelineElementHolderViewModel, element) }
 }
@@ -43,28 +53,39 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
 
     override suspend fun waitFor(element: TimelineElementViewModel<*>) {
         val factory = selectFactory(element)
-        factory?.waitFor(element)
+        factory.waitFor(element)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: TimelineElementViewModel<*>
+        element: TimelineElementViewModel<*>,
     ) {
         val factory = rememberSelectFactory(element)
         factory?.createInTimeline(holder, element)
     }
 
     @Composable
+    override fun createAsPreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: TimelineElementViewModel<*>,
+    ) {
+        val factory = rememberSelectFactory(element)
+        factory?.createAsPreview(holder, element)
+    }
+
+    @Composable
     override fun createReplyInTimeline(
-        element: TimelineElementViewModel<*>
+        element: TimelineElementViewModel<*>,
     ) {
         val factory = rememberSelectFactory(element)
         factory?.createReplyInTimeline(element)
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: TimelineElementViewModel<*>) {
+    override fun createReplyInSendMessage(
+        element: TimelineElementViewModel<*>,
+    ) {
         val factory = rememberSelectFactory(element)
         factory?.createReplyInSendMessage(element)
     }
@@ -73,7 +94,7 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
     private fun rememberSelectFactory(element: TimelineElementViewModel<*>): TimelineElementView<TimelineElementViewModel<*>>? =
         remember(element) { selectFactory(element) }
 
-    private fun selectFactory(element: TimelineElementViewModel<*>): TimelineElementView<TimelineElementViewModel<*>>? {
+    private fun selectFactory(element: TimelineElementViewModel<*>): TimelineElementView<TimelineElementViewModel<*>> {
         val timelineElementViewModelClass = element::class
         return factoryMapping.value[timelineElementViewModelClass]
             ?: run {

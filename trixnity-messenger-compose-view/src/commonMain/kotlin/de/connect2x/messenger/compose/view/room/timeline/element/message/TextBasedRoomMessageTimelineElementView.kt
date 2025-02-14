@@ -15,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -23,6 +22,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.ui.BasicRichText
@@ -30,50 +30,53 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.isDesktop
+import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.mentionsUriHandler
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 
+
 @Composable
 fun TextBasedRoomMessageTimelineElementView(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.TextBased<*>,
+    config: MessageBubbleDisplayConfig.() -> Unit = {},
 ) {
     MessageBubble(
-        holder,
-        needsMaxWidth = false,
-    ) { showActionMenu ->
-        if (Platform.current.isDesktop) {
-            // on Desktop, it makes sense to select text and copy it;
-            // on Android, this will consume long tap events, which we use for the context menu
-            SelectionContainer {
-                MessageTextContent(holder, element, showActionMenu)
+        holder = holder,
+        config = config,
+    ) { openActionMenu ->
+        // On Android: This will consume long tap events, which we use for the context menu.
+        // On Desktop and Web: It makes sense to select the text and copy it.
+        val platform = Platform.current
+        when {
+            platform.isMobile ->
+                TextMessageContent(holder, element, openActionMenu)
+
+            else -> SelectionContainer {
+                TextMessageContent(holder, element, openActionMenu)
             }
-        } else {
-            MessageTextContent(holder, element, showActionMenu)
         }
     }
 }
 
 @Composable
-private fun MessageTextContent(
+private fun TextMessageContent(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.TextBased<*>,
-    showActionMenu: () -> Unit,
+    onOpenActionMenu: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-
     Column(Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)) {
         if (element is RoomMessageTimelineElementViewModel.TextBased.Notice) {
             Row {
                 Icon(Icons.Filled.SmartToy, i18n.automated())
                 Text(i18n.automated(), fontStyle = FontStyle.Italic)
             }
-
             Spacer(Modifier.size(5.dp))
         }
 
@@ -89,38 +92,33 @@ private fun MessageTextContent(
             }.sortedByDescending { it.first.first }
 
         val message = element.formattedBody ?: element.body
-        val text = formatMessage(message, mentions)
-
+        val text = rememberFormattedMessageText(message, mentions)
         val richTextState = rememberSaveable(text, saver = RichTextState.Saver) {
             RichTextState().apply {
                 setHtml(text)
             }
+        }.apply {
+            config.linkColor =
+                if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors.
+                else MaterialTheme.messengerColors.link
         }
-        richTextState.config.linkColor =
-            if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
-            else MaterialTheme.messengerColors.link
 
         if (mentions.any { it.second != null }) {
             val baseUriHandler = LocalUriHandler.current
-            val uriHandler by remember {
+            remember {
                 mentionsUriHandler(
                     baseUriHandler,
                     element,
                     mentions.map { it.second })
-            }
-
+            }.value
+        } else {
+            LocalUriHandler.current
+        }.let { uriHandler ->
             MessageRichText(
                 uriHandler,
                 richTextState,
                 holder.isByMe,
-                showActionMenu,
-            )
-        } else {
-            MessageRichText(
-                LocalUriHandler.current,
-                richTextState,
-                holder.isByMe,
-                showActionMenu,
+                onOpenActionMenu,
             )
         }
     }
@@ -131,7 +129,7 @@ private fun MessageRichText(
     uriHandler: UriHandler,
     state: RichTextState,
     isByMe: Boolean,
-    showActionMenu: () -> Unit
+    onOpenActionMenu: () -> Unit,
 ) {
     CompositionLocalProvider(
         LocalUriHandler provides uriHandler
@@ -140,22 +138,20 @@ private fun MessageRichText(
             state = state,
             modifier = Modifier.pointerInput(Unit) {
                 detectTapGestures(
-                    onLongPress = { showActionMenu() }
+                    onLongPress = { onOpenActionMenu() }
                 )
             },
             style = MaterialTheme.typography.bodyMedium.copy(
                 color = if (isByMe) MaterialTheme.colorScheme.onPrimary
                 else MaterialTheme.colorScheme.onSecondary
-            )
+            ),
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
 
-private val urlRegex =
-    Regex("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=;,]*)")
-
 @Composable
-private fun formatMessage(
+private fun rememberFormattedMessageText(
     message: String,
     mentions: List<Pair<IntRange, TimelineElementMention?>>,
 ): String {
@@ -168,19 +164,20 @@ private fun formatMessage(
     }
 }
 
+private val urlRegex =
+    Regex("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=;,]*)")
+
 internal fun String.formatMentions(
     mentions: List<Pair<IntRange, TimelineElementMention?>>,
-    eventPile: (String) -> String
+    eventPile: (String) -> String,
 ): String =
     mentions.foldIndexed(this) { index, currentText, (range, mention) ->
         val anchorContent = when (mention) {
             is TimelineElementMention.Event -> eventPile(mention.room.name)
             is TimelineElementMention.Room -> mention.room.name
             is TimelineElementMention.User -> mention.user.name
-
             null -> null
         }
-
         if (anchorContent == null) {
             currentText
         } else {

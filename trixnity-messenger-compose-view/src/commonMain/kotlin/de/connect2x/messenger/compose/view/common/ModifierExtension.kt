@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 
 
 infix fun Modifier.thenNullable(other: Modifier?): Modifier =
@@ -12,19 +13,16 @@ infix fun Modifier.thenNullable(other: Modifier?): Modifier =
 
 fun Modifier.blockPointerInput(): Modifier =
     this.pointerInput(Unit) {}
+        .buttonPointerModifier(enabled = false)
 
 fun Modifier.gesturesDisabled(disabled: Boolean = true) =
-    if (disabled) {
-        pointerInput(Unit) {
-            awaitPointerEventScope {
-                // we should wait for all new pointer events
-                while (true) {
-                    awaitPointerEvent(pass = PointerEventPass.Initial)
-                        .changes
-                        .forEach(PointerInputChange::consume)
-                }
+    if (disabled) this.pointerInput(Unit) {
+        awaitPointerEventScope {
+            // we should wait for all new pointer events
+            while (true) {
+                awaitPointerEvent(pass = PointerEventPass.Initial)
+                    .changes
+                    .forEach(PointerInputChange::consume)
             }
         }
-    } else {
-        this
-    }
+    } else this
