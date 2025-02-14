@@ -17,6 +17,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -26,13 +29,13 @@ import org.koin.core.Koin
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 
+
 @Composable
-private fun defaultScrollbarStyle(): ScrollbarStyle {
-    return  LocalScrollbarStyle.current.copy(
+private fun defaultScrollbarStyle(): ScrollbarStyle =
+    LocalScrollbarStyle.current.copy(
         hoverColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f),
-        unhoverColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
+        unhoverColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
     )
-}
 
 @Composable
 actual fun VerticalScrollbar(
@@ -86,44 +89,46 @@ actual fun Tooltip(
     delayMillis: Int,
     onClick: (() -> Unit)?,
     content: @Composable () -> Unit,
-) {
-    return TooltipArea(
-        tooltip = {
-            Surface(
-                modifier = Modifier.widthIn(max = 600.dp),
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.tertiary
-            ) {
-                tooltip()
-            }
-        },
-        delayMillis = delayMillis,
-        modifier = onClick?.let { modifier.clickable { onClick() } } ?: modifier,
-        content = content,
-    )
-}
+) = TooltipArea(
+    tooltip = {
+        Surface(
+            modifier = Modifier.widthIn(max = 600.dp),
+            shape = RoundedCornerShape(8.dp),
+            color = MaterialTheme.colorScheme.tertiary
+        ) {
+            tooltip()
+        }
+    },
+    delayMillis = delayMillis,
+    modifier = onClick?.let { modifier.clickable { onClick() } } ?: modifier,
+    content = content,
+)
 
 actual fun Modifier.buttonPointerModifier(enabled: Boolean): Modifier =
-    this.then(
-        Modifier.pointerHoverIcon(
-            if (enabled) PointerIcon.Hand else PointerIcon.Default,
-            false
-        )
+    this.pointerHoverIcon(
+        if (enabled) PointerIcon.Hand else PointerIcon.Default,
+        false
     )
 
 @OptIn(ExperimentalComposeUiApi::class)
-actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier {
-    return this.then(
-        Modifier
-            .onPointerEvent(PointerEventType.Enter) {
-                onEnter()
-            }
-            .onPointerEvent(PointerEventType.Exit) {
-                onExit()
-            }
-    )
+actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier = this
+    .onPointerEvent(PointerEventType.Enter) {
+        onEnter()
+    }
+    .onPointerEvent(PointerEventType.Exit) {
+        onExit()
+    }
 
-}
+@OptIn(ExperimentalComposeUiApi::class)
+actual fun Modifier.pointerEventWrapper(
+    eventType: PointerEventType,
+    pass: PointerEventPass,
+    onEvent: AwaitPointerEventScope.(event: PointerEvent) -> Unit
+) = this.onPointerEvent(
+    eventType,
+    pass,
+    onEvent,
+)
 
 actual suspend fun copyToClipboard(value: String, di: Koin) {
     Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(value), null)

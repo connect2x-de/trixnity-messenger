@@ -285,7 +285,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                                             MutableStateFlow(emptyMap())
                                         override val showLoadingSpinner: StateFlow<Boolean> = MutableStateFlow(false)
                                         override val error: StateFlow<String?> = MutableStateFlow(null)
-
                                     }
                                 }
                             }

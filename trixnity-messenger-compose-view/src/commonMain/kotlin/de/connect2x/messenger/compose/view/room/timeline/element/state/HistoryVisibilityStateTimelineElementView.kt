@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlin.reflect.KClass
 
+
 class HistoryVisibilityStateTimelineElementView : TimelineElementView<HistoryVisibilityStateTimelineElementViewModel> {
     override val supports: KClass<HistoryVisibilityStateTimelineElementViewModel> =
         HistoryVisibilityStateTimelineElementViewModel::class
@@ -23,8 +24,21 @@ class HistoryVisibilityStateTimelineElementView : TimelineElementView<HistoryVis
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: HistoryVisibilityStateTimelineElementViewModel
+        element: HistoryVisibilityStateTimelineElementViewModel,
     ) {
+        StateElement(element)
+    }
+
+    @Composable
+    override fun createAsPreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: HistoryVisibilityStateTimelineElementViewModel,
+    ) {
+        StateElement(element)
+    }
+
+    @Composable
+    private fun StateElement(element: HistoryVisibilityStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.let {
             Indicator(MaterialTheme.colorScheme.tertiary) {

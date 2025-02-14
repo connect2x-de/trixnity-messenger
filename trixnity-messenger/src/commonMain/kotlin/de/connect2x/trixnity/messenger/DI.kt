@@ -170,6 +170,7 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
+
 data class MatrixClientConfigurationHolder(val matrixClientConfiguration: MatrixClientConfiguration.() -> Unit)
 
 fun interface DebugName {
@@ -197,7 +198,8 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                         modulesFactories += {
                             module {
                                 single<EventContentSerializerMappings> {
-                                    eventContentSerializerMappings.fold(DefaultEventContentSerializerMappings) { a, b -> a + b }
+                                    eventContentSerializerMappings
+                                        .fold(DefaultEventContentSerializerMappings) { a, b -> a + b }
                                 }
                             }
                         }

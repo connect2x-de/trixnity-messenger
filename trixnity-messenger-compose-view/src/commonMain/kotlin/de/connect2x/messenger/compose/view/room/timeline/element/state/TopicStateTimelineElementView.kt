@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlin.reflect.KClass
 
+
 class TopicStateTimelineElementView : TimelineElementView<TopicStateTimelineElementViewModel> {
     override val supports: KClass<TopicStateTimelineElementViewModel> = TopicStateTimelineElementViewModel::class
 
@@ -24,6 +25,19 @@ class TopicStateTimelineElementView : TimelineElementView<TopicStateTimelineElem
         holder: BaseTimelineElementHolderViewModel,
         element: TopicStateTimelineElementViewModel
     ) {
+        StateElement(element)
+    }
+
+    @Composable
+    override fun createAsPreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: TopicStateTimelineElementViewModel,
+    ) {
+        StateElement(element)
+    }
+
+    @Composable
+    private fun StateElement(element: TopicStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.let {
             Indicator(MaterialTheme.colorScheme.tertiary) {
