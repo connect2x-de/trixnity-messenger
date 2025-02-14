@@ -56,6 +56,7 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 
+
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class RoomHeaderViewModelTest : ShouldSpec() {
     private val roomId = RoomId("room1", "localhost")
@@ -306,7 +307,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
 
     private suspend fun roomHeaderViewModel(coroutineContext: CoroutineContext): RoomHeaderViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
-        val roomHeaderViewModel = RoomHeaderViewModelImpl(
+        return RoomHeaderViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 di = koinApplication {
                     modules(
@@ -329,9 +330,9 @@ class RoomHeaderViewModelTest : ShouldSpec() {
             onVerifyUser = mock(),
             onOpenRoomSettings = mock(),
             onOpenUserProfile = mock(),
-        )
-        subscribe(roomHeaderViewModel)
-        return roomHeaderViewModel
+        ).also {
+            subscribe(it)
+        }
     }
 
     private fun subscribe(roomHeaderViewModel: RoomHeaderViewModel) {

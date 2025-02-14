@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlin.reflect.KClass
 
+
 class EncryptionStateTimelineElementView : TimelineElementView<EncryptionStateTimelineElementViewModel> {
     override val supports: KClass<EncryptionStateTimelineElementViewModel> =
         EncryptionStateTimelineElementViewModel::class
@@ -23,8 +24,21 @@ class EncryptionStateTimelineElementView : TimelineElementView<EncryptionStateTi
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: EncryptionStateTimelineElementViewModel
+        element: EncryptionStateTimelineElementViewModel,
     ) {
+        StateElement(element)
+    }
+
+    @Composable
+    override fun createAsPreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: EncryptionStateTimelineElementViewModel,
+    ) {
+        StateElement(element)
+    }
+
+    @Composable
+    private fun StateElement(element: EncryptionStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.let {
             Indicator(MaterialTheme.colorScheme.tertiary) {

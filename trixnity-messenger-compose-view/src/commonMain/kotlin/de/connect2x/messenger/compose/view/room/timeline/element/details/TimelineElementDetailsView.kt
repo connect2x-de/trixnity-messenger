@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import kotlin.reflect.KClass
 
+
 interface TimelineElementDetailsView<V : TimelineElementViewModel<*>> {
     val supports: KClass<V>
     val supportedMimeTypes: List<String>

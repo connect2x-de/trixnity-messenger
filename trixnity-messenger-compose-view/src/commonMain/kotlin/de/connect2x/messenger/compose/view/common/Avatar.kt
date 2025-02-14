@@ -35,27 +35,26 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import net.folivo.trixnity.core.model.events.m.Presence
 
 
-private val log = KotlinLogging.logger { }
+private val log = KotlinLogging.logger {}
 
 @Composable
 fun Avatar(
     image: ByteArray?,
     initials: String,
     size: Dp = avatarSize().dp,
-    overlay: @Composable (BoxScope.() -> Unit)? = null
+    overlay: @Composable (BoxScope.() -> Unit)? = null,
 ) {
     val i18n = DI.get<I18nView>()
     image?.toImageBitmap()?.let { bitmap ->
         val maxScaleX = size / bitmap.width
         val maxScaleY = size / bitmap.height
-
         val scale = max(maxScaleX, maxScaleY)
-
         val width = scale * bitmap.width
         val height = scale * bitmap.height
-
-        log.trace { "size ($size), image (${bitmap.width},${bitmap.height}), scale ($scale), dim ($width,$height)" }
-
+        log.trace {
+            "size ($size), image (${bitmap.width},${bitmap.height})" +
+                    ", scale ($scale), dim ($width,$height)"
+        }
         Box {
             AvatarWithImage(size) {
                 Image(
@@ -67,7 +66,7 @@ fun Avatar(
             }
             overlay?.invoke(this)
         }
-    }?: run {
+    } ?: run {
         Box {
             AvatarWithInitials(initials, size)
             overlay?.invoke(this)

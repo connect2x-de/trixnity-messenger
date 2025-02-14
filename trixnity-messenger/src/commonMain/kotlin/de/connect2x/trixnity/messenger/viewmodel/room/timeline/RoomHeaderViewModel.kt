@@ -126,8 +126,8 @@ interface RoomHeaderViewModel {
     fun unblockUser()
     fun verifyUser()
     fun openRoomSettings()
-    fun back()
     fun openUserProfile()
+    fun back()
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)

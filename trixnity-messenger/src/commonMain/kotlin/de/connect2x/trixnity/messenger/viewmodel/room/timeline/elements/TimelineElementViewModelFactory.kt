@@ -11,7 +11,7 @@ interface TimelineElementViewModelFactory<C : RoomEventContent> {
         viewModelContext: MatrixClientViewModelContext,
         content: C,
         roomId: RoomId,
-        eventId: EventIdOrTransactionId,
+        eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
     ): TimelineElementViewModel<C>?
 }
