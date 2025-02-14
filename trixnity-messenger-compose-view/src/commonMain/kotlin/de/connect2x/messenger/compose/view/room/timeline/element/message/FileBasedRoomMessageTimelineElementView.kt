@@ -36,14 +36,14 @@ import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxEl
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased
 
 
 interface FileBasedRoomMessageTimelineElementView {
     @Composable
     fun create(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.FileBased<*>,
+        element: FileBased<*>,
         config: MessageBubbleDisplayConfig.() -> Unit = {},
         overlay: @Composable BoxScope.() -> Unit,
         content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSaveAttachment: () -> Unit) -> Unit,
@@ -53,7 +53,7 @@ interface FileBasedRoomMessageTimelineElementView {
 @Composable
 internal fun FileBasedRoomMessageTimelineElement(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.FileBased<*>,
+    element: FileBased<*>,
     config: MessageBubbleDisplayConfig.() -> Unit = {},
     overlay: @Composable BoxScope.() -> Unit = {},
     content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSaveAttachment: () -> Unit) -> Unit,
@@ -66,7 +66,7 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
     @Composable
     override fun create(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.FileBased<*>,
+        element: FileBased<*>,
         config: MessageBubbleDisplayConfig.() -> Unit,
         overlay: @Composable BoxScope.() -> Unit,
         content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSaveAttachment: () -> Unit) -> Unit,
@@ -92,9 +92,9 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
 }
 
 @Composable
-internal fun FileBasedRoomMessageTimelineElementMessageBubble(
+fun FileBasedRoomMessageTimelineElementMessageBubble(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.FileBased<*>,
+    element: FileBased<*>,
     config: MessageBubbleDisplayConfig.() -> Unit = {},
     onSaveAttachment: () -> Unit,
     overlay: @Composable BoxScope.() -> Unit,
@@ -134,7 +134,7 @@ internal fun FileBasedRoomMessageTimelineElementMessageBubble(
 @Composable
 internal fun FileBasedView(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.FileBased<*>,
+    element: FileBased<*>,
     onSaveAttachment: () -> Unit,
     onOpenActionMenu: () -> Unit,
     content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onOpenElementDetails: () -> Unit) -> Unit,

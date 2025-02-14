@@ -32,13 +32,12 @@ import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Video
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
@@ -46,18 +45,18 @@ import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
 
-class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.FileBased.Video> {
-    override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.Video> =
-        RoomMessageTimelineElementViewModel.FileBased.Video::class
+class VideoRoomMessageTimelineElementView : TimelineElementView<Video> {
+    override val supports: KClass<Video> =
+        Video::class
 
-    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
+    override suspend fun waitFor(element: Video) {
         // NO-OP (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.FileBased.Video,
+        element: Video,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
@@ -69,9 +68,9 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     }
 
     @Composable
-    override fun createAsMessagePreview(
+    override fun createAsPreview(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.FileBased.Video,
+        element: Video,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
@@ -83,18 +82,18 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     }
 
     @Composable
-    override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
+    override fun createReplyInTimeline(element: Video) {
         VideoReplyElement(element)
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
+    override fun createReplyInSendMessage(element: Video) {
         VideoReplyElement(element)
     }
 }
 
 @Composable
-internal fun VideoMessageElementOverlay(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
+internal fun VideoMessageElementOverlay(element: Video) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             "${shortenFileName(element)}, ${
@@ -111,7 +110,7 @@ internal fun VideoMessageElementOverlay(element: RoomMessageTimelineElementViewM
 @Composable
 internal fun ColumnScope.VideoMessageContent(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.FileBased.Video,
+    element: Video,
     onOpenActionMenu: () -> Unit,
     onSaveAttachment: () -> Unit,
 ) {
@@ -157,7 +156,7 @@ internal fun ColumnScope.VideoMessageContent(
 
 @Composable
 private fun Modifier.openVideoOnTouch(
-    element: RoomMessageTimelineElementViewModel.FileBased.Video,
+    element: Video,
     onOpenActionMenu: () -> Unit,
     onSaveAttachment: () -> Unit,
 ): Modifier {
@@ -171,7 +170,7 @@ private fun Modifier.openVideoOnTouch(
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-internal fun VideoReplyElement(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
+internal fun VideoReplyElement(element: Video) {
     val i18n = DI.get<I18nView>()
     val videoImage = element.thumbnail.collectAsState().value
     videoImage?.let { videoImage ->

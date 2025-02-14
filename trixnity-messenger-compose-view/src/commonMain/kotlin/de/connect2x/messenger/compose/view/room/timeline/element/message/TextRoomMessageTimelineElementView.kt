@@ -2,45 +2,44 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInSendMessage
 import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased.Text
 import kotlin.reflect.KClass
 
 
-class TextRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.TextBased.Text> {
-    override val supports: KClass<RoomMessageTimelineElementViewModel.TextBased.Text> =
-        RoomMessageTimelineElementViewModel.TextBased.Text::class
+class TextRoomMessageTimelineElementView : TimelineElementView<Text> {
+    override val supports: KClass<Text> =
+        Text::class
 
-    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.TextBased.Text) {
+    override suspend fun waitFor(element: Text) {
         // NO-OP (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.TextBased.Text,
+        element: Text,
     ) {
         TextBasedRoomMessageTimelineElementView(holder, element)
     }
 
     @Composable
-    override fun createAsMessagePreview(
+    override fun createAsPreview(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.TextBased.Text,
+        element: Text,
     ) {
         TextBasedRoomMessageTimelineElementView(holder, element) { applyPreviewConfig() }
     }
 
     @Composable
-    override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.TextBased.Text) {
+    override fun createReplyInTimeline(element: Text) {
         TextReplyInTimeline(element)
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.TextBased.Text) {
+    override fun createReplyInSendMessage(element: Text) {
         TextReplyInSendMessage(element)
     }
 }

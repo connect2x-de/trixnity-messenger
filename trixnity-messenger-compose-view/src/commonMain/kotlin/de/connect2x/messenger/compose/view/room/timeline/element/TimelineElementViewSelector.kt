@@ -24,7 +24,7 @@ interface TimelineElementViewSelector {
     )
 
     @Composable
-    fun createAsMessagePreview(
+    fun createAsPreview(
         holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
     )
@@ -66,12 +66,12 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
     }
 
     @Composable
-    override fun createAsMessagePreview(
+    override fun createAsPreview(
         holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
     ) {
         val factory = rememberSelectFactory(element)
-        factory?.createAsMessagePreview(holder, element)
+        factory?.createAsPreview(holder, element)
     }
 
     @Composable

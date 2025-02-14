@@ -11,36 +11,36 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.Unknown
 import kotlin.reflect.KClass
 
 
-class UnknownRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.Unknown> {
-    override val supports: KClass<RoomMessageTimelineElementViewModel.Unknown> =
-        RoomMessageTimelineElementViewModel.Unknown::class
+class UnknownRoomMessageTimelineElementView : TimelineElementView<Unknown> {
+    override val supports: KClass<Unknown> =
+        Unknown::class
 
-    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.Unknown) {
+    override suspend fun waitFor(element: Unknown) {
         // NO-OP (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.Unknown,
+        element: Unknown,
     ) {
         UnknownMessageElement(element)
     }
 
     @Composable
-    override fun createAsMessagePreview(
+    override fun createAsPreview(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.Unknown,
+        element: Unknown,
     ) {
         UnknownMessageElement(element)
     }
 
     @Composable
-    override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.Unknown) {
+    override fun createReplyInTimeline(element: Unknown) {
         Text(
             text = element.fallbackBody,
             fontStyle = FontStyle.Italic,
@@ -51,7 +51,7 @@ class UnknownRoomMessageTimelineElementView : TimelineElementView<RoomMessageTim
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.Unknown) {
+    override fun createReplyInSendMessage(element: Unknown) {
         Text(
             text = element.fallbackBody,
             fontStyle = FontStyle.Italic,
@@ -64,7 +64,7 @@ class UnknownRoomMessageTimelineElementView : TimelineElementView<RoomMessageTim
 }
 
 @Composable
-internal fun UnknownMessageElement(element: RoomMessageTimelineElementViewModel.Unknown) {
+internal fun UnknownMessageElement(element: Unknown) {
     Column(Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)) {
         Text(element.fallbackBody, style = MaterialTheme.typography.bodyMedium)
     }

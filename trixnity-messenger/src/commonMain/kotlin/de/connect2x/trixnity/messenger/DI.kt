@@ -157,6 +157,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.ModuleFactory
+import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
 import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
 import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
 import org.koin.core.module.Module
@@ -190,7 +191,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                     httpClientConfig = config.httpClientConfig
                     lastRelevantEventFilter =
                         { relevantTimelineEvents.isRelevantTimelineEvent(it.content) }
-                    if (eventContentSerializerMappings.isNotEmpty())
+                    if (eventContentSerializerMappings.isNotEmpty()) {
                         modulesFactories += {
                             module {
                                 single<EventContentSerializerMappings> {
@@ -199,6 +200,10 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                                 }
                             }
                         }
+                    }
+                    getOrNull<MatrixClientServerApiClientFactory>()?.let {
+                        matrixClientServerApiClientFactory = it
+                    }
                 }
             }
 

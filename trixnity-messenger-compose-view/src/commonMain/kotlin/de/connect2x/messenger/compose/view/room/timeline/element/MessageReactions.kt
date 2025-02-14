@@ -26,7 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -72,7 +71,6 @@ class MessageReactionsViewImpl : MessageReactionsView {
         }
 
         val i18n = DI.current.get<I18nView>()
-        val focusRequester = remember { FocusRequester() }
 
         val reactions by remember(timelineElementHolderViewModel) {
             timelineElementHolderViewModel.reactions
@@ -85,7 +83,6 @@ class MessageReactionsViewImpl : MessageReactionsView {
 
         EmojiPopup(
             isOpen = reactionsOpen.value,
-            focusRequester = focusRequester,
             onDismiss = {
                 reactionsOpen.value = false
             },

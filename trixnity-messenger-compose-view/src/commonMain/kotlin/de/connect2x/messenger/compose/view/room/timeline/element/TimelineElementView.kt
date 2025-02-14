@@ -12,7 +12,16 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
     suspend fun waitFor(element: V)
 
     @Composable
-    fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: V)
+    fun createInTimeline(
+        holder: BaseTimelineElementHolderViewModel,
+        element: V,
+    )
+
+    @Composable
+    fun createAsPreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: V,
+    )
 
     @Composable
     fun createAsMessagePreview(
@@ -38,6 +47,13 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel.E
 
     @Composable
     override fun createInTimeline(
+        holder: BaseTimelineElementHolderViewModel,
+        element: TimelineElementViewModel.Empty,
+    ) {
+    }
+
+    @Composable
+    override fun createAsPreview(
         holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel.Empty,
     ) {

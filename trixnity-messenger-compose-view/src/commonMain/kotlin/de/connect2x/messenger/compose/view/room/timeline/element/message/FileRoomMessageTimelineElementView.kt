@@ -30,25 +30,24 @@ import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.File
 import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
 
 
-class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.FileBased.File> {
-    override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.File> =
-        RoomMessageTimelineElementViewModel.FileBased.File::class
+class FileRoomMessageTimelineElementView : TimelineElementView<File> {
+    override val supports: KClass<File> =
+        File::class
 
-    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.FileBased.File) {
+    override suspend fun waitFor(element: File) {
         // NO-OP (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.FileBased.File,
+        element: File,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
@@ -59,9 +58,9 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
     }
 
     @Composable
-    override fun createAsMessagePreview(
+    override fun createAsPreview(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.FileBased.File,
+        element: File,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
@@ -73,19 +72,19 @@ class FileRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimeli
     }
 
     @Composable
-    override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.FileBased.File) {
+    override fun createReplyInTimeline(element: File) {
         FileReplyElement(element)
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.FileBased.File) {
+    override fun createReplyInSendMessage(element: File) {
         FileReplyElement(element)
     }
 }
 
 @Composable
 internal fun FileMessageContent(
-    element: RoomMessageTimelineElementViewModel.FileBased.File,
+    element: File,
     onOpenActionMenu: () -> Unit,
     onSaveAttachment: () -> Unit,
 ) {
@@ -132,7 +131,7 @@ internal fun FileMessageContent(
 }
 
 @Composable
-internal fun FileReplyElement(element: RoomMessageTimelineElementViewModel.FileBased.File) {
+internal fun FileReplyElement(element: File) {
     val i18n = DI.get<I18nView>()
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(

@@ -390,7 +390,7 @@ class MessageMetadataViewImpl : MessageMetadataView {
                             }
                             // Provide some space so the user interactions list
                             // can appear while scrolling down.
-                            else Spacer(Modifier.size(500.dp))
+                            else Spacer(Modifier.size(96.dp))
                         }
                         Spacer(Modifier.size(smallSpacing))
                     }
@@ -491,7 +491,7 @@ private fun MessageContent(
                 Modifier.padding(end = 8.dp),
             ) {
                 with(DI.get<TimelineElementViewSelector>()) {
-                    createAsMessagePreview(holder, element)
+                    createAsPreview(holder, element)
                 }
             }
             Spacer(Modifier.size(smallSpacing))

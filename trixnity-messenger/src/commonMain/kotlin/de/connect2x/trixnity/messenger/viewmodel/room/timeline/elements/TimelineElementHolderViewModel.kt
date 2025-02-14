@@ -564,7 +564,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val formattedDate: String = "21.11.2024"
     override val isByMe: Boolean = false
     override val sender: MutableStateFlow<UserInfoElement?> =
-        MutableStateFlow(UserInfoElement("Bob", UserId("bob", "server"), "B"))
+        MutableStateFlow(UserInfoElement(UserId("bob", "server"), "Bob", "B"))
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val showBigGapBefore: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val repliedElement: MutableStateFlow<RepliedTimelineElementHolderViewModel?> = MutableStateFlow(null)

@@ -31,30 +31,29 @@ import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Image
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import kotlin.reflect.KClass
 
 
-class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.FileBased.Image> {
-    override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.Image> =
-        RoomMessageTimelineElementViewModel.FileBased.Image::class
+class ImageRoomMessageTimelineElementView : TimelineElementView<Image> {
+    override val supports: KClass<Image> =
+        Image::class
 
-    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
+    override suspend fun waitFor(element: Image) {
         // NO-OP (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.FileBased.Image,
+        element: Image,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
@@ -66,9 +65,9 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     }
 
     @Composable
-    override fun createAsMessagePreview(
+    override fun createAsPreview(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.FileBased.Image,
+        element: Image,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
@@ -80,18 +79,18 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
     }
 
     @Composable
-    override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
+    override fun createReplyInTimeline(element: Image) {
         ImageReplyElement(element)
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
+    override fun createReplyInSendMessage(element: Image) {
         ImageReplyElement(element)
     }
 }
 
 @Composable
-internal fun ImageMessageElementOverlay(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
+internal fun ImageMessageElementOverlay(element: Image) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             "${shortenFileName(element)} ${element.size}",
@@ -103,7 +102,7 @@ internal fun ImageMessageElementOverlay(element: RoomMessageTimelineElementViewM
 
 @Composable
 internal fun ColumnScope.ImageMessageContent(
-    element: RoomMessageTimelineElementViewModel.FileBased.Image,
+    element: Image,
     onOpenActionMenu: () -> Unit,
     onSaveAttachment: () -> Unit,
 ) {
@@ -137,9 +136,7 @@ internal fun ColumnScope.MessageImageImpl(
             )
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = {
-                        onSaveAttachment()
-                    },
+                    onTap = { onSaveAttachment() },
                     onLongPress = { onOpenActionMenu() },
                 )
             }
@@ -150,7 +147,7 @@ internal fun ColumnScope.MessageImageImpl(
 
 @Composable
 internal fun MessageImageFallback(
-    element: RoomMessageTimelineElementViewModel.FileBased.Image,
+    element: Image,
     onOpenActionMenu: () -> Unit,
     onSaveAttachment: () -> Unit,
 ) {
@@ -180,7 +177,7 @@ internal fun MessageImageFallback(
 
 @Composable
 @OptIn(ExperimentalResourceApi::class)
-internal fun ImageReplyElement(element: RoomMessageTimelineElementViewModel.FileBased.Image) {
+internal fun ImageReplyElement(element: Image) {
     val i18n = DI.get<I18nView>()
     element.thumbnail.collectAsState().value
         ?.let { image ->

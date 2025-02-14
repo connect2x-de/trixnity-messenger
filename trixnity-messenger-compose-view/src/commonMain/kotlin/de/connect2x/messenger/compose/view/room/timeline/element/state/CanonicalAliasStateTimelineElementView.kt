@@ -24,21 +24,26 @@ class CanonicalAliasStateTimelineElementView : TimelineElementView<CanonicalAlia
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: CanonicalAliasStateTimelineElementViewModel
+        element: CanonicalAliasStateTimelineElementViewModel,
     ) {
+        StateElement(element)
+    }
+
+    @Composable
+    override fun createAsPreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: CanonicalAliasStateTimelineElementViewModel,
+    ) {
+        StateElement(element)
+    }
+
+    @Composable
+    private fun StateElement(element: CanonicalAliasStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.forEach {
             Indicator(MaterialTheme.colorScheme.tertiary) {
                 IndicatorText(it, MaterialTheme.colorScheme.onTertiary)
             }
         }
-    }
-
-    @Composable
-    override fun createAsMessagePreview(
-        holder: BaseTimelineElementHolderViewModel,
-        element: CanonicalAliasStateTimelineElementViewModel,
-    ) {
-        // NO-OP
     }
 }

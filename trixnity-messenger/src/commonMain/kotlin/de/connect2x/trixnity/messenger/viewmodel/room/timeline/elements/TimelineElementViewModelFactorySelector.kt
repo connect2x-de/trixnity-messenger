@@ -29,7 +29,7 @@ interface TimelineElementViewModelFactorySelector {
         originalContent: RoomEventContent,
         content: Result<RoomEventContent>?,
         roomId: RoomId,
-        eventId: EventIdOrTransactionId,
+        eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
     ): TimelineElementViewModel<*>
 }
@@ -48,7 +48,7 @@ class TimelineElementViewModelFactorySelectorImpl(
 
         fun getOrNull() = when (this) {
             is Exist -> factory
-            None -> null
+            is None -> null
         }
     }
 
@@ -78,7 +78,7 @@ class TimelineElementViewModelFactorySelectorImpl(
         originalContent: RoomEventContent,
         content: Result<RoomEventContent>?,
         roomId: RoomId,
-        eventId: EventIdOrTransactionId,
+        eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
     ): TimelineElementViewModel<*> = when {
 
@@ -101,7 +101,7 @@ class TimelineElementViewModelFactorySelectorImpl(
                         viewModelContext = viewModelContext,
                         content = decryptedContent,
                         roomId = roomId,
-                        eventId = eventId,
+                        eventIdOrTransactionId = eventIdOrTransactionId,
                         onOpenMention = onOpenMention,
                     )
                     ?: TimelineElementViewModel.Empty

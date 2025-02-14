@@ -14,43 +14,42 @@ import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.Location
 import kotlin.reflect.KClass
 
 
-class LocationRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.Location> {
-    override val supports: KClass<RoomMessageTimelineElementViewModel.Location> =
-        RoomMessageTimelineElementViewModel.Location::class
+class LocationRoomMessageTimelineElementView : TimelineElementView<Location> {
+    override val supports: KClass<Location> =
+        Location::class
 
-    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.Location) {
+    override suspend fun waitFor(element: Location) {
         // NO-OP (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.Location,
+        element: Location,
     ) {
         LocationMessageElement(holder, element)
     }
 
     @Composable
-    override fun createAsMessagePreview(
+    override fun createAsPreview(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.Location,
+        element: Location,
     ) {
         LocationMessageElement(holder, element) { applyPreviewConfig() }
     }
 
     @Composable
-    override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.Location) {
+    override fun createReplyInTimeline(element: Location) {
         LocationReplyElement(element)
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.Location) {
+    override fun createReplyInSendMessage(element: Location) {
         LocationReplyElement(element)
     }
 }
@@ -58,7 +57,7 @@ class LocationRoomMessageTimelineElementView : TimelineElementView<RoomMessageTi
 @Composable
 fun LocationMessageElement(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.Location,
+    element: Location,
     config: MessageBubbleDisplayConfig.() -> Unit = {},
 ) {
     MessageBubble(
@@ -81,7 +80,7 @@ fun LocationMessageElement(
 
 @Composable
 internal fun LocationMessageContent(
-    element: RoomMessageTimelineElementViewModel.Location,
+    element: Location,
     onOpenActionMenu: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
@@ -103,7 +102,7 @@ internal fun LocationMessageContent(
 }
 
 @Composable
-internal fun LocationReplyElement(element: RoomMessageTimelineElementViewModel.Location) {
+internal fun LocationReplyElement(element: Location) {
     val i18n = DI.get<I18nView>()
     val (geoUrl, pos) = element.geoUri
         .removePrefix("geo:").substringBefore(";").split(",")

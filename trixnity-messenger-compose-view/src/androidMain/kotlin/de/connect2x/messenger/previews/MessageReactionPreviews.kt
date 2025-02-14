@@ -127,6 +127,7 @@ fun MessageReactionPreview() {
                                 UserInfoElement(
                                     name = "Martin",
                                     userId = UserId("@martin:local"),
+                                    initials = "M",
                                 )
                             ),
                             isByMe = false,
@@ -146,6 +147,7 @@ fun MessageReactionPreview() {
                                 UserInfoElement(
                                     name = "Jan",
                                     userId = UserId("@jan:local"),
+                                    initials = "J",
                                 )
                             ),
                             isByMe = false,

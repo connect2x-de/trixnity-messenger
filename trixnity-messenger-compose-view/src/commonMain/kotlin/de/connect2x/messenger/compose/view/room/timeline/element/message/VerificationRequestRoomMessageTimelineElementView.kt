@@ -47,7 +47,7 @@ import de.connect2x.messenger.compose.view.verification.VerificationCancelled
 import de.connect2x.messenger.compose.view.verification.VerificationRejected
 import de.connect2x.messenger.compose.view.verification.VerificationTimeout
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.VerificationRequest
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRequestViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
@@ -55,43 +55,43 @@ import kotlin.reflect.KClass
 
 
 class VerificationRequestRoomMessageTimelineElementView :
-    TimelineElementView<RoomMessageTimelineElementViewModel.VerificationRequest> {
-    override val supports: KClass<RoomMessageTimelineElementViewModel.VerificationRequest> =
-        RoomMessageTimelineElementViewModel.VerificationRequest::class
+    TimelineElementView<VerificationRequest> {
+    override val supports: KClass<VerificationRequest> =
+        VerificationRequest::class
 
-    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.VerificationRequest) {
+    override suspend fun waitFor(element: VerificationRequest) {
         // NO-OP (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.VerificationRequest,
+        element: VerificationRequest,
     ) {
         UserVerification(holder, element)
     }
 
     @Composable
-    override fun createAsMessagePreview(
+    override fun createAsPreview(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.VerificationRequest,
+        element: VerificationRequest,
     ) {
-        // NO-OP
+        UserVerification(holder, element)
     }
 
     @Composable
-    override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.VerificationRequest) {
+    override fun createReplyInTimeline(element: VerificationRequest) {
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.VerificationRequest) {
+    override fun createReplyInSendMessage(element: VerificationRequest) {
     }
 }
 
 @Composable
 private fun UserVerification(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.VerificationRequest,
+    element: VerificationRequest,
 ) {
     val i18n = DI.get<I18nView>()
     val sender = holder.sender.collectAsState().value

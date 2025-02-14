@@ -3,6 +3,8 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.Role
@@ -16,7 +18,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -33,7 +34,6 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.media
-import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.originalName
@@ -81,20 +81,18 @@ interface UserProfileViewModel {
     val userInfo: StateFlow<UserInfoElement?>
     val userTrustLevel: StateFlow<UserTrustLevel?>
     val error: StateFlow<String?>
-    val membershipReason: StateFlow<String?>
     val membership: StateFlow<Membership?>
-    val kickUserReason: MutableStateFlow<String>
-    val kickUserWarningOpen: StateFlow<Boolean>
-    val kickUserWarningMessage: StateFlow<String>
-    val kickUserWarningTitle: StateFlow<String>
-    val iHavePowerToKickUser: StateFlow<Boolean>
-    val banUserWarningOpen: StateFlow<Boolean>
+    val membershipReason: StateFlow<String?>
     val membershipChanging: StateFlow<Boolean>
+    val kickUserReason: TextFieldViewModel
+    val kickUserWarningOpen: StateFlow<Boolean>
+    val iHavePowerToKickUser: StateFlow<Boolean>
+    val banUserReason: TextFieldViewModel
+    val banUserWarningOpen: StateFlow<Boolean>
     val iHavePowerToBanUser: StateFlow<Boolean>
-    val banReason: MutableStateFlow<String>
     val unbanUserWarningOpen: StateFlow<Boolean>
     val iHavePowerToUnbanUser: StateFlow<Boolean>
-    val unbanReason: MutableStateFlow<String>
+    val unbanUserReason: TextFieldViewModel
     val role: StateFlow<Role>
     val powerLevel: StateFlow<Long>
     val showRole: StateFlow<Boolean>
@@ -140,18 +138,16 @@ class UserProfileViewModelImpl(
         .shareIn(coroutineScope, SharingStarted.WhileSubscribed())
 
     override val canOpenChat =
-            matrixClient.user.getAccountData<DirectEventContent>().map { directEvent ->
-                val isDirectChatWithOtherUser = directEvent?.mappings?.get(userId)?.contains(selectedRoomId) ?: false
-                log.debug { "Checking whether chat can be opened: is direct chat with other user: $isDirectChatWithOtherUser" }
-                !isDirectChatWithOtherUser
-            }
+        matrixClient.user.getAccountData<DirectEventContent>().map { directEvent ->
+            val isDirectChatWithOtherUser = directEvent?.mappings?.get(userId)?.contains(selectedRoomId) ?: false
+            log.debug { "Checking whether chat can be opened: is direct chat with other user: $isDirectChatWithOtherUser" }
+            !isDirectChatWithOtherUser
+        }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override val kickUserWarningOpen = MutableStateFlow(false)
-    override val kickUserWarningMessage = MutableStateFlow("")
-    override val kickUserWarningTitle = MutableStateFlow("")
 
     override val banUserWarningOpen = MutableStateFlow(false)
     override val unbanUserWarningOpen = MutableStateFlow(false)
@@ -185,32 +181,32 @@ class UserProfileViewModelImpl(
     private val _membershipChanging = MutableStateFlow(false)
     override val membershipChanging: StateFlow<Boolean> = _membershipChanging
 
-    override val kickUserReason: MutableStateFlow<String> = MutableStateFlow("")
+    override val kickUserReason = TextFieldViewModelImpl()
 
     override val iHavePowerToKickUser =
-       combine(
-           isUserInRoom,
-           matrixClient.user.canKickUser(selectedRoomId, userId)
-       ) { inRoom, canKick -> inRoom && canKick }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+        combine(
+            isUserInRoom,
+            matrixClient.user.canKickUser(selectedRoomId, userId)
+        ) { inRoom, canKick -> inRoom && canKick }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val iHavePowerToBanUser: StateFlow<Boolean> =
-       combine(
-           isUserInRoom,
-           matrixClient.user.canBanUser(selectedRoomId, userId)
-       ) { inRoom, canBan -> inRoom && canBan }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+        combine(
+            isUserInRoom,
+            matrixClient.user.canBanUser(selectedRoomId, userId)
+        ) { inRoom, canBan -> inRoom && canBan }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
-    override val banReason: MutableStateFlow<String> = MutableStateFlow("")
+    override val banUserReason = TextFieldViewModelImpl()
 
     override val iHavePowerToUnbanUser: StateFlow<Boolean> =
         combine(
             isUserInRoom,
             matrixClient.user.canUnbanUser(selectedRoomId, userId),
         ) { inRoom, canUnBan -> inRoom && canUnBan }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
-    override val unbanReason: MutableStateFlow<String> = MutableStateFlow("")
+    override val unbanUserReason = TextFieldViewModelImpl()
 
     override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
@@ -230,25 +226,6 @@ class UserProfileViewModelImpl(
 
 
     init {
-        coroutineScope.launch {
-            val roomFlow = matrixClient.room.getById(selectedRoomId)
-            combine(roomFlow, roomUserOriginalName) { room, roomUserOriginalName ->
-                isDirect.value = room?.isDirect ?: false
-
-                val displayName =
-                    (roomUserOriginalName ?: userId.full) + " (" + userId.full + ")"
-
-                if (isDirect.value) {
-                    kickUserWarningTitle.value = i18n.settingsRoomMemberListKickUserWarningTitleChat(displayName)
-                    kickUserWarningMessage.value = i18n.settingsRoomMemberListKickUserWarningMessageChat()
-
-                } else {
-                    kickUserWarningTitle.value = i18n.settingsRoomMemberListKickUserWarningTitleGroup(displayName)
-                    kickUserWarningMessage.value = i18n.settingsRoomMemberListKickUserWarningMessageGroup()
-                }
-            }.collect()
-        }
-
         coroutineScope.launch {
             matrixClient.user.getPowerLevel(selectedRoomId, userId).collect { powerLevel ->
                 role.value = getPowerRole(powerLevel)
@@ -272,8 +249,8 @@ class UserProfileViewModelImpl(
             }
 
             UserInfoElement(
-                name,
                 userId,
+                name,
                 initials.compute(name),
                 getImageLazy(
                     matrixClient,
@@ -351,11 +328,11 @@ class UserProfileViewModelImpl(
                 matrixClient.api.room.kickUser(
                     selectedRoomId,
                     userId,
-                    kickUserReason.value.ifBlank { null },
+                    kickUserReason.value.text.ifBlank { null },
                     null
                 ).fold(
                     onSuccess = {
-                        kickUserReason.value = ""
+                        kickUserReason.update("")
                         error.value = null
                     },
                     onFailure = {
@@ -390,10 +367,10 @@ class UserProfileViewModelImpl(
             matrixClient.api.room.banUser(
                 roomId = selectedRoomId,
                 userId = userId,
-                reason = banReason.value.ifBlank { null },
+                reason = banUserReason.value.text.ifBlank { null },
             ).fold(
                 onSuccess = {
-                    banReason.value = ""
+                    banUserReason.update("")
                     error.value = null
                 },
                 onFailure = {
@@ -432,10 +409,10 @@ class UserProfileViewModelImpl(
             matrixClient.api.room.unbanUser(
                 roomId = selectedRoomId,
                 userId = roomUserId,
-                reason = unbanReason.value.ifBlank { null },
+                reason = unbanUserReason.value.text.ifBlank { null },
             ).fold(
                 onSuccess = {
-                    unbanReason.value = ""
+                    unbanUserReason.update("")
                     error.value = null
                 },
                 onFailure = {

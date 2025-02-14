@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -20,7 +19,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
@@ -52,11 +50,6 @@ data class MessageBubbleDisplayConfig(
     var showRepliedElement: Boolean = true,
 
     /**
-     * Whether the bubble should render the timestamp and message has been edited indicator.
-     */
-    var showTimeAndEditedIndicator: Boolean = true,
-
-    /**
      * Whether the rendering of the chat bubble tail should be forced to be always rendered.
      */
     var alwaysShowChatBubbleTail: Boolean = false,
@@ -71,28 +64,16 @@ data class MessageBubbleDisplayConfig(
      */
     var preventUserInput: Boolean = false,
 
-    /**
-     * Provide the padding from the message bubble to its container.
-     */
-    var bubblePadding: BoxWithConstraintsScope.(isRedactionInProgress: Boolean) -> Dp = {
-        (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (it) 16.dp else 0.dp)
-    },
-) {
-    companion object {
-        fun of(config: MessageBubbleDisplayConfig.() -> Unit) =
-            MessageBubbleDisplayConfig().apply(config).copy()
-
-        fun MessageBubbleDisplayConfig.applyPreviewConfig(
-            additionalConfig: MessageBubbleDisplayConfig.() -> Unit = {},
-        ) = this.apply {
-            showMessageReactions = false
-            enableContextActionMenu = false
-            showTimeAndEditedIndicator = true
-            alwaysShowChatBubbleTail = true
-            preventUserInput = true
-            minifyBubble = true
-            additionalConfig.invoke(this)
-        }
+    ) {
+    fun MessageBubbleDisplayConfig.applyPreviewConfig(
+        additionalConfig: MessageBubbleDisplayConfig.() -> Unit = {},
+    ) = this.apply {
+        showMessageReactions = false
+        enableContextActionMenu = false
+        alwaysShowChatBubbleTail = true
+        preventUserInput = true
+        minifyBubble = true
+        additionalConfig.invoke(this)
     }
 }
 
@@ -128,9 +109,9 @@ class MessageBubbleViewImpl : MessageBubbleView {
         overlay: (@Composable BoxScope.() -> Unit)?,
         content: @Composable (onOpenActionMenu: () -> Unit) -> Unit,
     ) {
-        val cfg = MessageBubbleDisplayConfig.of(config)
-        val isRedactionInProgress =
-            holder.asTimelineElementHolder()?.redactionInProgress?.collectAsState()?.value == true
+        val cfg = MessageBubbleDisplayConfig().apply(config)
+        val isRedactionInProgress = holder.asTimelineElementHolder()
+            ?.redactionInProgress?.collectAsState()?.value == true
         val showBigGap = holder.showBigGapBefore.collectAsState().value == true
         val showReactions = remember { mutableStateOf(false) }
         val topPadding = if (showBigGap) 10.dp else 3.dp
@@ -138,7 +119,9 @@ class MessageBubbleViewImpl : MessageBubbleView {
         BoxWithConstraints(
             Modifier.fillMaxWidth(),
         ) {
-            val padding = cfg.bubblePadding(this@BoxWithConstraints, isRedactionInProgress)
+            val padding = isRedactionInProgress.let {
+                (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (it) 16.dp else 0.dp)
+            }
             Column(
                 modifier = Modifier.run {
                     if (holder.isByMe) padding(start = padding, top = topPadding)

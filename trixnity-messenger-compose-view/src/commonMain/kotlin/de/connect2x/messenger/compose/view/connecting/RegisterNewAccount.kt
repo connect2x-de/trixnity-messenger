@@ -13,12 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.MatrixUsername
 import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.TabInTextField
 import de.connect2x.messenger.compose.view.common.TooltipText
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModel
@@ -49,8 +49,7 @@ class RegisterNewAccountViewImpl : RegisterNewAccountView {
             val tabToNextAndEnterSend =
                 TabInTextField(canRegisterNewUser, registerMatrixAccountViewModel::register)
             MatrixUsername(
-                username = registerMatrixAccountViewModel.username.collectAsStateForTextField(),
-                setUsername = { registerMatrixAccountViewModel.username.value = it },
+                username = registerMatrixAccountViewModel.username.collectAsTextFieldValueState(),
                 label = i18n.registrationUsername(),
                 enabled = true,
             ) {
@@ -63,8 +62,7 @@ class RegisterNewAccountViewImpl : RegisterNewAccountView {
             }
             Spacer(Modifier.size(20.dp))
             PasswordField(
-                password = registerMatrixAccountViewModel.password.collectAsStateForTextField(),
-                onPasswordChange = { registerMatrixAccountViewModel.password.value = it },
+                password = registerMatrixAccountViewModel.password.collectAsTextFieldValueState(),
                 modifier = tabToNextAndEnterSend,
             ) { Text(i18n.registrationPassword()) }
         }

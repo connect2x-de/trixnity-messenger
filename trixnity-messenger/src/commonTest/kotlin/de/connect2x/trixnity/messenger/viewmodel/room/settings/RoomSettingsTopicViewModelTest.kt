@@ -130,7 +130,7 @@ class RoomSettingsTopicViewModelTest : ShouldSpec() {
             roomGetState returns MutableStateFlow<TopicEvent?>(topicEvent("room topic"))
             val viewModel = roomSettingsTopicViewModel(coroutineContext)
             eventually(2.seconds) {
-                viewModel.roomTopic.state.value.value shouldBe "room topic"
+                viewModel.roomTopic.textValue shouldBe "room topic"
             }
         }
 
@@ -146,8 +146,8 @@ class RoomSettingsTopicViewModelTest : ShouldSpec() {
             val viewModel = roomSettingsTopicViewModel(coroutineContext)
             viewModel.roomTopic.isLoading.first { it.not() }
             viewModel.roomTopic.startEdit()
-            viewModel.roomTopic.state.value.setEdit("edited topic")
-            viewModel.roomTopic.applyEdit()
+            viewModel.roomTopic.update("edited topic")
+            viewModel.roomTopic.approveEdit()
             homeServerHandle.numCallsToHomeServer.first { it == 1 }
         }
     }

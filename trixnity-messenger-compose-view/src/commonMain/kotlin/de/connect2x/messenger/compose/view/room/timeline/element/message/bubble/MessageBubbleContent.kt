@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
@@ -27,6 +28,7 @@ import androidx.compose.ui.layout.MeasurePolicy
 import androidx.compose.ui.layout.MeasureResult
 import androidx.compose.ui.layout.MeasureScope
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
@@ -43,6 +45,7 @@ fun MessageBubbleContent(
     holder: BaseTimelineElementHolderViewModel,
     config: MessageBubbleDisplayConfig,
     onOpenActionMenu: () -> Unit,
+    bottomSpacing: Dp = 0.dp,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
@@ -97,16 +100,18 @@ fun MessageBubbleContent(
             // "Asking for intrinsic measurements of SubcomposeLayout layouts is not supported."
             if (config.contentNeedsMaxWidth || hasRepliedElement) {
                 content(onOpenActionMenu)
+                Box(Modifier.height(bottomSpacing))
                 Row(
                     Modifier.align(Alignment.End).padding(5.dp),
                     verticalAlignment = Alignment.Bottom
                 ) {
-                    if (config.showTimeAndEditedIndicator) MessageBubbleContentInfo(isReplaced, holder)
+                    MessageBubbleContentInfo(isReplaced, holder)
                 }
             } else {
                 Layout(
                     content = {
                         content(onOpenActionMenu)
+                        Box(Modifier.height(bottomSpacing))
                         Row(
                             modifier = Modifier.padding(
                                 start = 5.dp,
@@ -115,14 +120,14 @@ fun MessageBubbleContent(
                             ),
                             verticalAlignment = Alignment.Bottom,
                         ) {
-                            if (config.showTimeAndEditedIndicator) MessageBubbleContentInfo(isReplaced, holder)
+                            MessageBubbleContentInfo(isReplaced, holder)
                         }
                     },
                     measurePolicy = object : MeasurePolicy {
                         val spacing = 10.dp
                         override fun MeasureScope.measure(
                             measurables: List<Measurable>,
-                            constraints: Constraints
+                            constraints: Constraints,
                         ): MeasureResult {
                             val spacing = spacing.roundToPx()
                             val message = measurables[0].measure(constraints)

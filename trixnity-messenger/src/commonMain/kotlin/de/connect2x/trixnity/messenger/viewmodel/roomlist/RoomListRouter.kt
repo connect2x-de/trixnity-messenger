@@ -110,12 +110,12 @@ class RoomListRouter(
                                 viewModelContext.childContext(
                                     componentContext,
                                     roomListConfig.userId,
-                                )
+                                ),
+                                onRoomCreated = ::openRoom,
                             ),
                         onCreateGroup = ::onCreateGroup,
                         onSearchGroup = ::onSearchGroup,
                         onCancel = ::onCancelCreateNewChat,
-                        onOpenRoom = ::openRoom,
                     )
             )
 
@@ -131,10 +131,10 @@ class RoomListRouter(
                                 viewModelContext.childContext(
                                     componentContext,
                                     roomListConfig.userId,
-                                )
+                                ),
+                                onRoomCreated = ::onGroupCreated,
                             ),
                         onBack = ::onCancelCreateNewGroup,
-                        onGroupCreated = ::onGroupCreated,
                     )
             )
 

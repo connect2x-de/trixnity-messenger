@@ -26,6 +26,19 @@ class HistoryVisibilityStateTimelineElementView : TimelineElementView<HistoryVis
         holder: BaseTimelineElementHolderViewModel,
         element: HistoryVisibilityStateTimelineElementViewModel,
     ) {
+        StateElement(element)
+    }
+
+    @Composable
+    override fun createAsPreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: HistoryVisibilityStateTimelineElementViewModel,
+    ) {
+        StateElement(element)
+    }
+
+    @Composable
+    private fun StateElement(element: HistoryVisibilityStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.let {
             Indicator(MaterialTheme.colorScheme.tertiary) {

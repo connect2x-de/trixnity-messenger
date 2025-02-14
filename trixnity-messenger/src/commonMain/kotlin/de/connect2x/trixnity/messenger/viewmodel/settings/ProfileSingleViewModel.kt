@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -40,7 +41,7 @@ interface ProfileSingleViewModel {
     val avatar: StateFlow<ByteArray?>
     val canChangeAvatar: StateFlow<Boolean>
     val initials: StateFlow<String>
-    val editDisplayName: MutableStateFlow<String>
+    val editDisplayName: TextFieldViewModelImpl
     val openAvatarCutter: MutableStateFlow<Boolean>
 }
 
@@ -52,7 +53,7 @@ class ProfileSingleViewModelImpl(
     private val matrixClient = getMatrixClient(userId)
     private val initialsComputation = get<Initials>()
 
-    override val displayName = matrixClient.displayName.map { it ?: userId.localpart }
+    override val displayName = matrixClient.displayName.map { it ?: "" }
         .stateIn(coroutineScope, SharingStarted.Eagerly, userId.localpart)
     override val canChangeDisplayName: StateFlow<Boolean> =
         matrixClient.serverData.map { it?.capabilities?.capabilities?.setDisplayName?.enabled ?: true }
@@ -86,7 +87,7 @@ class ProfileSingleViewModelImpl(
     override val initials = matrixClient.displayName.map { it?.let { initialsComputation.compute(it) } ?: "" }
         .stateIn(coroutineScope, SharingStarted.Eagerly, "")
 
-    override val editDisplayName = MutableStateFlow(matrixClient.displayName.value ?: "")
+    override val editDisplayName = TextFieldViewModelImpl(matrixClient.displayName.value ?: "")
 
     override val openAvatarCutter = MutableStateFlow(false)
 }

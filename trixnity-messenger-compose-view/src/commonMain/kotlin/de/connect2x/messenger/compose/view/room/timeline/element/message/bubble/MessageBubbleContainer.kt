@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
@@ -37,6 +38,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
@@ -61,6 +64,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 
 
 private val minifiedContentHeight = 355.dp
+private val minifiedFadeoutHeight = 96.dp // Must be smaller than minifiedContentHeight!
 
 @Composable
 fun MessageBubbleContainer(
@@ -86,6 +90,8 @@ fun MessageBubbleContainer(
     }
     val forceChatBubbleTail = config.alwaysShowChatBubbleTail
     val showChatBubbleTail = forceChatBubbleTail || isFirstInUserSequence
+    val showMinifyControls = config.minifyBubble &&
+            contentSize.height > with(density) { minifiedContentHeight.roundToPx() }
 
     Column {
         Box(
@@ -133,6 +139,7 @@ fun MessageBubbleContainer(
                         MessageBubbleContent(
                             holder, config,
                             onOpenActionMenu = { showActionMenu.value = true },
+                            bottomSpacing = if (config.minifyBubble && contentExpanded) 32.dp else 0.dp,
                             content = {
                                 Box(
                                     modifier = Modifier.heightIn(
@@ -141,6 +148,7 @@ fun MessageBubbleContainer(
                                     )
                                 ) {
                                     content {}
+                                    if (config.minifyBubble && !contentExpanded) MessageFadeout(messageBackground)
                                 }
                             })
                         MessageBubbleContentOverlay(
@@ -181,13 +189,11 @@ fun MessageBubbleContainer(
                 onReactToMessage = { reactionsOpen.value = true },
                 additionalContextActions,
             )
-            val showMinifyControls = config.minifyBubble &&
-                    contentSize.height > with(density) { minifiedContentHeight.roundToPx() }
             if (showMinifyControls) FloatingActionButton(
                 onClick = { contentExpanded = !contentExpanded },
                 modifier = Modifier
                     .size(40.dp)
-                    .offset(y = if (contentExpanded) 48.dp else (-8).dp)
+                    .offset(y = (-8).dp)
                     .buttonPointerModifier()
                     .align(Alignment.BottomCenter)
                     .indication(
@@ -195,14 +201,8 @@ fun MessageBubbleContainer(
                         interactionSource = MutableInteractionSource()
                     ),
                 elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
-                containerColor = with(MaterialTheme.colorScheme) {
-                    if (contentExpanded) primaryContainer.copy(alpha = 0.75f)
-                    else onPrimaryContainer.copy(alpha = 0.75f)
-                },
-                contentColor = with(MaterialTheme.colorScheme) {
-                    if (contentExpanded) onPrimaryContainer
-                    else primaryContainer
-                },
+                containerColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
+                contentColor = MaterialTheme.colorScheme.primaryContainer,
             ) {
                 if (contentExpanded) Icon(Icons.Default.KeyboardArrowUp, i18n.commonCollapse())
                 else Icon(Icons.Default.KeyboardArrowDown, i18n.commonExpand())
@@ -210,6 +210,24 @@ fun MessageBubbleContainer(
         }
         if (config.minifyBubble && contentExpanded) Box(Modifier.height(48.dp))
     }
+}
+
+@Composable
+private fun BoxScope.MessageFadeout(messageBackground: Color) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(minifiedFadeoutHeight)
+            .align(Alignment.BottomCenter)
+            .background(
+                brush = Brush.verticalGradient(
+                    listOf(
+                        messageBackground.copy(alpha = 0f),
+                        messageBackground,
+                    )
+                )
+            )
+    )
 }
 
 class ChatBubbleTailRight(private val offset: Int) : Shape {

@@ -25,6 +25,19 @@ class MemberStateTimelineElementView : TimelineElementView<MemberStateTimelineEl
         holder: BaseTimelineElementHolderViewModel,
         element: MemberStateTimelineElementViewModel
     ) {
+        StateElement(element)
+    }
+
+    @Composable
+    override fun createAsPreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: MemberStateTimelineElementViewModel,
+    ) {
+        StateElement(element)
+    }
+
+    @Composable
+    private fun StateElement(element: MemberStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.let {
             Indicator(MaterialTheme.colorScheme.tertiary) {
