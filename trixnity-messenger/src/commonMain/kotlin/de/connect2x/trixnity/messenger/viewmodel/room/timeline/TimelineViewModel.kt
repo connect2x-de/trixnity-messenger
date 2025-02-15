@@ -283,7 +283,8 @@ class TimelineViewModelImpl(
 
     private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
 
-    val readReceiptsCache = get<ReadReceiptsCacheFactory>()
+    private val readReceiptsCache = get<ReadReceiptsCacheFactory>()
+        .create(roomId, matrixClient, viewModelContext.coroutineScope)
 
     override val unreadCount: StateFlow<String?> =
         readEvent.filterNotNull().flatMapLatest { readEvent ->
@@ -619,6 +620,7 @@ class TimelineViewModelImpl(
             sender = sender,
             formattedDate = formattedDate,
             formattedTime = formattedTime,
+            readCache = readReceiptsCache,
             showUnreadMarker = showUnreadMarker,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
