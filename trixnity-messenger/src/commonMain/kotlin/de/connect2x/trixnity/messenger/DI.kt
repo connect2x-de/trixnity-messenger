@@ -15,8 +15,6 @@ import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
 import de.connect2x.trixnity.messenger.util.MessageReactionsHandleFactory
 import de.connect2x.trixnity.messenger.util.ReadReceiptsCacheFactory
 import de.connect2x.trixnity.messenger.util.ReadReceiptsHandleFactory
-import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository
-import de.connect2x.trixnity.messenger.util.ReadReceiptsRepositoryImpl
 import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
@@ -238,7 +236,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<Search> { SearchImpl(get(), get()) }
             single<RunInitialSync> { RunInitialSync }
             single<DragAndDropHandler> { DragAndDropHandlerBase() }
-            single<ReadReceiptsRepository> { ReadReceiptsRepositoryImpl(get(), get()) }
             single<AccountSetupViewModelFactory> { AccountSetupViewModelFactory }
 
             single<RootViewModelFactory> { RootViewModelFactory }

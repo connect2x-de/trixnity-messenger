@@ -415,7 +415,7 @@ class MessageReactionsHandleTest : ShouldSpec() {
     private suspend inline infix fun MessageReactionsHandle.shouldReturnReactionsByUsers(
         expected: Map<UserId, Set<ReactionKey>>,
     ) {
-        this.getReactions().firstOrNull()?.let { reactions ->
+        this.reactions.firstOrNull()?.let { reactions ->
             reactions.byUser shouldHaveSize expected.filter { it.value.isNotEmpty() }.size
             reactions.byUser.let {
                 expected.forEach { (expectingUser, expectedReactions) ->
@@ -441,7 +441,7 @@ class MessageReactionsHandleTest : ShouldSpec() {
     private suspend inline infix fun MessageReactionsHandle.shouldReturnReactionsByCount(
         expected: List<Pair<ReactionKey, Int>>,
     ) {
-        this.getReactions().firstOrNull()?.let { reactions ->
+        this.reactions.firstOrNull()?.let { reactions ->
             reactions.byReaction shouldHaveSize expected.filter { it.second > 0 }.size
             expected.forEach { (expectedReaction, expectedCount) ->
                 withClue("did not match expected count for reaction $expectedReaction") {

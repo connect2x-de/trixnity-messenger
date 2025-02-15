@@ -46,7 +46,7 @@ interface ReadReceiptsHandleFactory {
         senderId: UserId,
         cache: ReadReceiptsCache,
     ): ReadReceiptsHandle =
-        Handle(
+        ReadReceiptsHandleImpl(
             eventId = eventId,
             roomId = roomId,
             senderId = senderId,
@@ -74,7 +74,7 @@ interface ReadReceiptsHandle {
     }
 }
 
-class Handle( // TODO rename
+class ReadReceiptsHandleImpl(
     val eventId: EventId,
     val roomId: RoomId,
     val senderId: UserId,

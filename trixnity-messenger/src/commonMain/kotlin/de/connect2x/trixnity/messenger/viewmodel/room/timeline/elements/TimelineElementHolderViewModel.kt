@@ -92,7 +92,7 @@ interface TimelineElementHolderViewModelFactory {
         sender: UserId,
         formattedDate: String,
         formattedTime: String,
-        readCache: ReadReceiptsCache,
+        readReceiptsCache: ReadReceiptsCache,
         showUnreadMarker: Flow<Boolean>,
         showLoadingIndicatorBefore: Flow<Boolean>,
         showLoadingIndicatorAfter: Flow<Boolean>,
@@ -114,7 +114,7 @@ interface TimelineElementHolderViewModelFactory {
                 .get<ReadReceiptsHandleFactory>()
                 .create(
                     viewModelContext,
-                    eventId, roomId, sender, readCache,
+                    eventId, roomId, sender, readReceiptsCache,
                 ),
             showUnreadMarker = showUnreadMarker,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
@@ -172,7 +172,7 @@ class TimelineElementHolderViewModelImpl(
     private val senderUserId: UserId,
     override val formattedDate: String,
     override val formattedTime: String,
-    private val readHandle: ReadReceiptsHandle,
+    readHandle: ReadReceiptsHandle,
     showUnreadMarker: Flow<Boolean>,
     showLoadingIndicatorBefore: Flow<Boolean>,
     showLoadingIndicatorAfter: Flow<Boolean>,
@@ -382,7 +382,7 @@ class TimelineElementHolderViewModelImpl(
     override val isReadBy = readHandle.isReadBy
         .stateIn(coroutineScope, whileSubscribedWithTimeout, setOf())
 
-    override val reactions = messageReactionsHandle.getReactions()
+    override val reactions = messageReactionsHandle.reactions
         .stateIn(coroutineScope, WhileSubscribed(), MessageUserReactions.Empty)
 
     override val canBeEdited: StateFlow<Boolean> = timelineEventFlow

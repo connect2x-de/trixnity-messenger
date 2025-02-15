@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.util.Handle
+import de.connect2x.trixnity.messenger.util.ReadReceiptsHandleImpl
 import de.connect2x.trixnity.messenger.util.ReadReceiptsCacheImpl
 import de.connect2x.trixnity.messenger.util.ReadReceiptsHandle
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomUserBuilder
@@ -101,7 +101,7 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                 di = di,
                 userId = us,
             )
-            return Handle(
+            return ReadReceiptsHandleImpl(
                 eventId = eventId,
                 roomId = roomId,
                 senderId = senderId,

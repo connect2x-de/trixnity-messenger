@@ -620,7 +620,7 @@ class TimelineViewModelImpl(
             sender = sender,
             formattedDate = formattedDate,
             formattedTime = formattedTime,
-            readCache = readReceiptsCache,
+            readReceiptsCache = readReceiptsCache,
             showUnreadMarker = showUnreadMarker,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
