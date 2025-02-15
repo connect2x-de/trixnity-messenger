@@ -14,6 +14,8 @@ import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
 import de.connect2x.trixnity.messenger.util.MessageReactionsHandle
 import de.connect2x.trixnity.messenger.util.MessageReactionsHandleImpl
+import de.connect2x.trixnity.messenger.util.ReadReceiptsCacheFactory
+import de.connect2x.trixnity.messenger.util.ReadReceiptsHandleFactory
 import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository
 import de.connect2x.trixnity.messenger.util.ReadReceiptsRepositoryImpl
 import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
@@ -385,6 +387,8 @@ private fun timelineElementViewModels() = module {
 
 private fun roomViewModels() = module {
     single<RoomViewModelFactory> { RoomViewModelFactory }
+    single<ReadReceiptsCacheFactory> { ReadReceiptsCacheFactory }
+    single<ReadReceiptsHandleFactory> { ReadReceiptsHandleFactory }
 }
 
 private fun roomSettingsViewModels() = module {

@@ -554,7 +554,7 @@ private data class OrderableReadEvent(
     var gapsToPast: Boolean = false,
 ) : SortedReadEvent
 
-class MutexCache<K, V> {
+private class MutexCache<K, V> {
     private val mutex = Mutex()
     private val map = mutableMapOf<K, V>()
 

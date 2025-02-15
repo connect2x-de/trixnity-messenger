@@ -14,6 +14,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.ReadReceiptsCacheFactory
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.util.launchPopWhile
 import de.connect2x.trixnity.messenger.util.launchPush
@@ -281,6 +282,8 @@ class TimelineViewModelImpl(
     private val readEventMarker = MutableStateFlow<Pair<RoomId, EventId>?>(null)
 
     private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
+
+    val readReceiptsCache = get<ReadReceiptsCacheFactory>()
 
     override val unreadCount: StateFlow<String?> =
         readEvent.filterNotNull().flatMapLatest { readEvent ->

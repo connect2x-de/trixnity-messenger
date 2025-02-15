@@ -9,8 +9,10 @@ import de.connect2x.trixnity.messenger.util.MessageReactionsHandle
 import de.connect2x.trixnity.messenger.util.MessageUserReactions
 import de.connect2x.trixnity.messenger.util.MessageUserReactions.ReactionEvent
 import de.connect2x.trixnity.messenger.util.ReactionKey
-import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository
-import de.connect2x.trixnity.messenger.util.ReadReceiptsRepository.ReadReceiptsHandle.Reader
+import de.connect2x.trixnity.messenger.util.ReadReceiptsCache
+import de.connect2x.trixnity.messenger.util.ReadReceiptsHandle
+import de.connect2x.trixnity.messenger.util.ReadReceiptsHandle.Reader
+import de.connect2x.trixnity.messenger.util.ReadReceiptsHandleFactory
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -90,6 +92,7 @@ interface TimelineElementHolderViewModelFactory {
         sender: UserId,
         formattedDate: String,
         formattedTime: String,
+        readCache: ReadReceiptsCache,
         showUnreadMarker: Flow<Boolean>,
         showLoadingIndicatorBefore: Flow<Boolean>,
         showLoadingIndicatorAfter: Flow<Boolean>,
@@ -107,6 +110,14 @@ interface TimelineElementHolderViewModelFactory {
             senderUserId = sender,
             formattedDate = formattedDate,
             formattedTime = formattedTime,
+            readHandle = viewModelContext
+                .get<ReadReceiptsHandleFactory>()
+                .create(
+                    eventId,
+                    sender,
+                    readCache,
+                    viewModelContext.coroutineScope,
+                ),
             showUnreadMarker = showUnreadMarker,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
@@ -163,6 +174,7 @@ class TimelineElementHolderViewModelImpl(
     private val senderUserId: UserId,
     override val formattedDate: String,
     override val formattedTime: String,
+    private val readHandle: ReadReceiptsHandle,
     showUnreadMarker: Flow<Boolean>,
     showLoadingIndicatorBefore: Flow<Boolean>,
     showLoadingIndicatorAfter: Flow<Boolean>,
@@ -179,6 +191,8 @@ class TimelineElementHolderViewModelImpl(
         get<TimelineElementViewModelFactorySelector>()
     private val repliedTimelineElementHolderViewModelFactory =
         get<RepliedTimelineElementHolderViewModelFactory>()
+    private val messageReactionsHandle =
+        get<MessageReactionsHandle>()
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -361,20 +375,13 @@ class TimelineElementHolderViewModelImpl(
 
     override val isByMe: Boolean = senderUserId == userId
 
-    private val _readReceiptsHandle = get<ReadReceiptsRepository>()
-        .getReadReceipts(matrixClient, eventId, roomId, setOf(/*TODO*/), coroutineScope)
-
-    override val isRead = _readReceiptsHandle
-        .flatMapLatest { it.isRead }
+    override val isRead = readHandle.isRead
         .stateIn(coroutineScope, WhileSubscribed(), false)
 
-    override val isReadBy = _readReceiptsHandle
-        .flatMapLatest { it.readReceiptsCumulative }
+    override val isReadBy = readHandle.readReceiptsCumulative
         .stateIn(coroutineScope, WhileSubscribed(), setOf())
 
-    private val _messageReactionsHandle = get<MessageReactionsHandle>()
-
-    override val reactions = _messageReactionsHandle
+    override val reactions = messageReactionsHandle
         .getMessageReactionsHandle(roomId, eventId, initials, matrixClient, config, coroutineScope)
         .stateIn(coroutineScope, WhileSubscribed(), MessageUserReactions.Empty)
 
