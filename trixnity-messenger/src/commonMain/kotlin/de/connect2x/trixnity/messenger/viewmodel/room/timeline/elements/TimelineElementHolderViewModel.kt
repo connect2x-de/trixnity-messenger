@@ -5,7 +5,7 @@ import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.util.MessageReactionsHandle
+import de.connect2x.trixnity.messenger.util.MessageReactionsHandleFactory
 import de.connect2x.trixnity.messenger.util.MessageUserReactions
 import de.connect2x.trixnity.messenger.util.MessageUserReactions.ReactionEvent
 import de.connect2x.trixnity.messenger.util.ReactionKey
@@ -113,10 +113,8 @@ interface TimelineElementHolderViewModelFactory {
             readHandle = viewModelContext
                 .get<ReadReceiptsHandleFactory>()
                 .create(
-                    eventId,
-                    sender,
-                    readCache,
-                    viewModelContext.coroutineScope,
+                    viewModelContext,
+                    eventId, roomId, sender, readCache,
                 ),
             showUnreadMarker = showUnreadMarker,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
@@ -192,7 +190,10 @@ class TimelineElementHolderViewModelImpl(
     private val repliedTimelineElementHolderViewModelFactory =
         get<RepliedTimelineElementHolderViewModelFactory>()
     private val messageReactionsHandle =
-        get<MessageReactionsHandle>()
+        get<MessageReactionsHandleFactory>().create(
+            viewModelContext,
+            roomId, eventId,
+        )
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -376,13 +377,12 @@ class TimelineElementHolderViewModelImpl(
     override val isByMe: Boolean = senderUserId == userId
 
     override val isRead = readHandle.isRead
-        .stateIn(coroutineScope, WhileSubscribed(), false)
+        .stateIn(coroutineScope, Lazily, false) // Lazily to not unnecessary recompute
 
-    override val isReadBy = readHandle.readReceiptsCumulative
-        .stateIn(coroutineScope, WhileSubscribed(), setOf())
+    override val isReadBy = readHandle.isReadBy
+        .stateIn(coroutineScope, whileSubscribedWithTimeout, setOf())
 
-    override val reactions = messageReactionsHandle
-        .getMessageReactionsHandle(roomId, eventId, initials, matrixClient, config, coroutineScope)
+    override val reactions = messageReactionsHandle.getReactions()
         .stateIn(coroutineScope, WhileSubscribed(), MessageUserReactions.Empty)
 
     override val canBeEdited: StateFlow<Boolean> = timelineEventFlow

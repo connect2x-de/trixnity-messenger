@@ -1,11 +1,14 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.util.MessageUserReactions
+import de.connect2x.trixnity.messenger.util.ReactionKey
+import de.connect2x.trixnity.messenger.util.ReadReceiptsHandle
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomUserBuilder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineMock
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.roomUsers
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
-import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.calls
@@ -13,7 +16,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
-import dev.mokkery.resetCalls
 import io.kotest.assertions.failure
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.ShouldSpec
@@ -68,18 +70,25 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
+    val readReceiptsHandleMock = mock<ReadReceiptsHandle>()
 
-    val timelineEvent = cutTimelineEvent(eventId, alice, roomId)
+    private val timelineEvent = cutTimelineEvent(eventId, alice, roomId)
 
     private fun setupMocks(
         roomId: RoomId = this@TimelineElementHolderViewModelTest.roomId,
     ) {
-        resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
+        resetMocks(
+            matrixClientMock,
+            roomServiceMock,
+            userServiceMock,
+            readReceiptsHandleMock,
+        )
         every { matrixClientMock.di } returns koinApplication {
             modules(
                 module {
                     single { roomServiceMock }
                     single { userServiceMock }
+                    single { readReceiptsHandleMock }
                 }
             )
         }.koin
@@ -101,9 +110,10 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             )
         }
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
-
         every { userServiceMock.getAllReceipts(any()) } returns MutableStateFlow(mapOf())
         every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns emptyFlow()
+        every { readReceiptsHandleMock.isRead } returns flowOf(false)
+        every { readReceiptsHandleMock.isReadBy } returns flowOf(setOf())
     }
 
     init {
@@ -501,18 +511,18 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 cut.reactions.collect { reactions ->
                     updateCount.value++
                     when (updateCount.value) {
-                        1 -> reactions shouldBe emptySet()
+                        1 -> reactions.byReaction shouldBe emptySet()
 
-                        2 -> reactions shouldBe ReactionsExpectation("😄", false, event[1], bob)
+                        2 -> reactions.byReaction shouldBe ReactionsExpectation("😄", false, event[1], bob)
                             .addedTo(expectation)
 
-                        3 -> reactions shouldBe ReactionsExpectation("🥳", true, event[2], us)
+                        3 -> reactions.byReaction shouldBe ReactionsExpectation("🥳", true, event[2], us)
                             .addedTo(expectation)
 
-                        4 -> reactions shouldBe ReactionsExpectation("😄", true, event[3], us)
+                        4 -> reactions.byReaction shouldBe ReactionsExpectation("😄", true, event[3], us)
                             .addedTo(expectation)
 
-                        5 -> reactions shouldBe ReactionsExpectation("🙂", false, event[4], alice)
+                        5 -> reactions.byReaction shouldBe ReactionsExpectation("🙂", false, event[4], alice)
                             .addedTo(expectation)
                     }
                 }
@@ -525,7 +535,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             )
             advanceUntilIdle()
             updateCount.value shouldBe 5
-            cut.reactions.value.flatMap { it.value } shouldHaveSize 4
+            cut.reactions.value.byReaction.flatMap { it.value } shouldHaveSize 4
             cancelNeverEndingCoroutines()
         }
 
@@ -545,7 +555,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             launch {
                 cut.reactions.collect { reactions ->
                     updateCount.value++
-                    reactions shouldBe emptySet()
+                    reactions.byReaction shouldBe emptySet()
                 }
             }
             timeline.addEvents {
@@ -553,7 +563,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             advanceUntilIdle()
             updateCount.value shouldBe 1
-            cut.reactions.value.flatMap { it.value } shouldHaveSize 0
+            cut.reactions.value.byReaction.flatMap { it.value } shouldHaveSize 0
             cancelNeverEndingCoroutines()
         }
     }
@@ -588,7 +598,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             onMessageReply = mock(),
             onMessageReport = mock(),
             onOpenMention = mock(),
-            onOpenMetadata = mock(),
+            readHandle = readReceiptsHandleMock,
         )
     }
 
@@ -621,7 +631,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
         }
     }
 
-    private suspend inline infix fun Map<ReactionKey, Set<TimelineElementHolderViewModel.ReactionEvent>>.shouldBe(
+    private suspend inline infix fun Map<ReactionKey, Set<MessageUserReactions.ReactionEvent>>.shouldBe(
         expectation: Set<ReactionsExpectation>,
     ) = withClue(
         "didn't receive expected reactions!" +
@@ -631,7 +641,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                         it.value
                             .map {
                                 "ReactionEvent(isByMe=${it.isByMe}, eventId=${it.eventId}, senderId=${
-                                    it.senderFlow.first { it != null }?.userId
+                                    it.userInfo.first { it != null }?.userId
                                 })"
                             }
                             .joinToString("\n\t${it.key} - ", "\n\t${it.key} - ")
@@ -646,7 +656,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 if (events.find { got ->
                         got.isByMe == expect.isByMe &&
                                 got.eventId == expect.eventId &&
-                                got.senderFlow.first { it != null }
+                                got.userInfo.first { it != null }
                                     ?.userId == expect.senderId
                     } == null) throw failure("did not find event: $expect")
             }

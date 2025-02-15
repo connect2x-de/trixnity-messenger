@@ -1,55 +1,56 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.util.MessageReactionsHandle
+import de.connect2x.trixnity.messenger.util.MessageReactionsHandleImpl
+import de.connect2x.trixnity.messenger.util.ReactionKey
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomUserBuilder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineBuilder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineMock
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.roomUsers
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
+import de.connect2x.trixnity.messenger.withCleanup
 import dev.mokkery.answering.returns
 import dev.mokkery.every
+import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.assertions.failure
+import io.kotest.assertions.nondeterministic.eventually
+import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.assertions.withClue
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
-import io.kotest.engine.runBlocking
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flowOf
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
+import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
+import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.time.Duration.Companion.milliseconds
 
 
 @ExperimentalKotest
-class getMessageUserReactionsTest : ShouldSpec() {
+class MessageReactionsHandleTest : ShouldSpec() {
 
     data class Mocks(
         val matrixClientMock: MatrixClient = mock<MatrixClient>(),
         val roomServiceMock: RoomService = mock<RoomService>(),
         val userServiceMock: UserService = mock<UserService>(),
     )
-
-    fun setupMocks(us: UserId, mocks: Mocks) {
-        every { mocks.matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { mocks.roomServiceMock }
-                    single { mocks.userServiceMock }
-                }
-            )
-        }.koin
-        every { mocks.matrixClientMock.userId } returns us
-    }
 
     init {
         coroutineTestScope = true
@@ -63,43 +64,99 @@ class getMessageUserReactionsTest : ShouldSpec() {
             val timeline: TimelineMock = timeline(mocks.roomServiceMock, roomId) {},
             val roomUsers: RoomUserBuilder = roomUsers(mocks.userServiceMock, roomId) {},
             val eventIds: List<EventId> = (0..2).map { EventId("event_$it") },
-            val us: UserId = UserId("martin", "localhost").also { setupMocks(it, mocks) },
+            val us: UserId = UserId("martin", "localhost"),
             val alice: UserId = UserId("alice", "localhost"),
             val bob: UserId = UserId("bob", "localhost"),
             val testScope: TestScope,
         )
 
-        fun TestEnv.cutMessageReactions(eventId: EventId) =
-            koinApplication {
+        fun TestEnv.setupMocks() {
+            every { mocks.matrixClientMock.di } returns koinApplication {
                 modules(
-                    createTestDefaultTrixnityMessengerModules(
-                        mapOf(us to mocks.matrixClientMock)
+                    module {
+                        single { mocks.roomServiceMock }
+                        single { mocks.userServiceMock }
+                    }
+                )
+            }.koin
+            every { mocks.matrixClientMock.userId } returns us
+            every { mocks.userServiceMock.getById(eq(roomId), eq(us)) } returns flowOf(
+                RoomUser(
+                    roomId, us, "Martin", StateEvent(
+                        MemberEventContent(membership = Membership.JOIN),
+                        EventId(""),
+                        us,
+                        roomId,
+                        0L,
+                        stateKey = "",
                     )
                 )
-            }.koin.let { di ->
-                getMessageUserReactions(
-                    client = testScope.testMatrixClientViewModelContext(
-                        di = di,
-                        userId = us,
-                    ).matrixClient,
-                    roomId = roomId,
-                    eventId = eventId,
+            )
+            every { mocks.userServiceMock.getById(eq(roomId), eq(alice)) } returns flowOf(
+                RoomUser(
+                    roomId, alice, "Alice", StateEvent(
+                        MemberEventContent(membership = Membership.JOIN),
+                        EventId(""),
+                        alice,
+                        roomId,
+                        0L,
+                        stateKey = "",
+                    )
                 )
+            )
+            every { mocks.userServiceMock.getById(eq(roomId), eq(bob)) } returns flowOf(
+                RoomUser(
+                    roomId, bob, "Bob", StateEvent(
+                        MemberEventContent(membership = Membership.JOIN),
+                        EventId(""),
+                        bob,
+                        roomId,
+                        0L,
+                        stateKey = "",
+                    )
+                )
+            )
+        }
+
+        fun TestScope.getTestEnv() =
+            TestEnv(testScope = this).also {
+                it.setupMocks()
             }
 
-        should("get nothing on other message without reactions") {
-            val env = TestEnv(testScope = this)
+        fun TestEnv.cutMessageReactions(
+            eventId: EventId,
+        ): MessageReactionsHandle {
+            val di = koinApplication {
+                modules(
+                    createTestDefaultTrixnityMessengerModules(mapOf(us to mocks.matrixClientMock))
+                )
+            }.koin
+            val viewModelContext = testScope.testMatrixClientViewModelContext(
+                di = di,
+                userId = us,
+            )
+            return MessageReactionsHandleImpl(
+                roomId = roomId,
+                eventId = eventId,
+                initials = Initials,
+                client = viewModelContext.matrixClient,
+                config = MatrixMessengerConfiguration(),
+                scope = viewModelContext.coroutineScope,
+            )
+        }
+
+        should("get nothing on other message without reactions").withCleanup {
+            val env = getTestEnv()
             val (_, _, timeline, _, event) = env
             timeline.addEvents {
                 +textMessageBy(env.alice, event[0])
             }
             val cut = env.cutMessageReactions(event[0])
             cut shouldReturnReactionsByUsers mapOf()
-            cancelNeverEndingCoroutines()
         }
 
-        should("get nothing on our message without reactions") {
-            val env = TestEnv(testScope = this)
+        should("get nothing on our message without reactions").withCleanup {
+            val env = getTestEnv()
             val (_, _, timeline, _, event) = env
             timeline.addEvents {
                 +textMessageBy(env.us, event[0])
@@ -108,11 +165,10 @@ class getMessageUserReactionsTest : ShouldSpec() {
             cut shouldReturnReactionsByUsers mapOf(
                 env.bob to setOf(),
             )
-            cancelNeverEndingCoroutines()
         }
 
-        should("get reaction from other user on other message") {
-            val env = TestEnv(testScope = this)
+        should("get reaction from other user on other message").withCleanup {
+            val env = getTestEnv()
             val (_, _, timeline, roomUsers, event) = env
             timeline.addEvents {
                 +textMessageBy(env.alice, event[0])
@@ -125,11 +181,10 @@ class getMessageUserReactionsTest : ShouldSpec() {
             cut shouldReturnReactionsByUsers mapOf(
                 env.bob to setOf("🥳"),
             )
-            cancelNeverEndingCoroutines()
         }
 
-        should("continuously get reactions from other user on own message") {
-            val env = TestEnv(testScope = this)
+        should("continuously get reactions from other user on own message").withCleanup {
+            val env = getTestEnv()
             val (_, _, timeline, roomUsers, event) = env
             timeline.addEvents {
                 +textMessageBy(env.us, event[0])
@@ -149,11 +204,10 @@ class getMessageUserReactionsTest : ShouldSpec() {
             cut shouldReturnReactionsByUsers mapOf(
                 env.alice to setOf("🥳", "🙂", "😄"),
             )
-            cancelNeverEndingCoroutines()
         }
 
-        should("get reaction from ourselves on other message") {
-            val env = TestEnv(testScope = this)
+        should("get reaction from ourselves on other message").withCleanup {
+            val env = getTestEnv()
             val (_, _, timeline, roomUsers, event) = env
             timeline.addEvents {
                 +textMessageBy(env.alice, event[0])
@@ -167,11 +221,10 @@ class getMessageUserReactionsTest : ShouldSpec() {
                 env.us to setOf("😄"),
                 env.alice to setOf(),
             )
-            cancelNeverEndingCoroutines()
         }
 
-        should("get reaction from ourselves on own message") {
-            val env = TestEnv(testScope = this)
+        should("get reaction from ourselves on own message").withCleanup {
+            val env = getTestEnv()
             val (_, _, timeline, roomUsers, event) = env
             timeline.addEvents {
                 +textMessageBy(env.us, event[0])
@@ -184,11 +237,10 @@ class getMessageUserReactionsTest : ShouldSpec() {
             cut shouldReturnReactionsByUsers mapOf(
                 env.us to setOf("😄"),
             )
-            cancelNeverEndingCoroutines()
         }
 
-        should("get all reactions from multiple users on other message") {
-            val env = TestEnv(testScope = this)
+        should("get all reactions from multiple users on other message").withCleanup {
+            val env = getTestEnv()
             val (_, _, timeline, roomUsers, event) = env
             timeline.addEvents {
                 +textMessageBy(env.alice, event[0])
@@ -206,11 +258,10 @@ class getMessageUserReactionsTest : ShouldSpec() {
                 env.alice to setOf("🥳", "😄"),
                 env.bob to setOf("🙂", "😄"),
             )
-            cancelNeverEndingCoroutines()
         }
 
-        should("get all reactions from multiple users on onw message") {
-            val env = TestEnv(testScope = this)
+        should("get all reactions from multiple users on own message").withCleanup {
+            val env = getTestEnv()
             val (_, _, timeline, roomUsers, event) = env
             timeline.addEvents {
                 +textMessageBy(env.us, event[0])
@@ -228,11 +279,10 @@ class getMessageUserReactionsTest : ShouldSpec() {
                 env.alice to setOf("🥳", "😄"),
                 env.bob to setOf("🙂", "😄"),
             )
-            cancelNeverEndingCoroutines()
         }
 
-        should("get all reactions from multiple users and ourselves on other message") {
-            val env = TestEnv(testScope = this)
+        should("get all reactions from multiple users and ourselves on other message").withCleanup {
+            val env = getTestEnv()
             val (_, _, timeline, roomUsers, event) = env
             timeline.addEvents {
                 +textMessageBy(env.bob, event[0])
@@ -252,11 +302,10 @@ class getMessageUserReactionsTest : ShouldSpec() {
                 env.bob to setOf("😄"),
                 env.us to setOf("😄"),
             )
-            cancelNeverEndingCoroutines()
         }
 
-        should("get all reactions from multiple users and ourselves on onw message") {
-            val env = TestEnv(testScope = this)
+        should("get all reactions from multiple users and ourselves on onw message").withCleanup {
+            val env = getTestEnv()
             val (_, _, timeline, roomUsers, event) = env
             timeline.addEvents {
                 +textMessageBy(env.us, event[0])
@@ -275,11 +324,10 @@ class getMessageUserReactionsTest : ShouldSpec() {
                 env.bob to setOf("😄"),
                 env.us to setOf("🙂"),
             )
-            cancelNeverEndingCoroutines()
         }
 
-        should("get nothing for message with no reactions") {
-            val env = TestEnv(testScope = this)
+        should("get nothing for message with no reactions").withCleanup {
+            val env = getTestEnv()
             val (_, _, timeline, roomUsers, event) = env
             timeline.addEvents {
                 +textMessageBy(env.alice, event[0])
@@ -288,11 +336,10 @@ class getMessageUserReactionsTest : ShouldSpec() {
             cut shouldReturnReactionsByCount listOf(
                 "😄" to 0,
             )
-            cancelNeverEndingCoroutines()
         }
 
-        should("get count for single reaction") {
-            val env = TestEnv(testScope = this)
+        should("get count for single reaction").withCleanup {
+            val env = getTestEnv()
             val (_, _, timeline, roomUsers, event) = env
             timeline.addEvents {
                 +textMessageBy(env.us, event[0])
@@ -306,11 +353,10 @@ class getMessageUserReactionsTest : ShouldSpec() {
                 "🥳" to 0,
                 "🙂" to 1,
             )
-            cancelNeverEndingCoroutines()
         }
 
-        should("get counts for single reactions") {
-            val env = TestEnv(testScope = this)
+        should("get counts for single reactions").withCleanup {
+            val env = getTestEnv()
             val (_, _, timeline, roomUsers, event) = env
             timeline.addEvents {
                 +textMessageBy(env.us, event[0])
@@ -331,11 +377,10 @@ class getMessageUserReactionsTest : ShouldSpec() {
                 "🙂" to 1,
                 "😄" to 1,
             )
-            cancelNeverEndingCoroutines()
         }
 
-        should("get counts for reactions") {
-            val env = TestEnv(testScope = this)
+        should("get counts for reactions").withCleanup {
+            val env = getTestEnv()
             val (_, _, timeline, roomUsers, event) = env
             timeline.addEvents {
                 +textMessageBy(env.us, event[0])
@@ -358,7 +403,6 @@ class getMessageUserReactionsTest : ShouldSpec() {
                 "🙂" to 2,
                 "😄" to 3,
             )
-            cancelNeverEndingCoroutines()
         }
     }
 
@@ -368,18 +412,23 @@ class getMessageUserReactionsTest : ShouldSpec() {
     private fun TimelineBuilder.reactionBy(userId: UserId, reactionTo: EventId, reactionKey: ReactionKey) =
         messageEvent(sender = userId) { reaction(reactionTo, reactionKey) }
 
-    private suspend infix fun Flow<MessageUserReactionsOld?>.shouldReturnReactionsByUsers(
+    private suspend inline infix fun MessageReactionsHandle.shouldReturnReactionsByUsers(
         expected: Map<UserId, Set<ReactionKey>>,
     ) {
-        this.firstOrNull()?.let { reactions ->
+        this.getReactions().firstOrNull()?.let { reactions ->
             reactions.byUser shouldHaveSize expected.filter { it.value.isNotEmpty() }.size
             reactions.byUser.let {
                 expected.forEach { (expectingUser, expectedReactions) ->
                     withClue("did not match expected reactions for user $expectingUser") {
                         val receivedReactions = it[expectingUser]?.let { userReactions ->
                             withClue("checking user value if present") {
-                                runBlocking {
-                                    userReactions.roomUserFlow.first()!!.userId shouldBe expectingUser
+                                eventually(eventuallyConfig {
+                                    retries = 100
+                                    this.listener = { _, _ ->
+                                        delay(10.milliseconds)
+                                    }
+                                }) {
+                                    userReactions.userInfo.first()?.userId shouldBe expectingUser
                                 }
                             }
                             userReactions.reactions
@@ -391,18 +440,17 @@ class getMessageUserReactionsTest : ShouldSpec() {
         } ?: throw failure("no reaction data received")
     }
 
-    private suspend infix fun Flow<MessageUserReactionsOld?>.shouldReturnReactionsByCount(
+    private suspend inline infix fun MessageReactionsHandle.shouldReturnReactionsByCount(
         expected: List<Pair<ReactionKey, Int>>,
     ) {
-        this.firstOrNull()?.let { reactions ->
-            reactions.byCount shouldHaveSize expected.filter { it.second > 0 }.size
+        this.getReactions().firstOrNull()?.let { reactions ->
+            reactions.byReaction shouldHaveSize expected.filter { it.second > 0 }.size
             expected.forEach { (expectedReaction, expectedCount) ->
                 withClue("did not match expected count for reaction $expectedReaction") {
-                    val receivedOrImpliedCount = reactions.byCount[expectedReaction]?.count ?: 0u
-                    receivedOrImpliedCount.toInt() shouldBe expectedCount
+                    val receivedOrImpliedCount = reactions.byReaction[expectedReaction]?.size ?: 0
+                    receivedOrImpliedCount shouldBe expectedCount
                 }
             }
-            reactions.byCount
         } ?: throw failure("no reaction data received")
     }
 }

@@ -1,71 +1,63 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.ReadReceiptsHandle.Reader
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
+import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.debounceAfterFirst
+import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.flattenNotNull
+import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.store.eventId
+import net.folivo.trixnity.client.store.roomId
+import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user
+import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction.FORWARDS
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.ReceiptType.Read
+import org.koin.core.component.get
 import kotlin.time.Duration.Companion.milliseconds
-
-
-/*
-interface ReadReceiptsHandle {
-    val eventId: EventId
-    val roomId: RoomId
-    val filtered: Set<UserId>
-    val isRead: StateFlow<Boolean>
-    val readReceiptsCumulative: StateFlow<Set<Reader>>
-    val readReceiptsSingle: StateFlow<Set<Reader>>
-
-    data class Reader(
-        val userId: UserId,
-        val userInfo: StateFlow<UserInfoElement?>,
-    ) { // For correct handling in Sets, only compare userIds
-        override fun hashCode() = userId.hashCode()
-        override fun equals(other: Any?) =
-            other is Reader && other.userId == userId
-    }
-
-    object Empty : ReadReceiptsHandle {
-        override val eventId = EventId("")
-        override val roomId = RoomId("")
-        override val filtered = setOf<UserId>()
-        override val isRead = MutableStateFlow(false)
-        override val readReceiptsCumulative = MutableStateFlow(setOf<Reader>())
-        override val readReceiptsSingle = MutableStateFlow(setOf<Reader>())
-    }
-}
-*/
 
 
 interface ReadReceiptsHandleFactory {
     fun create(
+        viewModelContext: MatrixClientViewModelContext,
         eventId: EventId,
+        roomId: RoomId,
         senderId: UserId,
         cache: ReadReceiptsCache,
-        scope: CoroutineScope,
     ): ReadReceiptsHandle =
         Handle(
             eventId = eventId,
+            roomId = roomId,
             senderId = senderId,
+            initials = viewModelContext.get<Initials>(),
+            client = viewModelContext.matrixClient,
+            config = viewModelContext.get<MatrixMessengerConfiguration>(),
             cache = cache,
-            scope = scope,
+            scope = viewModelContext.coroutineScope,
         )
 
     companion object : ReadReceiptsHandleFactory
@@ -73,8 +65,7 @@ interface ReadReceiptsHandleFactory {
 
 interface ReadReceiptsHandle {
     val isRead: Flow<Boolean>
-    val readReceiptsCumulative: Flow<Set<Reader>>
-    val readReceiptsSingle: Flow<Set<Reader>>
+    val isReadBy: Flow<Set<Reader>>
 
     data class Reader(
         val userId: UserId,
@@ -88,147 +79,163 @@ interface ReadReceiptsHandle {
 
 class Handle(
     val eventId: EventId,
+    val roomId: RoomId,
     val senderId: UserId,
+    val initials: Initials,
+    val client: MatrixClient,
+    val config: MatrixMessengerConfiguration,
     val cache: ReadReceiptsCache,
     val scope: CoroutineScope,
 ) : ReadReceiptsHandle {
+
     override val isRead: Flow<Boolean> =
-        cache
-            .getReceipts()
-            .map { true } // TODO
+        isReadSearch(roomId, eventId).map {
+            when (it) {
+                is IsReadSearchResult.Read -> true
+                IsReadSearchResult.Unread -> false
+            }
+        }.takeWhileInclusive { !it }
 
-    override val readReceiptsCumulative =
-        cache
-            .getReceipts()
-            .map { setOf<Reader>() } // TODO
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val isReadBy: Flow<Set<Reader>> =
+        flow {
+            val cumulatedReads = mutableSetOf<UserId>()
+            isReadSearch(roomId, eventId)
+                .collect {
+                    when (it) {
+                        is IsReadSearchResult.Read -> {
+                            cumulatedReads.addAll(it.readBy)
+                            emit(cumulatedReads.toList())
+                        }
 
-    override val readReceiptsSingle =
+                        IsReadSearchResult.Unread -> {
+                            if (cumulatedReads.isEmpty()) emit(cumulatedReads.toList())
+                        }
+                    }
+                }
+        }.mapLatest {
+            it.map { userId ->
+                userId.toReader()
+            }.toSet()
+        }
+
+    private fun UserId.toReader() =
+        Reader(
+            userId = this,
+            userInfo = this.toUserInfoFlow()
+                .stateIn(scope, whileSubscribedWithTimeout, null),
+        )
+
+    private fun UserId.toUserInfoFlow() = client
+        .user.getById(roomId, this)
+        .map {
+            it.toUserInfoElement(
+                coroutineScope = scope,
+                matrixClient = client,
+                initials = initials,
+                config.avatarMaxSize,
+                this,
+            )
+        }
+
+    private sealed interface IsReadSearchResult {
+        data object Unread : IsReadSearchResult
+        data class Read(val readBy: Set<UserId>) : IsReadSearchResult
+    }
+
+    /**
+     * TODO This algorithm has a few issues (mostly edge cases):
+     *   - Ressource consumption: Too many same re-computations are done for each element.
+     *     For example when far away from the last event and only ourself wrote messages.
+     *   - Wrong results: On membership change depending on history visibility we may getting wrong results.
+     *     For example when A sends a message and B joins, B may not be able to read at all but is marked as reader.
+     *   Possible solution: lazily calculate Map<EventId,Set<UserId>> (sorted) in TimelineViewModel, which can be iterated through.
+     *   This List must also forget "old" events, when not needed anymore and consider membership changes depending on history visibility.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun isReadSearch(roomId: RoomId, eventId: EventId): Flow<IsReadSearchResult> =
         cache
-            .getReceipts()
-            .map { setOf<Reader>() } // TODO
+            .getReceipts(roomId)
+            .flatMapLatest { receipts ->
+//                log.trace { "isReadSearch: roomId=$roomId eventId=$eventId" }
+                client.room.getTimelineEvents(roomId, eventId, FORWARDS)
+                    .transform {
+                        val timelineEvent = it.first()
+                        val sender = timelineEvent.sender
+                        val currentEventId = timelineEvent.eventId
+                        val currentRoomId = timelineEvent.roomId
+                        val foundReaders = buildSet {
+                            addAll(receipts[currentEventId].orEmpty())
+                            add(sender)
+                            remove(senderId)
+                            remove(client.userId)
+                        }
+                        when {
+                            foundReaders.isNotEmpty() -> emit(IsReadSearchResult.Read(foundReaders))
+                            currentRoomId != roomId -> emitAll(
+                                isReadSearch(
+                                    currentRoomId,
+                                    currentEventId,
+                                )
+                            ) // recursive!
+                            else -> emit(IsReadSearchResult.Unread)
+                        }
+                    }
+            }
 }
 
 interface ReadReceiptsCacheFactory {
     fun create(
-        roomId: RoomId,
-        client: MatrixClient,
-        scope: CoroutineScope,
+        viewModelContext: MatrixClientViewModelContext,
     ): ReadReceiptsCache =
         ReadReceiptsCacheImpl(
-            roomId = roomId,
-            client = client,
-            scope = scope,
+            client = viewModelContext.matrixClient,
+            scope = viewModelContext.coroutineScope,
         )
 
     companion object : ReadReceiptsCacheFactory
 }
 
 interface ReadReceiptsCache {
-    fun getReceipts(): Flow<Map<EventId, Set<UserId>>>
+    fun getReceipts(roomId: RoomId): Flow<Map<EventId, Set<UserId>>>
 }
 
 class ReadReceiptsCacheImpl(
-    private val roomId: RoomId,
     private val client: MatrixClient,
     private val scope: CoroutineScope,
 ) : ReadReceiptsCache {
     // Don't use ConcurrentMap as it saves its contents twice. Not ideal for caching flows.
     private val _receiptsCache = MutexMap<RoomId, Flow<Map<EventId, Set<UserId>>>>()
-    override fun getReceipts(): Flow<Map<EventId, Set<UserId>>> =
+    override fun getReceipts(roomId: RoomId): Flow<Map<EventId, Set<UserId>>> =
         flow {
             emitAll(
-                _receiptsCache
-                    .getOrSet(roomId) {
-                        client
-                            .getReadReceipts(roomId)
-//                .orderingCache(roomId, client)
-//                .onCompletion {
-//                    // TODO: The timeline purges all the element holders before it creates new ones.
-//                    //  This means that onComplete is called even though the channel flow should be kept alive.
-//                    //  Solution 1: have the timeline VM subscribe to this.
-//                    //  Solution 2: build and save a timer flow which subscribes to this and deletes it after
-//                    //      some time and there's been no new cache retrievals for this flow.
-//                    receiptsFlowCache.remove(roomId)
-//                    receiptsHandleCache.removeIf { key, _ -> key.roomId == roomId }
-//                }
-//                // Persist the current receipts data and update channel for all by room.
-//                // Note: the coroutine scopes are set to the one when this shared item is created but not when it's retrieved.
-                            .stateIn(scope, WhileSubscribed(), mapOf())
-                    })
+                _receiptsCache.getOrSet(roomId) {
+                    client.getReadReceipts(roomId)
+                        .stateIn(scope, WhileSubscribed(), mapOf())
+                })
         }
+
+    private fun MatrixClient.getReadReceipts(
+        roomId: RoomId,
+    ): Flow<Map<EventId, Set<UserId>>> =
+        user
+            .getAllReceipts(roomId)
+            .debounceAfterFirst(500.milliseconds)
+            .distinctUntilChanged()
+            .flattenNotNull()
+            .map { receipts ->
+                receipts
+                    .mapNotNull { (userId, userReceipts) ->
+                        if (userId == this.userId) null
+                        else userReceipts.receipts[Read]
+                            ?.let { it.eventId to userId }
+                    }
+                    .groupBy { (eventId, _) -> eventId }
+                    .mapValues { (_, eventIdsToUserIds) ->
+                        eventIdsToUserIds.map { (_, userId) -> userId }.toSet()
+                    }
+            }
 }
-
-private fun MatrixClient.getReadReceipts(
-    roomId: RoomId,
-//    ignore: Set<UserId>,
-): Flow<Map<EventId, Set<UserId>>> =
-    user
-        .getAllReceipts(roomId)
-        .debounceAfterFirst(500.milliseconds)
-        .distinctUntilChanged()
-        .flattenNotNull()
-        .map { receipts ->
-            receipts
-                .mapNotNull { (userId, userReceipts) ->
-                    if (userId == this.userId) null
-//                    if (ignore.contains(userId)) null
-                    else userReceipts.receipts[Read]
-                        ?.let { it.eventId to userId }
-                }
-                .groupBy { (eventId, _) -> eventId }
-                .mapValues { (_, eventIdsToUserIds) ->
-                    eventIdsToUserIds.map { (_, userId) -> userId }.toSet()
-                }
-        }
-
-/*
-@OptIn(ExperimentalCoroutinesApi::class)
-private fun MatrixClient.getReceipts1(
-    roomId: RoomId,
-    ignore: Set<UserId>,
-) =
-    user
-        .getAllReceipts(roomId)
-        .debounceAfterFirst(500.milliseconds)
-        .distinctUntilChanged()
-        .flattenNotNull()
-        .mapLatest { userReceipts ->
-            buildMap<EventId, MutableSet<UserId>> {
-                userReceipts.entries.forEach { (userId, receipt) ->
-                    receipt.receipts[Read]?.let { (eventId, receipt) ->
-                        getOrPut(eventId) { mutableSetOf() }.also {
-                            if (!ignore.contains(userId)) {
-                                it.add(userId)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-@OptIn(ExperimentalCoroutinesApi::class)
-private fun MatrixClient.getReceipts(
-    roomId: RoomId,
-    ignore: Set<UserId>,
-): Flow<Map<EventId, Set<UserId>>> =
-    user.getAllReceipts(roomId)
-        .flattenNotNull()
-        .mapLatest { userReceipts ->
-            buildMap<EventId, MutableSet<UserId>> {
-                userReceipts.entries.forEach { (userId, receipt) ->
-                    receipt.receipts[Read]?.eventId.let {
-                        // The sender and current user should be ignored.
-//                        if (userId == client.userId || userId == senderId) null else it
-                        if (ignore.contains(userId)) null else it
-                    }?.let { eventId ->
-                        getOrPut(eventId) { mutableSetOf() }.apply { add(userId) }
-                    }
-                }
-            }
-        }
-        .distinctUntilChanged()
-*/
-
 
 private class MutexMap<K, V> {
     private val mutex = Mutex()
