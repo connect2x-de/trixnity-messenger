@@ -7,14 +7,12 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.debounceAfterFirst
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -38,7 +36,6 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.ReceiptType.Read
 import org.koin.core.component.get
-import kotlin.time.Duration.Companion.milliseconds
 
 
 interface ReadReceiptsHandleFactory {
@@ -77,7 +74,7 @@ interface ReadReceiptsHandle {
     }
 }
 
-class Handle(
+class Handle( // TODO rename
     val eventId: EventId,
     val roomId: RoomId,
     val senderId: UserId,
@@ -220,8 +217,8 @@ class ReadReceiptsCacheImpl(
     ): Flow<Map<EventId, Set<UserId>>> =
         user
             .getAllReceipts(roomId)
-            .debounceAfterFirst(500.milliseconds)
-            .distinctUntilChanged()
+//            .debounceAfterFirst(500.milliseconds)
+//            .distinctUntilChanged()
             .flattenNotNull()
             .map { receipts ->
                 receipts

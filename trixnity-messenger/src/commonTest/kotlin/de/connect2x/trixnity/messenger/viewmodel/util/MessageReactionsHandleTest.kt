@@ -423,10 +423,8 @@ class MessageReactionsHandleTest : ShouldSpec() {
                         val receivedReactions = it[expectingUser]?.let { userReactions ->
                             withClue("checking user value if present") {
                                 eventually(eventuallyConfig {
-                                    retries = 100
-                                    this.listener = { _, _ ->
-                                        delay(10.milliseconds)
-                                    }
+                                    retries = 10
+                                    this.listener = { _, _ -> delay(100.milliseconds) }
                                 }) {
                                     userReactions.userInfo.first()?.userId shouldBe expectingUser
                                 }
