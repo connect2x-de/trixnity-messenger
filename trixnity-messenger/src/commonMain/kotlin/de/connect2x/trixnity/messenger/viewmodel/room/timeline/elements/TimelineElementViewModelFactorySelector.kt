@@ -59,7 +59,6 @@ class TimelineElementViewModelFactorySelectorImpl(
             timelineEvents.collect { timelineEvent ->
                 timelineEvent
                     .map { supports(it.event.content, it.content) }
-                    // TODO: check if it really should emmit timeline-event from outside of the mapped onEach every time that's called
                     .onEach { if (it) emitAll(timelineEvent) else emit(null) }
                     .first { !it }
             }

@@ -38,7 +38,6 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.MessageUserReactions.ReactionEvent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import kotlinx.coroutines.flow.combine
 
 interface MessageReactionsView {
     @Composable
@@ -148,11 +147,14 @@ internal fun MessageReactionButton(
     onAddReaction: (reaction: String) -> Unit,
     onRemoveReaction: (reaction: ReactionEvent) -> Unit,
 ) {
-    // TODO: remember?
     val flows = reactionEvents.map { it.userInfo }
-    val senderList = combine(flows) { it.filterNotNull() }
-        .collectAsState(listOf()).value
-    Tooltip({ TooltipText(senderList.joinToString { it.name }) }) {
+    val senderList = remember(flows) {
+        flows.map { it.collectAsState() }
+            .mapNotNull { it.value?.name }
+            .joinToString { it }
+    }
+
+    Tooltip({ TooltipText(senderList) }) {
         if (myReaction != null) {
             FilledTonalButton(
                 onClick = { onRemoveReaction(myReaction) },
