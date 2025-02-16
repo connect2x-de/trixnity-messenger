@@ -13,6 +13,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -86,12 +87,15 @@ class ReadReceiptsHandleImpl(
 ) : ReadReceiptsHandle {
 
     override val isRead: Flow<Boolean> =
-        isReadSearch(roomId, eventId).map {
-            when (it) {
-                is IsReadSearchResult.Read -> true
-                IsReadSearchResult.Unread -> false
+        isReadSearch(roomId, eventId)
+            .map {
+                when (it) {
+                    is IsReadSearchResult.Read -> true
+                    IsReadSearchResult.Unread -> false
+                }
             }
-        }.takeWhileInclusive { !it }
+            .distinctUntilChanged()
+            .takeWhileInclusive { !it }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val isReadBy: Flow<Set<Reader>> =
@@ -110,11 +114,13 @@ class ReadReceiptsHandleImpl(
                         }
                     }
                 }
-        }.mapLatest {
-            it.map { userId ->
-                userId.toReader()
-            }.toSet()
         }
+            .distinctUntilChanged()
+            .mapLatest {
+                it.map { userId ->
+                    userId.toReader()
+                }.toSet()
+            }
 
     private fun UserId.toReader() =
         Reader(
