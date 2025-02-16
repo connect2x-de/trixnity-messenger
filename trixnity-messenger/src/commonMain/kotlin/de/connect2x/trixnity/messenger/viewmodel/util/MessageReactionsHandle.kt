@@ -1,26 +1,22 @@
-package de.connect2x.trixnity.messenger.util
+package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.util.MessageUserReactions.ReactionEvent
-import de.connect2x.trixnity.messenger.util.MessageUserReactions.ReactionEventCollection
-import de.connect2x.trixnity.messenger.util.MessageUserReactions.UserReactions
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.debounceAfterFirst
+import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactions.ReactionEvent
+import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactions.ReactionEventCollection
+import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactions.UserReactions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getTimelineEventReactionAggregation
 import net.folivo.trixnity.client.store.eventId
@@ -54,7 +50,6 @@ interface MessageReactionsHandleFactory {
 
 interface MessageReactionsHandle {
     val reactions: Flow<MessageUserReactions>
-    fun reactedBy(reaction: ReactionKey): Flow<Set<UserInfoElement>>
 }
 
 class MessageReactionsHandleImpl(
@@ -74,18 +69,6 @@ class MessageReactionsHandleImpl(
                 config = config,
                 scope = scope,
             )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override fun reactedBy(reaction: ReactionKey) =
-        reactions
-            .distinctUntilChanged()
-            .mapLatest {
-                it.byReaction[reaction]?.let { events ->
-                    events.map { it.userInfo }
-                } ?: listOf()
-            }
-            .flatten()
-            .map { it.toSet() }
 }
 
 data class MessageUserReactions(

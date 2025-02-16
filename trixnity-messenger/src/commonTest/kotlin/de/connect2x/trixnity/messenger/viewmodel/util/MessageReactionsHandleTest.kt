@@ -2,9 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.util.MessageReactionsHandle
-import de.connect2x.trixnity.messenger.util.MessageReactionsHandleImpl
-import de.connect2x.trixnity.messenger.util.ReactionKey
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomUserBuilder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineBuilder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineMock

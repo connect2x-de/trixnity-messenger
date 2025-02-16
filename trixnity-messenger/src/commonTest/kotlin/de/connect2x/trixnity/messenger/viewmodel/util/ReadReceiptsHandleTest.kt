@@ -3,9 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.util.ReadReceiptsCacheImpl
-import de.connect2x.trixnity.messenger.util.ReadReceiptsHandle
-import de.connect2x.trixnity.messenger.util.ReadReceiptsHandleImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomUserBuilder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineBuilder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineMock

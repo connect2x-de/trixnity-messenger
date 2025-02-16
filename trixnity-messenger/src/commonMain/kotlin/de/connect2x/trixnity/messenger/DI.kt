@@ -12,9 +12,6 @@ import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
-import de.connect2x.trixnity.messenger.util.MessageReactionsHandleFactory
-import de.connect2x.trixnity.messenger.util.ReadReceiptsCacheFactory
-import de.connect2x.trixnity.messenger.util.ReadReceiptsHandleFactory
 import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
@@ -127,6 +124,9 @@ import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenVie
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoomImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.MessageReactionsHandleFactory
+import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsCacheFactory
+import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandleFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviterImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName

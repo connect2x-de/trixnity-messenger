@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
-import de.connect2x.trixnity.messenger.util.ReactionKey
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every

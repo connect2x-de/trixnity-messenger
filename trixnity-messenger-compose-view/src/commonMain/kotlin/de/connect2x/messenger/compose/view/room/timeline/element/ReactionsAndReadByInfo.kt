@@ -17,9 +17,9 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.util.ReactionKey
-import de.connect2x.trixnity.messenger.util.ReadReceiptsHandle.Reader
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
+import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandle.Reader
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable

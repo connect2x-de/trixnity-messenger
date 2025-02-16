@@ -18,9 +18,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import de.connect2x.messenger.compose.view.room.timeline.element.ReactionsAndReadByInfo
-import de.connect2x.trixnity.messenger.util.ReactionKey
-import de.connect2x.trixnity.messenger.util.ReadReceiptsHandle.Reader
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
+import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandle.Reader
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable

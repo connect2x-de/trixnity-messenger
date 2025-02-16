@@ -35,10 +35,11 @@ import de.connect2x.messenger.compose.view.common.EmojiPopup
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.util.MessageUserReactions.ReactionEvent
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactions.ReactionEvent
+
 
 interface MessageReactionsView {
     @Composable

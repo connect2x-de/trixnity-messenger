@@ -14,7 +14,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.ReadReceiptsCacheFactory
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.util.launchPopWhile
 import de.connect2x.trixnity.messenger.util.launchPush
@@ -35,6 +34,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactorySelector
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
+import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsCacheFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedFlow
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedIndexedFlow
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate

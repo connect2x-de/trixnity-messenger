@@ -1,13 +1,11 @@
-package de.connect2x.trixnity.messenger.util
+package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.util.ReadReceiptsHandle.Reader
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
+import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandle.Reader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow

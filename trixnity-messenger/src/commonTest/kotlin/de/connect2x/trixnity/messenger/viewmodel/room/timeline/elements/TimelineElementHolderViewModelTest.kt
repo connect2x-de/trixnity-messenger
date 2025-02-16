@@ -2,13 +2,13 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.util.MessageUserReactions
-import de.connect2x.trixnity.messenger.util.ReactionKey
-import de.connect2x.trixnity.messenger.util.ReadReceiptsHandle
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomUserBuilder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineMock
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.roomUsers
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
+import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactions
+import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
+import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandle
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.calls
