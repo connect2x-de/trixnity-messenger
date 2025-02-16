@@ -137,11 +137,11 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
 
     val isRead: StateFlow<Boolean>
     val isReadBy: StateFlow<Set<Reader>>
+
     val reactions: StateFlow<MessageUserReactions>
-
     val canBeReactedTo: StateFlow<Boolean>
-    val isReplaced: StateFlow<Boolean>
 
+    val isReplaced: StateFlow<Boolean>
     val canBeEdited: StateFlow<Boolean>
     val canBeRedacted: StateFlow<Boolean>
     val canBeRepliedTo: StateFlow<Boolean>
@@ -478,10 +478,6 @@ class TimelineElementHolderViewModelImpl(
             )
         }
     }
-
-    override fun toString(): String =
-        "TimelineElementViewModel(showLoadingIndicator=${showLoadingIndicatorBefore.value}" +
-                ", shouldShowUnreadMarker=${showUnreadMarker.value})"
 }
 
 class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {

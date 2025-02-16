@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.launchAndCollectCut
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomUserBuilder
@@ -13,20 +14,15 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.kotest.assertions.failure
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
-import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.TimelineEvent
@@ -36,7 +32,6 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.reflect.KProperty
 import kotlin.time.Duration.Companion.milliseconds
 
 
@@ -183,7 +178,30 @@ class ReadReceiptsHandleTest : ShouldSpec() {
             cut shouldBeRead false
         }
 
-        should("be true when read by third user").withCleanup {
+        should("be true when read by third user immediately").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Us", env.us, null)
+                +roomUser("Bob", env.bob, event[0])
+                +roomUser("Alice", env.alice, event[0])
+            }
+            launchAndCollectCut(
+                cut.isRead,
+                2,
+            ) { result, updateCount ->
+                when (updateCount) {
+                    1 -> result shouldBe false
+                    2 -> result shouldBe true
+                }
+            }
+        }
+
+        should("be true when read by third user later").withCleanup {
             val env = TestEnv(testScope = this)
             val (_, timeline, roomUsers, event) = env
             val cut = env.cutReadReceiptsHandle(env.alice, event[0])
@@ -198,7 +216,7 @@ class ReadReceiptsHandleTest : ShouldSpec() {
             roomUsers.addOrUpdateUsers {
                 +roomUser("Bob", env.bob, event[0])
             }
-            val updateCount by launchAndCollectCut(
+            launchAndCollectCut(
                 cut.isRead,
                 2,
             ) { result, updateCount ->
@@ -207,8 +225,6 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                     2 -> result shouldBe true
                 }
             }
-            wait()
-            updateCount shouldBe 2
         }
 
         should("be true when message from third user after it").withCleanup {
@@ -231,7 +247,7 @@ class ReadReceiptsHandleTest : ShouldSpec() {
             roomUsers.addOrUpdateUsers {
                 +roomUser("Bob", env.bob, event[0])
             }
-            val updateCount by launchAndCollectCut(
+            launchAndCollectCut(
                 cut.isRead,
                 2,
             ) { result, updateCount ->
@@ -240,8 +256,6 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                     2 -> result shouldBe true
                 }
             }
-            wait()
-            updateCount shouldBe 2
         }
 
         should("be empty when not read").withCleanup {
@@ -350,14 +364,6 @@ class ReadReceiptsHandleTest : ShouldSpec() {
         should("not contain sender from read marker after update").withCleanup {
             val env = TestEnv(testScope = this)
             val (_, timeline, roomUsers, event) = env
-            val updateCount by launchAndCollectCut(
-                env.cutReadReceiptsHandle(env.alice, event[0]).isReadBy,
-            ) { result, updateCount ->
-                when (updateCount) {
-                    1 -> result shouldBeUsers emptySet()
-                    2 -> result shouldBeUsers setOf(env.bob)
-                }
-            }
             timeline.addEvents {
                 +timelineEventOf(env.alice, event[0])
             }
@@ -370,8 +376,15 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                 +roomUser("Bob", env.bob, event[0])
                 +roomUser("Alice", env.alice, event[0])
             }
-            wait()
-            updateCount shouldBeGreaterThanOrEqual 2
+            launchAndCollectCut(
+                env.cutReadReceiptsHandle(env.alice, event[0]).isReadBy,
+                2,
+            ) { result, updateCount ->
+                when (updateCount) {
+                    1 -> result shouldBeUsers emptySet()
+                    2 -> result shouldBeUsers setOf(env.bob)
+                }
+            }
         }
 
         should("update read marker").withCleanup {
@@ -389,7 +402,7 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                 +roomUser("Reader", env.reader[2], event[8])
                 +roomUser("Reader", env.reader[3], event[11])
             }
-            val updateCount by launchAndCollectCut(
+            launchAndCollectCut(
                 cut.isReadBy,
                 5,
             ) { result, updateCount ->
@@ -419,29 +432,7 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                     )
                 }
             }
-            wait()
-            updateCount shouldBe 5
         }
-    }
-
-    // TODO move to test utils?
-    private fun <T> CoroutineScope.launchAndCollectCut(
-        cut: Flow<T>,
-        maxUpdates: Int? = null,
-        onCollect: suspend (result: T, updateCount: Int) -> Unit,
-    ): MutableState1<Int> {
-        val updateCount = MutableState1(0)
-        launch {
-            cut.collect { result ->
-                updateCount.state.value++
-                if (maxUpdates != null && maxUpdates < updateCount.state.value) {
-                    throw failure("should not have updated >=$updateCount times")
-                }
-                log.debug { "update #${updateCount.state.value} -> $result" }
-                onCollect(result, updateCount.state.value)
-            }
-        }
-        return updateCount
     }
 
     private fun TimelineBuilder.timelineEventOf(
@@ -500,19 +491,6 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                 this.isRead.first() shouldBe isRead
             }
         }
-    }
-}
-
-// TODO: move to utils?
-class MutableState1<T>(value: T) {
-    val state = MutableStateFlow(value)
-
-    operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
-        return state.value
-    }
-
-    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-        state.value = value
     }
 }
 

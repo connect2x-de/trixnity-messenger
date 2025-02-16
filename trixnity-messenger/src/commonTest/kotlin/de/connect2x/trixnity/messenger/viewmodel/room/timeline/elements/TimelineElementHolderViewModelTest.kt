@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.launchAndCollectCut
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomUserBuilder
@@ -11,6 +12,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandle
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.withCleanup
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -23,6 +25,7 @@ import io.kotest.core.test.TestScope
 import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
@@ -56,6 +59,7 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Text
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -426,7 +430,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             val bob: UserId = UserId("bob_$runId", "localhost"),
         )
 
-        should("see if the message has been read") {
+        should("see if the message has been read").withCleanup {
             val env = TestEnv()
             val (roomId, timeline, roomUsers, event, _, alice, bob) = env
             val message = listOf(
@@ -434,32 +438,27 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 cutTimelineEvent(event[1], alice, roomId),
             )
             timeline.addEvents { message.forEach { +it } }
-            val cut = cutTimelineElementHolderViewModel(message[1])
-            val updateCount = MutableStateFlow(0)
-            launch {
-                cut.isRead.collect { isRead ->
-                    updateCount.value++
-                    when (updateCount.value) {
-                        1 -> isRead shouldBe false
-                        2 -> isRead shouldBe true
-                    }
+            val cut = cutTimelineElementHolderViewModel(message[1], roomId = env.roomId)
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", bob, lastReadMessage = null)
+            }
+            delay(100.milliseconds)
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", bob, lastReadMessage = event[0])
+            }
+            delay(100.milliseconds)
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", bob, lastReadMessage = event[1])
+            }
+            delay(100.milliseconds)
+            launchAndCollectCut(
+                cut.isRead,
+                1,
+            ) { result, updateCount ->
+                when (updateCount) {
+                    1 -> result shouldBe false
                 }
             }
-            roomUsers.addOrUpdateUsersSubsequently(
-                {
-                    updateCount.value shouldBe 0
-                    +roomUser("Bob", bob, lastReadMessage = null)
-                }, {
-                    updateCount.value shouldBe 1
-                    +roomUser("Bob", bob, lastReadMessage = event[0])
-                }, {
-                    updateCount.value shouldBe 1
-                    +roomUser("Bob", bob, lastReadMessage = event[1])
-                })
-            advanceUntilIdle()
-            updateCount.value shouldBe 2
-            cut.isRead.value shouldBe true
-            cancelNeverEndingCoroutines()
         }
 
         should("see if the message has not been read") {
@@ -470,7 +469,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 cutTimelineEvent(event[1], alice, roomId),
             )
             timeline.addEvents { message.forEach { +it } }
-            val cut = cutTimelineElementHolderViewModel(message[1])
+            val cut = cutTimelineElementHolderViewModel(message[1], roomId = env.roomId)
             val updateCount = MutableStateFlow(0)
             launch {
                 cut.isRead.collect { isRead ->
@@ -478,15 +477,16 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                     isRead shouldBe false
                 }
             }
-            roomUsers.addOrUpdateUsersSubsequently(
-                {
-                    updateCount.value shouldBe 0
-                    +roomUser("Bob", bob, lastReadMessage = null)
-                },
-                {
-                    updateCount.value shouldBe 1
-                    +roomUser("Bob", bob, lastReadMessage = event[0])
-                })
+            roomUsers.addOrUpdateUsers {
+                updateCount.value shouldBe 0
+                +roomUser("Bob", bob, lastReadMessage = null)
+            }
+            delay(100.milliseconds)
+            roomUsers.addOrUpdateUsers {
+                updateCount.value shouldBe 1
+                +roomUser("Bob", bob, lastReadMessage = event[0])
+            }
+            delay(100.milliseconds)
             advanceUntilIdle()
             updateCount.value shouldBe 1
             cut.isRead.value shouldBe false
@@ -506,7 +506,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             val expectation = mutableSetOf<ReactionsExpectation>()
             val updateCount = MutableStateFlow(0)
-            val cut = cutTimelineElementHolderViewModel(message)
+            val cut = cutTimelineElementHolderViewModel(message, roomId = env.roomId)
             launch {
                 cut.reactions.collect { reactions ->
                     updateCount.value++
@@ -527,12 +527,14 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                     }
                 }
             }
-            timeline.addEventsSubsequently(
-                { +messageEvent(sender = bob, eventId = event[1]) { reaction(event[0], "😄") } },
-                { +messageEvent(sender = us, eventId = event[2]) { reaction(event[0], "🥳") } },
-                { +messageEvent(sender = us, eventId = event[3]) { reaction(event[0], "😄") } },
-                { +messageEvent(sender = alice, eventId = event[4]) { reaction(event[0], "🙂") } },
-            )
+            timeline.addEvents { +messageEvent(sender = bob, eventId = event[1]) { reaction(event[0], "😄") } }
+            delay(100.milliseconds)
+            timeline.addEvents { +messageEvent(sender = us, eventId = event[2]) { reaction(event[0], "🥳") } }
+            delay(100.milliseconds)
+            timeline.addEvents { +messageEvent(sender = us, eventId = event[3]) { reaction(event[0], "😄") } }
+            delay(100.milliseconds)
+            timeline.addEvents { +messageEvent(sender = alice, eventId = event[4]) { reaction(event[0], "🙂") } }
+            delay(100.milliseconds)
             advanceUntilIdle()
             updateCount.value shouldBe 5
             cut.reactions.value.byReaction.flatMap { it.value } shouldHaveSize 4
@@ -551,7 +553,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 +roomUser("Bob", bob)
             }
             val updateCount = MutableStateFlow(0)
-            val cut = cutTimelineElementHolderViewModel(message[0])
+            val cut = cutTimelineElementHolderViewModel(message[0], roomId = env.roomId)
             launch {
                 cut.reactions.collect { reactions ->
                     updateCount.value++
@@ -571,6 +573,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
     private fun TestScope.cutTimelineElementHolderViewModel(
         timelineEvent: TimelineEvent = this@TimelineElementHolderViewModelTest.timelineEvent,
         eventId: EventId = timelineEvent.eventId,
+        roomId: RoomId = this@TimelineElementHolderViewModelTest.roomId,
     ): TimelineElementHolderViewModel {
         val di = koinApplication {
             modules(
