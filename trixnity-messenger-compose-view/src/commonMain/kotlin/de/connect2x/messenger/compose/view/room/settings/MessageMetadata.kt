@@ -381,7 +381,6 @@ class MessageMetadataViewImpl : MessageMetadataView {
                                 key(interactions) {
                                     UserInteractions(
                                         interactions = interactions,
-                                        paneBounds = paneBounds.get(),
                                         visibleListOffset = interactionsOffset,
                                         visibleListHeight = filterOffset - interactionsOffset,
                                         onOpenUserProfile = viewModel::openUserProfile,
@@ -503,14 +502,11 @@ private fun MessageContent(
 private fun UserInteractions(
     modifier: Modifier = Modifier,
     interactions: List<MessageUserInteraction>,
-    paneBounds: VerticalBounds,
     visibleListOffset: Dp,
     visibleListHeight: Dp,
     onOpenUserProfile: (UserId) -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-    val density = LocalDensity.current
-    val itemBounds = ThrottledMutableState<MutableMap<Int, VerticalBounds>> { mutableMapOf() }
     Column(modifier) {
         if (interactions.isEmpty()) Text(
             i18n.messageMetadataReadersAndReactionsNone(),
@@ -521,27 +517,69 @@ private fun UserInteractions(
                 .paddingFromBaseline(0.dp)
                 .padding(start = smallSpacing),
         )
-        else interactions.forEachIndexed { index, interaction ->
+//        else LazyColumn(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .background(MaterialTheme.colorScheme.surface)
+//                .height(visibleListHeight),
+//            userScrollEnabled = false,
+//            content = {
+//                items(
+//                    count = interactions.size,
+//                    key = { interactions[it].userId },
+//                ) {
+//                    val interaction = interactions[it]
+//                    UserInfo(interaction.userInfo, interaction.reactions, onOpenUserProfile)
+//                }
+//            }
+//        )
+
+        else FlatLazyColumn(
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+            visibleListOffset = visibleListOffset,
+            visibleListHeight = visibleListHeight,
+            itemHeight = userItemHeight,
+            itemCount = interactions.size,
+            itemKey = { interactions[it].userId },
+            itemContent = {
+                val interaction = interactions[it]
+                UserInfo(interaction.userInfo, interaction.reactions, onOpenUserProfile)
+            }
+        )
+    }
+}
+
+@Composable
+private fun <K> FlatLazyColumn(
+    modifier: Modifier = Modifier,
+    visibleListOffset: Dp,
+    visibleListHeight: Dp,
+    itemHeight: Dp,
+    itemCount: Int,
+    itemKey: (index: Int) -> K,
+    itemContent: @Composable BoxScope.(index: Int) -> Unit,
+) {
+    val cullBuffer = 1f
+    val visibleItemIndexFirst = (-visibleListOffset.value / itemHeight.value - cullBuffer)
+        .fastRoundToInt().coerceIn(0, itemCount - 1)
+    val visibleItemIndexLast = (visibleItemIndexFirst +
+            (visibleListHeight.value / itemHeight.value + cullBuffer)
+                .fastRoundToInt()).coerceIn(0, itemCount - 1)
+    val visibleItemsRange = (visibleItemIndexFirst..visibleItemIndexLast)
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .then(modifier)
+    ) {
+        repeat(itemCount) { index ->
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .height(userItemHeight)
-                    .onGloballyPositioned {
-                        itemBounds.modify { value -> value[index] = density.verticalBounds(it) }
-                    }
+                    .height(itemHeight)
             ) {
-                // TODO: Since the item views are all the same height, the list and visibility filter can be optimized more.
-                val showItem = itemBounds.get()[index]
-                    ?.let {
-                        val itemOffset = it.offsetRelativeTo(paneBounds)
-                        val cullOffset = userItemHeight * 1.5f
-                        visibleListHeight > 0.dp && it.height > 0.dp && itemOffset != null
-                                && itemOffset < visibleListOffset + visibleListHeight + cullOffset
-                                && itemOffset > -cullOffset
-                    } == true
-                if (showItem) key(interaction.userId) {
-                    UserInfo(interaction.userInfo, interaction.reactions, onOpenUserProfile)
+                val showItem = visibleItemsRange.contains(index)
+                if (showItem) key(itemKey(index)) {
+                    itemContent(index)
                 }
             }
         }
@@ -684,7 +722,7 @@ private fun TabsRow(
                     ) {
                         Box(
                             modifier = Modifier
-                                .align(Alignment.TopCenter)
+                                .align(TopCenter)
                                 .onSizeChanged { tabsWidthCache[tabIndex] = it.width }
                                 .minimumInteractiveComponentSize(),
                             content = { onTabContent(tabIndex, isSelected) },
