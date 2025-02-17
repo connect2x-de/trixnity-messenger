@@ -90,10 +90,10 @@ interface TimelineElementHolderViewModelFactory {
         sender: UserId,
         formattedDate: String,
         formattedTime: String,
-        readReceiptsCache: ReadReceiptsCache,
         showUnreadMarker: Flow<Boolean>,
         showLoadingIndicatorBefore: Flow<Boolean>,
         showLoadingIndicatorAfter: Flow<Boolean>,
+        readReceiptsCache: ReadReceiptsCache,
         onMessageReplace: (RoomId, EventId) -> Unit,
         onMessageReply: (RoomId, EventId) -> Unit,
         onMessageReport: (RoomId, EventId) -> Unit,
@@ -108,7 +108,7 @@ interface TimelineElementHolderViewModelFactory {
             senderUserId = sender,
             formattedDate = formattedDate,
             formattedTime = formattedTime,
-            readHandle = viewModelContext
+            readReceipts = viewModelContext
                 .get<ReadReceiptsHandleFactory>()
                 .create(
                     viewModelContext,
@@ -171,7 +171,7 @@ class TimelineElementHolderViewModelImpl(
     private val senderUserId: UserId,
     override val formattedDate: String,
     override val formattedTime: String,
-    readHandle: ReadReceiptsHandle,
+    readReceipts: ReadReceiptsHandle,
     showUnreadMarker: Flow<Boolean>,
     showLoadingIndicatorBefore: Flow<Boolean>,
     showLoadingIndicatorAfter: Flow<Boolean>,
@@ -375,10 +375,10 @@ class TimelineElementHolderViewModelImpl(
 
     override val isByMe: Boolean = senderUserId == userId
 
-    override val isRead = readHandle.isRead
+    override val isRead = readReceipts.isRead
         .stateIn(coroutineScope, Lazily, false) // Lazily to not unnecessary recompute
 
-    override val isReadBy = readHandle.isReadBy
+    override val isReadBy = readReceipts.isReadBy
         .stateIn(coroutineScope, whileSubscribedWithTimeout, setOf())
 
     override val reactions = messageReactionsHandle.reactions

@@ -6,6 +6,8 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandle.Reader
+import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandleImpl.IsReadSearchResult.IsRead
+import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandleImpl.IsReadSearchResult.IsUnread
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -91,8 +93,8 @@ class ReadReceiptsHandleImpl(
         isReadSearch(roomId, eventId)
             .map {
                 when (it) {
-                    is IsReadSearchResult.Read -> true
-                    IsReadSearchResult.Unread -> false
+                    is IsRead -> true
+                    IsUnread -> false
                 }
             }
             .distinctUntilChanged()
@@ -105,12 +107,12 @@ class ReadReceiptsHandleImpl(
             isReadSearch(roomId, eventId)
                 .collect {
                     when (it) {
-                        is IsReadSearchResult.Read -> {
+                        is IsRead -> {
                             cumulatedReads.addAll(it.readBy)
                             emit(cumulatedReads.toList())
                         }
 
-                        IsReadSearchResult.Unread -> {
+                        IsUnread -> {
                             if (cumulatedReads.isEmpty()) emit(cumulatedReads.toList())
                         }
                     }
@@ -143,8 +145,8 @@ class ReadReceiptsHandleImpl(
         .stateIn(scope, whileSubscribedWithTimeout, null)
 
     private sealed interface IsReadSearchResult {
-        data object Unread : IsReadSearchResult
-        data class Read(val readBy: Set<UserId>) : IsReadSearchResult
+        data object IsUnread : IsReadSearchResult
+        data class IsRead(val readBy: Set<UserId>) : IsReadSearchResult
     }
 
     /**
@@ -175,14 +177,14 @@ class ReadReceiptsHandleImpl(
                             remove(client.userId)
                         }
                         when {
-                            foundReaders.isNotEmpty() -> emit(IsReadSearchResult.Read(foundReaders))
+                            foundReaders.isNotEmpty() -> emit(IsRead(foundReaders))
                             currentRoomId != roomId -> emitAll(
                                 isReadSearch(
                                     currentRoomId,
                                     currentEventId,
                                 )
                             ) // recursive!
-                            else -> emit(IsReadSearchResult.Unread)
+                            else -> emit(IsUnread)
                         }
                     }
             }

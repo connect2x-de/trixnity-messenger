@@ -138,7 +138,7 @@ fun MatrixClient.getMessageUserReactions(
                         reactions = info.second.toSet(),
                     )
                 },
-                byReaction = byReaction
+                byReaction = byReaction,
             )
         }
 
