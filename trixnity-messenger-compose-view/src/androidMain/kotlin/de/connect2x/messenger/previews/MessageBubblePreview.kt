@@ -39,8 +39,8 @@ fun TextMessageBubblePreview() {
         "🎉" to setOf(
             ReactionEvent(
                 eventId = EventId("1"),
-                userInfo = userInfoElement,
-                isByMe = false,
+                sender = userInfoElement,
+                isMe = false,
             )
         )
     )

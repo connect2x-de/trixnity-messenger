@@ -72,14 +72,14 @@ data class MessageUserReactions(
     val byReaction: Map<ReactionKey, Set<ReactionEvent>>,
 ) {
     data class UserReactions(
-        val userInfo: UserInfoElement?,
+        val sender: UserInfoElement?,
         val reactions: Set<ReactionKey>,
     )
 
     data class ReactionEvent(
         val eventId: EventId,
-        val userInfo: UserInfoElement,
-        val isByMe: Boolean,
+        val sender: UserInfoElement,
+        val isMe: Boolean,
     )
 
     companion object {
@@ -126,15 +126,15 @@ fun MatrixClient.getMessageUserReactions(
 
                         ReactionEvent(
                             eventId = timelineEvent.eventId,
-                            userInfo = userInfo,
-                            isByMe = this.userId == timelineEvent.sender,
+                            sender = userInfo,
+                            isMe = this.userId == timelineEvent.sender,
                         )
                     }.toSet()
                 }
             MessageUserReactions(
                 byUser = byUser.mapValues { (_, info) ->
                     UserReactions(
-                        userInfo = info.first,
+                        sender = info.first,
                         reactions = info.second.toSet(),
                     )
                 },

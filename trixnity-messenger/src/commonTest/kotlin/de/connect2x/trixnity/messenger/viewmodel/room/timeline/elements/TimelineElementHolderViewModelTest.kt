@@ -624,7 +624,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
     )
 
     private data class ReactionsExpectation(
-        val reactionKey: ReactionKey, val isByMe: Boolean,
+        val reactionKey: ReactionKey, val isMe: Boolean,
         val eventId: EventId, val senderId: UserId,
     ) {
         fun addedTo(previousReactions: MutableSet<ReactionsExpectation>): Set<ReactionsExpectation> {
@@ -642,8 +642,8 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                     this.map {
                         it.value
                             .joinToString("\n\t${it.key} - ", "\n\t${it.key} - ") {
-                                "ReactionEvent(isByMe=${it.isByMe}, eventId=${it.eventId}, senderId=${
-                                    it.userInfo.userId
+                                "ReactionEvent(isByMe=${it.isMe}, eventId=${it.eventId}, senderId=${
+                                    it.sender.userId
                                 })"
                             }
                     }.joinToString("")
@@ -655,9 +655,9 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             this[expect.reactionKey]!!.let { events ->
                 events shouldHaveSize expectedReactions[expect.reactionKey]!!.size
                 if (events.find { got ->
-                        got.isByMe == expect.isByMe &&
+                        got.isMe == expect.isMe &&
                                 got.eventId == expect.eventId &&
-                                got.userInfo.userId == expect.senderId
+                                got.sender.userId == expect.senderId
                     } == null) throw failure("did not find event: $expect")
             }
         }

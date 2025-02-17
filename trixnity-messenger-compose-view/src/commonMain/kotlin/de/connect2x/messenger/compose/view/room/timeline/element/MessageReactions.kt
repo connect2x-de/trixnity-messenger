@@ -93,13 +93,13 @@ class MessageReactionsViewImpl : MessageReactionsView {
             ) {
                 reactions.forEach { (reaction, events) ->
                     val userInfos = remember(reaction, events) {
-                        events.map { it.userInfo }
+                        events.map { it.sender }
                     }
                     MessageReactionButton(
                         reaction = reaction,
                         reactionUsers = userInfos,
                         count = events.size,
-                        myReaction = events.firstOrNull { it.isByMe },
+                        myReaction = events.firstOrNull { it.isMe },
                         onAddReaction = timelineElementHolderViewModel::addReaction,
                         onRemoveReaction = timelineElementHolderViewModel::removeReaction,
                     )

@@ -53,7 +53,7 @@ class MessageInfoViewImpl : MessageInfoView {
                     infoOpen.value = false
                 },
                 readers = readers,
-                reactors = reactions.mapValues { it.value.map { it.userInfo } },
+                reactors = reactions.mapValues { it.value.map { it.sender } },
             )
         }
     }

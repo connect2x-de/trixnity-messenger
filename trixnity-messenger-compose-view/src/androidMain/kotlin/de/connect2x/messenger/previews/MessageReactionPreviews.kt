@@ -53,13 +53,13 @@ import net.folivo.trixnity.core.model.UserId
 private fun previewReactionEvent(sender: String, initials: Initials, isMe: Boolean = false) =
     ReactionEvent(
         eventId = EventId(""),
-        userInfo = UserInfoElement(
+        sender = UserInfoElement(
             name = sender,
             userId = UserId("@kirill:local"),
             initials = initials.compute(sender),
             image = null,
         ),
-        isByMe = isMe,
+        isMe = isMe,
     )
 
 @Composable

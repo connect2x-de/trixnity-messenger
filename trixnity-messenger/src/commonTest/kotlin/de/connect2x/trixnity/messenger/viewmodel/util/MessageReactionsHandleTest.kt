@@ -414,7 +414,7 @@ class MessageReactionsHandleTest : ShouldSpec() {
                     withClue("did not match expected reactions for user $expectingUser") {
                         val receivedReactions = it[expectingUser]?.let { userReactions ->
                             withClue("checking user value if present") {
-                                userReactions.userInfo?.userId shouldBe expectingUser
+                                userReactions.sender?.userId shouldBe expectingUser
                             }
                             userReactions.reactions
                         } ?: setOf()
