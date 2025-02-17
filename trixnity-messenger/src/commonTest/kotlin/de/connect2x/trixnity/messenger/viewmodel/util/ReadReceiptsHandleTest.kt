@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.withCleanup
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.assertions.withClue
@@ -35,15 +34,13 @@ import org.koin.dsl.module
 import kotlin.time.Duration.Companion.milliseconds
 
 
-private val log = KotlinLogging.logger {}
-
 class ReadReceiptsHandleTest : ShouldSpec() {
 
     private val us = UserId("martin", "localhost")
 
-    val matrixClientMock = mock<MatrixClient>()
-    val roomServiceMock = mock<RoomService>()
-    val userServiceMock = mock<UserService>()
+    private val matrixClientMock = mock<MatrixClient>()
+    private val roomServiceMock = mock<RoomService>()
+    private val userServiceMock = mock<UserService>()
 
     init {
         coroutineTestScope = true
@@ -79,8 +76,6 @@ class ReadReceiptsHandleTest : ShouldSpec() {
             val reader: List<UserId> = (0..4).map { UserId("reader_${runId}_$it", "localhost") },
             val testScope: TestScope,
         )
-
-//        fun TestEnv.getTestEnv
 
         fun TestEnv.cutReadReceiptsHandle(
             senderId: UserId,
@@ -465,20 +460,9 @@ class ReadReceiptsHandleTest : ShouldSpec() {
     private suspend inline infix fun Set<ReadReceiptsHandle.Reader>.shouldBeUsers(expectedUsers: Set<UserId>) {
         withClue("unexpected result for reader receipts!") {
             this.map { it.userId }.toSet() shouldBe expectedUsers
-//            this.forEach {
-//                eventually(eventuallyConfig {
-//                    retries = 10
-//                    this.listener = { _, _ -> delay(100.milliseconds) }
-//                }) {
-//                    it.userInfo.first() shouldBe it.userId
-//                }
-//            }
-//            this.map { (key, flow) ->
-//                runBlocking {
-//                    val roomUser = flow.first()!!
-//                    roomUser.userId shouldBe key
-//                }
-//            }
+            this.map { (key, flow) ->
+                flow.first { it != null }?.userId shouldBe key
+            }
         }
     }
 

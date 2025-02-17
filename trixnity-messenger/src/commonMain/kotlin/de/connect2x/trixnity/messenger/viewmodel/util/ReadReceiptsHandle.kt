@@ -126,8 +126,7 @@ class ReadReceiptsHandleImpl(
     private fun UserId.toReader() =
         Reader(
             userId = this,
-            userInfo = this.toUserInfoFlow()
-                .stateIn(scope, whileSubscribedWithTimeout, null),
+            userInfo = this.toUserInfoFlow(),
         )
 
     private fun UserId.toUserInfoFlow() = client
@@ -141,6 +140,7 @@ class ReadReceiptsHandleImpl(
                 this,
             )
         }
+        .stateIn(scope, whileSubscribedWithTimeout, null)
 
     private sealed interface IsReadSearchResult {
         data object Unread : IsReadSearchResult
@@ -247,24 +247,6 @@ private class MutexMap<K, V> {
 
     suspend fun getOrSet(key: K, constructor: suspend () -> V): V =
         mutex.withLock {
-            val has = map.contains(key)
             map.getOrPut(key) { constructor() }
-//                .also { log.debug { "=== ${if (has) "getting" else "added"}: $key - ${map.size} items now cached" } }
-        }
-
-    suspend fun remove(key: K): Unit =
-        mutex.withLock {
-            map.remove(key)
-//            log.debug { "=== removed: $key - ${map.size} cached items remaining" }
-        }
-
-    suspend fun removeIf(predicate: (K, V) -> Boolean): Unit =
-        mutex.withLock {
-            val oldSize = map.size
-            map.filter { predicate(it.key, it.value).not() }.let {
-                map.clear()
-                map.putAll(it)
-            }
-//            log.debug { "=== removed many: $oldSize -> ${map.size} cached items remaining" }
         }
 }
