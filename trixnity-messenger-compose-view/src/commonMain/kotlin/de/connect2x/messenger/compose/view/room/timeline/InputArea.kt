@@ -234,11 +234,6 @@ fun RowScope.InputAreaTextField(
 
     val maxAttachmentSize = DI.current.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
-    LaunchedEffect(Unit) {
-        delay(500.milliseconds)
-        focusRequester.requestFocus()
-    }
-
     Box(
         Modifier
             .fillMaxWidth()
