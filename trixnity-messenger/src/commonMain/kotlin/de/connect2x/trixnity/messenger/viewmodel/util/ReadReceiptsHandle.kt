@@ -121,7 +121,6 @@ class ReadReceiptsHandleImpl(
                                 userId,
                             )
                         }
-
                 }
             }
             .flatten()
