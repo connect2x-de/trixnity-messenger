@@ -226,8 +226,7 @@ class ReadReceiptsCacheImpl(
     ): Flow<Map<EventId, Set<UserId>>> =
         user
             .getAllReceipts(roomId)
-//            .debounceAfterFirst(500.milliseconds)
-//            .distinctUntilChanged()
+            // TODO: debounce after first?
             .flattenNotNull()
             .map { receipts ->
                 receipts

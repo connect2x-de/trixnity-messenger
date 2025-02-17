@@ -72,6 +72,9 @@ class MessageReactionsViewImpl : MessageReactionsView {
         }
         val i18n = DI.current.get<I18nView>()
         val reactions = timelineElementHolderViewModel.reactions.collectAsState().value
+        val reactionList = remember(reactions) {
+            reactions.entries.sortedByDescending { it.value.size }.map { it.key }
+        }
 
         EmojiPopup(
             isOpen = reactionsOpen.value,
@@ -91,7 +94,8 @@ class MessageReactionsViewImpl : MessageReactionsView {
                 horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
                 verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
             ) {
-                reactions.forEach { (reaction, reactionEvents) ->
+                reactionList.forEach { reaction ->
+                    val reactionEvents = reactions[reaction].orEmpty()
                     val userInfos = remember(reaction, reactionEvents) {
                         reactionEvents.map { it.sender }
                     }
