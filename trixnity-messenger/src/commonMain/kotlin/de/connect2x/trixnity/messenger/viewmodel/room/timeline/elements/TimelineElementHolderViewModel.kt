@@ -18,7 +18,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactions.React
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsCache
 import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandle
-import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandle.Reader
 import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandleFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -135,7 +134,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val showLoadingIndicatorAfter: StateFlow<Boolean>
 
     val isRead: StateFlow<Boolean>
-    val isReadBy: StateFlow<Set<Reader>>
+    val isReadBy: StateFlow<Set<UserInfoElement>>
 
     val reactions: StateFlow<Map<ReactionKey, Set<ReactionEvent>>>
     val canBeReactedTo: StateFlow<Boolean>
@@ -506,7 +505,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isRead: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val isReadBy: MutableStateFlow<Set<Reader>> = MutableStateFlow(setOf())
+    override val isReadBy: MutableStateFlow<Set<UserInfoElement>> = MutableStateFlow(setOf())
     override val canBeReactedTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -552,7 +551,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isRead: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val isReadBy: MutableStateFlow<Set<Reader>> = MutableStateFlow(setOf())
+    override val isReadBy: MutableStateFlow<Set<UserInfoElement>> = MutableStateFlow(setOf())
     override val canBeReactedTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReply: MutableStateFlow<Boolean?> = MutableStateFlow(false)

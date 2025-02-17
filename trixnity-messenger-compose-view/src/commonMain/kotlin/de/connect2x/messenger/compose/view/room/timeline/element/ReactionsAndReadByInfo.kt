@@ -19,13 +19,12 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
-import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandle.Reader
 
 @Composable
 fun ReactionsAndReadByInfo(
     reactors: Map<ReactionKey, Collection<UserInfoElement>>,
     focusRequester: FocusRequester,
-    readers: Collection<Reader>,
+    readers: Collection<UserInfoElement>,
 ) {
     val i18n = DI.get<I18nView>()
     val selectedTab = remember { mutableStateOf(0) }

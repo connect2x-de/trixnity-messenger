@@ -10,7 +10,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -18,12 +17,11 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.VerticalScrollbar
-import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandle.Reader
-
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
 @Composable
 fun ReadByInfo(
-    readers: Collection<Reader>,
+    readers: Collection<UserInfoElement>,
     focusRequester: FocusRequester,
 ) {
     val scrollState = rememberScrollState()
@@ -39,9 +37,8 @@ fun ReadByInfo(
                     .fillMaxWidth()
                     .padding(vertical = 10.dp, horizontal = 10.dp)
             ) {
-                readers.forEach {
-                    val readerInfo = it.userInfo.collectAsState().value
-                    if (readerInfo != null) Text(
+                readers.forEach { readerInfo ->
+                    Text(
                         text = readerInfo.name,
                         style = MaterialTheme.typography.labelLarge,
                     )

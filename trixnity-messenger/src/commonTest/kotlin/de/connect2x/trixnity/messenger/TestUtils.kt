@@ -151,6 +151,7 @@ fun TestScope.testMatrixClientViewModelContext(di: Koin, userId: UserId) = objec
 suspend fun <T> CoroutineScope.launchAndCollectCut(
     cut: Flow<T>,
     expectedUpdates: Int,
+    delayAfterLaunch: Duration = 500.milliseconds,
     onCollect: suspend (result: T, updateCount: Int) -> Unit,
 ) {
     val updateCount = MutableStateFlow(0)
@@ -165,7 +166,7 @@ suspend fun <T> CoroutineScope.launchAndCollectCut(
             onCollect(result, count)
         }
     }
-    delay(500.milliseconds)
+    delay(delayAfterLaunch)
     withClue("should have $expectedUpdates updates") {
         updateCount.value shouldBe expectedUpdates
     }

@@ -5,14 +5,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
-import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandle.Reader
 
 @Composable
 expect fun InfoPopup(
     isOpen: Boolean,
     focusRequester: FocusRequester,
     onDismiss: () -> Unit,
-    readers: Collection<Reader>,
+    readers: Collection<UserInfoElement>,
     reactors: Map<ReactionKey, Collection<UserInfoElement>>,
     modifier: Modifier = Modifier,
 )

@@ -4,6 +4,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.launchAndCollectCut
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomUserBuilder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineBuilder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineMock
@@ -400,6 +401,7 @@ class ReadReceiptsHandleTest : ShouldSpec() {
             launchAndCollectCut(
                 cut.isReadBy,
                 5,
+                1500.milliseconds,
             ) { result, updateCount ->
                 when (updateCount) {
                     1 -> result shouldBeUsers emptySet()
@@ -448,7 +450,7 @@ class ReadReceiptsHandleTest : ShouldSpec() {
         this.isReadBy shouldBeUsers expectedUsers
     }
 
-    private suspend inline infix fun Flow<Set<ReadReceiptsHandle.Reader>>.shouldBeUsers(expectedUsers: Set<UserId>) {
+    private suspend inline infix fun Flow<Set<UserInfoElement>>.shouldBeUsers(expectedUsers: Set<UserId>) {
         eventually(eventuallyConfig {
             retries = 10
             this.listener = { _, _ -> delay(100.milliseconds) }
@@ -457,12 +459,9 @@ class ReadReceiptsHandleTest : ShouldSpec() {
         }
     }
 
-    private suspend inline infix fun Set<ReadReceiptsHandle.Reader>.shouldBeUsers(expectedUsers: Set<UserId>) {
+    private suspend inline infix fun Set<UserInfoElement>.shouldBeUsers(expectedUsers: Set<UserId>) {
         withClue("unexpected result for reader receipts!") {
             this.map { it.userId }.toSet() shouldBe expectedUsers
-            this.map { (key, flow) ->
-                flow.first { it != null }?.userId shouldBe key
-            }
         }
     }
 

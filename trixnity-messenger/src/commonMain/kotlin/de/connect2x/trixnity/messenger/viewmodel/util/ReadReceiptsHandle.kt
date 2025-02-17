@@ -3,9 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandle.Reader
 import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandleImpl.IsReadSearchResult.IsRead
 import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandleImpl.IsReadSearchResult.IsUnread
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -13,7 +11,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
@@ -26,6 +23,7 @@ import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.eventId
@@ -66,16 +64,7 @@ interface ReadReceiptsHandleFactory {
 
 interface ReadReceiptsHandle {
     val isRead: Flow<Boolean>
-    val isReadBy: Flow<Set<Reader>>
-
-    data class Reader(
-        val userId: UserId,
-        val userInfo: StateFlow<UserInfoElement?>,
-    ) { // For correct handling in Sets, only compare userIds
-        override fun hashCode() = userId.hashCode()
-        override fun equals(other: Any?) =
-            other is Reader && other.userId == userId
-    }
+    val isReadBy: Flow<Set<UserInfoElement>>
 }
 
 class ReadReceiptsHandleImpl(
@@ -89,7 +78,7 @@ class ReadReceiptsHandleImpl(
     val scope: CoroutineScope,
 ) : ReadReceiptsHandle {
 
-    override val isRead: Flow<Boolean> =
+    override val isRead =
         isReadSearch(roomId, eventId)
             .map {
                 when (it) {
@@ -101,7 +90,7 @@ class ReadReceiptsHandleImpl(
             .takeWhileInclusive { !it }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val isReadBy: Flow<Set<Reader>> =
+    override val isReadBy =
         flow {
             val cumulatedReads = mutableSetOf<UserId>()
             isReadSearch(roomId, eventId)
@@ -121,28 +110,22 @@ class ReadReceiptsHandleImpl(
             .distinctUntilChanged()
             .mapLatest {
                 it.map { userId ->
-                    userId.toReader()
-                }.toSet()
+                    client
+                        .user.getById(roomId, userId)
+                        .map { roomUser ->
+                            roomUser.toUserInfoElement(
+                                coroutineScope = scope,
+                                matrixClient = client,
+                                initials = initials,
+                                config.avatarMaxSize,
+                                userId,
+                            )
+                        }
+
+                }
             }
-
-    private fun UserId.toReader() =
-        Reader(
-            userId = this,
-            userInfo = this.toUserInfoFlow(),
-        )
-
-    private fun UserId.toUserInfoFlow() = client
-        .user.getById(roomId, this)
-        .map {
-            it.toUserInfoElement(
-                coroutineScope = scope,
-                matrixClient = client,
-                initials = initials,
-                config.avatarMaxSize,
-                this,
-            )
-        }
-        .stateIn(scope, whileSubscribedWithTimeout, null)
+            .flatten()
+            .map { it.toSet() }
 
     private sealed interface IsReadSearchResult {
         data object IsUnread : IsReadSearchResult
