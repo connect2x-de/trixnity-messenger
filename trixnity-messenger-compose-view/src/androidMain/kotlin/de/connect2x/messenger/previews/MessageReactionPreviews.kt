@@ -43,10 +43,9 @@ import de.connect2x.messenger.compose.view.theme.md_theme_light_surfaceVariant
 import de.connect2x.messenger.compose.view.theme.md_theme_light_tertiary
 import de.connect2x.messenger.compose.view.theme.md_theme_light_tertiaryContainer
 import de.connect2x.messenger.previews.util.InitMessengerPreview
-import de.connect2x.trixnity.messenger.util.MessageUserReactions.ReactionEvent
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import kotlinx.coroutines.flow.MutableStateFlow
+import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactions.ReactionEvent
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.UserId
 
@@ -54,13 +53,11 @@ import net.folivo.trixnity.core.model.UserId
 private fun previewReactionEvent(sender: String, initials: Initials, isMe: Boolean = false) =
     ReactionEvent(
         eventId = EventId(""),
-        userInfo = MutableStateFlow(
-            UserInfoElement(
-                name = sender,
-                userId = UserId("@kirill:local"),
-                initials = initials.compute(sender),
-                image = null,
-            )
+        userInfo = UserInfoElement(
+            name = sender,
+            userId = UserId("@kirill:local"),
+            initials = initials.compute(sender),
+            image = null,
         ),
         isByMe = isMe,
     )
@@ -120,17 +117,11 @@ fun MessageReactionPreview() {
             ) {
                 MessageReactionButton(
                     reaction = "\uD83D\uDC4D",
-                    reactionEvents = setOf(
-                        ReactionEvent(
-                            eventId = EventId(""),
-                            userInfo = MutableStateFlow(
-                                UserInfoElement(
-                                    name = "Martin",
-                                    userId = UserId("@martin:local"),
-                                    initials = "M",
-                                ),
-                            ),
-                            isByMe = false,
+                    reactionUsers = setOf(
+                        UserInfoElement(
+                            name = "Martin",
+                            userId = UserId("@martin:local"),
+                            initials = "M",
                         ),
                     ),
                     count = 3,
@@ -140,17 +131,11 @@ fun MessageReactionPreview() {
                 )
                 MessageReactionButton(
                     reaction = "\uD83D\uDC4D",
-                    reactionEvents = setOf(
-                        ReactionEvent(
-                            eventId = EventId(""),
-                            userInfo = MutableStateFlow(
-                                UserInfoElement(
-                                    name = "Jan",
-                                    userId = UserId("@jan:local"),
-                                    initials = "J",
-                                ),
-                            ),
-                            isByMe = false,
+                    reactionUsers = setOf(
+                        UserInfoElement(
+                            name = "Jan",
+                            userId = UserId("@jan:local"),
+                            initials = "J",
                         ),
                     ),
                     count = 2,
@@ -182,7 +167,7 @@ fun MessageReactionWrappingPreview() {
                 for (i in 0..10) {
                     MessageReactionButton(
                         reaction = "\uD83D\uDC4D",
-                        reactionEvents = setOf(),
+                        reactionUsers = setOf(),
                         count = 3,
                         myReaction = null,
                         onAddReaction = { },
@@ -191,7 +176,7 @@ fun MessageReactionWrappingPreview() {
                 }
                 MessageReactionButton(
                     reaction = "\uD83D\uDC4D",
-                    reactionEvents = setOf(),
+                    reactionUsers = setOf(),
                     count = 2,
                     myReaction = previewReactionEvent("username", initials, isMe = false),
                     onAddReaction = { },
@@ -199,7 +184,7 @@ fun MessageReactionWrappingPreview() {
                 )
                 MessageReactionButton(
                     reaction = "Bee Movie By Jerry Seinfeld NARRATOR: (Black screen with text; The sound of buzzing bees can be heard) According to all known laws of aviation, : there is no way a bee should be able to fly. : Its wings are too small to get its fat little body off the ground. : The bee, of course, flies anyway : because bees don't care what humans think is impossible. BARRY BENSON: (Barry is picking out a shirt) Yellow, black. Yellow, black. Yellow, black. Yellow, black. : Ooh, black and yellow! Let's shake it up a little. JANET BENSON: Barry! Breakfast is ready! BARRY: Coming! : Hang on a second. (Barry uses his antenna like a phone) : Hello? ADAM FLAYMAN: (Through phone) - Barry? BARRY: - Adam? ADAM: - Can you believe this is happening? BARRY: - I can't. I'll pick you up. (Barry flies down the stairs) ",
-                    reactionEvents = setOf(),
+                    reactionUsers = setOf(),
                     count = 2,
                     myReaction = null,
                     onAddReaction = { },

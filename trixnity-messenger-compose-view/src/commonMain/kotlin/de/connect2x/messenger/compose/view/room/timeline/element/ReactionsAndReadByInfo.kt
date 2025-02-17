@@ -20,11 +20,10 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandle.Reader
-import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun ReactionsAndReadByInfo(
-    reactors: Map<ReactionKey, Collection<StateFlow<UserInfoElement?>>>,
+    reactors: Map<ReactionKey, Collection<UserInfoElement>>,
     focusRequester: FocusRequester,
     readers: Collection<Reader>,
 ) {

@@ -6,7 +6,6 @@ import androidx.compose.ui.focus.FocusRequester
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandle.Reader
-import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 expect fun InfoPopup(
@@ -14,6 +13,6 @@ expect fun InfoPopup(
     focusRequester: FocusRequester,
     onDismiss: () -> Unit,
     readers: Collection<Reader>,
-    reactors: Map<ReactionKey, Collection<StateFlow<UserInfoElement?>>>,
+    reactors: Map<ReactionKey, Collection<UserInfoElement>>,
     modifier: Modifier = Modifier,
 )

@@ -29,7 +29,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -511,18 +510,18 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 cut.reactions.collect { reactions ->
                     updateCount.value++
                     when (updateCount.value) {
-                        1 -> reactions.byReaction shouldBe emptySet()
+                        1 -> reactions shouldBe emptySet()
 
-                        2 -> reactions.byReaction shouldBe ReactionsExpectation("😄", false, event[1], bob)
+                        2 -> reactions shouldBe ReactionsExpectation("😄", false, event[1], bob)
                             .addedTo(expectation)
 
-                        3 -> reactions.byReaction shouldBe ReactionsExpectation("🥳", true, event[2], us)
+                        3 -> reactions shouldBe ReactionsExpectation("🥳", true, event[2], us)
                             .addedTo(expectation)
 
-                        4 -> reactions.byReaction shouldBe ReactionsExpectation("😄", true, event[3], us)
+                        4 -> reactions shouldBe ReactionsExpectation("😄", true, event[3], us)
                             .addedTo(expectation)
 
-                        5 -> reactions.byReaction shouldBe ReactionsExpectation("🙂", false, event[4], alice)
+                        5 -> reactions shouldBe ReactionsExpectation("🙂", false, event[4], alice)
                             .addedTo(expectation)
                     }
                 }
@@ -537,7 +536,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             delay(100.milliseconds)
             advanceUntilIdle()
             updateCount.value shouldBe 5
-            cut.reactions.value.byReaction.flatMap { it.value } shouldHaveSize 4
+            cut.reactions.value.flatMap { it.value } shouldHaveSize 4
             cancelNeverEndingCoroutines()
         }
 
@@ -557,7 +556,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             launch {
                 cut.reactions.collect { reactions ->
                     updateCount.value++
-                    reactions.byReaction shouldBe emptySet()
+                    reactions shouldBe emptySet()
                 }
             }
             timeline.addEvents {
@@ -565,7 +564,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             }
             advanceUntilIdle()
             updateCount.value shouldBe 1
-            cut.reactions.value.byReaction.flatMap { it.value } shouldHaveSize 0
+            cut.reactions.value.flatMap { it.value } shouldHaveSize 0
             cancelNeverEndingCoroutines()
         }
     }
@@ -634,7 +633,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
         }
     }
 
-    private suspend inline infix fun Map<ReactionKey, Set<MessageUserReactions.ReactionEvent>>.shouldBe(
+    private inline infix fun Map<ReactionKey, Set<MessageUserReactions.ReactionEvent>>.shouldBe(
         expectation: Set<ReactionsExpectation>,
     ) = withClue(
         "didn't receive expected reactions!" +
@@ -642,12 +641,11 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 "\nbut received: ${
                     this.map {
                         it.value
-                            .map {
+                            .joinToString("\n\t${it.key} - ", "\n\t${it.key} - ") {
                                 "ReactionEvent(isByMe=${it.isByMe}, eventId=${it.eventId}, senderId=${
-                                    it.userInfo.first { it != null }?.userId
+                                    it.userInfo.userId
                                 })"
                             }
-                            .joinToString("\n\t${it.key} - ", "\n\t${it.key} - ")
                     }.joinToString("")
                 }"
     ) {
@@ -659,8 +657,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 if (events.find { got ->
                         got.isByMe == expect.isByMe &&
                                 got.eventId == expect.eventId &&
-                                got.userInfo.first { it != null }
-                                    ?.userId == expect.senderId
+                                got.userInfo.userId == expect.senderId
                     } == null) throw failure("did not find event: $expect")
             }
         }

@@ -16,7 +16,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,14 +33,13 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
-import kotlinx.coroutines.flow.StateFlow
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 @Composable
 fun ReactorList(
-    reactors: Map<ReactionKey, Collection<StateFlow<UserInfoElement?>>>,
+    reactors: Map<ReactionKey, Collection<UserInfoElement>>,
     focusRequester: FocusRequester,
 ) {
     val i18n = DI.get<I18nView>()
@@ -96,26 +94,23 @@ fun ReactorList(
 }
 
 @Composable
-fun ReactorListElement(reaction: String?, user: StateFlow<UserInfoElement?>) {
-    val userInfo = user.collectAsState().value
+fun ReactorListElement(reaction: String, userInfo: UserInfoElement) {
     Row(
         Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             modifier = Modifier.fillMaxWidth().weight(1.0f, false),
-            text = userInfo?.name ?: "",
+            text = userInfo.name,
             style = MaterialTheme.typography.labelLarge,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        reaction?.let {
-            Spacer(Modifier.size(5.dp))
-            Text(
-                modifier = Modifier,
-                text = reaction,
-                style = MaterialTheme.typography.labelLarge,
-            )
-        }
+        Spacer(Modifier.size(5.dp))
+        Text(
+            modifier = Modifier,
+            text = reaction,
+            style = MaterialTheme.typography.labelLarge,
+        )
     }
 }

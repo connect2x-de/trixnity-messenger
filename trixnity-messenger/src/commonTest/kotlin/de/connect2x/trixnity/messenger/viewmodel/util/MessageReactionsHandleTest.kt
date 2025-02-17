@@ -13,16 +13,12 @@ import dev.mokkery.every
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.assertions.failure
-import io.kotest.assertions.nondeterministic.eventually
-import io.kotest.assertions.nondeterministic.eventuallyConfig
 import io.kotest.assertions.withClue
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
 import net.folivo.trixnity.client.MatrixClient
@@ -37,7 +33,6 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.time.Duration.Companion.milliseconds
 
 
 @ExperimentalKotest
@@ -419,12 +414,7 @@ class MessageReactionsHandleTest : ShouldSpec() {
                     withClue("did not match expected reactions for user $expectingUser") {
                         val receivedReactions = it[expectingUser]?.let { userReactions ->
                             withClue("checking user value if present") {
-                                eventually(eventuallyConfig {
-                                    retries = 10
-                                    this.listener = { _, _ -> delay(100.milliseconds) }
-                                }) {
-                                    userReactions.userInfo.first()?.userId shouldBe expectingUser
-                                }
+                                userReactions.userInfo?.userId shouldBe expectingUser
                             }
                             userReactions.reactions
                         } ?: setOf()

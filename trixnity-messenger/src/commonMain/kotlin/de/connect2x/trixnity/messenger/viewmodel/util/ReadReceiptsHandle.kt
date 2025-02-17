@@ -6,6 +6,7 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandle.Reader
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -36,6 +37,8 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.ReceiptType.Read
 import org.koin.core.component.get
 
+
+private val log = KotlinLogging.logger {}
 
 interface ReadReceiptsHandleFactory {
     fun create(
@@ -158,7 +161,7 @@ class ReadReceiptsHandleImpl(
         cache
             .getReceipts(roomId)
             .flatMapLatest { receipts ->
-//                log.trace { "isReadSearch: roomId=$roomId eventId=$eventId" }
+                log.trace { "isReadSearch: roomId=$roomId eventId=$eventId" }
                 client.room.getTimelineEvents(roomId, eventId, FORWARDS)
                     .transform {
                         val timelineEvent = it.first()

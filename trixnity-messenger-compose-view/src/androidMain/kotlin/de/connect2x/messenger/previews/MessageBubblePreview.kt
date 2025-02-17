@@ -9,9 +9,9 @@ import de.connect2x.messenger.previews.util.InitMessengerPreview
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel1
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactions.ReactionEvent
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,9 +37,9 @@ fun TextMessageBubblePreview() {
     holder.showBigGapBefore.value = true
     holder.reactions.value = mapOf(
         "🎉" to setOf(
-            TimelineElementHolderViewModel.ReactionEvent(
+            ReactionEvent(
                 eventId = EventId("1"),
-                senderFlow = MutableStateFlow(userInfoElement),
+                userInfo = userInfoElement,
                 isByMe = false,
             )
         )

@@ -71,8 +71,8 @@ class MessageReactionsViewImpl : MessageReactionsView {
             return
         }
         val i18n = DI.current.get<I18nView>()
+        val reactions = timelineElementHolderViewModel.reactions.collectAsState().value
 
-        val reactions = timelineElementHolderViewModel.reactions.collectAsState().value.byReaction
         EmojiPopup(
             isOpen = reactionsOpen.value,
             onDismiss = {
@@ -92,7 +92,9 @@ class MessageReactionsViewImpl : MessageReactionsView {
                 verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
             ) {
                 reactions.forEach { (reaction, events) ->
-                    val userInfos = events.flattenUserInfos.collectAsState().value
+                    val userInfos = remember(reaction, events) {
+                        events.map { it.userInfo }
+                    }
                     MessageReactionButton(
                         reaction = reaction,
                         reactionUsers = userInfos,
