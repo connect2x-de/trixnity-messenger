@@ -17,7 +17,7 @@ interface MessageInfoView {
     fun create(
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
         infoOpen: MutableState<Boolean>,
-        modifier: Modifier
+        modifier: Modifier,
     )
 }
 
@@ -25,7 +25,7 @@ interface MessageInfoView {
 fun MessageInfo(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     infoOpen: MutableState<Boolean>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     DI.get<MessageInfoView>().create(timelineElementHolderViewModel, infoOpen, modifier)
 }
