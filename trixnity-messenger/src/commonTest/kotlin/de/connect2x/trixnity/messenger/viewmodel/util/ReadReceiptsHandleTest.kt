@@ -22,7 +22,9 @@ import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.TimelineEvent
@@ -103,6 +105,8 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                 ),
             )
         }
+
+//        shouldGroup("is read") {
 
         should("be false when no on read or sent a message other than the sender").withCleanup {
             val env = TestEnv(testScope = this)
@@ -187,6 +191,7 @@ class ReadReceiptsHandleTest : ShouldSpec() {
             launchAndCollectCut(
                 cut.isRead,
                 2,
+                { delay(500.milliseconds) },
             ) { result, updateCount ->
                 when (updateCount) {
                     1 -> result shouldBe false
@@ -213,6 +218,7 @@ class ReadReceiptsHandleTest : ShouldSpec() {
             launchAndCollectCut(
                 cut.isRead,
                 2,
+                { delay(500.milliseconds) },
             ) { result, updateCount ->
                 when (updateCount) {
                     1 -> result shouldBe false
@@ -244,6 +250,7 @@ class ReadReceiptsHandleTest : ShouldSpec() {
             launchAndCollectCut(
                 cut.isRead,
                 2,
+                { delay(500.milliseconds) },
             ) { result, updateCount ->
                 when (updateCount) {
                     1 -> result shouldBe false
@@ -251,6 +258,9 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                 }
             }
         }
+//        }
+
+//        shouldGroup("read by") {
 
         should("be empty when not read").withCleanup {
             val env = TestEnv(testScope = this)
@@ -264,13 +274,17 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                 +roomUser("Alice", env.alice, null)
             }
             val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-            cut shouldBeUsers emptySet()
+            val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
+            launch { cut.isReadBy.collect { cutReadBy.value = it } }
+            cutReadBy shouldBeUsers emptySet()
         }
 
         should("contain users from read markers").withCleanup {
             val env = TestEnv(testScope = this)
             val (_, timeline, roomUsers, event) = env
             val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
+            launch { cut.isReadBy.collect { cutReadBy.value = it } }
             timeline.addEvents {
                 +timelineEventOf(env.alice, event[0])
             }
@@ -279,11 +293,11 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                 +roomUser("Bob", env.bob, null)
                 +roomUser("Alice", env.alice, null)
             }
-            cut shouldBeUsers emptySet()
+            cutReadBy shouldBeUsers emptySet()
             roomUsers.addOrUpdateUsers {
                 +roomUser("Bob", env.bob, event[0])
             }
-            cut shouldBeUsers setOf(env.bob)
+            cutReadBy shouldBeUsers setOf(env.bob)
         }
 
         should("contain sender of subsequent events").withCleanup {
@@ -302,7 +316,16 @@ class ReadReceiptsHandleTest : ShouldSpec() {
             roomUsers.addOrUpdateUsers {
                 +roomUser("Bob", env.bob, event[0])
             }
-            cut shouldBeUsers setOf(env.bob)
+            launchAndCollectCut(
+                cut.isReadBy,
+                2,
+                { delay(500.milliseconds) },
+            ) { result, updateCount ->
+                when (updateCount) {
+                    1 -> result shouldBeUsers setOf()
+                    2 -> result shouldBeUsers setOf(env.bob)
+                }
+            }
         }
 
         should("not contain us from read marker").withCleanup {
@@ -316,7 +339,9 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                 +roomUser("Bob", env.bob, event[0])
             }
             val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-            cut shouldBeUsers setOf(env.bob)
+            val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
+            launch { cut.isReadBy.collect { cutReadBy.value = it } }
+            cutReadBy shouldBeUsers setOf(env.bob)
         }
 
         should("not contain us from subsequent events").withCleanup {
@@ -327,7 +352,9 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                 +timelineEventOf(env.us, event[1])
             }
             val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-            cut shouldBeUsers emptySet()
+            val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
+            launch { cut.isReadBy.collect { cutReadBy.value = it } }
+            cutReadBy shouldBeUsers emptySet()
         }
 
         should("not contain sender from subsequent events").withCleanup {
@@ -338,7 +365,9 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                 +timelineEventOf(env.alice, event[1])
             }
             val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-            cut shouldBeUsers emptySet()
+            val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
+            launch { cut.isReadBy.collect { cutReadBy.value = it } }
+            cutReadBy shouldBeUsers emptySet()
         }
 
         should("not contain sender from read marker").withCleanup {
@@ -352,7 +381,9 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                 +roomUser("Alice", env.alice, event[0])
             }
             val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-            cut shouldBeUsers setOf(env.bob)
+            val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
+            launch { cut.isReadBy.collect { cutReadBy.value = it } }
+            cutReadBy shouldBeUsers setOf(env.bob)
         }
 
         should("not contain sender from read marker after update").withCleanup {
@@ -373,6 +404,7 @@ class ReadReceiptsHandleTest : ShouldSpec() {
             launchAndCollectCut(
                 env.cutReadReceiptsHandle(env.alice, event[0]).isReadBy,
                 2,
+                { delay(500.milliseconds) },
             ) { result, updateCount ->
                 when (updateCount) {
                     1 -> result shouldBeUsers emptySet()
@@ -399,7 +431,7 @@ class ReadReceiptsHandleTest : ShouldSpec() {
             launchAndCollectCut(
                 cut.isReadBy,
                 5,
-                1500.milliseconds,
+                { delay(1500.milliseconds) },
             ) { result, updateCount ->
                 when (updateCount) {
                     1 -> result shouldBeUsers emptySet()
@@ -428,6 +460,7 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                 }
             }
         }
+//        }
     }
 
     private fun TimelineBuilder.timelineEventOf(

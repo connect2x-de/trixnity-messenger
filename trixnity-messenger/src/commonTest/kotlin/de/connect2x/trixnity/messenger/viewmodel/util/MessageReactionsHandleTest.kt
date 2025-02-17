@@ -21,6 +21,7 @@ import io.kotest.core.test.TestScope
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
 import net.folivo.trixnity.client.MatrixClient
@@ -35,6 +36,7 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.time.Duration.Companion.seconds
 
 
 @ExperimentalKotest
@@ -179,29 +181,22 @@ class MessageReactionsHandleTest : ShouldSpec() {
         should("continuously get reactions from other user on own message").withCleanup {
             val env = getTestEnv()
             val (_, _, timeline, roomUsers, event) = env
-            timeline.addEvents {
-                +textMessageBy(env.us, event[0])
-                +reactionBy(env.alice, event[0], "😄")
-                +reactionBy(env.alice, event[0], "🥳")
-            }
-            roomUsers.addOrUpdateUsers {
-                +roomUser("Alice", env.alice)
-            }
-            val cut = env.cutMessageReactions(event[0])
-//            delay(100.milliseconds)
-//            cut shouldReturnReactionsByUsers mapOf(
-//                env.alice to setOf("🥳", "😄"),
-//            )
-            timeline.addEvents {
-                +reactionBy(env.alice, event[0], "🙂")
-            }
-//            delay(100.milliseconds)
-//            cut shouldReturnReactionsByUsers mapOf(
-//                env.alice to setOf("🥳", "🙂", "😄"),
-//            )
+            val cutMessage = event[0]
+            timeline.addEvents { +textMessageBy(env.us, cutMessage) }
+            roomUsers.addOrUpdateUsers { +roomUser("Alice", env.alice) }
+            val cut = env.cutMessageReactions(cutMessage)
             launchAndCollectCut(
                 cut.reactions,
-                3,
+                4,
+                {
+                    delay(1.seconds)
+                    timeline.addEvents { +reactionBy(env.alice, cutMessage, "😄") }
+                    delay(1.seconds)
+                    timeline.addEvents { +reactionBy(env.alice, cutMessage, "🥳") }
+                    delay(1.seconds)
+                    timeline.addEvents { +reactionBy(env.alice, cutMessage, "🙂") }
+                    delay(1.seconds)
+                },
             ) { result, updateCount ->
                 when (updateCount) {
                     1 -> result shouldReturnReactionsByUsers mapOf()

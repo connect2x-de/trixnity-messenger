@@ -29,7 +29,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -146,27 +145,29 @@ fun TestScope.testMatrixClientViewModelContext(di: Koin, userId: UserId) = objec
 }
 
 /**
- * Use this to test flow updates.
+ * Use this to test individual flow updates.
  */
 suspend fun <T> CoroutineScope.launchAndCollectCut(
     cut: Flow<T>,
     expectedUpdates: Int,
-    delayAfterLaunch: Duration = 500.milliseconds,
+    onAfterLaunchCut: suspend () -> Unit = {},
     onCollect: suspend (result: T, updateCount: Int) -> Unit,
 ) {
     val updateCount = MutableStateFlow(0)
     this@launchAndCollectCut.launch {
         cut.collect { result ->
             updateCount.value++
-            val count = updateCount.value
-            if (expectedUpdates < count) {
-                throw failure("should not have updated >=$updateCount times")
+            withClue("Failure during update #${updateCount.value}:") {
+                val count = updateCount.value
+                if (expectedUpdates < count) {
+                    throw failure("should not have updated >=$updateCount times")
+                }
+                log.debug { "update #$count -> $result" }
+                onCollect(result, count)
             }
-            log.debug { "update #$count -> $result" }
-            onCollect(result, count)
         }
     }
-    delay(delayAfterLaunch)
+    onAfterLaunchCut()
     withClue("should have $expectedUpdates updates") {
         updateCount.value shouldBe expectedUpdates
     }

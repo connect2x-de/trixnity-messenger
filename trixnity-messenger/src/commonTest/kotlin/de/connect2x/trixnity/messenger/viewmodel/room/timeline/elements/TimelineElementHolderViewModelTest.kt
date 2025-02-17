@@ -28,6 +28,7 @@ import io.kotest.core.test.TestScope
 import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
@@ -438,7 +439,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 launchAndCollectCut(
                     cut.isRead,
                     2,
-                    5.seconds,
+                    { delay(5.seconds) },
                 ) { result, updateCount ->
                     when (updateCount) {
                         1 -> result shouldBe false
@@ -465,7 +466,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 launchAndCollectCut(
                     cut.isRead,
                     1,
-                    2.seconds,
+                    { delay(2.seconds) },
                 ) { result, updateCount ->
                     when (updateCount) {
                         1 -> result shouldBe false
@@ -504,7 +505,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 launchAndCollectCut(
                     cut.reactions,
                     2,
-                    2.seconds,
+                    { delay(2.seconds) },
                 ) { result, updateCount ->
                     when (updateCount) {
                         1 -> result shouldBe emptySet()
@@ -538,7 +539,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 launchAndCollectCut(
                     cut.reactions,
                     1,
-                    2.seconds,
+                    { delay(2.seconds) },
                 ) { result, updateCount ->
                     when (updateCount) {
                         1 -> result shouldBe emptySet()
