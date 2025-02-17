@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -517,35 +518,39 @@ private fun UserInteractions(
                 .paddingFromBaseline(0.dp)
                 .padding(start = smallSpacing),
         )
-//        else LazyColumn(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .background(MaterialTheme.colorScheme.surface)
-//                .height(visibleListHeight),
-//            userScrollEnabled = false,
-//            content = {
-//                items(
-//                    count = interactions.size,
-//                    key = { interactions[it].userId },
-//                ) {
-//                    val interaction = interactions[it]
-//                    UserInfo(interaction.userInfo, interaction.reactions, onOpenUserProfile)
-//                }
-//            }
-//        )
-
-        else FlatLazyColumn(
-            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
-            visibleListOffset = visibleListOffset,
-            visibleListHeight = visibleListHeight,
-            itemHeight = userItemHeight,
-            itemCount = interactions.size,
-            itemKey = { interactions[it].userId },
-            itemContent = {
-                val interaction = interactions[it]
-                UserInfo(interaction.userInfo, interaction.reactions, onOpenUserProfile)
+        else LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface)
+                .height(userItemHeight * interactions.size),
+            userScrollEnabled = false,
+            content = {
+                items(
+                    count = interactions.size,
+                    key = { interactions[it].userId },
+                ) {
+                    val interaction = interactions[it]
+                    UserInfo(interaction.userInfo, interaction.reactions, onOpenUserProfile)
+                }
             }
         )
+
+        /**
+         * Alternative implementation if the lazy column is rendering too many items since this one avoids drawing rows and loading profile images by visibility.
+         * Both variants seem to work fine so pick the best.
+         */
+//        else FlatLazyColumn(
+//            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+//            visibleListOffset = visibleListOffset,
+//            visibleListHeight = visibleListHeight,
+//            itemHeight = userItemHeight,
+//            itemCount = interactions.size,
+//            itemKey = { interactions[it].userId },
+//            itemContent = {
+//                val interaction = interactions[it]
+//                UserInfo(interaction.userInfo, interaction.reactions, onOpenUserProfile)
+//            }
+//        )
     }
 }
 
