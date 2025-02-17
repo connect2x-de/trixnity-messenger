@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.launchAndCollectCut
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.shouldGroup
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomUserBuilder
@@ -107,361 +106,361 @@ class ReadReceiptsHandleTest : ShouldSpec() {
             )
         }
 
-        shouldGroup("is read") {
+//        shouldGroup("is read") {
 
-            should("be false when no on read or sent a message other than the sender").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Alice", env.alice, event[0])
-                }
-                cut shouldBeRead false
+        should("be false when no on read or sent a message other than the sender").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
             }
-
-            should("be false when not read by anyone but us and we sent a message after it").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                    +timelineEventOf(env.us, event[1])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Alice", env.alice, event[0])
-                    +roomUser("Martin", env.us, event[1])
-                }
-                cut shouldBeRead false
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Alice", env.alice, event[0])
             }
+            cut shouldBeRead false
+        }
 
-            should("be false when not read by anyone and only the same user sent a message after it").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                    +timelineEventOf(env.alice, event[1])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Alice", env.alice, event[1])
-                }
-                cut shouldBeRead false
+        should("be false when not read by anyone but us and we sent a message after it").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+                +timelineEventOf(env.us, event[1])
             }
-
-            should("be false when only we read the event").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Martin", env.us, event[0])
-                }
-                cut shouldBeRead false
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Alice", env.alice, event[0])
+                +roomUser("Martin", env.us, event[1])
             }
+            cut shouldBeRead false
+        }
 
-            should("be false when only the sender read the event").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Alice", env.alice, event[0])
-                }
-                cut shouldBeRead false
+        should("be false when not read by anyone and only the same user sent a message after it").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+                +timelineEventOf(env.alice, event[1])
             }
-
-            should("be true when read by third user immediately").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Us", env.us, null)
-                    +roomUser("Bob", env.bob, event[0])
-                    +roomUser("Alice", env.alice, event[0])
-                }
-                launchAndCollectCut(
-                    cut.isRead,
-                    2,
-                    { delay(500.milliseconds) },
-                ) { result, updateCount ->
-                    when (updateCount) {
-                        1 -> result shouldBe false
-                        2 -> result shouldBe true
-                    }
-                }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Alice", env.alice, event[1])
             }
+            cut shouldBeRead false
+        }
 
-            should("be true when read by third user later").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Us", env.us, null)
-                    +roomUser("Bob", env.bob, null)
-                    +roomUser("Alice", env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Bob", env.bob, event[0])
-                }
-                launchAndCollectCut(
-                    cut.isRead,
-                    2,
-                    { delay(500.milliseconds) },
-                ) { result, updateCount ->
-                    when (updateCount) {
-                        1 -> result shouldBe false
-                        2 -> result shouldBe true
-                    }
-                }
+        should("be false when only we read the event").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
             }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Martin", env.us, event[0])
+            }
+            cut shouldBeRead false
+        }
 
-            should("be true when message from third user after it").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Us", env.us, null)
-                    +roomUser("Bob", env.bob, null)
-                    +roomUser("Alice", env.alice, event[0])
-                }
-                timeline.addEvents {
-                    // Should be ignored.
-                    +timelineEventOf(env.alice, event[1])
-                    +timelineEventOf(env.bob, event[2])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Bob", env.bob, event[0])
-                }
-                launchAndCollectCut(
-                    cut.isRead,
-                    2,
-                    { delay(500.milliseconds) },
-                ) { result, updateCount ->
-                    when (updateCount) {
-                        1 -> result shouldBe false
-                        2 -> result shouldBe true
-                    }
+        should("be false when only the sender read the event").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Alice", env.alice, event[0])
+            }
+            cut shouldBeRead false
+        }
+
+        should("be true when read by third user immediately").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Us", env.us, null)
+                +roomUser("Bob", env.bob, event[0])
+                +roomUser("Alice", env.alice, event[0])
+            }
+            launchAndCollectCut(
+                cut.isRead,
+                2,
+                { delay(500.milliseconds) },
+            ) { result, updateCount ->
+                when (updateCount) {
+                    1 -> result shouldBe false
+                    2 -> result shouldBe true
                 }
             }
         }
 
-        shouldGroup("read by") {
-
-            should("be empty when not read").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Us", env.us, null)
-                    +roomUser("Bob", env.bob, null)
-                    +roomUser("Alice", env.alice, null)
-                }
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
-                launch { cut.isReadBy.collect { cutReadBy.value = it } }
-                cutReadBy shouldBeUsers emptySet()
+        should("be true when read by third user later").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
             }
-
-            should("contain users from read markers").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
-                launch { cut.isReadBy.collect { cutReadBy.value = it } }
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Us", env.us, null)
-                    +roomUser("Bob", env.bob, null)
-                    +roomUser("Alice", env.alice, null)
-                }
-                cutReadBy shouldBeUsers emptySet()
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Bob", env.bob, event[0])
-                }
-                cutReadBy shouldBeUsers setOf(env.bob)
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Us", env.us, null)
+                +roomUser("Bob", env.bob, null)
+                +roomUser("Alice", env.alice, event[0])
             }
-
-            should("contain sender of subsequent events").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Bob", env.bob, event[0])
-                }
-                timeline.addEvents {
-                    +timelineEventOf(env.bob, event[1])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Bob", env.bob, event[0])
-                }
-                launchAndCollectCut(
-                    cut.isReadBy,
-                    2,
-                    { delay(500.milliseconds) },
-                ) { result, updateCount ->
-                    when (updateCount) {
-                        1 -> result shouldBeUsers setOf()
-                        2 -> result shouldBeUsers setOf(env.bob)
-                    }
-                }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", env.bob, event[0])
             }
-
-            should("not contain us from read marker").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Us", env.us, event[0])
-                    +roomUser("Bob", env.bob, event[0])
-                }
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
-                launch { cut.isReadBy.collect { cutReadBy.value = it } }
-                cutReadBy shouldBeUsers setOf(env.bob)
-            }
-
-            should("not contain us from subsequent events").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                    +timelineEventOf(env.us, event[1])
-                }
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
-                launch { cut.isReadBy.collect { cutReadBy.value = it } }
-                cutReadBy shouldBeUsers emptySet()
-            }
-
-            should("not contain sender from subsequent events").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, _, event) = env
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                    +timelineEventOf(env.alice, event[1])
-                }
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
-                launch { cut.isReadBy.collect { cutReadBy.value = it } }
-                cutReadBy shouldBeUsers emptySet()
-            }
-
-            should("not contain sender from read marker").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Bob", env.bob, event[0])
-                    +roomUser("Alice", env.alice, event[0])
-                }
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
-                launch { cut.isReadBy.collect { cutReadBy.value = it } }
-                cutReadBy shouldBeUsers setOf(env.bob)
-            }
-
-            should("not contain sender from read marker after update").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                timeline.addEvents {
-                    +timelineEventOf(env.alice, event[0])
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Bob", env.bob, null)
-                    +roomUser("Alice", env.alice, null)
-                }
-                wait()
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Bob", env.bob, event[0])
-                    +roomUser("Alice", env.alice, event[0])
-                }
-                launchAndCollectCut(
-                    env.cutReadReceiptsHandle(env.alice, event[0]).isReadBy,
-                    2,
-                    { delay(500.milliseconds) },
-                ) { result, updateCount ->
-                    when (updateCount) {
-                        1 -> result shouldBeUsers emptySet()
-                        2 -> result shouldBeUsers setOf(env.bob)
-                    }
-                }
-            }
-
-            should("update read marker").withCleanup {
-                val env = TestEnv(testScope = this)
-                val (_, timeline, roomUsers, event) = env
-                val cut = env.cutReadReceiptsHandle(env.alice, event[0])
-                timeline.addEvents {
-                    (0..11).forEach { i ->
-                        +timelineEventOf(env.alice, event[i])
-                    }
-                }
-                roomUsers.addOrUpdateUsers {
-                    +roomUser("Reader", env.reader[0], event[1])
-                    +roomUser("Reader", env.reader[1], event[4])
-                    +roomUser("Reader", env.reader[2], event[8])
-                    +roomUser("Reader", env.reader[3], event[11])
-                }
-                launchAndCollectCut(
-                    cut.isReadBy,
-                    5,
-                    { delay(1500.milliseconds) },
-                ) { result, updateCount ->
-                    when (updateCount) {
-                        1 -> result shouldBeUsers emptySet()
-
-                        2 -> result shouldBeUsers setOf(
-                            env.reader[0],
-                        )
-
-                        3 -> result shouldBeUsers setOf(
-                            env.reader[0],
-                            env.reader[1],
-                        )
-
-                        4 -> result shouldBeUsers setOf(
-                            env.reader[0],
-                            env.reader[1],
-                            env.reader[2],
-                        )
-
-                        5 -> result shouldBeUsers setOf(
-                            env.reader[0],
-                            env.reader[1],
-                            env.reader[2],
-                            env.reader[3],
-                        )
-                    }
+            launchAndCollectCut(
+                cut.isRead,
+                2,
+                { delay(500.milliseconds) },
+            ) { result, updateCount ->
+                when (updateCount) {
+                    1 -> result shouldBe false
+                    2 -> result shouldBe true
                 }
             }
         }
+
+        should("be true when message from third user after it").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Us", env.us, null)
+                +roomUser("Bob", env.bob, null)
+                +roomUser("Alice", env.alice, event[0])
+            }
+            timeline.addEvents {
+                // Should be ignored.
+                +timelineEventOf(env.alice, event[1])
+                +timelineEventOf(env.bob, event[2])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", env.bob, event[0])
+            }
+            launchAndCollectCut(
+                cut.isRead,
+                2,
+                { delay(500.milliseconds) },
+            ) { result, updateCount ->
+                when (updateCount) {
+                    1 -> result shouldBe false
+                    2 -> result shouldBe true
+                }
+            }
+        }
+//        }
+
+//        shouldGroup("read by") {
+
+        should("be empty when not read").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Us", env.us, null)
+                +roomUser("Bob", env.bob, null)
+                +roomUser("Alice", env.alice, null)
+            }
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
+            launch { cut.isReadBy.collect { cutReadBy.value = it } }
+            cutReadBy shouldBeUsers emptySet()
+        }
+
+        should("contain users from read markers").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
+            launch { cut.isReadBy.collect { cutReadBy.value = it } }
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Us", env.us, null)
+                +roomUser("Bob", env.bob, null)
+                +roomUser("Alice", env.alice, null)
+            }
+            cutReadBy shouldBeUsers emptySet()
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", env.bob, event[0])
+            }
+            cutReadBy shouldBeUsers setOf(env.bob)
+        }
+
+        should("contain sender of subsequent events").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", env.bob, event[0])
+            }
+            timeline.addEvents {
+                +timelineEventOf(env.bob, event[1])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", env.bob, event[0])
+            }
+            launchAndCollectCut(
+                cut.isReadBy,
+                2,
+                { delay(500.milliseconds) },
+            ) { result, updateCount ->
+                when (updateCount) {
+                    1 -> result shouldBeUsers setOf()
+                    2 -> result shouldBeUsers setOf(env.bob)
+                }
+            }
+        }
+
+        should("not contain us from read marker").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Us", env.us, event[0])
+                +roomUser("Bob", env.bob, event[0])
+            }
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
+            launch { cut.isReadBy.collect { cutReadBy.value = it } }
+            cutReadBy shouldBeUsers setOf(env.bob)
+        }
+
+        should("not contain us from subsequent events").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+                +timelineEventOf(env.us, event[1])
+            }
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
+            launch { cut.isReadBy.collect { cutReadBy.value = it } }
+            cutReadBy shouldBeUsers emptySet()
+        }
+
+        should("not contain sender from subsequent events").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, _, event) = env
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+                +timelineEventOf(env.alice, event[1])
+            }
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
+            launch { cut.isReadBy.collect { cutReadBy.value = it } }
+            cutReadBy shouldBeUsers emptySet()
+        }
+
+        should("not contain sender from read marker").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", env.bob, event[0])
+                +roomUser("Alice", env.alice, event[0])
+            }
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            val cutReadBy = MutableStateFlow<Set<UserInfoElement>>(setOf())
+            launch { cut.isReadBy.collect { cutReadBy.value = it } }
+            cutReadBy shouldBeUsers setOf(env.bob)
+        }
+
+        should("not contain sender from read marker after update").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            timeline.addEvents {
+                +timelineEventOf(env.alice, event[0])
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", env.bob, null)
+                +roomUser("Alice", env.alice, null)
+            }
+            wait()
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Bob", env.bob, event[0])
+                +roomUser("Alice", env.alice, event[0])
+            }
+            launchAndCollectCut(
+                env.cutReadReceiptsHandle(env.alice, event[0]).isReadBy,
+                2,
+                { delay(500.milliseconds) },
+            ) { result, updateCount ->
+                when (updateCount) {
+                    1 -> result shouldBeUsers emptySet()
+                    2 -> result shouldBeUsers setOf(env.bob)
+                }
+            }
+        }
+
+        should("update read marker").withCleanup {
+            val env = TestEnv(testScope = this)
+            val (_, timeline, roomUsers, event) = env
+            val cut = env.cutReadReceiptsHandle(env.alice, event[0])
+            timeline.addEvents {
+                (0..11).forEach { i ->
+                    +timelineEventOf(env.alice, event[i])
+                }
+            }
+            roomUsers.addOrUpdateUsers {
+                +roomUser("Reader", env.reader[0], event[1])
+                +roomUser("Reader", env.reader[1], event[4])
+                +roomUser("Reader", env.reader[2], event[8])
+                +roomUser("Reader", env.reader[3], event[11])
+            }
+            launchAndCollectCut(
+                cut.isReadBy,
+                5,
+                { delay(1500.milliseconds) },
+            ) { result, updateCount ->
+                when (updateCount) {
+                    1 -> result shouldBeUsers emptySet()
+
+                    2 -> result shouldBeUsers setOf(
+                        env.reader[0],
+                    )
+
+                    3 -> result shouldBeUsers setOf(
+                        env.reader[0],
+                        env.reader[1],
+                    )
+
+                    4 -> result shouldBeUsers setOf(
+                        env.reader[0],
+                        env.reader[1],
+                        env.reader[2],
+                    )
+
+                    5 -> result shouldBeUsers setOf(
+                        env.reader[0],
+                        env.reader[1],
+                        env.reader[2],
+                        env.reader[3],
+                    )
+                }
+            }
+        }
+//        }
     }
 
     private fun TimelineBuilder.timelineEventOf(
