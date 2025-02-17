@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineBuilder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineMock
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.roomUsers
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
+import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactions.Companion.Empty
 import de.connect2x.trixnity.messenger.withCleanup
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -22,8 +23,9 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomUser
@@ -147,7 +149,10 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 +textMessageBy(env.alice, event[0])
             }
             val cut = env.cutMessageReactions(event[0])
-            cut shouldReturnReactionsByUsers mapOf()
+            val cutReactions = MutableStateFlow(Empty)
+            launch { cut.reactions.collect { cutReactions.value = it } }
+            wait()
+            cutReactions.value shouldReturnReactionsByUsers mapOf()
         }
 
         should("get nothing on our message without reactions").withCleanup {
@@ -157,7 +162,10 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 +textMessageBy(env.us, event[0])
             }
             val cut = env.cutMessageReactions(event[0])
-            cut shouldReturnReactionsByUsers mapOf(
+            val cutReactions = MutableStateFlow(Empty)
+            launch { cut.reactions.collect { cutReactions.value = it } }
+            wait()
+            cutReactions.value shouldReturnReactionsByUsers mapOf(
                 env.bob to setOf(),
             )
         }
@@ -173,7 +181,10 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 +roomUser("Bob", env.bob)
             }
             val cut = env.cutMessageReactions(event[0])
-            cut shouldReturnReactionsByUsers mapOf(
+            val cutReactions = MutableStateFlow(Empty)
+            launch { cut.reactions.collect { cutReactions.value = it } }
+            wait()
+            cutReactions.value shouldReturnReactionsByUsers mapOf(
                 env.bob to setOf("🥳"),
             )
         }
@@ -189,13 +200,13 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 cut.reactions,
                 4,
                 {
-                    delay(1.seconds)
+                    wait()
                     timeline.addEvents { +reactionBy(env.alice, cutMessage, "😄") }
-                    delay(1.seconds)
+                    wait()
                     timeline.addEvents { +reactionBy(env.alice, cutMessage, "🥳") }
-                    delay(1.seconds)
+                    wait()
                     timeline.addEvents { +reactionBy(env.alice, cutMessage, "🙂") }
-                    delay(1.seconds)
+                    wait()
                 },
             ) { result, updateCount ->
                 when (updateCount) {
@@ -227,7 +238,10 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 +roomUser("Martin", env.us)
             }
             val cut = env.cutMessageReactions(event[0])
-            cut shouldReturnReactionsByUsers mapOf(
+            val cutReactions = MutableStateFlow(Empty)
+            launch { cut.reactions.collect { cutReactions.value = it } }
+            wait()
+            cutReactions.value shouldReturnReactionsByUsers mapOf(
                 env.us to setOf("😄"),
                 env.alice to setOf(),
             )
@@ -244,7 +258,10 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 +roomUser("Martin", env.us)
             }
             val cut = env.cutMessageReactions(event[0])
-            cut shouldReturnReactionsByUsers mapOf(
+            val cutReactions = MutableStateFlow(Empty)
+            launch { cut.reactions.collect { cutReactions.value = it } }
+            wait()
+            cutReactions.value shouldReturnReactionsByUsers mapOf(
                 env.us to setOf("😄"),
             )
         }
@@ -264,7 +281,10 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 +roomUser("Alice", env.alice)
             }
             val cut = env.cutMessageReactions(event[0])
-            cut shouldReturnReactionsByUsers mapOf(
+            val cutReactions = MutableStateFlow(Empty)
+            launch { cut.reactions.collect { cutReactions.value = it } }
+            wait()
+            cutReactions.value shouldReturnReactionsByUsers mapOf(
                 env.alice to setOf("🥳", "😄"),
                 env.bob to setOf("🙂", "😄"),
             )
@@ -285,7 +305,10 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 +roomUser("Alice", env.alice)
             }
             val cut = env.cutMessageReactions(event[0])
-            cut shouldReturnReactionsByUsers mapOf(
+            val cutReactions = MutableStateFlow(Empty)
+            launch { cut.reactions.collect { cutReactions.value = it } }
+            wait()
+            cutReactions.value shouldReturnReactionsByUsers mapOf(
                 env.alice to setOf("🥳", "😄"),
                 env.bob to setOf("🙂", "😄"),
             )
@@ -307,7 +330,10 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 +roomUser("Alice", env.alice)
             }
             val cut = env.cutMessageReactions(event[0])
-            cut shouldReturnReactionsByUsers mapOf(
+            val cutReactions = MutableStateFlow(Empty)
+            launch { cut.reactions.collect { cutReactions.value = it } }
+            wait()
+            cutReactions.value shouldReturnReactionsByUsers mapOf(
                 env.alice to setOf("🥳", "😄"),
                 env.bob to setOf("😄"),
                 env.us to setOf("😄"),
@@ -329,7 +355,10 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 +roomUser("Alice", env.alice)
             }
             val cut = env.cutMessageReactions(event[0])
-            cut shouldReturnReactionsByUsers mapOf(
+            val cutReactions = MutableStateFlow(Empty)
+            launch { cut.reactions.collect { cutReactions.value = it } }
+            wait()
+            cutReactions.value shouldReturnReactionsByUsers mapOf(
                 env.alice to setOf("🥳"),
                 env.bob to setOf("😄"),
                 env.us to setOf("🙂"),
@@ -343,7 +372,10 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 +textMessageBy(env.alice, event[0])
             }
             val cut = env.cutMessageReactions(event[0])
-            cut shouldReturnReactionsByCount listOf(
+            val cutReactions = MutableStateFlow(Empty)
+            launch { cut.reactions.collect { cutReactions.value = it } }
+            wait()
+            cutReactions.value shouldReturnReactionsByCount listOf(
                 "😄" to 0,
             )
         }
@@ -359,7 +391,10 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 +roomUser("Bob", env.bob)
             }
             val cut = env.cutMessageReactions(event[0])
-            cut shouldReturnReactionsByCount listOf(
+            val cutReactions = MutableStateFlow(Empty)
+            launch { cut.reactions.collect { cutReactions.value = it } }
+            wait()
+            cutReactions.value shouldReturnReactionsByCount listOf(
                 "🥳" to 0,
                 "🙂" to 1,
             )
@@ -381,7 +416,10 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 +roomUser("Alice", env.alice)
             }
             val cut = env.cutMessageReactions(event[0])
-            cut shouldReturnReactionsByCount listOf(
+            val cutReactions = MutableStateFlow(Empty)
+            launch { cut.reactions.collect { cutReactions.value = it } }
+            wait()
+            cutReactions.value shouldReturnReactionsByCount listOf(
                 "😊" to 1,
                 "🥳" to 1,
                 "🙂" to 1,
@@ -407,7 +445,10 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 +roomUser("Alice", env.alice)
             }
             val cut = env.cutMessageReactions(event[0])
-            cut shouldReturnReactionsByCount listOf(
+            val cutReactions = MutableStateFlow(Empty)
+            launch { cut.reactions.collect { cutReactions.value = it } }
+            wait()
+            cutReactions.value shouldReturnReactionsByCount listOf(
                 "😊" to 0,
                 "🥳" to 1,
                 "🙂" to 2,
@@ -416,17 +457,13 @@ class MessageReactionsHandleTest : ShouldSpec() {
         }
     }
 
+    private suspend fun wait() = delay(1.seconds)
+
     private fun TimelineBuilder.textMessageBy(userId: UserId, eventId: EventId) =
         messageEvent(sender = userId, eventId) { text("Hello") }
 
     private fun TimelineBuilder.reactionBy(userId: UserId, reactionTo: EventId, reactionKey: ReactionKey) =
         messageEvent(sender = userId) { reaction(reactionTo, reactionKey) }
-
-    private suspend inline infix fun MessageReactionsHandle.shouldReturnReactionsByUsers(
-        expected: Map<UserId, Set<ReactionKey>>,
-    ) {
-        this.reactions.firstOrNull() shouldReturnReactionsByUsers expected
-    }
 
     private inline infix fun MessageUserReactions?.shouldReturnReactionsByUsers(
         expected: Map<UserId, Set<ReactionKey>>,
@@ -449,10 +486,10 @@ class MessageReactionsHandleTest : ShouldSpec() {
         } ?: throw failure("no reaction data received")
     }
 
-    private suspend inline infix fun MessageReactionsHandle.shouldReturnReactionsByCount(
+    private inline infix fun MessageUserReactions?.shouldReturnReactionsByCount(
         expected: List<Pair<ReactionKey, Int>>,
     ) {
-        this.reactions.firstOrNull()?.let { reactions ->
+        this?.let { reactions ->
             reactions.byReaction shouldHaveSize expected.filter { it.second > 0 }.size
             expected.forEach { (expectedReaction, expectedCount) ->
                 withClue("did not match expected count for reaction $expectedReaction") {
