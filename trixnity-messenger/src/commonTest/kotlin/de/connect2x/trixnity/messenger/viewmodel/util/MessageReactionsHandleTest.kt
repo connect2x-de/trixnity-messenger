@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.launchAndCollectCut
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomUserBuilder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineBuilder
@@ -17,6 +18,7 @@ import io.kotest.assertions.withClue
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.firstOrNull
@@ -133,7 +135,6 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 initials = Initials,
                 client = viewModelContext.matrixClient,
                 config = MatrixMessengerConfiguration(),
-                scope = viewModelContext.coroutineScope,
             )
         }
 
@@ -187,15 +188,37 @@ class MessageReactionsHandleTest : ShouldSpec() {
                 +roomUser("Alice", env.alice)
             }
             val cut = env.cutMessageReactions(event[0])
-            cut shouldReturnReactionsByUsers mapOf(
-                env.alice to setOf("🥳", "😄"),
-            )
+//            delay(100.milliseconds)
+//            cut shouldReturnReactionsByUsers mapOf(
+//                env.alice to setOf("🥳", "😄"),
+//            )
             timeline.addEvents {
                 +reactionBy(env.alice, event[0], "🙂")
             }
-            cut shouldReturnReactionsByUsers mapOf(
-                env.alice to setOf("🥳", "🙂", "😄"),
-            )
+//            delay(100.milliseconds)
+//            cut shouldReturnReactionsByUsers mapOf(
+//                env.alice to setOf("🥳", "🙂", "😄"),
+//            )
+            launchAndCollectCut(
+                cut.reactions,
+                3,
+            ) { result, updateCount ->
+                when (updateCount) {
+                    1 -> result shouldReturnReactionsByUsers mapOf()
+
+                    2 -> result shouldReturnReactionsByUsers mapOf(
+                        env.alice to setOf("😄"),
+                    )
+
+                    3 -> mapOf(
+                        env.alice to setOf("🥳", "😄"),
+                    )
+
+                    4 -> mapOf(
+                        env.alice to setOf("🥳", "🙂", "😄"),
+                    )
+                }
+            }
         }
 
         should("get reaction from ourselves on other message").withCleanup {
@@ -407,8 +430,14 @@ class MessageReactionsHandleTest : ShouldSpec() {
     private suspend inline infix fun MessageReactionsHandle.shouldReturnReactionsByUsers(
         expected: Map<UserId, Set<ReactionKey>>,
     ) {
-        this.reactions.firstOrNull()?.let { reactions ->
-            reactions.byUser shouldHaveSize expected.filter { it.value.isNotEmpty() }.size
+        this.reactions.firstOrNull() shouldReturnReactionsByUsers expected
+    }
+
+    private inline infix fun MessageUserReactions?.shouldReturnReactionsByUsers(
+        expected: Map<UserId, Set<ReactionKey>>,
+    ) {
+        this?.let { reactions ->
+            reactions.byUser.map { it.value.reactions } shouldHaveSize expected.filter { it.value.isNotEmpty() }.size
             reactions.byUser.let {
                 expected.forEach { (expectingUser, expectedReactions) ->
                     withClue("did not match expected reactions for user $expectingUser") {

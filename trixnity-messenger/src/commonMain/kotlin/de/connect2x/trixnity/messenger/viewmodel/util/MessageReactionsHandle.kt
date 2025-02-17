@@ -6,13 +6,11 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactions.ReactionEvent
 import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactions.UserReactions
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getTimelineEventReactionAggregation
 import net.folivo.trixnity.client.store.eventId
@@ -23,7 +21,7 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
 
 
 interface MessageReactionsHandleFactory {
@@ -38,7 +36,6 @@ interface MessageReactionsHandleFactory {
             initials = viewModelContext.get<Initials>(),
             client = viewModelContext.matrixClient,
             config = viewModelContext.get<MatrixMessengerConfiguration>(),
-            scope = viewModelContext.coroutineScope,
         )
 
     companion object : MessageReactionsHandleFactory
@@ -54,7 +51,6 @@ class MessageReactionsHandleImpl(
     initials: Initials,
     client: MatrixClient,
     config: MatrixMessengerConfiguration,
-    scope: CoroutineScope,
 ) : MessageReactionsHandle {
     override val reactions =
         client
@@ -63,7 +59,6 @@ class MessageReactionsHandleImpl(
                 eventId = eventId,
                 initials = initials,
                 config = config,
-                scope = scope,
             )
 }
 
@@ -88,38 +83,44 @@ data class MessageUserReactions(
 }
 
 // TODO: should consider outbox to get immediate feedback
-@OptIn(ExperimentalCoroutinesApi::class)
 fun MatrixClient.getMessageUserReactions(
     roomId: RoomId,
     eventId: EventId,
     initials: Initials,
     config: MatrixMessengerConfiguration,
-    scope: CoroutineScope,
 ): Flow<MessageUserReactions> =
     room
         .getTimelineEventReactionAggregation(roomId, eventId)
-        .mapLatest { reactions ->
-            val reactionsAggregation = reactions.reactions
-            if (reactionsAggregation.isEmpty()) {
-                return@mapLatest MessageUserReactions.Empty
+        .debounceAfterFirst(500.milliseconds)
+        .map { reactions ->
+            reactions.reactions.mapValues {
+                combine(it.value.map { event ->
+                    user
+                        .getById(event.roomId, event.sender)
+                        .map { user -> Pair(user, event) }
+                }) { it }
+            }
+        }
+        .flatten()
+        .scopedMapLatest { reactions ->
+            if (reactions.isEmpty()) {
+                return@scopedMapLatest MessageUserReactions.Empty
             }
             val byUser = mutableMapOf<UserId, Pair<UserInfoElement, MutableSet<ReactionKey>>>()
-            val byReaction: Map<ReactionKey, Set<ReactionEvent>> = reactionsAggregation
+            val byReaction: Map<ReactionKey, Set<ReactionEvent>> = reactions
                 .mapValues { (reactionKey, events) ->
-                    events.map { timelineEvent ->
-                        val userId = timelineEvent.sender
-                        val userInfo =
-                            withTimeout(1.seconds) {
-                                user
-                                    .getById(timelineEvent.roomId, userId)
-                                    .first()
-                            }.toUserInfoElement(
-                                coroutineScope = scope,
-                                matrixClient = this,
-                                initials = initials,
-                                maxAvatarSize = config.avatarMaxSize,
-                                fallbackUserId = userId,
-                            )
+                    events?.mapNotNull { (roomUser, timelineEvent) ->
+                        if (roomUser == null) {
+                            return@mapNotNull null
+                        }
+                        val userId = roomUser.userId
+                        val userInfo = roomUser.toUserInfoElement(
+                            coroutineScope = this@scopedMapLatest,
+                            matrixClient = this@getMessageUserReactions,
+                            initials = initials,
+                            maxAvatarSize = config.avatarMaxSize,
+                            fallbackUserId = userId,
+                        )
 
                         byUser.getOrPut(userId) { Pair(userInfo, mutableSetOf()) }
                             .second.add(reactionKey)
@@ -127,9 +128,9 @@ fun MatrixClient.getMessageUserReactions(
                         ReactionEvent(
                             eventId = timelineEvent.eventId,
                             sender = userInfo,
-                            isMe = this.userId == timelineEvent.sender,
+                            isMe = this@getMessageUserReactions.userId == roomUser.userId,
                         )
-                    }.toSet()
+                    }?.toSet() ?: setOf()
                 }
             MessageUserReactions(
                 byUser = byUser.mapValues { (_, info) ->

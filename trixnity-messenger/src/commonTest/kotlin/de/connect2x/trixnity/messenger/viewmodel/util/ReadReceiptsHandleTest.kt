@@ -100,9 +100,7 @@ class ReadReceiptsHandleTest : ShouldSpec() {
                 config = MatrixMessengerConfiguration(),
                 cache = ReadReceiptsCacheImpl(
                     client = viewModelContext.matrixClient,
-                    scope = viewModelContext.coroutineScope,
                 ),
-                scope = viewModelContext.coroutineScope,
             )
         }
 
