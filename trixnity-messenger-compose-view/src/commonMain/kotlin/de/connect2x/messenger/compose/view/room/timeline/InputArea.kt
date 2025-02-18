@@ -237,12 +237,12 @@ fun RowScope.InputAreaTextField(
     val showUploadError = remember { mutableStateOf<Throwable?>(null) }
 
     val maxAttachmentSize = DI.current.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-    val keyboardController = LocalSoftwareKeyboardController.current
 
-    LaunchedEffect(Unit) {
-        delay(500.milliseconds)
-        focusRequester.requestFocus()
-        keyboardController?.hide()
+    if (Platform.current.isMobile.not()) {
+        LaunchedEffect(Unit) {
+            delay(500.milliseconds)
+            focusRequester.requestFocus()
+        }
     }
 
     Box(
