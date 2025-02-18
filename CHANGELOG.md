@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Only show users with sync errors in the info banner
+- Fix text overflow in about licenses section
 
 ### Security
 
