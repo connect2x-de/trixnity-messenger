@@ -11,7 +11,8 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel1
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.util.MessageUserReactions.ReactionEvent
+import de.connect2x.trixnity.messenger.viewmodel.util.EventReaction
+import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +21,6 @@ import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.ByteArrayFlow
-
 
 @Preview
 @Composable
@@ -35,15 +35,18 @@ fun TextMessageBubblePreview() {
     holder.sender.value = userInfoElement
     holder.isFirstInUserSequence.value = true
     holder.showBigGapBefore.value = true
-    holder.reactions.value = mapOf(
-        "🎉" to setOf(
-            ReactionEvent(
-                eventId = EventId("1"),
-                sender = userInfoElement,
-                isMe = false,
+    holder.reactions.value =
+        EventReactions(
+            setOf(
+                EventReaction(
+                    value = "x",
+                    eventId = EventId("1"),
+                    sender = userInfoElement,
+                    isByMe = false,
+                )
             )
         )
-    )
+
     val element = object : RoomMessageTimelineElementViewModel.TextBased.Text {
         override val body: String = "Hello everyone!"
         override val formattedBody: String = "Hello <b/>everyone!"

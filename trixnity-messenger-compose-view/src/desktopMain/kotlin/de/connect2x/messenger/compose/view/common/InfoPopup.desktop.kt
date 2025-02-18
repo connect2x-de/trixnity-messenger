@@ -19,15 +19,14 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import de.connect2x.messenger.compose.view.room.timeline.element.ReactionsAndReadByInfo
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 
 @Composable
 actual fun InfoPopup(
     isOpen: Boolean,
     focusRequester: FocusRequester,
     onDismiss: () -> Unit,
-    readers: Collection<UserInfoElement>,
-    reactors: Map<ReactionKey, Collection<UserInfoElement>>,
+    readers: List<UserInfoElement>,
+    reactors: Map<String, List<UserInfoElement>>,
     modifier: Modifier,
 ) {
     val expandedState = remember { MutableTransitionState(false) }

@@ -123,10 +123,11 @@ import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepPasswordViewModelFac
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoomImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactions
+import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactionsImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReaders
+import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReadersImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.MessageReactionsHandleFactory
-import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsCacheFactory
-import de.connect2x.trixnity.messenger.viewmodel.util.ReadReceiptsHandleFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviterImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
@@ -252,7 +253,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<UiaStepFallbackViewModelFactory> { UiaStepFallbackViewModelFactory }
 
             single<ShareDataViewModelFactory> { ShareDataViewModelFactory }
-            single<MessageReactionsHandleFactory> { MessageReactionsHandleFactory }
             single<SharedDataHandler> { SharedDataHandlerImpl() }
         }
     },
@@ -383,8 +383,8 @@ private fun timelineElementViewModels() = module {
 
 private fun roomViewModels() = module {
     single<RoomViewModelFactory> { RoomViewModelFactory }
-    single<ReadReceiptsCacheFactory> { ReadReceiptsCacheFactory }
-    single<ReadReceiptsHandleFactory> { ReadReceiptsHandleFactory }
+    single<GetEventReactions> { GetEventReactionsImpl() }
+    single<GetEventReaders> { GetEventReadersImpl() }
 }
 
 private fun roomSettingsViewModels() = module {

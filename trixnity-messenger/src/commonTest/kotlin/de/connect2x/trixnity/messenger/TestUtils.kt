@@ -13,7 +13,6 @@ import dev.mokkery.resetAnswers
 import dev.mokkery.resetCalls
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.errorCollector
-import io.kotest.assertions.failure
 import io.kotest.assertions.withClue
 import io.kotest.core.names.TestName
 import io.kotest.core.spec.Spec
@@ -26,14 +25,11 @@ import io.kotest.core.test.TestScope
 import io.kotest.core.test.TestType
 import io.kotest.core.test.config.TestConfig
 import io.kotest.matchers.nulls.shouldNotBeNull
-import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.timeout
-import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
@@ -142,35 +138,6 @@ fun TestScope.testMatrixClientViewModelContext(di: Koin, userId: UserId) = objec
         coroutineContext = coroutineContext
     ) {
     override val coroutineScope = CoroutineScope(coroutineContext)
-}
-
-/**
- * Use this to test individual flow updates.
- */
-suspend fun <T> CoroutineScope.launchAndCollectCut(
-    cut: Flow<T>,
-    expectedUpdates: Int,
-    onAfterLaunchCut: suspend () -> Unit = {},
-    onCollect: suspend (result: T, updateCount: Int) -> Unit,
-) {
-    val updateCount = MutableStateFlow(0)
-    this@launchAndCollectCut.launch {
-        cut.collect { result ->
-            updateCount.value++
-            withClue("Failure during update #${updateCount.value}:") {
-                val count = updateCount.value
-                if (expectedUpdates < count) {
-                    throw failure("should not have updated >=$updateCount times")
-                }
-                log.debug { "update #$count -> $result" }
-                onCollect(result, count)
-            }
-        }
-    }
-    onAfterLaunchCut()
-    withClue("should have $expectedUpdates updates") {
-        updateCount.value shouldBe expectedUpdates
-    }
 }
 
 

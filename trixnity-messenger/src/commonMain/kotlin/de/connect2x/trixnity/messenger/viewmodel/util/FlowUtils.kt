@@ -38,8 +38,8 @@ fun <T> Flow<T>.debounceAfterFirst(delay: Duration): Flow<T> =
         var didEmitFirst = false
         collectLatest {
             if (didEmitFirst) delay(delay)
-            didEmitFirst = true
             send(it)
+            didEmitFirst = true
         }
     }
 

@@ -32,14 +32,13 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 @Composable
 fun ReactorList(
-    reactors: Map<ReactionKey, Collection<UserInfoElement>>,
+    reactors: Map<String, List<UserInfoElement>>,
     focusRequester: FocusRequester,
 ) {
     val i18n = DI.get<I18nView>()

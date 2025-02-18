@@ -16,7 +16,6 @@ import net.folivo.trixnity.core.model.UserId
 
 private val log = KotlinLogging.logger { }
 
-// TODO: turn to data class with custom equal check?
 class UserInfoElement(
     val userId: UserId,
     val name: String,

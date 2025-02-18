@@ -19,10 +19,10 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 
+
 @Composable
 fun ReadByInfo(
-    readers: Collection<UserInfoElement>,
-    focusRequester: FocusRequester,
+    readers: List<UserInfoElement>, focusRequester: FocusRequester
 ) {
     val scrollState = rememberScrollState()
 

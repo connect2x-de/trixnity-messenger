@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import de.connect2x.messenger.compose.view.room.timeline.element.ReactionsAndReadByInfo
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -16,9 +15,9 @@ actual fun InfoPopup(
     isOpen: Boolean,
     focusRequester: FocusRequester,
     onDismiss: () -> Unit,
-    readers: Collection<UserInfoElement>,
-    reactors: Map<ReactionKey, Collection<UserInfoElement>>,
-    modifier: Modifier,
+    readers: List<UserInfoElement>,
+    reactors: Map<String, List<UserInfoElement>>,
+    modifier: Modifier
 ) {
     val sheetState = rememberModalBottomSheetState()
     if (isOpen) {

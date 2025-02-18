@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -9,6 +8,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.withClue
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,13 +17,10 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeout
-import kotlinx.datetime.Instant
-import kotlinx.datetime.Instant.Companion.fromEpochMilliseconds
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.client.room.GetTimelineEventConfig
@@ -37,9 +34,7 @@ import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.RoomUserReceipts
 import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.TimelineEventRelation
 import net.folivo.trixnity.client.store.eventId
-import net.folivo.trixnity.client.store.roomId
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
 import net.folivo.trixnity.core.model.EventId
@@ -55,11 +50,8 @@ import net.folivo.trixnity.core.model.events.StateEventContent
 import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
-import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType
-import net.folivo.trixnity.core.model.events.m.RelatesTo
-import net.folivo.trixnity.core.model.events.m.RelationType
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
@@ -68,15 +60,15 @@ import net.folivo.trixnity.core.model.events.m.room.RedactionEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import kotlin.time.Duration.Companion.seconds
 
-
 private val log = KotlinLogging.logger {}
 
 fun roomUsers(
     userService: UserService,
     roomId: RoomId,
     block: RoomUserBuilder.() -> Unit,
-): RoomUserBuilder =
+) {
     RoomUserBuilder(userService, roomId).apply(block)
+}
 
 class RoomUserBuilder(
     private val userService: UserService,
@@ -90,49 +82,28 @@ class RoomUserBuilder(
     val users = MutableStateFlow(listOf<RoomUserWithReceipts>())
 
     init {
-        updateMocks()
-    }
-
-    private fun updateMocks() {
-        every { userService.getAll(roomId) } calls {
-            log.debug { "userService.getAll($roomId)" }
-            users.map {
-                it.associate { (user, _) ->
-                    user.userId to flowOf(
-                        user
-                    )
-                }
+        every { userService.getAll(roomId) } returns users.map {
+            it.associate { (user, _) ->
+                user.userId to flowOf(
+                    user
+                )
             }
         }
-        every { userService.getAllReceipts(roomId) } calls {
-            log.debug { "userService.getAllReceipts($roomId)" }
-            users.map {
-                it.associate { (_, receipts) ->
-                    receipts.userId to flowOf(receipts)
-                }
+        every { userService.getAllReceipts(roomId) } returns users.map {
+            it.associate { (_, receipts) ->
+                receipts.userId to flowOf(
+                    receipts
+                )
             }
         }
-    }
-
-    fun addOrUpdateUsers(block: RoomUserBuilder.() -> Unit) {
-        this.apply(block)
     }
 
     operator fun RoomUserWithReceipts.unaryPlus() {
-        every { userService.getById(roomId, this@unaryPlus.user.userId) } calls {
-            log.debug { "userService.getById($roomId, ${this@unaryPlus.user.userId})" }
-            flowOf(this@unaryPlus.user)
-        }
-        users.update {
-            it.filter { existingUser -> existingUser.user.userId != this.user.userId } + this
-        }
+        every { userService.getById(roomId, this@unaryPlus.user.userId) } returns flowOf(this.user)
+        users.update { it + this }
     }
 
-    fun roomUser(
-        name: String,
-        id: UserId = UserId(name),
-        lastReadMessage: EventId? = null,
-    ): RoomUserWithReceipts =
+    fun roomUser(name: String, id: UserId = UserId(name), lastReadMessage: EventId? = null): RoomUserWithReceipts =
         RoomUserWithReceipts(
             RoomUser(
                 roomId,
@@ -140,11 +111,11 @@ class RoomUserBuilder(
                 name,
                 StateEvent(
                     MemberEventContent(membership = Membership.JOIN),
-                    EventId("$name-join"),
+                    EventId(""),
                     id,
                     roomId,
                     0L,
-                    stateKey = "",
+                    stateKey = ""
                 ),
             ),
             RoomUserReceipts(
@@ -154,7 +125,7 @@ class RoomUserBuilder(
                         ReceiptType.Read to RoomUserReceipts.Receipt(it, ReceiptEventContent.Receipt(24))
                     )
                 }.orEmpty()
-            ),
+            )
         )
 }
 
@@ -168,8 +139,7 @@ fun timeline(
         roomServiceMock.getAccountData(roomId, FullyReadEventContent::class)
     }
     val fullyReadEventIndex = MutableStateFlow<Int?>(null)
-    fullyReadMock returns fullyReadEventIndex
-        .map { it?.let { FullyReadEventContent(EventId("$it")) } }
+    fullyReadMock returns fullyReadEventIndex.map { it?.let { FullyReadEventContent(EventId("$it")) } }
 
     val room = MutableStateFlow(Room(roomId))
     every { roomServiceMock.getById(roomId) } returns room
@@ -297,11 +267,13 @@ class TimelineBuilder(
     private val roomId = room.value.roomId
     private val timelineEvents: MutableStateFlow<List<MutableStateFlow<TimelineEvent>>> = MutableStateFlow(listOf())
 
-    fun build(): List<StateFlow<TimelineEvent>> = timelineEvents.value
+    fun build(): List<StateFlow<TimelineEvent>> {
+        return timelineEvents.value
+    }
 
-    private var idCounter: Int = 0
-    private var timeCounter: Long = 1
+    private var idCounter = 0
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     operator fun TimelineEvent.unaryPlus(): MutableStateFlow<TimelineEvent> {
         val previousTimelineEvent = timelineEvents.value.lastOrNull()
         val newTimelineEvent = MutableStateFlow(this.copy(previousEventId = previousTimelineEvent?.value?.eventId))
@@ -312,8 +284,8 @@ class TimelineBuilder(
             roomServiceMock.getTimelineEvents(roomId, eventId, GetEvents.Direction.FORWARDS, any())
         } returns channelFlow {
             val alreadyEmittedEvents = mutableSetOf<EventId>()
-            timelineEvents.collectLatest { eventFlows ->
-                eventFlows.dropWhile { it.value.eventId != eventId }
+            timelineEvents.collectLatest {
+                it.dropWhile { it.value.eventId != eventId }
                     .filterNot { alreadyEmittedEvents.contains(it.value.eventId) }
                     .forEach {
                         alreadyEmittedEvents.add(it.value.eventId)
@@ -325,8 +297,8 @@ class TimelineBuilder(
             roomServiceMock.getTimelineEvents(roomId, eventId, GetEvents.Direction.BACKWARDS, any())
         } returns channelFlow {
             val alreadyEmittedEvents = mutableSetOf<EventId>()
-            timelineEvents.collectLatest { eventFlows ->
-                eventFlows.reversed()
+            timelineEvents.collectLatest {
+                it.reversed()
                     .dropWhile { it.value.eventId != eventId }
                     .filterNot { alreadyEmittedEvents.contains(it.value.eventId) }
                     .forEach {
@@ -335,48 +307,7 @@ class TimelineBuilder(
                     }
             }
         }
-        every {
-            roomServiceMock.getTimelineEventRelations(roomId, eventId, eq(RelationType.Annotation))
-        } returns channelFlow {
-            log.debug { "roomServiceMock.getTimelineEventRelations($roomId, $eventId, RelationType.Annotation)" }
-            timelineEvents.collectLatest { eventFlows ->
-                val reactionFlows = eventFlows
-                    .filter {
-                        it.value.content?.fold({ it }, { it }).let { content ->
-                            content is ReactionEventContent
-                                    && content.relatesTo != null
-                                    && content.relatesTo?.eventId == eventId
-                        }
-                    }
-                combine(reactionFlows) {
-                    val reactions = it.map { event ->
-                        event.content?.fold({ it }, { it }).let { content ->
-                            if (content !is ReactionEventContent) return@let null
-                            content.relatesTo?.let { relatesTo ->
-                                Pair(
-                                    event.eventId, flowOf(
-                                        TimelineEventRelation(
-                                            roomId = event.roomId,
-                                            eventId = event.eventId,
-                                            relationType = relatesTo.relationType,
-                                            relatedEventId = relatesTo.eventId,
-                                        )
-                                    )
-                                )
-                            }
-                        }
-                    }.filterNotNull().toMap()
-                    send(reactions)
-                }
-                    .firstOrNull()
-                    ?: send(null)
-            }
-        }
-        every {
-            roomServiceMock.getTimelineEventRelations(roomId, eventId, eq(RelationType.Replace))
-        } returns channelFlow {
-            send(null) // TODO: Return message edit relations.
-        }
+
         previousTimelineEvent?.update {
             it.copy(nextEventId = eventId)
         }
@@ -390,8 +321,9 @@ class TimelineBuilder(
             event = this,
             previousEventId = null,
             nextEventId = null,
-            gap = null,
+            gap = null
         )
+
 
     infix fun MutableStateFlow<TimelineEvent>.withContent(content: Result<RoomEventContent>) {
         update { it.copy(content = content) }
@@ -399,18 +331,15 @@ class TimelineBuilder(
 
     fun messageEvent(
         sender: UserId,
-        eventId: EventId? = null,
-        sentAt: Instant = fromEpochMilliseconds(timeCounter++ * 1000),
+        sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
         transactionId: String? = null,
         block: MessageEventBuilder.() -> Unit
-    ): MessageEvent<*> = messageEvent(
-        sender, eventId ?: EventId("${idCounter++}"),
-        roomId, sentAt, transactionId, block,
-    )
+    ): MessageEvent<*> =
+        messageEvent(sender, EventId("${idCounter++}"), roomId, sentAt, transactionId, block)
 
     fun stateEvent(
         sender: UserId,
-        sentAt: Instant = fromEpochMilliseconds(0),
+        sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
         block: StateEventBuilder.() -> Unit
     ): StateEvent<*> =
         stateEvent(sender, EventId("${idCounter++}"), roomId, sentAt, block)
@@ -420,11 +349,12 @@ fun messageEvent(
     sender: UserId,
     eventId: EventId,
     roomId: RoomId,
-    sentAt: Instant = fromEpochMilliseconds(0),
+    sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
     transactionId: String? = null,
-    block: MessageEventBuilder.() -> Unit,
-): MessageEvent<*> = MessageEventBuilder()
-    .apply(block).content?.let { content ->
+    block: MessageEventBuilder.() -> Unit
+): MessageEvent<*> {
+    val content = MessageEventBuilder().apply(block).content
+    val result = content?.let {
         MessageEvent(
             content = content,
             id = eventId,
@@ -437,40 +367,54 @@ fun messageEvent(
                 )
             },
         )
-    }.let { result ->
-        checkNotNull(result)
     }
+    return checkNotNull(result)
+}
 
 class MessageEventBuilder {
     var content: MessageEventContent? = null
+    fun text(message: String): RoomMessageEventContent.TextBased.Text {
+        val result = RoomMessageEventContent.TextBased.Text(message)
+        content = result
+        return result
+    }
 
-    fun text(message: String) = RoomMessageEventContent.TextBased.Text(message)
-        .also { content = it }
-
-    fun reaction(relatesTo: EventId, reactionKey: ReactionKey) = ReactionEventContent(
-        relatesTo = RelatesTo.Annotation(
-            eventId = relatesTo,
-            key = reactionKey,
+    fun reaction(relatesTo: EventId): UnknownEventContent {
+        val result = UnknownEventContent(
+            raw = JsonObject(mapOf("m.relates_to" to JsonPrimitive(relatesTo.full))),
+            eventType = "m.reaction"
         )
-    ).also { content = it }
+        content = result
+        return result
+    }
 
-    fun redacted() = RedactedEventContent(eventType = "m.room.encrypted")
-        .also { content = it }
+    fun redacted(): RedactedEventContent {
+        val result = RedactedEventContent(eventType = "m.room.encrypted")
+        content = result
+        return result
+    }
 
-    fun redact(redacts: EventId) = RedactionEventContent(redacts = redacts)
-        .also { content = it }
+    fun redact(redacts: EventId): RedactionEventContent {
+        val result = RedactionEventContent(redacts = redacts)
+        content = result
+        return result
+    }
 
-    fun encrypted() = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-        ciphertext = "",
-        sessionId = "",
-    ).also { content = it }
+    fun encrypted(): EncryptedMessageEventContent {
+        val result = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
+            ciphertext = "",
+            sessionId = ""
+        )
+        content = result
+        return result
+    }
 }
 
 fun stateEvent(
     sender: UserId,
     eventId: EventId,
     roomId: RoomId,
-    sentAt: Instant = fromEpochMilliseconds(0),
+    sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
     block: StateEventBuilder.() -> Unit
 ): StateEvent<*> {
     val content = StateEventBuilder().apply(block).content
