@@ -29,10 +29,14 @@ interface AppearanceSettingsViewModel {
     val themeMode: StateFlow<ThemeMode>
     val isHighContrast: StateFlow<Boolean>
     val accentColor: StateFlow<Long?>
+    val fontSize: StateFlow<Int>
+    val controlsSize: StateFlow<Int>
 
     fun setThemeMode(themeMode: ThemeMode)
     fun toggleHighContrast()
     fun setAccentColor(accentColor: Long?)
+    fun setFontSize(fontSize: Int)
+    fun setControlsSize(controlsSize: Int)
     fun back()
 }
 
@@ -52,6 +56,12 @@ class AppearanceSettingsViewModelImpl(
     override val accentColor: StateFlow<Long?> =
         settings.mapLatest { it.base.accentColor }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.accentColor)
+    override val fontSize: StateFlow<Int> =
+        settings.mapLatest { it.base.fontSize }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.fontSize)
+    override val controlsSize: StateFlow<Int> =
+        settings.mapLatest { it.base.controlsSize }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.controlsSize)
 
     private val backCallback = BackCallback {
         back()
@@ -81,6 +91,22 @@ class AppearanceSettingsViewModelImpl(
         coroutineScope.launch {
             settings.update<MatrixMessengerSettingsBase> {
                 it.copy(accentColor = accentColor)
+            }
+        }
+    }
+
+    override fun setFontSize(fontSize: Int) {
+        coroutineScope.launch {
+            settings.update<MatrixMessengerSettingsBase> {
+                it.copy(fontSize = fontSize)
+            }
+        }
+    }
+
+    override fun setControlsSize(controlsSize: Int) {
+        coroutineScope.launch {
+            settings.update<MatrixMessengerSettingsBase> {
+                it.copy(controlsSize = controlsSize)
             }
         }
     }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Colorize
+import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,8 +41,9 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
     @Composable
     override fun create(appearanceSettingsViewModel: AppearanceSettingsViewModel) {
         val i18n = DI.get<I18nView>()
-        val defaultAccentColor = DI.get<DefaultAccentColor>().value
         val scroll = rememberScrollState()
+
+        val defaultAccentColor = DI.get<DefaultAccentColor>().value
         val isHighContrast by appearanceSettingsViewModel.isHighContrast.collectAsState()
         val packedAccentColor by appearanceSettingsViewModel.accentColor.collectAsState()
         val accentColor = packedAccentColor?.let { Color(it.toULong()) } ?: defaultAccentColor
@@ -69,6 +71,9 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
                             ) {
                                 appearanceSettingsViewModel.toggleHighContrast()
                             }
+                        }
+                        SettingsCard(title = i18n.appearanceSizeTitle(), icon = Icons.Filled.FormatSize) {
+                            AppearanceSettingsSize(appearanceSettingsViewModel)
                         }
                     }
                     VerticalScrollbar(

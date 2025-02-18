@@ -2402,6 +2402,26 @@ abstract class I18nView(
         DE - "Farben"
     }
 
+    fun appearanceSizeTitle() = translate {
+        EN - "Anzeigegröße"
+        DE - "Display size"
+    }
+
+    fun appearanceFontSizeHeading() = translate {
+        EN - "Font size"
+        DE - "Schriftgröße"
+    }
+
+    fun appearanceControlsSizeHeading() = translate {
+        EN - "Controls size"
+        DE - "Kontrollengröße"
+    }
+
+    fun appearanceSizesReset() = translate {
+        EN - "Reset sizes"
+        DE - "Größen zurücksetzen"
+    }
+
     fun appearanceThemeHeading(name: String) = translate {
         EN - "Theme: $name"
         DE - "Thema: $name"

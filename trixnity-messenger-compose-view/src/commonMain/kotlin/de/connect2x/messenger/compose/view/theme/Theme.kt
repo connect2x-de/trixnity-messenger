@@ -29,7 +29,7 @@ fun MessengerTheme(
     messengerDpConstants: MessengerDpConstants = DefaultMessengerDpConstants,
     messengerIcons: MessengerIcons = DefaultMessengerIcons,
     shapes: Shapes = MaterialTheme.shapes,
-    typography: Typography = DI.get<ThemeTypography>().create(),
+    typography: Typography = DefaultMessengerTypography,
     content: @Composable () -> Unit,
 ) {
     DI.get<Theme>()

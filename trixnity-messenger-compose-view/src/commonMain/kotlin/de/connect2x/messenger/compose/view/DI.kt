@@ -204,6 +204,8 @@ import de.connect2x.messenger.compose.view.settings.AppInfoView
 import de.connect2x.messenger.compose.view.settings.AppInfoViewImpl
 import de.connect2x.messenger.compose.view.settings.AppearanceSettingsColorView
 import de.connect2x.messenger.compose.view.settings.AppearanceSettingsColorViewImpl
+import de.connect2x.messenger.compose.view.settings.AppearanceSettingsSizeView
+import de.connect2x.messenger.compose.view.settings.AppearanceSettingsSizeViewImpl
 import de.connect2x.messenger.compose.view.settings.AppearanceSettingsThemeView
 import de.connect2x.messenger.compose.view.settings.AppearanceSettingsThemeViewImpl
 import de.connect2x.messenger.compose.view.settings.AppearanceSettingsView
@@ -462,6 +464,7 @@ fun settingsViewModule() = module {
     single<AppearanceSettingsView> { AppearanceSettingsViewImpl() }
     single<AppearanceSettingsThemeView> { AppearanceSettingsThemeViewImpl() }
     single<AppearanceSettingsColorView> { AppearanceSettingsColorViewImpl() }
+    single<AppearanceSettingsSizeView> { AppearanceSettingsSizeViewImpl() }
     single<AppInfoView> { AppInfoViewImpl() }
     single<AppInfoVersionView> { AppInfoVersionViewImpl() }
     single<AppInfoPrivacyView> { AppInfoPrivacyViewImpl() }
