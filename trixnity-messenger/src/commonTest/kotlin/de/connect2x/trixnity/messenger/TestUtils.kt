@@ -27,9 +27,13 @@ import io.kotest.core.test.config.TestConfig
 import io.kotest.matchers.nulls.shouldNotBeNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.timeout
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
@@ -80,6 +84,17 @@ suspend inline fun <T> Flow<T?>.firstNotNullWithClue(duration: Duration = 1.seco
         repeat(clueCount) {
             errorCollector.popClue()
         }
+    }
+}
+
+fun runTestWithCoroutineScope(
+    testBody: suspend kotlinx.coroutines.test.TestScope.(CoroutineScope) -> Unit
+): TestResult = runTest {
+    val coroutineScope = CoroutineScope(coroutineContext + Job())
+    try {
+        testBody(coroutineScope)
+    } finally {
+        coroutineScope.cancel()
     }
 }
 
