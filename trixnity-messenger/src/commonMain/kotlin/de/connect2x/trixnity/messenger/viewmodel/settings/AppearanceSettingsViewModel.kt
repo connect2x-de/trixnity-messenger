@@ -29,14 +29,14 @@ interface AppearanceSettingsViewModel {
     val themeMode: StateFlow<ThemeMode>
     val isHighContrast: StateFlow<Boolean>
     val accentColor: StateFlow<Long?>
-    val fontSize: StateFlow<Int>
-    val controlsSize: StateFlow<Int>
+    val fontSize: StateFlow<Float>
+    val controlsSize: StateFlow<Float>
 
     fun setThemeMode(themeMode: ThemeMode)
     fun toggleHighContrast()
     fun setAccentColor(accentColor: Long?)
-    fun setFontSize(fontSize: Int)
-    fun setControlsSize(controlsSize: Int)
+    fun setFontSize(fontSize: Float)
+    fun setControlsSize(controlsSize: Float)
     fun back()
 }
 
@@ -56,10 +56,10 @@ class AppearanceSettingsViewModelImpl(
     override val accentColor: StateFlow<Long?> =
         settings.mapLatest { it.base.accentColor }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.accentColor)
-    override val fontSize: StateFlow<Int> =
+    override val fontSize: StateFlow<Float> =
         settings.mapLatest { it.base.fontSize }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.fontSize)
-    override val controlsSize: StateFlow<Int> =
+    override val controlsSize: StateFlow<Float> =
         settings.mapLatest { it.base.controlsSize }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.controlsSize)
 
@@ -95,7 +95,7 @@ class AppearanceSettingsViewModelImpl(
         }
     }
 
-    override fun setFontSize(fontSize: Int) {
+    override fun setFontSize(fontSize: Float) {
         coroutineScope.launch {
             settings.update<MatrixMessengerSettingsBase> {
                 it.copy(fontSize = fontSize)
@@ -103,7 +103,7 @@ class AppearanceSettingsViewModelImpl(
         }
     }
 
-    override fun setControlsSize(controlsSize: Int) {
+    override fun setControlsSize(controlsSize: Float) {
         coroutineScope.launch {
             settings.update<MatrixMessengerSettingsBase> {
                 it.copy(controlsSize = controlsSize)

@@ -26,7 +26,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel2
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel3
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModel
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.math.round
 
 interface AppearanceSettingsSizeView {
@@ -39,7 +38,6 @@ fun ColumnScope.AppearanceSettingsSize(appearanceSettingsViewModel: AppearanceSe
     with(DI.get<AppearanceSettingsSizeView>()) { create(appearanceSettingsViewModel) }
 }
 
-private val log = KotlinLogging.logger {}
 class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
     @Composable
     override fun ColumnScope.create(appearanceSettingsViewModel: AppearanceSettingsViewModel) {
@@ -61,18 +59,18 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
             style = MaterialTheme.typography.titleSmall
         )
         Slider(
-            value = fontSize.toFloat(),
-            onValueChange = { appearanceSettingsViewModel.setFontSize(round(it).toInt()) },
-            steps = 5, //
-            valueRange = 0f..6f
+            value = fontSize,
+            onValueChange = { appearanceSettingsViewModel.setFontSize(it) },
+            steps = 5,
+            valueRange = 0.7f..1.3f
         )
         Spacer(Modifier.height(5.dp))
-        /*Text(
+        Text(
             text = "${i18n.appearanceControlsSizeHeading()}:",
             fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.titleSmall
         )
-        Slider(
+        /*Slider(
             value = controlsSize.toFloat(),
             onValueChange = { appearanceSettingsViewModel.setControlsSize(it.toInt()) },
             steps = 7,
@@ -80,8 +78,8 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
         )*/
         Spacer(Modifier.height(10.dp))
         Button({
-            appearanceSettingsViewModel.setControlsSize(4) // TODO: Change
-            appearanceSettingsViewModel.setFontSize(4) // TODO: Change
+            appearanceSettingsViewModel.setControlsSize(1f) // TODO: Change
+            appearanceSettingsViewModel.setFontSize(1f) // TODO: Change
         }) {
             Icon(
                 imageVector = Icons.Filled.Refresh,
@@ -90,7 +88,5 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
             )
             Text(i18n.appearanceSizesReset())
         }
-
-        // TODO: Wir müssen die Text Styles der Typografie überschreiben
     }
 }

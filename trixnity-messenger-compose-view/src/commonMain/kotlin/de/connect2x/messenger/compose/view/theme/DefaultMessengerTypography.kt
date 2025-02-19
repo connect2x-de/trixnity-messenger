@@ -20,19 +20,8 @@ internal val DefaultMessengerTypography: Typography
 
         val settings = DI.getOrNull<MatrixMessengerSettingsHolder>()?.collectAsState()?.value
         log.debug { "Font size: ${settings?.base?.fontSize}" }
-        val fontFactor = when (settings?.base?.fontSize) {
-            0 -> 0.7f
-            1 -> 0.8f
-            2 -> 0.9f
-            3 -> 1.0f
-            4 -> 1.1f
-            5 -> 1.2f
-            6 -> 1.3f
-            else -> 1.0f
-        }
-
         val typography = DI.get<ThemeTypography>().create()
-        return when (fontFactor) {
+        return when (val fontFactor = settings?.base?.fontSize) {
             null -> typography
             else -> typography.copy(
                 displayLarge = typography.displayLarge.applySizeFactor(fontFactor),
