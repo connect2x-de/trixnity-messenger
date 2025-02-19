@@ -29,14 +29,14 @@ interface AppearanceSettingsViewModel {
     val themeMode: StateFlow<ThemeMode>
     val isHighContrast: StateFlow<Boolean>
     val accentColor: StateFlow<Long?>
-    val fontSize: StateFlow<Float>
-    val controlsSize: StateFlow<Float>
+    val fontSize: StateFlow<Float?>
+    val displaySize: StateFlow<Float?>
 
     fun setThemeMode(themeMode: ThemeMode)
     fun toggleHighContrast()
     fun setAccentColor(accentColor: Long?)
-    fun setFontSize(fontSize: Float)
-    fun setControlsSize(controlsSize: Float)
+    fun setFontSize(fontSize: Float?)
+    fun setDisplaySize(controlsSize: Float?)
     fun back()
 }
 
@@ -56,12 +56,12 @@ class AppearanceSettingsViewModelImpl(
     override val accentColor: StateFlow<Long?> =
         settings.mapLatest { it.base.accentColor }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.accentColor)
-    override val fontSize: StateFlow<Float> =
+    override val fontSize: StateFlow<Float?> =
         settings.mapLatest { it.base.fontSize }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.fontSize)
-    override val controlsSize: StateFlow<Float> =
-        settings.mapLatest { it.base.controlsSize }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.controlsSize)
+    override val displaySize: StateFlow<Float?> =
+        settings.mapLatest { it.base.displaySize }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.displaySize)
 
     private val backCallback = BackCallback {
         back()
@@ -95,7 +95,7 @@ class AppearanceSettingsViewModelImpl(
         }
     }
 
-    override fun setFontSize(fontSize: Float) {
+    override fun setFontSize(fontSize: Float?) {
         coroutineScope.launch {
             settings.update<MatrixMessengerSettingsBase> {
                 it.copy(fontSize = fontSize)
@@ -103,10 +103,10 @@ class AppearanceSettingsViewModelImpl(
         }
     }
 
-    override fun setControlsSize(controlsSize: Float) {
+    override fun setDisplaySize(controlsSize: Float?) {
         coroutineScope.launch {
             settings.update<MatrixMessengerSettingsBase> {
-                it.copy(controlsSize = controlsSize)
+                it.copy(displaySize = controlsSize)
             }
         }
     }

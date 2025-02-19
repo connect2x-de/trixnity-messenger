@@ -2412,9 +2412,19 @@ abstract class I18nView(
         DE - "Schriftgröße"
     }
 
-    fun appearanceControlsSizeHeading() = translate {
-        EN - "Controls size"
-        DE - "Kontrollengröße"
+    fun appearanceDisplaySizeHeading() = translate {
+        EN - "Display size"
+        DE - "Anzeigegröße"
+    }
+
+    fun appearanceDisplaySizeExplanation() = translate {
+        EN - "Enlarge oder reduce everything"
+        DE - "Alles vergrößern oder verkleinern"
+    }
+
+    fun appearanceSizesApply() = translate {
+        EN - "Apply sizes"
+        DE - "Größen anwenden"
     }
 
     fun appearanceSizesReset() = translate {
