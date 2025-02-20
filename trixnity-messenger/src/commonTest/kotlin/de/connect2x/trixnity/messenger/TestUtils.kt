@@ -158,16 +158,7 @@ fun ShouldSpec.shouldGroup(contextName: String, test: suspend ShouldSpecContaine
     // TODO: Add optional config parameter to control test container behavior for our use cases.
     //  this would allow us to set per-testcase configs
     val config = testConfig(this)
-    addTest(
-        TestName(
-            name = contextName,
-            prefix = "context ",
-            suffix = null,
-            focus = false,
-            bang = false,
-            defaultAffixes = true
-        ), false, config
-    ) {
+    addTest(TestName("context ", contextName, false), false, config, TestType.Test) {
         ShouldSpecContainerScope(this).test()
     }
 }
@@ -185,16 +176,7 @@ suspend fun ShouldSpecContainerScope.shouldGroup(
     // TODO: Add optional config parameter to control test container behavior for our use cases.
     //  this would allow us to set per-testcase configs
     val config = testConfig(this.testScope.testCase.spec)
-    registerTest(
-        TestName(
-            name = contextName,
-            focus = false,
-            bang = false,
-            prefix = null,
-            suffix = null,
-            defaultAffixes = true
-        ), false, config, TestType.Test
-    ) {
+    registerTest(TestName(contextName), false, config, TestType.Test) {
         ShouldSpecContainerScope(this).test()
     }
 }
@@ -207,6 +189,7 @@ private fun testConfig(spec: Spec): TestConfig {
         coroutineTestScope = spec.coroutineTestScope, // ?: true,
         coroutineDebugProbes = true,
         blockingTest = true,
+        threads = spec.threads ?: 1,
 //        assertionMode = ,
 //        assertSoftly = ,
 //        concurrency = concurrency ?: 1,
@@ -239,7 +222,7 @@ suspend fun TestWithConfigBuilder.withCleanup(test: suspend TestScope.() -> Unit
     config { runTest(test) }
 
 private suspend fun TestScope.runTest(test: suspend TestScope.() -> Unit) {
-    val testName = "should " + testCase.name.name
+    val testName = "should " + testCase.name.testName
     log.debug { "- - starting test: <$testName>" }
     test()
     cancelNeverEndingCoroutines()

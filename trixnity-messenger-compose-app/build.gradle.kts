@@ -30,7 +30,6 @@ aboutLibraries {
     configPath = "trixnity-messenger-compose-app/license-config"
 }
 
-
 val buildConfigGenerator by tasks.registering {
     val licencesFile = licensesDir.resolve("aboutlibraries.json")
     val generatedSrc = layout.buildDirectory.dir("generated-src/kotlin/")
