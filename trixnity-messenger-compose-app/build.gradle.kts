@@ -21,6 +21,7 @@ enum class BuildFlavor { PROD, DEV }
 val buildFlavor = BuildFlavor.valueOf(System.getenv("MESSENGER_BUILD_FLAVOR") ?: if (isCI) "PROD" else "DEV")
 
 val licensesDir = layout.buildDirectory.dir("generated").get().dir("aboutLibraries").asFile
+
 val licenses by tasks.registering(AboutLibrariesTask::class) {
     resultDirectory = licensesDir
     dependsOn("collectDependencies")
@@ -28,6 +29,8 @@ val licenses by tasks.registering(AboutLibrariesTask::class) {
 
 aboutLibraries {
     configPath = "trixnity-messenger-compose-app/license-config"
+    // Disable this as it causes issues with a custom AboutLibrariesTask
+    registerAndroidTasks = false
 }
 
 val buildConfigGenerator by tasks.registering {
