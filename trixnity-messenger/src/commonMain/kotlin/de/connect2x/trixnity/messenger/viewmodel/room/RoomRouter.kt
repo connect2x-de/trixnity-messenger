@@ -5,15 +5,14 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
-import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Wrapper
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.OpenAvatarCutterCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -24,9 +23,8 @@ private val log = KotlinLogging.logger {}
 
 interface RoomRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
+    suspend fun openRoom(userId: UserId, roomId: RoomId)
     suspend fun closeRoom()
-    suspend fun showRoom(userId: UserId, roomId: RoomId)
-
     fun isShown(): Boolean
 
     @Serializable
@@ -46,11 +44,10 @@ interface RoomRouter {
 
 class RoomRouterImpl(
     private val viewModelContext: ViewModelContext,
-    private val isBackButtonVisible: MutableStateFlow<Boolean>,
+    private val onOpenRoom: (UserId, RoomId) -> Unit,
     private val onCloseRoom: () -> Unit,
     private val onOpenMention: OpenMentionCallback,
-    private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
-    private val goToRoom: (UserId, RoomId) -> Unit,
+    private val onOpenAvatarCutter: OpenAvatarCutterCallback,
 ) : RoomRouter {
 
     private val roomNavigation = StackNavigation<Config>()
@@ -65,7 +62,7 @@ class RoomRouterImpl(
 
     private fun createRoomChild(
         roomConfig: Config,
-        componentContext: ComponentContext
+        componentContext: ComponentContext,
     ): Wrapper =
         when (roomConfig) {
             is Config.None -> Wrapper.None
@@ -73,18 +70,17 @@ class RoomRouterImpl(
                 viewModelContext.get<RoomViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext, roomConfig.userId),
                     selectedRoomId = RoomId(roomConfig.roomId),
-                    isBackButtonVisible = isBackButtonVisible,
-                    onRoomBack = onCloseRoom,
+                    onOpenRoom = onOpenRoom,
+                    onCloseRoom = onCloseRoom,
                     onOpenMention = onOpenMention,
                     onOpenAvatarCutter = onOpenAvatarCutter,
-                    goToRoom = goToRoom,
                 ).also {
                     log.debug { "::: created viewModel for ${roomConfig.userId}" }
                 }
             )
         }
 
-    override suspend fun showRoom(userId: UserId, roomId: RoomId) {
+    override suspend fun openRoom(userId: UserId, roomId: RoomId) {
         log.debug { "show room: $roomId" }
         roomNavigation.bringToFrontSuspending(Config.View(userId, roomId.full))
     }

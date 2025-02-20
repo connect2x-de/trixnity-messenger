@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -29,7 +31,7 @@ interface ReportToMessageViewModelFactory {
 }
 
 interface ReportMessageViewModel {
-    val messageReportReason: MutableStateFlow<String?>
+    val messageReportReason: TextFieldViewModel
     fun submitReportToMessage()
     fun closeReportMessageDialog()
 
@@ -44,7 +46,7 @@ open class ReportMessageViewModelImpl(
 
 
     private val eventId: MutableStateFlow<EventId> = MutableStateFlow(eventId)
-    override val messageReportReason: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val messageReportReason: TextFieldViewModelImpl = TextFieldViewModelImpl()
 
     override fun submitReportToMessage() {
         coroutineScope.launch {
@@ -52,7 +54,7 @@ open class ReportMessageViewModelImpl(
             matrixClient.api.room.reportEvent(
                 roomId = roomId,
                 eventId = eventId.value,
-                reason = messageReportReason.value
+                reason = messageReportReason.value.text
             ).fold(onSuccess = {
                 log.info { "successfully message has been reported ${eventId.value}" }
             }, onFailure = {
@@ -63,13 +65,13 @@ open class ReportMessageViewModelImpl(
     }
 
     override fun closeReportMessageDialog() {
-        messageReportReason.value = null
+        messageReportReason.update("")
         onReportMessageFinished()
     }
 }
 
 class PreviewReportMessageViewModel : ReportMessageViewModel {
-    override val messageReportReason: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val messageReportReason = TextFieldViewModelImpl()
 
     override fun submitReportToMessage() {
         log.trace { "submit message report" }

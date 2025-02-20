@@ -17,7 +17,7 @@ interface MessageInfoView {
     fun create(
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
         infoOpen: MutableState<Boolean>,
-        modifier: Modifier
+        modifier: Modifier,
     )
 }
 
@@ -25,7 +25,7 @@ interface MessageInfoView {
 fun MessageInfo(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     infoOpen: MutableState<Boolean>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     DI.get<MessageInfoView>().create(timelineElementHolderViewModel, infoOpen, modifier)
 }
@@ -42,8 +42,8 @@ class MessageInfoViewImpl : MessageInfoView {
         }
 
         if (infoOpen.value) {
-            var readers = timelineElementHolderViewModel.isReadBy.collectAsState().value ?: emptyList()
-            val reactions = timelineElementHolderViewModel.reactions.collectAsState().value
+            val readers = timelineElementHolderViewModel.isReadBy.collectAsState().value.orEmpty()
+            val reactions = timelineElementHolderViewModel.reactions.collectAsState().value?.byReaction.orEmpty()
             val focusRequester = remember { FocusRequester() }
 
             InfoPopup(
@@ -53,7 +53,7 @@ class MessageInfoViewImpl : MessageInfoView {
                     infoOpen.value = false
                 },
                 readers = readers,
-                reactors = reactions.mapValues { (_, value) -> value.map { it.sender } }
+                reactors = reactions.mapValues { it.value.map { it.sender } },
             )
         }
     }

@@ -8,7 +8,6 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImp
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
-import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
@@ -24,7 +23,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
@@ -45,15 +43,14 @@ import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
+
+@OptIn(ExperimentalCoroutinesApi::class)
 class ChangePowerLevelViewModelTest : ShouldSpec() {
 
-    private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
-
-    private val testUser = UserId("test", "server")
-
+    private val alice = UserId("alice", "localhost")
     private val roomId = RoomId("room", "localhost")
+    private val testUser = UserId("test", "server")
 
     private val roomUserAlice = RoomUser(
         roomId, alice, "Alice", StateEvent(
@@ -61,8 +58,8 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
             EventId(""),
             alice,
             roomId,
-            0,
-            stateKey = ""
+            0L,
+            stateKey = "",
         )
     )
 
@@ -74,8 +71,8 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
             EventId(""),
             bob,
             roomId,
-            0,
-            stateKey = ""
+            0L,
+            stateKey = "",
         )
     )
 
@@ -83,15 +80,10 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
 
     val matrixClientMock = mock<MatrixClient>()
-
     val roomServiceMock = mock<RoomService>()
-
     val userServiceMock = mock<UserService>()
-
-    val matrixClientServerApiMock = mock<MatrixClientServerApiClient>()
-
     val roomsApiClientMock = mock<RoomApiClient>()
-
+    private val matrixClientServerApiMock = mock<MatrixClientServerApiClient>()
     private lateinit var syncStateMocker: BlockingAnsweringScope<StateFlow<SyncState>>
 
     init {
@@ -132,7 +124,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     roomId,
                     123,
                     null,
-                    ""
+                    "",
                 )
             )
         }
@@ -176,7 +168,6 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 }
 
                 cancelNeverEndingCoroutines()
-
             }
 
             should("show an error message when trying to change a role and we are not connected") {
@@ -212,7 +203,6 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 cut.error.value shouldNotBe null
                 cancelNeverEndingCoroutines()
             }
-
         }
 
         context("change Power Level") {
@@ -221,7 +211,6 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 every {
                     userServiceMock.canSetPowerLevelToMax(roomId, alice)
                 } returns MutableStateFlow(100L)
-
             }
 
             should("close member options after changing the power level successfully") {
@@ -253,6 +242,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
 
                 cancelNeverEndingCoroutines()
             }
+
             should("show an error message if trying to change a power level and we are not connected") {
 
                 syncStateMocker returns MutableStateFlow(SyncState.ERROR)
@@ -288,6 +278,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                 cancelNeverEndingCoroutines()
             }
         }
+
         context("power level input") {
 
             should("show an error message if input is empty") {
@@ -300,14 +291,16 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(100L)
                 )
 
-                cut.onPowerLevelEntered("")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
-                cut.onPowerLevelEntered("  ")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+                cut.changingPowerLevelDialogInput.update("")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
+                cut.changingPowerLevelDialogInput.update("  ")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
 
                 cancelNeverEndingCoroutines()
-
             }
+
             should("show an error message if input is not a number") {
 
                 every {
@@ -318,13 +311,16 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(100L)
                 )
 
-                cut.onPowerLevelEntered(".,")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
-                cut.onPowerLevelEntered("hjjku")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+                cut.changingPowerLevelDialogInput.update(".,")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
+                cut.changingPowerLevelDialogInput.update("hjjku")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
 
                 cancelNeverEndingCoroutines()
             }
+
             should("show an error message if input is < 0 or > 100") {
 
                 every {
@@ -335,13 +331,16 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(100L)
                 )
 
-                cut.onPowerLevelEntered("-56")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
-                cut.onPowerLevelEntered("124")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+                cut.changingPowerLevelDialogInput.update("-56")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
+                cut.changingPowerLevelDialogInput.update("124")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
 
                 cancelNeverEndingCoroutines()
             }
+
             should("show an error message if input level is higher than allowed to set by us") {
 
                 every {
@@ -352,11 +351,13 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(56L)
                 )
 
-                cut.onPowerLevelEntered("57")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+                cut.changingPowerLevelDialogInput.update("57")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
 
                 cancelNeverEndingCoroutines()
             }
+
             should("show an error message if we are not allowed to change the power level") {
 
                 every {
@@ -367,15 +368,16 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     coroutineContext, alice, MutableStateFlow(100L)
                 )
 
-                cut.onPowerLevelEntered("57")
-                cut.changingPowerLevelDialogInput.value.errorId shouldNotBe null
+                cut.changingPowerLevelDialogInput.update("57")
+                delay(10.milliseconds)
+                cut.changingPowerLevelDialogError.value shouldNotBe null
 
                 cancelNeverEndingCoroutines()
             }
         }
     }
 
-    private suspend fun changePowerLevelViewModel(
+    private fun changePowerLevelViewModel(
         coroutineContext: CoroutineContext,
         userId: UserId,
         powerLevel: StateFlow<Long>,
@@ -390,7 +392,7 @@ class ChangePowerLevelViewModelTest : ShouldSpec() {
                     )
                 }.koin,
                 userId = userId,
-                coroutineContext = coroutineContext
+                coroutineContext = coroutineContext,
             ),
             targetUser = userId,
             error = MutableStateFlow(null),

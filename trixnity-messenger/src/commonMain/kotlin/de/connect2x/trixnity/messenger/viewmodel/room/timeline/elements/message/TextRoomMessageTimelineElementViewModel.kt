@@ -8,6 +8,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import kotlin.reflect.KClass
 
+
 interface TextRoomMessageTimelineElementViewModelFactory : TimelineElementViewModelFactory<TextBased.Text> {
     override fun create(
         viewModelContext: MatrixClientViewModelContext,
@@ -20,7 +21,7 @@ interface TextRoomMessageTimelineElementViewModelFactory : TimelineElementViewMo
             viewModelContext,
             content,
             roomId,
-            onOpenMention
+            onOpenMention,
         )
 
     override val supports: KClass<TextBased.Text>

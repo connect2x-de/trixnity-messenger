@@ -34,7 +34,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
@@ -73,7 +72,7 @@ suspend fun MatrixMessengerWithRoot.login(
         }.active.instance
     }
     if (verification == null) {
-        mainViewModel.showSelfVerification(UserId(username))
+        mainViewModel.openSelfVerification(UserId(username))
         val verificationView = mainViewModel.selfVerificationStack.waitFor(SelfVerificationRouter.Wrapper.View::class)
         if (recoveryKey != null) {
             selfVerify(verificationView, recoveryKey)
@@ -139,15 +138,15 @@ suspend fun MatrixMessengerWithRoot.registerAccountWithToken(serverUrl: String, 
         withTimeout(10.seconds) {
             val addMatrixAccountViewModel =
                 stack.waitFor(RootRouter.Wrapper.AddMatrixAccount::class).viewModel
-            addMatrixAccountViewModel.serverUrl.value = serverUrl
+            addMatrixAccountViewModel.serverUrl.update(serverUrl)
             val registerMethod = addMatrixAccountViewModel.serverDiscoveryState
                 .filterIsInstance<AddMatrixAccountViewModel.ServerDiscoveryState.Success>().first()
                 .addMatrixAccountMethods.filterIsInstance<AddMatrixAccountMethod.Register>().first()
             addMatrixAccountViewModel.selectAddMatrixAccountMethod(registerMethod)
             val registerMatrixAccountViewModel =
                 stack.waitFor(RootRouter.Wrapper.RegisterMatrixAccount::class).viewModel
-            registerMatrixAccountViewModel.username.update { "user1" }
-            registerMatrixAccountViewModel.password.update { "user1password" }
+            registerMatrixAccountViewModel.username.update("user1")
+            registerMatrixAccountViewModel.password.update("user1password")
             registerMatrixAccountViewModel.canRegisterNewUser.first { it }
             registerMatrixAccountViewModel.register()
             authorizeUia(registrationToken)
@@ -168,7 +167,7 @@ suspend fun MatrixMessengerWithRoot.createChatWithUser(username: String) = with(
         val createNewChatViewModel = roomListRouterStack.waitFor(RoomListRouter.Wrapper.CreateNewChat::class).viewModel
         log.debug { "search for user '$username'" }
         val searchHandler = createNewChatViewModel.createNewRoomViewModel.searchHandler
-        searchHandler.searchTerm.value = username
+        searchHandler.searchTerm.update(username)
         searchHandler.waitForUserResults.first { it.not() }
         val users = searchHandler.foundUsers.first { users -> users.any { it.displayName == username } }
         createNewChatViewModel.onUserClick(users.first())
@@ -199,12 +198,12 @@ suspend fun MatrixMessengerWithRoot.createGroupWithUsers(groupName: String, vara
         val searchHandler = createNewGroupViewModel.createNewRoomViewModel.searchHandler
         usernames.forEach { username ->
             log.debug { "search for user '$username'" }
-            searchHandler.searchTerm.value = username
+            searchHandler.searchTerm.update(username)
             searchHandler.waitForUserResults.first { it.not() }
             val users = searchHandler.foundUsers.first { users -> users.any { it.displayName == username } }
             createNewGroupViewModel.onUserClick(users.first())
         }
-        createNewGroupViewModel.optionalRoomName.update { groupName }
+        createNewGroupViewModel.optionalRoomName.update(groupName)
         createNewGroupViewModel.createNewGroup()
         log.debug { "group '$groupName' should have been created -> check to find it in the list" }
         val sortedRoomListElementViewModels = roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
@@ -306,7 +305,7 @@ suspend fun MatrixMessengerWithRoot.sendMessage(roomId: RoomId, message: String)
             .timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
         val inputAreaViewModel = timelineViewModel.inputAreaViewModel
         val job = launch { inputAreaViewModel.isSendEnabled.collect {} }
-        inputAreaViewModel.message.value = message
+        inputAreaViewModel.textField.update(message)
         log.debug { "wait for send to be enabled" }
         inputAreaViewModel.isSendEnabled.first { it }
         inputAreaViewModel.sendMessage()
@@ -392,16 +391,16 @@ private suspend fun RootViewModel.addMatrixAccountViaPassword(
 ) {
     val addMatrixAccount = stack.waitFor(RootRouter.Wrapper.AddMatrixAccount::class)
     val addMatrixAccountViewModel = addMatrixAccount.viewModel
-    addMatrixAccountViewModel.serverUrl.value = serverUrl
+    addMatrixAccountViewModel.serverUrl.update(serverUrl)
     val registerMethod = addMatrixAccountViewModel.serverDiscoveryState
         .filterIsInstance<AddMatrixAccountViewModel.ServerDiscoveryState.Success>().first()
         .addMatrixAccountMethods.filterIsInstance<AddMatrixAccountMethod.Password>().first()
     addMatrixAccountViewModel.selectAddMatrixAccountMethod(registerMethod)
     val passwordLoginViewModel =
         stack.waitFor(RootRouter.Wrapper.PasswordLogin::class).viewModel
-    addMatrixAccountViewModel.serverUrl.value = serverUrl
-    passwordLoginViewModel.username.value = username
-    passwordLoginViewModel.password.value = password
+    addMatrixAccountViewModel.serverUrl.update(serverUrl)
+    passwordLoginViewModel.username.update(username)
+    passwordLoginViewModel.password.update(password)
     passwordLoginViewModel.canLogin.first { it }
     passwordLoginViewModel.tryLogin()
 }
@@ -503,8 +502,8 @@ private suspend fun selfVerify(
 suspend fun MatrixMessengerWithRoot.authorizeUia(username: String, password: String) = with(root) {
     uiaStack.waitFor(UiaRouter.Wrapper.UiaActionConfirmation::class).viewModel.next()
     val uiaStepPasswordViewModel = uiaStack.waitFor(UiaRouter.Wrapper.UiaStepPassword::class).viewModel
-    uiaStepPasswordViewModel.username.value = username
-    uiaStepPasswordViewModel.password.value = password
+    uiaStepPasswordViewModel.username.update(username)
+    uiaStepPasswordViewModel.password.update(password)
     uiaStepPasswordViewModel.submit()
     uiaStack.waitFor(UiaRouter.Wrapper.None::class)
 }
@@ -513,7 +512,7 @@ suspend fun MatrixMessengerWithRoot.authorizeUia(registrationToken: String) = wi
     uiaStack.waitFor(UiaRouter.Wrapper.UiaActionConfirmation::class).viewModel.next()
     val uiaRegistrationTokenViewModel =
         uiaStack.waitFor(UiaRouter.Wrapper.UiaStepRegistrationToken::class).viewModel
-    uiaRegistrationTokenViewModel.registrationToken.value = registrationToken
+    uiaRegistrationTokenViewModel.registrationToken.update(registrationToken)
     uiaRegistrationTokenViewModel.submit()
     uiaStack.waitFor(UiaRouter.Wrapper.None::class)
 }

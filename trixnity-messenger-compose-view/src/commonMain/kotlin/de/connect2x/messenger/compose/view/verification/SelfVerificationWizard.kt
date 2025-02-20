@@ -11,6 +11,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
@@ -35,6 +46,9 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -430,6 +444,11 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                             modifier = Modifier.weight(1.0f, fill = true),
                             isError = recoveryKeyWrong.value,
                             placeholder = { Text("#### ".repeat(11) + "####", color = Color.LightGray) },
+                            keyboardOptions = KeyboardOptions(
+                                capitalization = KeyboardCapitalization.None,
+                                autoCorrectEnabled = false,
+                                keyboardType = KeyboardType.Password,
+                            ),
                             label = { Text(i18n.commonRecoveryKey()) })
                     }
                     if (recoveryKeyWrong.value) {
@@ -477,7 +496,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
         step: SelfVerificationWizardStep,
         i18n: I18nView
     ): WizardStep {
-        val passphrase = mutableStateOf("")
+        val passphrase = mutableStateOf(TextFieldValue(""))
         return WizardStep(
             id = step.stepId,
             title = { i18n.deviceVerification() },
@@ -495,7 +514,6 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                     Spacer(Modifier.size(10.dp))
                     PasswordField(
                         password = passphrase,
-                        onPasswordChange = { passphrase.value = it },
                         label = { Text(i18n.commonRecoveryPassphrase()) },
                     )
                     if (passphraseWrong.value) {
@@ -516,7 +534,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                     Button(
                         modifier = Modifier.buttonPointerModifier(),
                         onClick = {
-                            selfVerificationViewModel.verifyWithPassphrase(passphrase.value)
+                            selfVerificationViewModel.verifyWithPassphrase(passphrase.value.text)
                         }) {
                         Text(i18n.commonNext())
                     }

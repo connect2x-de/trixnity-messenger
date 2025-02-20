@@ -4,8 +4,8 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.withCleanup
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -16,7 +16,6 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -52,20 +51,18 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
     private val roomId = RoomId("room", "localhost")
     private val me = UserId("user", "localhost")
 
-    val matrixClientMock = mock<MatrixClient>()
-
-    val roomServiceMock = mock<RoomService>()
-
-    val userServiceMock = mock<UserService>()
-
-    val matrixClientServerApiMock = mock<MatrixClientServerApiClient>()
-
-    val roomsApiClientMock = mock<RoomApiClient>()
+    private val matrixClientMock = mock<MatrixClient>()
+    private val roomServiceMock = mock<RoomService>()
+    private val userServiceMock = mock<UserService>()
+    private val matrixClientServerApiMock = mock<MatrixClientServerApiClient>()
+    private val roomsApiClientMock = mock<RoomApiClient>()
 
     private lateinit var canSendEventMocker: BlockingAnsweringScope<Flow<Boolean>>
     private lateinit var roomGetById: BlockingAnsweringScope<Flow<Room?>>
 
     init {
+        coroutineTestScope = true
+
         beforeTest {
             Dispatchers.setMain(Dispatchers.Unconfined)
             resetMocks(
@@ -96,64 +93,60 @@ class RoomSettingsNameViewModelTest : ShouldSpec() {
             canSendEventMocker returns flowOf(true)
         }
 
-        should("load permissions to change the room name based on the user's power level") {
-            withTestingHarness {
-                val canSendEvent = MutableStateFlow(true)
-                canSendEventMocker returns canSendEvent
+        should("load permissions to change the room name based on the user's power level").withCleanup {
+            every {
+                // mockmp requires us to mock the user service within each test.
+                userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            } returns MutableStateFlow(null)
+            val canSendEvent = MutableStateFlow(true)
+            canSendEventMocker returns canSendEvent
 
-                val viewModel = roomSettingsNameViewModel(coroutineContext)
-                launch { viewModel.canChangeRoomName.collect() }
-                eventually(2.seconds) {
-                    viewModel.canChangeRoomName.value shouldBe true
-                }
+            val viewModel = roomSettingsNameViewModel(coroutineContext)
+            launch { viewModel.canChangeRoomName.collect() }
+            eventually(2.seconds) {
+                viewModel.canChangeRoomName.value shouldBe true
+            }
 
-                canSendEvent.value = false
-                eventually(2.seconds) {
-                    viewModel.canChangeRoomName.value shouldBe false
-                }
+            canSendEvent.value = false
+            eventually(2.seconds) {
+                viewModel.canChangeRoomName.value shouldBe false
             }
         }
 
-        should("load the room name") {
-            withTestingHarness {
-                roomGetById returns MutableStateFlow<Room?>(room("room name"))
-                val viewModel = roomSettingsNameViewModel(coroutineContext)
-                eventually(2.seconds) {
-                    viewModel.roomName.state.value.value shouldBe "room name"
-                }
+        should("load the room name").withCleanup {
+            every {
+                // mockmp requires us to mock the user service within each test.
+                userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            } returns MutableStateFlow(null)
+            roomGetById returns MutableStateFlow<Room?>(room("room name"))
+            val viewModel = roomSettingsNameViewModel(coroutineContext)
+            eventually(2.seconds) {
+                viewModel.roomName.textValue shouldBe "room name"
             }
         }
 
-        should("edit and apply room name change") {
-            withTestingHarness {
-                val homeServerHandle = mockSendToHomeServer(NameEventContent("edited name"))
-                launch { homeServerHandle.numCallsToHomeServer.collect() }
-                roomGetById returns MutableStateFlow<Room?>(room("current name"))
+        should("edit and apply room name change").withCleanup {
+            every {
+                // mockmp requires us to mock the user service within each test.
+                userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            } returns MutableStateFlow(null)
+            val homeServerHandle = mockSendToHomeServer(NameEventContent("edited name"))
+            launch { homeServerHandle.numCallsToHomeServer.collect() }
+            roomGetById returns MutableStateFlow<Room?>(room("current name"))
 
-                val viewModel = roomSettingsNameViewModel(coroutineContext)
-                viewModel.roomName.isLoading.first { it.not() }
-                viewModel.roomName.startEdit()
-                viewModel.roomName.state.value.setEdit("edited name")
-                viewModel.roomName.applyEdit()
-                homeServerHandle.numCallsToHomeServer.first { it == 1 }
-            }
+            val viewModel = roomSettingsNameViewModel(coroutineContext)
+            viewModel.roomName.isLoading.first { it.not() }
+            viewModel.roomName.startEdit()
+            viewModel.roomName.update("edited name")
+            viewModel.roomName.approveEdit()
+            homeServerHandle.numCallsToHomeServer.first { it == 1 }
         }
     }
 
     private fun room(name: String) =
         Room(roomId, name = RoomDisplayName(explicitName = name, summary = null), isDirect = false)
 
-    private suspend fun TestScope.withTestingHarness(testFn: suspend TestScope.() -> Unit) {
-        every {
-            // mockmp requires us to mock the user service within each test.
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
-        } returns MutableStateFlow(null)
-
-        testFn(this)
-        cancelNeverEndingCoroutines()
-    }
-
-    private suspend fun mockSendToHomeServer(expectedRequestContent: NameEventContent): MockHomeServerHandle {
+    private fun mockSendToHomeServer(expectedRequestContent: NameEventContent): MockHomeServerHandle {
         val handle = MockHomeServerHandle()
         everySuspend {
             roomsApiClientMock.sendStateEvent(eq(roomId), eq(expectedRequestContent), any(), any())

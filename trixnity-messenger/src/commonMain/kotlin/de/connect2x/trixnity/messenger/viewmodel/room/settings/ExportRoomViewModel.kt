@@ -17,7 +17,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -31,7 +31,8 @@ import org.koin.core.component.get
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
-private val log = KotlinLogging.logger { }
+
+private val log = KotlinLogging.logger {}
 
 interface ExportRoomViewModelFactory {
     fun create(
@@ -107,9 +108,9 @@ class ExportRoomViewModelImpl(
 
     private val job: MutableStateFlow<Job?> = MutableStateFlow(null)
     override val roomName: StateFlow<String> = roomNameComputation.getRoomName(roomId, matrixClient)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+        .stateIn(coroutineScope, WhileSubscribed(), "")
     override val isDirect: StateFlow<Boolean> = matrixClient.room.getById(roomId).map { it?.isDirect ?: false }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        .stateIn(coroutineScope, WhileSubscribed(), false)
     override val properties: MutableStateFlow<ExportRoomSinkProperties?> = MutableStateFlow(null)
     override val rangeStartCondition: MutableStateFlow<ExportRoomRangeStartCondition?> = MutableStateFlow(null)
     override val rangeEndCondition: MutableStateFlow<ExportRoomRangeEndCondition?> = MutableStateFlow(null)
@@ -124,14 +125,16 @@ class ExportRoomViewModelImpl(
 
     override val canExport: StateFlow<Boolean> =
         combine(job, properties, ::canExport)
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), canExport(job.value, properties.value))
+            .stateIn(coroutineScope, WhileSubscribed(), canExport(job.value, properties.value))
 
     override val isExporting: StateFlow<Boolean> =
-        job.map { it != null }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        job.map { it != null }
+            .stateIn(coroutineScope, WhileSubscribed(), false)
 
     private val progress: MutableStateFlow<ExportRoomProgress> = MutableStateFlow(ExportRoomProgress())
-    private val progressString: StateFlow<String> = progress
-        .map { it.toProgressString() }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), "")
+    private val progressString: StateFlow<String> =
+        progress.map { it.toProgressString() }
+            .stateIn(coroutineScope, WhileSubscribed(), "")
 
     private fun ExportRoomProgress.toProgressString(): String =
         when {
@@ -233,13 +236,7 @@ class PreviewExportRoomViewModel : ExportRoomViewModel {
             )
         )
 
-    override fun abort() {
-    }
-
-    override fun back() {
-    }
-
-    override fun start() {
-    }
-
+    override fun abort() {}
+    override fun back() {}
+    override fun start() {}
 }

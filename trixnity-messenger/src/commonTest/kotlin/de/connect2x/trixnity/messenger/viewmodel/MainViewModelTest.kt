@@ -27,11 +27,13 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel.UserSyncStates
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
+import de.connect2x.trixnity.messenger.withCleanup
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -45,8 +47,10 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.instanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -60,7 +64,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
@@ -88,13 +91,13 @@ import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 5_000
-
     private lateinit var lifecycle: LifecycleRegistry
     private val backPressedHandler = BackDispatcher()
 
@@ -105,32 +108,19 @@ class MainViewModelTest : ShouldSpec() {
     private lateinit var messengerSettings: MatrixMessengerSettingsHolder
 
     val matrixClientMock = mock<MatrixClient>()
-
-    val matrixClientMock2 = mock<MatrixClient>()
-
     val roomServiceMock = mock<RoomService>()
-
-    val keyServiceMock = mock<KeyService>()
-
-    val keySecretServiceMock = mock<KeySecretService>()
-
-    val keyTrustServiceMock = mock<KeyTrustService>()
-
-    val verificationServiceMock = mock<VerificationService>()
-
-    val verificationServiceMock2 = mock<VerificationService>()
-
     val userServiceMock = mock<UserService>()
-
-    val downloadManagerMock = mock<DownloadManager>()
-
-    val isNetworkAvailable = mock<IsNetworkAvailable>()
-
     val roomHeaderViewModelMock = mock<RoomHeaderViewModel>()
-
     val inputAreaViewModelMock = mock<InputAreaViewModel>()
-
-    val runInitialSyncMock = mock<RunInitialSync>()
+    private val matrixClientMock2 = mock<MatrixClient>()
+    private val keyServiceMock = mock<KeyService>()
+    private val keySecretServiceMock = mock<KeySecretService>()
+    private val keyTrustServiceMock = mock<KeyTrustService>()
+    private val verificationServiceMock = mock<VerificationService>()
+    private val verificationServiceMock2 = mock<VerificationService>()
+    private val downloadManagerMock = mock<DownloadManager>()
+    private val isNetworkAvailable = mock<IsNetworkAvailable>()
+    private val runInitialSyncMock = mock<RunInitialSync>()
 
     lateinit var selfVerificationMethods: BlockingAnsweringScope<Flow<VerificationService.SelfVerificationMethods>>
     lateinit var networkAvailable: BlockingAnsweringScope<Boolean>
@@ -139,6 +129,8 @@ class MainViewModelTest : ShouldSpec() {
     private val startSyncPresenceCapture = mutableListOf<Presence>()
 
     init {
+        coroutineTestScope = true
+
         beforeTest {
             resetMocks(
                 matrixClientMock,
@@ -239,203 +231,68 @@ class MainViewModelTest : ShouldSpec() {
                     accountSetupFinished = true
                 )
             }
-
         }
 
         afterTest {
             lifecycle.destroy()
         }
 
-        should("select no room initially") {
+        should("select no room initially").withCleanup {
             everySuspend {
                 matrixClientMock.syncOnce(any(), any(), any<suspend (Sync.Response) -> Unit>())
             } returns Result.success(Unit)
 
             val cut = mainViewModel()
-
-            eventually(2.seconds) {
-                assertSoftly {
-                    cut.selectedRoomId.value shouldBe null
-                    cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                    cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
-                }
-            }
-
-        }
-
-        should("show its room view when room is selected") {
-            val cut = mainViewModel()
-
-            val roomId = RoomId("!Room:localhost")
-            cut.setSinglePane(true)
-
-            cut.onRoomSelected(UserId("test", "server"), roomId)
-
-            eventually(2.seconds) {
-                assertSoftly {
-                    cut.isSinglePane.value shouldBe true
-                    cut.selectedRoomId.value shouldBe roomId
-
-                    cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
-                    cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.None>() // since single pane
-                }
-            }
-
-        }
-
-        should("show room list view if room is selected in multi-pane view") {
-            val cut = mainViewModel()
-
-            val roomId = RoomId("!Room:localhost")
-            cut.setSinglePane(false)
-
-            cut.onRoomSelected(UserId("test", "server"), roomId)
-
-            eventually(2.seconds) {
-                assertSoftly {
-                    cut.isSinglePane.value shouldBe false
-                    cut.selectedRoomId.value shouldBe roomId
-                    cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
-                    cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>() // since multi pane
-                }
-            }
-
-        }
-
-        should("show list of rooms when the room view is closed") {
-            val cut = mainViewModel()
-
-            cut.onRoomSelected(UserId("test", "server"), RoomId("!Room:localhost"))
-
-            cut.closeDetailsAndShowList()
-
-            eventually(2.seconds) {
+            advanceUntilIdle()
+            assertSoftly {
                 cut.selectedRoomId.value shouldBe null
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
+                cut shouldShowListOfType RoomListRouter.Wrapper.List::class
+                cut shouldShowRoom false
+                cut shouldShowList true
             }
-
         }
 
-        should("show room view after switching to multipane when room was selected before") {
+        should("show room when room is selected").withCleanup {
             val cut = mainViewModel()
-
-            cut.onRoomSelected(UserId("test", "server"), RoomId("!Room:localhost"))
-            cut.selectedRoomId.first { it == RoomId("!Room:localhost") }
-            cut.setSinglePane(false)
-
-            eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
+            val roomId = RoomId("!Room:localhost")
+            cut.onRoomSelected(UserId("test", "server"), roomId)
+            advanceUntilIdle()
+            assertSoftly {
+                cut.selectedRoomId.value shouldBe roomId
+                cut shouldShowRoom true
             }
-
         }
 
-        should("not show room view after switching to multi-pane when no room was selected") {
+        should("show room list when the room view is closed").withCleanup {
             val cut = mainViewModel()
-
-            cut.setSinglePane(false)
-
-            eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
+            val roomId = RoomId("!Room:localhost")
+            cut.onRoomSelected(UserId("test", "server"), roomId)
+            advanceUntilIdle()
+            cut shouldShowRoom true
+            cut.closeDetailsAndShowList()
+            advanceUntilIdle()
+            assertSoftly {
+                cut.selectedRoomId.value shouldBe null
+                cut shouldShowRoom false
+                cut shouldShowList true
             }
-
         }
 
-        should("close the room list when a room is selected and switch to single-pane") {
+        should("show room list when the room view is left with the back button").withCleanup {
             val cut = mainViewModel()
-
-            cut.onRoomSelected(UserId("test", "server"), RoomId("!Room:localhost"))
-            cut.selectedRoomId.first { it == RoomId("!Room:localhost") }
-            cut.setSinglePane(true)
-
-            eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.None>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
-            }
-
-        }
-
-        should("show the room list when no room is selected and switch to single-pane") {
-            val cut = mainViewModel()
-
-            cut.setSinglePane(true)
-
-            eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
-            }
-
-        }
-
-        should("show room list when the room view is left with the back button in single-pane") {
-            val cut = mainViewModel()
-
-            cut.onRoomSelected(UserId("test", "server"), RoomId("!Room:localhost"))
-            cut.setSinglePane(true)
-            eventually(2.seconds) { // wait for single pane to be set async
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.None>()
-            }
-
+            val roomId = RoomId("!Room:localhost")
+            cut.onRoomSelected(UserId("test", "server"), roomId)
+            advanceUntilIdle()
             backPressedHandler.back()
-
-            eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
+            advanceUntilIdle()
+            assertSoftly {
+                cut.selectedRoomId.value shouldBe null
+                cut shouldShowListOfType RoomListRouter.Wrapper.List::class
+                cut shouldShowRoom false
             }
         }
 
-        should("still show the room list when the back button is pressed in a single-pane with the room list visible") {
-            val cut = mainViewModel()
-
-            cut.setSinglePane(true)
-
-            backPressedHandler.back()
-
-            eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
-            }
-
-        }
-
-        should("still show the room list when the back button is pressed in a multi-pane with the room list visible") {
-            val cut = mainViewModel()
-
-
-            backPressedHandler.back()
-
-            eventually(2.seconds) {
-                cut.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.List>()
-                cut.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
-            }
-
-        }
-
-        should("show the back button in single-pane layout") {
-            val cut = mainViewModel()
-
-            cut.setSinglePane(true)
-
-            eventually(2.seconds) {
-                cut.isBackButtonVisible.value shouldBe true
-            }
-
-        }
-
-        should("not show the back button in multi-pane layout") {
-            val cut = mainViewModel()
-
-            cut.setSinglePane(false)
-
-            eventually(2.seconds) {
-                cut.isBackButtonVisible.value shouldBe false
-            }
-
-        }
-
-        should("show self verification modal when self verification is needed") {
+        should("show self verification modal when self verification is needed").withCleanup {
             selfVerificationMethods returns MutableStateFlow(
                 VerificationService.SelfVerificationMethods.CrossSigningEnabled(
                     setOf(
@@ -468,7 +325,7 @@ class MainViewModelTest : ShouldSpec() {
             }
         }
 
-        should("show multiple self verifications sequentially if needed") {
+        should("show multiple self verifications sequentially if needed").withCleanup {
             // test
             selfVerificationMethods returns MutableStateFlow(
                 VerificationService.SelfVerificationMethods.CrossSigningEnabled(
@@ -543,7 +400,7 @@ class MainViewModelTest : ShouldSpec() {
             }
         }
 
-        should("not show self verification when at least one account isn't bootstrapped") {
+        should("not show self verification when at least one account isn't bootstrapped").withCleanup {
             selfVerificationMethods returns MutableStateFlow(
                 VerificationService.SelfVerificationMethods.CrossSigningEnabled(
                     setOf(
@@ -574,7 +431,7 @@ class MainViewModelTest : ShouldSpec() {
             continually(2.seconds) { cut.selfVerificationStack.value.active.configuration.shouldBeInstanceOf<SelfVerificationRouter.Config.None>() }
         }
 
-        should("skip initial sync when initial sync is already done") {
+        should("skip initial sync when initial sync is already done").withCleanup {
             syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
             initialSyncDone returns MutableStateFlow(true)
@@ -590,7 +447,7 @@ class MainViewModelTest : ShouldSpec() {
             }
         }
 
-        should("perform initial sync whe not yet done") {
+        should("perform initial sync whe not yet done").withCleanup {
             syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
             val initialSyncDoneFlow = MutableStateFlow(false)
@@ -616,7 +473,7 @@ class MainViewModelTest : ShouldSpec() {
             }
         }
 
-        should("directly switch to regular sync when no network is available") {
+        should("directly switch to regular sync when no network is available").withCleanup {
             syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns false
             initialSyncDone returns MutableStateFlow(false)
@@ -629,7 +486,7 @@ class MainViewModelTest : ShouldSpec() {
             }
         }
 
-        should("cancel the sync when the app is stopped and restart the sync when the app is resumed again") {
+        should("cancel the sync when the app is stopped and restart the sync when the app is resumed again").withCleanup {
             syncState returns MutableStateFlow(SyncState.STOPPED)
             networkAvailable returns true
             initialSyncDone returns MutableStateFlow(true)
@@ -657,7 +514,7 @@ class MainViewModelTest : ShouldSpec() {
             }
         }
 
-        should("set the presence to OFFLINE when settings change to private and set presence to ONLINE when settings change to public") {
+        should("set the presence to OFFLINE when settings change to private and set presence to ONLINE when settings change to public").withCleanup {
             val cut = mainViewModel()
             delay(300.milliseconds) // give viewmodel time to start first sync
             messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
@@ -676,16 +533,37 @@ class MainViewModelTest : ShouldSpec() {
                 it.copy(presenceIsPublic = true)
             }
             delay(10.milliseconds)
+            startSyncPresenceCapture shouldBe listOf(
+                Presence.ONLINE, // initial sync
+                Presence.ONLINE, // first normal sync
+                Presence.OFFLINE, // 4 changes
+                Presence.ONLINE,
+                Presence.OFFLINE,
+                Presence.ONLINE,
+            )
+        }
+    }
 
-            startSyncPresenceCapture shouldBe
-                    listOf(
-                        Presence.ONLINE, // initial sync
-                        Presence.ONLINE, // first normal sync
-                        Presence.OFFLINE, // 4 changes
-                        Presence.ONLINE,
-                        Presence.OFFLINE,
-                        Presence.ONLINE
-                    )
+    private suspend infix fun MainViewModel.shouldShowRoom(isShown: Boolean) {
+        delay(10.milliseconds)
+        assertSoftly {
+            if (isShown) this.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
+            else this.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
+        }
+    }
+
+    private suspend infix fun MainViewModel.shouldShowList(isShown: Boolean) {
+        delay(10.milliseconds)
+        assertSoftly {
+            if (isShown) this.roomListRouterStack.value.active.instance shouldNot beOfType<RoomListRouter.Wrapper.None>()
+            else this.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.None>()
+        }
+    }
+
+    private suspend infix fun MainViewModel.shouldShowListOfType(extrasType: KClass<out RoomListRouter.Wrapper>) {
+        delay(10.milliseconds)
+        assertSoftly {
+            this.roomListRouterStack.value.active.instance should beOfType(extrasType)
         }
     }
 
@@ -694,7 +572,7 @@ class MainViewModelTest : ShouldSpec() {
         matrixClients: Map<UserId, MatrixClient> = mapOf(UserId("test", "server") to matrixClientMock),
     ): MainViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
-        val mainViewModel = MainViewModelImpl(
+        return MainViewModelImpl(
             viewModelContext = ViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycle, backHandler = backPressedHandler),
                 di = koinApplication {
@@ -708,14 +586,11 @@ class MainViewModelTest : ShouldSpec() {
                                 override fun create(
                                     viewModelContext: MatrixClientViewModelContext,
                                     selectedRoomId: RoomId,
-                                    isBackButtonVisible: MutableStateFlow<Boolean>,
                                     onBack: () -> Unit,
                                     onVerifyUser: () -> Unit,
-                                    onShowRoomSettings: () -> Unit,
-                                    onShowUserProfile: (UserId) -> Unit,
-                                ): RoomHeaderViewModel {
-                                    return roomHeaderViewModelMock
-                                }
+                                    onOpenRoomSettings: () -> Unit,
+                                    onOpenUserProfile: (UserId) -> Unit,
+                                ): RoomHeaderViewModel = roomHeaderViewModelMock
                             }
                         }
                         single<InputAreaViewModelFactory> {
@@ -726,10 +601,8 @@ class MainViewModelTest : ShouldSpec() {
                                     onMessageReplaceFinished: (RoomId, EventId) -> Unit,
                                     onMessageReplyFinished: (RoomId, EventId) -> Unit,
                                     onShowAttachmentSendView: (FileDescriptor) -> Unit,
-                                    onOpenMention: OpenMentionCallback
-                                ): InputAreaViewModel {
-                                    return inputAreaViewModelMock
-                                }
+                                    onOpenMention: OpenMentionCallback,
+                                ): InputAreaViewModel = inputAreaViewModelMock
                             }
                         }
                         single<RoomListViewModelFactory> {
@@ -745,69 +618,46 @@ class MainViewModelTest : ShouldSpec() {
                                     onSendLogs: () -> Unit,
                                     onOpenAccountsOverview: () -> Unit,
                                     onAccountSelected: () -> Unit,
-                                ): RoomListViewModel {
-                                    return object : RoomListViewModel {
-                                        override val selectedRoomId: StateFlow<RoomId?> = MutableStateFlow(null)
-                                        override val error: MutableStateFlow<String?> = MutableStateFlow(null)
-                                        override val errorType: MutableStateFlow<ErrorType> =
-                                            MutableStateFlow(ErrorType.JUST_DISMISS)
-                                        override val elements: StateFlow<List<RoomListElementViewModel>> =
-                                            MutableStateFlow(emptyList())
-                                        override val syncStateError: StateFlow<Map<UserId, Boolean>> = MutableStateFlow(
-                                            emptyMap()
-                                        )
-                                        override val allSyncError: StateFlow<Boolean> = MutableStateFlow(false)
-                                        override val initialSyncFinished: StateFlow<Boolean> = MutableStateFlow(true)
-                                        override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
-                                        override val searchTerm: MutableStateFlow<String> = MutableStateFlow("")
-                                        override val canCreateNewRoomWithAccount: StateFlow<Boolean> =
-                                            MutableStateFlow(true)
-                                        override val unverifiedAccounts: StateFlow<List<UserId>> =
+                                ): RoomListViewModel = object : RoomListViewModel {
+                                    override val selectedRoomId: StateFlow<RoomId?> = MutableStateFlow(null)
+                                    override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+                                    override val errorType: MutableStateFlow<ErrorType> =
+                                        MutableStateFlow(ErrorType.JUST_DISMISS)
+                                    override val elements: StateFlow<List<RoomListElementViewModel>> =
+                                        MutableStateFlow(emptyList())
+                                    override val syncStateError: StateFlow<Map<UserId, Boolean>> = MutableStateFlow(
+                                        emptyMap()
+                                    )
+                                    override val allSyncError: StateFlow<Boolean> = MutableStateFlow(false)
+                                    override val syncStates = MutableStateFlow(UserSyncStates(setOf(), setOf()))
+                                    override val initialSyncFinished: StateFlow<Boolean> = MutableStateFlow(true)
+                                    override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
+                                    override val searchTerm = TextFieldViewModelImpl("")
+                                    override val canCreateNewRoomWithAccount: StateFlow<Boolean> =
+                                        MutableStateFlow(true)
+                                    override val unverifiedAccounts: StateFlow<List<UserId>> =
+                                        MutableStateFlow(listOf())
+                                    override val closeProfileNeeded: Boolean = false
+                                    override val accountViewModel: AccountViewModel = object : AccountViewModel {
+                                        override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
+                                        override val isSingleAccount: StateFlow<Boolean> = MutableStateFlow(false)
+                                        override val accounts: StateFlow<List<AccountInfo>> =
                                             MutableStateFlow(listOf())
-                                        override val closeProfileNeeded: Boolean = false
-                                        override val accountViewModel: AccountViewModel = object : AccountViewModel {
-                                            override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
-                                            override val isSingleAccount: StateFlow<Boolean> = MutableStateFlow(false)
-                                            override val accounts: StateFlow<List<AccountInfo>> =
-                                                MutableStateFlow(listOf())
 
-                                            override fun selectActiveAccount(userId: UserId?) {
-                                            }
-
-                                            override fun openUserSettings() {
-                                            }
-
-                                            override fun openUserProfile() {
-                                            }
-
-                                            override fun openAppInfo() {
-                                            }
-                                        }
-
-                                        override fun createNewRoom() {
-                                        }
-
-                                        override fun createNewRoomFor(userId: UserId) {
-                                        }
-
-                                        override fun selectRoom(roomId: RoomId) {
-                                        }
-
-                                        override fun errorDismiss() {
-                                        }
-
-                                        override fun sendLogs() {
-                                        }
-
-                                        override fun openAccountsOverview() {
-                                        }
-
-                                        override fun closeProfile() {
-                                        }
-
-                                        override fun verifyAccount(userId: UserId) {
-                                        }
+                                        override fun selectActiveAccount(userId: UserId?) {}
+                                        override fun openUserSettings() {}
+                                        override fun openUserProfile() {}
+                                        override fun openAppInfo() {}
                                     }
+
+                                    override fun createNewRoom() {}
+                                    override fun createNewRoomFor(userId: UserId) {}
+                                    override fun selectRoom(roomId: RoomId) {}
+                                    override fun errorDismiss() {}
+                                    override fun sendLogs() {}
+                                    override fun openAccountsOverview() {}
+                                    override fun closeProfile() {}
+                                    override fun verifyAccount(userId: UserId) {}
                                 }
                             }
                         }
@@ -817,8 +667,8 @@ class MainViewModelTest : ShouldSpec() {
             ),
             onCreateNewAccount = {},
             onRemoveAccount = {},
-        )
-        mainViewModel.start()
-        return mainViewModel
+        ).apply {
+            start()
+        }
     }
 }

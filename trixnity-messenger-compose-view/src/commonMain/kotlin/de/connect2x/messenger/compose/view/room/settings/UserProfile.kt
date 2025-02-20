@@ -40,15 +40,19 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
@@ -57,7 +61,6 @@ import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.messenger.compose.view.common.WarningDialog
 import de.connect2x.messenger.compose.view.common.blockPointerInput
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.common.icons.BanIcon
 import de.connect2x.messenger.compose.view.common.icons.BlockIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
@@ -66,36 +69,36 @@ import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
-import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel
 import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.core.model.events.m.room.Membership
 
+
 @Composable
-fun RoomUserProfileContainer(userProfileViewModel: UserProfileViewModel) {
+fun UserProfileContainer(userProfileViewModel: UserProfileViewModel) {
     Box(Modifier.fillMaxWidth()) {
         Box(
             Modifier
                 .fillMaxHeight()
                 .align(Alignment.CenterEnd)
         ) {
-            RoomUserProfile(userProfileViewModel)
+            UserProfile(userProfileViewModel)
         }
     }
 }
 
-interface RoomUserProfileView {
+interface UserProfileView {
     @Composable
     fun create(userProfileViewModel: UserProfileViewModel)
 }
 
 @Composable
-fun RoomUserProfile(userProfileViewModel: UserProfileViewModel) {
-    DI.get<RoomUserProfileView>().create(userProfileViewModel)
+fun UserProfile(userProfileViewModel: UserProfileViewModel) {
+    DI.get<UserProfileView>().create(userProfileViewModel)
 }
 
-class RoomUserProfileViewImpl : RoomUserProfileView {
+class UserProfileViewImpl : UserProfileView {
     @Composable
     override fun create(userProfileViewModel: UserProfileViewModel) {
         val error = userProfileViewModel.error.collectAsState()
@@ -112,9 +115,6 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
         val openingChat = userProfileViewModel.openingChat.collectAsState().value
         val verifying = userProfileViewModel.verifying.collectAsState().value
         val canOpenChat = userProfileViewModel.canOpenChat.collectAsState().value
-
-
-
 
         Column(
             Modifier
@@ -231,7 +231,6 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
                         )
                     }
 
-
                     RoomOptions(userProfileViewModel, i18n)
                 }
             }
@@ -241,7 +240,6 @@ class RoomUserProfileViewImpl : RoomUserProfileView {
 
 @Composable
 private fun RoomOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
-
     val iHavePowerToBanUser = userProfileViewModel.iHavePowerToBanUser.collectAsState().value
     val iHavePowerToUnbanUser = userProfileViewModel.iHavePowerToUnbanUser.collectAsState().value
     val iHavePowerToKickUser = userProfileViewModel.iHavePowerToKickUser.collectAsState().value
@@ -360,18 +358,17 @@ private fun DialogHandler(userProfileViewModel: UserProfileViewModel) {
 @Composable
 fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
     val i18n = DI.get<I18nView>()
-    val kickReason = userProfileViewModel.kickUserReason.collectAsStateForTextField().value
-    val kickUserWarningTitle =
-        userProfileViewModel.kickUserWarningTitle.collectAsState().value
+    var kickUserReason by userProfileViewModel.kickUserReason.collectAsTextFieldValueState()
+    val isDirect = userProfileViewModel.isDirect.collectAsState().value
 
     WarningDialog(
-        title = kickUserWarningTitle,
+        title =
+            if (isDirect) i18n.settingsRoomMemberListKickUserWarningTitleChat(userProfileViewModel.userId.full)
+            else i18n.settingsRoomMemberListKickUserWarningTitleGroup(userProfileViewModel.userId.full),
         message = {
             OutlinedTextField(
-                value = kickReason,
-                onValueChange = {
-                    userProfileViewModel.kickUserReason.value = it
-                },
+                value = kickUserReason,
+                onValueChange = { kickUserReason = it },
                 label = {
                     Text(i18n.commonOptionalReason())
                 },
@@ -391,16 +388,14 @@ fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
 @Composable
 fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
     val i18n = DI.current.get<I18nView>()
-    val banReason = userProfileViewModel.banReason.collectAsStateForTextField().value
+    var banUserReason by userProfileViewModel.banUserReason.collectAsTextFieldValueState()
 
     WarningDialog(
         title = i18n.userProfileBanUserConfirmationSure(),
         message = {
             OutlinedTextField(
-                value = banReason,
-                onValueChange = {
-                    userProfileViewModel.banReason.value = it
-                },
+                value = banUserReason,
+                onValueChange = { banUserReason = it },
                 label = {
                     Text(i18n.commonOptionalReason())
                 },
@@ -420,16 +415,14 @@ fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
 @Composable
 fun UnbanUserWarning(userProfileViewModel: UserProfileViewModel) {
     val i18n = DI.current.get<I18nView>()
-    val unbanReason = userProfileViewModel.unbanReason.collectAsStateForTextField().value
+    var unbanUserReason by userProfileViewModel.unbanUserReason.collectAsTextFieldValueState()
 
     WarningDialog(
         title = i18n.unbanTitle(),
         message = {
             OutlinedTextField(
-                value = unbanReason,
-                onValueChange = {
-                    userProfileViewModel.unbanReason.value = it
-                },
+                value = unbanUserReason,
+                onValueChange = { unbanUserReason = it },
                 label = {
                     Text(i18n.commonOptionalReason())
                 },
@@ -450,8 +443,10 @@ fun UnbanUserWarning(userProfileViewModel: UserProfileViewModel) {
 @Composable
 fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
     val i18n = DI.get<I18nView>()
-    val changePowerLevelInput =
-        userProfileViewModel.changePowerLevelViewModel.changingPowerLevelDialogInput.collectAsStateForTextField().value
+    val changingPowerLevelDialogError =
+        userProfileViewModel.changePowerLevelViewModel.changingPowerLevelDialogError.collectAsState().value
+    var changePowerLevelInput by
+    userProfileViewModel.changePowerLevelViewModel.changingPowerLevelDialogInput.collectAsTextFieldValueState()
     val showPowerLevelHelp =
         userProfileViewModel.changePowerLevelViewModel.showPowerLevelHelp.collectAsState().value
     val canSetRoleToAdmin =
@@ -488,13 +483,9 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                 }
                 Spacer(Modifier.size(10.dp))
                 OutlinedTextField(
-                    value = changePowerLevelInput.value,
-                    onValueChange = {
-                        userProfileViewModel.changePowerLevelViewModel.onPowerLevelEntered(
-                            it
-                        )
-                    },
-                    isError = changePowerLevelInput.errorId != null,
+                    value = changePowerLevelInput,
+                    onValueChange = { changePowerLevelInput = it },
+                    isError = changingPowerLevelDialogError != null,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -504,7 +495,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                     if (canSetRoleToUser) {
                         SuggestionChip(
                             onClick = {
-                                userProfileViewModel.changePowerLevelViewModel.onPowerLevelEntered(
+                                changePowerLevelInput = TextFieldValue(
                                     ChangePowerLevelViewModel.Role.USER
                                         .getMinPowerLevel().toString()
                                 )
@@ -517,7 +508,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                     if (canSetRoleToModerator) {
                         SuggestionChip(
                             onClick = {
-                                userProfileViewModel.changePowerLevelViewModel.onPowerLevelEntered(
+                                changePowerLevelInput = TextFieldValue(
                                     ChangePowerLevelViewModel.Role.MODERATOR
                                         .getMinPowerLevel().toString()
                                 )
@@ -530,7 +521,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                     if (canSetRoleToAdmin) {
                         SuggestionChip(
                             onClick = {
-                                userProfileViewModel.changePowerLevelViewModel.onPowerLevelEntered(
+                                changePowerLevelInput = TextFieldValue(
                                     ChangePowerLevelViewModel.Role.ADMIN
                                         .getMinPowerLevel().toString()
                                 )
@@ -542,7 +533,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                     }
                 }
                 Spacer(Modifier.size(5.dp))
-                changePowerLevelInput.errorId?.let {
+                changingPowerLevelDialogError?.let {
                     Spacer(Modifier.size(5.dp))
                     Text(color = MaterialTheme.colorScheme.error, text = it)
                 }
@@ -560,10 +551,10 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                     }
                     Spacer(Modifier.size(15.dp))
                     Button(
-                        enabled = changePowerLevelInput.errorId == null && changePowerLevelInput.value != "",
+                        enabled = changingPowerLevelDialogError == null && changePowerLevelInput.text != "",
                         onClick = {
                             userProfileViewModel.changePowerLevelViewModel.setPowerLevelTo(
-                                changePowerLevelInput.value.toLong()
+                                changePowerLevelInput.text.toLong()
                             )
                             userProfileViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog()
                         },
@@ -587,7 +578,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
 private fun MenuElement(
     modifier: Modifier = Modifier,
     arrangement: Arrangement.Horizontal = Arrangement.Start,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     Row(
         modifier.fillMaxWidth().padding(horizontal = 10.dp).minimumInteractiveComponentSize(),
@@ -599,7 +590,7 @@ private fun MenuElement(
 }
 
 @Composable
-private fun StatusRow(text: String, positive: Boolean = true, icon: @Composable () -> Unit,) {
+private fun StatusRow(text: String, positive: Boolean = true, icon: @Composable () -> Unit) {
     SuggestionChip(
         enabled = false,
         onClick = {},
@@ -617,7 +608,6 @@ private fun StatusRow(text: String, positive: Boolean = true, icon: @Composable 
                         modifier = Modifier.widthIn(max = maxWidth * .5f)
                     )
                 }
-
             }
         },
         colors = SuggestionChipDefaults.suggestionChipColors().copy(
@@ -629,4 +619,6 @@ private fun StatusRow(text: String, positive: Boolean = true, icon: @Composable 
 
 @Composable
 private fun defaultColorForState(enabled: Boolean) =
-    LocalContentColor.current.run { if (!enabled) { copy(alpha = 0.6f) } else { this } }
+    LocalContentColor.current.run {
+        if (!enabled) copy(alpha = 0.6f) else this
+    }

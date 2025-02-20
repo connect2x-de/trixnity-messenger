@@ -19,12 +19,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
 
+
 @Composable
 fun BoxScope.MessageBubbleContentOverlay(
     hoverMessage: State<Boolean>,
-    overlay: (@Composable BoxScope.() -> Unit)?
+    overlay: (@Composable BoxScope.() -> Unit)?,
 ) {
-    overlay?.let { overlay ->
+    overlay?.let {
         val boxAlpha: Float by animateFloatAsState(
             targetValue = if (hoverMessage.value) 1f else 0f,
             animationSpec = tween(
@@ -44,7 +45,7 @@ fun BoxScope.MessageBubbleContentOverlay(
                     .background(MaterialTheme.messengerColors.metaDataPreviewBackground)
                     .padding(6.dp)
             ) {
-                overlay()
+                it()
             }
         }
     }

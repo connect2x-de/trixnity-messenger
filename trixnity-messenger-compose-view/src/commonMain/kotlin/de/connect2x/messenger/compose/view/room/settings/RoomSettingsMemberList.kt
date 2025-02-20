@@ -17,8 +17,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
@@ -51,13 +49,11 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
             memberListViewModel.elements.collectAsState().value
         val joinedMemberCount = memberListViewModel.membershipCounts.collectAsState().value[Membership.JOIN]
 
-        if (memberListElementViewModels.isEmpty()) {
-            return
-        }
+        if (memberListElementViewModels.isEmpty()) return
 
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "${i18n.roomSettingsMembers().capitalize(Locale.current)} ${joinedMemberCount?.let { "($it)" }}",
+                text = "${i18n.roomSettingsMembers()} ${joinedMemberCount?.let { "($it)" }}",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1.0f, false).fillMaxWidth(),
             )
@@ -73,7 +69,7 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
                 }
             }
         }
-        MemberList(memberListViewModel, onClickUser = { roomSettingsViewModel.showUserProfile(it) })
+        MemberList(memberListViewModel, onClickUser = { roomSettingsViewModel.openUserProfile(it) })
     }
 }
 
@@ -88,6 +84,7 @@ fun MemberList(
 
     Box(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
         LazyColumn(Modifier.fillMaxWidth(), state) {
+            // TODO: Consider showing banned users at the bottom of the list.
             members.forEach { memberListElementViewModel ->
                 val userId = memberListElementViewModel.memberUserId
                 item(key = userId.full) {
@@ -106,18 +103,18 @@ fun MemberList(
             }
         }
 
-        //the VerticalScrollbar causes the size of the box to always be maximum and thus no longer adapts to the content
-        //this is the only solution found for now
+        // The VerticalScrollbar causes the size of the box to always be maximum and thus no longer adapts to the content.
+        // TODO: Consider using the approach used in UnifiedMessageMetadata.kt for the user interactions list.
         if (members.count() > 4) {
             VerticalScrollbar(
                 Modifier.align(Alignment.CenterEnd),
                 state,
-                false
+                false,
             )
         }
     }
     LaunchedEffect(members) {
-        if (state.layoutInfo.visibleItemsInfo.any { it.index == 1 }) { // this has been the first element before
+        if (state.layoutInfo.visibleItemsInfo.any { it.index == 1 }) { // This has been the first element before.
             state.animateScrollToItem(0)
         }
     }

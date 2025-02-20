@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +36,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -62,8 +62,9 @@ import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
@@ -72,6 +73,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.EmojiSelector
 import de.connect2x.messenger.compose.view.common.ErrorDialog
@@ -80,7 +82,6 @@ import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_AND_VIDEO
 import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
 import de.connect2x.messenger.compose.view.common.FilePickerType.VIDEO_CAPTURE
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.files.EmptyFileListException
 import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.NotPasteableException
@@ -95,7 +96,16 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
 import kotlinx.coroutines.delay
 import okio.FileSystem
+import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
+
+private fun TextFieldValue.insert(insertion: String): TextFieldValue =
+    TextFieldValue(
+        this.text.substring(0, this.selection.start) + insertion + this.text.substring(this.selection.end),
+        TextRange(
+            this.selection.start + insertion.length - abs(this.selection.end - this.selection.start)
+        )
+    )
 
 interface InputAreaView {
     @Composable
@@ -114,9 +124,9 @@ class InputAreaViewImpl : InputAreaView {
         val isReplyTo = inputAreaViewModel.isReply.collectAsState().value
         val canSendMessages = inputAreaViewModel.isAllowedToSendMessages.collectAsState().value
         val isEdit = inputAreaViewModel.isReplace.collectAsState().value
-        val isMobile = Platform.current.isMobile
         val emojisOpen = remember { mutableStateOf(false) }
         val focusRequester = remember { FocusRequester() }
+        val textField = inputAreaViewModel.textField.collectAsTextFieldValueState()
 
         Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
             Column(Modifier.fillMaxWidth()) {
@@ -126,11 +136,14 @@ class InputAreaViewImpl : InputAreaView {
                 }
                 if (emojisOpen.value) {
                     Box(Modifier.heightIn(max = 100.dp)) {
-                        EmojiSelector({ inputAreaViewModel.addToMessage(it) }, focusRequester)
+                        EmojiSelector({
+                            textField.value = textField.value.insert(it)
+                            focusRequester.requestFocus()
+                        })
                     }
                 }
 
-                UserSelector(inputAreaViewModel)
+                UserSelector(inputAreaViewModel, focusRequester)
                 Row(
                     Modifier.fillMaxWidth().height(IntrinsicSize.Max),
                     verticalAlignment = Alignment.CenterVertically,
@@ -138,8 +151,7 @@ class InputAreaViewImpl : InputAreaView {
                     if (canSendMessages) {
                         EmojiButton(emojisOpen)
 
-                        if (isMobile) InputAreaMobile(inputAreaViewModel)
-                        else InputAreaDesktop(inputAreaViewModel)
+                        InputAreaTextField(inputAreaViewModel, textField, focusRequester)
 
                         if (isEdit) {
                             EditButton(inputAreaViewModel)
@@ -164,12 +176,12 @@ class InputAreaViewImpl : InputAreaView {
 }
 
 @Composable
-fun UserSelector(inputAreaViewModel: InputAreaViewModel) {
+fun UserSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: FocusRequester) {
     val loading = inputAreaViewModel.listOfMentionsLoading.collectAsState().value
     val listOfMentions = inputAreaViewModel.listOfMentions.collectAsState().value
     val scrollState = rememberScrollState()
 
-    if (loading != null) {
+    if (listOfMentions != null || loading) {
         Box(
             Modifier
                 .padding(vertical = 10.dp, horizontal = 20.dp)
@@ -179,23 +191,26 @@ fun UserSelector(inputAreaViewModel: InputAreaViewModel) {
                 LoadingSpinner(modifier = Modifier.heightIn(min = 150.dp))
             } else {
                 Column(Modifier.verticalScroll(scrollState).fillMaxWidth()) {
-                    listOfMentions.map { username ->
-                        val avatar = username.avatar.collectAsState(null).value
+                    listOfMentions.orEmpty().map { userInfoElement ->
+                        val avatar = userInfoElement.image?.collectAsState(null)?.value
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
-                                .clickable { inputAreaViewModel.selectMention(username) }
+                                .clickable {
+                                    inputAreaViewModel.selectMention(userInfoElement.userId)
+                                    focusRequester.requestFocus()
+                                }
                                 .buttonPointerModifier()
                                 .padding(vertical = 5.dp)
                         ) {
                             Avatar(
                                 avatar,
-                                initials = username.initials,
+                                initials = userInfoElement.initials,
                                 size = 28.dp
                             )
                             Spacer(Modifier.size(5.dp))
-                            Text(username.name, style = MaterialTheme.typography.bodyLarge)
-                            Text(" (${username.userId.full})", style = MaterialTheme.typography.bodyMedium)
+                            Text(userInfoElement.name, style = MaterialTheme.typography.bodyLarge)
+                            Text(" (${userInfoElement.userId.full})", style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }
@@ -210,21 +225,23 @@ fun UserSelector(inputAreaViewModel: InputAreaViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
+fun RowScope.InputAreaTextField(
+    inputAreaViewModel: InputAreaViewModel,
+    textField: MutableState<TextFieldValue>,
+    focusRequester: FocusRequester
+) {
+    val platformType = Platform.current
     val i18n = DI.get<I18nView>()
     val fileSystem = DI.getOrNull<FileSystem>() // TODO this does not work in Web
-    val message = inputAreaViewModel.message.collectAsStateForTextField()
-    val selection = remember { mutableStateOf(TextRange(message.value.length)) }
-    val focusRequester = remember { FocusRequester() }
     val interactionSource = remember { MutableInteractionSource() }
     val showUploadError = remember { mutableStateOf<Throwable?>(null) }
 
     val maxAttachmentSize = DI.current.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
-    LaunchedEffect(Unit) {
-        inputAreaViewModel.shouldFocus.collect { value ->
+    if (Platform.current.isMobile.not()) {
+        LaunchedEffect(Unit) {
+            delay(500.milliseconds)
             focusRequester.requestFocus()
-            selection.value = TextRange(message.value.length)
         }
     }
 
@@ -254,13 +271,11 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
                     if (it.type == KeyEventType.KeyDown) {
                         when {
                             (it.isShiftPressed && it.key == Key.Enter) -> {
-                                inputAreaViewModel.addNewlineToMessage()
-                                selection.value =
-                                    TextRange(selection.value.start + 1, selection.value.end + 1)
+                                textField.value = textField.value.insert("\n")
                                 true
                             }
 
-                            (it.key == Key.Enter) -> {
+                            (it.key == Key.Enter && !platformType.isMobile) -> {
                                 inputAreaViewModel.sendMessage()
                                 true
                             }
@@ -283,18 +298,16 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
                         false
                     }
                 },
-            // selection model only needed in desktop version; because of Type clash we have to duplicate code here
-            value = TextFieldValue(text = message.value, selection = selection.value),
+            value = textField.value,
             onValueChange = { textFieldValue ->
-                inputAreaViewModel.message.value = textFieldValue.text
-                selection.value = textFieldValue.selection
+                textField.value = textFieldValue
             },
             maxLines = 6,
             textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
         ) { innerTextField ->
             @OptIn(ExperimentalMaterial3Api::class)
             OutlinedTextFieldDefaults.DecorationBox(
-                value = message.value,
+                value = textField.value.text,
                 innerTextField = innerTextField,
                 enabled = true,
                 singleLine = false,
@@ -322,90 +335,6 @@ fun RowScope.InputAreaDesktop(inputAreaViewModel: InputAreaViewModel) {
             )
         }
     }
-
-    LaunchedEffect(Unit) {
-        delay(500.milliseconds)
-        focusRequester.requestFocus()
-    }
-
-    LaunchedEffect(selection.value) {
-        inputAreaViewModel.currentCursorPosition.value =
-            if (selection.value.length == 0) selection.value.start else null
-    }
-}
-
-@Composable
-fun RowScope.InputAreaMobile(inputAreaViewModel: InputAreaViewModel) {
-    val i18n = DI.get<I18nView>()
-    val message = inputAreaViewModel.message.collectAsStateForTextField().value
-    val focusRequester = remember { FocusRequester() }
-    val textFieldValue = remember {
-        mutableStateOf(
-            TextFieldValue(
-                text = message,
-                selection = TextRange(
-                    index = message.length
-                )
-            )
-        )
-    }
-
-    LaunchedEffect(message) {
-        if (textFieldValue.value.text != message) {
-            textFieldValue.value = textFieldValue.value.copy(
-                text = message,
-                selection = TextRange(
-                    message
-                        .indexOf(' ', textFieldValue.value.selection.start)
-                        .takeIf { it != -1 }
-                        ?: textFieldValue.value.selection.start
-                )
-            )
-        }
-
-        inputAreaViewModel.currentCursorPosition.value =
-            if (textFieldValue.value.selection.length == 0) textFieldValue.value.selection.start else null
-    }
-
-    LaunchedEffect(Unit) {
-        inputAreaViewModel.shouldFocus.collect {
-            focusRequester.requestFocus()
-        }
-    }
-
-    OutlinedTextField(
-        modifier = Modifier
-            .focusRequester(focusRequester)
-            .heightIn(min = 40.dp)
-            .weight(1.0f)
-            .padding(top = 6.dp, bottom = 6.dp, start = 2.dp, end = 6.dp),
-        value = textFieldValue.value,
-        onValueChange = {
-            textFieldValue.value = it
-            inputAreaViewModel.message.value = it.text
-        },
-        shape = RoundedCornerShape(8.dp),
-        maxLines = 5,
-        textStyle = MaterialTheme.typography.bodyMedium,
-        keyboardOptions = KeyboardOptions.Default.copy(
-            capitalization = KeyboardCapitalization.Sentences,
-            autoCorrectEnabled = true,
-        ),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            cursorColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            unfocusedIndicatorColor = Color.Transparent,
-            focusedIndicatorColor = Color.Transparent,
-        ),
-        placeholder = {
-            Text(
-                i18n.inputAreaPrompt(),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-            )
-        }
-    )
 }
 
 @Composable

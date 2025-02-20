@@ -9,9 +9,10 @@ import de.connect2x.messenger.previews.util.InitMessengerPreview
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel1
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.util.EventReaction
+import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,20 +29,24 @@ fun TextMessageBubblePreview() {
     holder.showSender.value = true
     val userInfoElement = UserInfoElement(
         name = "Martin",
-        userId = UserId("@martin:localhost")
+        userId = UserId("@martin:localhost"),
+        initials = "M",
     )
     holder.sender.value = userInfoElement
     holder.isFirstInUserSequence.value = true
     holder.showBigGapBefore.value = true
-    holder.reactions.value = mapOf(
-        "🎉" to setOf(
-            TimelineElementHolderViewModel.ReactionEvent(
-                eventId = EventId("1"),
-                sender = userInfoElement,
-                isMe = false,
+    holder.reactions.value =
+        EventReactions(
+            setOf(
+                EventReaction(
+                    value = "x",
+                    eventId = EventId("1"),
+                    sender = userInfoElement,
+                    isByMe = false,
+                )
             )
         )
-    )
+
     val element = object : RoomMessageTimelineElementViewModel.TextBased.Text {
         override val body: String = "Hello everyone!"
         override val formattedBody: String = "Hello <b/>everyone!"
@@ -64,7 +69,8 @@ fun ImageMessageBubblePreview() {
     holder.showSender.value = true
     holder.sender.value = UserInfoElement(
         name = "Martin",
-        userId = UserId("@martin:localhost")
+        userId = UserId("@martin:localhost"),
+        initials = "M",
     )
     holder.isFirstInUserSequence.value = true
     holder.showBigGapBefore.value = true
@@ -104,7 +110,8 @@ fun FileMessageBubblePreview() {
     holder.showSender.value = true
     holder.sender.value = UserInfoElement(
         name = "Martin",
-        userId = UserId("@martin:localhost")
+        userId = UserId("@martin:localhost"),
+        initials = "M",
     )
     holder.isFirstInUserSequence.value = true
     holder.showBigGapBefore.value = true

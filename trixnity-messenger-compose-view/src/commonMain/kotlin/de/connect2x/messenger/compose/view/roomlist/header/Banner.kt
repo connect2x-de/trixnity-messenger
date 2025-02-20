@@ -31,7 +31,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -45,7 +47,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
+import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.thenNullable
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -81,25 +83,23 @@ fun Banner(
 @Composable
 fun SyncErrorBanner(roomListViewModel: RoomListViewModel) {
     val i18n = DI.get<I18nView>()
-    val syncStateError = roomListViewModel.syncStateError.collectAsState().value
-    val allSyncError = roomListViewModel.allSyncError.collectAsState().value
-    val visible = syncStateError.any { (_, error) -> error }
+    val syncStates = roomListViewModel.syncStates.collectAsState().value
     Banner(
-        visible,
+        syncStates.failedFor.isNotEmpty(),
         background = MaterialTheme.colorScheme.errorContainer,
     ) {
         Row(Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.CloudOff, i18n.roomListSyncErrorNoConnection())
             Spacer(Modifier.size(12.dp))
             Column(verticalArrangement = Arrangement.Center) {
-                if (allSyncError) {
+                if (syncStates.failedForAll) {
                     Text(
                         i18n.roomListSyncErrorNoInternet(),
                         style = MaterialTheme.typography.labelLarge,
                     )
                 } else {
                     Text(
-                        i18n.roomListSyncErrorAccounts(syncStateError.keys.joinToString { it.full }),
+                        i18n.roomListSyncErrorAccounts(syncStates.joinFailedToString()),
                         style = MaterialTheme.typography.labelLarge,
                     )
                 }
@@ -148,7 +148,7 @@ fun NotVerifiedBanner(roomListViewModel: RoomListViewModel) {
 fun SearchRoomsBanner(roomListViewModel: RoomListViewModel) {
     val i18n = DI.get<I18nView>()
     val showSearch = roomListViewModel.showSearch.collectAsState().value
-    val searchTerm = roomListViewModel.searchTerm.collectAsStateForTextField().value
+    var searchTerm by roomListViewModel.searchTerm.collectAsTextFieldValueState()
     val focusRequester = remember { FocusRequester() }
     Banner(
         showSearch,
@@ -161,7 +161,7 @@ fun SearchRoomsBanner(roomListViewModel: RoomListViewModel) {
             ) {
                 OutlinedTextField(
                     value = searchTerm,
-                    onValueChange = { roomListViewModel.searchTerm.value = it },
+                    onValueChange = { searchTerm = it },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(10.dp)

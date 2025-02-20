@@ -32,65 +32,88 @@ import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Video
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
-class VideoRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.FileBased.Video> {
-    override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.Video> =
-        RoomMessageTimelineElementViewModel.FileBased.Video::class
 
-    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
-        // no-op (has default size)
+class VideoRoomMessageTimelineElementView : TimelineElementView<Video> {
+    override val supports: KClass<Video> =
+        Video::class
+
+    override suspend fun waitFor(element: Video) {
+        // NO-OP (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.FileBased.Video,
+        element: Video,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-            overlay = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${shortenFileName(element)}, ${element.duration?.let { formatDuration(it.milliseconds) }} ${element.size}",
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                        maxLines = 1,
-                    )
-                }
-            }
-        ) { showMenuAction, onSave ->
-            MessageVideo(holder, element, showMenuAction, onSave)
+            overlay = { VideoMessageElementOverlay(element) }
+        ) { openActionMenu, saveAttachment ->
+            VideoMessageContent(holder, element, openActionMenu, saveAttachment)
         }
     }
 
     @Composable
-    override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
-        ReplyVideo(element)
+    override fun createAsPreview(
+        holder: BaseTimelineElementHolderViewModel,
+        element: Video,
+    ) {
+        FileBasedRoomMessageTimelineElement(
+            holder,
+            element,
+            config = { applyPreviewConfig() },
+        ) { openActionMenu, saveAttachment ->
+            VideoMessageContent(holder, element, openActionMenu, saveAttachment)
+        }
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
-        ReplyVideo(element)
+    override fun createReplyInTimeline(element: Video) {
+        VideoReplyElement(element)
+    }
+
+    @Composable
+    override fun createReplyInSendMessage(element: Video) {
+        VideoReplyElement(element)
     }
 }
 
 @Composable
-internal fun ColumnScope.MessageVideo(
+internal fun VideoMessageElementOverlay(element: Video) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            "${shortenFileName(element)}, ${
+                element.duration?.let {
+                    formatDuration(it.milliseconds)
+                }
+            } ${element.size}",
+            color = MaterialTheme.messengerColors.metaDataPreview,
+            maxLines = 1,
+        )
+    }
+}
+
+@Composable
+internal fun ColumnScope.VideoMessageContent(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.FileBased.Video,
-    showMenuAction: () -> Unit,
-    onSave: () -> Unit,
+    element: Video,
+    onOpenActionMenu: () -> Unit,
+    onSaveAttachment: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val thumbnail = element.thumbnail.collectAsState().value
@@ -110,7 +133,7 @@ internal fun ColumnScope.MessageVideo(
                             .heightIn(64.dp, 400.dp) // FIXME getHeight? videoMessageViewModel.getHeight(400f).dp
                             .widthIn(64.dp, 400.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .openVideoOnTouch(element, onSave, showMenuAction)
+                            .openVideoOnTouch(element, onSaveAttachment, onOpenActionMenu)
                             .buttonPointerModifier(),
                         contentScale = ContentScale.Fit
                     )
@@ -120,7 +143,7 @@ internal fun ColumnScope.MessageVideo(
                         i18n.commonVideo(),
                         Modifier
                             .size(64.dp)
-                            .openVideoOnTouch(element, onSave, showMenuAction)
+                            .openVideoOnTouch(element, onSaveAttachment, onOpenActionMenu)
                             .buttonPointerModifier(),
                         tint = Color.DarkGray,
                     )
@@ -134,21 +157,21 @@ internal fun ColumnScope.MessageVideo(
 
 @Composable
 private fun Modifier.openVideoOnTouch(
-    element: RoomMessageTimelineElementViewModel.FileBased.Video,
-    showMenuAction: () -> Unit,
-    onSave: () -> Unit,
+    element: Video,
+    onOpenActionMenu: () -> Unit,
+    onSaveAttachment: () -> Unit,
 ): Modifier {
     return this.then(pointerInput(Unit) {
         detectTapGestures(
-            onTap = { onSave() },
-            onLongPress = { showMenuAction() },
+            onTap = { onSaveAttachment() },
+            onLongPress = { onOpenActionMenu() },
         )
     })
 }
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-internal fun ReplyVideo(element: RoomMessageTimelineElementViewModel.FileBased.Video) {
+internal fun VideoReplyElement(element: Video) {
     val i18n = DI.get<I18nView>()
     val videoImage = element.thumbnail.collectAsState().value
     videoImage?.let { videoImage ->

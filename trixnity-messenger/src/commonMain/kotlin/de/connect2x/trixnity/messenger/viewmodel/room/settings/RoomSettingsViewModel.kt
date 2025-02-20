@@ -1,13 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
-import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -19,30 +18,28 @@ import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 
-private val log = KotlinLogging.logger { }
+private val log = KotlinLogging.logger {}
 
 interface RoomSettingsViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        onBack: () -> Unit,
-        onShowAddMembers: () -> Unit,
-        onShowExportRoom: () -> Unit,
+        onLeaveRoom: () -> Unit,
+        onOpenAddMembers: () -> Unit,
+        onOpenExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
-        onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
-        onShowUserProfile: suspend (UserId) -> Unit,
-    ): RoomSettingsViewModel {
-        return RoomSettingsViewModelImpl(
-            viewModelContext = viewModelContext,
-            selectedRoomId = selectedRoomId,
-            onShowAddMembers = onShowAddMembers,
-            onShowExportRoom = onShowExportRoom,
-            onCloseRoomSettings = onCloseRoomSettings,
-            onBack = onBack,
-            onOpenAvatarCutter = onOpenAvatarCutter,
-            onOpenUserProfile = onShowUserProfile,
-        )
-    }
+        onOpenUserProfile: (UserId, RoomId) -> Unit,
+        onOpenAvatarCutter: OpenAvatarCutterCallback,
+    ): RoomSettingsViewModel = RoomSettingsViewModelImpl(
+        viewModelContext = viewModelContext,
+        selectedRoomId = selectedRoomId,
+        onOpenAddMembers = onOpenAddMembers,
+        onOpenExportRoom = onOpenExportRoom,
+        onCloseRoomSettings = onCloseRoomSettings,
+        onOpenAvatarCutter = onOpenAvatarCutter,
+        onLeaveRoom = onLeaveRoom,
+        onOpenUserProfile = onOpenUserProfile,
+    )
 
     companion object : RoomSettingsViewModelFactory
 }
@@ -73,18 +70,18 @@ interface RoomSettingsViewModel {
     fun openLeaveRoomWarningDialog()
     fun closeLeaveRoomWarningDialog()
     fun close()
-    fun showUserProfile(userId: UserId)
+    fun openUserProfile(userId: UserId)
 }
 
 class RoomSettingsViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
-    private val onShowAddMembers: () -> Unit,
-    private val onShowExportRoom: () -> Unit,
+    private val onOpenAddMembers: () -> Unit,
+    private val onOpenExportRoom: () -> Unit,
     private val onCloseRoomSettings: () -> Unit,
-    private val onBack: () -> Unit,
-    private val onOpenAvatarCutter: (UserId, RoomId, FileDescriptor) -> Unit,
-    private val onOpenUserProfile: suspend (UserId) -> Unit,
+    private val onLeaveRoom: () -> Unit,
+    private val onOpenAvatarCutter: OpenAvatarCutterCallback,
+    private val onOpenUserProfile: (UserId, RoomId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
 
     private val backCallback = BackCallback {
@@ -140,23 +137,21 @@ class RoomSettingsViewModelImpl(
     override val leaveRoomWarningTitle = MutableStateFlow("")
     override val leaveRoomWarningMessage = MutableStateFlow("")
     override val leaveRoomWarningConfirmButtonText = MutableStateFlow("")
-
     override val leaveRoomWarningOpen = MutableStateFlow(false)
-
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
-
     override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override val memberListViewModel: MemberListViewModel =
         get<MemberListViewModelFactory>().create(
             viewModelContext = childContext("memberList-${selectedRoomId}"),
             selectedRoomId = selectedRoomId,
+            onOpenUserProfile = ::openUserProfile,
             error = error,
-            onShowUserProfile = ::showUserProfile
         )
 
     override val hasPowerToInvite: StateFlow<Boolean> =
-        matrixClient.user.canInvite(selectedRoomId).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        matrixClient.user.canInvite(selectedRoomId)
+            .stateIn(coroutineScope, WhileSubscribed(), false)
 
     init {
         coroutineScope.launch {
@@ -185,7 +180,7 @@ class RoomSettingsViewModelImpl(
                 error.value = i18n.settingsRoomLeaveRoomErrorOffline()
             } else {
                 matrixClient.api.room.leaveRoom(selectedRoomId).fold(
-                    onSuccess = { onBack() },
+                    onSuccess = { onLeaveRoom() },
                     onFailure = {
                         if (it is CancellationException) {
                             return@launch
@@ -215,62 +210,42 @@ class RoomSettingsViewModelImpl(
     }
 
     override fun openAddMembersView() {
-        onShowAddMembers()
+        onOpenAddMembers()
     }
 
     override fun openExportRoomView() {
-        onShowExportRoom()
+        onOpenExportRoom()
     }
 
-    override fun showUserProfile(userId: UserId) {
-        coroutineScope.launch {
-            onOpenUserProfile(userId)
-        }
+    override fun openUserProfile(userId: UserId) {
+        onOpenUserProfile(userId, selectedRoomId)
     }
 }
 
 class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
-    override val roomSettingsNameViewModel: PreviewRoomSettingsNameViewModel = PreviewRoomSettingsNameViewModel()
-    override val roomSettingsTopicViewModel: PreviewRoomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
-    override val roomSettingsNotificationsViewModel: PreviewRoomSettingsNotificationsViewModel =
-        PreviewRoomSettingsNotificationsViewModel()
-    override val roomSettingsAliasViewModel: RoomSettingsAliasViewModel = PreviewRoomSettingsAliasViewModel()
-    override val roomSettingsHistoryVisibilityViewModel: PreviewRoomSettingsHistoryVisibilityViewModel =
-        PreviewRoomSettingsHistoryVisibilityViewModel()
-    override val roomSettingsJoinRulesViewModel: PreviewRoomSettingsJoinRulesViewModel =
-        PreviewRoomSettingsJoinRulesViewModel()
-    override val roomSettingsSecurityViewModel: PreviewRoomSettingsSecurityViewModel =
-        PreviewRoomSettingsSecurityViewModel()
-    override val error: MutableStateFlow<String?> = MutableStateFlow(null)
-    override val changeRoomAvatarViewModel: ChangeRoomAvatarViewModel = PreviewChangeAvatarViewModel()
-    override val leaveRoomSettingEntryText: MutableStateFlow<String> = MutableStateFlow("leave room")
-    override val leaveRoomWarningOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val leaveRoomWarningTitle: MutableStateFlow<String> = MutableStateFlow("leave room warning title")
-    override val leaveRoomWarningMessage: MutableStateFlow<String> = MutableStateFlow("leave room warning message")
-    override val leaveRoomWarningConfirmButtonText: MutableStateFlow<String> = MutableStateFlow("confirm")
-    override val memberListViewModel: PreviewMemberListViewModel = PreviewMemberListViewModel()
-    override val hasPowerToInvite: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(false)
-
-    override fun openAddMembersView() {
-    }
-
-    override fun openExportRoomView() {
-    }
-
-    override fun leaveRoom() {
-    }
-
-    override fun openLeaveRoomWarningDialog() {
-    }
-
-    override fun closeLeaveRoomWarningDialog() {
-    }
-
-    override fun close() {
-    }
-
-    override fun showUserProfile(userId: UserId) {
-    }
+    override val roomSettingsNameViewModel = PreviewRoomSettingsNameViewModel()
+    override val roomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
+    override val roomSettingsNotificationsViewModel = PreviewRoomSettingsNotificationsViewModel()
+    override val roomSettingsAliasViewModel = PreviewRoomSettingsAliasViewModel()
+    override val roomSettingsHistoryVisibilityViewModel = PreviewRoomSettingsHistoryVisibilityViewModel()
+    override val roomSettingsJoinRulesViewModel = PreviewRoomSettingsJoinRulesViewModel()
+    override val roomSettingsSecurityViewModel = PreviewRoomSettingsSecurityViewModel()
+    override val error = MutableStateFlow(null)
+    override val changeRoomAvatarViewModel = PreviewChangeAvatarViewModel()
+    override val leaveRoomSettingEntryText = MutableStateFlow("leave room")
+    override val leaveRoomWarningOpen = MutableStateFlow(false)
+    override val leaveRoomWarningTitle = MutableStateFlow("leave room warning title")
+    override val leaveRoomWarningMessage = MutableStateFlow("leave room warning message")
+    override val leaveRoomWarningConfirmButtonText = MutableStateFlow("confirm")
+    override val memberListViewModel = PreviewMemberListViewModel()
+    override val hasPowerToInvite = MutableStateFlow(true)
+    override val isDirect = MutableStateFlow(true)
+    override val isEncrypted = MutableStateFlow(false)
+    override fun openAddMembersView() {}
+    override fun openExportRoomView() {}
+    override fun openUserProfile(userId: UserId) {}
+    override fun leaveRoom() {}
+    override fun openLeaveRoomWarningDialog() {}
+    override fun closeLeaveRoomWarningDialog() {}
+    override fun close() {}
 }

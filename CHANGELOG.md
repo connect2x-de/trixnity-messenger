@@ -13,15 +13,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved verification step to the last position in the setup wizard
 - Don't show verification methods in self verification wizard while initial sync is running
 
+- Refactored message bubbles to support message previews
+- Refactored read receipts and reactions to be more modular
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
-- Fixed stuck device verification (button did nothing)
+- Only show users with sync errors in the info banner
+- Clear current reply when sending reply message
+- The keyboard does not pop up when opening a room
 
 ### Security
+
+## 3.3.0
+
+### Added
+
+- Introduced String.graphemeCount extension for counting perceived chars
+- Introduced String.forEachGrapheme extension for iterating perceived chars
+- Possibility to change MatrixClientServerApiClientFactory via the DI
+- Introduce TextFieldViewModel for cleaner text input synchronization
+
+### Changed
+
+- Use password type keyboard to enter recovery key
+- Refactored app view routing
+- Standardized reaction when a room (chat or group) has been created
+
+### Fixed
+
+- Fixed stuck device verification (button did nothing)
+- Make initials computation fully Unicode compliant
+- Fixed redactions of message edits
+- Don't render replace events even when not decryptable
+- Fixed various text field and typing issues
+- Fixed String.graphCount and String.forEachGraph extensions in JS implementation
 
 ## 3.2.0
 
@@ -55,11 +84,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show users typing in room list
 - Allow sending attachments with Enter (desktop)
 - Check server capabilities for setting display name and avatar and prevent editing if not supported
-- More conservative MatrixClient initialization failure handling.
+- More conservative MatrixClient initialization failure handling
 - Inform the user that additional sync methods might be available after the initial sync during the Verification Wizard
 - Only show verification banner in RoomList, when the selected Account isn't verified
 - Change RedoSelfVerification to Wizard Framework
-- don't start verification on startup, start it via the setup or the banner in the roomlist instead
+- Don't start verification on startup, start it via the setup or the banner in the room list instead
 - Support for refresh tokens
 - Add badge with count of unread messages to scroll down button in rooms
 

@@ -3,6 +3,8 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
@@ -15,8 +17,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PRIVATE
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PUBLIC
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
@@ -29,10 +29,9 @@ interface CreateNewGroupViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         createNewRoomViewModel: CreateNewRoomViewModel,
         onBack: () -> Unit,
-        onGroupCreated: (UserId, RoomId) -> Unit,
     ): CreateNewGroupViewModel {
         return CreateNewGroupViewModelImpl(
-            viewModelContext, createNewRoomViewModel, onBack, onGroupCreated
+            viewModelContext, createNewRoomViewModel, onBack
         )
     }
 
@@ -46,8 +45,8 @@ interface CreateNewGroupViewModel {
     val isEncrypted: MutableStateFlow<Boolean>
     val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility>
     val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?>
-    val optionalRoomName: MutableStateFlow<String>
-    val optionalGroupTopic: MutableStateFlow<String>
+    val optionalRoomName: TextFieldViewModel
+    val optionalGroupTopic: TextFieldViewModel
     val canCreateNewGroup: StateFlow<Boolean>
     val error: StateFlow<String?>
 
@@ -63,14 +62,13 @@ interface CreateNewGroupViewModel {
 
     fun changeEncryptionStatus(newEncryptionStatus: Boolean)
     fun changeOptionalHistoryVisibility(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility)
-    fun historyVisibilityCanBeChangedTo(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility) : Boolean
+    fun historyVisibilityCanBeChangedTo(newHistoryVisibility: HistoryVisibilityEventContent.HistoryVisibility): Boolean
 }
 
 open class CreateNewGroupViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val createNewRoomViewModel: CreateNewRoomViewModel,
     private val onBack: () -> Unit,
-    private val onGroupCreated: (UserId, RoomId) -> Unit,
 ) : CreateNewGroupViewModel,
     MatrixClientViewModelContext by viewModelContext {
     override val isPrivate = MutableStateFlow(true)
@@ -79,8 +77,8 @@ open class CreateNewGroupViewModelImpl(
         HistoryVisibilityEventContent.HistoryVisibility.entries
     override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
         MutableStateFlow(null)
-    override var optionalRoomName = MutableStateFlow("")
-    override var optionalGroupTopic = MutableStateFlow("")
+    override val optionalRoomName = TextFieldViewModelImpl()
+    override var optionalGroupTopic = TextFieldViewModelImpl()
 
     override val groupUsers = MutableStateFlow(listOf<SearchUserElement>())
     override val canCreateNewGroup: StateFlow<Boolean> = combine(isPrivate, isEncrypted) { private, encrypted ->
@@ -118,8 +116,8 @@ open class CreateNewGroupViewModelImpl(
         val historyVisibility = optionalRoomHistoryVisibility.value?.let {
             listOf(InitialStateEvent(content = HistoryVisibilityEventContent(it), ""))
         } ?: emptyList()
-        val optionalName = optionalRoomName.value.ifBlank { null }
-        val optionalTopic = optionalGroupTopic.value.ifBlank { null }
+        val optionalName = optionalRoomName.value.text.ifBlank { null }
+        val optionalTopic = optionalGroupTopic.value.text.ifBlank { null }
         coroutineScope.launch {
             matrixClient.api.room.createRoom(
                 name = optionalName,
@@ -131,7 +129,7 @@ open class CreateNewGroupViewModelImpl(
             ).fold(
                 onSuccess = { roomId ->
                     log.debug { "created room ${roomId.full}" }
-                    onGroupCreated(userId, roomId)
+                    createNewRoomViewModel.onRoomCreated(userId, roomId)
                 },
                 onFailure = {
                     log.error(it) { "Cannot create a group." }
@@ -205,8 +203,8 @@ class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
         MutableStateFlow(null)
     override val canCreateNewGroup: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
-    override var optionalRoomName: MutableStateFlow<String> = MutableStateFlow("")
-    override var optionalGroupTopic = MutableStateFlow("")
+    override val optionalRoomName = TextFieldViewModelImpl()
+    override val optionalGroupTopic = TextFieldViewModelImpl()
 
     override fun onUserClick(user: SearchUserElement) {
     }

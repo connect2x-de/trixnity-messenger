@@ -8,11 +8,16 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 
+
 private val log = KotlinLogging.logger {}
 
 interface ElementDetailsViewSelector {
     @Composable
-    fun create(element: TimelineElementViewModel<*>, onSave: () -> Unit, onClose: () -> Unit)
+    fun create(
+        element: TimelineElementViewModel<*>,
+        onSave: () -> Unit,
+        onClose: () -> Unit,
+    )
 }
 
 @Composable
@@ -24,7 +29,9 @@ fun ElementDetailsSelector(
     with(DI.get<ElementDetailsViewSelector>()) { create(element, onSave, onClose) }
 }
 
-class ElementDetailsViewSelectorImpl(val factories: List<TimelineElementDetailsView<*>>) : ElementDetailsViewSelector {
+class ElementDetailsViewSelectorImpl(
+    private val factories: List<TimelineElementDetailsView<*>>,
+) : ElementDetailsViewSelector {
     @Composable
     override fun create(element: TimelineElementViewModel<*>, onSave: () -> Unit, onClose: () -> Unit) {
         val factory = remember {
@@ -45,5 +52,4 @@ class ElementDetailsViewSelectorImpl(val factories: List<TimelineElementDetailsV
                 onSave()
             }
     }
-
 }

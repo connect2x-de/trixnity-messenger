@@ -17,17 +17,19 @@ import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.utils.concurrentMutableMap
 import kotlin.reflect.KClass
 
-private val log = KotlinLogging.logger { }
+
+private val log = KotlinLogging.logger {}
 
 interface TimelineElementViewModelFactorySelector {
     fun nextSupportedTimelineEvent(timelineEvents: Flow<Flow<TimelineEvent>>): Flow<TimelineEvent?>
-    suspend fun supports(timelineEvent:Flow<TimelineEvent>): Boolean
+    suspend fun supports(timelineEvent: Flow<TimelineEvent>): Boolean
 
     suspend fun create(
         viewModelContext: MatrixClientViewModelContext,
+        originalContent: RoomEventContent,
         content: Result<RoomEventContent>?,
         roomId: RoomId,
-        eventId: EventIdOrTransactionId,
+        eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
     ): TimelineElementViewModel<*>
 }
@@ -41,14 +43,13 @@ class TimelineElementViewModelFactorySelectorImpl(
     private sealed interface Mapping {
         data object None : Mapping
         data class Exist(
-            val factory: TimelineElementViewModelFactory<RoomEventContent>
+            val factory: TimelineElementViewModelFactory<RoomEventContent>,
         ) : Mapping
 
-        fun getOrNull() =
-            when (this) {
-                is Exist -> factory
-                None -> null
-            }
+        fun getOrNull() = when (this) {
+            is Exist -> factory
+            is None -> null
+        }
     }
 
     private val factoryMapping = concurrentMutableMap<KClass<out RoomEventContent>, Mapping>()
@@ -57,53 +58,60 @@ class TimelineElementViewModelFactorySelectorImpl(
         flow {
             timelineEvents.collect { timelineEvent ->
                 timelineEvent
-                    .map { supports(it.content) }
+                    .map { supports(it.event.content, it.content) }
                     .onEach { if (it) emitAll(timelineEvent) else emit(null) }
                     .first { !it }
             }
             emit(null) // if start of timeline reached
         }.distinctUntilChanged()
 
-    override  suspend fun supports(timelineEvent: Flow<TimelineEvent>): Boolean =
-        timelineEvent.map { supports(it.content) }.first()
+    override suspend fun supports(timelineEvent: Flow<TimelineEvent>): Boolean =
+        timelineEvent.map { supports(it.event.content, it.content) }.first()
 
-    private suspend fun supports(content: Result<RoomEventContent>?): Boolean =
-        content == null || content.fold(onFailure = { true }, onSuccess = { findFactory(it) != null })
+    private suspend fun supports(originalContent: RoomEventContent, content: Result<RoomEventContent>?): Boolean =
+        isReplaceEvent(originalContent).not() &&
+                (content == null || content.fold(onFailure = { true }, onSuccess = { findFactory(it) != null }))
 
     override suspend fun create(
         viewModelContext: MatrixClientViewModelContext,
+        originalContent: RoomEventContent,
         content: Result<RoomEventContent>?,
         roomId: RoomId,
-        eventId: EventIdOrTransactionId,
+        eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-    ): TimelineElementViewModel<*> {
-        if (content == null)
-            return encryptedWaitTimelineElementViewModelFactory.create(
-                viewModelContext = viewModelContext,
-            ) ?: TimelineElementViewModel.Empty
-        return content.fold(
+    ): TimelineElementViewModel<*> = when {
+
+        isReplaceEvent(originalContent) -> TimelineElementViewModel.Empty
+
+        content == null -> encryptedWaitTimelineElementViewModelFactory.create(
+            viewModelContext = viewModelContext,
+        ) ?: TimelineElementViewModel.Empty
+
+        else -> content.fold(
             onFailure = { error ->
                 encryptedErrorTimelineElementViewModelFactory.create(
                     viewModelContext = viewModelContext,
                     error = error,
                 ) ?: TimelineElementViewModel.Empty
             },
-            onSuccess = { content ->
-                findFactory(content)
+            onSuccess = { decryptedContent ->
+                findFactory(decryptedContent)
                     ?.create(
                         viewModelContext = viewModelContext,
-                        content = content,
+                        content = decryptedContent,
                         roomId = roomId,
-                        eventId = eventId,
+                        eventIdOrTransactionId = eventIdOrTransactionId,
                         onOpenMention = onOpenMention,
                     )
                     ?: TimelineElementViewModel.Empty
-            }
+            },
         )
     }
 
-    private suspend fun findFactory(content: RoomEventContent): TimelineElementViewModelFactory<RoomEventContent>? {
-        if (replaceEventsShouldNotBeRendered(content)) return null
+    private suspend fun findFactory(
+        content: RoomEventContent,
+    ): TimelineElementViewModelFactory<RoomEventContent>? {
+        if (isReplaceEvent(content)) return null
 
         val contentClass = content::class
         return (factoryMapping.read { get(contentClass) }
@@ -130,7 +138,6 @@ class TimelineElementViewModelFactorySelectorImpl(
             }).getOrNull()
     }
 
-    private fun replaceEventsShouldNotBeRendered(content: RoomEventContent): Boolean {
-        return content is MessageEventContent && content.relatesTo is RelatesTo.Replace
-    }
+    private fun isReplaceEvent(content: RoomEventContent): Boolean =
+        content is MessageEventContent && content.relatesTo is RelatesTo.Replace
 }

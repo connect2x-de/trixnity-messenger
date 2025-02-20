@@ -19,6 +19,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -27,11 +29,11 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.TooltipText
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel
@@ -68,13 +70,13 @@ class SearchGroupViewImpl : SearchGroupView {
 
 @Composable
 fun SearchGroupSearchBar(searchGroupViewModel: SearchGroupViewModel) {
-    val searchTerm = searchGroupViewModel.searchTerm.collectAsStateForTextField().value
+    var searchTerm by searchGroupViewModel.searchTerm.collectAsTextFieldValueState()
 
     val i18n = DI.get<I18nView>()
 
     OutlinedTextField(
         searchTerm,
-        { searchGroupViewModel.searchTerm.value = it },
+        { searchTerm = it },
         modifier = Modifier.fillMaxWidth().padding(10.dp),
         label = { Text(i18n.searchGroupSearch()) },
     )

@@ -70,7 +70,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
     val userServiceMock = mock<UserService>()
 
     private val onCancelMock = mock<Function0<Unit>>()
-    private val goToRoomMock = mock<Function2<UserId, RoomId, Unit>>()
+    private val onRoomCreatedMock = mock<(UserId, RoomId) -> Unit>()
 
     init {
         Dispatchers.setMain(Dispatchers.Unconfined)
@@ -83,7 +83,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                 roomsApiClientMock,
                 userServiceMock,
                 onCancelMock,
-                goToRoomMock,
+                onRoomCreatedMock,
             )
             every { matrixClientMock.di } returns koinApplication {
                 modules(
@@ -98,7 +98,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             every { matrixClientServerApiClientMock.user } returns usersApiClientMock
             every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
 
-            every { goToRoomMock.invoke(any(), any()) } returns Unit
+            every { onRoomCreatedMock.invoke(any(), any()) } returns Unit
 
         }
 
@@ -106,19 +106,19 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             var createRoomCalled = false
             everySuspend {
                 roomsApiClientMock.createRoom(
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any()
+                    visibility = any(),
+                    roomAliasId = any(),
+                    name = any(),
+                    topic = any(),
+                    invite = any(),
+                    inviteThirdPid = any(),
+                    roomVersion = any(),
+                    creationContent = any(),
+                    initialState = any(),
+                    preset = any(),
+                    isDirect = any(),
+                    powerLevelContentOverride = any(),
+                    asUserId = any(),
                 )
             } calls {
                 createRoomCalled = true
@@ -126,10 +126,10 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             }
             everySuspend {
                 usersApiClientMock.searchUsers(
-                    eq("u"),
-                    any(),
-                    any(),
-                    eqNull()
+                    searchTerm = eq("u"),
+                    acceptLanguage = any(),
+                    limit = any(),
+                    asUserId = eqNull(),
                 )
             } returns
                     Result.success(
@@ -138,7 +138,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                             listOf(
                                 SearchUsers.Response.SearchUser(userId = userId1),
                                 SearchUsers.Response.SearchUser(userId = userId2),
-                                SearchUsers.Response.SearchUser(userId = userId3)
+                                SearchUsers.Response.SearchUser(userId = userId3),
                             )
                         )
                     )
@@ -171,13 +171,13 @@ class CreateNewChatViewModelTest : ShouldSpec() {
 
             val cut = createNewChatViewModel()
             val searchHandler = cut.createNewRoomViewModel.searchHandler
-            searchHandler.searchTerm.value = "u"
+            searchHandler.searchTerm.update("u")
             searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
 
             cut.onUserClick(user2)
-            verify { goToRoomMock.invoke(userId1, roomId) }
+            verify { onRoomCreatedMock.invoke(userId1, roomId) }
             createRoomCalled shouldBe false
         }
 
@@ -191,19 +191,19 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             val roomId = RoomId("room1", "localhost")
             everySuspend {
                 roomsApiClientMock.createRoom(
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    eq(setOf(userId2)),
-                    any(),
-                    any(),
-                    any(),
-                    eq(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
-                    any(),
-                    eq(true),
-                    any(),
-                    eqNull(),
+                    visibility = any(),
+                    roomAliasId = any(),
+                    name = any(),
+                    topic = any(),
+                    invite = eq(setOf(userId2)),
+                    inviteThirdPid = any(),
+                    roomVersion = any(),
+                    creationContent = any(),
+                    initialState = eq(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
+                    preset = any(),
+                    isDirect = eq(true),
+                    powerLevelContentOverride = any(),
+                    asUserId = eqNull(),
                 )
             } returns Result.success(roomId)
             every { roomServiceMock.getById(any()) } returns MutableStateFlow(Room(roomId))
@@ -212,7 +212,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
 
             val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
             cut.onUserClick(user2)
-            verify { goToRoomMock.invoke(userId1, roomId) }
+            verify { onRoomCreatedMock.invoke(userId1, roomId) }
         }
 
         should("create a new room if a direct room can be found, but not in the room list") {
@@ -220,19 +220,19 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             var createRoomCalled = false
             everySuspend {
                 roomsApiClientMock.createRoom(
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any()
+                    visibility = any(),
+                    roomAliasId = any(),
+                    name = any(),
+                    topic = any(),
+                    invite = any(),
+                    inviteThirdPid = any(),
+                    roomVersion = any(),
+                    creationContent = any(),
+                    initialState = any(),
+                    preset = any(),
+                    isDirect = any(),
+                    powerLevelContentOverride = any(),
+                    asUserId = any(),
                 )
             } calls {
                 createRoomCalled = true
@@ -240,10 +240,10 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             }
             everySuspend {
                 usersApiClientMock.searchUsers(
-                    eq("u"),
-                    any(),
-                    any(),
-                    eqNull()
+                    searchTerm = eq("u"),
+                    acceptLanguage = any(),
+                    limit = any(),
+                    asUserId = eqNull(),
                 )
             } returns
                     Result.success(
@@ -252,7 +252,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                             listOf(
                                 SearchUsers.Response.SearchUser(userId = userId1),
                                 SearchUsers.Response.SearchUser(userId = userId2),
-                                SearchUsers.Response.SearchUser(userId = userId3)
+                                SearchUsers.Response.SearchUser(userId = userId3),
                             )
                         )
                     )
@@ -284,7 +284,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
 
             val cut = createNewChatViewModel()
             val searchHandler = cut.createNewRoomViewModel.searchHandler
-            searchHandler.searchTerm.value = "u"
+            searchHandler.searchTerm.update("u")
             searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
@@ -298,29 +298,29 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             val existingRoomId = RoomId("existingRoom", "localhost")
             everySuspend {
                 roomsApiClientMock.createRoom(
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any()
+                    visibility = any(),
+                    roomAliasId = any(),
+                    name = any(),
+                    topic = any(),
+                    invite = any(),
+                    inviteThirdPid = any(),
+                    roomVersion = any(),
+                    creationContent = any(),
+                    initialState = any(),
+                    preset = any(),
+                    isDirect = any(),
+                    powerLevelContentOverride = any(),
+                    asUserId = any(),
                 )
             } calls {
                 Result.success(roomId)
             }
             everySuspend {
                 usersApiClientMock.searchUsers(
-                    eq("u"),
-                    any(),
-                    any(),
-                    eqNull()
+                    searchTerm = eq("u"),
+                    acceptLanguage = any(),
+                    limit = any(),
+                    asUserId = eqNull(),
                 )
             } returns
                     Result.success(
@@ -329,7 +329,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                             listOf(
                                 SearchUsers.Response.SearchUser(userId = userId1),
                                 SearchUsers.Response.SearchUser(userId = userId2),
-                                SearchUsers.Response.SearchUser(userId = userId3)
+                                SearchUsers.Response.SearchUser(userId = userId3),
                             )
                         )
                     )
@@ -361,7 +361,7 @@ class CreateNewChatViewModelTest : ShouldSpec() {
 
             val cut = createNewChatViewModel()
             val searchHandler = cut.createNewRoomViewModel.searchHandler
-            searchHandler.searchTerm.value = "u"
+            searchHandler.searchTerm.update("u")
             searchHandler.foundUsers.first {
                 it == listOf(user2, user3)
             }
@@ -369,23 +369,23 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             cut.onUserClick(user2)
             verifySuspend {
                 roomsApiClientMock.createRoom(
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    any()
+                    visibility = any(),
+                    roomAliasId = any(),
+                    name = any(),
+                    topic = any(),
+                    invite = any(),
+                    inviteThirdPid = any(),
+                    roomVersion = any(),
+                    creationContent = any(),
+                    initialState = any(),
+                    preset = any(),
+                    isDirect = any(),
+                    powerLevelContentOverride = any(),
+                    asUserId = any(),
                 )
             }
-            verify { goToRoomMock.invoke(userId1, roomId) }
-            verifyNoMoreCalls(goToRoomMock)
+            verify { onRoomCreatedMock.invoke(userId1, roomId) }
+            verifyNoMoreCalls(onRoomCreatedMock)
         }
 
         should("display error message when direct message could not be created") {
@@ -401,19 +401,19 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                     Result.success(SearchUsers.Response(false, listOf()))
             everySuspend {
                 roomsApiClientMock.createRoom(
-                    any(),
-                    any(),
-                    any(),
-                    any(),
-                    eq(setOf(userId2)),
-                    any(),
-                    any(),
-                    any(),
-                    eq(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
-                    any(),
-                    eq(true),
-                    any(),
-                    eqNull(),
+                    visibility = any(),
+                    roomAliasId = any(),
+                    name = any(),
+                    topic = any(),
+                    invite = eq(setOf(userId2)),
+                    inviteThirdPid = any(),
+                    roomVersion = any(),
+                    creationContent = any(),
+                    initialState = eq(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
+                    preset = any(),
+                    isDirect = eq(true),
+                    powerLevelContentOverride = any(),
+                    asUserId = eqNull(),
                 )
             } returns Result.failure(
                 MatrixServerException(
@@ -424,7 +424,6 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             every { roomServiceMock.getById(any()) } returns MutableStateFlow(Room(RoomId("a", "local")))
 
             val cut = createNewChatViewModel()
-
             val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
             cut.onUserClick(user2)
             cut.error.value shouldNotBe null
@@ -448,7 +447,6 @@ class CreateNewChatViewModelTest : ShouldSpec() {
             onCreateGroup = mock(),
             onSearchGroup = mock(),
             onCancel = onCancelMock,
-            goToRoom = goToRoomMock,
         )
     }
 
@@ -462,8 +460,9 @@ class CreateNewChatViewModelTest : ShouldSpec() {
                     )
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = Dispatchers.Unconfined
-            )
+                coroutineContext = Dispatchers.Unconfined,
+            ),
+            onRoomCreated = onRoomCreatedMock,
         )
     }
 }

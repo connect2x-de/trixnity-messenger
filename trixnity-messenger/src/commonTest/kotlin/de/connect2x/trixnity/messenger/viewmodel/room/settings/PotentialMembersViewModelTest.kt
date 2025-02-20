@@ -4,10 +4,12 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.shouldGroup
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.withCleanup
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -16,14 +18,11 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.core.spec.style.ShouldSpec
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
@@ -41,38 +40,31 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
-@OptIn(ExperimentalCoroutinesApi::class)
+
 class PotentialMembersViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 2_000
-
     private val roomId = RoomId("room", "localhost")
-
     private val userId1 = UserId("user1", "localhost")
     private val userId2 = UserId("user2", "localhost")
     private val userId3 = UserId("user3", "localhost")
 
-    val matrixClientMock = mock<MatrixClient>()
-
-    val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
-
-    val usersApiClientMock = mock<UserApiClient>()
-
-    val roomsApiClientMock = mock<RoomApiClient>()
-
-    val userServiceMock = mock<UserService>()
+    private val matrixClientMock = mock<MatrixClient>()
+    private val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
+    private val usersApiClientMock = mock<UserApiClient>()
+    private val roomsApiClientMock = mock<RoomApiClient>()
+    private val userServiceMock = mock<UserService>()
 
     private lateinit var syncStateMocker: BlockingAnsweringScope<StateFlow<SyncState>>
 
     init {
-        coroutineTestScope = true
+        coroutineTestScope = false // This test fails locally if true.
 
-        beforeTest {
+        beforeEach {
             resetMocks(
                 matrixClientMock,
                 matrixClientServerApiClientMock,
                 usersApiClientMock,
                 roomsApiClientMock,
-                userServiceMock
+                userServiceMock,
             )
             every { matrixClientMock.di } returns koinApplication {
                 modules(
@@ -89,18 +81,18 @@ class PotentialMembersViewModelTest : ShouldSpec() {
             every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
         }
 
-        context("room has no members") {
+        shouldGroup("room has no members") {
             beforeTest {
                 every { userServiceMock.getAll(roomId) } returns MutableStateFlow(emptyMap())
             }
 
-            should("filter users by search term") {
+            should("filter users by search term").withCleanup {
                 everySuspend {
                     usersApiClientMock.searchUsers(
                         eq("user1"),
                         any(),
                         any(),
-                        eqNull()
+                        eqNull(),
                     )
                 } returns
                         Result.success(
@@ -116,7 +108,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                         eq("us"),
                         any(),
                         any(),
-                        eqNull()
+                        eqNull(),
                     )
                 } returns
                         Result.success(
@@ -125,7 +117,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                                 listOf(
                                     SearchUsers.Response.SearchUser(userId = userId1),
                                     SearchUsers.Response.SearchUser(userId = userId2),
-                                    SearchUsers.Response.SearchUser(userId = userId3)
+                                    SearchUsers.Response.SearchUser(userId = userId3),
                                 )
                             )
                         )
@@ -134,7 +126,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                         eq("user3"),
                         any(),
                         any(),
-                        eqNull()
+                        eqNull(),
                     )
                 } returns
                         Result.success(
@@ -147,39 +139,39 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                 val cut = createPotentialMembersViewModel()
                 val searchHandler = cut.searchHandler
 
-                searchHandler.searchTerm.value = "us"
+                searchHandler.searchTerm.update("us")
                 searchHandler.foundUsers.first {
                     it == listOf(
                         Search.SearchUserElementImpl(
                             userId = userId2,
                             displayName = userId2.full,
-                            initials = "U"
+                            initials = "U",
                         ),
                         Search.SearchUserElementImpl(
                             userId = userId3,
                             displayName = userId3.full,
-                            initials = "U"
+                            initials = "U",
                         )
                     )
                 }
-                searchHandler.searchTerm.value = "user3"
+                searchHandler.searchTerm.update("user3")
                 searchHandler.foundUsers.first {
                     it == listOf(
                         Search.SearchUserElementImpl(
                             userId = userId3,
                             displayName = userId3.full,
-                            initials = "U"
+                            initials = "U",
                         )
                     )
                 }
-                searchHandler.searchTerm.value = "user1"
+                searchHandler.searchTerm.update("user1")
                 searchHandler.foundUsers.first {
                     it == emptyList<SearchUserElement>()
                 }
             }
         }
 
-        context("room has members") {
+        shouldGroup("room has members") {
 
             val userId1 = UserId("user1", "localhost")
             val userId2 = UserId("user2", "localhost")
@@ -195,7 +187,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                 roomId,
                 123,
                 null,
-                ""
+                "",
             )
             val memberEvent2 = StateEvent(
                 MemberEventContent(membership = Membership.INVITE),
@@ -204,7 +196,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                 roomId,
                 123,
                 null,
-                ""
+                "",
             )
             val memberEvent3 = StateEvent(
                 MemberEventContent(membership = Membership.LEAVE),
@@ -213,7 +205,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                 roomId,
                 123,
                 null,
-                ""
+                "",
             )
 
             val roomUser4 = RoomUser(roomId, userId4, "user1a", memberEvent1)
@@ -225,18 +217,18 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                     mapOf(
                         roomUser4.userId to flowOf(roomUser4),
                         roomUser5.userId to flowOf(roomUser5),
-                        roomUser6.userId to flowOf(roomUser6)
+                        roomUser6.userId to flowOf(roomUser6),
                     )
                 )
             }
 
-            should("filter users by search term + do not show users who are already in the room") {
+            should("filter users by search term + do not show users who are already in the room").withCleanup {
                 everySuspend {
                     usersApiClientMock.searchUsers(
                         eq("us"),
                         any(),
                         any(),
-                        eqNull()
+                        eqNull(),
                     )
                 } returns
                         Result.success(
@@ -255,23 +247,23 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                 val cut = createPotentialMembersViewModel()
                 val searchHandler = cut.searchHandler
 
-                searchHandler.searchTerm.value = "us"
+                searchHandler.searchTerm.update("us")
                 searchHandler.foundUsers.first {
                     it == listOf(
                         Search.SearchUserElementImpl(
                             userId = userId2,
                             displayName = userId2.full,
-                            initials = "U"
+                            initials = "U",
                         ),
                         Search.SearchUserElementImpl(
                             userId = userId3,
                             displayName = userId3.full,
-                            initials = "U"
+                            initials = "U",
                         ),
                         Search.SearchUserElementImpl(
                             userId = userId6,
                             displayName = userId6.full,
-                            initials = "U"
+                            initials = "U",
                         )
                     )
                 }
@@ -292,7 +284,7 @@ class PotentialMembersViewModelTest : ShouldSpec() {
                 userId = UserId("test", "server"),
                 coroutineContext = currentCoroutineContext(),
             ),
-            roomId = roomId
+            roomId = roomId,
         )
     }
 }

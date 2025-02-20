@@ -10,16 +10,18 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModel
@@ -38,7 +40,7 @@ class ProfileCreationViewImpl : ProfileCreationView {
     @Composable
     override fun create(profileCreationViewModel: ProfileCreationViewModel, onFinish: () -> Unit) {
         val i18n = DI.get<I18nView>()
-        val profileName = profileCreationViewModel.profileName.collectAsStateForTextField().value
+        var profileName by profileCreationViewModel.profileName.collectAsTextFieldValueState()
         val error = profileCreationViewModel.error.collectAsState().value
         val canCreateProfile = profileCreationViewModel.canCreateProfile.collectAsState().value
 
@@ -51,7 +53,7 @@ class ProfileCreationViewImpl : ProfileCreationView {
                 Spacer(Modifier.size(10.dp))
                 OutlinedTextField(
                     profileName,
-                    { profileCreationViewModel.profileName.value = it },
+                    { profileName = it },
                     modifier = Modifier.fillMaxWidth(),
                     isError = error != null,
                 )

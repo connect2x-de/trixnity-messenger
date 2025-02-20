@@ -74,7 +74,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
             Modifier
                 .fillMaxWidth()
                 .clickable {
-                    memberListElementViewModel.showUserProfile()
+                    memberListElementViewModel.openUserProfile()
                 }
                 .buttonPointerModifier(),
         ) {

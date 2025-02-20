@@ -1,72 +1,78 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import io.kotest.core.spec.style.ShouldSpec
-import kotlin.test.assertEquals
+import io.kotest.matchers.shouldBe
+import kotlin.test.Test
 
-class InitialsComputationTest : ShouldSpec() {
+class InitialsComputationTest {
     val initials = Initials
 
-    init {
-        should("resolve test initials with 1 character correctly") {
-            val initials = initials.compute("test")
-            assertEquals("T", initials)
-        }
+    @Test
+    fun resolveInitialsWith1Character() {
+        initials.compute("test") shouldBe "T"
+    }
 
-        should("resolve test initials with 2 characters correctly") {
-            val initials = initials.compute("test initials")
-            assertEquals("TI", initials)
-        }
+    @Test
+    fun resolveInitialsWith2Characters() {
+        initials.compute("test initials") shouldBe "TI"
+    }
 
-        should("resolve test initials with 3 characters correctly") {
-            val initials = initials.compute("one two three")
-            assertEquals("OT", initials)
-        }
+    @Test
+    fun resolveInitialsWith3Characters() {
+        initials.compute("one two three") shouldBe "OT"
+    }
 
-        should("resolve initials with 4 byte characters") {
-            val initials = initials.compute("Test 🦈")
-            assertEquals("T🦈", initials)
-        }
+    @Test
+    fun resolveInitialsWithWordAndEmoji() {
+        initials.compute("Test 🦈") shouldBe "T🦈"
+    }
 
-        should("resolve sequence of 4 byte characters to one initial") {
-            val initials = initials.compute("🦈🦈🦈🦈")
-            assertEquals("🦈", initials)
-        }
+    @Test
+    fun resolveInitialsWithEmojiAndWord() {
+        initials.compute("🦈 Test") shouldBe "🦈T"
+    }
 
-        should("resolve initials from weirdly spaced source") {
-            val initials = initials.compute("weird  \t \n spaces")
-            assertEquals("WS", initials)
-        }
+    @Test
+    fun resolveInitialsWithMultipleEmojis() {
+        initials.compute("🦈🦈🦈🦈") shouldBe "🦈"
+    }
 
-        should("resolve blank initials on empty text") {
-            val initials = initials.compute("")
-            assertEquals("", initials)
-        }
+    @Test
+    fun resolveInitialsFromWeirdlySpacedSource() {
+        initials.compute("weird  \t \n spaces") shouldBe "WS"
+    }
 
-        should("resolve initials with numbers") {
-            val initials = initials.compute("test 123")
-            assertEquals("T1", initials)
-        }
+    @Test
+    fun resolveBlankInitials() {
+        initials.compute("") shouldBe ""
+    }
 
-        should("resolve initials with only numbers") {
-            val initials = initials.compute("123 456")
-            assertEquals("14", initials)
-        }
+    @Test
+    fun resolveInitialsWithNumbers() {
+        initials.compute("test 123") shouldBe "T1"
+    }
 
-        should("resolve initials with arabic letters") {
-            val initials = initials.compute("أمير")
-            assertEquals("أ", initials)
-        }
+    @Test
+    fun resolveInitialsFromNumbers() {
+        initials.compute("123 456") shouldBe "14"
+    }
 
-        // TODO: Check if we need to support emoji modifiers.
-//        should("resolve initials with emoji modifiers") {
-//            val initials = initials.compute("🇹🇦Prosperity to Tristan da Cunha")
-//            assertEquals("🇹🇦p", initials)
-//        }
+    @Test
+    fun resolveInitialsWithArabicLetters() {
+        initials.compute("أمير") shouldBe "أ"
+    }
 
-        // TODO: Check if we need to support emoji modifiers.
-//        should("resolve initials with emoji family and skin color") {
-//            val initials = initials.compute("👨‍👩‍👧‍👦 👧🏿")
-//            assertEquals("👨‍👩‍👧‍👦👧🏿", initials)
-//        }
+    @Test
+    fun resolveInitialsWithRegionalIndicators() {
+        initials.compute("🇹🇦 Prosperity to Tristan da Cunha") shouldBe "🇹🇦P"
+    }
+
+    @Test
+    fun resolveInitialsWithSkinToneModifier() {
+        initials.compute("👨‍👩‍👧‍👦 👧🏿") shouldBe "👨‍👩‍👧‍👦👧🏿"
+    }
+
+    @Test
+    fun resolveInitialsWithDiacritics() {
+        initials.compute("T̃est Înitials") shouldBe "T̃Î"
     }
 }

@@ -45,7 +45,6 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
@@ -78,7 +77,7 @@ class UserProfileViewModelTest : ShouldSpec() {
     private val roomId = RoomId("room", "localhost")
 
     private val memberElementAlice =
-        UserInfoElement("Alice", alice, "A", null )
+        UserInfoElement(alice, "Alice", "A", null)
 
     private val roomUserAlice = RoomUser(
         roomId, alice, "Alice", StateEvent(
@@ -448,8 +447,8 @@ class UserProfileViewModelTest : ShouldSpec() {
             ),
             userId = userId,
             selectedRoomId = roomId,
+            onOpenRoom = mock(),
             onBack = mock(),
-            goToRoom = mock(),
         )
     }
 }

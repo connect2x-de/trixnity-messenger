@@ -15,6 +15,9 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -23,13 +26,14 @@ import kotlinx.browser.window
 import kotlinx.coroutines.await
 import org.koin.core.Koin
 
+
 @Composable
 actual fun VerticalScrollbar(
     modifier: Modifier,
     scrollState: ScrollState
 ) = VerticalScrollbar(
     rememberScrollbarAdapter(scrollState),
-    modifier
+    modifier,
 )
 
 @Composable
@@ -70,13 +74,13 @@ actual fun Tooltip(
     modifier: Modifier,
     delayMillis: Int,
     onClick: (() -> Unit)?,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     TooltipBox(
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
         tooltip = {
             PlainTooltip(
-                modifier = modifier.clickable(onClick = onClick?: { }),
+                modifier = modifier.clickable(onClick = onClick ?: {}),
                 caretSize = TooltipDefaults.caretSize,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -90,25 +94,30 @@ actual fun Tooltip(
 }
 
 actual fun Modifier.buttonPointerModifier(enabled: Boolean): Modifier =
-    this.then(
-        Modifier.pointerHoverIcon(
-            if (enabled) PointerIcon.Hand else PointerIcon.Default,
-            false
-        )
+    this.pointerHoverIcon(
+        if (enabled) PointerIcon.Hand else PointerIcon.Default,
+        false,
     )
 
 @OptIn(ExperimentalComposeUiApi::class)
-actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier {
-    return this.then(
-        Modifier
-            .onPointerEvent(PointerEventType.Enter) {
-                onEnter()
-            }
-            .onPointerEvent(PointerEventType.Exit) {
-                onExit()
-            }
-    )
-}
+actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier = this
+    .onPointerEvent(PointerEventType.Enter) {
+        onEnter()
+    }
+    .onPointerEvent(PointerEventType.Exit) {
+        onExit()
+    }
+
+@OptIn(ExperimentalComposeUiApi::class)
+actual fun Modifier.pointerEventWrapper(
+    eventType: PointerEventType,
+    pass: PointerEventPass,
+    onEvent: AwaitPointerEventScope.(event: PointerEvent) -> Unit
+) = this.onPointerEvent(
+    eventType,
+    pass,
+    onEvent,
+)
 
 actual suspend fun copyToClipboard(value: String, di: Koin) {
     window.navigator.clipboard.writeText(value).await()

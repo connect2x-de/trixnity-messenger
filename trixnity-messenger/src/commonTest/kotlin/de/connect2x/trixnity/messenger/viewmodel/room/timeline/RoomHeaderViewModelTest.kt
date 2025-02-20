@@ -56,6 +56,7 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 
+
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStdlibApi::class)
 class RoomHeaderViewModelTest : ShouldSpec() {
     private val roomId = RoomId("room1", "localhost")
@@ -63,26 +64,16 @@ class RoomHeaderViewModelTest : ShouldSpec() {
     private val otherUser = UserId("cob", "localhost")
 
     val matrixClientMock = mock<MatrixClient>()
-
     val roomServiceMock = mock<RoomService>()
-
     val userServiceMock = mock<UserService>()
-
-    val mediaServiceMock = mock<MediaService>()
-
-    val keyServiceMock = mock<KeyService>()
-
-    val roomNameMock = mock<RoomName>()
-
-    val roomTopicMock = mock<RoomTopic>()
-
-    val initialsMock = mock<Initials>()
-
-    val userPresenceMock = mock<UserPresence>()
-
-    val directRoomMock = mock<DirectRoom>()
-
-    val userBlockingMock = mock<UserBlocking>()
+    private val mediaServiceMock = mock<MediaService>()
+    private val keyServiceMock = mock<KeyService>()
+    private val roomNameMock = mock<RoomName>()
+    private val roomTopicMock = mock<RoomTopic>()
+    private val initialsMock = mock<Initials>()
+    private val userPresenceMock = mock<UserPresence>()
+    private val directRoomMock = mock<DirectRoom>()
+    private val userBlockingMock = mock<UserBlocking>()
 
     private lateinit var roomNameElement: BlockingAnsweringScope<Flow<String>>
     private lateinit var roomTopicElement: BlockingAnsweringScope<Flow<String>>
@@ -103,7 +94,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                 initialsMock,
                 userPresenceMock,
                 directRoomMock,
-                userBlockingMock
+                userBlockingMock,
             )
             every { matrixClientMock.di } returns koinApplication {
                 modules(
@@ -316,7 +307,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
 
     private suspend fun roomHeaderViewModel(coroutineContext: CoroutineContext): RoomHeaderViewModelImpl {
         Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
-        val roomHeaderViewModel = RoomHeaderViewModelImpl(
+        return RoomHeaderViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 di = koinApplication {
                     modules(
@@ -335,20 +326,18 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext,
             ),
             selectedRoomId = roomId,
-            isBackButtonVisible = MutableStateFlow(false),
             onBack = mock(),
             onVerifyUser = mock(),
-            onShowRoomSettings = mock(),
-            onShowUserProfile = mock(),
-        )
-        subscribe(roomHeaderViewModel)
-        return roomHeaderViewModel
+            onOpenRoomSettings = mock(),
+            onOpenUserProfile = mock(),
+        ).also {
+            subscribe(it)
+        }
     }
 
     private fun subscribe(roomHeaderViewModel: RoomHeaderViewModel) {
         val scope = CoroutineScope(Dispatchers.Default)
         scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.roomHeaderInfo.collect() }
-        scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.isBackButtonVisible.collect() }
         scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.usersTyping.collect() }
         scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.canVerifyUser.collect() }
         scope.launch(start = CoroutineStart.UNDISPATCHED) { roomHeaderViewModel.error.collect() }

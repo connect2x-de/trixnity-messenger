@@ -22,6 +22,8 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
@@ -29,11 +31,11 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.TooltipIconButton
 import de.connect2x.messenger.compose.view.common.TooltipText
-import de.connect2x.messenger.compose.view.common.collectAsStateForTextField
 import de.connect2x.messenger.compose.view.common.gesturesDisabled
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModel
@@ -46,7 +48,7 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
     val i18n = DI.current.get<I18nView>()
     val mainAlias = viewModel.mainAlias.collectAsState().value
     val moreAliases = viewModel.moreAliases.collectAsState().value
-    val newAlias = viewModel.newAlias.collectAsStateForTextField().value
+    var newAlias by viewModel.newAlias.collectAsTextFieldValueState()
     val isUpdating = viewModel.isUpdating.collectAsState().value
     val canChangeRoomAlias = viewModel.canChangeRoomAlias.collectAsState().value
 
@@ -66,8 +68,8 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                                 value = newAlias,
                                 placeholder = { Text(i18n.newAlias()) },
                                 onValueChange = {
-                                    if (it.isEmpty() || MatrixRegex.roomAlias.matchEntire("#$it:${viewModel.domain}") != null) {
-                                        viewModel.newAlias.value = it
+                                    if (it.text.isEmpty() || MatrixRegex.roomAlias.matchEntire("#${it.text}:${viewModel.domain}") != null) {
+                                        newAlias = it
                                     }
                                 },
                                 label = { Text(i18n.newAlias()) },
