@@ -5,13 +5,17 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.SINGLE_PANE_THRESHOLD
 import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.getOrNull
+import de.connect2x.messenger.compose.view.theme.DefaultSizes
+import de.connect2x.messenger.compose.view.theme.SystemDensity
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
-
 
 private val MAX_WIDTH = 1600.dp
 
@@ -28,13 +32,19 @@ fun Main(mainViewModel: MainViewModel) {
 class MainViewImpl : MainView {
     @Composable
     override fun create(mainViewModel: MainViewModel) {
-        BoxWithConstraints(
-            Modifier.fillMaxSize()
-        ) {
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val settings = DI.getOrNull<MatrixMessengerSettingsHolder>()?.collectAsState()?.value
+
+            val defaultSizes = DI.get<DefaultSizes>()
+            val sizeCoefficient =
+                defaultSizes.maxDisplaySize - (settings?.base?.displaySize ?: defaultSizes.displaySize)
             Box(
                 Modifier.fillMaxSize()
                     // TODO: remove the padding and adjust the bubble layout as it makes things look broken.
-                    .padding(horizontal = if (maxWidth - MAX_WIDTH > 0.dp) (maxWidth - MAX_WIDTH) / 2 else 0.dp)
+                    .padding(
+                        horizontal = if ((maxWidth * sizeCoefficient) - MAX_WIDTH > 0.dp)
+                            ((maxWidth * sizeCoefficient) - MAX_WIDTH) / 2 else 0.dp
+                    )
             ) {
                 val isSinglePane = this@BoxWithConstraints.maxWidth < SINGLE_PANE_THRESHOLD.dp
                 InitialSyncSwitch(mainViewModel, isSinglePane)

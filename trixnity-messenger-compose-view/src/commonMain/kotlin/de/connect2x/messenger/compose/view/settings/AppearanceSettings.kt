@@ -72,7 +72,7 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
                                 appearanceSettingsViewModel.toggleHighContrast()
                             }
                         }
-                        SettingsCard(title = i18n.appearanceSizeTitle(), icon = Icons.Filled.FormatSize) {
+                        SettingsCard(title = i18n.appearanceAccessibilityTitle(), icon = Icons.Filled.FormatSize) {
                             AppearanceSettingsSize(appearanceSettingsViewModel)
                         }
                     }

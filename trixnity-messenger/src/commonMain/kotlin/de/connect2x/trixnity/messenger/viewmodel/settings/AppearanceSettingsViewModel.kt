@@ -31,12 +31,14 @@ interface AppearanceSettingsViewModel {
     val accentColor: StateFlow<Long?>
     val fontSize: StateFlow<Float?>
     val displaySize: StateFlow<Float?>
+    val applySystemSizes: StateFlow<Boolean>
 
     fun setThemeMode(themeMode: ThemeMode)
     fun toggleHighContrast()
     fun setAccentColor(accentColor: Long?)
     fun setFontSize(fontSize: Float?)
     fun setDisplaySize(controlsSize: Float?)
+    fun toggleApplySystemSizes()
     fun back()
 }
 
@@ -62,6 +64,9 @@ class AppearanceSettingsViewModelImpl(
     override val displaySize: StateFlow<Float?> =
         settings.mapLatest { it.base.displaySize }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.displaySize)
+    override val applySystemSizes: StateFlow<Boolean> =
+        settings.mapLatest { it.base.applySystemSizes }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.applySystemSizes)
 
     private val backCallback = BackCallback {
         back()
@@ -107,6 +112,14 @@ class AppearanceSettingsViewModelImpl(
         coroutineScope.launch {
             settings.update<MatrixMessengerSettingsBase> {
                 it.copy(displaySize = controlsSize)
+            }
+        }
+    }
+
+    override fun toggleApplySystemSizes() {
+        coroutineScope.launch {
+            settings.update<MatrixMessengerSettingsBase> {
+                it.copy(applySystemSizes = !it.applySystemSizes)
             }
         }
     }

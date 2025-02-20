@@ -2402,9 +2402,14 @@ abstract class I18nView(
         DE - "Farben"
     }
 
-    fun appearanceSizeTitle() = translate {
-        EN - "Anzeigegröße"
-        DE - "Display size"
+    fun appearanceAccessibilityTitle() = translate {
+        EN - "Accessibility"
+        DE - "Barrierefreiheit"
+    }
+
+    fun appearanceSizesApplySystemHeading() = translate {
+        EN - "Apply system sizes"
+        DE - "Systemgrößen anwenden"
     }
 
     fun appearanceFontSizeHeading() = translate {
@@ -2417,19 +2422,9 @@ abstract class I18nView(
         DE - "Anzeigegröße"
     }
 
-    fun appearanceDisplaySizeExplanation() = translate {
-        EN - "Enlarge oder reduce everything"
-        DE - "Alles vergrößern oder verkleinern"
-    }
-
     fun appearanceSizesApply() = translate {
         EN - "Apply sizes"
         DE - "Größen anwenden"
-    }
-
-    fun appearanceSizesReset() = translate {
-        EN - "Reset sizes"
-        DE - "Größen zurücksetzen"
     }
 
     fun appearanceThemeHeading(name: String) = translate {

@@ -39,7 +39,8 @@ data class MatrixMessengerSettingsBase(
     val isHighContrast: Boolean = false,
     val accentColor: Long? = null,
     val fontSize: Float? = null,
-    val displaySize: Float? = null
+    val displaySize: Float? = null,
+    val applySystemSizes: Boolean = true
 ) : SettingsView<MatrixMessengerSettings>
 
 @Serializable
