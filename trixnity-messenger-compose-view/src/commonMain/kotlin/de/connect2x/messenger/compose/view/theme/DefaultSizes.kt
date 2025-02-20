@@ -11,8 +11,9 @@ interface DefaultSizes {
 }
 
 class DefaultSizesImpl : DefaultSizes {
-    override val minFontSize: Float = 0.7f
-    override val maxFontSize: Float = 1.3f
+    // 50% 75% 100% 125% 150% 175% 200%
+    override val minFontSize: Float = 0.50f
+    override val maxFontSize: Float = 2.00f
     override val fontSize: Float = 1.0f
 
     override val minDisplaySize: Float = 0.5f
