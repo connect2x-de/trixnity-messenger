@@ -16,12 +16,16 @@ import net.folivo.trixnity.core.model.UserId
 
 private val log = KotlinLogging.logger { }
 
-class UserInfoElement(
+data class UserInfoElement(
     val userId: UserId,
     val name: String,
     val initials: String,
     val image: StateFlow<ByteArray?>? = null,
-)
+) {
+    override fun toString(): String {
+        return "UserInfoElement(userId=$userId, name='$name', initials='$initials', image(size)=${image?.value?.size})"
+    }
+}
 
 fun RoomUser?.toUserInfoElement(
     coroutineScope: CoroutineScope,
