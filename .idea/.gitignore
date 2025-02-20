@@ -4,3 +4,4 @@
 !.name
 !runConfigurations/
 !runConfigurations/**
+!runConfigurations.xml
