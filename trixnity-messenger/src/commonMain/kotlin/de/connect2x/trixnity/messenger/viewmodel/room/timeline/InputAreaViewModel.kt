@@ -270,7 +270,10 @@ open class InputAreaViewModelImpl(
                 }
                 currentReplace.value = null
                 replacedEvent?.also { onMessageReplaceFinished(it.first, it.second) }
-                repliedEvent?.also { onMessageReplyFinished(it.first, it.second) }
+                repliedEvent?.also {
+                    currentReply.value = null
+                    onMessageReplyFinished(it.first, it.second)
+                }
             }
         }
     }

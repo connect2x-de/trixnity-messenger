@@ -36,6 +36,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedFlow
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedIndexedFlow
+import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
@@ -66,12 +67,14 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.dropWhile
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.scan
@@ -106,6 +109,7 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
+import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -622,6 +626,7 @@ class TimelineViewModelImpl(
             showUnreadMarker = showUnreadMarker,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
+            getReceipts = ::getReceipts,
             onMessageReplace = ::onMessageReplace,
             onMessageReply = ::onMessageReply,
             onMessageReport = ::onShowReportMessageModal,
@@ -871,11 +876,11 @@ class TimelineViewModelImpl(
                             timelineElements.indexOfLast { it.eventId == lastEventIdBeforeChange && it.roomId == roomId }
                         }
 
-                        if (timelineStateChange.newElements.isNotEmpty()
+                        if (timelineStateChange.addedElements.isNotEmpty()
                             && viewState.value?.windowIsFocused == true
                             && indexOfLastEventIdBeforeChange == indexOfLastVisibleTimelineElement
                         ) {
-                            val newLastEvent = timelineStateChange.newElements.last().key
+                            val newLastEvent = timelineStateChange.addedElements.last().key
 
                             val currentReadEvent = readEvent.value
                             log.trace { "lastVisibleTimelineEvent=${lastVisibleTimelineElement?.key} currentReadEvent=$currentReadEvent newLastEvent=$newLastEvent" }
@@ -1021,6 +1026,21 @@ class TimelineViewModelImpl(
                 .onSuccess { log.debug { "successfully set read marker for message: $nextReadUntil in $nextReadUntilRoomId" } }
         }.join()
     }
+
+    private val getReceiptsByEventCache = concurrentMutableMap<RoomId, Flow<Map<EventId, Set<UserId>>>>()
+    private fun getReceipts(roomId: RoomId): Flow<Map<EventId, Set<UserId>>> =
+        flow {
+            emitAll(
+                getReceiptsByEventCache.read { get(roomId) }
+                    ?: getReceiptsByEventCache.write {
+                        getOrPut(roomId) {
+                            matrixClient.user.getAllReceipts(roomId)
+                                .byEventId(userId)
+                                .stateIn(coroutineScope, WhileSubscribed(), emptyMap())
+                        }
+                    }
+            )
+        }
 
     private fun onVerifyUser() {
         coroutineScope.launch {

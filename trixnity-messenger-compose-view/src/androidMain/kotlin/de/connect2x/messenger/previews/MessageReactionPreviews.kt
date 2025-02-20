@@ -44,25 +44,22 @@ import de.connect2x.messenger.compose.view.theme.md_theme_light_tertiary
 import de.connect2x.messenger.compose.view.theme.md_theme_light_tertiaryContainer
 import de.connect2x.messenger.previews.util.InitMessengerPreview
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions.ByReactionInfo
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import kotlinx.coroutines.flow.MutableStateFlow
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.UserId
 
 
 private fun previewReactionEvent(sender: String, initials: Initials, isMe: Boolean = false) =
-    TimelineElementHolderViewModel.ReactionEvent(
+    ByReactionInfo(
         eventId = EventId(""),
-        senderFlow = MutableStateFlow(
-            UserInfoElement(
-                name = sender,
-                userId = UserId("@kirill:local"),
-                initials = initials.compute(sender),
-                image = null,
-            )
+        sender = UserInfoElement(
+            name = sender,
+            userId = UserId("@kirill:local"),
+            initials = initials.compute(sender),
+            image = null,
         ),
-        isByMe = isMe,
+        isMe = isMe,
     )
 
 @Composable
@@ -121,7 +118,7 @@ fun MessageReactionPreview() {
                 MessageReactionButton(
                     reaction = "\uD83D\uDC4D",
                     reactionEvents = setOf(
-                        TimelineElementHolderViewModel.ReactionEvent(
+                        ByReactionInfo(
                             eventId = EventId(""),
                             senderFlow = MutableStateFlow(
                                 UserInfoElement(
@@ -134,14 +131,14 @@ fun MessageReactionPreview() {
                         )
                     ),
                     count = 3,
-                    myReaction = null,
+                    myReaction = false,
                     onAddReaction = { },
                     onRemoveReaction = { },
                 )
                 MessageReactionButton(
                     reaction = "\uD83D\uDC4D",
                     reactionEvents = setOf(
-                        TimelineElementHolderViewModel.ReactionEvent(
+                        ByReactionInfo(
                             eventId = EventId(""),
                             senderFlow = MutableStateFlow(
                                 UserInfoElement(
@@ -150,11 +147,12 @@ fun MessageReactionPreview() {
                                     initials = "J",
                                 )
                             ),
-                            isByMe = false,
-                        )
+                            isMe = false,
+                        ),
+                        previewReactionEvent("username", initials, isMe = true)
                     ),
                     count = 2,
-                    myReaction = previewReactionEvent("username", initials, isMe = false),
+                    myReaction = true,
                     onAddReaction = { },
                     onRemoveReaction = { },
                 )
@@ -184,16 +182,16 @@ fun MessageReactionWrappingPreview() {
                         reaction = "\uD83D\uDC4D",
                         reactionEvents = setOf(),
                         count = 3,
-                        myReaction = null,
+                        myReaction = false,
                         onAddReaction = { },
                         onRemoveReaction = { },
                     )
                 }
                 MessageReactionButton(
                     reaction = "\uD83D\uDC4D",
-                    reactionEvents = setOf(),
+                    reactionEvents = setOf(previewReactionEvent("username", initials, isMe = false)),
                     count = 2,
-                    myReaction = previewReactionEvent("username", initials, isMe = false),
+                    myReaction = true,
                     onAddReaction = { },
                     onRemoveReaction = { },
                 )
@@ -201,7 +199,7 @@ fun MessageReactionWrappingPreview() {
                     reaction = "Bee Movie By Jerry Seinfeld NARRATOR: (Black screen with text; The sound of buzzing bees can be heard) According to all known laws of aviation, : there is no way a bee should be able to fly. : Its wings are too small to get its fat little body off the ground. : The bee, of course, flies anyway : because bees don't care what humans think is impossible. BARRY BENSON: (Barry is picking out a shirt) Yellow, black. Yellow, black. Yellow, black. Yellow, black. : Ooh, black and yellow! Let's shake it up a little. JANET BENSON: Barry! Breakfast is ready! BARRY: Coming! : Hang on a second. (Barry uses his antenna like a phone) : Hello? ADAM FLAYMAN: (Through phone) - Barry? BARRY: - Adam? ADAM: - Can you believe this is happening? BARRY: - I can't. I'll pick you up. (Barry flies down the stairs) ",
                     reactionEvents = setOf(),
                     count = 2,
-                    myReaction = null,
+                    myReaction = false,
                     onAddReaction = { },
                     onRemoveReaction = { },
                 )

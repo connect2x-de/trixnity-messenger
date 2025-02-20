@@ -13,16 +13,15 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
+import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactions
+import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReaders
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
-import de.connect2x.trixnity.messenger.viewmodel.util.getMessageIsRead
-import de.connect2x.trixnity.messenger.viewmodel.util.getMessageUserReactions
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -91,6 +90,7 @@ interface TimelineElementHolderViewModelFactory {
         showUnreadMarker: Flow<Boolean>,
         showLoadingIndicatorBefore: Flow<Boolean>,
         showLoadingIndicatorAfter: Flow<Boolean>,
+        getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
         onMessageReplace: (RoomId, EventId) -> Unit,
         onMessageReply: (RoomId, EventId) -> Unit,
         onMessageReport: (RoomId, EventId) -> Unit,
@@ -109,6 +109,7 @@ interface TimelineElementHolderViewModelFactory {
             showUnreadMarker = showUnreadMarker,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
+            getReceipts = getReceipts,
             onMessageReplace = onMessageReplace,
             onMessageReply = onMessageReply,
             onMessageReport = onMessageReport,
@@ -128,8 +129,10 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val showLoadingIndicatorAfter: StateFlow<Boolean>
 
     val isRead: StateFlow<Boolean?>
-    val reactions: StateFlow<Map<ReactionKey, Set<ReactionEvent>>>
+
+    val reactions: StateFlow<EventReactions?>
     val canBeReactedTo: StateFlow<Boolean>
+
     val isReplaced: StateFlow<Boolean>
 
     val canBeEdited: StateFlow<Boolean>
@@ -149,14 +152,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     fun endReply()
     fun report()
     fun addReaction(reaction: String)
-    fun removeReaction(reaction: ReactionEvent)
-    fun openMessageMetadata()
-
-    data class ReactionEvent(
-        val eventId: EventId,
-        val senderFlow: StateFlow<UserInfoElement?>,
-        val isByMe: Boolean,
-    )
+    fun removeReaction(reaction: String)
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -172,32 +168,31 @@ class TimelineElementHolderViewModelImpl(
     showUnreadMarker: Flow<Boolean>,
     showLoadingIndicatorBefore: Flow<Boolean>,
     showLoadingIndicatorAfter: Flow<Boolean>,
+    private val getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
     private val onMessageReplace: (RoomId, EventId) -> Unit,
     private val onMessageReply: (RoomId, EventId) -> Unit,
     private val onMessageReport: (RoomId, EventId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
     private val onOpenMetadata: (eventId: EventId) -> Unit,
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
-    private val timelineEventFlow = timelineEventFlow
-        .shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
+    private val timelineEventFlow = timelineEventFlow.shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
     private val config = get<MatrixMessengerConfiguration>()
+
     private val initials = get<Initials>()
-    private val timelineElementViewModelFactorySelector =
-        get<TimelineElementViewModelFactorySelector>()
-    private val repliedTimelineElementHolderViewModelFactory =
-        get<RepliedTimelineElementHolderViewModelFactory>()
+    private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
+    private val repliedTimelineElementHolderViewModelFactory = get<RepliedTimelineElementHolderViewModelFactory>()
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
             matrixClient.room.getTimelineEvents(roomId, eventId, Direction.BACKWARDS)
                 .drop(1)
-        ).shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
+        ).shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
     private val nextSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
             matrixClient.room.getTimelineEvents(roomId, eventId, Direction.FORWARDS)
                 .drop(1)
-        ).shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
+        ).shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
     override val showUnreadMarker: StateFlow<Boolean> =
         showUnreadMarker
@@ -368,32 +363,25 @@ class TimelineElementHolderViewModelImpl(
 
     override val isByMe: Boolean = senderUserId == userId
 
-    override val isRead: StateFlow<Boolean?> =
-        getMessageIsRead(matrixClient, senderUserId, roomId, eventId)
-            .stateIn(coroutineScope, Lazily, false) // Lazily to not unnecessary recompute.
+    private val getEventReaders = get<GetEventReaders>()
+    override val isRead =
+        getEventReaders.isRead(
+            matrixClient = matrixClient,
+            roomId = roomId,
+            eventId = eventId,
+            sender = senderUserId,
+            getReceipts = getReceipts,
+        ).stateIn(coroutineScope, Lazily, false) // Lazily to not unnecessary recompute
 
-    override val reactions: StateFlow<Map<ReactionKey, Set<ReactionEvent>>> =
-        getMessageUserReactions(matrixClient, roomId, eventId)
-            .map { reactions ->
-                reactions.byCount.mapValues { (_, reactionCount) ->
-                    reactionCount.events.mapTo(mutableSetOf()) { event ->
-                        ReactionEvent(
-                            eventId = event.eventId,
-                            isByMe = event.sender == userId,
-                            senderFlow = (reactions.byUser[event.sender]?.roomUserFlow?.map {
-                                it?.toUserInfoElement(
-                                    coroutineScope = coroutineScope,
-                                    matrixClient = matrixClient,
-                                    initials = initials,
-                                    config.avatarMaxSize,
-                                    it.userId,
-                                )
-                            } ?: flowOf(null))
-                                .stateIn(coroutineScope, whileSubscribedWithTimeout, null),
-                        )
-                    }
-                }
-            }.stateIn(coroutineScope, whileSubscribedWithTimeout, emptyMap())
+    private val getEventReactions = get<GetEventReactions>()
+    override val reactions =
+        getEventReactions(
+            matrixClient = matrixClient,
+            roomId = roomId,
+            eventId = eventId,
+            initials = initials,
+            avatarMaxSize = config.avatarMaxSize
+        ).stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val canBeEdited: StateFlow<Boolean> = timelineEventFlow
         .filterNotNull()
@@ -479,23 +467,24 @@ class TimelineElementHolderViewModelImpl(
         }
     }
 
-    override fun removeReaction(reaction: ReactionEvent) {
+    override fun removeReaction(reaction: String) {
         coroutineScope.launch {
-            matrixClient.api.room.redactEvent(
-                roomId,
-                reaction.eventId,
-                txnId = uuid4().toString(),
-            )
+            val eventId = reactions.value?.byUser?.get(matrixClient.userId)?.reactions?.get(reaction)
+            if (eventId != null) {
+                matrixClient.api.room.redactEvent(
+                    roomId,
+                    eventId,
+                    txnId = uuid4().toString(),
+                )
+            } else {
+                log.warn { "could not remove reaction, because not present in loaded reactions" }
+            }
         }
     }
 
     override fun openMessageMetadata() {
         onOpenMetadata(this.eventId)
     }
-
-    override fun toString(): String =
-        "TimelineElementViewModel(showLoadingIndicator=${showLoadingIndicatorBefore.value}" +
-                ", shouldShowUnreadMarker=${showUnreadMarker.value})"
 }
 
 class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
@@ -518,9 +507,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val showBigGapBefore: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isReply: MutableStateFlow<Boolean?> = MutableStateFlow(false)
-    override val repliedElement: MutableStateFlow<RepliedTimelineElementHolderViewModel?> = MutableStateFlow(
-        PreviewRepliedTimelineElementViewModel()
-    )
+    override val repliedElement: MutableStateFlow<RepliedTimelineElementHolderViewModel?> =
+        MutableStateFlow(PreviewRepliedTimelineElementViewModel())
     override val showUnreadMarker: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -533,8 +521,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val reactions: MutableStateFlow<Map<String, Set<ReactionEvent>>> =
-        MutableStateFlow(emptyMap())
+    override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun replace() {}
     override fun endReplace() {}
@@ -543,8 +530,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override fun endReply() {}
     override fun report() {}
     override fun addReaction(reaction: String) {}
-    override fun removeReaction(reaction: ReactionEvent) {}
-    override fun openMessageMetadata() {}
+    override fun removeReaction(reaction: String) {}
 }
 
 class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -581,8 +567,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val reactions: MutableStateFlow<Map<String, Set<ReactionEvent>>> =
-        MutableStateFlow(emptyMap())
+    override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun replace() {}
     override fun endReplace() {}
@@ -591,6 +576,5 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun endReply() {}
     override fun report() {}
     override fun addReaction(reaction: String) {}
-    override fun removeReaction(reaction: ReactionEvent) {}
-    override fun openMessageMetadata() {}
+    override fun removeReaction(reaction: String) {}
 }

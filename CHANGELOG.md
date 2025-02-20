@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Refactored message bubbles to support message previews
+- Refactored read receipts and reactions to be more modular
 - Moved message metadata into a unified view with a new design
 
 ### Deprecated
@@ -21,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Only show users with sync errors in the info banner
+- Clear current reply when sending reply message
+- The keyboard does not pop up when opening a room
 
 ### Security
 
