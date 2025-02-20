@@ -223,7 +223,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<RelevantTimelineEvents> { RelevantTimelineEvents }
 
             single<Languages> { DefaultLanguages }
-            single<I18n> { object : I18n(get(), get(), get(), get()) {} }
+            single<I18n> { I18n(get(), get(), get(), get()) }
             single<RoomName> { RoomNameImpl(get(), get()) }
             single<RoomTopic> { RoomTopicImpl() }
             single<RoomInviter> { RoomInviterImpl() }
