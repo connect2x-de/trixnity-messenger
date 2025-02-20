@@ -123,6 +123,10 @@ import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepPasswordViewModelFac
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoomImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactions
+import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactionsImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReaders
+import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReadersImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviterImpl
@@ -379,6 +383,8 @@ private fun timelineElementViewModels() = module {
 
 private fun roomViewModels() = module {
     single<RoomViewModelFactory> { RoomViewModelFactory }
+    single<GetEventReactions> { GetEventReactionsImpl() }
+    single<GetEventReaders> { GetEventReadersImpl() }
 }
 
 private fun roomSettingsViewModels() = module {
