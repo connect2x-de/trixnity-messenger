@@ -70,20 +70,21 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
         // Font size
         val fontSize = appearanceSettingsViewModel.fontSize.collectAsState().value ?: defaultSizes.fontSize
         var newFontSize by remember { mutableStateOf(-1F) }
-        fun getNewFontSize(): Float = if (newFontSize != -1F && newFontSize != fontSize) newFontSize else fontSize
+        val finalNewFontSize =
+            if (newFontSize != -1F && newFontSize != fontSize) newFontSize else fontSize
 
         // Display size
         val displaySize = appearanceSettingsViewModel.displaySize.collectAsState().value ?: defaultSizes.displaySize
         var newDisplaySize by remember { mutableStateOf(-1F) }
-        fun getNewDisplaySize(): Float = if (newDisplaySize != -1F && newDisplaySize != displaySize)
-            newDisplaySize else displaySize
+        val finalNewDisplaySize =
+            if (newDisplaySize != -1F && newDisplaySize != displaySize) newDisplaySize else displaySize
 
         // Preview
         val systemDensity = SystemDensity.current
         CompositionLocalProvider(
             LocalDensity provides Density(
-                systemDensity.density * getNewDisplaySize(),
-                systemDensity.fontScale * getNewFontSize()
+                systemDensity.density * finalNewDisplaySize,
+                systemDensity.fontScale * finalNewFontSize
             )
         ) {
             Column(Modifier.padding(end = 10.dp).fillMaxWidth(1.0f).aspectRatio(1.0f)) {
@@ -118,13 +119,13 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                 )
                 Spacer(Modifier.weight(1.0f))
                 Text(
-                    text = "${round(getNewFontSize() * 100).toInt()}%",
+                    text = "${round(finalNewFontSize * 100).toInt()}%",
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleSmall
                 )
             }
             Slider(
-                value = getNewFontSize(),
+                value = finalNewFontSize,
                 onValueChange = { newFontSize = it },
                 steps = 0,
                 valueRange = defaultSizes.minFontSize..defaultSizes.maxFontSize,
@@ -140,13 +141,13 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                 )
                 Spacer(Modifier.weight(1.0f))
                 Text(
-                    text = "${round(getNewDisplaySize() * 100).toInt()}%",
+                    text = "${round(finalNewDisplaySize * 100).toInt()}%",
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleSmall
                 )
             }
             Slider(
-                value = getNewDisplaySize(),
+                value = finalNewDisplaySize,
                 onValueChange = { newDisplaySize = it },
                 valueRange = defaultSizes.minDisplaySize..defaultSizes.maxDisplaySize,
                 steps = 5,
@@ -158,8 +159,8 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
             Button(
                 enabled = !applySystemSizes,
                 onClick = {
-                    appearanceSettingsViewModel.setDisplaySize(getNewDisplaySize())
-                    appearanceSettingsViewModel.setFontSize(getNewFontSize())
+                    appearanceSettingsViewModel.setDisplaySize(finalNewDisplaySize)
+                    appearanceSettingsViewModel.setFontSize(finalNewFontSize)
                 }
             ) {
                 Text(i18n.appearanceSizesApply())
