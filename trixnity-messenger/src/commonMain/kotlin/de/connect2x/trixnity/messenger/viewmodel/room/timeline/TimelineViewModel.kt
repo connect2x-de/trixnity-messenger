@@ -36,6 +36,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedFlow
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedIndexedFlow
+import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
@@ -87,7 +88,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.GetTimelineEventsConfig
 import net.folivo.trixnity.client.room.Timeline
@@ -109,7 +109,6 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
-import net.folivo.trixnity.core.model.events.m.ReceiptType
 import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
 import kotlin.time.Duration
@@ -873,11 +872,11 @@ class TimelineViewModelImpl(
                             timelineElements.indexOfLast { it.eventId == lastEventIdBeforeChange && it.roomId == roomId }
                         }
 
-                        if (timelineStateChange.newElements.isNotEmpty()
+                        if (timelineStateChange.addedElements.isNotEmpty()
                             && viewState.value?.windowIsFocused == true
                             && indexOfLastEventIdBeforeChange == indexOfLastVisibleTimelineElement
                         ) {
-                            val newLastEvent = timelineStateChange.newElements.last().key
+                            val newLastEvent = timelineStateChange.addedElements.last().key
 
                             val currentReadEvent = readEvent.value
                             log.trace { "lastVisibleTimelineEvent=${lastVisibleTimelineElement?.key} currentReadEvent=$currentReadEvent newLastEvent=$newLastEvent" }
@@ -1032,17 +1031,7 @@ class TimelineViewModelImpl(
                     ?: getReceiptsByEventCache.write {
                         getOrPut(roomId) {
                             matrixClient.user.getAllReceipts(roomId)
-                                .flattenNotNull()
-                                .map { receipts ->
-                                    receipts
-                                        .mapNotNull { (key, value) ->
-                                            if (key == userId) null
-                                            else value.receipts[ReceiptType.Read]
-                                                ?.let { it.eventId to key }
-                                        }
-                                        .groupBy { it.first }
-                                        .mapValues { it.value.map { it.second }.toSet() }
-                                }.distinctUntilChanged()
+                                .byEventId(userId)
                                 .stateIn(coroutineScope, WhileSubscribed(), emptyMap())
                         }
                     }
