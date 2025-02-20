@@ -167,7 +167,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
     }
 }
 
-class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
+private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val roomId: RoomId = RoomId("!room")
     override val eventId: EventId = EventId("\$1:localhost")
     override val key: String = eventId.full
@@ -214,7 +214,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override fun removeReaction(reaction: TimelineElementHolderViewModel.ReactionEvent) {}
 }
 
-class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
+private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val roomId: RoomId = RoomId("!room")
     override val eventId: EventId = EventId("\$2:localhost")
     override val key: String = eventId.full
