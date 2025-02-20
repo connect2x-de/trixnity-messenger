@@ -42,6 +42,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import net.folivo.trixnity.core.model.EventId
@@ -187,7 +188,8 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val showBigGapBefore: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isReply: MutableStateFlow<Boolean?> = MutableStateFlow(false)
-    override val repliedElement: MutableStateFlow<RepliedTimelineElementHolderViewModel?> = MutableStateFlow(null)
+    override val repliedElement: MutableStateFlow<RepliedTimelineElementHolderViewModel?> =
+        MutableStateFlow(PreviewRepliedTimelineElementViewModel())
     override val showUnreadMarker: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -201,8 +203,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val reactions: MutableStateFlow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>> =
-        MutableStateFlow(emptyMap())
+    override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun replace() {}
     override fun endReplace() {}
@@ -211,7 +212,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override fun endReply() {}
     override fun report() {}
     override fun addReaction(reaction: String) {}
-    override fun removeReaction(reaction: TimelineElementHolderViewModel.ReactionEvent) {}
+    override fun removeReaction(reaction: String) {}
 }
 
 private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -249,8 +250,7 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val reactions: MutableStateFlow<Map<String, Set<TimelineElementHolderViewModel.ReactionEvent>>> =
-        MutableStateFlow(emptyMap())
+    override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun replace() {}
     override fun endReplace() {}
@@ -259,5 +259,5 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override fun endReply() {}
     override fun report() {}
     override fun addReaction(reaction: String) {}
-    override fun removeReaction(reaction: TimelineElementHolderViewModel.ReactionEvent) {}
+    override fun removeReaction(reaction: String) {}
 }
