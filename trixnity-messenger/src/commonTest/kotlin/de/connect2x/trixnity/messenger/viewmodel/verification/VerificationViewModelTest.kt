@@ -76,7 +76,7 @@ class VerificationViewModelTest : ShouldSpec() {
     private lateinit var activeDeviceVerificationFlow: MutableStateFlow<ActiveDeviceVerification>
 
     init {
-        isolationMode = IsolationMode.InstancePerRoot
+        isolationMode = IsolationMode.InstancePerTest
 
         beforeTest {
             Dispatchers.setMain(Dispatchers.Unconfined)

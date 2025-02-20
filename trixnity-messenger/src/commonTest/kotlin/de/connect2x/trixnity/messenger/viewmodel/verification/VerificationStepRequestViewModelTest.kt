@@ -72,7 +72,7 @@ class VerificationStepRequestViewModelTest : ShouldSpec() {
     val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
     init {
-        isolationMode = IsolationMode.InstancePerRoot
+        isolationMode = IsolationMode.InstancePerTest
         beforeTest {
             Dispatchers.setMain(Dispatchers.Unconfined)
             resetMocks(
