@@ -2408,8 +2408,8 @@ abstract class I18nView(
     }
 
     fun appearanceSizesApplySystemHeading() = translate {
-        EN - "Apply system sizes"
-        DE - "Systemgrößen anwenden"
+        EN - "use system settings"
+        DE - "Systemeinstellungen verwenden"
     }
 
     fun appearanceFontSizeHeading() = translate {
