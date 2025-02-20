@@ -93,25 +93,23 @@ fun ReactorList(
 }
 
 @Composable
-fun ReactorListElement(reaction: String?, user: UserInfoElement) {
+fun ReactorListElement(reaction: String, userInfo: UserInfoElement) {
     Row(
         Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             modifier = Modifier.fillMaxWidth().weight(1.0f, false),
-            text = user.name,
+            text = userInfo.name,
             style = MaterialTheme.typography.labelLarge,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        reaction?.let {
-            Spacer(Modifier.size(5.dp))
-            Text(
-                modifier = Modifier,
-                text = reaction,
-                style = MaterialTheme.typography.labelLarge,
-            )
-        }
+        Spacer(Modifier.size(5.dp))
+        Text(
+            modifier = Modifier,
+            text = reaction,
+            style = MaterialTheme.typography.labelLarge,
+        )
     }
 }

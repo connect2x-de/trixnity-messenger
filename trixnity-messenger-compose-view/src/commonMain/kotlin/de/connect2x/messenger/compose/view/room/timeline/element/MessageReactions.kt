@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +37,8 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
+
 
 interface MessageReactionsView {
     @Composable
@@ -68,13 +69,8 @@ class MessageReactionsViewImpl : MessageReactionsView {
         if (timelineElementHolderViewModel !is TimelineElementHolderViewModel) {
             return
         }
-
         val i18n = DI.current.get<I18nView>()
-
-        val reactions by remember(timelineElementHolderViewModel) {
-            timelineElementHolderViewModel.reactions
-        }.collectAsState()
-
+        val reactions = timelineElementHolderViewModel.reactions.collectAsState().value?.byReaction.orEmpty()
         val reactionList = remember(reactions) {
             reactions.entries.sortedByDescending { it.value.size }.map { it.key }
         }
@@ -103,9 +99,9 @@ class MessageReactionsViewImpl : MessageReactionsView {
                         reaction = reaction,
                         reactionEvents = reactionEvents,
                         count = reactionEvents.size,
-                        myReaction = reactionEvents.firstOrNull { it.isMe },
+                        myReaction = reactionEvents.any { it.isMe },
                         onAddReaction = timelineElementHolderViewModel::addReaction,
-                        onRemoveReaction = timelineElementHolderViewModel::removeReaction,
+                        onRemoveReaction = { timelineElementHolderViewModel.removeReaction(reaction) },
                     )
                 }
                 MessageAddReactionButton(
@@ -118,7 +114,6 @@ class MessageReactionsViewImpl : MessageReactionsView {
         }
     }
 }
-
 
 @Composable
 internal fun MessageReactionDisplay(
@@ -144,16 +139,16 @@ private val buttonModifier = Modifier.buttonPointerModifier()
 @Composable
 internal fun MessageReactionButton(
     reaction: String,
-    reactionEvents: Set<TimelineElementHolderViewModel.ReactionEvent>,
+    reactionEvents: Set<EventReactions.ByReactionInfo>,
     count: Int,
-    myReaction: TimelineElementHolderViewModel.ReactionEvent?,
+    myReaction: Boolean,
     onAddReaction: (reaction: String) -> Unit,
-    onRemoveReaction: (reaction: TimelineElementHolderViewModel.ReactionEvent) -> Unit,
+    onRemoveReaction: () -> Unit,
 ) {
     Tooltip({ TooltipText(reactionEvents.joinToString { it.sender.name }) }) {
-        if (myReaction != null) {
+        if (myReaction) {
             FilledTonalButton(
-                onClick = { onRemoveReaction(myReaction) },
+                onClick = { onRemoveReaction() },
                 contentPadding = buttonPadding,
                 modifier = buttonModifier,
                 colors = ButtonColors(

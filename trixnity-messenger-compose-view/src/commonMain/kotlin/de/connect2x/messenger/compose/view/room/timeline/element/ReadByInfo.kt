@@ -37,9 +37,9 @@ fun ReadByInfo(
                     .fillMaxWidth()
                     .padding(vertical = 10.dp, horizontal = 10.dp)
             ) {
-                readers.map {
+                readers.forEach { readerInfo ->
                     Text(
-                        text = it.name,
+                        text = readerInfo.name,
                         style = MaterialTheme.typography.labelLarge,
                     )
                 }
