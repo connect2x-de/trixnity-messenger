@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added persistent run profiles to IDEA configuration
+
 ### Changed
 - Moved verification step to the last position in the setup wizard
 - Don't show verification methods in self verification wizard while initial sync is running
@@ -23,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Only show users with sync errors in the info banner
+- Fix text overflow in about licenses section
 - Clear current reply when sending reply message
 - The keyboard does not pop up when opening a room
 

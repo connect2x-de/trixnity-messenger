@@ -348,7 +348,7 @@ class CatMessageMessageTimelineElementView : TimelineElementView<CatMessageTimel
         holder: BaseTimelineElementHolderViewModel,
         element: CatMessageTimelineElementViewModel,
     ) {
-        Text("isPurring=${element.isPurring}", style = MaterialTheme.typography.bodyMedium)
+        Text("isPurring=${element.isPurring}")
     }
 
     // ...
@@ -364,11 +364,11 @@ fun catEventModule() = modules {
     timelineElementView<CatMessageMessageTimelineElementView> { CatMessageMessageTimelineElementView() }
 }
 
-// add the modules to the matrix messenger:
+// add the module to the matrix messenger:
 moduleFactories += ::catEventModule
 ```
 
-If your custom event should support a full screen details view, you may also implement `TimelineElementDetailsView` and
+If your custom event should support a full screen details view when the user clicks/taps on it, you may also implement `TimelineElementDetailsView` and
 add it to the DI using `timelineElementDetailsView<CatTimelineElementDetailsView> { CatTimelineElementDetailsView() }`
 
 ## Export room

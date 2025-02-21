@@ -7,23 +7,21 @@ androidCompileSDK = "35"
 androidMinimalSDK = "28"
 androidTargetSDK = "34"
 messenger = "1.0.0"
-messengerVersionCode = "1"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
 
 trixnity = "4.12.3" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
-kotlinWrappers = "2025.1.11" # https://github.com/JetBrains/kotlin-wrappers/releases
+kotlinWrappers = "2025.1.11" # https://github.com/JetBrains/kotlin-wrappers/releases (should be same as in Trixnity)
 kotlinxCoroutines = "1.9.0" # https://github.com/Kotlin/kotlinx.coroutines/releases
-kotlinxSerialization = "1.7.3" # https://github.com/Kotlin/kotlinx.serialization/releases
+kotlinxSerialization = "1.8.0" # https://github.com/Kotlin/kotlinx.serialization/releases
 androidxSqlite3 = "2.5.0-alpha13" # https://developer.android.com/jetpack/androidx/releases/sqlite
 androidxSqlite3mc = "2.5.0-alpha13-1" # https://gitlab.com/connect2x/androidx/-/releases
 decompose = "3.2.2" # https://github.com/arkivanov/Decompose/releases
-essenty = "2.2.1" # https://github.com/arkivanov/Essenty/releases (bound to decompose version)
-kotlinxDatetime = "0.6.1" # https://github.com/Kotlin/kotlinx-datetime/releases
+kotlinxDatetime = "0.6.2" # https://github.com/Kotlin/kotlinx-datetime/releases
 koin = "4.0.2" # https://github.com/InsertKoinIO/koin/tags
-ktor = "3.0.3" # https://github.com/ktorio/ktor/releases
-mokkery = "2.6.1" # https://github.com/lupuuss/Mokkery/releases
+ktor = "3.1.0" # https://github.com/ktorio/ktor/releases
+mokkery = "2.7.0" # https://github.com/lupuuss/Mokkery/releases
 kotest = "6.0.0.M1" # https://github.com/kotest/kotest/releases
 jna = "5.16.0" # https://github.com/java-native-access/jna/tags
 okio = "3.10.2" # https://square.github.io/okio/changelog
@@ -31,17 +29,17 @@ uuid = "0.8.4" # https://github.com/benasher44/uuid/releases
 dokka = "2.0.0" # https://github.com/Kotlin/dokka/releases"
 jsJoda = "2.21.1" # https://www.npmjs.com/package/@js-joda/timezone
 zipjs = "2.7.53" # https://www.npmjs.com/package/@zip.js/zip.js
-skie = "0.10.0" # https://github.com/touchlab/SKIE/releases
-kmmBridge = "1.2.0" # https://github.com/touchlab/KMMBridge/releases
-kim = "0.22.1" # https://github.com/Ashampoo/kim/releases
+skie = "0.10.1" # https://github.com/touchlab/SKIE/releases
+kmmBridge = "1.2.1" # https://github.com/touchlab/KMMBridge/releases
+kim = "0.22.2" # https://github.com/Ashampoo/kim/releases
 markdown = "0.7.3" # https://github.com/JetBrains/markdown
-pdfjs = "4.8.69" # https://www.npmjs.com/package/pdfjs-dist
-pdfbox = "3.0.3" # https://pdfbox.apache.org/
+pdfjs = "4.10.38" # https://www.npmjs.com/package/pdfjs-dist
+pdfbox = "3.0.4" # https://pdfbox.apache.org/
 icu4j = "76.1" # https://github.com/unicode-org/icu/releases
 
 # integration tests
 testContainers = "1.20.4" # https://github.com/testcontainers/testcontainers-java/releases
-kotlinLogging = "7.0.3" # https://github.com/MicroUtils/kotlin-logging/releases
+kotlinLogging = "7.0.4" # https://github.com/MicroUtils/kotlin-logging/releases
 logback = "1.5.16" # https://github.com/qos-ch/logback/tags
 crypto = "1.1.0-alpha06" # https://developer.android.com/jetpack/androidx/releases/security
 activity = "1.10.0" # https://developer.android.com/jetpack/androidx/releases/activity
@@ -50,19 +48,18 @@ androidGradle = "8.7.3" # https://developer.android.com/reference/tools/gradle-a
 # ui
 composeMultiplatform = "1.7.3" # https://github.com/JetBrains/compose-multiplatform/releases
 androidxBrowser = "1.8.0" # https://developer.android.com/jetpack/androidx/releases/browser
-richeditor = "1.0.0-rc10" # https://github.com/MohamedRejeb/compose-rich-editor/releases
-aboutLibraries = "11.2.3" # https://github.com/mikepenz/AboutLibraries/releases
-downloadGradlePlugin = "5.6.0" # https://github.com/michel-kraemer/gradle-download-task/releases
+richeditor = "1.0.0-rc11" # https://github.com/MohamedRejeb/compose-rich-editor/releases
+aboutLibraries = "12.0.0-a04" # https://github.com/mikepenz/AboutLibraries/releases
 copyWebpackPlugin = "12.0.2" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
-composeUiTest = "1.7.6" # https://androidx.tech/artifacts/compose.ui/ui-test-junit4/
-filekit = "0.8.7" # https://github.com/vinceglb/FileKit/releases
+composeUiTest = "1.8.0-beta02" # https://androidx.tech/artifacts/compose.ui/ui-test-junit4/
+filekit = "0.8.8" # https://github.com/vinceglb/FileKit/releases
 slf4j = "2.0.16" # https://github.com/qos-ch/slf4j/tags
 logbackAndroid = "3.0.0" # https://github.com/tony19/logback-android/releases
 workManager = "2.10.0" # https://developer.android.com/jetpack/androidx/releases/work
 liveData = "2.8.7" # https://developer.android.com/jetpack/androidx/releases/lifecycle
 appcompat = "1.7.0" # https://developer.android.com/jetpack/androidx/releases/appcompat
-firebase = "33.8.0" # https://firebase.google.com/support/release-notes/android
-googleServices = "4.4.2" # https://firebase.google.com/support/release-notes/android
+firebase = "33.9.0" # https://firebase.google.com/support/release-notes/android
+googleServices = "4.4.2" # https://developers.google.com/android/guides/google-services-plugin
 qrCodeKotlin = "4.1.1" # https://github.com/g0dkar/qrcode-kotlin/tags
 androidTestMonitor = "1.7.2" # https://developer.android.com/jetpack/androidx/releases/test
 
@@ -76,11 +73,9 @@ trixnity-client-media-okio = { module = "net.folivo:trixnity-client-media-okio",
 trixnity-client-media-opfs = { module = "net.folivo:trixnity-client-media-opfs", version.ref = "trixnity" }
 trixnity-client-media-indexeddb = { module = "net.folivo:trixnity-client-media-indexeddb", version.ref = "trixnity" }
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
-essenty = { module = "com.arkivanov.essenty:lifecycle", version.ref = "essenty" }
 sysnotify = { module = "de.connect2x:sysnotify", version.ref = "sysnotify" }
 sysnotify-android = { module = "de.connect2x:sysnotify-android", version.ref = "sysnotify" }
 sysnotify-js = { module = "de.connect2x:sysnotify-js", version.ref = "sysnotify" }
-#sysnotify-desktop = { module = "de.connect2x:sysnotify-jvm", version.ref = "sysnotify" }
 skie-annotations = { module = "co.touchlab.skie:configuration-annotations", version.ref = "skie" }
 
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
