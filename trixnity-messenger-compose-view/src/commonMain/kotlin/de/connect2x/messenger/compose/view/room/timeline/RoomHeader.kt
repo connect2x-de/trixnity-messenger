@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -121,12 +122,21 @@ class RoomHeaderViewImpl : RoomHeaderView {
                             }
 
                             Column {
+                                val height = MaterialTheme.typography.labelMedium
+                                    .copy(color = MaterialTheme.colorScheme.onBackground).lineHeight.value.dp / 2
+                                val spacerRequired = usersTyping == null && roomHeaderElement.roomTopic.isEmpty()
+                                if (spacerRequired)
+                                    Spacer(Modifier.height(height))
+
                                 RoomName(roomHeaderElement)
                                 if (usersTyping != null) {
                                     UsersTyping(usersTyping)
                                 } else {
                                     RoomTopic(roomHeaderElement)
                                 }
+
+                                if (spacerRequired)
+                                    Spacer(Modifier.height(height))
                             }
                         }
                         RoomExtras(roomHeaderViewModel, showSettingsButton)
@@ -186,8 +196,7 @@ fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
     }) {
         Text(
             topic,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Light,
+            style = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.onBackground),
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
         )
