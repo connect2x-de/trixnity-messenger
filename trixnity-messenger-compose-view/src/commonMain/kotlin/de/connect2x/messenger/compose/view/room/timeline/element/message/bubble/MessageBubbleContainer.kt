@@ -174,7 +174,6 @@ fun MessageBubbleContainer(
                             shape = ChatBubbleTailRight(with(density) { 8.dp.roundToPx() }),
                         )
                         .zIndex(-1f)
-                        .fillMaxHeight()
                     // No width and no padding, as really wide messages will push this
                     // to the max amount (we only use padding in the Timeline).
                 )

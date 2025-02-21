@@ -2,9 +2,11 @@ package de.connect2x.messenger.compose.view.room.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,11 +15,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -31,7 +33,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
@@ -48,7 +49,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastRoundToInt
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
@@ -106,14 +106,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
             LoadingSpinner(Modifier.fillMaxSize())
         } else {
             val interactionFilterByReaction = remember { mutableStateOf<String?>(null) }
-            val allReadersAndReactions = remember(readers, reactions) {
-                readers.associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, false) } +
-                        reactions.byUser
-            }
-            val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
-            val isFilterVisible = reactions.byReaction.size > 1
-
-            val scrollState = rememberScrollState()
+//            val scrollState = rememberScrollState()
 
             ExtrasPaneHeader(
                 title = i18n.timelineElementMetadataTitle(),
@@ -126,33 +119,21 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                 ) {
                     Column(
                         Modifier
-                            .verticalScroll(scrollState)
+//                            .verticalScroll(scrollState)
                             .padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp))
                     ) {
-                        MiddleSpacer()
-                        Text(
-                            text = i18n.timelineElementMetadataSender(),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
+                        SubHeading(i18n.timelineElementMetadataSender())
                         UserInfo(
                             sender,
                             onOpenUserProfile = viewModel::openUserProfile,
                         )
-                        MiddleSpacer()
-                        Text(
-                            text = i18n.timelineElementMetadataMessage(),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        SmallSpacer()
+                        SubHeading(i18n.timelineElementMetadataSender())
                         MessageContent(element)
                         SmallSpacer()
                         HorizontalDivider()
                         MiddleSpacer()
-                        Text(
-                            text = i18n.timelineElementMetadataReadersAndReactions(),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        SmallSpacer()
+                        ReadersAndReactions(element)
+
 //                        if (hasReadersOrReactions) {
 //                            // TODO: Move this into the viewmodel?
 //                            val interactions = interactionFilterByReaction.value.let { filter ->
@@ -181,7 +162,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
 //                        }
                         SmallSpacer()
                     }
-                    VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
+//                    VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
                 }
 //                if (isInteractionsVisible) ReactionsFilter(
 //                    Modifier.offset(y = filterOffset),
@@ -189,6 +170,55 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
 //                    interactionFilterByReaction,
 //                )
             }
+        }
+    }
+}
+
+@Composable
+fun ColumnScope.SubHeading(heading: String) {// FIXME re-use in other components
+    MiddleSpacer()
+    Text(
+        text = heading,
+        style = MaterialTheme.typography.titleMedium,
+    )
+    SmallSpacer()
+}
+
+@Composable
+fun ColumnScope.ReadersAndReactions(element: TimelineElementHolderViewModel) {
+    val i18n = DI.get<I18nView>()
+    val reactions = element.reactions.collectAsState().value
+    val readers = element.readers.collectAsState().value
+    println("reactions: $reactions, readers: $readers")
+    if (reactions != null && readers != null) {
+        val allReadersAndReactions = remember(readers, reactions) {
+            (readers.associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, false) } +
+                    reactions.byUser).values.toList()
+        }
+        val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
+        println("hasReadersOrReactions: $hasReadersOrReactions")
+        val isFilterVisible = reactions.byReaction.size > 1
+
+        if (hasReadersOrReactions) {
+            Text(
+                text = i18n.timelineElementMetadataReadersAndReactions(),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            SmallSpacer()
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(allReadersAndReactions, { it.sender.userId.full }) { eventReaction ->
+                    UserInfo(
+                        eventReaction.sender,
+                        eventReaction.reactions.keys,
+                        onOpenUserProfile = { element } // FIXME
+                    )
+                }
+            }
+        } else {
+            Text(
+                text = i18n.timelineElementMetadataReadersAndReactionsNone(),
+                style = MaterialTheme.typography.labelMedium,
+            )
         }
     }
 }

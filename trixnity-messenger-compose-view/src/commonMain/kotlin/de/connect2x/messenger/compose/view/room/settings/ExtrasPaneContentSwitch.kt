@@ -19,7 +19,7 @@ fun ExtrasPaneContentSwitch(
         stack = stack,
         animation = stackAnimation(fade()),
     ) { stackItem ->
-        val stackPosition = stack.value.items.size // FIXME viewmodel
+        val stackPosition = stack.value.items.size // FIXME into viewmodel
         val isBottomOfStack = stackPosition <= 2 // 1 is always None
         when (val child = stackItem.instance) {
             is ExtrasRouter.Wrapper.RoomSettings -> RoomSettingsContainer(child.viewModel, isSinglePane)

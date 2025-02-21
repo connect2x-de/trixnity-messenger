@@ -5,6 +5,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
+import de.connect2x.trixnity.messenger.util.navigateSuspending
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
@@ -133,15 +134,17 @@ class ExtrasRouterImpl(
     }
 
     override suspend fun openUserProfile(userId: UserId, roomId: RoomId) {
-        extrasNavigation.pushSuspending(UserProfile(userId, roomId)) {
-            log.debug { "extras: opened user profile for user: $userId in room: $roomId" }
+        extrasNavigation.navigateSuspending {
+            it.filterNot { it is UserProfile } + UserProfile(userId, roomId)
         }
+        log.debug { "extras: opened user profile for user: $userId in room: $roomId" }
     }
 
     override suspend fun openTimelineElementMetadata(eventId: EventId, roomId: RoomId) {
-        extrasNavigation.pushSuspending(TimelineElementMetadata(eventId, roomId)) {
-            log.debug { "extras: opened message metadata for event: $eventId from room $roomId" }
+        extrasNavigation.navigateSuspending {
+            it.filterNot { it is TimelineElementMetadata } + TimelineElementMetadata(eventId, roomId)
         }
+        log.debug { "extras: opened message metadata for event: $eventId from room $roomId" }
     }
 
     private fun createSettingsChild(
