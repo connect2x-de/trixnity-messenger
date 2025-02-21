@@ -25,6 +25,28 @@ data class UserInfoElement(
     override fun toString(): String {
         return "UserInfoElement(userId=$userId, name='$name', initials='$initials', image(size)=${image?.value?.size})"
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as UserInfoElement
+
+        if (userId != other.userId) return false
+        if (name != other.name) return false
+        if (initials != other.initials) return false
+        // without image to enable real equality check as even if the same user is represented by this class, the image would be new
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = userId.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + initials.hashCode()
+        // without image to enable real equality check as even if the same user is represented by this class, the image would be new
+        return result
+    }
 }
 
 fun RoomUser?.toUserInfoElement(
