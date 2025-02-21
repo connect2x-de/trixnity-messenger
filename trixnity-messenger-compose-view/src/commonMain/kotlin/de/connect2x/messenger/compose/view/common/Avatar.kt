@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +30,7 @@ import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.SystemDensity
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -77,11 +79,13 @@ fun Avatar(
 @Composable
 fun AvatarWithInitials(initials: String, size: Dp = avatarSize().dp) {
     AvatarBase(size) {
-        Text(
-            initials,
-            textAlign = TextAlign.Center,
-            fontSize = with(LocalDensity.current) { size.toSp() * 0.4 },
-        )
+        CompositionLocalProvider(LocalDensity provides SystemDensity.current) {
+            Text(
+                initials,
+                textAlign = TextAlign.Center,
+                fontSize = with(LocalDensity.current) { size.toSp() * 0.4 },
+            )
+        }
     }
 }
 

@@ -2412,6 +2412,11 @@ open class I18nView(
         DE - "Systemeinstellungen verwenden"
     }
 
+    open fun appearanceSizesApplySystemExplanation() = translate {
+        EN - "Apply the system's size settings to the app"
+        DE - "Größeneinstellungen des Systems auf die App anwenden"
+    }
+
     open fun appearanceFontSizeHeading() = translate {
         EN - "Font size"
         DE - "Schriftgröße"

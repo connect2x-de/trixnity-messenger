@@ -94,12 +94,15 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
         }
         Spacer(Modifier.height(30.dp))
         HorizontalDivider()
+        Spacer(Modifier.height(5.dp))
 
         // Settings
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(
-                checked = applySystemSizes,
-                onCheckedChange = {
+            Setting(
+                text = i18n.appearanceSizesApplySystemHeading(),
+                explanation = i18n.appearanceSizesApplySystemExplanation(),
+                value = applySystemSizes,
+                toggle = {
                     appearanceSettingsViewModel.toggleApplySystemSizes()
                     newFontSize = -1F
                     newDisplaySize = -1F
@@ -107,7 +110,6 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                     appearanceSettingsViewModel.setFontSize(defaultSizes.fontSize)
                 }
             )
-            Text(i18n.appearanceSizesApplySystemHeading())
         }
 
         Column(Modifier.padding(16.dp).fillMaxSize()) {
@@ -150,7 +152,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                 value = finalNewDisplaySize,
                 onValueChange = { newDisplaySize = it },
                 valueRange = defaultSizes.minDisplaySize..defaultSizes.maxDisplaySize,
-                steps = 5,
+                steps = 0,
                 enabled = !applySystemSizes
             )
 

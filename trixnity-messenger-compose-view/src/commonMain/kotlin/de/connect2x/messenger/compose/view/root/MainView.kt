@@ -7,17 +7,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.SINGLE_PANE_THRESHOLD
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.getOrNull
 import de.connect2x.messenger.compose.view.theme.DefaultSizes
-import de.connect2x.messenger.compose.view.theme.SystemDensity
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 
-private val MAX_WIDTH = 1600.dp
+private val MAX_WIDTH: Dp = 1600.dp
 
 interface MainView {
     @Composable
@@ -34,7 +34,6 @@ class MainViewImpl : MainView {
     override fun create(mainViewModel: MainViewModel) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val settings = DI.getOrNull<MatrixMessengerSettingsHolder>()?.collectAsState()?.value
-
             val defaultSizes = DI.get<DefaultSizes>()
             val sizeCoefficient =
                 defaultSizes.maxDisplaySize - (settings?.base?.displaySize ?: defaultSizes.displaySize)
