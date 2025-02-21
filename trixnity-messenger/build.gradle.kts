@@ -40,9 +40,9 @@ kotlin {
             }
         }
     }
-    js(IR) {
+    js {
         browser {
-            testTask(Action {
+            testTask {
                 enabled = false // TODO
 //                useKarma {
 //                    useFirefoxHeadless()
@@ -50,7 +50,6 @@ kotlin {
 //                    webpackConfig.configDirectory = rootDir.resolve("webpack.config.d")
 //                }
             }
-            )
         }
         binaries.library()
         generateTypeScriptDefinitions()
