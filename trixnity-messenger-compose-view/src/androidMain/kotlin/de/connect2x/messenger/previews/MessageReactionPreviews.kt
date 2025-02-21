@@ -120,14 +120,12 @@ fun MessageReactionPreview() {
                     reactionEvents = setOf(
                         ByReactionInfo(
                             eventId = EventId(""),
-                            senderFlow = MutableStateFlow(
-                                UserInfoElement(
-                                    name = "Martin",
-                                    userId = UserId("@martin:local"),
-                                    initials = "M",
-                                )
+                            sender = UserInfoElement(
+                                name = "Martin",
+                                userId = UserId("@martin:local"),
+                                initials = "M",
                             ),
-                            isByMe = false,
+                            isMe = false,
                         )
                     ),
                     count = 3,
@@ -140,12 +138,10 @@ fun MessageReactionPreview() {
                     reactionEvents = setOf(
                         ByReactionInfo(
                             eventId = EventId(""),
-                            senderFlow = MutableStateFlow(
-                                UserInfoElement(
-                                    name = "Jan",
-                                    userId = UserId("@jan:local"),
-                                    initials = "J",
-                                )
+                            sender = UserInfoElement(
+                                name = "Jan",
+                                userId = UserId("@jan:local"),
+                                initials = "M",
                             ),
                             isMe = false,
                         ),

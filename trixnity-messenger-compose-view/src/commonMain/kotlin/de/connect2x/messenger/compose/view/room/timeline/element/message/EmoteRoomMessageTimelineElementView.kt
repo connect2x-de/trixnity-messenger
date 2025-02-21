@@ -6,6 +6,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.
 import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInSendMessage
 import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased.Emote
 import kotlin.reflect.KClass
 
@@ -28,19 +29,25 @@ class EmoteRoomMessageTimelineElementView : TimelineElementView<Emote> {
 
     @Composable
     override fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: Emote,
     ) {
         TextBasedRoomMessageTimelineElementView(holder, element) { applyPreviewConfig() }
     }
 
     @Composable
-    override fun createReplyInTimeline(element: Emote) {
-        TextReplyInTimeline(element)
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: Emote,
+    ) {
+        TextReplyInTimeline(holder, element)
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: Emote) {
-        TextReplyInSendMessage(element)
+    override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: Emote,
+    ) {
+        TextReplyInSendMessage(holder, element)
     }
 }

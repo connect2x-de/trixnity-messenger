@@ -32,11 +32,13 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Image
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
@@ -67,7 +69,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<Image> {
 
     @Composable
     override fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: Image,
     ) {
         FileBasedRoomMessageTimelineElement(
@@ -80,13 +82,20 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<Image> {
     }
 
     @Composable
-    override fun createReplyInTimeline(element: Image) {
-        ImageReplyElement(element)
+    override fun createReplyInTimeline(
+        holder:
+        TimelineElementHolderViewModel,
+        element: Image,
+    ) {
+        ImageReplyElement(holder, element)
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: Image) {
-        ImageReplyElement(element)
+    override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: Image,
+    ) {
+        ImageReplyElement(holder, element)
     }
 }
 
@@ -178,24 +187,29 @@ internal fun MessageImageFallback(
 
 @Composable
 @OptIn(ExperimentalResourceApi::class)
-internal fun ImageReplyElement(element: Image) {
+internal fun ImageReplyElement(holder: TimelineElementHolderViewModel, element: Image) {
     val i18n = DI.get<I18nView>()
-    element.thumbnail.collectAsState().value
-        ?.let { image ->
-            Image(
-                image.decodeToImageBitmap(),
-                "",
-                Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Fit
-            )
-        } ?: run {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(10.dp)) {
-            Icon(
-                MaterialTheme.messengerIcons.typeImage,
-                i18n.commonImage(),
-                modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp)
-            )
-            FileName(element.name)
+    ReferencedMessagePill(
+        holder = holder,
+        content = {
+            element.thumbnail.collectAsState().value
+                ?.let { image ->
+                    Image(
+                        image.decodeToImageBitmap(),
+                        "",
+                        Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Fit
+                    )
+                } ?: run {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(10.dp)) {
+                    Icon(
+                        MaterialTheme.messengerIcons.typeImage,
+                        i18n.commonImage(),
+                        modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp)
+                    )
+                    FileName(element.name)
+                }
+            }
         }
-    }
+    )
 }

@@ -31,7 +31,9 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.File
 import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
@@ -60,7 +62,7 @@ class FileRoomMessageTimelineElementView : TimelineElementView<File> {
 
     @Composable
     override fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: File,
     ) {
         FileBasedRoomMessageTimelineElement(
@@ -73,13 +75,19 @@ class FileRoomMessageTimelineElementView : TimelineElementView<File> {
     }
 
     @Composable
-    override fun createReplyInTimeline(element: File) {
-        FileReplyElement(element)
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: File,
+    ) {
+        FileReplyElement(holder, element)
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: File) {
-        FileReplyElement(element)
+    override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: File,
+    ) {
+        FileReplyElement(holder, element)
     }
 }
 
@@ -132,15 +140,20 @@ internal fun FileMessageContent(
 }
 
 @Composable
-internal fun FileReplyElement(element: File) {
+internal fun FileReplyElement(holder: TimelineElementHolderViewModel, element: File) {
     val i18n = DI.get<I18nView>()
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(
-            Icons.Default.Attachment,
-            i18n.commonAttachment(),
-            Modifier.size(30.dp),
-            tint = Color.DarkGray,
-        )
-        FileName(element.name)
-    }
+    ReferencedMessagePill(
+        holder = holder,
+        content = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    Icons.Default.Attachment,
+                    i18n.commonAttachment(),
+                    Modifier.size(30.dp),
+                    tint = Color.DarkGray,
+                )
+                FileName(element.name)
+            }
+        }
+    )
 }

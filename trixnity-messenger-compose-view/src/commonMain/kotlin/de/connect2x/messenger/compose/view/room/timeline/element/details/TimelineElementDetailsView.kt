@@ -10,5 +10,5 @@ interface TimelineElementDetailsView<V : TimelineElementViewModel<*>> {
     val supportedMimeTypes: List<String>
 
     @Composable
-    fun create(element: V, onSaveAttachment: () -> Unit, onClose: () -> Unit)
+    fun create(element: V, onSave: () -> Unit, onClose: () -> Unit)
 }

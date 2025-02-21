@@ -47,6 +47,7 @@ import de.connect2x.messenger.compose.view.verification.VerificationCancelled
 import de.connect2x.messenger.compose.view.verification.VerificationRejected
 import de.connect2x.messenger.compose.view.verification.VerificationTimeout
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.VerificationRequest
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRequestViewModel
@@ -73,18 +74,24 @@ class VerificationRequestRoomMessageTimelineElementView :
 
     @Composable
     override fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: VerificationRequest,
     ) {
         UserVerification(holder, element)
     }
 
     @Composable
-    override fun createReplyInTimeline(element: VerificationRequest) {
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: VerificationRequest,
+    ) {
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: VerificationRequest) {
+    override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: VerificationRequest,
+    ) {
     }
 }
 

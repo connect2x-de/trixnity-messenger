@@ -184,7 +184,7 @@ fun MessageBubbleContainer(
                 hoverMessage,
                 showActionMenu,
                 onOpenMetadata = {
-                    if (holder is TimelineElementHolderViewModel) holder.openMessageMetadata()
+                    if (holder is TimelineElementHolderViewModel) holder.openTimelineElementMetadata()
                 },
                 onReactToMessage = { reactionsOpen.value = true },
                 additionalContextActions,

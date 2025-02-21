@@ -94,10 +94,10 @@ interface RoomViewModel {
     fun openUserProfile(userId: UserId)
 
     /**
-     * Opens [ExtrasRouter.Config.Details.MessageMetadata]
+     * Opens [ExtrasRouter.Config.Details.TimelineElementMetadata]
      * for the [eventId] and currently selected room.
      */
-    fun openMessageMetadata(eventId: EventId)
+    fun openTimelineElementMetadata(eventId: EventId)
 }
 
 open class RoomViewModelImpl(
@@ -124,8 +124,8 @@ open class RoomViewModelImpl(
         onOpenUserProfile(userId)
     }
 
-    override fun openMessageMetadata(eventId: EventId) {
-        onOpenMessageMetadata(eventId)
+    override fun openTimelineElementMetadata(eventId: EventId) {
+        onOpenTimelineElementMetadata(eventId)
     }
 
     private val extrasRouter: ExtrasRouter = ExtrasRouterImpl(
@@ -141,7 +141,7 @@ open class RoomViewModelImpl(
         viewModelContext = viewModelContext,
         onOpenRoomSettings = ::onOpenRoomSettings,
         onOpenUserProfile = ::onOpenUserProfile,
-        onOpenMetadata = ::onOpenMessageMetadata,
+        onOpenMetadata = ::onOpenTimelineElementMetadata,
         onOpenMention = onOpenMention,
         onCloseRoom = ::onCloseRoom,
     )
@@ -171,9 +171,9 @@ open class RoomViewModelImpl(
             extrasRouter.openUserProfile(userId, roomId)
         }
 
-    private fun onOpenMessageMetadata(eventId: EventId) =
+    private fun onOpenTimelineElementMetadata(eventId: EventId) =
         coroutineScope.launch {
-            extrasRouter.openMessageMetadata(eventId, roomId)
+            extrasRouter.openTimelineElementMetadata(eventId, roomId)
         }
 }
 
@@ -201,5 +201,5 @@ class PreviewRoomViewModel : RoomViewModel {
     override fun closeRoom() {}
     override fun openRoomSettings() {}
     override fun openUserProfile(userId: UserId) {}
-    override fun openMessageMetadata(eventId: EventId) {}
+    override fun openTimelineElementMetadata(eventId: EventId) {}
 }

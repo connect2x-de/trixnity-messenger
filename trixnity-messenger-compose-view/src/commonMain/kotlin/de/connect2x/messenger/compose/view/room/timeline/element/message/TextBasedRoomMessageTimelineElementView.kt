@@ -33,9 +33,11 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.messenger.compose.view.room.timeline.element.util.mentionsUriHandler
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 
@@ -202,3 +204,40 @@ internal fun String.formatLinks(): String =
             "<a href=\"${it.value}\">${it.value}</a>"
         }
     }
+
+@Composable
+fun TextReplyInTimeline(
+    holder: TimelineElementHolderViewModel,
+    element: RoomMessageTimelineElementViewModel.TextBased<*>,
+) {
+    ReferencedMessagePill(
+        holder = holder,
+        content = {
+            TextReply(element, 4)
+        }
+    )
+}
+
+@Composable
+fun TextReplyInSendMessage(
+    holder: TimelineElementHolderViewModel,
+    element: RoomMessageTimelineElementViewModel.TextBased<*>
+) {
+    ReferencedMessagePill(
+        holder = holder,
+        content = {
+            TextReply(element, 2)
+        }
+    )
+}
+
+@Composable
+private fun TextReply(element: RoomMessageTimelineElementViewModel.TextBased<*>, maxLines: Int) {
+    Text(
+        text = element.body,
+        fontStyle = FontStyle.Italic,
+        style = MaterialTheme.typography.bodySmall,
+        maxLines = maxLines,
+        overflow = TextOverflow.Ellipsis,
+    )
+}

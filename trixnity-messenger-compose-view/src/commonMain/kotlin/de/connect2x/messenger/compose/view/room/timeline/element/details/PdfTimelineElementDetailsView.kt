@@ -46,7 +46,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
     @Composable
     override fun create(
         element: RoomMessageTimelineElementViewModel.FileBased.File,
-        onSaveAttachment: () -> Unit,
+        onSave: () -> Unit,
         onClose: () -> Unit,
     ) {
         val media = element.downloadMediaResult.collectAsState().value

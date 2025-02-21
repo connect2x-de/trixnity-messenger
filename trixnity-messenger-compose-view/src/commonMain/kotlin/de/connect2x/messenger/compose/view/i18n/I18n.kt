@@ -931,32 +931,32 @@ abstract class I18nView(
         DE - "Dieser Nutzer wird von Ihnen geblockt."
     }
 
-    fun messageMetadataTitle() = translate {
+    fun timelineElementMetadataTitle() = translate {
         EN - "Message details"
         DE - "Nachrichtendetails"
     }
 
-    fun messageMetadataSender() = translate {
+    fun timelineElementMetadataSender() = translate {
         EN - "Sender"
         DE - "Absender"
     }
 
-    fun messageMetadataUserInfoTooltipReactions(reactions: String) = translate {
+    fun timelineElementMetadataUserInfoTooltipReactions(reactions: String) = translate {
         EN - "Reactions: $reactions"
         DE - "Reaktionen: $reactions"
     }
 
-    fun messageMetadataMessage() = translate {
+    fun timelineElementMetadataMessage() = translate {
         EN - "Message"
         DE - "Nachricht"
     }
 
-    fun messageMetadataReadersAndReactions() = translate {
+    fun timelineElementMetadataReadersAndReactions() = translate {
         EN - "Seen and reacted by"
         DE - "Leser und Reaktionen"
     }
 
-    fun messageMetadataReadersAndReactionsNone() = translate {
+    fun timelineElementMetadataReadersAndReactionsNone() = translate {
         EN - "No message interactions yet."
         DE - "Bisher keine Nachrichtsinteraktionen"
     }

@@ -14,8 +14,8 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.AddMember
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.ExportRoom
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.MessageMetadata
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.RoomSettings
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.TimelineElementMetadata
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.UserProfile
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.NoOpTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
@@ -257,25 +257,25 @@ class RoomViewModelTest : ShouldSpec() {
         should("navigate from the timeline to message-metadata").withCleanup {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
-            cut.openMessageMetadata(EventId("1"))
-            cut shouldShowExtrasOfType MessageMetadata::class
+            cut.openTimelineElementMetadata(EventId("1"))
+            cut shouldShowExtrasOfType TimelineElementMetadata::class
         }
 
         should("show message info").withCleanup {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
             val eventId = EventId("event0")
-            cut.openMessageMetadata(eventId)
+            cut.openTimelineElementMetadata(eventId)
             cut shouldShowExtras true
-            cut shouldShowExtrasOfType MessageMetadata::class
+            cut shouldShowExtrasOfType TimelineElementMetadata::class
         }
 
         should("return from message metadata").withCleanup {
             val cut = cutRoomViewModel()
             cut shouldShowExtras false
             val eventId = EventId("event2")
-            cut.openMessageMetadata(eventId)
-            cut.extrasAs<MessageMetadata>().viewModel.back()
+            cut.openTimelineElementMetadata(eventId)
+            cut.extrasAs<TimelineElementMetadata>().viewModel.back()
             cut shouldShowTimeline true
             cut shouldShowExtras false
         }
@@ -285,8 +285,8 @@ class RoomViewModelTest : ShouldSpec() {
             cut shouldShowExtras false
             cut.openRoomSettings()
             cut shouldShowExtrasOfType RoomSettings::class
-            cut.openMessageMetadata(EventId("event4"))
-            cut.extrasAs<MessageMetadata>().viewModel.back()
+            cut.openTimelineElementMetadata(EventId("event4"))
+            cut.extrasAs<TimelineElementMetadata>().viewModel.back()
             cut shouldShowExtrasOfType RoomSettings::class
             cancelNeverEndingCoroutines()
         }

@@ -12,7 +12,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
-interface MessageInfoView {
+interface MessageInfoView { // FIXME remove
     @Composable
     fun create(
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
@@ -42,7 +42,7 @@ class MessageInfoViewImpl : MessageInfoView {
         }
 
         if (infoOpen.value) {
-            val readers = timelineElementHolderViewModel.isReadBy.collectAsState().value.orEmpty()
+            val readers = timelineElementHolderViewModel.readers.collectAsState().value.orEmpty()
             val reactions = timelineElementHolderViewModel.reactions.collectAsState().value?.byReaction.orEmpty()
             val focusRequester = remember { FocusRequester() }
 

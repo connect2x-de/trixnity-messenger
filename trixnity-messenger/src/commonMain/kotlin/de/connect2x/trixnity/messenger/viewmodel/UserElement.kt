@@ -14,15 +14,13 @@ import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.core.model.UserId
 
-
-private val log = KotlinLogging.logger {}
+private val log = KotlinLogging.logger { }
 
 class UserInfoElement(
     val userId: UserId,
     val name: String,
     val initials: String,
     val image: StateFlow<ByteArray?>? = null,
-    val imageUrl: String? = null,
 )
 
 fun RoomUser?.toUserInfoElement(
@@ -38,16 +36,14 @@ fun RoomUser?.toUserInfoElement(
         initials = initials.compute(this?.name ?: fallbackUserId.full),
         image = this@toUserInfoElement?.avatarUrl?.let { avatarUrl ->
             flow {
-
-                // TODO: some sort of retry (see retryLoopFlow)
+                // TODO some sort of retry (see retryLoopFlow)
                 emit(
                     matrixClient.media.getMedia(avatarUrl).getOrNull()?.limitedByteArrayOrNull(maxAvatarSize) {
                         log.error { "Room image for room $roomId exceeds preview size limits, so it's not displayed" }
                     }
                 )
             }.stateIn(coroutineScope, WhileSubscribed(), null)
-        },
-        imageUrl = this@toUserInfoElement?.avatarUrl,
+        }
     )
 
 fun RoomUser.toUserInfoElement(

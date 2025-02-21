@@ -76,8 +76,8 @@ class RoomHeaderViewImpl : RoomHeaderView {
         showBackButton: Boolean,
     ) {
         val roomHeaderElement = roomHeaderViewModel.roomHeaderInfo.collectAsState().value
-        val canShowUserProfile = roomHeaderViewModel.isDirectChat.collectAsState().value
         val usersTyping = roomHeaderViewModel.usersTyping.collectAsState().value
+        val canShowUserProfile = roomHeaderViewModel.isDirectChat.collectAsState().value
         Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
             Column {
                 Row(

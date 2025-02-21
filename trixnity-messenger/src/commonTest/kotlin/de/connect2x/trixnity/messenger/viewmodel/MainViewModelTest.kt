@@ -427,6 +427,7 @@ class MainViewModelTest : ShouldSpec() {
                 )
             }
             val cut = mainViewModel()
+
             continually(2.seconds) { cut.selfVerificationStack.value.active.configuration.shouldBeInstanceOf<SelfVerificationRouter.Config.None>() }
         }
 
@@ -440,7 +441,8 @@ class MainViewModelTest : ShouldSpec() {
             }
 
             val cut = mainViewModel()
-            eventually(300.milliseconds) { // TODO: remove
+
+            eventually(300.milliseconds) {
                 cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncRouter.Config.None>()
             }
         }
@@ -459,13 +461,13 @@ class MainViewModelTest : ShouldSpec() {
 
             // initial state is: InitialSyncConfig.Undefined, but is switched so quickly, we cannot assert it here
 
-            eventually(300.milliseconds) { // TODO: remove
+            eventually(300.milliseconds) {
                 val configuration = cut.initialSyncStack.value.active.configuration
                 configuration.shouldBeTypeOf<InitialSyncRouter.Config.Sync>()
             }
 
             initialSyncDoneFlow.value = true
-            eventually(2.seconds) { // TODO: remove
+            eventually(2.seconds) {
                 cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncRouter.Config.None>()
                 verifySuspend { matrixClientMock.startSync() }
             }
@@ -478,7 +480,7 @@ class MainViewModelTest : ShouldSpec() {
 
             val cut = mainViewModel()
 
-            eventually(800.milliseconds) { // TODO: remove
+            eventually(800.milliseconds) {
                 cut.initialSyncStack.value.active.configuration shouldBe instanceOf<InitialSyncRouter.Config.None>()
                 verifySuspend { matrixClientMock.startSync() }
             }

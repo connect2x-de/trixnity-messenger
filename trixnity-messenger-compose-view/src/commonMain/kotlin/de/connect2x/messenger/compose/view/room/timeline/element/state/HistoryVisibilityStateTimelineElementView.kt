@@ -6,7 +6,9 @@ import androidx.compose.runtime.collectAsState
 import de.connect2x.messenger.compose.view.room.timeline.Indicator
 import de.connect2x.messenger.compose.view.room.timeline.IndicatorText
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.HistoryVisibilityStateTimelineElementViewModel
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -31,10 +33,36 @@ class HistoryVisibilityStateTimelineElementView : TimelineElementView<HistoryVis
 
     @Composable
     override fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: HistoryVisibilityStateTimelineElementViewModel,
     ) {
         StateElement(element)
+    }
+
+    @Composable
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: HistoryVisibilityStateTimelineElementViewModel
+    ) {
+        ReferencedMessagePill(
+            holder = holder,
+            content = {
+                StateElement(element)
+            }
+        )
+    }
+
+    @Composable
+    override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: HistoryVisibilityStateTimelineElementViewModel
+    ) {
+        ReferencedMessagePill(
+            holder = holder,
+            content = {
+                StateElement(element)
+            }
+        )
     }
 
     @Composable

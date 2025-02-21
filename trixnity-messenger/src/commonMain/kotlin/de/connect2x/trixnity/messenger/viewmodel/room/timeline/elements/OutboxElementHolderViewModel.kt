@@ -12,28 +12,41 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdO
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
+import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
+import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
-import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.RoomOutboxMessage
+import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user
+import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger { }
@@ -86,9 +99,10 @@ class OutboxElementHolderViewModelImpl(
     onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, OutboxElementHolderViewModel {
 
+    private val timeZone = get<TimeZone>()
     private val i18n = get<I18n>()
     private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
-    private val repliedTimelineElementHolderViewModelFactory = get<RepliedTimelineElementHolderViewModelFactory>()
+    private val repliedTimelineElementHolderViewModelFactory = get<TimelineElementHolderViewModelFactory>()
     private val config = get<MatrixMessengerConfiguration>()
 
     private data class TimelineElementViewModelWrapper(
@@ -125,23 +139,70 @@ class OutboxElementHolderViewModelImpl(
             else return@map true
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-    private val repliedElementCache = MutableStateFlow<TimelineElementViewModelWrapper?>(null)
-    override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> =
+    private val getReceiptsByEventCache = concurrentMutableMap<RoomId, Flow<Map<EventId, Set<UserId>>>>()
+    private fun getReceipts(roomId: RoomId): Flow<Map<EventId, Set<UserId>>> =
+        flow {
+            emitAll(
+                getReceiptsByEventCache.read { get(roomId) }
+                    ?: getReceiptsByEventCache.write {
+                        getOrPut(roomId) {
+                            matrixClient.user.getAllReceipts(roomId)
+                                .byEventId(userId)
+                                .stateIn(coroutineScope, WhileSubscribed(), emptyMap())
+                        }
+                    }
+            )
+        }
+
+    private data class TimelineElementHolderViewModelWrapper(
+        val eventId: EventId,
+        val viewModel: TimelineElementHolderViewModel,
+        val lifecycle: LifecycleRegistry,
+    )
+
+    private val timelineElementHolderViewModelFactory = get<TimelineElementHolderViewModelFactory>()
+    private val repliedElementCache = MutableStateFlow<TimelineElementHolderViewModelWrapper?>(null)
+    override val repliedElement: StateFlow<TimelineElementHolderViewModel?> =
         outboxMessageFlow.map { outboxMessage ->
             repliedElementCache.value?.lifecycle?.destroy()
             if (outboxMessage == null) return@map null
-            val repliedEventId = outboxMessage.content.relatesTo?.replyTo?.eventId
-            if (repliedEventId == null) return@map null
+            val repliedEventId = outboxMessage.content.relatesTo?.replyTo?.eventId ?: return@map null
+            val repliedElementCacheValue = repliedElementCache.value
+            if (repliedElementCacheValue?.eventId == repliedEventId)
+                return@map repliedElementCacheValue.viewModel
+            val timelineEventFlow = matrixClient.room.getTimelineEvent(roomId, repliedEventId).filterNotNull()
+            val timelineEvent = timelineEventFlow.first()
+            repliedElementCache.value?.lifecycle?.destroy()
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
-            repliedTimelineElementHolderViewModelFactory.create(
-                childContextWithOwnLifecycle(lifecycle),
-                matrixClient.room.getTimelineEvent(roomId, repliedEventId),
-                roomId,
-                repliedEventId,
-                onOpenMention,
-            )
-        }.stateIn(coroutineScope, Lazily, null) // only calculate once!
+            timelineElementHolderViewModelFactory.create(
+                viewModelContext = childContextWithOwnLifecycle(lifecycle),
+                key = "element",
+                timelineEventFlow = timelineEventFlow,
+                roomId = roomId,
+                eventId = repliedEventId,
+                sender = timelineEvent.sender,
+                formattedDate = formatDate(
+                    Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
+                        .toLocalDateTime(timeZone)
+                ),
+                formattedTime = formatTime(
+                    Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
+                        .toLocalDateTime(timeZone)
+                ),
+                showLoadingIndicatorBefore = flowOf(false),
+                showLoadingIndicatorAfter = flowOf(false),
+                showUnreadMarker = flowOf(false),
+                getReceipts = ::getReceipts,
+                onMessageReplace = { _, _ -> },
+                onMessageReply = { _, _ -> },
+                onMessageReport = { _, _ -> },
+                onOpenMention = { _, _ -> },
+                onOpenMetadata = {},
+            ).also {
+                repliedElementCache.value = TimelineElementHolderViewModelWrapper(repliedEventId, it, lifecycle)
+            }
+        }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     private val initials = get<Initials>()
     override val sender: StateFlow<UserInfoElement?> =

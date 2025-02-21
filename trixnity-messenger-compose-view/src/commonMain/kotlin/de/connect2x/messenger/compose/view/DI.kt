@@ -41,8 +41,6 @@ import de.connect2x.messenger.compose.view.room.settings.ChangeRoomAvatarView
 import de.connect2x.messenger.compose.view.room.settings.ChangeRoomAvatarViewImpl
 import de.connect2x.messenger.compose.view.room.settings.ExportRoomView
 import de.connect2x.messenger.compose.view.room.settings.ExportRoomViewImpl
-import de.connect2x.messenger.compose.view.room.settings.MessageMetadataView
-import de.connect2x.messenger.compose.view.room.settings.MessageMetadataViewImpl
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsExportRoomView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsExportRoomViewImpl
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsHistoryVisibilityView
@@ -67,6 +65,8 @@ import de.connect2x.messenger.compose.view.room.settings.RoomSettingsView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsViewImpl
 import de.connect2x.messenger.compose.view.room.settings.SearchUsersSettingsView
 import de.connect2x.messenger.compose.view.room.settings.SearchUsersSettingsViewImpl
+import de.connect2x.messenger.compose.view.room.settings.TimelineElementMetadataView
+import de.connect2x.messenger.compose.view.room.settings.TimelineElementMetadataViewImpl
 import de.connect2x.messenger.compose.view.room.settings.UserProfileView
 import de.connect2x.messenger.compose.view.room.settings.UserProfileViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.AudioReplyView
@@ -105,7 +105,6 @@ import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefaultView
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefaultViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyView
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.EmptyTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.EncryptedErrorTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.EncryptedWaitTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsView
@@ -267,7 +266,6 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
-
 fun composeViewModule(): Module = module {
     includes(
         i18nViewModule(),
@@ -373,7 +371,7 @@ fun roomViewModule() = module {
 
 fun roomSettingsViewModule() = module {
     single<RoomSettingsView> { RoomSettingsViewImpl() }
-    single<MessageMetadataView> { MessageMetadataViewImpl() }
+    single<TimelineElementMetadataView> { TimelineElementMetadataViewImpl() }
     single<ChangeRoomAvatarView> { ChangeRoomAvatarViewImpl() }
     single<RoomSettingsNameView> { RoomSettingsNameViewImpl() }
     single<RoomSettingsTopicView> { RoomSettingsTopicViewImpl() }
@@ -399,7 +397,6 @@ inline fun <reified F : TimelineElementDetailsView<*>> Module.timelineElementDet
 ) = single<F>(named<F>(), definition = definition).bind<TimelineElementDetailsView<*>>()
 
 fun timelineViewModule() = module {
-    timelineElementView<EmptyTimelineElementView> { EmptyTimelineElementView }
     timelineElementView<EncryptedErrorTimelineElementView> { EncryptedErrorTimelineElementView() }
     timelineElementView<EncryptedWaitTimelineElementView> { EncryptedWaitTimelineElementView() }
     timelineElementView<RedactedTimelineElementView> { RedactedTimelineElementView() }

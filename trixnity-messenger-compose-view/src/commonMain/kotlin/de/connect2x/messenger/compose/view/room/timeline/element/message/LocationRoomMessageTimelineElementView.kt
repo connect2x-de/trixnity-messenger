@@ -15,7 +15,9 @@ import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElement
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.Location
 import kotlin.reflect.KClass
 
@@ -38,20 +40,23 @@ class LocationRoomMessageTimelineElementView : TimelineElementView<Location> {
 
     @Composable
     override fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: Location,
     ) {
         LocationMessageElement(holder, element) { applyPreviewConfig() }
     }
 
     @Composable
-    override fun createReplyInTimeline(element: Location) {
-        LocationReplyElement(element)
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: Location,
+    ) {
+        LocationReplyElement(holder, element)
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: Location) {
-        LocationReplyElement(element)
+    override fun createReplyInSendMessage(holder: TimelineElementHolderViewModel, element: Location) {
+        LocationReplyElement(holder, element)
     }
 }
 
@@ -103,7 +108,7 @@ internal fun LocationMessageContent(
 }
 
 @Composable
-internal fun LocationReplyElement(element: Location) {
+internal fun LocationReplyElement(holder: TimelineElementHolderViewModel, element: Location) {
     val i18n = DI.get<I18nView>()
     val (geoUrl, pos) = element.geoUri
         .removePrefix("geo:").substringBefore(";").split(",")
@@ -112,12 +117,17 @@ internal fun LocationReplyElement(element: Location) {
         }
 
     val uriHandler = LocalUriHandler.current
-    ClickableText(
-        text = AnnotatedString(i18n.locationClickText(pos)),
-        onClick = {
-            uriHandler.openUri(geoUrl)
-        },
-        onLongPress = {},
-        style = MaterialTheme.typography.bodySmall
+    ReferencedMessagePill(
+        holder = holder,
+        content = {
+            ClickableText(
+                text = AnnotatedString(i18n.locationClickText(pos)),
+                onClick = {
+                    uriHandler.openUri(geoUrl)
+                },
+                onLongPress = {},
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
     )
 }

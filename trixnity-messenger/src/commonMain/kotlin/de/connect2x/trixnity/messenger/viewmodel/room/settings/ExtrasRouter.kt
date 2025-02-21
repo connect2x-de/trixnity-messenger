@@ -10,7 +10,7 @@ import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.Details.MessageMetadata
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.Details.TimelineElementMetadata
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.Details.UserProfile
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.None
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings
@@ -37,12 +37,12 @@ interface ExtrasRouter {
     suspend fun openAddMembers(roomId: RoomId)
     suspend fun openExportRoom(roomId: RoomId)
     suspend fun openUserProfile(userId: UserId, roomId: RoomId)
-    suspend fun openMessageMetadata(eventId: EventId, roomId: RoomId)
+    suspend fun openTimelineElementMetadata(eventId: EventId, roomId: RoomId)
 
     sealed class Wrapper {
         data object None : Wrapper()
         class UserProfile(val viewModel: UserProfileViewModel) : Wrapper()
-        class MessageMetadata(val viewModel: MessageMetadataViewModel) : Wrapper()
+        class TimelineElementMetadata(val viewModel: TimelineElementMetadataViewModel) : Wrapper()
         class RoomSettings(val viewModel: RoomSettingsViewModel) : Wrapper()
         class AddMember(val viewModel: AddMembersViewModel) : Wrapper()
         class ExportRoom(val viewModel: ExportRoomViewModel) : Wrapper()
@@ -71,7 +71,7 @@ interface ExtrasRouter {
             data class UserProfile(val userId: UserId, val roomId: RoomId) : RoomSettings
 
             @Serializable
-            data class MessageMetadata(val eventId: EventId, val roomId: RoomId) : Config
+            data class TimelineElementMetadata(val eventId: EventId, val roomId: RoomId) : Config
         }
 
         @Serializable
@@ -138,8 +138,8 @@ class ExtrasRouterImpl(
         }
     }
 
-    override suspend fun openMessageMetadata(eventId: EventId, roomId: RoomId) {
-        extrasNavigation.pushSuspending(MessageMetadata(eventId, roomId)) {
+    override suspend fun openTimelineElementMetadata(eventId: EventId, roomId: RoomId) {
+        extrasNavigation.pushSuspending(TimelineElementMetadata(eventId, roomId)) {
             log.debug { "extras: opened message metadata for event: $eventId from room $roomId" }
         }
     }
@@ -194,8 +194,8 @@ class ExtrasRouterImpl(
             )
         )
 
-        is MessageMetadata -> Wrapper.MessageMetadata(
-            viewModelContext.get<MessageMetadataViewModelFactory>().create(
+        is TimelineElementMetadata -> Wrapper.TimelineElementMetadata(
+            viewModelContext.get<TimelineElementMetadataViewModelFactory>().create(
                 viewModelContext = viewModelContext.childContext(componentContext),
                 eventId = config.eventId,
                 roomId = config.roomId,

@@ -47,7 +47,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangeRoomAvatarV
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.MessageMetadataViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsHistoryVisibilityViewModelFactory
@@ -57,6 +56,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNotif
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsSecurityViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportToMessageViewModelFactory
@@ -67,7 +67,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Encrypte
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedWaitTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedTimelineElementViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RepliedTimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactorySelector
@@ -379,7 +378,6 @@ private fun timelineElementViewModels() = module {
 
     single<TimelineElementHolderViewModelFactory> { TimelineElementHolderViewModelFactory }
     single<OutboxElementHolderViewModelFactory> { OutboxElementHolderViewModelFactory }
-    single<RepliedTimelineElementHolderViewModelFactory> { RepliedTimelineElementHolderViewModelFactory }
 }
 
 private fun roomViewModels() = module {
@@ -402,7 +400,7 @@ private fun roomSettingsViewModels() = module {
     single<RoomSettingsAliasViewModelFactory> { RoomSettingsAliasViewModelFactory }
     single<RoomSettingsJoinRulesViewModelFactory> { RoomSettingsJoinRulesViewModelFactory }
     single<RoomSettingsSecurityViewModelFactory> { RoomSettingsSecurityViewModelFactory }
-    single<MessageMetadataViewModelFactory> { MessageMetadataViewModelFactory }
+    single<TimelineElementMetadataViewModelFactory> { TimelineElementMetadataViewModelFactory }
     single<UserProfileViewModelFactory> { UserProfileViewModelFactory }
     single<AddMembersViewModelFactory> { AddMembersViewModelFactory }
     single<ExportRoomViewModelFactory> { ExportRoomViewModelFactory }
