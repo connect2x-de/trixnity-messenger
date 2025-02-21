@@ -1,25 +1,18 @@
 package de.connect2x.messenger.compose.view.room.settings
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.animateScrollBy
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -32,18 +25,13 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.BottomCenter
-import androidx.compose.ui.Alignment.Companion.Center
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
@@ -51,7 +39,6 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -61,13 +48,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastRoundToInt
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
-import de.connect2x.messenger.compose.view.common.LargeSpacer
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
@@ -77,10 +63,9 @@ import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.util.Tooltip
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.MessageUserInteraction
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.util.ReactionKey
+import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.UserId
@@ -120,10 +105,15 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
         if (element == null || reactions == null || readers == null || sender == null) {
             LoadingSpinner(Modifier.fillMaxSize())
         } else {
-            val scrollState = rememberScrollState()
             val interactionFilterByReaction = remember { mutableStateOf<String?>(null) }
-            val hasReadersOrReactions = readers.isNotEmpty() || reactions.all.isNotEmpty()
+            val allReadersAndReactions = remember(readers, reactions) {
+                readers.associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, false) } +
+                        reactions.byUser
+            }
+            val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
             val isFilterVisible = reactions.byReaction.size > 1
+
+            val scrollState = rememberScrollState()
 
             ExtrasPaneHeader(
                 title = i18n.timelineElementMetadataTitle(),
@@ -139,7 +129,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                             .verticalScroll(scrollState)
                             .padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp))
                     ) {
-                        LargeSpacer()
+                        MiddleSpacer()
                         Text(
                             text = i18n.timelineElementMetadataSender(),
                             style = MaterialTheme.typography.titleMedium,
@@ -148,7 +138,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                             sender,
                             onOpenUserProfile = viewModel::openUserProfile,
                         )
-                        SmallSpacer()
+                        MiddleSpacer()
                         Text(
                             text = i18n.timelineElementMetadataMessage(),
                             style = MaterialTheme.typography.titleMedium,
@@ -157,47 +147,47 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                         MessageContent(element)
                         SmallSpacer()
                         HorizontalDivider()
-                        LargeSpacer()
+                        MiddleSpacer()
                         Text(
                             text = i18n.timelineElementMetadataReadersAndReactions(),
                             style = MaterialTheme.typography.titleMedium,
                         )
                         SmallSpacer()
-                        if (hasReadersOrReactions) {
-                            // TODO: Move this into the viewmodel?
-                            val interactions = interactionFilterByReaction.value.let { filter ->
-                                if (filter != null) userInteractions.filter { it.reactions.contains(filter) }
-                                else userInteractions
-                            }.sortedByDescending { it.reactions.firstOrNull()?.hashCode() }
-                            log.debug { "interactions:${userInteractions.size} filtered:${interactions.size}" }
-                            if (interactions.isEmpty() && interactionFilterByReaction.value != null) {
-                                // Reset the filter if it's set but yields no results.
-                                interactionFilterByReaction.value = null
-                                // TODO: Add state that will trigger the filter row to scroll back to its beginning.
-                            }
-                            key(interactions) {
-                                UserInteractions(
-                                    interactions = interactions,
-                                    visibleListOffset = interactionsOffset,
-                                    visibleListHeight = filterOffset - interactionsOffset,
-                                    onOpenUserProfile = viewModel::openUserProfile,
-                                )
-                            }
-                        } else {
-                            Text(
-                                text = i18n.timelineElementMetadataReadersAndReactionsNone(),
-                                style = MaterialTheme.typography.labelMedium,
-                            )
-                        }
+//                        if (hasReadersOrReactions) {
+//                            // TODO: Move this into the viewmodel?
+//                            val interactions = interactionFilterByReaction.value.let { filter ->
+//                                if (filter != null) userInteractions.filter { it.reactions.contains(filter) }
+//                                else userInteractions
+//                            }.sortedByDescending { it.reactions.firstOrNull()?.hashCode() }
+//                            log.debug { "interactions:${userInteractions.size} filtered:${interactions.size}" }
+//                            if (interactions.isEmpty() && interactionFilterByReaction.value != null) {
+//                                // Reset the filter if it's set but yields no results.
+//                                interactionFilterByReaction.value = null
+//                                // TODO: Add state that will trigger the filter row to scroll back to its beginning.
+//                            }
+//                            key(interactions) {
+//                                UserInteractions(
+//                                    interactions = interactions,
+//                                    visibleListOffset = interactionsOffset,
+//                                    visibleListHeight = filterOffset - interactionsOffset,
+//                                    onOpenUserProfile = viewModel::openUserProfile,
+//                                )
+//                            }
+//                        } else {
+//                            Text(
+//                                text = i18n.timelineElementMetadataReadersAndReactionsNone(),
+//                                style = MaterialTheme.typography.labelMedium,
+//                            )
+//                        }
                         SmallSpacer()
                     }
                     VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
                 }
-                if (isInteractionsVisible) ReactionsFilter(
-                    Modifier.offset(y = filterOffset),
-                    reactionCounts,
-                    interactionFilterByReaction,
-                )
+//                if (isInteractionsVisible) ReactionsFilter(
+//                    Modifier.offset(y = filterOffset),
+//                    reactionCounts,
+//                    interactionFilterByReaction,
+//                )
             }
         }
     }
@@ -227,7 +217,7 @@ private fun UserInfo(
         Row(
             Modifier
                 .fillMaxWidth()
-                .height(userItemHeight)
+                // TODO .height(userItemHeight)
                 .clickable {
                     onOpenUserProfile(userInfo.userId)
                 }
@@ -235,7 +225,6 @@ private fun UserInfo(
             Box(
                 Modifier
                     .align(CenterVertically)
-                    .padding(start = 8.dp)
             ) {
                 Avatar(image, userInfo.initials)
             }
@@ -283,163 +272,163 @@ private fun MessageContent(
     }
 }
 
-@Composable
-private fun UserInteractions(
-    modifier: Modifier = Modifier,
-    interactions: List<MessageUserInteraction>,
-    visibleListOffset: Dp,
-    visibleListHeight: Dp,
-    onOpenUserProfile: (UserId) -> Unit,
-) {
-    val i18n = DI.get<I18nView>()
-    Column(modifier) {
-        if (interactions.isEmpty()) Text(
-            i18n.timelineElementMetadataReadersAndReactionsNone(),
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier
-                .height(filterBarHeight + largeSpacing)
-                .align(CenterHorizontally)
-                .paddingFromBaseline(0.dp)
-                .padding(start = smallSpacing),
-        )
-        else LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface)
-                .height(userItemHeight * interactions.size),
-            userScrollEnabled = false,
-            content = {
-                items(
-                    count = interactions.size,
-                    key = { interactions[it].userId },
-                ) {
-                    val interaction = interactions[it]
-                    UserInfo(interaction.userInfo, interaction.reactions, onOpenUserProfile)
-                }
-            }
-        )
-
-        /**
-         * Alternative implementation if the lazy column is rendering too many items since this one avoids drawing rows and loading profile images by visibility.
-         * Both variants seem to work fine so pick the best.
-         */
-//        else FlatLazyColumn(
-//            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
-//            visibleListOffset = visibleListOffset,
-//            visibleListHeight = visibleListHeight,
-//            itemHeight = userItemHeight,
-//            itemCount = interactions.size,
-//            itemKey = { interactions[it].userId },
-//            itemContent = {
-//                val interaction = interactions[it]
-//                UserInfo(interaction.userInfo, interaction.reactions, onOpenUserProfile)
+//@Composable
+//private fun UserInteractions(
+//    modifier: Modifier = Modifier,
+//    interactions: List<MessageUserInteraction>,
+//    visibleListOffset: Dp,
+//    visibleListHeight: Dp,
+//    onOpenUserProfile: (UserId) -> Unit,
+//) {
+//    val i18n = DI.get<I18nView>()
+//    Column(modifier) {
+//        if (interactions.isEmpty()) Text(
+//            i18n.timelineElementMetadataReadersAndReactionsNone(),
+//            style = MaterialTheme.typography.labelMedium,
+//            modifier = Modifier
+//                .height(filterBarHeight + largeSpacing)
+//                .align(CenterHorizontally)
+//                .paddingFromBaseline(0.dp)
+//                .padding(start = smallSpacing),
+//        )
+//        else LazyColumn(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .background(MaterialTheme.colorScheme.surface)
+//                .height(userItemHeight * interactions.size),
+//            userScrollEnabled = false,
+//            content = {
+//                items(
+//                    count = interactions.size,
+//                    key = { interactions[it].userId },
+//                ) {
+//                    val interaction = interactions[it]
+//                    UserInfo(interaction.userInfo, interaction.reactions, onOpenUserProfile)
+//                }
 //            }
 //        )
-    }
-}
-
-@Composable
-private fun <K> FlatLazyColumn(
-    modifier: Modifier = Modifier,
-    visibleListOffset: Dp,
-    visibleListHeight: Dp,
-    itemHeight: Dp,
-    itemCount: Int,
-    itemKey: (index: Int) -> K,
-    itemContent: @Composable BoxScope.(index: Int) -> Unit,
-) {
-    val cullBuffer = 1f
-    val visibleItemIndexFirst = (-visibleListOffset.value / itemHeight.value - cullBuffer)
-        .fastRoundToInt().coerceIn(0, itemCount - 1)
-    val visibleItemIndexLast = (visibleItemIndexFirst +
-            (visibleListHeight.value / itemHeight.value + cullBuffer)
-                .fastRoundToInt()).coerceIn(0, itemCount - 1)
-    val visibleItemsRange = (visibleItemIndexFirst..visibleItemIndexLast)
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .then(modifier)
-    ) {
-        repeat(itemCount) { index ->
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(itemHeight)
-            ) {
-                val showItem = visibleItemsRange.contains(index)
-                if (showItem) key(itemKey(index)) {
-                    itemContent(index)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ReactionsFilter(
-    modifier: Modifier = Modifier,
-    reactionCounts: Map<ReactionKey, UInt>,
-    interactionFilterByReaction: MutableState<ReactionKey?>,
-) {
-    if (reactionCounts.isEmpty()) return
-    val i18n = DI.get<I18nView>()
-    var selectedTabIndex = 0
-    val buttonWidth = 64.dp
-    val reactionList = reactionCounts.asSequence()
-    // TODO: Move this into the viewmodel?
-    val reactionListWithSum: List<Pair<String, UInt>> =
-        listOf(i18n.commonAll() to reactionList.map { it.value }.sum()) +
-                reactionList.mapIndexed { index, reactionCount ->
-                    if (reactionCount.key == interactionFilterByReaction.value)
-                        selectedTabIndex = index + 1
-                    reactionCount.toPair()
-                }
-    val filterScrollState = rememberLazyListState()
-    Box(modifier.height(filterBarHeight)) {
-        TabsRow(
-            tabsCount = reactionListWithSum.size,
-            selectedTabIndex = selectedTabIndex,
-            scrollableState = filterScrollState,
-            containerColor = Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            selectionIndicatorColor = MaterialTheme.colorScheme.primary,
-            edgePadding = contentPadding,
-            onTabClick = {
-                if (it > 0) interactionFilterByReaction.value =
-                    reactionListWithSum[it].first
-                else interactionFilterByReaction.value = null
-            },
-        ) { tabIndex, _ ->
-            reactionListWithSum[tabIndex].let { (reaction, count) ->
-                Row(
-                    Modifier
-                        .width(buttonWidth)
-                        .fillMaxHeight()
-                        .background(with(MaterialTheme.colorScheme) {
-                            if (tabIndex % 2 == 0) surface
-                            else onSurface.copy(alpha = 0.063f)
-                                .compositeOver(surface)
-                        })
-                        .align(Center),
-                    verticalAlignment = CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    Text(
-                        reaction,
-                        style = MaterialTheme.typography.labelLarge.let {
-                            if (tabIndex > 0) it.copy(fontSize = 16.sp) else it
-                        }
-                    )
-                    Spacer(Modifier.size(2.dp))
-                    Text("$count")
-                }
-            }
-        }
-        HorizontalDivider(Modifier.align(TopCenter))
-        // TODO: Use disappearing scrollbar?
-        HorizontalScrollbar(Modifier.align(BottomCenter), filterScrollState, false)
-    }
-}
+//
+//        /**
+//         * Alternative implementation if the lazy column is rendering too many items since this one avoids drawing rows and loading profile images by visibility.
+//         * Both variants seem to work fine so pick the best.
+//         */
+////        else FlatLazyColumn(
+////            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+////            visibleListOffset = visibleListOffset,
+////            visibleListHeight = visibleListHeight,
+////            itemHeight = userItemHeight,
+////            itemCount = interactions.size,
+////            itemKey = { interactions[it].userId },
+////            itemContent = {
+////                val interaction = interactions[it]
+////                UserInfo(interaction.userInfo, interaction.reactions, onOpenUserProfile)
+////            }
+////        )
+//    }
+//}
+//
+//@Composable
+//private fun <K> FlatLazyColumn(
+//    modifier: Modifier = Modifier,
+//    visibleListOffset: Dp,
+//    visibleListHeight: Dp,
+//    itemHeight: Dp,
+//    itemCount: Int,
+//    itemKey: (index: Int) -> K,
+//    itemContent: @Composable BoxScope.(index: Int) -> Unit,
+//) {
+//    val cullBuffer = 1f
+//    val visibleItemIndexFirst = (-visibleListOffset.value / itemHeight.value - cullBuffer)
+//        .fastRoundToInt().coerceIn(0, itemCount - 1)
+//    val visibleItemIndexLast = (visibleItemIndexFirst +
+//            (visibleListHeight.value / itemHeight.value + cullBuffer)
+//                .fastRoundToInt()).coerceIn(0, itemCount - 1)
+//    val visibleItemsRange = (visibleItemIndexFirst..visibleItemIndexLast)
+//    Column(
+//        Modifier
+//            .fillMaxWidth()
+//            .then(modifier)
+//    ) {
+//        repeat(itemCount) { index ->
+//            Box(
+//                Modifier
+//                    .fillMaxWidth()
+//                    .height(itemHeight)
+//            ) {
+//                val showItem = visibleItemsRange.contains(index)
+//                if (showItem) key(itemKey(index)) {
+//                    itemContent(index)
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//@Composable
+//private fun ReactionsFilter(
+//    modifier: Modifier = Modifier,
+//    reactionCounts: Map<ReactionKey, UInt>,
+//    interactionFilterByReaction: MutableState<ReactionKey?>,
+//) {
+//    if (reactionCounts.isEmpty()) return
+//    val i18n = DI.get<I18nView>()
+//    var selectedTabIndex = 0
+//    val buttonWidth = 64.dp
+//    val reactionList = reactionCounts.asSequence()
+//    // TODO: Move this into the viewmodel?
+//    val reactionListWithSum: List<Pair<String, UInt>> =
+//        listOf(i18n.commonAll() to reactionList.map { it.value }.sum()) +
+//                reactionList.mapIndexed { index, reactionCount ->
+//                    if (reactionCount.key == interactionFilterByReaction.value)
+//                        selectedTabIndex = index + 1
+//                    reactionCount.toPair()
+//                }
+//    val filterScrollState = rememberLazyListState()
+//    Box(modifier.height(filterBarHeight)) {
+//        TabsRow(
+//            tabsCount = reactionListWithSum.size,
+//            selectedTabIndex = selectedTabIndex,
+//            scrollableState = filterScrollState,
+//            containerColor = Color.Transparent,
+//            contentColor = MaterialTheme.colorScheme.onSurface,
+//            selectionIndicatorColor = MaterialTheme.colorScheme.primary,
+//            edgePadding = contentPadding,
+//            onTabClick = {
+//                if (it > 0) interactionFilterByReaction.value =
+//                    reactionListWithSum[it].first
+//                else interactionFilterByReaction.value = null
+//            },
+//        ) { tabIndex, _ ->
+//            reactionListWithSum[tabIndex].let { (reaction, count) ->
+//                Row(
+//                    Modifier
+//                        .width(buttonWidth)
+//                        .fillMaxHeight()
+//                        .background(with(MaterialTheme.colorScheme) {
+//                            if (tabIndex % 2 == 0) surface
+//                            else onSurface.copy(alpha = 0.063f)
+//                                .compositeOver(surface)
+//                        })
+//                        .align(Center),
+//                    verticalAlignment = CenterVertically,
+//                    horizontalArrangement = Arrangement.Center,
+//                ) {
+//                    Text(
+//                        reaction,
+//                        style = MaterialTheme.typography.labelLarge.let {
+//                            if (tabIndex > 0) it.copy(fontSize = 16.sp) else it
+//                        }
+//                    )
+//                    Spacer(Modifier.size(2.dp))
+//                    Text("$count")
+//                }
+//            }
+//        }
+//        HorizontalDivider(Modifier.align(TopCenter))
+//        // TODO: Use disappearing scrollbar?
+//        HorizontalScrollbar(Modifier.align(BottomCenter), filterScrollState, false)
+//    }
+//}
 
 // TODO: Move to separate file?
 @Composable

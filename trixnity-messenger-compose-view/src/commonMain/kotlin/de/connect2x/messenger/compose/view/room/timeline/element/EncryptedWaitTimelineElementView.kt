@@ -20,9 +20,11 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedWaitTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import kotlin.reflect.KClass
 
 
@@ -47,7 +49,7 @@ class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimeli
 
     @Composable
     override fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: EncryptedWaitTimelineElementViewModel,
     ) {
         MessageBubble(
@@ -59,13 +61,27 @@ class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimeli
     }
 
     @Composable
-    override fun createReplyInTimeline(element: EncryptedWaitTimelineElementViewModel) {
-        EncryptedMessageWaitElement()
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: EncryptedWaitTimelineElementViewModel,
+        ) {
+        ReferencedMessagePill(
+            holder = holder,
+            content = {
+                EncryptedMessageWaitElement()
+            }
+        )
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: EncryptedWaitTimelineElementViewModel) {
-        EncryptedMessageWaitElement()
+    override fun createReplyInSendMessage(holder: TimelineElementHolderViewModel,
+                                          element: EncryptedWaitTimelineElementViewModel,) {
+        ReferencedMessagePill(
+            holder = holder,
+            content = {
+                EncryptedMessageWaitElement()
+            }
+        )
     }
 }
 

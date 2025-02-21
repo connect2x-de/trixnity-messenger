@@ -87,7 +87,7 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
         element: TimelineElementViewModel<*>,
     ) {
         val factory = rememberSelectFactory(element)
-        factory?.createReplyInTimeline(element)
+        factory?.createReplyInTimeline(holder, element)
     }
 
     @Composable
@@ -96,7 +96,7 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
         element: TimelineElementViewModel<*>,
     ) {
         val factory = rememberSelectFactory(element)
-        factory?.createReplyInSendMessage(element)
+        factory?.createReplyInSendMessage(holder, element)
     }
 
     @Composable

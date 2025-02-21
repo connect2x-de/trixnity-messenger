@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfo
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactions
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -145,18 +144,17 @@ class MessageBubbleViewImpl : MessageBubbleView {
                     MessageBubbleContainer(
                         holder = holder,
                         config = cfg,
-                        infoOpen = showInfo,
                         reactionsOpen = showReactions,
                         additionalContextActions = additionalContextActions,
                         overlay = overlay,
                         content = content,
                     )
                 }
-                MessageInfo( // FIXME remove
-                    holder,
-                    showInfo,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
+//                MessageInfo( // FIXME remove
+//                    holder,
+//                    showInfo,
+//                    modifier = Modifier.padding(start = 8.dp),
+//                )
                 if (cfg.showMessageReactions) MessageReactions(
                     holder,
                     showReactions,

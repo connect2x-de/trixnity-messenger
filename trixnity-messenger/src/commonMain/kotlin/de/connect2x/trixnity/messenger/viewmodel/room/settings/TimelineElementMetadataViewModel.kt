@@ -5,11 +5,18 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel1
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.util.EventReaction
+import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
+import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -201,4 +208,110 @@ class TimelineElementMetadataViewModelImpl(
     override fun openUserProfile(userId: UserId) {
         onOpenUserProfile(userId)
     }
+}
+
+class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewModel {
+    override val elementHistory: StateFlow<List<TimelineElementHolderViewModel>?> =
+        MutableStateFlow(
+            listOf(
+                PreviewTimelineElementViewModel1().apply {
+                    element.value = object : RoomMessageTimelineElementViewModel.TextBased.Text {
+                        override val body: String = "Edit 1"
+                        override val formattedBody: String? = null
+                        override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
+                        override val mentionsInFormattedBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> =
+                            mapOf()
+
+                        override fun openMention(mention: TimelineElementMention) {}
+                    }
+                    repliedElement.value = null
+                },
+                PreviewTimelineElementViewModel1().apply {
+                    element.value = object : RoomMessageTimelineElementViewModel.TextBased.Text {
+                        override val body: String = "Edit 2"
+                        override val formattedBody: String? = null
+                        override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
+                        override val mentionsInFormattedBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> =
+                            mapOf()
+
+                        override fun openMention(mention: TimelineElementMention) {}
+                    }
+                    repliedElement.value = null
+                },
+                PreviewTimelineElementViewModel1().apply {
+                    element.value = object : RoomMessageTimelineElementViewModel.TextBased.Text {
+                        override val body: String = "Edit 3"
+                        override val formattedBody: String? = null
+                        override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
+                        override val mentionsInFormattedBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> =
+                            mapOf()
+
+                        override fun openMention(mention: TimelineElementMention) {}
+                    }
+                    repliedElement.value = null
+                },
+            )
+        )
+    override val element: StateFlow<TimelineElementHolderViewModel?> = MutableStateFlow(
+        PreviewTimelineElementViewModel1().apply {
+            element.value = object : RoomMessageTimelineElementViewModel.TextBased.Text {
+                override val body: String = "Edit 4"
+                override val formattedBody: String? = null
+                override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
+                override val mentionsInFormattedBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
+                override fun openMention(mention: TimelineElementMention) {}
+            }
+            sender.value = UserInfoElement(
+                userId = UserId("@martin:localhost"),
+                name = "Martin",
+                initials = "M",
+                image = MutableStateFlow(previewImageByteArray()),
+            )
+            reactions.value = EventReactions(
+                setOf(
+                    EventReaction(
+                        "👍",
+                        UserInfoElement(
+                            userId = UserId("@martin:localhost"),
+                            name = "Martin",
+                            initials = "M",
+                            image = MutableStateFlow(previewImageByteArray()),
+                        ),
+                        EventId("r1"),
+                        false
+                    ),
+                    EventReaction(
+                        "😀",
+                        UserInfoElement(
+                            userId = UserId("@michael:localhost"),
+                            name = "Michael",
+                            initials = "M",
+                            image = MutableStateFlow(previewImageByteArray()),
+                        ),
+                        EventId("r2"),
+                        false
+                    ),
+                )
+            )
+            readers.value=listOf(
+                UserInfoElement(
+                    userId = UserId("@benedict:localhost"),
+                    name = "Benedict",
+                    initials = "B",
+                    image = MutableStateFlow(previewImageByteArray()),
+                ),
+                UserInfoElement(
+                    userId = UserId("@michael:localhost"),
+                    name = "Michael",
+                    initials = "M",
+                    image = MutableStateFlow(previewImageByteArray()),
+                )
+            )
+        },
+    )
+
+    override fun openUserProfile(userId: UserId) {}
+
+    override fun back() {}
+
 }

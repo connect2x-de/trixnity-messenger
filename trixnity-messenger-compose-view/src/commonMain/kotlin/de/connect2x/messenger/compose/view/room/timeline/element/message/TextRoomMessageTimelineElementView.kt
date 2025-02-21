@@ -2,9 +2,6 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
-import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInSendMessage
-import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased.Text
@@ -32,7 +29,9 @@ class TextRoomMessageTimelineElementView : TimelineElementView<Text> {
         holder: TimelineElementHolderViewModel,
         element: Text,
     ) {
-        TextBasedRoomMessageTimelineElementView(holder, element) { applyPreviewConfig() }
+        TextBasedRoomMessageTimelineElementView(holder, element) {
+            //applyPreviewConfig()
+        }
     }
 
     @Composable

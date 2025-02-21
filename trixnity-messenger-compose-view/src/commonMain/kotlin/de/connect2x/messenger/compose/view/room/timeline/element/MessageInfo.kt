@@ -7,7 +7,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.InfoPopup
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -46,15 +45,15 @@ class MessageInfoViewImpl : MessageInfoView {
             val reactions = timelineElementHolderViewModel.reactions.collectAsState().value?.byReaction.orEmpty()
             val focusRequester = remember { FocusRequester() }
 
-            InfoPopup(
-                isOpen = infoOpen.value,
-                focusRequester = focusRequester,
-                onDismiss = {
-                    infoOpen.value = false
-                },
-                readers = readers,
-                reactors = reactions.mapValues { it.value.map { it.sender } },
-            )
+//            InfoPopup(
+//                isOpen = infoOpen.value,
+//                focusRequester = focusRequester,
+//                onDismiss = {
+//                    infoOpen.value = false
+//                },
+//                readers = readers,
+//                reactors = reactions.mapValues { it.value.map { it.sender } },
+//            )
         }
     }
 }
