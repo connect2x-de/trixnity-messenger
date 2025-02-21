@@ -126,7 +126,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val showLoadingIndicatorAfter: StateFlow<Boolean>
 
     val isRead: StateFlow<Boolean?>
-    val isReadBy: StateFlow<List<UserInfoElement>?>
+    val readers: StateFlow<List<UserInfoElement>?>
 
     val reactions: StateFlow<EventReactions?>
     val canBeReactedTo: StateFlow<Boolean>
@@ -360,26 +360,35 @@ class TimelineElementHolderViewModelImpl(
 
     override val isByMe: Boolean = senderUserId == userId
 
+    private val lastReplacement =
+        matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId)
+            .map { it.replacedBy }
+            .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+
     private val getEventReaders = get<GetEventReaders>()
     override val isRead =
-        getEventReaders.isRead(
-            matrixClient = matrixClient,
-            roomId = roomId,
-            eventId = eventId,
-            sender = senderUserId,
-            getReceipts = getReceipts,
-        ).stateIn(coroutineScope, Lazily, false) // Lazily to not unnecessary recompute
+        lastReplacement.flatMapLatest {
+            getEventReaders.isRead(
+                matrixClient = matrixClient,
+                roomId = roomId,
+                eventId = it ?: eventId,
+                sender = senderUserId,
+                getReceipts = getReceipts,
+            )
+        }.stateIn(coroutineScope, Lazily, false) // Lazily to not unnecessary recompute
 
-    override val isReadBy =
-        getEventReaders.isReadBy(
-            matrixClient = matrixClient,
-            roomId = roomId,
-            eventId = eventId,
-            sender = senderUserId,
-            getReceipts = getReceipts,
-            initials = initials,
-            avatarMaxSize = config.avatarMaxSize,
-        ).stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+    override val readers =
+        lastReplacement.flatMapLatest {
+            getEventReaders.isReadBy(
+                matrixClient = matrixClient,
+                roomId = roomId,
+                eventId = it ?: eventId,
+                sender = senderUserId,
+                getReceipts = getReceipts,
+                initials = initials,
+                avatarMaxSize = config.avatarMaxSize,
+            )
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     private val getEventReactions = get<GetEventReactions>()
     override val reactions =
@@ -517,7 +526,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isRead: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val isReadBy: MutableStateFlow<List<UserInfoElement>> = MutableStateFlow(listOf())
+    override val readers: MutableStateFlow<List<UserInfoElement>> = MutableStateFlow(listOf())
     override val canBeReactedTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -563,7 +572,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isRead: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val isReadBy: MutableStateFlow<List<UserInfoElement>> = MutableStateFlow(listOf())
+    override val readers: MutableStateFlow<List<UserInfoElement>> = MutableStateFlow(listOf())
     override val canBeReactedTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReply: MutableStateFlow<Boolean?> = MutableStateFlow(false)

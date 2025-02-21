@@ -14,6 +14,7 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
 import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
@@ -28,6 +29,7 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.TimelineEventRelation
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.sender
@@ -39,6 +41,7 @@ import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
+import net.folivo.trixnity.core.model.events.m.RelationType
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
@@ -240,6 +243,44 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             advanceUntilIdle()
             cut.showSender.value shouldBe false
 
+            cancelNeverEndingCoroutines()
+        }
+        should("isRead: should use latest replacement") {
+            val replaceEventId = EventId("replace")
+            val replacement = MutableStateFlow<Map<EventId, Flow<TimelineEventRelation?>>?>(null)
+            every {
+                roomServiceMock.getTimelineEventRelations(roomId, eventId, RelationType.Replace)
+            } returns replacement
+            val timeline = timeline(roomServiceMock, roomId) {
+                +timelineEvent
+            }
+            val cut = cut()
+            receipts.value = mapOf(eventId to setOf(bob))
+            launch { cut.isRead.collect() }
+            advanceUntilIdle()
+            cut.isRead.value shouldBe true
+
+            timeline.addEvents {
+                +TimelineEvent(
+                    event = MessageEvent(
+                        TextBased.Text("Hi (edit)!"),
+                        id = replaceEventId,
+                        sender = alice,
+                        roomId = roomId,
+                        originTimestamp = 123456789L,
+                    ),
+                    previousEventId = null,
+                    nextEventId = null,
+                    gap = null,
+                )
+            }
+            replacement.value = mapOf(
+                replaceEventId to
+                        flowOf(TimelineEventRelation(roomId, replaceEventId, RelationType.Replace, eventId))
+            )
+
+            advanceUntilIdle()
+            cut.isRead.value shouldBe false
             cancelNeverEndingCoroutines()
         }
         should("showBigGapBefore: be true when first in a user sequence") {

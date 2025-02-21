@@ -42,7 +42,7 @@ class MessageInfoViewImpl : MessageInfoView {
         }
 
         if (infoOpen.value) {
-            val readers = timelineElementHolderViewModel.isReadBy.collectAsState().value.orEmpty()
+            val readers = timelineElementHolderViewModel.readers.collectAsState().value.orEmpty()
             val reactions = timelineElementHolderViewModel.reactions.collectAsState().value?.byReaction.orEmpty()
             val focusRequester = remember { FocusRequester() }
 

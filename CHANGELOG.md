@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Refactored message bubbles to support message previews
 - Refactored read receipts and reactions to be more modular
+- Use latest edit of an event for reader and isRead calculations
 
 ### Deprecated
 
