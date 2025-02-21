@@ -18,986 +18,985 @@ import net.folivo.trixnity.core.model.UserId
 private val log = KotlinLogging.logger { }
 
 // TODO this is not lazy -> use property delegation or one class for one language instead
-abstract class I18n(
+open class I18n(
     languages: Languages,
     settings: MatrixMessengerSettingsHolder,
     getSystemLang: GetSystemLang,
     timeZone: TimeZone
-) :
-    I18nBase(languages, settings, getSystemLang, timeZone) {
+) : I18nBase(languages, settings, getSystemLang, timeZone) {
 
     // ---- translations -----
-    fun commonUnknown() = translate {
+    open fun commonUnknown() = translate {
         EN - "unknown"
         DE - "unbekannt"
     }
 
-    fun commonAnd(first: String, second: String) = translate {
+    open fun commonAnd(first: String, second: String) = translate {
         EN - "$first and $second"
         DE - "$first und $second"
     }
 
-    fun commonUs() = translate {
+    open fun commonUs() = translate {
         EN - "us"
         DE - "uns"
     }
 
-    fun commonCancelled() = translate {
+    open fun commonCancelled() = translate {
         EN - "cancelled"
         DE - "abgebrochen"
     }
 
-    fun uiaCancelledByUser() = translate {
+    open fun uiaCancelledByUser() = translate {
         EN - "The authorization has been cancelled by you."
         DE - "Die Autorisierung wurde durch von Ihnen abgebrochen."
     }
 
-    fun uiaGenericError(message: String? = commonUnknown()) = translate {
+    open fun uiaGenericError(message: String? = commonUnknown()) = translate {
         EN - "The authorization has failed: ${message ?: commonUnknown()}"
         DE - "Die Autorisierung ist fehlgeschlagen: ${message ?: commonUnknown()}"
     }
 
-    fun uiaFallbackNotSupported(authenticationType: AuthenticationType) = translate {
+    open fun uiaFallbackNotSupported(authenticationType: AuthenticationType) = translate {
         EN - "The authentication type ${authenticationType.name} is not supported."
         DE - "Die Authorisierungsmethode ${authenticationType.name} wird nicht unterstützt."
     }
 
-    fun uiaInvalidRegistrationToken() = translate {
+    open fun uiaInvalidRegistrationToken() = translate {
         EN - "Invalid registration token."
         DE - "Ungültiger Registrierungstoken."
     }
 
-    fun uiaInvalidUsernameOrPassword() = translate {
+    open fun uiaInvalidUsernameOrPassword() = translate {
         EN - "Invalid username or password."
         DE - "Ungültiger Benutzername oder Passwort."
     }
 
-    fun roomNameInvitation() = translate {
+    open fun roomNameInvitation() = translate {
         EN - "Invitation"
         DE - "Einladung"
     }
 
-    fun roomNameInvitationFrom(groupOrChat: String, roomName: String) = translate {
+    open fun roomNameInvitationFrom(groupOrChat: String, roomName: String) = translate {
         EN - "Invitation into $groupOrChat '$roomName'"
         DE - "Einladung in $groupOrChat '$roomName'"
     }
 
-    fun roomNamePeople(count: Int) = translate {
+    open fun roomNamePeople(count: Int) = translate {
         EN - "$count persons"
         DE - "$count Personen"
     }
 
-    fun roomNameEmptyChat() = translate {
+    open fun roomNameEmptyChat() = translate {
         EN - "Empty chat"
         DE - "Leerer Chat"
     }
 
-    fun roomNameEmptyChatWas(oldName: String) = translate {
+    open fun roomNameEmptyChatWas(oldName: String) = translate {
         EN - "Empty chat (was $oldName)"
         DE - "Leerer Chat (war $oldName)"
     }
 
-    fun roomNameAnd() = translate {
+    open fun roomNameAnd() = translate {
         EN - "and"
         DE - "und"
     }
 
-    fun roomNameChat() = translate {
+    open fun roomNameChat() = translate {
         EN - "chat"
         DE - "Chat"
     }
 
-    fun roomNameGroup() = translate {
+    open fun roomNameGroup() = translate {
         EN - "group"
         DE - "Gruppe"
     }
 
-    fun roomNameOther(othersCount: Int) = translate {
+    open fun roomNameOther(othersCount: Int) = translate {
         EN - if (othersCount == 1) "one other" else "$othersCount others"
         DE - if (othersCount == 1) "ein anderer" else "$othersCount andere"
     }
 
-    fun eventChangeAvatar(username: String) = translate {
+    open fun eventChangeAvatar(username: String) = translate {
         EN - "$username has changed the avatar image"
         DE - "$username hat das Profilbild geändert"
     }
 
-    fun eventChangeDisplayName(oldDisplayName: String?, newDisplayName: String?) = translate {
+    open fun eventChangeDisplayName(oldDisplayName: String?, newDisplayName: String?) = translate {
         EN - "'$oldDisplayName' has changed their name to '$newDisplayName'"
         DE - "'$oldDisplayName' hat den Namen zu '$newDisplayName' geändert"
     }
 
-    fun eventChangeChatGenitive() = translate {
+    open fun eventChangeChatGenitive() = translate {
         EN - "the chat"
         DE - "des Chats"
     }
 
-    fun eventChangeChatDative() = translate {
+    open fun eventChangeChatDative() = translate {
         EN - "the chat"
         DE - "dem Chat"
     }
 
-    fun eventChangeChatAccusative() = translate {
+    open fun eventChangeChatAccusative() = translate {
         EN - "the chat"
         DE - "den Chat"
     }
 
-    fun eventChangeGroupGenitive() = translate {
+    open fun eventChangeGroupGenitive() = translate {
         EN - "the group"
         DE - "der Gruppe"
     }
 
-    fun eventChangeGroupDative() = translate {
+    open fun eventChangeGroupDative() = translate {
         EN - "the group"
         DE - "der Gruppe"
     }
 
-    fun eventChangeGroupAccusative() = translate {
+    open fun eventChangeGroupAccusative() = translate {
         EN - "the group"
         DE - "die Gruppe"
     }
 
-    fun eventChangeInvite(invitee: String, inviter: String) = translate {
+    open fun eventChangeInvite(invitee: String, inviter: String) = translate {
         EN - "$invitee has been invited by $inviter"
         DE - "$invitee wurde von $inviter eingeladen"
     }
 
-    fun eventChangeJoin(username: String, groupOrChat: String) = translate {
+    open fun eventChangeJoin(username: String, groupOrChat: String) = translate {
         EN - "$username has joined $groupOrChat"
         DE - "$username ist $groupOrChat beigetreten"
     }
 
-    fun eventChangeLeave(username: String, groupOrChat: String) = translate {
+    open fun eventChangeLeave(username: String, groupOrChat: String) = translate {
         EN - "$username has left $groupOrChat"
         DE - "$username hat $groupOrChat verlassen"
     }
 
-    fun eventChangeBan(username: String, banner: String, groupOrChat: String) = translate {
+    open fun eventChangeBan(username: String, banner: String, groupOrChat: String) = translate {
         EN - "$username has been removed by $banner from $groupOrChat"
         DE - "$username wurde von $banner aus $groupOrChat ausgeschlossen"
     }
 
-    fun eventChangeKnock(username: String, groupOrChat: String) = translate {
+    open fun eventChangeKnock(username: String, groupOrChat: String) = translate {
         EN - "$username wants to join $groupOrChat"
         DE - "$username möchte $groupOrChat beitreten"
     }
 
-    fun eventMessageRedacted(username: String) = translate {
+    open fun eventMessageRedacted(username: String) = translate {
         EN - "message has been deleted by $username"
         DE - "Nachricht wurde von $username gelöscht"
     }
 
-    fun eventMessageRedactedByMe() = translate {
+    open fun eventMessageRedactedByMe() = translate {
         EN - "You deleted this message"
         DE - "Sie haben diese Nachricht gelöscht"
     }
 
-    fun eventMessageRedactedByUnknown() = translate {
+    open fun eventMessageRedactedByUnknown() = translate {
         EN - "This message has been deleted"
         DE - "Diese Nachricht ist gelöscht worden"
     }
 
-    fun eventRoomCreated(username: String, groupOrChat: String) = translate {
+    open fun eventRoomCreated(username: String, groupOrChat: String) = translate {
         EN - "$username has created $groupOrChat"
         DE - "$username hat $groupOrChat erstellt"
     }
 
-    fun eventChangeFrom(oldName: String) = translate {
+    open fun eventChangeFrom(oldName: String) = translate {
         EN - "from '$oldName' "
         DE - "von '$oldName' "
     }
 
-    fun eventRoomNameChange(username: String, groupOrChat: String, from: String, roomName: String) = translate {
+    open fun eventRoomNameChange(username: String, groupOrChat: String, from: String, roomName: String) = translate {
         EN - "$username has changed the name of $groupOrChat ${from}to '$roomName'"
         DE - "$username hat den Namen $groupOrChat ${from}zu '$roomName' geändert"
     }
 
-    fun eventRoomTopicChange(username: String, groupOrChat: String, from: String, roomName: String) = translate {
+    open fun eventRoomTopicChange(username: String, groupOrChat: String, from: String, roomName: String) = translate {
         EN - "$username has changed the topic of $groupOrChat ${from}to '$roomName'"
         DE - "$username hat die Beschreibung $groupOrChat ${from}zu '$roomName' geändert"
     }
 
-    fun setAsMainAlias(username: String, alias: String) = translate {
+    open fun setAsMainAlias(username: String, alias: String) = translate {
         EN - "$username set main alias to $alias"
         DE - "$username hat $alias als Hauptalias festgelegt"
     }
 
-    fun removeAsMainAlias(username: String, alias: String) = translate {
+    open fun removeAsMainAlias(username: String, alias: String) = translate {
         EN - "$username remove $alias as main alias"
         DE - "$username hat $alias als Hauptalias entfernt"
     }
 
-    fun addedAlias(username: String, alias: String) = translate {
+    open fun addedAlias(username: String, alias: String) = translate {
         EN - "$username added alias $alias"
         DE - "$username hat den Alias $alias hinzugefügt"
     }
 
-    fun removedAlias(username: String, alias: String) = translate {
+    open fun removedAlias(username: String, alias: String) = translate {
         EN - "$username removed alias $alias"
         DE - "$username hat den Alias $alias entfernt"
     }
 
-    fun aliasesChanged(username: String) = translate {
+    open fun aliasesChanged(username: String) = translate {
         EN - "$username changed the aliases"
         DE - "$username hat die Aliase verändert"
     }
 
-    fun historyVisibilityChange(username: String, groupOrChat: String, from: String, historyVisibility: String) =
+    open fun historyVisibilityChange(username: String, groupOrChat: String, from: String, historyVisibility: String) =
         translate {
             EN - "$username has changed the history visibility of $groupOrChat ${from}to '$historyVisibility'"
             DE - "$username hat die Sichtbarkeit bestehender Nachrichten $groupOrChat ${from}zu '$historyVisibility' geändert"
         }
 
-    fun historyVisibilityShared() = translate {
+    open fun historyVisibilityShared() = translate {
         EN - "shared"
         DE - "geteilt"
     }
 
-    fun historyVisibilityJoined() = translate {
+    open fun historyVisibilityJoined() = translate {
         EN - "joined"
         DE - "ab Beitritt"
     }
 
-    fun historyVisibilityWorldReadable() = translate {
+    open fun historyVisibilityWorldReadable() = translate {
         EN - "world_readable"
         DE - "allgemein lesbar"
     }
 
-    fun historyVisibiltyInvite() = translate {
+    open fun historyVisibiltyInvite() = translate {
         EN - "invited"
         DE - "ab Einladung"
     }
 
-    fun eventRoomAvatarChange(username: String, groupOrChat: String) = translate {
+    open fun eventRoomAvatarChange(username: String, groupOrChat: String) = translate {
         EN - "$username has changed the avatar of $groupOrChat"
         DE - "$username hat den Avatar $groupOrChat geändert"
     }
 
-    fun invitationFrom(inviter: String) = translate {
+    open fun invitationFrom(inviter: String) = translate {
         EN - "(Invitation from $inviter)"
         DE - "(Einladung von $inviter)"
     }
 
-    fun bootstrapErrorAccount(message: String? = commonUnknown()) = translate {
+    open fun bootstrapErrorAccount(message: String? = commonUnknown()) = translate {
         EN - "Account creation failed: ${message ?: commonUnknown()}"
         DE - "Einrichtung des Kontos fehlgeschlagen: ${message ?: commonUnknown()}"
     }
 
-    fun verificationMethodSasDevice() = translate {
+    open fun verificationMethodSasDevice() = translate {
         EN - """        Please compare a set of emojis on this device and another device where this account is active.
         In case the emojis are different, please contact your administrator.""".trimIndent()
         DE - """        Vergleichen Sie eine Reihe von Emojis an diesem Gerät und einem anderen Gerät, auf dem Ihr Konto aktiviert ist.
         Sollten die Emojis nicht übereinstimmen, kontaktieren Sie bitte Ihren Administrator.""".trimIndent()
     }
 
-    fun verificationMethodSasUser() = translate {
+    open fun verificationMethodSasUser() = translate {
         EN - "Compare a set of emojis with this user. Please use another trustworthy channel like a telefone call or direct conversation to compare the emojis."
         DE - "Vergleichen Sie eine Reihe von Emojis mit diesem Nutzer. Verwenden Sie dazu bitte einen anderen vertrauenswürdigen Kanal wie z.B. Telefon oder das direkte Gespräch um die Emojis zu vergleichen."
     }
 
-    fun verificationMethodSasUnknown() = translate {
+    open fun verificationMethodSasUnknown() = translate {
         EN - "Unknown verification method that is currently not supported."
         DE - "Unbekannte Verifizierungsmethode, welche momentan nicht unterstützt wird."
     }
 
-    fun selfVerificationErrorMasterKey() = translate {
+    open fun selfVerificationErrorMasterKey() = translate {
         EN - "Cannot verify with master key."
         DE - "Fehler beim Freischalten mit dem Generalschlüssel."
     }
 
-    fun selfVerificationErrorMasterPassphrase() = translate {
+    open fun selfVerificationErrorMasterPassphrase() = translate {
         EN - "Cannot verify with master passphrase."
         DE - "Fehler beim Freischalten mit dem Generalpasswort."
     }
 
-    fun userVerificationSuccess() = translate {
+    open fun userVerificationSuccess() = translate {
         EN - "Successful"
         DE - "Erfolgreich"
     }
 
-    fun userVerificationTimeout() = translate {
+    open fun userVerificationTimeout() = translate {
         EN - "Timeout"
         DE - "Zeitüberschreitung"
     }
 
-    fun userVerificationNoMatch() = translate {
+    open fun userVerificationNoMatch() = translate {
         EN - "no match"
         DE - "keine Übereinstimmung"
     }
 
-    fun createNewChatError() = translate {
+    open fun createNewChatError() = translate {
         EN - "Cannot create new chat."
         DE - "Neuer Chat kann nicht angelegt werden."
     }
 
-    fun createNewGroupError() = translate {
+    open fun createNewGroupError() = translate {
         EN - "Cannot create new group"
         DE - "Neue Gruppe kann nicht angelegt werden."
     }
 
-    fun roomListYou() = translate {
+    open fun roomListYou() = translate {
         EN - "you"
         DE - "ich"
     }
 
-    fun roomListInvitationFrom(username: String) = translate {
+    open fun roomListInvitationFrom(username: String) = translate {
         EN - "from $username"
         DE - "von $username"
     }
 
-    fun roomListInvitationOffline() = translate {
+    open fun roomListInvitationOffline() = translate {
         EN - "You cannot accept invitations while you are offline."
         DE - "Sie können offline keine Einladungen annehmen."
     }
 
-    fun roomListInvitationError() = translate {
+    open fun roomListInvitationError() = translate {
         EN - "There has been an error. Please try again later."
         DE - "Es gab einen Fehler. Bitte versuchen Sie es später."
     }
 
-    fun roomListContentImage() = translate {
+    open fun roomListContentImage() = translate {
         EN - "Image"
         DE - "Bild"
     }
 
-    fun roomListContentVideo() = translate {
+    open fun roomListContentVideo() = translate {
         EN - "Video"
         DE - "Video"
     }
 
-    fun roomListContentAudio() = translate {
+    open fun roomListContentAudio() = translate {
         EN - "Audio"
         DE - "Audio"
     }
 
-    fun roomListContentFile() = translate {
+    open fun roomListContentFile() = translate {
         EN - "File"
         DE - "Datei"
     }
 
-    fun roomHeaderTypingSingle(username: String) = translate {
+    open fun roomHeaderTypingSingle(username: String) = translate {
         EN - "$username is typing..."
         DE - "$username schreibt..."
     }
 
-    fun roomHeaderTypingSingleDirect() = translate {
+    open fun roomHeaderTypingSingleDirect() = translate {
         EN - "is typing..."
         DE - "schreibt..."
     }
 
-    fun roomHeaderTypingMultiple(usernames: String) = translate {
+    open fun roomHeaderTypingMultiple(usernames: String) = translate {
         EN - "$usernames are typing..."
         DE - "$usernames schreiben..."
     }
 
-    fun roomHeaderTypingMultipleMore(usernames: String) = translate {
+    open fun roomHeaderTypingMultipleMore(usernames: String) = translate {
         EN - "$usernames and others are typing..."
         DE - "$usernames und andere schreiben..."
     }
 
-    fun connectingErrorStandard(message: String) = translate {
+    open fun connectingErrorStandard(message: String) = translate {
         EN - "Cannot connect to the Matrix server: $message"
         DE - "Matrix-Server kann nicht erreicht werden: $message"
     }
 
-    fun connectingErrorForbidden() = translate {
+    open fun connectingErrorForbidden() = translate {
         EN - "Your credentials are not correct."
         DE - "Die Zugangsdaten sind nicht korrekt."
     }
 
-    fun connectingErrorNotFound() = translate {
+    open fun connectingErrorNotFound() = translate {
         EN - "Cannot find a Matrix server with the given address."
         DE - "Kann keinen Matrix-Server unter der angegebenen Adresse finden."
     }
 
-    fun connectingErrorWrongAddress() = translate {
+    open fun connectingErrorWrongAddress() = translate {
         EN - "The address of the Matrix server cannot be determined, or the address might be corrupt."
         DE - "Die Adresse des Matrix-Servers kann nicht bestimmt werden bzw. ist fehlerhaft."
     }
 
-    fun connectingErrorHttps() = translate {
+    open fun connectingErrorHttps() = translate {
         EN - "Only secure connections (https) are allowed."
         DE - "Es muss eine sichere Verbindung (https) genutzt werden."
     }
 
-    fun connectingErrorNoMatrixClient() = translate {
+    open fun connectingErrorNoMatrixClient() = translate {
         EN - "No Matrix client could be initialized"
         DE - "Ein Matrix Client kann nicht erstellt werden."
     }
 
-    fun connectingAccountAlreadyExists(userId: UserId) = translate {
+    open fun connectingAccountAlreadyExists(userId: UserId) = translate {
         EN - "There already is a local account for the user $userId."
         DE - "Es gibt bereits ein lokales Konto für den Nutzer $userId."
     }
 
-    fun connectingErrorDbLocked() = translate {
+    open fun connectingErrorDbLocked() = translate {
         EN - "This app seems to be running already. You cannot start more than one instance."
         DE - "Diese App läuft bereits. Sie können die App nur einmal starten."
     }
 
-    fun connectingErrorDbAccess() = translate {
+    open fun connectingErrorDbAccess() = translate {
         EN - "The local database cannot be accessed."
         DE - "Auf die lokale Datenbank kann nicht zugegriffen werden."
     }
 
-    fun logoutFailure() = translate {
+    open fun logoutFailure() = translate {
         EN - "An error occurred during logout. Please try again later."
         DE - "Beim Ausloggen aus Ihrem Account gab es einen Fehler. Bitte versuchen Sie es später noch einmal."
     }
 
-    fun registrationTokenNotValid() = translate {
+    open fun registrationTokenNotValid() = translate {
         EN - "the given registration is not valid"
         DE - "das Registrierungs-Token ist nicht gültig"
     }
 
-    fun registrationErrorNotSupported() = translate {
+    open fun registrationErrorNotSupported() = translate {
         EN - "You can only register a new user with a registration token."
         DE - "Sie können einen neuen Nutzer nur mit einem Registrierungs-Token anlegen."
     }
 
-    fun registrationErrorCannotDetermine() = translate {
+    open fun registrationErrorCannotDetermine() = translate {
         EN - "The methods for registration cannot be determined."
         DE - "Es ist nicht möglich die Registrierungsoptionen zu bestimmen."
     }
 
-    fun registrationErrorNotSuccessful() = translate {
+    open fun registrationErrorNotSuccessful() = translate {
         EN - "The registration has not been successful."
         DE - "Die Registrierung konnte nicht erfolgreich abgeschlossen werden."
     }
 
-    fun registrationErrorUserInUse() = translate {
+    open fun registrationErrorUserInUse() = translate {
         EN - "This username is already taken."
         DE - "Dieser Nutzername ist bereits vergeben."
     }
 
-    fun registrationErrorInvalidUsername() = translate {
+    open fun registrationErrorInvalidUsername() = translate {
         EN - "The username is invalid. Please use another one."
         DE - "Der gewählte Nutzername ist ungültig. Bitte wählen Sie einen anderen."
     }
 
-    fun settingsNotificationsSound() = translate {
+    open fun settingsNotificationsSound() = translate {
         EN - "sound"
         DE - "Töne"
     }
 
-    fun settingsNotificationsSilent() = translate {
+    open fun settingsNotificationsSilent() = translate {
         EN - "silent"
         DE - "Stumm"
     }
 
-    fun settingsNotificationsVibration() = translate {
+    open fun settingsNotificationsVibration() = translate {
         EN - "vibration"
         DE - "Vibration"
     }
 
-    fun settingsNotificationsVibrationNot() = translate {
+    open fun settingsNotificationsVibrationNot() = translate {
         EN - "no vibration"
         DE - "keine Vibration"
     }
 
-    fun settingsNotificationsLights() = translate {
+    open fun settingsNotificationsLights() = translate {
         EN - "lights"
         DE - "Licht"
     }
 
-    fun settingsNotificationsLightsNot() = translate {
+    open fun settingsNotificationsLightsNot() = translate {
         EN - "no lights"
         DE - "kein Licht"
     }
 
-    fun settingsNotificationsPopup() = translate {
+    open fun settingsNotificationsPopup() = translate {
         EN - "show popups"
         DE - "zeige Popups"
     }
 
-    fun settingsNotificationsPopupNot() = translate {
+    open fun settingsNotificationsPopupNot() = translate {
         EN - "no popups"
         DE - "keine Popups"
     }
 
-    fun settingsNotificationsText() = translate {
+    open fun settingsNotificationsText() = translate {
         EN - "show text preview"
         DE - "Textvorschau"
     }
 
-    fun settingsNotificationsTextNot() = translate {
+    open fun settingsNotificationsTextNot() = translate {
         EN - "no text preview"
         DE - "keine Textvorschau"
     }
 
-    fun settingsDevicesLoadError() = translate {
+    open fun settingsDevicesLoadError() = translate {
         EN - "Cannot load devices."
         DE - "Geräte können nicht geladen werden."
     }
 
-    fun settingsDevicesDisplayNameLastSeen(instant: Instant) = translate {
+    open fun settingsDevicesDisplayNameLastSeen(instant: Instant) = translate {
         val date = instant.toLocalDateTime(currentTimezone).date
         EN - "last seen: ${date.monthNumber}/${date.dayOfMonth}/${date.year}" // AE
         DE - "zuletzt gesehen: ${date.dayOfMonth}.${date.monthNumber}.${date.year}"
     }
 
-    fun settingsDevicesDisplayNameError() = translate {
+    open fun settingsDevicesDisplayNameError() = translate {
         EN - "Cannot change the name of the device."
         DE - "Der Name des Geräts kann nicht geändert werden."
     }
 
-    fun settingsDevicesVerificationError() = translate {
+    open fun settingsDevicesVerificationError() = translate {
         EN - "Cannot verify this device."
         DE - "Das Gerät kann Ihnen nicht zugeordnet werden."
     }
 
-    fun settingsDevicesRemoveConfirmationMessage(deviceName: String?, deviceId: String) = translate {
+    open fun settingsDevicesRemoveConfirmationMessage(deviceName: String?, deviceId: String) = translate {
         EN - if (deviceName != null) "Are you sure you wish to remove the device \"$deviceName\" ($deviceId)?"
         else "Are you sure you wish to remove the device $deviceId?"
         DE - if (deviceName != null) "Sind sie sicher Sie wollen Gerät \"$deviceName\" ($deviceId) entfernen?"
         else "Sind sie sicher Sie wollen Gerät $deviceId entfernen?"
     }
 
-    fun settingsDevicesRemoveError(message: String? = commonUnknown()) = translate {
+    open fun settingsDevicesRemoveError(message: String? = commonUnknown()) = translate {
         EN - "The device cannot be removed: ${message ?: commonUnknown()}"
         DE - "Das Gerät kann nicht gelöscht werden: ${message ?: commonUnknown()}"
     }
 
-    fun settingsRoomAddMembersAnd() = translate {
+    open fun settingsRoomAddMembersAnd() = translate {
         EN - "and"
         DE - "und"
     }
 
-    fun settingsRoomAddMembersErrorSingular(username: String) = translate {
+    open fun settingsRoomAddMembersErrorSingular(username: String) = translate {
         EN - "$username could not be invited."
         DE - "$username konnte nicht eingeladen werden."
     }
 
-    fun settingsRoomAddMembersErrorPlural(usernames: String) = translate {
+    open fun settingsRoomAddMembersErrorPlural(usernames: String) = translate {
         EN - "$usernames could not be invited."
         DE - "$usernames konnten nicht eingeladen werden."
     }
 
-    fun settingsRoomAddMembersErrorOffline() = translate {
+    open fun settingsRoomAddMembersErrorOffline() = translate {
         EN - "You cannot invite users when you are offline."
         DE - "Sie können niemanden einladen, wenn Sie offline sind."
     }
 
-    fun settingsRoomLeaveRoomError(groupOrChat: String) = translate {
+    open fun settingsRoomLeaveRoomError(groupOrChat: String) = translate {
         EN - "There has been an error leaving $groupOrChat."
         DE - "Fehler beim Verlassen $groupOrChat."
     }
 
-    fun settingsRoomLeaveRoomErrorOffline() = translate {
+    open fun settingsRoomLeaveRoomErrorOffline() = translate {
         EN - "You cannot leave a chat or group when you are offline."
         DE - "Sie können offline keine Chats oder Gruppen verlassen."
     }
 
-    fun settingsRoomLeaveRoomMessageChat() = translate {
+    open fun settingsRoomLeaveRoomMessageChat() = translate {
         EN - "Leave chat"
         DE - "Chat verlassen"
     }
 
-    fun settingsRoomLeaveRoomMessageGroup() = translate {
+    open fun settingsRoomLeaveRoomMessageGroup() = translate {
         EN - "Leave group"
         DE - "Gruppe verlassen"
     }
 
-    fun settingsRoomLeaveRoomWarningConfirmButtonChat() = translate {
+    open fun settingsRoomLeaveRoomWarningConfirmButtonChat() = translate {
         EN - "Yes, leave chat"
         DE - "Ja, Chat verlassen"
     }
 
-    fun settingsRoomLeaveRoomWarningConfirmButtonGroup() = translate {
+    open fun settingsRoomLeaveRoomWarningConfirmButtonGroup() = translate {
         EN - "Yes, leave group"
         DE - "Ja, Gruppe verlassen"
     }
 
-    fun settingsRoomLeaveRoomWarningMessageChat() = translate {
+    open fun settingsRoomLeaveRoomWarningMessageChat() = translate {
         EN - "You will not be able to access the contents of the chat afterwards."
         DE - "Sie können danach nicht mehr auf die Inhalte des Chats zugreifen."
     }
 
-    fun settingsRoomLeaveRoomWarningMessageGroup() = translate {
+    open fun settingsRoomLeaveRoomWarningMessageGroup() = translate {
         EN - "You will not be able to access the contents of the group afterwards."
         DE - "Sie können danach nicht mehr auf die Inhalte der Gruppe zugreifen."
     }
 
-    fun settingsRoomLeaveRoomWarningTitleChat() = translate {
+    open fun settingsRoomLeaveRoomWarningTitleChat() = translate {
         EN - "Leave chat?"
         DE - "Den Chat verlassen?"
     }
 
-    fun settingsRoomLeaveRoomWarningTitleGroup() = translate {
+    open fun settingsRoomLeaveRoomWarningTitleGroup() = translate {
         EN - "Leave room?"
         DE - "Die Gruppe verlassen?"
     }
 
-    fun settingsRoomChangeNameError() = translate {
+    open fun settingsRoomChangeNameError() = translate {
         EN - "Failed to change the room name."
         DE - "Fehler beim Ändern des Raumnamens."
     }
 
-    fun settingsRoomChangeTopicError() = translate {
+    open fun settingsRoomChangeTopicError() = translate {
         EN - "Failed to change the room topic."
         DE - "Fehler beim Ändern der Raumbeschreibung."
     }
 
-    fun settingsRoomMemberListChangePowerLevelError(username: String) = translate {
+    open fun settingsRoomMemberListChangePowerLevelError(username: String) = translate {
         EN - "Failed to change the power level of user $username."
         DE - "Das Berechtigungslevel des Nutzers $username konnte nicht geändert werden."
     }
 
-    fun settingsRoomMemberListChangePowerLevelErrorOffline() = translate {
+    open fun settingsRoomMemberListChangePowerLevelErrorOffline() = translate {
         EN - "You cannot change power levels of users when you are offline."
         DE - "Sie können offline das Berechtigungslevel eines Nutzers nicht ändern."
     }
 
-    fun settingsRoomMemberListChangePowerLevelInputValidationNotEntitled() = translate {
+    open fun settingsRoomMemberListChangePowerLevelInputValidationNotEntitled() = translate {
         EN - "You are not allowed to change the power level of a user."
         DE - "Sie dürfen das Berechtigungslevel eines Nutzers nicht verändern."
     }
 
-    fun settingsRoomMemberListChangePowerLevelInputValidationPowerLevelTooLow(maximum: Long) = translate {
+    open fun settingsRoomMemberListChangePowerLevelInputValidationPowerLevelTooLow(maximum: Long) = translate {
         EN - "You can only set the user's power level to a maximum of $maximum."
         DE - "Sie können das Berechtigungslevel des Nutzers nur maximal auf $maximum setzen."
     }
 
-    fun settingsRoomMemberListChangePowerLevelInputValidationShouldBeNumber(maximum: Long) = translate {
+    open fun settingsRoomMemberListChangePowerLevelInputValidationShouldBeNumber(maximum: Long) = translate {
         EN - "Please enter a valid number between 0 and $maximum."
         DE - "Bitte geben Sie eine gültige Zahl zwischen 0 und $maximum ein."
     }
 
-    fun settingsRoomMemberListKickUserError() = translate {
+    open fun settingsRoomMemberListKickUserError() = translate {
         EN - "Failed to remove user."
         DE - "Der Nutzer konnte nicht entfernt werden."
     }
 
-    fun settingsRoomMemberListKickUserErrorOffline() = translate {
+    open fun settingsRoomMemberListKickUserErrorOffline() = translate {
         EN - "You cannot remove users when you are offline."
         DE - "Sie können offline keine Nutzer entfernen."
     }
 
-    fun settingsRoomMemberListRoleAdmin() = translate {
+    open fun settingsRoomMemberListRoleAdmin() = translate {
         EN - "Administrator"
         DE - "Administrator"
     }
 
-    fun settingsRoomMemberListRoleModerator() = translate {
+    open fun settingsRoomMemberListRoleModerator() = translate {
         EN - "Moderator"
         DE - "Moderator"
     }
 
-    fun settingsRoomMemberListRoleUser() = translate {
+    open fun settingsRoomMemberListRoleUser() = translate {
         EN - "User"
         DE - "Nutzer"
     }
 
-    fun settingsRoomNotificationsError() = translate {
+    open fun settingsRoomNotificationsError() = translate {
         EN - "Cannot set room notifications."
         DE - "Fehler beim Setzen der Benachrichtigungseinstellungen."
     }
 
-    fun settingsRoomNotificationsAll() = translate {
+    open fun settingsRoomNotificationsAll() = translate {
         EN - "All messages"
         DE - "Alle Nachrichten"
     }
 
-    fun settingsRoomNotificationsMentions() = translate {
+    open fun settingsRoomNotificationsMentions() = translate {
         EN - "Mentions"
         DE - "Erwähnungen"
     }
 
-    fun settingsRoomNotificationsSilent() = translate {
+    open fun settingsRoomNotificationsSilent() = translate {
         EN - "Silent"
         DE - "Stumm"
     }
 
-    fun settingsRoomNotificationsDefault() = translate {
+    open fun settingsRoomNotificationsDefault() = translate {
         EN - "Default"
         DE - "Standard"
     }
 
-    fun settingsRoomNotificationsAllExplanation() = translate {
+    open fun settingsRoomNotificationsAllExplanation() = translate {
         EN - "you are notified on every new message"
         DE - "Sie werden über jede neue Nachricht informiert"
     }
 
-    fun settingsRoomNotificationsMentionsExplanation() = translate {
+    open fun settingsRoomNotificationsMentionsExplanation() = translate {
         EN - "you are notified on new messages that are directed to you"
         DE - "Sie werden über Nachrichten informiert, die direkt an Sie gerichtet sind"
     }
 
-    fun settingsRoomNotificationsSilentExplanation() = translate {
+    open fun settingsRoomNotificationsSilentExplanation() = translate {
         EN - "you are not notified on any new message"
         DE - "Sie erhalten keinerlei Benachrichtigungen über neue Nachrichten"
     }
 
-    fun settingsRoomNotificationsDefaultExplanation() = translate {
+    open fun settingsRoomNotificationsDefaultExplanation() = translate {
         EN - "you are notified as specified in the global settings"
         DE - "Sie werden so benachrichtigt, wie dies in den globalen Einstellungen festgelegt ist."
     }
 
-    fun settingsRoomHistoryVisibilityChangeError() = translate {
+    open fun settingsRoomHistoryVisibilityChangeError() = translate {
         EN - "Failed to change room history visibility."
         DE - "Fehler beim Ändern der Sichtbarkeit der Raumhistorie."
     }
 
-    fun settingsRoomHistoryVisibilityInsufficientPowerLevel() = translate {
+    open fun settingsRoomHistoryVisibilityInsufficientPowerLevel() = translate {
         EN - "Insufficient power level to change room history visibility"
         DE - "Unzureichendes Berechtigungslevel um die Sichtbarkeit der Raumhistorie zu ändern"
     }
 
-    fun settingsRoomJoinRulesChangeError() = translate {
+    open fun settingsRoomJoinRulesChangeError() = translate {
         EN - "Failed to change room join rules"
         DE - "Fehler beim Ändern der Raum-Beitrittsregeln"
     }
 
-    fun settingsRoomJoinRulesInsufficientPowerLevel() = translate {
+    open fun settingsRoomJoinRulesInsufficientPowerLevel() = translate {
         EN - "Insufficient power level to change room join rules"
         DE - "Unzureichendes Berechtigungslevel um die Raum-Beitrittsregeln zu ändern"
     }
 
-    fun settingsRoomAliasRemoveInsufficientPowerLevel() = translate {
+    open fun settingsRoomAliasRemoveInsufficientPowerLevel() = translate {
         EN - "Insufficient power level to remove room alias"
         DE - "Unzureichendes Berechtigungslevel um diesen Alias zu entfernen"
     }
 
-    fun settingsRoomAliasChangeInvalidSyntax() = translate {
+    open fun settingsRoomAliasChangeInvalidSyntax() = translate {
         EN - "Invalid room alias"
         DE - "Ungültiger Raumalias"
     }
 
-    fun settingsRoomAliasAddExists() = translate {
+    open fun settingsRoomAliasAddExists() = translate {
         EN - "Alias already exists"
         DE - "Raumalias existiert bereits"
     }
 
-    fun settingsRoomAliasBadAlias() = translate {
+    open fun settingsRoomAliasBadAlias() = translate {
         EN - "This room alias is associated with another room"
         DE - "Dieser Raumalias ist mit einem anderen Raum assoziiert"
     }
 
-    fun settingsRoomAliasGeneric() = translate {
+    open fun settingsRoomAliasGeneric() = translate {
         EN - "Something went wrong"
         DE - "Etwas ist schiefgelaufen"
     }
 
-    fun settingsRoomAliasRemoveNotFound() = translate {
+    open fun settingsRoomAliasRemoveNotFound() = translate {
         EN - "Alias was already removed"
         DE - "Alias wurde bereits entfernt"
     }
 
-    fun settingsRoomAliasChangeMainInsufficientPowerLevel() = translate {
+    open fun settingsRoomAliasChangeMainInsufficientPowerLevel() = translate {
         EN - "Insufficient power level to change main room alias"
         DE - "Unzureichendes Berechtigungslevel um den Hauptalias zu ändern"
     }
 
-    fun settingsRoomAliasChangeMainUnrelatedAlias() = translate {
+    open fun settingsRoomAliasChangeMainUnrelatedAlias() = translate {
         EN - "Room alias not related to this room"
         DE - "Alias nicht mit diesem Raum assoziiert"
     }
 
-    fun settingsRoomAliasChangeMainNotFound() = translate {
+    open fun settingsRoomAliasChangeMainNotFound() = translate {
         EN - "Couldn't find that main room alias"
         DE - "Konnte diesen Hauptalias nicht finden"
     }
 
-    fun settingsRoomAliasAddAliasInsufficientPowerLevel() = translate {
+    open fun settingsRoomAliasAddAliasInsufficientPowerLevel() = translate {
         EN - "Insufficient power level to add a room alias"
         DE - "Unzureichendes Berechtigungslevel um einen Alias hinzuzufügen"
     }
 
-    fun settingsRoomAliasAddAliasInvalid() = translate {
+    open fun settingsRoomAliasAddAliasInvalid() = translate {
         EN - "Invalid Alias"
         DE - "Invalider Alias"
     }
 
-    fun settingsRoomAliasAddAliasExisting() = translate {
+    open fun settingsRoomAliasAddAliasExisting() = translate {
         EN - "Invalid Alias"
         DE - "Invalider Alias"
     }
 
-    fun settingsUnblockUserError(userId: String) = translate {
+    open fun settingsUnblockUserError(userId: String) = translate {
         EN - "Cannot unblock user '$userId'. Please try again later."
         DE - "Nutzer '$userId' kann nicht entblockt werden. Bitte versuchen Sie es später erneut."
     }
 
-    fun blockUserError(userId: String) = translate {
+    open fun blockUserError(userId: String) = translate {
         EN - "Cannot block user '$userId'."
         DE - "Nutzer '$userId' kann nicht geblockt werden."
     }
 
-    fun profileLoadError() = translate {
+    open fun profileLoadError() = translate {
         EN - "Profile could not be loaded"
         DE - "Beim Laden des Profils ist ein Fehler aufgetreten."
     }
 
-    fun profileAvatarError() = translate {
+    open fun profileAvatarError() = translate {
         EN - "The avatar image could not be changed."
         DE - "Das Nutzerbild konnte nicht geändert werden."
     }
 
-    fun profileNameError() = translate {
+    open fun profileNameError() = translate {
         EN - "The username could not be changed."
         DE - "Der Nutzername konnte nicht geändert werden."
     }
 
-    fun profileNameForbidden() = translate {
+    open fun profileNameForbidden() = translate {
         EN - "You are not allowed to change the username."
         DE - "Der Nutzername darf von Ihnen nicht geändert werden."
     }
 
-    fun matrixClientInitLoading() = translate {
+    open fun matrixClientInitLoading() = translate {
         EN - "Loading..."
         DE - "Lade Daten..."
     }
 
-    fun matrixClientInitSuccess() = translate {
+    open fun matrixClientInitSuccess() = translate {
         EN - "Successfully loaded data."
         DE - "Daten erfolgreich geladen."
     }
 
-    fun timelineLeaveRoomErrorOffline() = settingsRoomLeaveRoomErrorOffline()
-    fun timelineLeaveRoomError(groupOrChat: String) = settingsRoomLeaveRoomError(groupOrChat)
+    open fun timelineLeaveRoomErrorOffline() = settingsRoomLeaveRoomErrorOffline()
+    open fun timelineLeaveRoomError(groupOrChat: String) = settingsRoomLeaveRoomError(groupOrChat)
 
-    fun timelineElementReadBy() = translate {
+    open fun timelineElementReadBy() = translate {
         EN - "Read by"
         DE - "Gelesen von"
     }
 
-    fun timelineElementRedactError() = translate {
+    open fun timelineElementRedactError() = translate {
         EN - "Cannot delete message."
         DE - "Fehler beim Löschen der Nachricht."
     }
 
-    fun serverDiscoveryFailed() = translate {
+    open fun serverDiscoveryFailed() = translate {
         EN - "Server could not be determined or is not valid."
         DE - "Server konnte nicht ermittelt werden oder ist nicht gültig."
     }
 
-    fun sendErrorEventPermission() = translate {
+    open fun sendErrorEventPermission() = translate {
         EN - "You do not have permission to send a message in this room."
         DE - "Sie haben keine Rechte, um Nachrichten in diesem Raum zu versenden."
     }
 
-    fun sendErrorMediaPermission() = translate {
+    open fun sendErrorMediaPermission() = translate {
         EN - "You do not have permission to upload this file. The file type may not be supported or you reached an upload quota."
         DE - "Sie haben keine Rechte, um diese Datei hochzuladen. Möglicherweise wurde der Dateityp abgelehnt oder Sie haben Ihr maxinmales Kontingent erreicht."
     }
 
-    fun sendErrorMediaTooLarge() = translate {
+    open fun sendErrorMediaTooLarge() = translate {
         EN - "The file you want to upload is too large."
         DE - "Die Datei, die sich versuchen hochzuladen ist zu groß."
     }
 
-    fun sendErrorUnknown(errorMessage: String?) = translate {
+    open fun sendErrorUnknown(errorMessage: String?) = translate {
         EN - "There was an unexpected error sending the message${if (errorMessage == null) "." else ": $errorMessage"}"
         DE - "Es gab einen unbekannten Fehler beim Absenden Ihrer Nachricht${if (errorMessage == null) "." else ": $errorMessage"}\""
     }
 
-    fun attachmentSizeMaxSizeError(attachmentMaxSize: Long) = translate {
+    open fun attachmentSizeMaxSizeError(attachmentMaxSize: Long) = translate {
         val sizeInMB = attachmentMaxSize / 1.mb()
         EN - "The attachment exceeds the maximum allowed attachment size of $sizeInMB MB."
         DE - "Der Anhang überschreitet die maximal zulässige Größe für Anhänge von $sizeInMB MB."
     }
 
-    fun profileCreationDuplicate() = translate {
+    open fun profileCreationDuplicate() = translate {
         EN - "The profile name is already in use."
         DE - "Dieser Profilname wird bereits benutzt."
     }
 
-    fun exportRoomStateInit(total: Long) = translate {
+    open fun exportRoomStateInit(total: Long) = translate {
         EN - "The export is being prepared. $total room events have already been found."
         DE - "Der Export wird vorbereitet. Es wurden bereits $total Raum-Ereignisse gefunden."
     }
 
-    fun exportRoomStateProcessed(processed: Long, total: Long) = translate {
+    open fun exportRoomStateProcessed(processed: Long, total: Long) = translate {
         EN - "The export is being executed. $processed out of $total room events have already been processed."
         DE - "Der Export wird durchgeführt. Es wurden bereits $processed von $total Raum-Ereignisse verarbeitet."
     }
 
-    fun exportRoomStateFinished(total: Long) = translate {
+    open fun exportRoomStateFinished(total: Long) = translate {
         EN - "The export was successful. $total room events were processed."
         DE - "Der Export war erfolgreich. Es wurden $total Raum-Ereignisse verarbeitet."
     }
 
-    fun exportRoomErrorRoomNotFound() = translate {
+    open fun exportRoomErrorRoomNotFound() = translate {
         EN - "The room does not exist."
         DE - "Der Raum existiert nicht."
     }
 
-    fun exportRoomErrorPropertiesNotSupported() = translate {
+    open fun exportRoomErrorPropertiesNotSupported() = translate {
         EN - "The export properties are not supported."
         DE - "Die Export-Eigenschaften werden nicht unterstützt."
     }
 
-    fun exportRoomErrorSink(message: String) = translate {
+    open fun exportRoomErrorSink(message: String) = translate {
         EN - "There was an error during export: $message"
         DE - "Es gab einen Fehler beim Export: $message"
     }
 
-    fun exportRoomSuccessWithErrors(missingMedia: Int, deryptionFailures: Int) = translate {
+    open fun exportRoomSuccessWithErrors(missingMedia: Int, deryptionFailures: Int) = translate {
         EN - "The export was successful, but some media could not be exported ($missingMedia) and some messages could not be decrypted ($deryptionFailures)."
         DE - "Der Export war erfolgreich, dennoch konnten einige Medien nicht exportiert ($missingMedia) und einige Nachrichten nicht entschlüsselt werden ($deryptionFailures)."
     }
 
-    fun exportRoomEmote(message: String) = translate {
+    open fun exportRoomEmote(message: String) = translate {
         EN - "* $message"
         DE - "* $message"
     }
 
-    fun exportRoomNotice(message: String) = translate {
+    open fun exportRoomNotice(message: String) = translate {
         EN - "// $message"
         DE - "// $message"
     }
 
-    fun exportRoomImage(fileName: String) = translate {
+    open fun exportRoomImage(fileName: String) = translate {
         EN - "image: $fileName"
         DE - "Bild: $fileName"
     }
 
-    fun exportRoomAudio(fileName: String) = translate {
+    open fun exportRoomAudio(fileName: String) = translate {
         EN - "audio: $fileName"
         DE - "Audio: $fileName"
     }
 
-    fun exportRoomVideo(fileName: String) = translate {
+    open fun exportRoomVideo(fileName: String) = translate {
         EN - "video: $fileName"
         DE - "Video: $fileName"
     }
 
-    fun exportRoomFile(fileName: String) = translate {
+    open fun exportRoomFile(fileName: String) = translate {
         EN - "file: $fileName"
         DE - "Datei: $fileName"
     }
 
-    fun exportRoomLocation(name: String, uri: String) = translate {
+    open fun exportRoomLocation(name: String, uri: String) = translate {
         EN - "location: $name $uri"
         DE - "Ort: $name $uri"
     }
 
-    fun exportRoomState(message: String) = translate {
+    open fun exportRoomState(message: String) = translate {
         EN - "state change: $message"
         DE - "Zustandsänderung: $message"
     }
 
-    fun exportRoomAvatar(url: String?) = translate {
+    open fun exportRoomAvatar(url: String?) = translate {
         EN - "room avatar has been changed to $url"
         DE - "Raumbild wurde zu $url geändert"
     }
 
-    fun exportRoomCanonicalAlias(aliases: List<RoomAliasId>) = translate {
+    open fun exportRoomCanonicalAlias(aliases: List<RoomAliasId>) = translate {
         EN - "room aliases has been changed to $aliases"
         DE - "Raumaliase wurden zu $aliases geändert"
     }
 
-    fun exportRoomCreate(federate: Boolean, roomType: String?) = translate {
+    open fun exportRoomCreate(federate: Boolean, roomType: String?) = translate {
         EN - "room has been created (federation=$federate, type=$roomType)"
         DE - "Raum wurde erstellt (Föderation=$federate, Typ=$roomType)"
     }
 
-    fun exportRoomJoinRule(joinRule: String) = translate {
+    open fun exportRoomJoinRule(joinRule: String) = translate {
         EN - "join rule has been changed to $joinRule"
         DE - "Beitrittsregel wurde zu $joinRule geändert"
     }
 
-    fun exportRoomMember(
+    open fun exportRoomMember(
         userId: String?,
         membership: String,
         displayName: String?,
@@ -1008,152 +1007,152 @@ abstract class I18n(
         DE - "Änderungen der Mitgliedseigenschaften von $userId (Mitgliedschaft=$membership, Anzeigename=$displayName, Anzeigebild=$avatarUrl, Grund=$reason)"
     }
 
-    fun exportRoomName(name: String) = translate {
+    open fun exportRoomName(name: String) = translate {
         EN - "room name has been changed to \"$name\""
         DE - "Raumname wurde zu \"$name\" geändert"
     }
 
-    fun exportRoomTopic(name: String) = translate {
+    open fun exportRoomTopic(name: String) = translate {
         EN - "room name has been changed to \"$name\""
         DE - "Raumname wurde zu \"$name\" geändert"
     }
 
-    fun exportRoomEncryption() = translate {
+    open fun exportRoomEncryption() = translate {
         EN - "room encryption has been enabled"
         DE - "Raumverschlüsselung wurde aktiviert"
     }
 
-    fun exportRoomHistoryVisibility(historyVisibility: String) = translate {
+    open fun exportRoomHistoryVisibility(historyVisibility: String) = translate {
         EN - "history visibility has been changed to $historyVisibility"
         DE - "Sichtbarkeit wurde zu $historyVisibility geändert"
     }
 
-    fun exportRoomGuestAccess(access: String) = translate {
+    open fun exportRoomGuestAccess(access: String) = translate {
         EN - "guest access has been changed to $access"
         DE - "Gastbeitritt wurde zu $access geändert"
     }
 
-    fun exportRoomTombstone(body: String, roomId: RoomId) = translate {
+    open fun exportRoomTombstone(body: String, roomId: RoomId) = translate {
         EN - "room has been replaced by new room $roomId: $body"
         DE - "Raum wurde durch den neuen Raum $roomId ersetzt: $body"
     }
 
-    fun exportRoomRedacted(by: UserId?, reason: String?) = translate {
+    open fun exportRoomRedacted(by: UserId?, reason: String?) = translate {
         EN - "* message has been deleted by $by, reason: $reason"
         DE - "* Nachricht wurde von $by gelöscht, Grund: $reason"
     }
 
-    fun exportRoomDecryptionError() = translate {
+    open fun exportRoomDecryptionError() = translate {
         EN - "* message cannot be decrypted"
         DE - "* Nachricht konnte nicht entschlüsselt werden"
     }
 
-    fun mediaCouldNotBeRead() = translate {
+    open fun mediaCouldNotBeRead() = translate {
         EN - "File could not be read"
         DE - "Datei konnte nicht gelesen werden"
     }
 
-    fun mediaCanNotBePreviewed() = translate {
+    open fun mediaCanNotBePreviewed() = translate {
         EN - "File can not be previewed."
         DE - "Datei kann nicht angezeigt werden."
     }
 
-    fun mediaTooLargeForPreview() = translate {
+    open fun mediaTooLargeForPreview() = translate {
         EN - "File is too large for previewing. Try downloading it instead."
         DE - "Datei ist zu groß für die Vorschau. Versuchen Sie stattdessen, die Datei herunterzuladen."
     }
 
-    fun updateNotificationSettingsError(error: String) = translate {
+    open fun updateNotificationSettingsError(error: String) = translate {
         EN - "There was an error updating the notification settings: $error"
         DE - "Es gab einen Fehler beim Aktualisieren der Benachrichtigungseinstellungen: $error"
     }
 
-    fun updateNotificationSettingsTimeoutError() = translate {
+    open fun updateNotificationSettingsTimeoutError() = translate {
         EN - "There was an error updating the notification settings: timeout"
         DE - "Es gab einen Fehler beim Aktualisieren der Benachrichtigungseinstellungen: Zeitüberschreitung"
     }
 
-    fun yourNewProfileAvatar() = translate {
+    open fun yourNewProfileAvatar() = translate {
         EN - "Your new profile avatar"
         DE - "Ihr neues Profilbild"
     }
 
-    fun yourNewRoomAvatar() = translate {
+    open fun yourNewRoomAvatar() = translate {
         EN - "Your new room image"
         DE - "Ihr neues Raumbild"
     }
 
-    fun roomEncryptionEnableError() = translate {
+    open fun roomEncryptionEnableError() = translate {
         EN - "There was an error enabling the end-to-end encryption"
         DE - "Es gab einen Fehler beim Aktivieren der Ende-zu-Ende Verschlüsselung"
     }
 
-    fun roomEncryptionAlreadyEnabledError() = translate {
+    open fun roomEncryptionAlreadyEnabledError() = translate {
         EN - "There was an error enabling the end-to-end encryption: the encryption was already enabled"
         DE - "Es gab einen Fehler beim Aktivieren der Ende-zu-Ende Verschlüsselung: Die Verschlüsselung ist bereits aktiviert"
     }
 
-    fun roomEncryptionEnabled(user: String) = translate {
+    open fun roomEncryptionEnabled(user: String) = translate {
         EN - "$user enabled end-to-end encryption"
         DE - "$user hat die Ende-zu-Ende Verschlüsselung aktiviert"
     }
 
-    fun settingsRoomMemberBanUserError() = translate {
+    open fun settingsRoomMemberBanUserError() = translate {
         EN - "There was an error banning this user"
         DE - "Es gab einen Fehler beim Bannen dieses Teilnehmers"
     }
 
-    fun settingsRoomMemberBanUserErrorNotPossible() = translate {
+    open fun settingsRoomMemberBanUserErrorNotPossible() = translate {
         EN - "You are unable to ban this user"
         DE - "Sie können diesen Teilnehmer nicht bannen"
     }
 
-    fun settingsRoomMemberBanUserErrorOffline() = translate {
+    open fun settingsRoomMemberBanUserErrorOffline() = translate {
         EN - "You cannot ban users when you are offline"
         DE - "Sie können offline keine Teilnehmer bannen"
     }
 
-    fun userProfileMembershipChanging() = translate {
+    open fun userProfileMembershipChanging() = translate {
         EN - "Membership is still changing at the momenet"
         DE - "Mitgliedschaft wird aktuell noch verändert"
     }
 
-    fun settingsRoomMemberUnbanUserError() = translate {
+    open fun settingsRoomMemberUnbanUserError() = translate {
         EN - "There was an error unbanning the user"
         DE - "Es gab einen Fehler beim Entbannen des Teilnehmers"
     }
 
-    fun settingsRoomMemberUnbanUserErrorNotPossible() = translate {
+    open fun settingsRoomMemberUnbanUserErrorNotPossible() = translate {
         EN - "You are unable to unban the user"
         DE - "Sie können den Teilnehmer nicht entbannen"
     }
 
-    fun settingsRoomMemberUnbanUserErrorOffline() = translate {
+    open fun settingsRoomMemberUnbanUserErrorOffline() = translate {
         EN - "You cannot unban users when you are offline"
         DE - "Sie können offline keine Teilnehmer entbannen"
     }
 
-    fun timelineElementDecryptionErrorAlgorithmNotSupported() = translate {
+    open fun timelineElementDecryptionErrorAlgorithmNotSupported() = translate {
         EN - "Decryption algorithm not supported."
         DE - "Verschlüsselungsalgorithmus wird nicht unterstützt."
     }
 
-    fun timelineElementDecryptionErrorTimeout() = translate {
+    open fun timelineElementDecryptionErrorTimeout() = translate {
         EN - "Decryption took too much time."
         DE - "Entschlüsselung hat zu lange gedauert."
     }
 
-    fun timelineElementDecryptionErrorNoContent() = translate {
+    open fun timelineElementDecryptionErrorNoContent() = translate {
         EN - "This message has been edited, but the new content could not be found."
         DE - "Diese Nachricht wurde editiert, aber der neue Inhalt konnte nicht gefunden werden."
     }
 
-    fun timelineElementDecryptionErrorGeneric(error: String?) = translate {
+    open fun timelineElementDecryptionErrorGeneric(error: String?) = translate {
         EN - "There was an error decrypting this message: ${error ?: commonUnknown()}"
         DE - "Es gab einen Fehler beim Entschlüsseln der Nachricht: ${error ?: commonUnknown()}"
     }
 
-    fun downloadFailed(error: String?) = translate {
+    open fun downloadFailed(error: String?) = translate {
         EN - "Download failed: ${error ?: commonUnknown()}"
         DE - "Herunterladen fehlgeschlagen: ${error ?: commonUnknown()}"
     }

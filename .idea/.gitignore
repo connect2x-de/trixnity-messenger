@@ -2,3 +2,6 @@
 !.gitignore
 !icon.png
 !.name
+!runConfigurations/
+!runConfigurations/**
+!runConfigurations.xml
