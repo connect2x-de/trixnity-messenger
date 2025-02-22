@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix text overflow in about licenses section
 - Clear current reply when sending reply message
 - The keyboard does not pop up when opening a room
+- Empty reactions do not block reaction computation
 
 ### Security
 
