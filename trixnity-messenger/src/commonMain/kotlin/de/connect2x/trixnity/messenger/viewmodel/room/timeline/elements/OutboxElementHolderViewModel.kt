@@ -126,6 +126,7 @@ class OutboxElementHolderViewModelImpl(
                 roomId,
                 EventIdOrTransactionId(transactionId),
                 onOpenMention,
+                ignoreReplacedEvents = true,
             ).also {
                 elementCache.value = TimelineElementViewModelWrapper(it, lifecycle)
             }
@@ -193,6 +194,7 @@ class OutboxElementHolderViewModelImpl(
                 showLoadingIndicatorBefore = flowOf(false),
                 showLoadingIndicatorAfter = flowOf(false),
                 showUnreadMarker = flowOf(false),
+                ignoreReplacedEvents = true,
                 getReceipts = ::getReceipts,
                 onMessageReplace = { _, _ -> },
                 onMessageReply = { _, _ -> },

@@ -1,10 +1,8 @@
 package de.connect2x.messenger.compose.view.room.settings
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,39 +14,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterVertically
-import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastRoundToInt
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
@@ -58,7 +41,6 @@ import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.pointerEventWrapper
 import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.util.Tooltip
@@ -66,13 +48,9 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
-import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.UserId
 import kotlin.time.Duration.Companion.milliseconds
 
-
-private val log = KotlinLogging.logger {}
 
 interface TimelineElementMetadataView {
     @Composable
@@ -98,6 +76,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
     ) {
         val i18n = DI.get<I18nView>()
 
+        val elementHistory = viewModel.elementHistory.collectAsState().value
         val element = viewModel.element.collectAsState().value
         val sender = element?.sender?.collectAsState()?.value
         val reactions = element?.reactions?.collectAsState()?.value
@@ -105,9 +84,6 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
         if (element == null || reactions == null || readers == null || sender == null) {
             LoadingSpinner(Modifier.fillMaxSize())
         } else {
-            val interactionFilterByReaction = remember { mutableStateOf<String?>(null) }
-//            val scrollState = rememberScrollState()
-
             ExtrasPaneHeader(
                 title = i18n.timelineElementMetadataTitle(),
                 error = null,
@@ -119,7 +95,6 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                 ) {
                     Column(
                         Modifier
-//                            .verticalScroll(scrollState)
                             .padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp))
                     ) {
                         SubHeading(i18n.timelineElementMetadataSender())
@@ -128,47 +103,14 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                             onOpenUserProfile = viewModel::openUserProfile,
                         )
                         SubHeading(i18n.timelineElementMetadataSender())
-                        MessageContent(element)
+                        MessageContentHistorySwitch(element, elementHistory)
                         SmallSpacer()
                         HorizontalDivider()
                         MiddleSpacer()
                         ReadersAndReactions(element)
-
-//                        if (hasReadersOrReactions) {
-//                            // TODO: Move this into the viewmodel?
-//                            val interactions = interactionFilterByReaction.value.let { filter ->
-//                                if (filter != null) userInteractions.filter { it.reactions.contains(filter) }
-//                                else userInteractions
-//                            }.sortedByDescending { it.reactions.firstOrNull()?.hashCode() }
-//                            log.debug { "interactions:${userInteractions.size} filtered:${interactions.size}" }
-//                            if (interactions.isEmpty() && interactionFilterByReaction.value != null) {
-//                                // Reset the filter if it's set but yields no results.
-//                                interactionFilterByReaction.value = null
-//                                // TODO: Add state that will trigger the filter row to scroll back to its beginning.
-//                            }
-//                            key(interactions) {
-//                                UserInteractions(
-//                                    interactions = interactions,
-//                                    visibleListOffset = interactionsOffset,
-//                                    visibleListHeight = filterOffset - interactionsOffset,
-//                                    onOpenUserProfile = viewModel::openUserProfile,
-//                                )
-//                            }
-//                        } else {
-//                            Text(
-//                                text = i18n.timelineElementMetadataReadersAndReactionsNone(),
-//                                style = MaterialTheme.typography.labelMedium,
-//                            )
-//                        }
                         SmallSpacer()
                     }
-//                    VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
                 }
-//                if (isInteractionsVisible) ReactionsFilter(
-//                    Modifier.offset(y = filterOffset),
-//                    reactionCounts,
-//                    interactionFilterByReaction,
-//                )
             }
         }
     }
@@ -189,15 +131,12 @@ fun ColumnScope.ReadersAndReactions(element: TimelineElementHolderViewModel) {
     val i18n = DI.get<I18nView>()
     val reactions = element.reactions.collectAsState().value
     val readers = element.readers.collectAsState().value
-    println("reactions: $reactions, readers: $readers")
     if (reactions != null && readers != null) {
         val allReadersAndReactions = remember(readers, reactions) {
             (readers.associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, false) } +
                     reactions.byUser).values.toList()
         }
         val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
-        println("hasReadersOrReactions: $hasReadersOrReactions")
-        val isFilterVisible = reactions.byReaction.size > 1
 
         if (hasReadersOrReactions) {
             Text(
@@ -247,10 +186,10 @@ private fun UserInfo(
         Row(
             Modifier
                 .fillMaxWidth()
-                // TODO .height(userItemHeight)
                 .clickable {
                     onOpenUserProfile(userInfo.userId)
                 }
+                .buttonPointerModifier()
         ) {
             Box(
                 Modifier
@@ -286,6 +225,33 @@ private fun UserInfo(
 }
 
 @Composable
+private fun ColumnScope.MessageContentHistorySwitch(
+    element: TimelineElementHolderViewModel,
+    elementHistory: List<TimelineElementHolderViewModel>?,
+) {
+    val i18n = DI.get<I18nView>()
+    var showHistory by remember { mutableStateOf(false) }
+    Row(
+        verticalAlignment = CenterVertically,
+        modifier = Modifier.clickable { showHistory = showHistory.not() }.buttonPointerModifier(),
+    ) {
+        Text(text = i18n.timelineElementMetadataHistory(), style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.size(5.dp).weight(1f, true))
+        Switch(
+            checked = showHistory,
+            onCheckedChange = { showHistory = it },
+            modifier = Modifier.buttonPointerModifier(),
+        )
+    }
+
+    if (showHistory) {
+        MessageHistory(elementHistory)
+    } else {
+        MessageContent(element)
+    }
+}
+
+@Composable
 private fun MessageContent(
     messageHolder: TimelineElementHolderViewModel?,
 ) {
@@ -302,242 +268,11 @@ private fun MessageContent(
     }
 }
 
-//@Composable
-//private fun UserInteractions(
-//    modifier: Modifier = Modifier,
-//    interactions: List<MessageUserInteraction>,
-//    visibleListOffset: Dp,
-//    visibleListHeight: Dp,
-//    onOpenUserProfile: (UserId) -> Unit,
-//) {
-//    val i18n = DI.get<I18nView>()
-//    Column(modifier) {
-//        if (interactions.isEmpty()) Text(
-//            i18n.timelineElementMetadataReadersAndReactionsNone(),
-//            style = MaterialTheme.typography.labelMedium,
-//            modifier = Modifier
-//                .height(filterBarHeight + largeSpacing)
-//                .align(CenterHorizontally)
-//                .paddingFromBaseline(0.dp)
-//                .padding(start = smallSpacing),
-//        )
-//        else LazyColumn(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .background(MaterialTheme.colorScheme.surface)
-//                .height(userItemHeight * interactions.size),
-//            userScrollEnabled = false,
-//            content = {
-//                items(
-//                    count = interactions.size,
-//                    key = { interactions[it].userId },
-//                ) {
-//                    val interaction = interactions[it]
-//                    UserInfo(interaction.userInfo, interaction.reactions, onOpenUserProfile)
-//                }
-//            }
-//        )
-//
-//        /**
-//         * Alternative implementation if the lazy column is rendering too many items since this one avoids drawing rows and loading profile images by visibility.
-//         * Both variants seem to work fine so pick the best.
-//         */
-////        else FlatLazyColumn(
-////            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
-////            visibleListOffset = visibleListOffset,
-////            visibleListHeight = visibleListHeight,
-////            itemHeight = userItemHeight,
-////            itemCount = interactions.size,
-////            itemKey = { interactions[it].userId },
-////            itemContent = {
-////                val interaction = interactions[it]
-////                UserInfo(interaction.userInfo, interaction.reactions, onOpenUserProfile)
-////            }
-////        )
-//    }
-//}
-//
-//@Composable
-//private fun <K> FlatLazyColumn(
-//    modifier: Modifier = Modifier,
-//    visibleListOffset: Dp,
-//    visibleListHeight: Dp,
-//    itemHeight: Dp,
-//    itemCount: Int,
-//    itemKey: (index: Int) -> K,
-//    itemContent: @Composable BoxScope.(index: Int) -> Unit,
-//) {
-//    val cullBuffer = 1f
-//    val visibleItemIndexFirst = (-visibleListOffset.value / itemHeight.value - cullBuffer)
-//        .fastRoundToInt().coerceIn(0, itemCount - 1)
-//    val visibleItemIndexLast = (visibleItemIndexFirst +
-//            (visibleListHeight.value / itemHeight.value + cullBuffer)
-//                .fastRoundToInt()).coerceIn(0, itemCount - 1)
-//    val visibleItemsRange = (visibleItemIndexFirst..visibleItemIndexLast)
-//    Column(
-//        Modifier
-//            .fillMaxWidth()
-//            .then(modifier)
-//    ) {
-//        repeat(itemCount) { index ->
-//            Box(
-//                Modifier
-//                    .fillMaxWidth()
-//                    .height(itemHeight)
-//            ) {
-//                val showItem = visibleItemsRange.contains(index)
-//                if (showItem) key(itemKey(index)) {
-//                    itemContent(index)
-//                }
-//            }
-//        }
-//    }
-//}
-//
-//@Composable
-//private fun ReactionsFilter(
-//    modifier: Modifier = Modifier,
-//    reactionCounts: Map<ReactionKey, UInt>,
-//    interactionFilterByReaction: MutableState<ReactionKey?>,
-//) {
-//    if (reactionCounts.isEmpty()) return
-//    val i18n = DI.get<I18nView>()
-//    var selectedTabIndex = 0
-//    val buttonWidth = 64.dp
-//    val reactionList = reactionCounts.asSequence()
-//    // TODO: Move this into the viewmodel?
-//    val reactionListWithSum: List<Pair<String, UInt>> =
-//        listOf(i18n.commonAll() to reactionList.map { it.value }.sum()) +
-//                reactionList.mapIndexed { index, reactionCount ->
-//                    if (reactionCount.key == interactionFilterByReaction.value)
-//                        selectedTabIndex = index + 1
-//                    reactionCount.toPair()
-//                }
-//    val filterScrollState = rememberLazyListState()
-//    Box(modifier.height(filterBarHeight)) {
-//        TabsRow(
-//            tabsCount = reactionListWithSum.size,
-//            selectedTabIndex = selectedTabIndex,
-//            scrollableState = filterScrollState,
-//            containerColor = Color.Transparent,
-//            contentColor = MaterialTheme.colorScheme.onSurface,
-//            selectionIndicatorColor = MaterialTheme.colorScheme.primary,
-//            edgePadding = contentPadding,
-//            onTabClick = {
-//                if (it > 0) interactionFilterByReaction.value =
-//                    reactionListWithSum[it].first
-//                else interactionFilterByReaction.value = null
-//            },
-//        ) { tabIndex, _ ->
-//            reactionListWithSum[tabIndex].let { (reaction, count) ->
-//                Row(
-//                    Modifier
-//                        .width(buttonWidth)
-//                        .fillMaxHeight()
-//                        .background(with(MaterialTheme.colorScheme) {
-//                            if (tabIndex % 2 == 0) surface
-//                            else onSurface.copy(alpha = 0.063f)
-//                                .compositeOver(surface)
-//                        })
-//                        .align(Center),
-//                    verticalAlignment = CenterVertically,
-//                    horizontalArrangement = Arrangement.Center,
-//                ) {
-//                    Text(
-//                        reaction,
-//                        style = MaterialTheme.typography.labelLarge.let {
-//                            if (tabIndex > 0) it.copy(fontSize = 16.sp) else it
-//                        }
-//                    )
-//                    Spacer(Modifier.size(2.dp))
-//                    Text("$count")
-//                }
-//            }
-//        }
-//        HorizontalDivider(Modifier.align(TopCenter))
-//        // TODO: Use disappearing scrollbar?
-//        HorizontalScrollbar(Modifier.align(BottomCenter), filterScrollState, false)
-//    }
-//}
-
-// TODO: Move to separate file?
 @Composable
-private fun TabsRow(
-    tabsCount: Int,
-    selectedTabIndex: Int?,
-    modifier: Modifier = Modifier,
-    contentColor: Color = TabRowDefaults.primaryContentColor,
-    containerColor: Color = TabRowDefaults.primaryContainerColor,
-    selectionIndicatorColor: Color = TabRowDefaults.secondaryContentColor,
-    edgePadding: Dp = TabRowDefaults.ScrollableTabRowEdgeStartPadding,
-    scrollableState: LazyListState = rememberLazyListState(),
-    onTabClick: (tabIndex: Int) -> Unit = {},
-    onTabContent: @Composable (BoxScope.(tabIndex: Int, isSelected: Boolean) -> Unit),
-) {
-    val density = LocalDensity.current.density
-    val coroutineScope = rememberCoroutineScope()
-    val tabsWidthCache by remember { mutableStateOf(mutableMapOf<Int, Int>()) }
-    var scrollContainerWidth by remember { mutableStateOf(0) }
-    val averageTabWidth = tabsWidthCache.values.average()
-        .let { if (it.isFinite()) it else .0 }
-        .fastRoundToInt()
-    Surface(
-        modifier = modifier,
-        color = containerColor,
-        contentColor = contentColor,
-    ) {
-        LazyRow(
-            modifier = Modifier
-                .pointerEventWrapper(PointerEventType.Scroll) {
-                    it.changes.firstOrNull()?.let { change ->
-                        // TODO: Ensure that there's only one simultaneous scrolling/launch happening?
-                        coroutineScope.launch {
-                            scrollableState.animateScrollBy(change.scrollDelta.y * density * 16)
-                        }
-                    }
-                }
-                .onSizeChanged { scrollContainerWidth = it.width },
-            state = scrollableState,
-            userScrollEnabled = true,
-            contentPadding = PaddingValues(horizontal = edgePadding),
-            content = {
-                items(count = tabsCount, key = { it }) { tabIndex ->
-                    val isSelected = tabIndex == selectedTabIndex
-                    Box(
-                        Modifier
-                            .clickable {
-                                // TODO: Ensure that there's only one simultaneous scrolling/launch happening?
-                                coroutineScope.launch {
-                                    scrollableState.animateScrollToItem(
-                                        tabIndex,
-                                        (scrollContainerWidth - tabsWidthCache
-                                            .getOrElse(tabIndex) { averageTabWidth }) / -2,
-                                    )
-                                }
-                                onTabClick(tabIndex)
-                            }
-                            .drawWithCache {
-                                onDrawWithContent {
-                                    drawContent()
-                                    val indicatorHeight = 8.dp.toPx()
-                                    if (isSelected) drawRect(
-                                        color = selectionIndicatorColor,
-                                        topLeft = Offset(0f, size.height - indicatorHeight),
-                                        size = Size(size.width, indicatorHeight)
-                                    )
-                                }
-                            }
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .align(TopCenter)
-                                .onSizeChanged { tabsWidthCache[tabIndex] = it.width }
-                                .minimumInteractiveComponentSize(),
-                            content = { onTabContent(tabIndex, isSelected) },
-                        )
-                    }
-                }
-            }
-        )
+private fun ColumnScope.MessageHistory(elementHistory: List<TimelineElementHolderViewModel>?) {
+    if (elementHistory?.isNotEmpty() == true) {
+        elementHistory.forEach { elementHolder ->
+            MessageContent(elementHolder)
+        }
     }
 }

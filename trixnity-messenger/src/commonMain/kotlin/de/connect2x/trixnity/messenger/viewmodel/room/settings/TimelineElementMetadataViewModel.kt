@@ -137,6 +137,7 @@ class TimelineElementMetadataViewModelImpl(
                     showLoadingIndicatorBefore = flowOf(false),
                     showLoadingIndicatorAfter = flowOf(false),
                     showUnreadMarker = flowOf(false),
+                    ignoreReplacedEvents = true,
                     getReceipts = ::getReceipts,
                     onMessageReplace = { _, _ -> },
                     onMessageReply = { _, _ -> },
@@ -156,10 +157,11 @@ class TimelineElementMetadataViewModelImpl(
     override val elementHistory: StateFlow<List<TimelineElementHolderViewModel>?> =
         matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId)
             .map { replaceAggregation ->
-                val history = replaceAggregation.history.dropLast(1)
+                val history = listOf(eventId) + replaceAggregation.history
                 (elementHistoryCache.value - history.toSet()).forEach { (_, wrapper) ->
                     wrapper.lifecycle.destroy()
                 }
+                log.debug { "history: $history" }
                 history.map historyMap@{ historyEventId ->
                     val elementHistoryCacheValue = elementHistoryCache.value[historyEventId]
                     if (elementHistoryCacheValue != null) return@historyMap elementHistoryCacheValue.viewModel
@@ -169,6 +171,7 @@ class TimelineElementMetadataViewModelImpl(
                     val timelineEvent = timelineEventFlow.first()
                     val lifecycle = LifecycleRegistry()
                     lifecycle.start()
+                    log.debug { "create Holder for: $timelineEvent" }
                     timelineElementHolderViewModelFactory.create(
                         viewModelContext = childContextWithOwnLifecycle(lifecycle),
                         key = "element-history-${historyEventId.full}",
@@ -187,6 +190,7 @@ class TimelineElementMetadataViewModelImpl(
                         showLoadingIndicatorBefore = flowOf(false),
                         showLoadingIndicatorAfter = flowOf(false),
                         showUnreadMarker = flowOf(false),
+                        ignoreReplacedEvents = false,
                         getReceipts = ::getReceipts,
                         onMessageReplace = { _, _ -> },
                         onMessageReply = { _, _ -> },

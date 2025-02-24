@@ -951,6 +951,11 @@ open class I18nView(
         DE - "Nachricht"
     }
 
+    open fun timelineElementMetadataHistory() = translate {
+        EN - "Show history of message"
+        DE - "Zeige Nachrichtenhistorie"
+    }
+
     open fun timelineElementMetadataReadersAndReactions() = translate {
         EN - "Seen and reacted by"
         DE - "Leser und Reaktionen"

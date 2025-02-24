@@ -93,6 +93,7 @@ interface TimelineElementHolderViewModelFactory {
         showUnreadMarker: Flow<Boolean>,
         showLoadingIndicatorBefore: Flow<Boolean>,
         showLoadingIndicatorAfter: Flow<Boolean>,
+        ignoreReplacedEvents: Boolean,
         getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
         onMessageReplace: (RoomId, EventId) -> Unit,
         onMessageReply: (RoomId, EventId) -> Unit,
@@ -112,6 +113,7 @@ interface TimelineElementHolderViewModelFactory {
             showUnreadMarker = showUnreadMarker,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
+            ignoreReplacedEvents = ignoreReplacedEvents,
             getReceipts = getReceipts,
             onMessageReplace = onMessageReplace,
             onMessageReply = onMessageReply,
@@ -173,6 +175,7 @@ class TimelineElementHolderViewModelImpl(
     showUnreadMarker: Flow<Boolean>,
     showLoadingIndicatorBefore: Flow<Boolean>,
     showLoadingIndicatorAfter: Flow<Boolean>,
+    private val ignoreReplacedEvents: Boolean,
     private val getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
     private val onMessageReplace: (RoomId, EventId) -> Unit,
     private val onMessageReply: (RoomId, EventId) -> Unit,
@@ -296,6 +299,7 @@ class TimelineElementHolderViewModelImpl(
                 roomId,
                 EventIdOrTransactionId(eventId),
                 onOpenMention,
+                ignoreReplacedEvents,
             ).also {
                 elementCache.value = TimelineElementViewModelWrapper(it, lifecycle)
             }
@@ -318,7 +322,7 @@ class TimelineElementHolderViewModelImpl(
             val eventContent = timelineEventFlow.first().event.content
             if (eventContent !is MessageEventContent) return@flow
             val repliedEventId = eventContent.relatesTo?.replyTo?.eventId
-                ?: return@flow // Emit nothing if repled element can't be resolved.
+                ?: return@flow // Emit nothing if replied element can't be resolved.
             val repliedTimelineEventFlow = matrixClient.room.getTimelineEvent(roomId, repliedEventId).filterNotNull()
             val repliedTimelineEvent = repliedTimelineEventFlow.first()
             emit(
@@ -340,6 +344,7 @@ class TimelineElementHolderViewModelImpl(
                     showLoadingIndicatorBefore = flowOf(false),
                     showLoadingIndicatorAfter = flowOf(false),
                     showUnreadMarker = flowOf(false),
+                    ignoreReplacedEvents = true,
                     getReceipts = getReceipts,
                     onMessageReplace = { _, _ -> },
                     onMessageReply = { _, _ -> },
