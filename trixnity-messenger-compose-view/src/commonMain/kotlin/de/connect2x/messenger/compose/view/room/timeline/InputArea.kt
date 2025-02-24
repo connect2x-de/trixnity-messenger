@@ -64,9 +64,12 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.intl.LocaleList
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -304,6 +307,9 @@ fun RowScope.InputAreaTextField(
             },
             maxLines = 6,
             textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+            )
         ) { innerTextField ->
             @OptIn(ExperimentalMaterial3Api::class)
             OutlinedTextFieldDefaults.DecorationBox(
