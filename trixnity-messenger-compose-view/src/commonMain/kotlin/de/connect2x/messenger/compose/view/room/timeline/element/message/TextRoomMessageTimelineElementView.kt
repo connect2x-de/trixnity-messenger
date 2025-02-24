@@ -20,7 +20,7 @@ class TextRoomMessageTimelineElementView : TimelineElementView<Text> {
         holder: BaseTimelineElementHolderViewModel,
         element: Text,
     ) {
-        TextBasedRoomMessageTimelineElementView(holder, element)
+        TextBasedRoomMessageTimelineElementView(holder, element, isPreview = false)
     }
 
     @Composable
@@ -28,7 +28,7 @@ class TextRoomMessageTimelineElementView : TimelineElementView<Text> {
         holder: TimelineElementHolderViewModel,
         element: Text,
     ) {
-        TextBasedRoomMessageTimelineElementView(holder, element)
+        TextBasedRoomMessageTimelineElementView(holder, element, isPreview = true)
     }
 
     @Composable

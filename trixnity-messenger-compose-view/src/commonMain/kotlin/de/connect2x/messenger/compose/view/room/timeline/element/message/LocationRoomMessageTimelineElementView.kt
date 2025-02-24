@@ -16,7 +16,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.Location
 import kotlin.reflect.KClass
 
@@ -34,7 +33,7 @@ class LocationRoomMessageTimelineElementView : TimelineElementView<Location> {
         holder: BaseTimelineElementHolderViewModel,
         element: Location,
     ) {
-        LocationMessageElement(holder, element)
+        LocationMessageElement(holder, element, isPreview = false)
     }
 
     @Composable
@@ -42,7 +41,7 @@ class LocationRoomMessageTimelineElementView : TimelineElementView<Location> {
         holder: TimelineElementHolderViewModel,
         element: Location,
     ) {
-        LocationMessageElement(holder, element)
+        LocationMessageElement(holder, element, isPreview = true)
     }
 
     @Composable
@@ -63,10 +62,12 @@ class LocationRoomMessageTimelineElementView : TimelineElementView<Location> {
 fun LocationMessageElement(
     holder: BaseTimelineElementHolderViewModel,
     element: Location,
+    isPreview: Boolean,
 ) {
     MessageBubble(
         holder,
         needsMaxWidth = false,
+        isPreview = isPreview,
     ) { showMenuAction ->
         if (Platform.current.isDesktop) {
             // on Desktop it makes sense to select text and copy it;

@@ -60,6 +60,7 @@ fun TextMessageBubblePreview() {
         TextBasedRoomMessageTimelineElementView(
             holder,
             element,
+            isPreview = false,
         )
     }
 }

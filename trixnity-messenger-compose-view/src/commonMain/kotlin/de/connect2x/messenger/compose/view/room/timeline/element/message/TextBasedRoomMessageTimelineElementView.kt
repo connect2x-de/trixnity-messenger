@@ -45,10 +45,12 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 fun TextBasedRoomMessageTimelineElementView(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.TextBased<*>,
+    isPreview: Boolean,
 ) {
     MessageBubble(
         holder,
         needsMaxWidth = false,
+        isPreview = isPreview
     ) { showActionMenu ->
         if (Platform.current.isDesktop) {
             // on Desktop, it makes sense to select text and copy it;

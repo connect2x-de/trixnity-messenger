@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,11 +41,12 @@ fun MessageBubbleContainer(
     needsMaxWidth: Boolean,
     reactionsOpen: MutableState<Boolean>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
-    isPreview: Boolean = false,
+    isPreview: Boolean,
     overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
+    val isFirstInUserSequence = holder.isFirstInUserSequence.collectAsState().value == true
     val showActionMenu = remember { mutableStateOf(false) }
     val hoverMessage = remember { mutableStateOf(false) }
 
@@ -76,7 +76,6 @@ fun MessageBubbleContainer(
                 }
         ) {
             Row {
-                val isFirstInUserSequence = holder.isFirstInUserSequence.collectAsState().value == true
                 if (holder.isByMe.not()) {
                     if (isFirstInUserSequence) {
                         Box(
@@ -86,7 +85,6 @@ fun MessageBubbleContainer(
                                     shape = ChatEdgeLeft(with(LocalDensity.current) { 8.dp.roundToPx() })
                                 )
                                 .requiredWidth(8.dp)
-                                .fillMaxHeight()
                         )
                     } else {
                         Spacer(Modifier.requiredWidth(8.dp))

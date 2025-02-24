@@ -45,7 +45,7 @@ fun MessageBubble(
     needsMaxWidth: Boolean,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
     overlay: (@Composable BoxScope.() -> Unit)? = null,
-    isPreview: Boolean = false,
+    isPreview: Boolean,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     DI.get<MessageBubbleView>()
@@ -100,11 +100,13 @@ class MessageBubbleViewImpl : MessageBubbleView {
                         content = content,
                     )
                 }
-                MessageReactions(
-                    holder,
-                    reactionsOpen,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
+                if (isPreview.not()) {
+                    MessageReactions(
+                        holder,
+                        reactionsOpen,
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
             }
         }
     }

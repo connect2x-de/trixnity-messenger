@@ -44,6 +44,7 @@ class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementV
         MessageBubble(
             holder,
             needsMaxWidth = false,
+            isPreview = false,
         ) { _ ->
             RedactedMessageElement(element)
         }
@@ -57,6 +58,7 @@ class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementV
         MessageBubble(
             holder,
             needsMaxWidth = false,
+            isPreview = true,
         ) { _ ->
             RedactedMessageElement(element)
         }

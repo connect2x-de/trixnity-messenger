@@ -110,6 +110,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
             ).render(onClose)
         },
         overlay,
+        isPreview = false, // FIXME preview?
     ) { showActionMenu ->
         FileBasedView(holder, element, onSave, showActionMenu, content)
     }

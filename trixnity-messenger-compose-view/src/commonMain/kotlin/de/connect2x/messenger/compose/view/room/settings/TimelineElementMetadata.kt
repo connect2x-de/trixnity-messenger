@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.room.settings
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -102,7 +104,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                             sender,
                             onOpenUserProfile = viewModel::openUserProfile,
                         )
-                        SubHeading(i18n.timelineElementMetadataSender())
+                        SubHeading(i18n.timelineElementMetadataMessage())
                         MessageContentHistorySwitch(element, elementHistory)
                         SmallSpacer()
                         HorizontalDivider()
@@ -117,7 +119,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
 }
 
 @Composable
-fun ColumnScope.SubHeading(heading: String) {// FIXME re-use in other components
+fun ColumnScope.SubHeading(heading: String) {// TODO re-use in other components
     MiddleSpacer()
     Text(
         text = heading,
@@ -235,7 +237,7 @@ private fun ColumnScope.MessageContentHistorySwitch(
         verticalAlignment = CenterVertically,
         modifier = Modifier.clickable { showHistory = showHistory.not() }.buttonPointerModifier(),
     ) {
-        Text(text = i18n.timelineElementMetadataHistory(), style = MaterialTheme.typography.titleMedium)
+        Text(text = i18n.timelineElementMetadataHistory(), style = MaterialTheme.typography.titleSmall)
         Spacer(Modifier.size(5.dp).weight(1f, true))
         Switch(
             checked = showHistory,
@@ -252,14 +254,15 @@ private fun ColumnScope.MessageContentHistorySwitch(
 }
 
 @Composable
-private fun MessageContent(
+private fun ColumnScope.MessageContent(
     messageHolder: TimelineElementHolderViewModel?,
 ) {
     messageHolder?.let { holder ->
         DateStickyHeader(messageHolder.formattedDate)
         holder.element.collectAsState().value?.let { element ->
             Column(
-                Modifier.padding(end = 8.dp),
+                Modifier.padding(end = 8.dp)
+                    .border(2.dp, Color.Green),
             ) {
                 DI.get<TimelineElementViewSelector>().createAsPreview(holder, element)
             }

@@ -33,6 +33,7 @@ class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTime
         MessageBubble(
             holder,
             needsMaxWidth = false,
+            isPreview = false,
         ) { _ ->
             EncryptedMessageErrorElement()
         }
@@ -46,6 +47,7 @@ class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTime
         MessageBubble(
             holder,
             needsMaxWidth = false,
+            isPreview = true,
         ) { _ ->
             EncryptedMessageErrorElement()
         }

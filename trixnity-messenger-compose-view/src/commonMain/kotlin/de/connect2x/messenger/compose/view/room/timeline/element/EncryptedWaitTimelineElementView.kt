@@ -41,6 +41,7 @@ class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimeli
         MessageBubble(
             holder,
             needsMaxWidth = false,
+            isPreview = false,
         ) { _ ->
             EncryptedMessageWaitElement()
         }
@@ -54,6 +55,7 @@ class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimeli
         MessageBubble(
             holder,
             needsMaxWidth = false,
+            isPreview = true,
         ) { _ ->
             EncryptedMessageWaitElement()
         }
