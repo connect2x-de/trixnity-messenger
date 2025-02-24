@@ -31,45 +31,40 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased
-
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 
 interface FileBasedRoomMessageTimelineElementView {
     @Composable
     fun create(
         holder: BaseTimelineElementHolderViewModel,
-        element: FileBased<*>,
-        config: MessageBubbleDisplayConfig.() -> Unit,
+        element: RoomMessageTimelineElementViewModel.FileBased<*>,
         overlay: @Composable BoxScope.() -> Unit,
-        content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
+        content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     )
 }
 
 @Composable
-internal fun FileBasedRoomMessageTimelineElement(
+fun FileBasedRoomMessageTimelineElement(
     holder: BaseTimelineElementHolderViewModel,
-    element: FileBased<*>,
-    config: MessageBubbleDisplayConfig.() -> Unit = {},
-    overlay: @Composable BoxScope.() -> Unit = {},
-    content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
+    element: RoomMessageTimelineElementViewModel.FileBased<*>,
+    overlay: @Composable BoxScope.() -> Unit,
+    content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
 ) {
     DI.get<FileBasedRoomMessageTimelineElementView>()
-        .create(holder, element, config, overlay, content)
+        .create(holder, element, overlay, content)
 }
 
 class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimelineElementView {
     @Composable
     override fun create(
         holder: BaseTimelineElementHolderViewModel,
-        element: FileBased<*>,
-        config: MessageBubbleDisplayConfig.() -> Unit,
+        element: RoomMessageTimelineElementViewModel.FileBased<*>,
         overlay: @Composable BoxScope.() -> Unit,
-        content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
+        content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     ) {
         val error = element.downloadMediaError.collectAsState().value
         var saveDialogOpen by remember { mutableStateOf(false) }
@@ -79,37 +74,24 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
             error,
             element::downloadMedia,
         ) { saveDialogOpen = false }
-
-        FileBasedRoomMessageTimelineElementMessageBubble(
-            holder = holder,
-            element = element,
-            config = config,
-            onSave = { saveDialogOpen = true },
-            overlay = overlay,
-            content = content,
-        )
+        FileBasedRoomMessageTimelineElementMessageBubble(holder, element, { saveDialogOpen = true }, overlay, content)
     }
 }
 
 @Composable
 fun FileBasedRoomMessageTimelineElementMessageBubble(
     holder: BaseTimelineElementHolderViewModel,
-    element: FileBased<*>,
-    config: MessageBubbleDisplayConfig.() -> Unit = {},
+    element: RoomMessageTimelineElementViewModel.FileBased<*>,
     onSave: () -> Unit,
     overlay: @Composable BoxScope.() -> Unit,
-    content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
+    content: @Composable ColumnScope.(() -> Unit, () -> Unit) -> Unit
 ) {
     val i18n = DI.current.get<I18nView>()
     MessageBubble(
-        holder = holder,
-        overlay = overlay,
-        config = {
-            apply(config)
-            contentNeedsMaxWidth = true
-        },
+        holder,
+        needsMaxWidth = true,
         additionalContextActions = { onClose ->
-            // Name:
+            // name
             Tooltip(
                 { TooltipText("${element.name} " + (element.size ?: "")) } // full name
             ) {
@@ -120,42 +102,44 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
                 )
             }
             HorizontalDivider()
-            // Download action:
+            // download action
             BaseTimelineElementHolderContextMenuAction(
                 label = i18n.downloadMessage(),
                 action = onSave,
             ).render(onClose)
         },
-    ) { openActionMenu ->
-        FileBasedView(holder, element, onSave, openActionMenu, content)
+        overlay,
+    ) { showActionMenu ->
+        FileBasedView(holder, element, onSave, showActionMenu, content)
     }
 }
 
 @Composable
 internal fun FileBasedView(
     holder: BaseTimelineElementHolderViewModel,
-    element: FileBased<*>,
+    element: RoomMessageTimelineElementViewModel.FileBased<*>,
     onSave: () -> Unit,
-    onOpenActionMenu: () -> Unit,
-    content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onOpenElementDetails: () -> Unit) -> Unit,
+    showActionMenu: () -> Unit,
+    content: @Composable ColumnScope.(onShowActionMenu: () -> Unit, openElementDetails: () -> Unit) -> Unit
 ) {
     val downloadProgressElement = element.downloadMediaProgress.collectAsState()
     val uploadProgress = holder.asOutboxElementHolder()?.uploadProgress?.collectAsState()?.value
-    var showElementDetails by remember { mutableStateOf(false) }
+
+    var openElementDetails by remember { mutableStateOf(false) }
 
     Column(
         Modifier
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = { showElementDetails = true },
-                    onLongPress = { onOpenActionMenu() },
+                    onTap = { openElementDetails = true },
+                    onLongPress = { showActionMenu() },
                 )
             }
             .buttonPointerModifier()
     ) {
-        // Content based on the actual file:
-        content(onOpenActionMenu) {
-            showElementDetails = true
+        // content based on the actual file
+        content(showActionMenu) {
+            openElementDetails = true
         }
     }
 
@@ -182,7 +166,9 @@ internal fun FileBasedView(
         Spacer(Modifier.size(10.dp))
     }
 
-    if (showElementDetails) ElementDetailsSelector(element, onSave) {
-        showElementDetails = false
+    if (openElementDetails) {
+        ElementDetailsSelector(element, onSave) {
+            openElementDetails = false
+        }
     }
 }

@@ -11,58 +11,58 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedErrorTimelineElementViewModel
 import kotlin.reflect.KClass
-
 
 class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTimelineElementViewModel> {
     override val supports: KClass<EncryptedErrorTimelineElementViewModel> =
         EncryptedErrorTimelineElementViewModel::class
 
     override suspend fun waitFor(element: EncryptedErrorTimelineElementViewModel) {
-        // NO-OP (has default size)
+        // no-op (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: EncryptedErrorTimelineElementViewModel,
+        element: EncryptedErrorTimelineElementViewModel
     ) {
         MessageBubble(
-            holder = holder,
+            holder,
+            needsMaxWidth = false,
         ) { _ ->
-            EncryptedMessageErrorElement()
+            EncryptedError()
         }
     }
 
     @Composable
     override fun createAsPreview(
         holder: BaseTimelineElementHolderViewModel,
-        element: EncryptedErrorTimelineElementViewModel,
+        element: EncryptedErrorTimelineElementViewModel
     ) {
         MessageBubble(
-            holder = holder,
-            config = { applyPreviewConfig() },
+            holder,
+            needsMaxWidth = false,
         ) { _ ->
-            EncryptedMessageErrorElement()
+            EncryptedError()
         }
     }
 
     @Composable
     override fun createReplyInTimeline(element: EncryptedErrorTimelineElementViewModel) {
-        EncryptedMessageErrorElement()
+        EncryptedError()
     }
 
     @Composable
     override fun createReplyInSendMessage(element: EncryptedErrorTimelineElementViewModel) {
-        EncryptedMessageErrorElement()
+        EncryptedError()
     }
+
 }
 
 @Composable
-internal fun EncryptedMessageErrorElement() {
+internal fun EncryptedError() {
     val i18n = DI.get<I18nView>()
     Text(
         i18n.messageContentNoDecryption(),

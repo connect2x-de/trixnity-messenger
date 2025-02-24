@@ -2,13 +2,11 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInSendMessage
 import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased.Text
 import kotlin.reflect.KClass
-
 
 class TextRoomMessageTimelineElementView : TimelineElementView<Text> {
     override val supports: KClass<Text> =
@@ -31,7 +29,7 @@ class TextRoomMessageTimelineElementView : TimelineElementView<Text> {
         holder: BaseTimelineElementHolderViewModel,
         element: Text,
     ) {
-        TextBasedRoomMessageTimelineElementView(holder, element) { applyPreviewConfig() }
+        TextBasedRoomMessageTimelineElementView(holder, element)
     }
 
     @Composable
