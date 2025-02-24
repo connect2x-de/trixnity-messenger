@@ -113,7 +113,7 @@ internal fun ColumnScope.VideoMessageContent(
     holder: BaseTimelineElementHolderViewModel,
     element: Video,
     onOpenActionMenu: () -> Unit,
-    onSaveAttachment: () -> Unit,
+    onSave: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val thumbnail = element.thumbnail.collectAsState().value
@@ -133,7 +133,7 @@ internal fun ColumnScope.VideoMessageContent(
                             .heightIn(64.dp, 400.dp) // FIXME getHeight? videoMessageViewModel.getHeight(400f).dp
                             .widthIn(64.dp, 400.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .openVideoOnTouch(element, onSaveAttachment, onOpenActionMenu)
+                            .openVideoOnTouch(element, onSave, onOpenActionMenu)
                             .buttonPointerModifier(),
                         contentScale = ContentScale.Fit
                     )
@@ -143,7 +143,7 @@ internal fun ColumnScope.VideoMessageContent(
                         i18n.commonVideo(),
                         Modifier
                             .size(64.dp)
-                            .openVideoOnTouch(element, onSaveAttachment, onOpenActionMenu)
+                            .openVideoOnTouch(element, onSave, onOpenActionMenu)
                             .buttonPointerModifier(),
                         tint = Color.DarkGray,
                     )
@@ -159,11 +159,11 @@ internal fun ColumnScope.VideoMessageContent(
 private fun Modifier.openVideoOnTouch(
     element: Video,
     onOpenActionMenu: () -> Unit,
-    onSaveAttachment: () -> Unit,
+    onSave: () -> Unit,
 ): Modifier {
     return this.then(pointerInput(Unit) {
         detectTapGestures(
-            onTap = { onSaveAttachment() },
+            onTap = { onSave() },
             onLongPress = { onOpenActionMenu() },
         )
     })

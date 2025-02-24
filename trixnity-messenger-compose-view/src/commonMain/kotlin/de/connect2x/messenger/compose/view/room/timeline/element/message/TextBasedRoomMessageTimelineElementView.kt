@@ -22,7 +22,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.ui.BasicRichText
@@ -145,7 +144,6 @@ private fun MessageRichText(
                 color = if (isByMe) MaterialTheme.colorScheme.onPrimary
                 else MaterialTheme.colorScheme.onSecondary
             ),
-            overflow = TextOverflow.Ellipsis,
         )
     }
 }

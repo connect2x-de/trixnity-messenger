@@ -103,7 +103,7 @@ internal fun FileMessageElementOverlay(element: Audio) {
 internal fun MessageAudio(
     element: Audio,
     onOpenActionMenu: () -> Unit,
-    onSaveAttachment: () -> Unit,
+    onSave: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val downloadSuccessful = remember { element.downloadMediaResult.map { it != null } }.collectAsState(false)
@@ -126,7 +126,7 @@ internal fun MessageAudio(
                         .size(64.dp)
                         .pointerInput(Unit) {
                             detectTapGestures(
-                                onTap = { onSaveAttachment() },
+                                onTap = { onSave() },
                                 onLongPress = { onOpenActionMenu() },
                             )
                         }

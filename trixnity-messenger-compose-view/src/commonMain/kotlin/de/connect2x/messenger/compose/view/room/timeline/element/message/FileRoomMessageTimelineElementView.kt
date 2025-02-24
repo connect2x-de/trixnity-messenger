@@ -87,14 +87,14 @@ class FileRoomMessageTimelineElementView : TimelineElementView<File> {
 internal fun FileMessageContent(
     element: File,
     onOpenActionMenu: () -> Unit,
-    onSaveAttachment: () -> Unit,
+    onSave: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val downloadSuccessful = remember { element.downloadMediaResult.map { it != null } }.collectAsState(false)
     Row(
         Modifier.pointerInput(Unit) {
             detectTapGestures(
-                onTap = { onSaveAttachment() },
+                onTap = { onSave() },
                 onLongPress = { onOpenActionMenu() },
             )
         }

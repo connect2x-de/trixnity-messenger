@@ -105,22 +105,22 @@ internal fun ImageMessageElementOverlay(element: Image) {
 internal fun ColumnScope.ImageMessageContent(
     element: Image,
     onOpenActionMenu: () -> Unit,
-    onSaveAttachment: () -> Unit,
+    onSave: () -> Unit,
 ) {
     val image = element.thumbnail.collectAsState().value
     val bitmap = remember(image) {
         image?.toImageBitmap()
     }
     bitmap?.let {
-        MessageImageImpl(it, onOpenActionMenu, onSaveAttachment)
-    } ?: MessageImageFallback(element, onOpenActionMenu, onSaveAttachment)
+        MessageImageImpl(it, onOpenActionMenu, onSave)
+    } ?: MessageImageFallback(element, onOpenActionMenu, onSave)
 }
 
 @Composable
 internal fun ColumnScope.MessageImageImpl(
     image: ImageBitmap,
     onOpenActionMenu: () -> Unit,
-    onSaveAttachment: () -> Unit,
+    onSave: () -> Unit,
 ) {
     Image(
         image,
@@ -137,7 +137,7 @@ internal fun ColumnScope.MessageImageImpl(
             )
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = { onSaveAttachment() },
+                    onTap = { onSave() },
                     onLongPress = { onOpenActionMenu() },
                 )
             }
@@ -150,7 +150,7 @@ internal fun ColumnScope.MessageImageImpl(
 internal fun MessageImageFallback(
     element: Image,
     onOpenActionMenu: () -> Unit,
-    onSaveAttachment: () -> Unit,
+    onSave: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     Column(
@@ -165,7 +165,7 @@ internal fun MessageImageFallback(
             Modifier
                 .pointerInput(Unit) {
                     detectTapGestures(
-                        onTap = { onSaveAttachment() },
+                        onTap = { onSave() },
                         onLongPress = { onOpenActionMenu() },
                     )
                 }
