@@ -25,7 +25,7 @@ interface GetEventReactions {
         eventId: EventId,
         initials: Initials,
         avatarMaxSize: Long,
-    ): Flow<EventReactions?>
+    ): Flow<EventReactions>
 }
 
 // TODO: should consider outbox to get immediate feedback
@@ -37,10 +37,10 @@ class GetEventReactionsImpl : GetEventReactions {
         eventId: EventId,
         initials: Initials,
         avatarMaxSize: Long,
-    ): Flow<EventReactions?> =
+    ): Flow<EventReactions> =
         matrixClient.room.getTimelineEvent(roomId, eventId).flatMapLatest { timelineEvent ->
             when (timelineEvent?.content?.getOrNull()) {
-                null, is RedactedEventContent -> flowOf(null)
+                null, is RedactedEventContent -> flowOf(EventReactions(emptySet()))
                 else -> matrixClient.room.getTimelineEventReactionAggregation(roomId, eventId)
                     .scopedFlatMapLatest { reactions ->
                         if (reactions.reactions.isEmpty()) { // we have to return early here as otherwise we will not get a value of the combine()

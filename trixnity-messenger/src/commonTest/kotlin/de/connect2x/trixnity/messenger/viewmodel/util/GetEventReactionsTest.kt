@@ -22,6 +22,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.MessageEventContent
+import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.RelationType
@@ -87,7 +88,15 @@ class GetEventReactionsTest {
         )
         every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns MutableStateFlow(mapOf())
         getEventReactions() shouldBe EventReactions.Empty
+    }
 
+    @Test
+    fun `should return no reactions if event is redacted`() = runTest {
+        every { roomServiceMock.getTimelineEvent(any(), eventId) } returns MutableStateFlow(
+            timelineEvent(user1, eventId, RedactedEventContent("m.room.message"))
+        )
+        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns MutableStateFlow(mapOf())
+        getEventReactions() shouldBe EventReactions.Empty
     }
 
     @Test
