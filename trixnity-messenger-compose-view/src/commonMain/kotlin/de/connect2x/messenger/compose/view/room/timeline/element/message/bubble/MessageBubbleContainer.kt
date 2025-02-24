@@ -42,6 +42,7 @@ fun MessageBubbleContainer(
     infoOpen: MutableState<Boolean>,
     reactionsOpen: MutableState<Boolean>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
+    isPreview: Boolean = false,
     overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
@@ -58,7 +59,7 @@ fun MessageBubbleContainer(
 
     Column {
         Box(
-            Modifier
+            modifier = if (isPreview) Modifier else Modifier
                 .pointerMoveFilter(
                     onEnter = {
                         hoverMessage.value = true
@@ -97,10 +98,12 @@ fun MessageBubbleContainer(
                 ) {
                     Box(modifier = Modifier.width(IntrinsicSize.Max)) {
                         MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = true }, content)
-                        MessageBubbleContentOverlay(
-                            hoverMessage,
-                            overlay,
-                        )
+                        if (!isPreview) {
+                            MessageBubbleContentOverlay(
+                                hoverMessage,
+                                overlay,
+                            )
+                        }
                     }
                 }
                 if (holder.isByMe && isFirstInUserSequence) {
@@ -117,14 +120,16 @@ fun MessageBubbleContainer(
                 }
             }
 
-            MessageBubbleActionMenu(
-                holder,
-                hoverMessage,
-                showActionMenu,
-                { infoOpen.value = true },
-                { reactionsOpen.value = true },
-                additionalContextActions,
-            )
+            if (!isPreview) {
+                MessageBubbleActionMenu(
+                    holder,
+                    hoverMessage,
+                    showActionMenu,
+                    { infoOpen.value = true },
+                    { reactionsOpen.value = true },
+                    additionalContextActions,
+                )
+            }
         }
     }
 }

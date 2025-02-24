@@ -75,12 +75,12 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
             element::downloadMedia,
         ) { saveDialogOpen = false }
 
-        FileBasedRoomMessageTimelineElementMessageBuble(holder, element, { saveDialogOpen = true }, overlay, content)
+        FileBasedRoomMessageTimelineElementMessageBubble(holder, element, { saveDialogOpen = true }, overlay, content)
     }
 }
 
 @Composable
-fun FileBasedRoomMessageTimelineElementMessageBuble(
+fun FileBasedRoomMessageTimelineElementMessageBubble(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     onSave: () -> Unit,
