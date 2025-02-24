@@ -472,6 +472,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
                 .map { it?.eventId == eventId },
             showLoadingIndicatorBefore = flowOf(false),
             showLoadingIndicatorAfter = flowOf(false),
+            ignoreReplacedEvents = false,
             getReceipts = { receipts },
             timelineEventFlow = flowOf(timelineEvent),
             onMessageReplace = mock(),
