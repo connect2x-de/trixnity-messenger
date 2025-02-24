@@ -126,6 +126,7 @@ interface TimelineViewModelFactory {
         onOpenRoomSettings: () -> Unit,
         onOpenUserProfile: (UserId) -> Unit,
         onOpenMention: OpenMentionCallback,
+        onOpenMetadata: (eventId: EventId) -> Unit,
     ): TimelineViewModel =
         TimelineViewModelImpl(
             viewModelContext = viewModelContext,
@@ -134,6 +135,7 @@ interface TimelineViewModelFactory {
             onOpenSettings = onOpenRoomSettings,
             onOpenUserProfile = onOpenUserProfile,
             onOpenMention = onOpenMention,
+            onOpenMetadata = onOpenMetadata,
         )
 
     companion object : TimelineViewModelFactory
@@ -231,6 +233,7 @@ class TimelineViewModelImpl(
     onOpenSettings: () -> Unit,
     private val onOpenUserProfile: (UserId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
+    private val onOpenMetadata: (eventId: EventId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
 
     init {
@@ -623,11 +626,13 @@ class TimelineViewModelImpl(
             showUnreadMarker = showUnreadMarker,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
+            ignoreReplacedEvents = true,
             getReceipts = ::getReceipts,
             onMessageReplace = ::onMessageReplace,
             onMessageReply = ::onMessageReply,
             onMessageReport = ::onShowReportMessageModal,
             onOpenMention = onOpenMention,
+            onOpenMetadata = onOpenMetadata,
         )
         return TimelineElementWrapper(
             key = key,

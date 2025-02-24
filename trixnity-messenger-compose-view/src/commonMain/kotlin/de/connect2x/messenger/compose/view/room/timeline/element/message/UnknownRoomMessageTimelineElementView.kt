@@ -10,7 +10,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.Unknown
 import kotlin.reflect.KClass
 
@@ -33,31 +35,47 @@ class UnknownRoomMessageTimelineElementView : TimelineElementView<Unknown> {
 
     @Composable
     override fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: Unknown,
     ) {
         UnknownMessageElement(element)
     }
 
     @Composable
-    override fun createReplyInTimeline(element: Unknown) {
-        Text(
-            text = element.fallbackBody,
-            fontStyle = FontStyle.Italic,
-            style = MaterialTheme.typography.bodySmall,
-            maxLines = 4,
-            overflow = TextOverflow.Ellipsis,
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: Unknown,
+    ) {
+        ReferencedMessagePill(
+            holder = holder,
+            content = {
+                Text(
+                    text = element.fallbackBody,
+                    fontStyle = FontStyle.Italic,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         )
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: Unknown) {
-        Text(
-            text = element.fallbackBody,
-            fontStyle = FontStyle.Italic,
-            style = MaterialTheme.typography.bodySmall,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
+    override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: Unknown,
+    ) {
+        ReferencedMessagePill(
+            holder = holder,
+            content = {
+                Text(
+                    text = element.fallbackBody,
+                    fontStyle = FontStyle.Italic,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         )
     }
 

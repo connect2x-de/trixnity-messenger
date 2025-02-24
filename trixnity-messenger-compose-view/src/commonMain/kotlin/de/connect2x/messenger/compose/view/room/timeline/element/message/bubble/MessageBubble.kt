@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfo
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactions
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -46,7 +45,7 @@ fun MessageBubble(
     needsMaxWidth: Boolean,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
     overlay: (@Composable BoxScope.() -> Unit)? = null,
-    isPreview: Boolean = false,
+    isPreview: Boolean,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     DI.get<MessageBubbleView>()
@@ -68,7 +67,6 @@ class MessageBubbleViewImpl : MessageBubbleView {
         val showBigGap = holder.showBigGapBefore.collectAsState().value == true
         val topPadding = if (showBigGap) 10.dp else 3.dp
 
-        val infoOpen = remember { mutableStateOf(false) }
         val reactionsOpen = remember { mutableStateOf(false) }
 
         BoxWithConstraints(
@@ -93,28 +91,22 @@ class MessageBubbleViewImpl : MessageBubbleView {
                         }
                     }
                     MessageBubbleContainer(
-                        holder,
-                        needsMaxWidth,
-                        infoOpen,
-                        reactionsOpen,
-                        additionalContextActions,
-                        isPreview,
-                        overlay,
-                        content,
+                        holder = holder,
+                        needsMaxWidth = needsMaxWidth,
+                        reactionsOpen = reactionsOpen,
+                        additionalContextActions = additionalContextActions,
+                        isPreview = isPreview,
+                        overlay = overlay,
+                        content = content,
                     )
                 }
-
-                MessageInfo(
-                    holder,
-                    infoOpen,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-
-                MessageReactions(
-                    holder,
-                    reactionsOpen,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
+                if (isPreview.not()) {
+                    MessageReactions(
+                        holder,
+                        reactionsOpen,
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
             }
         }
     }

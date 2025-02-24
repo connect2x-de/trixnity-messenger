@@ -28,7 +28,7 @@ interface RoomSettingsViewModelFactory {
         onOpenAddMembers: () -> Unit,
         onOpenExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
-        onOpenUserProfile: (UserId, RoomId) -> Unit,
+        onOpenUserProfile: (UserId) -> Unit,
         onOpenAvatarCutter: OpenAvatarCutterCallback,
     ): RoomSettingsViewModel = RoomSettingsViewModelImpl(
         viewModelContext = viewModelContext,
@@ -81,7 +81,7 @@ class RoomSettingsViewModelImpl(
     private val onCloseRoomSettings: () -> Unit,
     private val onLeaveRoom: () -> Unit,
     private val onOpenAvatarCutter: OpenAvatarCutterCallback,
-    private val onOpenUserProfile: (UserId, RoomId) -> Unit,
+    private val onOpenUserProfile: (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
 
     private val backCallback = BackCallback {
@@ -218,7 +218,7 @@ class RoomSettingsViewModelImpl(
     }
 
     override fun openUserProfile(userId: UserId) {
-        onOpenUserProfile(userId, selectedRoomId)
+        onOpenUserProfile(userId)
     }
 }
 

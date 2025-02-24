@@ -23,6 +23,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.ui.BasicRichText
@@ -32,9 +33,11 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isDesktop
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.messenger.compose.view.room.timeline.element.util.mentionsUriHandler
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 
@@ -42,10 +45,12 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 fun TextBasedRoomMessageTimelineElementView(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.TextBased<*>,
+    isPreview: Boolean,
 ) {
     MessageBubble(
         holder,
         needsMaxWidth = false,
+        isPreview = isPreview
     ) { showActionMenu ->
         if (Platform.current.isDesktop) {
             // on Desktop, it makes sense to select text and copy it;
@@ -205,3 +210,40 @@ internal fun String.formatLinks(): String =
             "<a href=\"${it.value}\">${it.value}</a>"
         }
     }
+
+@Composable
+fun TextReplyInTimeline(
+    holder: TimelineElementHolderViewModel,
+    element: RoomMessageTimelineElementViewModel.TextBased<*>,
+) {
+    ReferencedMessagePill(
+        holder = holder,
+        content = {
+            TextReply(element, 4)
+        }
+    )
+}
+
+@Composable
+fun TextReplyInSendMessage(
+    holder: TimelineElementHolderViewModel,
+    element: RoomMessageTimelineElementViewModel.TextBased<*>
+) {
+    ReferencedMessagePill(
+        holder = holder,
+        content = {
+            TextReply(element, 2)
+        }
+    )
+}
+
+@Composable
+private fun TextReply(element: RoomMessageTimelineElementViewModel.TextBased<*>, maxLines: Int) {
+    Text(
+        text = element.body,
+        fontStyle = FontStyle.Italic,
+        style = MaterialTheme.typography.bodySmall,
+        maxLines = maxLines,
+        overflow = TextOverflow.Ellipsis,
+    )
+}

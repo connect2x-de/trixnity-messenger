@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,19 +33,20 @@ import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.pointerMoveFilter
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
 @Composable
 fun MessageBubbleContainer(
     holder: BaseTimelineElementHolderViewModel,
     needsMaxWidth: Boolean,
-    infoOpen: MutableState<Boolean>,
     reactionsOpen: MutableState<Boolean>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
-    isPreview: Boolean = false,
+    isPreview: Boolean,
     overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
+    val isFirstInUserSequence = holder.isFirstInUserSequence.collectAsState().value == true
     val showActionMenu = remember { mutableStateOf(false) }
     val hoverMessage = remember { mutableStateOf(false) }
 
@@ -76,7 +76,6 @@ fun MessageBubbleContainer(
                 }
         ) {
             Row {
-                val isFirstInUserSequence = holder.isFirstInUserSequence.collectAsState().value == true
                 if (holder.isByMe.not()) {
                     if (isFirstInUserSequence) {
                         Box(
@@ -86,7 +85,6 @@ fun MessageBubbleContainer(
                                     shape = ChatEdgeLeft(with(LocalDensity.current) { 8.dp.roundToPx() })
                                 )
                                 .requiredWidth(8.dp)
-                                .fillMaxHeight()
                         )
                     } else {
                         Spacer(Modifier.requiredWidth(8.dp))
@@ -114,7 +112,6 @@ fun MessageBubbleContainer(
                                 shape = ChatEdgeRight(with(LocalDensity.current) { 8.dp.roundToPx() })
                             )
                             .zIndex(-1f)
-                            .fillMaxHeight()
                         // no width and no padding, as really wide messages will push this to the max amount (we only use padding in the Timeline)
                     )
                 }
@@ -125,8 +122,10 @@ fun MessageBubbleContainer(
                     holder,
                     hoverMessage,
                     showActionMenu,
-                    { infoOpen.value = true },
-                    { reactionsOpen.value = true },
+                    onOpenMetadata = {
+                        if (holder is TimelineElementHolderViewModel) holder.openTimelineElementMetadata()
+                    },
+                    onReactToMessage = { reactionsOpen.value = true },
                     additionalContextActions,
                 )
             }

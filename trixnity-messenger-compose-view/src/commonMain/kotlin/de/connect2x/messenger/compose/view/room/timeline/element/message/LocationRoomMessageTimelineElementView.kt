@@ -13,70 +13,78 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isDesktop
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.Location
 import kotlin.reflect.KClass
 
-class LocationRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.Location> {
-    override val supports: KClass<RoomMessageTimelineElementViewModel.Location> =
-        RoomMessageTimelineElementViewModel.Location::class
 
-    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.Location) {
-        // no-op (has default size)
+class LocationRoomMessageTimelineElementView : TimelineElementView<Location> {
+    override val supports: KClass<Location> =
+        Location::class
+
+    override suspend fun waitFor(element: Location) {
+        // NO-OP (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.Location,
+        element: Location,
     ) {
-        MessageLocation(holder, element)
+        LocationMessageElement(holder, element, isPreview = false)
     }
 
     @Composable
     override fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.Location
+        holder: TimelineElementHolderViewModel,
+        element: Location,
     ) {
-        MessageLocation(holder, element)
+        LocationMessageElement(holder, element, isPreview = true)
     }
 
     @Composable
-    override fun createReplyInTimeline(element: RoomMessageTimelineElementViewModel.Location) {
-        ReplyLocation(element)
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: Location,
+    ) {
+        LocationReplyElement(holder, element)
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: RoomMessageTimelineElementViewModel.Location) {
-        ReplyLocation(element)
+    override fun createReplyInSendMessage(holder: TimelineElementHolderViewModel, element: Location) {
+        LocationReplyElement(holder, element)
     }
 }
 
 @Composable
-fun MessageLocation(
+fun LocationMessageElement(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.Location,
+    element: Location,
+    isPreview: Boolean,
 ) {
     MessageBubble(
         holder,
         needsMaxWidth = false,
+        isPreview = isPreview,
     ) { showMenuAction ->
         if (Platform.current.isDesktop) {
             // on Desktop it makes sense to select text and copy it;
             // on Android, this will consume long tap events, which we use for the context menu
             SelectionContainer {
-                MessageLocationContent(element, showMenuAction)
+                LocationMessageContent(element, showMenuAction)
             }
         } else {
-            MessageLocationContent(element, showMenuAction)
+            LocationMessageContent(element, showMenuAction)
         }
     }
 }
 
 @Composable
-internal fun MessageLocationContent(
-    element: RoomMessageTimelineElementViewModel.Location,
-    showMenuAction: () -> Unit,
+internal fun LocationMessageContent(
+    element: Location,
+    onOpenActionMenu: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val (geoUrl, pos) = element.geoUri
@@ -91,13 +99,13 @@ internal fun MessageLocationContent(
         onClick = {
             uriHandler.openUri(geoUrl)
         },
-        onLongPress = { showMenuAction() },
+        onLongPress = { onOpenActionMenu() },
         style = MaterialTheme.typography.bodySmall
     )
 }
 
 @Composable
-internal fun ReplyLocation(element: RoomMessageTimelineElementViewModel.Location) {
+internal fun LocationReplyElement(holder: TimelineElementHolderViewModel, element: Location) {
     val i18n = DI.get<I18nView>()
     val (geoUrl, pos) = element.geoUri
         .removePrefix("geo:").substringBefore(";").split(",")
@@ -106,12 +114,17 @@ internal fun ReplyLocation(element: RoomMessageTimelineElementViewModel.Location
         }
 
     val uriHandler = LocalUriHandler.current
-    ClickableText(
-        text = AnnotatedString(i18n.locationClickText(pos)),
-        onClick = {
-            uriHandler.openUri(geoUrl)
-        },
-        onLongPress = {},
-        style = MaterialTheme.typography.bodySmall
+    ReferencedMessagePill(
+        holder = holder,
+        content = {
+            ClickableText(
+                text = AnnotatedString(i18n.locationClickText(pos)),
+                onClick = {
+                    uriHandler.openUri(geoUrl)
+                },
+                onLongPress = {},
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
     )
 }

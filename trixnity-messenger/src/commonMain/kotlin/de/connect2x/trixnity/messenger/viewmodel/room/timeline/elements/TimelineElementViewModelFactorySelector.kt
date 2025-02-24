@@ -31,6 +31,7 @@ interface TimelineElementViewModelFactorySelector {
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
+        ignoreReplacedEvents: Boolean,
     ): TimelineElementViewModel<*>
 }
 
@@ -70,7 +71,9 @@ class TimelineElementViewModelFactorySelectorImpl(
 
     private suspend fun supports(originalContent: RoomEventContent, content: Result<RoomEventContent>?): Boolean =
         isReplaceEvent(originalContent).not() &&
-                (content == null || content.fold(onFailure = { true }, onSuccess = { findFactory(it) != null }))
+                (content == null || content.fold(
+                    onFailure = { true },
+                    onSuccess = { findFactory(it, ignoreReplacedEvents = false) != null }))
 
     override suspend fun create(
         viewModelContext: MatrixClientViewModelContext,
@@ -79,9 +82,10 @@ class TimelineElementViewModelFactorySelectorImpl(
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
+        ignoreReplacedEvents: Boolean,
     ): TimelineElementViewModel<*> = when {
 
-        isReplaceEvent(originalContent) -> TimelineElementViewModel.Empty
+        ignoreReplacedEvents && isReplaceEvent(originalContent) -> TimelineElementViewModel.Empty
 
         content == null -> encryptedWaitTimelineElementViewModelFactory.create(
             viewModelContext = viewModelContext,
@@ -95,7 +99,7 @@ class TimelineElementViewModelFactorySelectorImpl(
                 ) ?: TimelineElementViewModel.Empty
             },
             onSuccess = { decryptedContent ->
-                findFactory(decryptedContent)
+                findFactory(decryptedContent, ignoreReplacedEvents)
                     ?.create(
                         viewModelContext = viewModelContext,
                         content = decryptedContent,
@@ -110,8 +114,9 @@ class TimelineElementViewModelFactorySelectorImpl(
 
     private suspend fun findFactory(
         content: RoomEventContent,
+        ignoreReplacedEvents: Boolean,
     ): TimelineElementViewModelFactory<RoomEventContent>? {
-        if (isReplaceEvent(content)) return null
+        if (ignoreReplacedEvents && isReplaceEvent(content)) return null.also { log.debug { "Ignoring replace event: $content" } }
 
         val contentClass = content::class
         return (factoryMapping.read { get(contentClass) }

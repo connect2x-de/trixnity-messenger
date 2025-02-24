@@ -5,11 +5,14 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
+import de.connect2x.trixnity.messenger.util.navigateSuspending
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.Details.TimelineElementMetadata
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.Details.UserProfile
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.None
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.AddMembers
@@ -18,6 +21,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrap
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
@@ -27,16 +31,19 @@ private val log = KotlinLogging.logger {}
 
 interface ExtrasRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
+
     suspend fun back()
     suspend fun closeAll()
     suspend fun openRoomSettings(roomId: RoomId)
     suspend fun openAddMembers(roomId: RoomId)
     suspend fun openExportRoom(roomId: RoomId)
     suspend fun openUserProfile(userId: UserId, roomId: RoomId)
+    suspend fun openTimelineElementMetadata(eventId: EventId, roomId: RoomId)
 
     sealed class Wrapper {
         data object None : Wrapper()
         class UserProfile(val viewModel: UserProfileViewModel) : Wrapper()
+        class TimelineElementMetadata(val viewModel: TimelineElementMetadataViewModel) : Wrapper()
         class RoomSettings(val viewModel: RoomSettingsViewModel) : Wrapper()
         class AddMember(val viewModel: AddMembersViewModel) : Wrapper()
         class ExportRoom(val viewModel: ExportRoomViewModel) : Wrapper()
@@ -63,6 +70,9 @@ interface ExtrasRouter {
 
             @Serializable
             data class UserProfile(val userId: UserId, val roomId: RoomId) : RoomSettings
+
+            @Serializable
+            data class TimelineElementMetadata(val eventId: EventId, val roomId: RoomId) : Config
         }
 
         @Serializable
@@ -100,8 +110,7 @@ class ExtrasRouterImpl(
     }
 
     override suspend fun openRoomSettings(roomId: RoomId) {
-        val config = RoomSettings.Main(roomId)
-        extrasNavigation.replaceAllSuspending(None, config) {
+        extrasNavigation.replaceAllSuspending(None, RoomSettings.Main(roomId)) {
             log.debug { "extras: opened room settings for room: $roomId" }
         }
     }
@@ -125,10 +134,17 @@ class ExtrasRouterImpl(
     }
 
     override suspend fun openUserProfile(userId: UserId, roomId: RoomId) {
-        val config = Config.Details.UserProfile(userId, roomId)
-        extrasNavigation.pushSuspending(config) {
-            log.debug { "extras: opened user profile for: $userId in room: $roomId" }
+        extrasNavigation.navigateSuspending {
+            it.filterNot { it is UserProfile } + UserProfile(userId, roomId)
         }
+        log.debug { "extras: opened user profile for user: $userId in room: $roomId" }
+    }
+
+    override suspend fun openTimelineElementMetadata(eventId: EventId, roomId: RoomId) {
+        extrasNavigation.navigateSuspending {
+            it.filterNot { it is TimelineElementMetadata } + TimelineElementMetadata(eventId, roomId)
+        }
+        log.debug { "extras: opened message metadata for event: $eventId from room $roomId" }
     }
 
     private fun createSettingsChild(
@@ -146,7 +162,7 @@ class ExtrasRouterImpl(
                 onOpenExportRoom = { onOpenExportRoom(config.roomId) },
                 onCloseRoomSettings = ::onCloseRoomSettings,
                 onOpenAvatarCutter = onOpenAvatarCutter,
-                onOpenUserProfile = ::onOpenUserProfile,
+                onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
             )
         )
 
@@ -171,12 +187,22 @@ class ExtrasRouterImpl(
             )
         )
 
-        is Config.Details.UserProfile -> Wrapper.UserProfile(
+        is UserProfile -> Wrapper.UserProfile(
             viewModelContext.get<UserProfileViewModelFactory>().create(
                 viewModelContext = viewModelContext.childContext(componentContext),
                 userId = config.userId,
                 selectedRoomId = config.roomId,
                 onOpenRoom = onOpenRoom,
+                onBack = ::onBack,
+            )
+        )
+
+        is TimelineElementMetadata -> Wrapper.TimelineElementMetadata(
+            viewModelContext.get<TimelineElementMetadataViewModelFactory>().create(
+                viewModelContext = viewModelContext.childContext(componentContext),
+                eventId = config.eventId,
+                roomId = config.roomId,
+                onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
                 onBack = ::onBack,
             )
         )

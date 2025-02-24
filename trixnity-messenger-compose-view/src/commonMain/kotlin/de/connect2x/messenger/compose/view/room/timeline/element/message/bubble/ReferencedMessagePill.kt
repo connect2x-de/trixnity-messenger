@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.room.timeline
+package de.connect2x.messenger.compose.view.room.timeline.element.message.bubble
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -24,15 +24,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RepliedTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
 @Composable
 fun ReferencedMessagePill(
-    repliedTimelineElementHolderViewModel: RepliedTimelineElementHolderViewModel,
+    holder: TimelineElementHolderViewModel,
     content: @Composable () -> Unit,
     suffix: @Composable (() -> Unit)? = null,
 ) {
-    val sender = repliedTimelineElementHolderViewModel.sender.collectAsState().value
+    val sender = holder.sender.collectAsState().value
     val senderNameColor = sender?.let { MaterialTheme.messengerColors.getUserColor(sender.userId) } ?: Color.Unspecified
     val fillMaxWidth = if (suffix == null) Modifier else Modifier.fillMaxWidth()
     Box(

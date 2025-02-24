@@ -48,7 +48,7 @@ fun MessageBubbleContent(
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
     val showSender = holder.showSender.collectAsState().value == true
     val isReplaced = holder.asTimelineElementHolder()?.isReplaced?.collectAsState()?.value == true
-    val hasRepliedElement = holder.isReply.collectAsState().value != null
+    val hasRepliedElement = holder.isReply.collectAsState().value == true
 
     val highlighted = if (highlight) Modifier.border(
         width = 3.dp,
@@ -120,12 +120,11 @@ fun MessageBubbleContent(
                         val spacing = 10.dp
                         override fun MeasureScope.measure(
                             measurables: List<Measurable>,
-                            constraints: Constraints
+                            constraints: Constraints,
                         ): MeasureResult {
                             val spacing = spacing.roundToPx()
                             val message = measurables[0].measure(constraints)
-                            val date = measurables.getOrNull(1)?.measure(constraints)
-
+                            val date = measurables.getOrNull(1)?.measure(constraints) // content [0] + Date [1]
                             return date?.let {
                                 if (message.width + spacing + date.width < constraints.maxWidth) {
                                     // add extra padding to bottom that is missing otherwise
