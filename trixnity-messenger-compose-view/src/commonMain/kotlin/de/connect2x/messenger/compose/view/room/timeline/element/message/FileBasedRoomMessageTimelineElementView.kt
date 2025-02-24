@@ -44,9 +44,9 @@ interface FileBasedRoomMessageTimelineElementView {
     fun create(
         holder: BaseTimelineElementHolderViewModel,
         element: FileBased<*>,
-        config: MessageBubbleDisplayConfig.() -> Unit = {},
+        config: MessageBubbleDisplayConfig.() -> Unit,
         overlay: @Composable BoxScope.() -> Unit,
-        content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSaveAttachment: () -> Unit) -> Unit,
+        content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     )
 }
 
@@ -56,7 +56,7 @@ internal fun FileBasedRoomMessageTimelineElement(
     element: FileBased<*>,
     config: MessageBubbleDisplayConfig.() -> Unit = {},
     overlay: @Composable BoxScope.() -> Unit = {},
-    content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSaveAttachment: () -> Unit) -> Unit,
+    content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
 ) {
     DI.get<FileBasedRoomMessageTimelineElementView>()
         .create(holder, element, config, overlay, content)
@@ -69,7 +69,7 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
         element: FileBased<*>,
         config: MessageBubbleDisplayConfig.() -> Unit,
         overlay: @Composable BoxScope.() -> Unit,
-        content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSaveAttachment: () -> Unit) -> Unit,
+        content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     ) {
         val error = element.downloadMediaError.collectAsState().value
         var saveDialogOpen by remember { mutableStateOf(false) }
@@ -84,7 +84,7 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
             holder = holder,
             element = element,
             config = config,
-            onSaveAttachment = { saveDialogOpen = true },
+            onSave = { saveDialogOpen = true },
             overlay = overlay,
             content = content,
         )
@@ -96,9 +96,9 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
     holder: BaseTimelineElementHolderViewModel,
     element: FileBased<*>,
     config: MessageBubbleDisplayConfig.() -> Unit = {},
-    onSaveAttachment: () -> Unit,
+    onSave: () -> Unit,
     overlay: @Composable BoxScope.() -> Unit,
-    content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSaveAttachment: () -> Unit) -> Unit,
+    content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
 ) {
     val i18n = DI.current.get<I18nView>()
     MessageBubble(
@@ -123,11 +123,11 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
             // Download action:
             BaseTimelineElementHolderContextMenuAction(
                 label = i18n.downloadMessage(),
-                action = onSaveAttachment,
+                action = onSave,
             ).render(onClose)
         },
     ) { openActionMenu ->
-        FileBasedView(holder, element, onSaveAttachment, openActionMenu, content)
+        FileBasedView(holder, element, onSave, openActionMenu, content)
     }
 }
 
@@ -135,7 +135,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
 internal fun FileBasedView(
     holder: BaseTimelineElementHolderViewModel,
     element: FileBased<*>,
-    onSaveAttachment: () -> Unit,
+    onSave: () -> Unit,
     onOpenActionMenu: () -> Unit,
     content: @Composable ColumnScope.(onOpenActionMenu: () -> Unit, onOpenElementDetails: () -> Unit) -> Unit,
 ) {
@@ -182,7 +182,7 @@ internal fun FileBasedView(
         Spacer(Modifier.size(10.dp))
     }
 
-    if (showElementDetails) ElementDetailsSelector(element, onSaveAttachment) {
+    if (showElementDetails) ElementDetailsSelector(element, onSave) {
         showElementDetails = false
     }
 }
