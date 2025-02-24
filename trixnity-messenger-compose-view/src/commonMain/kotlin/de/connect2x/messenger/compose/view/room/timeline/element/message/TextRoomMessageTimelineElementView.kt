@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased.Text
 import kotlin.reflect.KClass
 
-
 class TextRoomMessageTimelineElementView : TimelineElementView<Text> {
     override val supports: KClass<Text> =
         Text::class
@@ -29,9 +28,7 @@ class TextRoomMessageTimelineElementView : TimelineElementView<Text> {
         holder: TimelineElementHolderViewModel,
         element: Text,
     ) {
-        TextBasedRoomMessageTimelineElementView(holder, element) {
-            //applyPreviewConfig()
-        }
+        TextBasedRoomMessageTimelineElementView(holder, element)
     }
 
     @Composable

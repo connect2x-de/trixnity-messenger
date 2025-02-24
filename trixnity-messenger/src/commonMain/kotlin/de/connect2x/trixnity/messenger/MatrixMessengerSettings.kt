@@ -59,6 +59,7 @@ data class MatrixMessengerAccountSettingsBase(
         ) = MatrixMessengerAccountSettingsBase(
             databasePassword = databasePassword,
             displayColor = displayColor,
+            notificationsEnabled = config.notificationsEnabled,
             presenceIsPublic = config.defaultPresenceIsPublic,
             readMarkerIsPublic = config.defaultReadMarkerIsPublic,
             typingIsPublic = config.defaultTypingIsPublic,

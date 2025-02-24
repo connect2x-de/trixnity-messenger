@@ -21,7 +21,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
-
 @Composable
 internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
     i18n: I18nView,

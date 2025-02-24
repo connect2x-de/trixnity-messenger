@@ -10,14 +10,13 @@ import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.common.ClickableText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.isMobile
+import de.connect2x.messenger.compose.view.isDesktop
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.Location
 import kotlin.reflect.KClass
 
@@ -43,7 +42,7 @@ class LocationRoomMessageTimelineElementView : TimelineElementView<Location> {
         holder: TimelineElementHolderViewModel,
         element: Location,
     ) {
-        LocationMessageElement(holder, element) { applyPreviewConfig() }
+        LocationMessageElement(holder, element)
     }
 
     @Composable
@@ -64,22 +63,19 @@ class LocationRoomMessageTimelineElementView : TimelineElementView<Location> {
 fun LocationMessageElement(
     holder: BaseTimelineElementHolderViewModel,
     element: Location,
-    config: MessageBubbleDisplayConfig.() -> Unit = {},
 ) {
     MessageBubble(
-        holder = holder,
-        config = config,
-    ) { openActionMenu ->
-        // On Android: This will consume long tap events, which we use for the context menu.
-        // On Desktop and Web: It makes sense to select the text and copy it.
-        val platform = Platform.current
-        when {
-            platform.isMobile ->
-                LocationMessageContent(element, openActionMenu)
-
-            else -> SelectionContainer {
-                LocationMessageContent(element, openActionMenu)
+        holder,
+        needsMaxWidth = false,
+    ) { showMenuAction ->
+        if (Platform.current.isDesktop) {
+            // on Desktop it makes sense to select text and copy it;
+            // on Android, this will consume long tap events, which we use for the context menu
+            SelectionContainer {
+                LocationMessageContent(element, showMenuAction)
             }
+        } else {
+            LocationMessageContent(element, showMenuAction)
         }
     }
 }

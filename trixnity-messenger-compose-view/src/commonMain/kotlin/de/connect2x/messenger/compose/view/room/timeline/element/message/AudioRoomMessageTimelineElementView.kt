@@ -40,26 +40,33 @@ import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
+class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.FileBased.Audio> {
+    override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.Audio> =
+        RoomMessageTimelineElementViewModel.FileBased.Audio::class
 
-class AudioRoomMessageTimelineElementView : TimelineElementView<Audio> {
-    override val supports: KClass<Audio> =
-        Audio::class
-
-    override suspend fun waitFor(element: Audio) {
-        // NO-OP (has default size)
+    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.FileBased.Audio) {
+        // no-op (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: Audio,
+        element: RoomMessageTimelineElementViewModel.FileBased.Audio,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-            overlay = { FileMessageElementOverlay(element) },
-        ) { openActionMenu, saveAttachment ->
-            MessageAudio(element, openActionMenu, saveAttachment)
+            overlay = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "${shortenFileName(element)}, ${element.duration?.let { formatDuration(it.milliseconds) }} ${element.size}",
+                        color = MaterialTheme.messengerColors.metaDataPreview,
+                        maxLines = 1,
+                    )
+                }
+            }
+        ) { showActionMenu, onSave ->
+            MessageAudio(element, showActionMenu, onSave)
         }
     }
 
@@ -68,13 +75,7 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<Audio> {
         holder: TimelineElementHolderViewModel,
         element: Audio,
     ) {
-        FileBasedRoomMessageTimelineElement(
-            holder,
-            element,
-            config = { applyPreviewConfig() },
-        ) { openActionMenu, saveAttachment ->
-            MessageAudio(element, openActionMenu, saveAttachment)
-        }
+
     }
 
     @Composable
@@ -92,26 +93,14 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<Audio> {
     ) {
         ReplyMessageAudio(holder, element)
     }
-}
 
-@Composable
-internal fun FileMessageElementOverlay(element: Audio) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            "${shortenFileName(element)}, ${
-                element.duration?.let { formatDuration(it.milliseconds) }
-            } ${element.size}",
-            color = MaterialTheme.messengerColors.metaDataPreview,
-            maxLines = 1,
-        )
-    }
 }
 
 @Composable
 internal fun MessageAudio(
-    element: Audio,
-    onOpenActionMenu: () -> Unit,
-    onSaveAttachment: () -> Unit,
+    element: RoomMessageTimelineElementViewModel.FileBased.Audio,
+    showActionMenu: () -> Unit,
+    onSave: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val downloadSuccessful = remember { element.downloadMediaResult.map { it != null } }.collectAsState(false)
@@ -134,8 +123,8 @@ internal fun MessageAudio(
                         .size(64.dp)
                         .pointerInput(Unit) {
                             detectTapGestures(
-                                onTap = { onSaveAttachment() },
-                                onLongPress = { onOpenActionMenu() },
+                                onTap = { onSave() },
+                                onLongPress = { showActionMenu() },
                             )
                         }
                         .buttonPointerModifier())
@@ -155,7 +144,7 @@ internal fun MessageAudio(
 //                    }
 //                }
             }
-            if (downloadSuccessful.value) {
+            if (downloadSuccessful.value == true) {
                 Spacer(Modifier.size(10.dp))
                 Icon(
                     Icons.Default.CheckCircle,

@@ -54,7 +54,6 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRe
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 import kotlin.reflect.KClass
 
-
 class VerificationRequestRoomMessageTimelineElementView :
     TimelineElementView<VerificationRequest> {
     override val supports: KClass<VerificationRequest> =
