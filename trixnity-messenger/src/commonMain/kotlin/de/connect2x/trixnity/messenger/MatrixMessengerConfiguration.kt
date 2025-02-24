@@ -36,7 +36,7 @@ data class MatrixMessengerConfiguration(
     var defaultReadMarkerIsPublic: Boolean = true,
     var defaultTypingIsPublic: Boolean = true,
 
-    var notificationsEnabled: Boolean = true,
+    var notificationsEnabled: Boolean = false,
 
     /**
      * The number of elements that should be loaded before and after the viewport.

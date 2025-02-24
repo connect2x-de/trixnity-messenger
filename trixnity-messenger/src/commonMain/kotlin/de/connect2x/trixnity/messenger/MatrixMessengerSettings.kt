@@ -45,7 +45,7 @@ data class MatrixMessengerAccountSettingsBase(
     val databasePassword: SecretByteArray? = null,
     val displayName: String? = null,
     val displayColor: Long? = null,
-    val notificationsEnabled: Boolean = true,
+    val notificationsEnabled: Boolean = false,
     val presenceIsPublic: Boolean = true,
     val readMarkerIsPublic: Boolean = true,
     val typingIsPublic: Boolean = true,
