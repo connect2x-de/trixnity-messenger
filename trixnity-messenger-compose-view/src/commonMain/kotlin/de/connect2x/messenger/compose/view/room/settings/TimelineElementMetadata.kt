@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.room.settings
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -109,7 +107,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                         SmallSpacer()
                         HorizontalDivider()
                         MiddleSpacer()
-                        ReadersAndReactions(element)
+                        ReadersAndReactions(element, viewModel)
                         SmallSpacer()
                     }
                 }
@@ -129,7 +127,10 @@ fun ColumnScope.SubHeading(heading: String) {// TODO re-use in other components
 }
 
 @Composable
-fun ColumnScope.ReadersAndReactions(element: TimelineElementHolderViewModel) {
+fun ColumnScope.ReadersAndReactions(
+    element: TimelineElementHolderViewModel,
+    viewModel: TimelineElementMetadataViewModel,
+) {
     val i18n = DI.get<I18nView>()
     val reactions = element.reactions.collectAsState().value
     val readers = element.readers.collectAsState().value
@@ -151,7 +152,7 @@ fun ColumnScope.ReadersAndReactions(element: TimelineElementHolderViewModel) {
                     UserInfo(
                         eventReaction.sender,
                         eventReaction.reactions.keys,
-                        onOpenUserProfile = { element } // FIXME
+                        onOpenUserProfile = viewModel::openUserProfile,
                     )
                 }
             }
@@ -233,17 +234,20 @@ private fun ColumnScope.MessageContentHistorySwitch(
 ) {
     val i18n = DI.get<I18nView>()
     var showHistory by remember { mutableStateOf(false) }
-    Row(
-        verticalAlignment = CenterVertically,
-        modifier = Modifier.clickable { showHistory = showHistory.not() }.buttonPointerModifier(),
-    ) {
-        Text(text = i18n.timelineElementMetadataHistory(), style = MaterialTheme.typography.titleSmall)
-        Spacer(Modifier.size(5.dp).weight(1f, true))
-        Switch(
-            checked = showHistory,
-            onCheckedChange = { showHistory = it },
-            modifier = Modifier.buttonPointerModifier(),
-        )
+
+    if (elementHistory.isNullOrEmpty().not() && elementHistory.size > 1) {
+        Row(
+            verticalAlignment = CenterVertically,
+            modifier = Modifier.clickable { showHistory = showHistory.not() }.buttonPointerModifier(),
+        ) {
+            Text(text = i18n.timelineElementMetadataHistory(), style = MaterialTheme.typography.titleSmall)
+            Spacer(Modifier.size(5.dp).weight(1f, true))
+            Switch(
+                checked = showHistory,
+                onCheckedChange = { showHistory = it },
+                modifier = Modifier.buttonPointerModifier(),
+            )
+        }
     }
 
     if (showHistory) {
@@ -261,8 +265,7 @@ private fun ColumnScope.MessageContent(
         DateStickyHeader(messageHolder.formattedDate)
         holder.element.collectAsState().value?.let { element ->
             Column(
-                Modifier.padding(end = 8.dp)
-                    .border(2.dp, Color.Green),
+                Modifier.padding(end = 8.dp),
             ) {
                 DI.get<TimelineElementViewSelector>().createAsPreview(holder, element)
             }
