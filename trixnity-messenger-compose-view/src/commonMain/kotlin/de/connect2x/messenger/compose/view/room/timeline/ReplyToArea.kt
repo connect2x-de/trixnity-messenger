@@ -25,7 +25,6 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RepliedTimelineElementHolderViewModel
 
 interface ReplyToAreaView {
     @Composable
@@ -45,8 +44,8 @@ class ReplyToAreaViewImpl : ReplyToAreaView {
         val i18n = DI.get<I18nView>()
         val isMobile = Platform.current.isMobile
         val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
-        val repliedElement = inputAreaViewModel.repliedElement.collectAsState().value
-        val element = repliedElement?.element?.collectAsState()?.value
+        val repliedElementHolder = inputAreaViewModel.repliedElement.collectAsState().value
+        val element = repliedElementHolder?.element?.collectAsState()?.value
 
         AnimatedVisibility(element != null, enter = fadeIn() + slideInVertically(initialOffsetY = { 200 })) {
             Box {
@@ -57,31 +56,16 @@ class ReplyToAreaViewImpl : ReplyToAreaView {
                         modifier = Modifier.padding(horizontal = if (isMobile) 10.dp else 15.dp),
                     )
                     element?.let {
-                        ReplyToPill(inputAreaViewModel, repliedElement) {
-                            timelineElementViewSelector.createReplyInSendMessage(element)
-                        }
+                        timelineElementViewSelector.createReplyInSendMessage(repliedElementHolder, element)
+                    }
+                    IconButton(
+                        onClick = { inputAreaViewModel.cancelReply() },
+                        modifier = Modifier.buttonPointerModifier()
+                    ) {
+                        Icon(Icons.Outlined.Cancel, i18n.replyToCancel())
                     }
                 }
             }
         }
     }
 }
-
-@Composable
-fun ReplyToPill(
-    inputAreaViewModel: InputAreaViewModel,
-    repliedTimelineElementViewModel: RepliedTimelineElementHolderViewModel,
-    content: @Composable (() -> Unit),
-) {
-    val i18n = DI.get<I18nView>()
-
-    ReferencedMessagePill(
-        repliedTimelineElementHolderViewModel = repliedTimelineElementViewModel,
-        content = content,
-    ) {
-        IconButton(onClick = { inputAreaViewModel.cancelReply() }, modifier = Modifier.buttonPointerModifier()) {
-            Icon(Icons.Outlined.Cancel, i18n.replyToCancel())
-        }
-    }
-}
-

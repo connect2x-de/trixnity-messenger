@@ -21,11 +21,10 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
-
 @Composable
 internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
     i18n: I18nView,
-    onOpenInfo: () -> Unit,
+    onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
 ): List<BaseTimelineElementHolderContextMenuAction> {
     val canBeReactedTo = asTimelineElementHolder()?.canBeReactedTo?.collectAsState()?.value == true
@@ -40,7 +39,7 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
             add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.infoMessage(),
-                    action = onOpenInfo,
+                    action = onOpenMetadata,
                 )
             )
             if (canBeReactedTo) add(

@@ -2,9 +2,9 @@ package de.connect2x.messenger.compose.view.room.timeline.element
 
 import androidx.compose.runtime.Composable
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import kotlin.reflect.KClass
-
 
 interface TimelineElementView<V : TimelineElementViewModel<*>> {
     val supports: KClass<V>
@@ -19,22 +19,27 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
 
     @Composable
     fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: V,
     )
 
     @Composable
-    fun createReplyInTimeline(element: V) {
-    }
+    fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: V,
+    )
 
     @Composable
-    fun createReplyInSendMessage(element: V) {
-    }
+    fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: V,
+    )
 }
 
 object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel.Empty> {
     override val supports: KClass<TimelineElementViewModel.Empty>
         get() = TimelineElementViewModel.Empty::class
+
 
     override suspend fun waitFor(element: TimelineElementViewModel.Empty) {}
 
@@ -47,8 +52,22 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel.E
 
     @Composable
     override fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel.Empty,
+    ) {
+    }
+
+    @Composable
+    override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: TimelineElementViewModel.Empty
+    ) {
+    }
+
+    @Composable
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: TimelineElementViewModel.Empty
     ) {
     }
 }

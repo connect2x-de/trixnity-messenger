@@ -23,7 +23,7 @@ sealed interface BaseTimelineElementHolderViewModel {
     /**
      * Optional element (event or thread) which was replied to.
      */
-    val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?>
+    val repliedElement: StateFlow<TimelineElementHolderViewModel?>
 
     /**
      * Indicates that the message is the first in a sequence or consecutive group of messages from the same user.

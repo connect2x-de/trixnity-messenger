@@ -31,10 +31,12 @@ data class MatrixMessengerConfiguration(
         colors.firstOrNull { alreadyUsedColors.contains(it).not() } ?: 0x00000000
     },
 
-    // for privacy-first, override these values
-    var defaultPresenceIsPublic: Boolean = false,
-    var defaultReadMarkerIsPublic: Boolean = false,
-    var defaultTypingIsPublic: Boolean = false,
+    // for the full experience; override these values for privacy-first
+    var defaultPresenceIsPublic: Boolean = true,
+    var defaultReadMarkerIsPublic: Boolean = true,
+    var defaultTypingIsPublic: Boolean = true,
+
+    var notificationsEnabled: Boolean = false,
 
     /**
      * The number of elements that should be loaded before and after the viewport.

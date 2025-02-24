@@ -9,13 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+- Debounce unread message counter in timeline to avoid flickering
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.4.0
+
+### Added
+
 - Added persistent run profiles to IDEA configuration
+- Message Info view
 
 ### Changed
 
 - Refactored message bubbles to support message previews
 - Refactored read receipts and reactions to be more modular
-- Debounce unread message counter in timeline to avoid flickering
+- Removed default parameter from `FileBasedRoomMessageTimelineElementView` to allow overriding it
+- Moved message metadata into a unified view with a new design
 
 ### Deprecated
 
@@ -27,6 +45,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix text overflow in about licenses section
 - Clear current reply when sending reply message
 - The keyboard does not pop up when opening a room
+- Empty reactions do not block reaction computation
+- Fix possible crash when entering rooms with large messages
+- Remove broken collapsed message bubbles
 - Empty reactions or RedactedEventContent do not block reaction computation
 
 ### Security

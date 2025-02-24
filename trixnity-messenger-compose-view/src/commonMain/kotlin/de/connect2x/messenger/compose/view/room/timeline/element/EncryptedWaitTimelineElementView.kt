@@ -19,18 +19,18 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedWaitTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import kotlin.reflect.KClass
-
 
 class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimelineElementViewModel> {
     override val supports: KClass<EncryptedWaitTimelineElementViewModel> = EncryptedWaitTimelineElementViewModel::class
 
     override suspend fun waitFor(element: EncryptedWaitTimelineElementViewModel) {
-        // NO-OP (has default size)
+        // no-op (has default size)
     }
 
     @Composable
@@ -39,7 +39,9 @@ class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimeli
         element: EncryptedWaitTimelineElementViewModel,
     ) {
         MessageBubble(
-            holder = holder,
+            holder,
+            needsMaxWidth = false,
+            isPreview = false,
         ) { _ ->
             EncryptedMessageWaitElement()
         }
@@ -47,25 +49,40 @@ class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimeli
 
     @Composable
     override fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: EncryptedWaitTimelineElementViewModel,
     ) {
         MessageBubble(
-            holder = holder,
-            config = { applyPreviewConfig() },
+            holder,
+            needsMaxWidth = false,
+            isPreview = true,
         ) { _ ->
             EncryptedMessageWaitElement()
         }
     }
 
     @Composable
-    override fun createReplyInTimeline(element: EncryptedWaitTimelineElementViewModel) {
-        EncryptedMessageWaitElement()
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: EncryptedWaitTimelineElementViewModel,
+        ) {
+        ReferencedMessagePill(
+            holder = holder,
+            content = {
+                EncryptedMessageWaitElement()
+            }
+        )
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: EncryptedWaitTimelineElementViewModel) {
-        EncryptedMessageWaitElement()
+    override fun createReplyInSendMessage(holder: TimelineElementHolderViewModel,
+                                          element: EncryptedWaitTimelineElementViewModel,) {
+        ReferencedMessagePill(
+            holder = holder,
+            content = {
+                EncryptedMessageWaitElement()
+            }
+        )
     }
 }
 
