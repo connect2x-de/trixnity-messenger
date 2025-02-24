@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -23,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -79,6 +81,10 @@ fun SearchGroupSearchBar(searchGroupViewModel: SearchGroupViewModel) {
         { searchTerm = it },
         modifier = Modifier.fillMaxWidth().padding(10.dp),
         label = { Text(i18n.searchGroupSearch()) },
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Search,
+            autoCorrectEnabled = false
+        )
     )
 }
 
