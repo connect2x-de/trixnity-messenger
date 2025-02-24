@@ -20,14 +20,12 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedTimelineElementViewModel
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlin.reflect.KClass
-
 
 class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementViewModel> {
     override val supports: KClass<RedactedTimelineElementViewModel> = RedactedTimelineElementViewModel::class
@@ -39,41 +37,42 @@ class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementV
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RedactedTimelineElementViewModel,
+        element: RedactedTimelineElementViewModel
     ) {
         MessageBubble(
             holder,
+            needsMaxWidth = false,
         ) { _ ->
-            RedactedMessageElement(element)
+            Redacted(element)
         }
     }
 
     @Composable
     override fun createAsPreview(
         holder: BaseTimelineElementHolderViewModel,
-        element: RedactedTimelineElementViewModel,
+        element: RedactedTimelineElementViewModel
     ) {
         MessageBubble(
             holder,
-            config = { applyPreviewConfig() },
+            needsMaxWidth = false,
         ) { _ ->
-            RedactedMessageElement(element)
+            Redacted(element)
         }
     }
 
     @Composable
     override fun createReplyInTimeline(element: RedactedTimelineElementViewModel) {
-        RedactedMessageElement(element)
+        Redacted(element)
     }
 
     @Composable
     override fun createReplyInSendMessage(element: RedactedTimelineElementViewModel) {
-        RedactedMessageElement(element)
+        Redacted(element)
     }
 }
 
 @Composable
-internal fun RedactedMessageElement(element: RedactedTimelineElementViewModel) {
+internal fun Redacted(element: RedactedTimelineElementViewModel) {
     val i18n = DI.get<I18nView>()
     val formattedMessage = element.message.collectAsState().value
     val redactedAt = element.redactedAt.collectAsState().value
@@ -91,4 +90,5 @@ internal fun RedactedMessageElement(element: RedactedTimelineElementViewModel) {
             fontStyle = FontStyle.Italic,
         )
     }
+
 }
