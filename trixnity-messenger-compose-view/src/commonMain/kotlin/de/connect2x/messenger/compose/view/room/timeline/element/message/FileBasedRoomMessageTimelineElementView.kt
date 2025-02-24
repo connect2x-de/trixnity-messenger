@@ -74,7 +74,6 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
             error,
             element::downloadMedia,
         ) { saveDialogOpen = false }
-
         FileBasedRoomMessageTimelineElementMessageBubble(holder, element, { saveDialogOpen = true }, overlay, content)
     }
 }

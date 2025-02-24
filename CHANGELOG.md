@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Refactored message bubbles to support message previews
 - Refactored read receipts and reactions to be more modular
+- Removed default parameter from `FileBasedRoomMessageTimelineElementView` to allow overriding it
 - Moved message metadata into a unified view with a new design
 
 ### Deprecated
