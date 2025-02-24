@@ -67,7 +67,6 @@ class MessageBubbleViewImpl : MessageBubbleView {
         val showBigGap = holder.showBigGapBefore.collectAsState().value == true
         val topPadding = if (showBigGap) 10.dp else 3.dp
 
-        val infoOpen = remember { mutableStateOf(false) }
         val reactionsOpen = remember { mutableStateOf(false) }
 
         BoxWithConstraints(
@@ -92,14 +91,13 @@ class MessageBubbleViewImpl : MessageBubbleView {
                         }
                     }
                     MessageBubbleContainer(
-                        holder,
-                        needsMaxWidth,
-                        infoOpen,
-                        reactionsOpen,
-                        additionalContextActions,
-                        isPreview,
-                        overlay,
-                        content,
+                        holder = holder,
+                        needsMaxWidth = needsMaxWidth,
+                        reactionsOpen = reactionsOpen,
+                        additionalContextActions = additionalContextActions,
+                        isPreview = isPreview,
+                        overlay = overlay,
+                        content = content,
                     )
                 }
                 MessageReactions(

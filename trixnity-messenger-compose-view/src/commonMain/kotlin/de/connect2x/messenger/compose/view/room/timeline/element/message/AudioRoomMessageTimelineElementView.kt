@@ -27,7 +27,6 @@ import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.theme.messengerColors
@@ -40,18 +39,18 @@ import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
-class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimelineElementViewModel.FileBased.Audio> {
-    override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.Audio> =
-        RoomMessageTimelineElementViewModel.FileBased.Audio::class
+class AudioRoomMessageTimelineElementView : TimelineElementView<Audio> {
+    override val supports: KClass<Audio> =
+        Audio::class
 
-    override suspend fun waitFor(element: RoomMessageTimelineElementViewModel.FileBased.Audio) {
+    override suspend fun waitFor(element: Audio) {
         // no-op (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RoomMessageTimelineElementViewModel.FileBased.Audio,
+        element: Audio,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
@@ -98,7 +97,7 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<RoomMessageTimel
 
 @Composable
 internal fun MessageAudio(
-    element: RoomMessageTimelineElementViewModel.FileBased.Audio,
+    element: Audio,
     showActionMenu: () -> Unit,
     onSave: () -> Unit,
 ) {
@@ -129,20 +128,6 @@ internal fun MessageAudio(
                         }
                         .buttonPointerModifier())
                 FileName(element.name)
-                // FIXME upload progress is now below?
-//                if (uploadProgress != null) {
-//                    Box {
-//                        DownloadProgress(
-//                            uploadProgress,
-//                            cancel = {
-//                                if (baseTimelineElementHolderViewModel is OutboxElementHolderViewModel) {
-//                                    baseTimelineElementHolderViewModel.abortSend()
-//                                } else {
-//                                    Unit
-//                                }
-//                            })
-//                    }
-//                }
             }
             if (downloadSuccessful.value == true) {
                 Spacer(Modifier.size(10.dp))

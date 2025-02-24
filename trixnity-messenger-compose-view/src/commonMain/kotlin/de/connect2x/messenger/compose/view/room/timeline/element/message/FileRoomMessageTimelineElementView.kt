@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Attachment
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -31,6 +32,8 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
+import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
+import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.File
@@ -53,6 +56,15 @@ class FileRoomMessageTimelineElementView : TimelineElementView<File> {
     ) {
         FileBasedRoomMessageTimelineElement(
             holder, element,
+            overlay = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "${shortenFileName(element)}, ${element.size}",
+                        color = MaterialTheme.messengerColors.metaDataPreview,
+                        maxLines = 1,
+                    )
+                }
+            }
         ) { showActionMenu, onSave ->
             MessageFile(element, showActionMenu, onSave)
         }
@@ -65,6 +77,15 @@ class FileRoomMessageTimelineElementView : TimelineElementView<File> {
     ) {
         FileBasedRoomMessageTimelineElement(
             holder, element,
+            overlay = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "${shortenFileName(element)}, ${element.size}",
+                        color = MaterialTheme.messengerColors.metaDataPreview,
+                        maxLines = 1,
+                    )
+                }
+            }
         ) { showActionMenu, onSave ->
             MessageFile(element, showActionMenu, onSave)
         }

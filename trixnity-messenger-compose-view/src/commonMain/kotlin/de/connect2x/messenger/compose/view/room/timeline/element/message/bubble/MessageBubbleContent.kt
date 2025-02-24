@@ -125,7 +125,7 @@ fun MessageBubbleContent(
                         ): MeasureResult {
                             val spacing = spacing.roundToPx()
                             val message = measurables[0].measure(constraints)
-                            val date = measurables.getOrNull(2)?.measure(constraints) // content [0] + Box [1] + Date [2]
+                            val date = measurables.getOrNull(1)?.measure(constraints) // content [0] + Date [1]
                             return date?.let {
                                 if (message.width + spacing + date.width < constraints.maxWidth) {
                                     // add extra padding to bottom that is missing otherwise
