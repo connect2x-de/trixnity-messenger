@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Empty reactions do not block reaction computation
 - Fix possible crash when entering rooms with large messages
 - Remove broken collapsed message bubbles
+- Empty reactions or RedactedEventContent do not block reaction computation
 
 ### Security
 
