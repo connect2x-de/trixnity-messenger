@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't render replace events even when not decryptable
 - Fixed various text field and typing issues
 - Fixed String.graphCount and String.forEachGraph extensions in JS implementation
+- Crash on missing video thumbnail
 
 ## 3.2.0
 
