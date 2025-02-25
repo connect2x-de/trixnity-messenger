@@ -200,10 +200,10 @@ internal fun VideoReplyElement(holder: TimelineElementHolderViewModel, element: 
     ReferencedMessagePill(
         holder = holder,
         content = {
-            videoImage?.let { videoImage ->
+            videoImage?.toImageBitmap()?.let { videoImage ->
                 Box {
                     Image(
-                        videoImage.decodeToImageBitmap(),
+                        videoImage,
                         "",
                         Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)),
                         contentScale = ContentScale.Fit,
