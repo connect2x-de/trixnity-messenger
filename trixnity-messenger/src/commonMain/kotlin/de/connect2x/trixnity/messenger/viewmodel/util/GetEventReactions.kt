@@ -18,7 +18,6 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 
-
 interface GetEventReactions {
     operator fun invoke(
         matrixClient: MatrixClient,
@@ -26,7 +25,7 @@ interface GetEventReactions {
         eventId: EventId,
         initials: Initials,
         avatarMaxSize: Long,
-    ): Flow<EventReactions?>
+    ): Flow<EventReactions>
 }
 
 // TODO: should consider outbox to get immediate feedback
@@ -37,37 +36,41 @@ class GetEventReactionsImpl : GetEventReactions {
         roomId: RoomId,
         eventId: EventId,
         initials: Initials,
-        avatarMaxSize: Long
-    ): Flow<EventReactions?> =
+        avatarMaxSize: Long,
+    ): Flow<EventReactions> =
         matrixClient.room.getTimelineEvent(roomId, eventId).flatMapLatest { timelineEvent ->
             when (timelineEvent?.content?.getOrNull()) {
-                null, is RedactedEventContent -> flowOf(null)
+                null, is RedactedEventContent -> flowOf(EventReactions(emptySet()))
                 else -> matrixClient.room.getTimelineEventReactionAggregation(roomId, eventId)
                     .scopedFlatMapLatest { reactions ->
-                        combine(reactions.reactions.flatMap { (_, timelineEvents) ->
-                            timelineEvents.map { it.sender }.toSet().map {
-                                matrixClient.user.getById(roomId, timelineEvent.sender)
-                            }
-                        }) { users ->
-                            val mappedUsers = users.filterNotNull().associateBy { it.userId }
-                            reactions.reactions.entries.flatMap { (value, events) ->
-                                events.mapNotNull { event ->
-                                    mappedUsers[event.sender]?.let { sender ->
-                                        EventReaction(
-                                            value = value,
-                                            eventId = event.eventId,
-                                            sender = sender.toUserInfoElement(
-                                                this@scopedFlatMapLatest,
-                                                matrixClient,
-                                                initials,
-                                                avatarMaxSize
-                                            ),
-                                            isByMe = event.sender == matrixClient.userId,
-                                        )
-                                    }
+                        if (reactions.reactions.isEmpty()) { // we have to return early here as otherwise we will not get a value of the combine()
+                            flowOf(EventReactions(emptySet()))
+                        } else {
+                            combine(reactions.reactions.flatMap { (_, timelineEvents) ->
+                                timelineEvents.map { it.sender }.toSet().map { userId ->
+                                    matrixClient.user.getById(roomId, userId)
                                 }
-                            }.toSet()
-                                .let(::EventReactions)
+                            }) { users ->
+                                val mappedUsers = users.filterNotNull().associateBy { it.userId }
+                                reactions.reactions.entries.flatMap { (value, events) ->
+                                    events.mapNotNull { event ->
+                                        mappedUsers[event.sender]?.let { sender ->
+                                            EventReaction(
+                                                value = value,
+                                                eventId = event.eventId,
+                                                sender = sender.toUserInfoElement(
+                                                    this,
+                                                    matrixClient,
+                                                    initials,
+                                                    avatarMaxSize
+                                                ),
+                                                isByMe = event.sender == matrixClient.userId,
+                                            )
+                                        }
+                                    }
+                                }.toSet()
+                                    .let(::EventReactions)
+                            }
                         }
                     }
             }

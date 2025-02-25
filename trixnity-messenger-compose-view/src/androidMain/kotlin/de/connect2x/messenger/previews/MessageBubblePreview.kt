@@ -1,5 +1,6 @@
 package de.connect2x.messenger.previews
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import de.connect2x.messenger.compose.view.room.timeline.element.message.FileRoomMessageTimelineElementView
@@ -22,6 +23,7 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.ByteArrayFlow
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Preview
 @Composable
 fun TextMessageBubblePreview() {
@@ -58,10 +60,12 @@ fun TextMessageBubblePreview() {
         TextBasedRoomMessageTimelineElementView(
             holder,
             element,
+            isPreview = false,
         )
     }
 }
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Preview
 @Composable
 fun ImageMessageBubblePreview() {
@@ -103,6 +107,7 @@ fun ImageMessageBubblePreview() {
     }
 }
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Preview
 @Composable
 fun FileMessageBubblePreview() {

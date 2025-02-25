@@ -931,6 +931,41 @@ open class I18nView(
         DE - "Dieser Nutzer wird von Ihnen geblockt."
     }
 
+    open fun timelineElementMetadataTitle() = translate {
+        EN - "Message details"
+        DE - "Nachrichtendetails"
+    }
+
+    open fun timelineElementMetadataSender() = translate {
+        EN - "Sender"
+        DE - "Absender"
+    }
+
+    open fun timelineElementMetadataUserInfoTooltipReactions(reactions: String) = translate {
+        EN - "Reactions: $reactions"
+        DE - "Reaktionen: $reactions"
+    }
+
+    open fun timelineElementMetadataMessage() = translate {
+        EN - "Message"
+        DE - "Nachricht"
+    }
+
+    open fun timelineElementMetadataHistory() = translate {
+        EN - "Show history of message"
+        DE - "Zeige Nachrichtenhistorie"
+    }
+
+    open fun timelineElementMetadataReadersAndReactions() = translate {
+        EN - "Seen and reacted by"
+        DE - "Leser und Reaktionen"
+    }
+
+    open fun timelineElementMetadataReadersAndReactionsNone() = translate {
+        EN - "No message interactions yet."
+        DE - "Bisher keine Nachrichtsinteraktionen"
+    }
+
     open fun roomSettings() = translate {
         EN - "room settings"
         DE - "Raumeinstellungen"

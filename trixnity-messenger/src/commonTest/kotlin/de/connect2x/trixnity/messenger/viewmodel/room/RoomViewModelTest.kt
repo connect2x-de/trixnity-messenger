@@ -15,6 +15,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.AddMember
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.ExportRoom
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.RoomSettings
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.TimelineElementMetadata
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.UserProfile
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.NoOpTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
@@ -61,6 +62,7 @@ import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
+import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
@@ -250,6 +252,43 @@ class RoomViewModelTest : ShouldSpec() {
             cut.openRoomSettings()
             cut.extrasAs<RoomSettings>().viewModel.openExportRoomView()
             cut shouldShowExtrasOfType ExportRoom::class
+        }
+
+        should("navigate from the timeline to message-metadata").withCleanup {
+            val cut = cutRoomViewModel()
+            cut shouldShowExtras false
+            cut.openTimelineElementMetadata(EventId("1"))
+            cut shouldShowExtrasOfType TimelineElementMetadata::class
+        }
+
+        should("show message info").withCleanup {
+            val cut = cutRoomViewModel()
+            cut shouldShowExtras false
+            val eventId = EventId("event0")
+            cut.openTimelineElementMetadata(eventId)
+            cut shouldShowExtras true
+            cut shouldShowExtrasOfType TimelineElementMetadata::class
+        }
+
+        should("return from message metadata").withCleanup {
+            val cut = cutRoomViewModel()
+            cut shouldShowExtras false
+            val eventId = EventId("event2")
+            cut.openTimelineElementMetadata(eventId)
+            cut.extrasAs<TimelineElementMetadata>().viewModel.back()
+            cut shouldShowTimeline true
+            cut shouldShowExtras false
+        }
+
+        should("return to settings from message metadata") {
+            val cut = cutRoomViewModel()
+            cut shouldShowExtras false
+            cut.openRoomSettings()
+            cut shouldShowExtrasOfType RoomSettings::class
+            cut.openTimelineElementMetadata(EventId("event4"))
+            cut.extrasAs<TimelineElementMetadata>().viewModel.back()
+            cut shouldShowExtrasOfType RoomSettings::class
+            cancelNeverEndingCoroutines()
         }
 
         should("navigate from the timeline to the user profile").withCleanup {

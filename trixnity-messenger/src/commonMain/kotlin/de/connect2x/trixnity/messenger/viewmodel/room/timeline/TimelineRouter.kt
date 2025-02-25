@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Wr
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
+import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
@@ -46,6 +47,7 @@ class TimelineRouterImpl(
     private val onOpenRoomSettings: () -> Unit,
     private val onOpenUserProfile: (UserId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
+    private val onOpenMetadata: (eventId: EventId) -> Unit,
 ) : TimelineRouter {
 
     private val timelineNavigation = StackNavigation<Config>()
@@ -72,6 +74,7 @@ class TimelineRouterImpl(
                     onOpenRoomSettings = onOpenRoomSettings,
                     onOpenUserProfile = onOpenUserProfile,
                     onOpenMention = onOpenMention,
+                    onOpenMetadata = onOpenMetadata,
                 )
             )
         }

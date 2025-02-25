@@ -3,9 +3,13 @@ package de.connect2x.messenger.compose.view.settings
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
+import com.mikepenz.aboutlibraries.Libs
+import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
@@ -36,7 +40,18 @@ class AppInfoLicensesViewImpl : AppInfoLicensesView {
             val lazyListState = rememberLazyListState()
             MessengerModal(onDismiss = { appInfoViewModel.showLicenses.value = false }, i18n.appInfoLicenses()) {
                 Box(Modifier.fillMaxSize()) {
-                    LibrariesContainer(licences, lazyListState = lazyListState)
+                    LibrariesContainer(
+                        libraries = Libs.Builder().withJson(licences).build(),
+                        lazyListState = lazyListState,
+                        textStyles = LibraryDefaults.libraryTextStyles(
+                            defaultOverflow = TextOverflow.Ellipsis,
+                            nameMaxLines = 10,
+                            versionMaxLines = 2
+                        ),
+                        licenseDialogBody = { library ->
+                            Text(library.licenses.firstOrNull()?.licenseContent ?: "")
+                        }
+                    )
                     VerticalScrollbar(
                         modifier = Modifier.align(Alignment.CenterEnd),
                         lazyListState = lazyListState,

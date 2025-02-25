@@ -23,109 +23,57 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfo
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactions
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-
-
-data class MessageBubbleDisplayConfig(
-    /**
-     * Set this to `true` when the content has a determined height and is not a wrapped text or similar.
-     */
-    var contentNeedsMaxWidth: Boolean = false,
-
-    /**
-     * Whether the context menu should be available from the message bubble view.
-     */
-    var enableContextActionMenu: Boolean = true,
-
-    /**
-     * Whether the bubble should provide the ability to add reactions and display existing ones.
-     */
-    var showMessageReactions: Boolean = true,
-
-    /**
-     * Whether to render the message that the content of this message bubble has replied to.
-     */
-    var showRepliedElement: Boolean = true,
-
-    /**
-     * Whether the rendering of the chat bubble tail should be forced to be always rendered.
-     */
-    var alwaysShowChatBubbleTail: Boolean = false,
-
-    /**
-     * Whether the message bubble should use a reasonable maximum height when rendered.
-     */
-    var minifyBubble: Boolean = false,
-
-    /**
-     * Block click events on the message contents.
-     */
-    var preventUserInput: Boolean = false,
-
-    ) {
-    companion object {
-        fun MessageBubbleDisplayConfig.applyPreviewConfig(
-            additionalConfig: MessageBubbleDisplayConfig.() -> Unit = {},
-        ) = this.apply {
-            showMessageReactions = false
-            enableContextActionMenu = false
-            alwaysShowChatBubbleTail = true
-            preventUserInput = true
-            minifyBubble = true
-            additionalConfig.invoke(this)
-        }
-    }
-}
 
 interface MessageBubbleView {
     @Composable
     fun create(
         holder: BaseTimelineElementHolderViewModel,
-        config: MessageBubbleDisplayConfig.() -> Unit = {},
+        needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
         overlay: (@Composable BoxScope.() -> Unit)? = null,
-        content: @Composable (onOpenActionMenu: () -> Unit) -> Unit,
+        isPreview: Boolean,
+        content: @Composable (showActionMenu: () -> Unit) -> Unit,
     )
 }
 
 @Composable
 fun MessageBubble(
     holder: BaseTimelineElementHolderViewModel,
-    config: MessageBubbleDisplayConfig.() -> Unit = {},
+    needsMaxWidth: Boolean,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
     overlay: (@Composable BoxScope.() -> Unit)? = null,
-    content: @Composable (onOpenActionMenu: () -> Unit) -> Unit,
+    isPreview: Boolean,
+    content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     DI.get<MessageBubbleView>()
-        .create(holder, config, additionalContextActions, overlay, content)
+        .create(holder, needsMaxWidth, additionalContextActions, overlay, isPreview, content)
 }
 
 class MessageBubbleViewImpl : MessageBubbleView {
     @Composable
     override fun create(
         holder: BaseTimelineElementHolderViewModel,
-        config: MessageBubbleDisplayConfig.() -> Unit,
+        needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
         overlay: (@Composable BoxScope.() -> Unit)?,
-        content: @Composable (onOpenActionMenu: () -> Unit) -> Unit,
+        isPreview: Boolean,
+        content: @Composable (showActionMenu: () -> Unit) -> Unit,
     ) {
-        val cfg = MessageBubbleDisplayConfig().apply(config)
-        val isRedactionInProgress = holder.asTimelineElementHolder()
-            ?.redactionInProgress?.collectAsState()?.value == true
+        val redactionInProgress =
+            holder.asTimelineElementHolder()?.redactionInProgress?.collectAsState()?.value == true
         val showBigGap = holder.showBigGapBefore.collectAsState().value == true
-        val showReactions = remember { mutableStateOf(false) }
-        val showInfo = remember { mutableStateOf(false) }
         val topPadding = if (showBigGap) 10.dp else 3.dp
 
+        val reactionsOpen = remember { mutableStateOf(false) }
+
         BoxWithConstraints(
-            Modifier.fillMaxWidth(),
+            Modifier.fillMaxWidth()
         ) {
-            val padding = isRedactionInProgress.let {
-                (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (it) 16.dp else 0.dp)
-            }
+            val padding =
+                (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (redactionInProgress) 16.dp else 0.dp)
             Column(
                 modifier = Modifier.run {
                     if (holder.isByMe) padding(start = padding, top = topPadding)
@@ -136,7 +84,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
                 horizontalAlignment = if (holder.isByMe) Alignment.End else Alignment.Start,
             ) {
                 Row {
-                    if (isRedactionInProgress) {
+                    if (redactionInProgress) {
                         val i18n = DI.get<I18nView>()
                         Box(Modifier.size(16.dp).padding(2.dp)) {
                             Icon(Icons.Default.AutoDelete, i18n.messageBubbleBeingDeleted())
@@ -144,24 +92,21 @@ class MessageBubbleViewImpl : MessageBubbleView {
                     }
                     MessageBubbleContainer(
                         holder = holder,
-                        config = cfg,
-                        infoOpen = showInfo,
-                        reactionsOpen = showReactions,
+                        needsMaxWidth = needsMaxWidth,
+                        reactionsOpen = reactionsOpen,
                         additionalContextActions = additionalContextActions,
+                        isPreview = isPreview,
                         overlay = overlay,
                         content = content,
                     )
                 }
-                MessageInfo(
-                    holder,
-                    showInfo,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-                if (cfg.showMessageReactions) MessageReactions(
-                    holder,
-                    showReactions,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
+                if (isPreview.not()) {
+                    MessageReactions(
+                        holder,
+                        reactionsOpen,
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
             }
         }
     }
