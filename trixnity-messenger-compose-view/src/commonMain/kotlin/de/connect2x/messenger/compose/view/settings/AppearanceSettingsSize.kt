@@ -35,8 +35,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElement
 import de.connect2x.messenger.compose.view.theme.DefaultSizes
 import de.connect2x.messenger.compose.view.theme.SystemDensity
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewRepliedTimelineElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RepliedTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
@@ -191,13 +189,10 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val showBigGapBefore: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isReply: MutableStateFlow<Boolean?> = MutableStateFlow(false)
-    override val repliedElement: MutableStateFlow<RepliedTimelineElementHolderViewModel?> =
-        MutableStateFlow(PreviewRepliedTimelineElementViewModel())
     override val showUnreadMarker: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isRead: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val isReadBy: MutableStateFlow<List<UserInfoElement>> = MutableStateFlow(listOf())
     override val canBeReactedTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -208,6 +203,8 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val readers: StateFlow<List<UserInfoElement>?> = MutableStateFlow(emptyList())
+    override val repliedElement: StateFlow<TimelineElementHolderViewModel?> = MutableStateFlow(null)
     override fun replace() {}
     override fun endReplace() {}
     override fun redact() {}
@@ -216,6 +213,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override fun report() {}
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: String) {}
+    override fun openTimelineElementMetadata() {}
 }
 
 private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -238,12 +236,10 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
         MutableStateFlow(UserInfoElement(UserId("bob", "server"), "Bob", "B"))
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val showBigGapBefore: MutableStateFlow<Boolean?> = MutableStateFlow(false)
-    override val repliedElement: MutableStateFlow<RepliedTimelineElementHolderViewModel?> = MutableStateFlow(null)
     override val showUnreadMarker: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isRead: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val isReadBy: MutableStateFlow<List<UserInfoElement>> = MutableStateFlow(listOf())
     override val canBeReactedTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReply: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -255,6 +251,8 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val readers: StateFlow<List<UserInfoElement>?> = MutableStateFlow(emptyList())
+    override val repliedElement: StateFlow<TimelineElementHolderViewModel?> = MutableStateFlow(null)
     override fun replace() {}
     override fun endReplace() {}
     override fun redact() {}
@@ -263,4 +261,5 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override fun report() {}
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: String) {}
+    override fun openTimelineElementMetadata() {}
 }
