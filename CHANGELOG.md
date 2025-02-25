@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Debounce unread message counter in timeline to avoid flickering
+
 ### Deprecated
 
 ### Removed
