@@ -340,8 +340,8 @@ class TimelineElementHolderViewModelImpl(
                 viewModelContext = childContext("replied-element"),
                 key = "replied-element",
                 timelineEventFlow = repliedTimelineEventFlow,
-                roomId = roomId,
-                eventId = eventId,
+                roomId = repliedTimelineEvent.roomId,
+                eventId = repliedTimelineEvent.eventId,
                 sender = repliedTimelineEvent.sender,
                 formattedDate = formatDate(
                     Instant.fromEpochMilliseconds(repliedTimelineEvent.originTimestamp)
