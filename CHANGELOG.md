@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix Database can't be read on start up
+- only create new viewModel for timeline elements when the event content changes
+- show correct error message colors on image details view
 
 ### Security
 
