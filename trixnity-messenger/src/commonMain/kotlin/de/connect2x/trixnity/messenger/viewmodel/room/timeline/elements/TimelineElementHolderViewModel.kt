@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -67,6 +68,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
+import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -277,16 +279,17 @@ class TimelineElementHolderViewModelImpl(
     )
 
     private val elementCache = MutableStateFlow<TimelineElementViewModelWrapper?>(null)
+    private val currentContent = MutableStateFlow<Result<RoomEventContent>?>(null)
     override val element =
         combine(
-            timelineEventFlow,
+            timelineEventFlow.distinctUntilChanged().filter { it.content?.equals(currentContent.value) != true },
             newContentIfReplaced.distinctUntilChanged(),
         ) { timelineEvent, newContent ->
             val currentElement = elementCache.value
             currentElement?.lifecycle?.destroy()
 
             log.trace { "compute element (timelineEvent=$timelineEvent, newContent=$newContent)" }
-            val content =
+            currentContent.value =
                 if (timelineEvent.event.content is RedactedEventContent) timelineEvent.content
                 else newContent?.let { Result.success(it) } ?: timelineEvent.content
 
@@ -295,7 +298,7 @@ class TimelineElementHolderViewModelImpl(
             timelineElementViewModelFactorySelector.create(
                 childContextWithOwnLifecycle(lifecycle),
                 timelineEvent.event.content,
-                content,
+                currentContent.value,
                 roomId,
                 EventIdOrTransactionId(eventId),
                 onOpenMention,
