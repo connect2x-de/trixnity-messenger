@@ -150,6 +150,19 @@ val matrixMessenger = MatrixMessenger.create {
 }
 ```
 
+### MatrixClientConfiguration
+
+If you want to change the underlying `MatrixClientConfiguration`, you can register a
+`ConfigureMatrixClientConfiguration` in the DI:
+
+```kotlin
+single<ConfigureMatrixClientConfiguration>(named("myConfig")) {
+    ConfigureMatrixClientConfiguration {
+        autoJoinUpgradedRooms = false
+    }
+}
+```
+
 ### Add HttpClientEngine
 
 Although Ktors `HttpClient`s used by Trixnity (Messenger) automatically use a `HttpClientEngine` defined in the
@@ -368,7 +381,8 @@ fun catEventModule() = modules {
 moduleFactories += ::catEventModule
 ```
 
-If your custom event should support a full screen details view when the user clicks/taps on it, you may also implement `TimelineElementDetailsView` and
+If your custom event should support a full screen details view when the user clicks/taps on it, you may also implement
+`TimelineElementDetailsView` and
 add it to the DI using `timelineElementDetailsView<CatTimelineElementDetailsView> { CatTimelineElementDetailsView() }`
 
 ## Export room
