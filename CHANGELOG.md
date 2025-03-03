@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Allow to wait for `SettingsHolder` to be initialized
+- Introduce `MatrixMessengerWorker` and `MatrixMultiMessengerWorker`
+
 ### Changed
 
 - Debounce unread message counter in timeline to avoid flickering
@@ -20,7 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix Database can't be read on start up
-- Update Trixnity to 4.13.0
+- Update Trixnity to 4.13.1
+- Delete reply on message delete
 
 ### Security
 
@@ -52,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix possible crash when entering rooms with large messages
 - Remove broken collapsed message bubbles
 - Empty reactions or RedactedEventContent do not block reaction computation
+- TextFields behave according to their role
 
 ### Security
 
@@ -63,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduced String.forEachGrapheme extension for iterating perceived chars
 - Possibility to change MatrixClientServerApiClientFactory via the DI
 - Introduce TextFieldViewModel for cleaner text input synchronization
+- Autofill (password manager) support
 
 ### Changed
 
