@@ -170,7 +170,7 @@ class TimelineElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val key: String,
     timelineEventFlow: Flow<TimelineEvent>,
-    private val showOriginal: Boolean,
+    showOriginal: Boolean = false,
     override val roomId: RoomId,
     override val eventId: EventId,
     private val senderUserId: UserId,
