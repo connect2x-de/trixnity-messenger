@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -287,7 +288,7 @@ class TimelineElementHolderViewModelImpl(
     private val elementCache = MutableStateFlow<TimelineElementViewModelWrapper?>(null)
     override val element =
         combine(
-            timelineEventFlow,
+            timelineEventFlow.distinctUntilChangedBy { it.content },
             newContentIfReplaced.distinctUntilChanged(),
         ) { timelineEvent, newContent ->
             val currentElement = elementCache.value
