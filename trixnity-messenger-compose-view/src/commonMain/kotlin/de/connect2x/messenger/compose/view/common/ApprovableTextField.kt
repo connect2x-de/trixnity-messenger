@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Clear
@@ -39,6 +40,7 @@ fun ApprovableTextField(
     textCaption: String = "",
     textPlaceholder: String = "",
     textInfoCannotChange: String = "",
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
 ) {
     val i18n = DI.get<I18nView>()
     val isEdit by viewModel.isEdit.collectAsState()
@@ -78,7 +80,8 @@ fun ApprovableTextField(
                             },
                         colors = TextFieldDefaults.colors(
                             disabledTextColor = MaterialTheme.colorScheme.surfaceTint,
-                        )
+                        ),
+                        keyboardOptions = keyboardOptions
                     )
                     if (isEdit) {
                         Spacer(Modifier.size(10.dp))

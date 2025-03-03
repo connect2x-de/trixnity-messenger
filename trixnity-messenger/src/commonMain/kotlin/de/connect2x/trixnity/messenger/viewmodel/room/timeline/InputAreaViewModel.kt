@@ -399,6 +399,7 @@ open class InputAreaViewModelImpl(
     override fun replyMessage(roomId: RoomId, eventId: EventId) {
         log.debug { "reply to message ${eventId}" }
         currentReply.value = roomId to eventId
+        textField.update(textField.textValue, textField.selectionValue)
     }
 
     override fun cancelReply() {

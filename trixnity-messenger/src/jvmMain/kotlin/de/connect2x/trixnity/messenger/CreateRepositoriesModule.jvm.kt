@@ -9,6 +9,9 @@ import de.connect2x.trixnity.messenger.MatrixClientInitializationException.Datab
 import de.connect2x.trixnity.messenger.util.ConvertSecretByteArray
 import de.connect2x.trixnity.messenger.util.RootPath
 import de.connect2x.trixnity.messenger.util.SecretByteArray
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import net.folivo.trixnity.client.store.repository.room.TrixnityRoomDatabase
 import net.folivo.trixnity.client.store.repository.room.createRoomRepositoriesModule
 import net.folivo.trixnity.core.model.UserId
@@ -58,7 +61,8 @@ private class EncryptedSQLiteDriver(key: ByteArray) : SQLiteDriver {
 
 
     companion object {
-        val KEY_SIZE = 32
+        const val KEY_SIZE = 32
+        val mutex = Mutex()
     }
 
     init {
@@ -73,11 +77,14 @@ private class EncryptedSQLiteDriver(key: ByteArray) : SQLiteDriver {
     private val driver = BundledSQLiteDriver()
 
     @ExperimentalStdlibApi
-    override fun open(fileName: String): SQLiteConnection =
-        driver.open(fileName).apply {
-            prepare("PRAGMA key = 'raw:$rawKey'").use {
-                if (!it.step() || it.getColumnNames().getOrNull(0) != "ok")
-                    throw DatabaseAccessException("Database does not support Encryption")
+    override fun open(fileName: String): SQLiteConnection = runBlocking {
+        mutex.withLock {
+            driver.open(fileName).apply {
+                prepare("PRAGMA key = 'raw:$rawKey'").use {
+                    if (!it.step() || it.getColumnNames().getOrNull(0) != "ok")
+                        throw DatabaseAccessException("Database does not support Encryption")
+                }
             }
         }
+    }
 }

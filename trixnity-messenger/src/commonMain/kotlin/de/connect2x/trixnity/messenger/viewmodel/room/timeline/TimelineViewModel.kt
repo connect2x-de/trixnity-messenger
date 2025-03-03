@@ -302,6 +302,7 @@ class TimelineViewModelImpl(
                 .filter(timelineElementViewModelFactorySelector::supports)
                 .take(100)
                 .scan(0) { count, _ -> count + 1 }
+                .debounce(100)
                 .map {
                     when {
                         it in 1..99 -> it.toString()

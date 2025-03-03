@@ -10,14 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Font and control size settings
-
+- Allow to wait for `SettingsHolder` to be initialized
+- Introduce `MatrixMessengerWorker` and `MatrixMultiMessengerWorker`
 ### Changed
+
+- Debounce unread message counter in timeline to avoid flickering
+- Focus message input text field when starting a reply
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- Fix Database can't be read on start up
+- Delete reply on message delete
 
 ### Security
 
@@ -29,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message Info view
 
 ### Changed
+- Moved verification step to the last position in the setup wizard
+- Don't show verification methods in self verification wizard while initial sync is running
 
 - Refactored message bubbles to support message previews
 - Refactored read receipts and reactions to be more modular
@@ -52,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix possible crash when entering rooms with large messages
 - Remove broken collapsed message bubbles
 - Empty reactions or RedactedEventContent do not block reaction computation
+- TextFields behave according to their role
 
 ### Security
 
@@ -63,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduced String.forEachGrapheme extension for iterating perceived chars
 - Possibility to change MatrixClientServerApiClientFactory via the DI
 - Introduce TextFieldViewModel for cleaner text input synchronization
+- Autofill (password manager) support
 
 ### Changed
 
@@ -78,6 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't render replace events even when not decryptable
 - Fixed various text field and typing issues
 - Fixed String.graphCount and String.forEachGraph extensions in JS implementation
+- Crash on missing video thumbnail
 
 ## 3.2.0
 

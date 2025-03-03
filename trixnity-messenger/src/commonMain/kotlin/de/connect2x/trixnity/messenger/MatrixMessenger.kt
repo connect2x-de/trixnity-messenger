@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.flattenValues
 import net.folivo.trixnity.client.room
 import org.koin.core.Koin
@@ -65,6 +66,11 @@ class MatrixMessengerImpl private constructor(
             settingsHolder.forEach {
                 log.debug { "initialize SettingsHolder ($it)" }
                 it.init()
+            }
+            val worker = di.getAll<MatrixMessengerWorker>()
+            worker.forEach { work ->
+                log.debug { "start worker $work" }
+                coroutineScope.launch { work() }
             }
             log.debug { "created MatrixMessengerImpl" }
             return MatrixMessengerImpl(di)

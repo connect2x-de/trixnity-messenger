@@ -40,10 +40,8 @@ import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Video
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.decodeToImageBitmap
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -200,10 +198,10 @@ internal fun VideoReplyElement(holder: TimelineElementHolderViewModel, element: 
     ReferencedMessagePill(
         holder = holder,
         content = {
-            videoImage?.let { videoImage ->
+            videoImage?.toImageBitmap()?.let { videoImage ->
                 Box {
                     Image(
-                        videoImage.decodeToImageBitmap(),
+                        videoImage,
                         "",
                         Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)),
                         contentScale = ContentScale.Fit,
