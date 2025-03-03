@@ -22,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -61,6 +62,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
@@ -132,10 +134,10 @@ class InputAreaViewImpl : InputAreaView {
                 }
                 if (emojisOpen.value) {
                     Box(Modifier.heightIn(max = 100.dp)) {
-                        EmojiSelector({
+                        EmojiSelector {
                             textField.value = textField.value.insert(it)
                             focusRequester.requestFocus()
-                        })
+                        }
                     }
                 }
 
@@ -241,7 +243,6 @@ fun RowScope.InputAreaTextField(
         }
     }
 
-
     Box(
         Modifier
             .fillMaxWidth()
@@ -301,6 +302,9 @@ fun RowScope.InputAreaTextField(
             },
             maxLines = 6,
             textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+            )
         ) { innerTextField ->
             @OptIn(ExperimentalMaterial3Api::class)
             OutlinedTextFieldDefaults.DecorationBox(
