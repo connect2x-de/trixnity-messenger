@@ -25,6 +25,9 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.common.MoreOptions
+import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.NotificationLevel
@@ -46,6 +49,9 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
     override fun create(roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel) {
         val i18n = DI.get<I18nView>()
         val isLoading = roomSettingsNotificationsViewModel.isNotificationsLevelLoading.collectAsState().value
+        val selectedLevel = roomSettingsNotificationsViewModel.selectedRoomNotificationsLevel.collectAsState().value
+        val selectedLevelName = selectedLevel.name.collectAsState().value
+        val selectedLevelExplanation = selectedLevel.explanation.collectAsState().value
 
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -53,27 +59,34 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
                     text = i18n.commonNotifications().capitalize(Locale.current),
                     style = MaterialTheme.typography.titleMedium,
                 )
-                if (isLoading) {
-                    Spacer(Modifier.size(20.dp))
-                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                }
             }
-            RoomSettingsNotificationsLevel(
-                roomSettingsNotificationsViewModel,
-                roomSettingsNotificationsViewModel.roomNotificationLevels.getValue(NotificationLevels.DEFAULT)
-            )
-            RoomSettingsNotificationsLevel(
-                roomSettingsNotificationsViewModel,
-                roomSettingsNotificationsViewModel.roomNotificationLevels.getValue(NotificationLevels.ALL)
-            )
-            RoomSettingsNotificationsLevel(
-                roomSettingsNotificationsViewModel,
-                roomSettingsNotificationsViewModel.roomNotificationLevels.getValue(NotificationLevels.MENTIONS)
-            )
-            RoomSettingsNotificationsLevel(
-                roomSettingsNotificationsViewModel,
-                roomSettingsNotificationsViewModel.roomNotificationLevels.getValue(NotificationLevels.SILENT)
-            )
+            Spacer(Modifier.size(10.dp))
+            MoreOptions(title = {
+                if (isLoading) {
+                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                } else {
+                    Tooltip(tooltip = { TooltipText { selectedLevelExplanation } }) {
+                        Text(selectedLevelName)
+                    }
+                }
+            }) {
+                RoomSettingsNotificationsLevel(
+                    roomSettingsNotificationsViewModel,
+                    roomSettingsNotificationsViewModel.roomNotificationLevels.getValue(NotificationLevels.DEFAULT)
+                )
+                RoomSettingsNotificationsLevel(
+                    roomSettingsNotificationsViewModel,
+                    roomSettingsNotificationsViewModel.roomNotificationLevels.getValue(NotificationLevels.ALL)
+                )
+                RoomSettingsNotificationsLevel(
+                    roomSettingsNotificationsViewModel,
+                    roomSettingsNotificationsViewModel.roomNotificationLevels.getValue(NotificationLevels.MENTIONS)
+                )
+                RoomSettingsNotificationsLevel(
+                    roomSettingsNotificationsViewModel,
+                    roomSettingsNotificationsViewModel.roomNotificationLevels.getValue(NotificationLevels.SILENT)
+                )
+            }
         }
     }
 }
