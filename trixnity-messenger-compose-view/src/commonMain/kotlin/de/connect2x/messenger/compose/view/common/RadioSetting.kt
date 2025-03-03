@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
 
@@ -30,16 +31,41 @@ internal fun <T> ColumnScope.RadioSetting(
     text: String,
     explanation: String? = null,
     options: Map<T, RadioSettingOption>,
+    optionStyle: TextStyle? = null,
     value: T,
     set: (T) -> Unit,
     additionalContent: (@Composable ColumnScope.() -> Unit)? = null,
     enabled: Boolean = true,
     icon: ImageVector = Icons.Default.Settings,
 ) {
-    MoreOptions(title = {
-        Text(text, style = MaterialTheme.typography.titleSmall)
-        if (explanation != null) Text(explanation, style = MaterialTheme.typography.labelSmall)
-    }, icon = icon, enabled = enabled) {
+    RadioSetting(
+        title = {
+            Text(text, style = MaterialTheme.typography.titleSmall)
+            if (explanation != null) Text(explanation, style = MaterialTheme.typography.labelSmall)
+        },
+        options = options,
+        optionStyle = optionStyle,
+        value = value,
+        set = set,
+        additionalContent = additionalContent,
+        enabled = enabled,
+        icon = icon
+    )
+
+}
+
+@Composable
+internal fun <T> ColumnScope.RadioSetting(
+    title: @Composable () -> Unit,
+    options: Map<T, RadioSettingOption>,
+    optionStyle: TextStyle? = null,
+    value: T,
+    set: (T) -> Unit,
+    additionalContent: (@Composable ColumnScope.() -> Unit)? = null,
+    enabled: Boolean = true,
+    icon: ImageVector = Icons.Default.Settings,
+) {
+    MoreOptions(title = title, icon = icon, enabled = enabled) {
         for ((key, option) in options) {
             val (optionText, optionExplanation, optionEnabled) = option
             Row(
@@ -52,7 +78,7 @@ internal fun <T> ColumnScope.RadioSetting(
                 } else Spacer(modifier = Modifier.width(20.dp))
                 Text(
                     text = optionText,
-                    style = MaterialTheme.typography.labelLarge,
+                    style = optionStyle ?: MaterialTheme.typography.labelLarge,
                     modifier = Modifier.weight(1.0f, fill = true)
                 )
                 RadioButton(
