@@ -398,13 +398,13 @@ open class InputAreaViewModelImpl(
             }
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
-    private val _startReply = MutableSharedFlow<Unit>()
-    override val startedReply: SharedFlow<Unit> = _startReply.asSharedFlow()
+    private val _startedReply = MutableSharedFlow<Unit>()
+    override val startedReply: SharedFlow<Unit> = _startedReply.asSharedFlow()
     override fun replyMessage(roomId: RoomId, eventId: EventId) {
         log.debug { "reply to message ${eventId}" }
         currentReply.value = roomId to eventId
         coroutineScope.launch {
-            _startReply.emit(Unit)
+            _startedReply.emit(Unit)
         }
     }
 
