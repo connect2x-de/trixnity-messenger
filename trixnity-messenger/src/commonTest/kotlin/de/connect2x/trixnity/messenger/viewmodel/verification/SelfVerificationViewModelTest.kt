@@ -82,6 +82,17 @@ class SelfVerificationViewModelTest : ShouldSpec() {
             }.koin
 
             every { matrixClientMock.userId } returns UserId("test", "localhost")
+            every { verificationServiceMock.getSelfVerificationMethods() } returns MutableStateFlow(
+                CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
+                            Result.failure(
+                                RuntimeException()
+                            )
+                        },
+                    )
+                )
+            )
         }
 
         should("show verification help, initially") {

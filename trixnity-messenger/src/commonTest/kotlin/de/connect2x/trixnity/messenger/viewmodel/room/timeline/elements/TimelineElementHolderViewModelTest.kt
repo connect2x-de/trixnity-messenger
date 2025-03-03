@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
@@ -10,10 +11,15 @@ import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
+import io.kotest.assertions.nondeterministic.continually
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
 import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldBeSameInstanceAs
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
@@ -445,10 +451,37 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+        should("element: not create a new viewModel when a new message is sent afterwards") {
+            val timeline = timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = alice) {
+                    text("Don't change my viewModel!")
+                }
+            }
+            val event = timeline.eventsInStore.value[0]
+            val eventHolder = cut(
+                timelineEvent = event.value,
+                timelineEventFlow = event
+            )
+            launch { eventHolder.element.collect() }
+            val eventElement = eventHolder.element
+            eventually(3.seconds) {
+                eventElement.value.shouldBeInstanceOf<RoomMessageTimelineElementViewModel.TextBased.Text>()
+            }
+            val currentViewModel = eventElement.value
+            timeline.addEvents {
+                +messageEvent(sender = bob) {
+                    text("This shouldn't change the former messages viewModel")
+                }
+            }
+            continually(2.seconds) { eventElement.value shouldBeSameInstanceAs currentViewModel }
+
+            cancelNeverEndingCoroutines()
+        }
     }
 
     private fun TestScope.cut(
         timelineEvent: TimelineEvent = this@TimelineElementHolderViewModelTest.timelineEvent,
+        timelineEventFlow: Flow<TimelineEvent>? = null,
         eventId: EventId = timelineEvent.eventId
     ): TimelineElementHolderViewModel {
         val di = koinApplication {
@@ -474,7 +507,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             showLoadingIndicatorAfter = flowOf(false),
             ignoreReplacedEvents = false,
             getReceipts = { receipts },
-            timelineEventFlow = flowOf(timelineEvent),
+            timelineEventFlow = timelineEventFlow ?: flowOf(timelineEvent),
             onMessageReplace = mock(),
             onMessageReply = mock(),
             onMessageReport = mock(),

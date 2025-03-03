@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Debounce unread message counter in timeline to avoid flickering
+- Focus message input text field when starting a reply
 
 ### Deprecated
 
@@ -25,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Database can't be read on start up
 - Update Trixnity to 4.13.1
 - Delete reply on message delete
+- only create new viewModel for timeline elements when the event content changes
+- show correct error message colors on image details view
+
+
 
 ### Security
 
@@ -36,6 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message Info view
 
 ### Changed
+- Moved verification step to the last position in the setup wizard
+- Don't show verification methods in self verification wizard while initial sync is running
 
 - Refactored message bubbles to support message previews
 - Refactored read receipts and reactions to be more modular

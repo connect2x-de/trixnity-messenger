@@ -125,7 +125,8 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                         is SelfVerificationWizardStep.SelfVerificationWizardMethods -> this.add(
                             selfVerificationWizardMethodStep(
                                 selfVerificationViewModel,
-                                SelfVerificationWizardStep.SelfVerificationWizardMethods, i18n
+                                SelfVerificationWizardStep.SelfVerificationWizardMethods,
+                                i18n
                             )
                         )
 
@@ -231,123 +232,127 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
         i18n: I18nView
     ): WizardStep {
         val selectedMethod = mutableStateOf<SelfVerificationMethodsListEntries?>(null)
+        val methodsLoaded = selfVerificationViewModel.verificationMethodsLoaded
         return WizardStep(
             id = step.stepId,
             title = { i18n.deviceVerification() },
             content = {
                 Column {
                     val selfVerificationMethods = selfVerificationViewModel.selfVerificationMethods.collectAsState()
-                    val methodsLoaded = selfVerificationViewModel.verificationMethodsLoaded.collectAsState().value
-                    if (methodsLoaded) {
-                        Text(i18n.selfVerificationMethodsTitle())
-                    } else {
-                        Text(i18n.selfVerificationWaitingForMethods())
-                        LoadingSpinner()
-                    }
-                    Spacer(Modifier.size(10.dp))
+                    val methodsLoaded = methodsLoaded.collectAsState().value
 
-                    selfVerificationMethods.value.forEachIndexed { _, method ->
-                        when (method) {
-                            is SelfVerificationMethod.CrossSignedDeviceVerification -> {
-                                EntryContainer(
-                                    header = {
-                                        Text(
-                                            text = i18n.selfVerificationMethodsOtherDevice(),
-                                            style = MaterialTheme.typography.titleSmall,
+                    methodsLoaded?.let {
+                        if (methodsLoaded) {
+                            Text(i18n.selfVerificationMethodsTitle())
+                            Spacer(Modifier.size(10.dp))
+                            selfVerificationMethods.value.forEachIndexed { _, method ->
+                                when (method) {
+                                    is SelfVerificationMethod.CrossSignedDeviceVerification -> {
+                                        EntryContainer(
+                                            header = {
+                                                Text(
+                                                    text = i18n.selfVerificationMethodsOtherDevice(),
+                                                    style = MaterialTheme.typography.titleSmall,
+                                                )
+                                            },
+                                            description = { Text(i18n.selfVerificationMethodsOtherDeviceInfo()) },
+                                            onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
+                                            selected = selectedMethod.value == SelectSelfVerificationMethod(method)
                                         )
-                                    },
-                                    description = { Text(i18n.selfVerificationMethodsOtherDeviceInfo()) },
-                                    onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
-                                    selected = selectedMethod.value == SelectSelfVerificationMethod(method)
-                                )
+                                    }
+
+                                    is SelfVerificationMethod.AesHmacSha2RecoveryKey -> {
+                                        EntryContainer(
+                                            header = {
+                                                Text(
+                                                    i18n.selfVerificationMethodsRecoveryKey(),
+                                                    style = MaterialTheme.typography.titleSmall,
+                                                )
+                                            },
+                                            description = { Text(i18n.selfVerificationMethodsRecoveryKeyInfo()) },
+                                            onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
+                                            selected = selectedMethod.value == SelectSelfVerificationMethod(method)
+                                        )
+                                    }
+
+                                    is SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase -> {
+                                        EntryContainer(
+                                            header = {
+                                                Text(
+                                                    i18n.selfVerificationMethodsRecoveryPassphrase(),
+                                                    style = MaterialTheme.typography.titleSmall,
+                                                )
+                                            },
+                                            description = { Text(i18n.selfVerificationMethodsRecoveryPassphraseInfo()) },
+                                            onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
+                                            selected = selectedMethod.value == SelectSelfVerificationMethod(method)
+                                        )
+                                    }
+
+                                    else -> Box {}
+                                }
                             }
 
-                            is SelfVerificationMethod.AesHmacSha2RecoveryKey -> {
-                                EntryContainer(
-                                    header = {
-                                        Text(
-                                            i18n.selfVerificationMethodsRecoveryKey(),
-                                            style = MaterialTheme.typography.titleSmall,
-                                        )
-                                    },
-                                    description = { Text(i18n.selfVerificationMethodsRecoveryKeyInfo()) },
-                                    onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
-                                    selected = selectedMethod.value == SelectSelfVerificationMethod(method)
-                                )
-                            }
-
-                            is SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase -> {
-                                EntryContainer(
-                                    header = {
-                                        Text(
-                                            i18n.selfVerificationMethodsRecoveryPassphrase(),
-                                            style = MaterialTheme.typography.titleSmall,
-                                        )
-                                    },
-                                    description = { Text(i18n.selfVerificationMethodsRecoveryPassphraseInfo()) },
-                                    onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
-                                    selected = selectedMethod.value == SelectSelfVerificationMethod(method)
-                                )
-                            }
-
-                            else -> Box {}
+                            EntryContainer(
+                                header = {
+                                    Icon(
+                                        Icons.Default.Warning,
+                                        i18n.commonWarning(),
+                                        Modifier.size(16.dp),
+                                        MaterialTheme.colorScheme.error
+                                    )
+                                    SmallSpacer()
+                                    Text(
+                                        i18n.selfVerificationResetRecoveryWarningTitle(selfVerificationViewModel.userId),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.error,
+                                    )
+                                },
+                                description = {
+                                    Text(buildAnnotatedString {
+                                        append("${i18n.selfVerificationResetRecoveryKey()}. ")
+                                        pushStyle(SpanStyle(fontWeight = Bold))
+                                        append("${i18n.commonWarning().capitalize(Locale.current)}: ")
+                                        append(i18n.selfVerificationResetRecoveryKeyDescription())
+                                        pop()
+                                    })
+                                },
+                                onClick = {
+                                    selectedMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey
+                                },
+                                selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectResetRecoveryKey
+                            )
+                            EntryContainer(
+                                header = {
+                                    Icon(
+                                        Icons.Default.Warning,
+                                        i18n.commonWarning(),
+                                        Modifier.size(16.dp),
+                                        MaterialTheme.colorScheme.error
+                                    )
+                                    SmallSpacer()
+                                    Text(
+                                        i18n.redoSelfVerificationContinueWithoutVerification(),
+                                        color = MaterialTheme.colorScheme.error,
+                                    )
+                                },
+                                description = {
+                                    Text(
+                                        text = i18n.redoSelfVerificationDoItLater(),
+                                    )
+                                },
+                                onClick = {
+                                    selectedMethod.value =
+                                        SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
+                                },
+                                selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
+                            )
+                        } else {
+                            Text(i18n.selfVerificationWaitingForMethods())
+                            LoadingSpinner()
+                            Spacer(Modifier.size(10.dp))
                         }
                     }
-                    if (methodsLoaded) {
-                        EntryContainer(
-                            header = {
-                                Icon(
-                                    Icons.Default.Warning,
-                                    i18n.commonWarning(),
-                                    Modifier.size(16.dp),
-                                    MaterialTheme.colorScheme.error
-                                )
-                                SmallSpacer()
-                                Text(
-                                    i18n.selfVerificationResetRecoveryWarningTitle(selfVerificationViewModel.userId),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.error,
-                                )
-                            },
-                            description = {
-                                Text(buildAnnotatedString {
-                                    append("${i18n.selfVerificationResetRecoveryKey()}. ")
-                                    pushStyle(SpanStyle(fontWeight = Bold))
-                                    append("${i18n.commonWarning().capitalize(Locale.current)}: ")
-                                    append(i18n.selfVerificationResetRecoveryKeyDescription())
-                                    pop()
-                                })
-                            },
-                            onClick = {
-                                selectedMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey
-                            },
-                            selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectResetRecoveryKey
-                        )
-                    }
-                    EntryContainer(
-                        header = {
-                            Icon(
-                                Icons.Default.Warning,
-                                i18n.commonWarning(),
-                                Modifier.size(16.dp),
-                                MaterialTheme.colorScheme.error
-                            )
-                            SmallSpacer()
-                            Text(
-                                i18n.redoSelfVerificationContinueWithoutVerification(),
-                                color = MaterialTheme.colorScheme.error,
-                            )
-                        },
-                        description = {
-                            Text(
-                                text = i18n.redoSelfVerificationDoItLater(),
-                            )
-                        },
-                        onClick = {
-                            selectedMethod.value = SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
-                        },
-                        selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
-                    )
                 }
             },
             backButton = {
@@ -364,44 +369,47 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                 }
             },
             nextButton = {
+                val methodsLoaded = methodsLoaded.collectAsState().value
                 Custom {
-                    Button(
-                        modifier = Modifier.buttonPointerModifier(),
-                        enabled = selectedMethod.value != null,
-                        onClick = {
-                            when (selectedMethod.value) {
-                                is SelfVerificationMethodsListEntries.SelectProceedWithoutVerification -> {
-                                    selfVerificationViewModel.close()
-                                }
+                    if (methodsLoaded == true) {
+                        Button(
+                            modifier = Modifier.buttonPointerModifier(),
+                            enabled = selectedMethod.value != null,
+                            onClick = {
+                                when (selectedMethod.value) {
+                                    is SelfVerificationMethodsListEntries.SelectProceedWithoutVerification -> {
+                                        selfVerificationViewModel.close()
+                                    }
 
-                                is SelectSelfVerificationMethod -> {
-                                    selfVerificationViewModel.launchVerification((selectedMethod.value as SelectSelfVerificationMethod).method)
-                                    when ((selectedMethod.value as SelectSelfVerificationMethod).method) {
-                                        is SelfVerificationMethod.AesHmacSha2RecoveryKey -> {
-                                            currentStepId.value =
-                                                SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey.stepId
+                                    is SelectSelfVerificationMethod -> {
+                                        selfVerificationViewModel.launchVerification((selectedMethod.value as SelectSelfVerificationMethod).method)
+                                        when ((selectedMethod.value as SelectSelfVerificationMethod).method) {
+                                            is SelfVerificationMethod.AesHmacSha2RecoveryKey -> {
+                                                currentStepId.value =
+                                                    SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey.stepId
+                                            }
+
+                                            is SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase -> {
+                                                currentStepId.value =
+                                                    SelfVerificationWizardStep.SelfVerificationWizardPassphrase.stepId
+                                            }
+
+                                            is SelfVerificationMethod.CrossSignedDeviceVerification -> {
+
+                                            }
                                         }
+                                    }
 
-                                        is SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase -> {
-                                            currentStepId.value =
-                                                SelfVerificationWizardStep.SelfVerificationWizardPassphrase.stepId
-                                        }
-
-                                        is SelfVerificationMethod.CrossSignedDeviceVerification -> {
-
-                                        }
+                                    is SelfVerificationMethodsListEntries.SelectResetRecoveryKey -> {
+                                        selfVerificationViewModel.resetRecoveryWarning()
+                                        currentStepId.value =
+                                            SelfVerificationWizardStep.SelfVerificationWizardResetRecoveryKeyConfirmation.stepId
                                     }
                                 }
 
-                                is SelfVerificationMethodsListEntries.SelectResetRecoveryKey -> {
-                                    selfVerificationViewModel.resetRecoveryWarning()
-                                    currentStepId.value =
-                                        SelfVerificationWizardStep.SelfVerificationWizardResetRecoveryKeyConfirmation.stepId
-                                }
-                            }
-
-                        }) {
-                        Text(i18n.commonNext())
+                            }) {
+                            Text(i18n.commonNext())
+                        }
                     }
                 }
             },
