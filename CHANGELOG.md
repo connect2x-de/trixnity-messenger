@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message Info view
 
 ### Changed
+- Moved verification step to the last position in the setup wizard
+- Don't show verification methods in self verification wizard while initial sync is running
 
 - Refactored message bubbles to support message previews
 - Refactored read receipts and reactions to be more modular

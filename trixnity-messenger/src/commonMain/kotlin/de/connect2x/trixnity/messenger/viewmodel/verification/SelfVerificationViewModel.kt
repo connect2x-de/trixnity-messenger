@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
-import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +16,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.key
@@ -57,7 +57,7 @@ interface SelfVerificationViewModel {
     val passphraseWrong: MutableStateFlow<Boolean>
     val error: MutableStateFlow<String?>
     val isVerified: StateFlow<Boolean?>
-    val verificationMethodsLoaded: StateFlow<Boolean>
+    val verificationMethodsLoaded: StateFlow<Boolean?>
     val isSetup: StateFlow<Boolean>
 
     fun waitForAvailableVerificationMethods()
@@ -97,10 +97,6 @@ open class SelfVerificationViewModelImpl(
             .map { it.key.getTrustLevel(userId, it.deviceId).map { it.isVerified } }.flatMapLatest { it }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    override val verificationMethodsLoaded: StateFlow<Boolean> = selfVerificationMethods.map { !it.isEmpty() }.stateIn(
-        coroutineScope,
-        SharingStarted.WhileSubscribed(), false
-    )
 
     override val isSetup =
         get<MatrixMessengerSettingsHolder>().map { it.base.accounts[userId]?.base?.accountSetupFinished == false }
@@ -109,35 +105,39 @@ open class SelfVerificationViewModelImpl(
                 SharingStarted.WhileSubscribed(), false
             )
 
+    private val verificationMethods =
+        matrixClient.verification.getSelfVerificationMethods()
+            .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
+
+    override val verificationMethodsLoaded: StateFlow<Boolean?> =
+        verificationMethods.map { it !is PreconditionsNotMet }.stateIn(
+            coroutineScope,
+            SharingStarted.WhileSubscribed(),
+            null
+        )
+
     override fun waitForAvailableVerificationMethods() {
         coroutineScope.launch {
-            matrixClients.scopedCollectLatest { matrixClients ->
-                matrixClients.forEach { (userId, matrixClient) ->
-                    launch {
-                        log.debug { "launch self verification method listener for account $userId" }
-                        matrixClient.verification.getSelfVerificationMethods()
-                            .collectLatest { foundSelfVerificationMethods ->
-                                showVerificationHelp.value = false
+            log.debug { "launch self verification method listener for account $userId" }
+            verificationMethods.collectLatest { foundSelfVerificationMethods ->
+                showVerificationHelp.value = false
 
-                                when (foundSelfVerificationMethods) {
-                                    is PreconditionsNotMet -> {
-                                        log.debug { "$userId: cannot determine yet if cross-signing is needed" }
-                                    }
+                when (foundSelfVerificationMethods) {
+                    is PreconditionsNotMet -> {
+                        log.debug { "$userId: cannot determine yet if cross-signing is needed" }
+                    }
 
-                                    is NoCrossSigningEnabled -> {
-                                        log.debug { "$userId: no cross-signing is enabled" }
-                                    }
+                    is NoCrossSigningEnabled -> {
+                        log.debug { "$userId: no cross-signing is enabled" }
+                    }
 
-                                    is AlreadyCrossSigned -> {
-                                        log.debug { "$userId: client is already cross-signed" }
-                                    }
+                    is AlreadyCrossSigned -> {
+                        log.debug { "$userId: client is already cross-signed" }
+                    }
 
-                                    is CrossSigningEnabled -> {
-                                        log.debug { "$userId: multiple self verification methods are available" }
-                                        selfVerificationMethods.value = foundSelfVerificationMethods.methods
-                                    }
-                                }
-                            }
+                    is CrossSigningEnabled -> {
+                        log.debug { "$userId: multiple self verification methods are available" }
+                        selfVerificationMethods.value = foundSelfVerificationMethods.methods
                     }
                 }
             }

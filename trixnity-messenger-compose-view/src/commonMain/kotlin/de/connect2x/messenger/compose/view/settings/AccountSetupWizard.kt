@@ -35,9 +35,9 @@ interface AccountSetupWizardStepList {
 class AccountSetupWizardStepListImpl : AccountSetupWizardStepList {
     override val steps = listOf(
         AccountSetupWizardStep.ExplanationStep,
-        AccountSetupWizardStep.VerificationStep,
         AccountSetupWizardStep.PrivacySettingsStep,
         AccountSetupWizardStep.NotificationSettingsStep,
+        AccountSetupWizardStep.VerificationStep,
         AccountSetupWizardStep.ConfirmationStep
     )
 }
