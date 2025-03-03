@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emitAll
@@ -105,7 +104,6 @@ interface InputAreaViewModel {
     val isReplace: StateFlow<Boolean>
     val isReply: StateFlow<Boolean>
     val repliedElement: StateFlow<TimelineElementHolderViewModel?>
-    val startedReply: SharedFlow<Unit>
     val listOfMentions: StateFlow<List<UserInfoElement>?>
     val listOfMentionsLoading: StateFlow<Boolean>
     val useMarkdown: StateFlow<Boolean>
@@ -398,14 +396,10 @@ open class InputAreaViewModelImpl(
             }
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
-    private val _startedReply = MutableSharedFlow<Unit>()
-    override val startedReply: SharedFlow<Unit> = _startedReply.asSharedFlow()
     override fun replyMessage(roomId: RoomId, eventId: EventId) {
         log.debug { "reply to message ${eventId}" }
         currentReply.value = roomId to eventId
-        coroutineScope.launch {
-            _startedReply.emit(Unit)
-        }
+        textField.update(textField.textValue, textField.selectionValue)
     }
 
     override fun cancelReply() {
@@ -482,7 +476,6 @@ class PreviewInputAreaViewModel : InputAreaViewModel {
     override val listOfMentions: MutableStateFlow<List<UserInfoElement>?> = MutableStateFlow(null)
     override val listOfMentionsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val useMarkdown: StateFlow<Boolean> = MutableStateFlow(true)
-    override val startedReply: SharedFlow<Unit> = MutableSharedFlow<Unit>()
 
     override fun selectMention(userId: UserId) {
     }

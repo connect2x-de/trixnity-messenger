@@ -122,7 +122,7 @@ class InputAreaViewImpl : InputAreaView {
         val isEdit = inputAreaViewModel.isReplace.collectAsState().value
         val emojisOpen = remember { mutableStateOf(false) }
         val focusRequester = remember { FocusRequester() }
-        val textField = inputAreaViewModel.textField.collectAsTextFieldValueState()
+        val textField = inputAreaViewModel.textField.collectAsTextFieldValueState(focusRequester)
 
         Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
             Column(Modifier.fillMaxWidth()) {
@@ -233,17 +233,11 @@ fun RowScope.InputAreaTextField(
     val showUploadError = remember { mutableStateOf<Throwable?>(null) }
 
     val maxAttachmentSize = DI.current.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-    val startedReply = inputAreaViewModel.startedReply
 
     if (Platform.current.isMobile.not()) {
         LaunchedEffect(Unit) {
             delay(500.milliseconds)
             focusRequester.requestFocus()
-        }
-        LaunchedEffect(Unit) {
-            startedReply.collect {
-                focusRequester.requestFocus()
-            }
         }
     }
 
