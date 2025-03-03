@@ -14,6 +14,7 @@ import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import net.folivo.trixnity.core.model.keys.KeyAlgorithm
+import net.folivo.trixnity.core.model.keys.KeyValue
 
 class RelevantTimelineEventsTest : ShouldSpec() {
 
@@ -32,7 +33,7 @@ class RelevantTimelineEventsTest : ShouldSpec() {
             cut.isRelevantTimelineEvent(
                 MegolmEncryptedMessageEventContent(
                     ciphertext = "cipherCipher",
-                    senderKey = Key.Curve25519Key(value = "", algorithm = KeyAlgorithm.Curve25519),
+                    senderKey = KeyValue.Curve25519KeyValue(""),
                     deviceId = "",
                     sessionId = ""
                 )
