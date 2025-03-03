@@ -9,9 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Allow to wait for `SettingsHolder` to be initialized
+- Introduce `MatrixMessengerWorker` and `MatrixMultiMessengerWorker`
+- Autofill (password manager) support
+
 ### Changed
 
 - Debounce unread message counter in timeline to avoid flickering
+- Focus message input text field when starting a reply
+- Use latest edit of an event for reader and isRead calculations
 
 ### Deprecated
 
@@ -20,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix Database can't be read on start up
+- Update Trixnity to 4.13.1
+- Delete reply on message delete
+- only create new viewModel for timeline elements when the event content changes
+- show correct error message colors on image details view
+- TextFields behave according to their role
 
 ### Security
 
@@ -31,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message Info view
 
 ### Changed
+- Moved verification step to the last position in the setup wizard
+- Don't show verification methods in self verification wizard while initial sync is running
 
 - Refactored message bubbles to support message previews
 - Refactored read receipts and reactions to be more modular

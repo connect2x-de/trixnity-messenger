@@ -14,6 +14,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 import org.koin.core.Koin
 import org.koin.dsl.bind
 import org.koin.dsl.koinApplication
@@ -62,6 +63,11 @@ class MatrixMultiMessengerImpl private constructor(
             di.get<MatrixMultiMessengerSettingsHolder>().update<MatrixMultiMessengerSettingsBase> { oldSettings ->
                 if (oldSettings.forgetActiveProfileOnStart) oldSettings.copy(activeProfile = null)
                 else oldSettings
+            }
+            val worker = di.getAll<MatrixMultiMessengerWorker>()
+            worker.forEach { work ->
+                log.debug { "start worker $work" }
+                coroutineScope.launch { work() }
             }
             return MatrixMultiMessengerImpl(
                 di = di,

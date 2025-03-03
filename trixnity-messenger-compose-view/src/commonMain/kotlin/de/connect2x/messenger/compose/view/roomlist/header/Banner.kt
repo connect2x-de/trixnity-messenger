@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Search
@@ -44,6 +45,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -182,7 +184,11 @@ fun SearchRoomsBanner(roomListViewModel: RoomListViewModel) {
                             text = "${i18n.roomListSearch()}...",
                             color = Color.Gray,
                         )
-                    }
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Search,
+                        autoCorrectEnabled = false
+                    )
                 )
                 HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
             }
