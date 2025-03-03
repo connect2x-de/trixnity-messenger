@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Debounce unread message counter in timeline to avoid flickering
 - Focus message input text field when starting a reply
 - Use latest edit of an event for reader and isRead calculations
+- Make room notification settings collapsable and change setting design to the one used by other room settings
 
 ### Deprecated
 
