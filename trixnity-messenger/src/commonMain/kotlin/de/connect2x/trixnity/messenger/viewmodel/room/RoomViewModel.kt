@@ -16,6 +16,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.None as ExtrasNone
@@ -91,6 +92,12 @@ interface RoomViewModel {
      * for the [userId] and currently selected room.
      */
     fun openUserProfile(userId: UserId)
+
+    /**
+     * Opens [ExtrasRouter.Config.Details.TimelineElementMetadata]
+     * for the [eventId] and currently selected room.
+     */
+    fun openTimelineElementMetadata(eventId: EventId)
 }
 
 open class RoomViewModelImpl(
@@ -117,6 +124,10 @@ open class RoomViewModelImpl(
         onOpenUserProfile(userId)
     }
 
+    override fun openTimelineElementMetadata(eventId: EventId) {
+        onOpenTimelineElementMetadata(eventId)
+    }
+
     private val extrasRouter: ExtrasRouter = ExtrasRouterImpl(
         viewModelContext = viewModelContext,
         onOpenRoom = onOpenRoom,
@@ -130,6 +141,7 @@ open class RoomViewModelImpl(
         viewModelContext = viewModelContext,
         onOpenRoomSettings = ::onOpenRoomSettings,
         onOpenUserProfile = ::onOpenUserProfile,
+        onOpenMetadata = ::onOpenTimelineElementMetadata,
         onOpenMention = onOpenMention,
         onCloseRoom = ::onCloseRoom,
     )
@@ -158,6 +170,11 @@ open class RoomViewModelImpl(
         coroutineScope.launch {
             extrasRouter.openUserProfile(userId, roomId)
         }
+
+    private fun onOpenTimelineElementMetadata(eventId: EventId) =
+        coroutineScope.launch {
+            extrasRouter.openTimelineElementMetadata(eventId, roomId)
+        }
 }
 
 class PreviewRoomViewModel : RoomViewModel {
@@ -184,4 +201,5 @@ class PreviewRoomViewModel : RoomViewModel {
     override fun closeRoom() {}
     override fun openRoomSettings() {}
     override fun openUserProfile(userId: UserId) {}
+    override fun openTimelineElementMetadata(eventId: EventId) {}
 }

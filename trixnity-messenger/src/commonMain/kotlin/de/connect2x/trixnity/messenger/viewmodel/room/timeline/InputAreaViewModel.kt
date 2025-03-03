@@ -11,13 +11,16 @@ import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RepliedTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RepliedTimelineElementHolderViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
+import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
+import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -27,21 +30,29 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.room.message.mentions
 import net.folivo.trixnity.client.room.message.replace
 import net.folivo.trixnity.client.room.message.reply
 import net.folivo.trixnity.client.room.message.text
+import net.folivo.trixnity.client.store.originTimestamp
+import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.MatrixRegex
@@ -53,6 +64,7 @@ import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
+import net.folivo.trixnity.utils.concurrentMutableMap
 import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
@@ -91,7 +103,7 @@ interface InputAreaViewModel {
     val hasShownAttachmentSelectDialog: SharedFlow<Boolean>
     val isReplace: StateFlow<Boolean>
     val isReply: StateFlow<Boolean>
-    val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?>
+    val repliedElement: StateFlow<TimelineElementHolderViewModel?>
     val listOfMentions: StateFlow<List<UserInfoElement>?>
     val listOfMentionsLoading: StateFlow<Boolean>
     val useMarkdown: StateFlow<Boolean>
@@ -118,6 +130,7 @@ open class InputAreaViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, InputAreaViewModel {
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
+    private val timeZone = get<TimeZone>()
     private val initials = get<Initials>()
 
     override val isAllowedToSendMessages: StateFlow<Boolean> =
@@ -317,27 +330,70 @@ open class InputAreaViewModelImpl(
         }
     }
 
-    private data class TimelineElementViewModelWrapper(
-        val viewModel: TimelineElementViewModel<*>,
+    private val getReceiptsByEventCache = concurrentMutableMap<RoomId, Flow<Map<EventId, Set<UserId>>>>()
+    private fun getReceipts(roomId: RoomId): Flow<Map<EventId, Set<UserId>>> =
+        flow {
+            emitAll(
+                getReceiptsByEventCache.read { get(roomId) }
+                    ?: getReceiptsByEventCache.write {
+                        getOrPut(roomId) {
+                            matrixClient.user.getAllReceipts(roomId)
+                                .byEventId(userId)
+                                .stateIn(coroutineScope, WhileSubscribed(), emptyMap())
+                        }
+                    }
+            )
+        }
+
+    private data class TimelineElementHolderViewModelWrapper(
+        val roomId: RoomId,
+        val eventId: EventId,
+        val viewModel: TimelineElementHolderViewModel,
         val lifecycle: LifecycleRegistry,
     )
 
-    private val repliedTimelineElementHolderViewModelFactory = get<RepliedTimelineElementHolderViewModelFactory>()
-    private val repliedElementCache = MutableStateFlow<TimelineElementViewModelWrapper?>(null)
-    override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> =
+    private val timelineElementHolderViewModelFactory = get<TimelineElementHolderViewModelFactory>()
+    private val repliedElementCache = MutableStateFlow<TimelineElementHolderViewModelWrapper?>(null)
+    override val repliedElement: StateFlow<TimelineElementHolderViewModel?> =
         currentReply.map { roomIdAndEventId ->
             if (roomIdAndEventId == null) return@map null
             val (roomId, eventId) = roomIdAndEventId
+            val repliedElementCacheValue = repliedElementCache.value
+            if (repliedElementCacheValue?.roomId == roomId && repliedElementCacheValue.eventId == eventId)
+                return@map repliedElementCacheValue.viewModel
+            val timelineEventFlow = matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull()
+            val timelineEvent = timelineEventFlow.first()
             repliedElementCache.value?.lifecycle?.destroy()
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
-            repliedTimelineElementHolderViewModelFactory.create(
-                childContextWithOwnLifecycle(lifecycle),
-                matrixClient.room.getTimelineEvent(roomId, eventId),
-                roomId,
-                eventId,
-                onOpenMention,
-            )
+            timelineElementHolderViewModelFactory.create(
+                viewModelContext = childContextWithOwnLifecycle(lifecycle),
+                key = "element",
+                timelineEventFlow = timelineEventFlow,
+                roomId = roomId,
+                eventId = eventId,
+                sender = timelineEvent.sender,
+                formattedDate = formatDate(
+                    Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
+                        .toLocalDateTime(timeZone)
+                ),
+                formattedTime = formatTime(
+                    Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
+                        .toLocalDateTime(timeZone)
+                ),
+                showLoadingIndicatorBefore = flowOf(false),
+                showLoadingIndicatorAfter = flowOf(false),
+                showUnreadMarker = flowOf(false),
+                getReceipts = ::getReceipts,
+                onMessageReplace = { _, _ -> },
+                onMessageReply = { _, _ -> },
+                onMessageReport = { _, _ -> },
+                onOpenMention = { _, _ -> },
+                onOpenMetadata = {},
+                ignoreReplacedEvents = true,
+            ).also {
+                repliedElementCache.value = TimelineElementHolderViewModelWrapper(roomId, eventId, it, lifecycle)
+            }
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override fun replyMessage(roomId: RoomId, eventId: EventId) {
@@ -414,7 +470,7 @@ class PreviewInputAreaViewModel : InputAreaViewModel {
     override val showAttachmentSelectDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val hasShownAttachmentSelectDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplace: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> = MutableStateFlow(null)
+    override val repliedElement: StateFlow<TimelineElementHolderViewModel?> = MutableStateFlow(null)
     override val isReply: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val listOfMentions: MutableStateFlow<List<UserInfoElement>?> = MutableStateFlow(null)
     override val listOfMentionsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)

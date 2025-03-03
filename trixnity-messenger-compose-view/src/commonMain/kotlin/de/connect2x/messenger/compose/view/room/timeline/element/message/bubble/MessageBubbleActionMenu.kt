@@ -48,7 +48,7 @@ fun BoxScope.MessageBubbleActionMenu(
     holder: BaseTimelineElementHolderViewModel,
     hoverMessage: State<Boolean>,
     showActionMenu: MutableState<Boolean>,
-    onOpenInfo: () -> Unit,
+    onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
@@ -56,7 +56,7 @@ fun BoxScope.MessageBubbleActionMenu(
         Platform.current.isMobile -> MessageBubbleActionMenuMobile(
             holder,
             showActionMenu,
-            onOpenInfo,
+            onOpenMetadata,
             onReactToMessage,
             additionalContextActions,
         )
@@ -65,7 +65,7 @@ fun BoxScope.MessageBubbleActionMenu(
             holder,
             hoverMessage,
             showActionMenu,
-            onOpenInfo,
+            onOpenMetadata,
             onReactToMessage,
             additionalContextActions,
         )
@@ -77,7 +77,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
     holder: BaseTimelineElementHolderViewModel,
     hoverMessage: State<Boolean>,
     showActionMenu: MutableState<Boolean>,
-    onOpenInfo: () -> Unit,
+    onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
@@ -121,7 +121,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
                 .sizeIn(maxWidth = 300.dp),
         ) {
             additionalContextActions(onClose)
-            holder.contextMenuActions(i18n, onOpenInfo, onReactToMessage)
+            holder.contextMenuActions(i18n, onOpenMetadata, onReactToMessage)
                 .forEach { action -> action.render { onClose() } }
         }
     }
@@ -132,7 +132,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
 private fun MessageBubbleActionMenuMobile(
     holder: BaseTimelineElementHolderViewModel,
     showActionMenu: MutableState<Boolean>,
-    onOpenInfo: () -> Unit,
+    onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
@@ -159,7 +159,7 @@ private fun MessageBubbleActionMenuMobile(
                 .padding(bottom = 40.dp)
         ) {
             additionalContextActions(onClose)
-            holder.contextMenuActions(i18n, onOpenInfo, onReactToMessage)
+            holder.contextMenuActions(i18n, onOpenMetadata, onReactToMessage)
                 .forEach { action -> action.render { onClose() } }
         }
     }

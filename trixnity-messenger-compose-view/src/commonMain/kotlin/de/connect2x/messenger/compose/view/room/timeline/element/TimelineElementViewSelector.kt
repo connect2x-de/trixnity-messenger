@@ -5,6 +5,7 @@ import androidx.compose.runtime.remember
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,15 +26,21 @@ interface TimelineElementViewSelector {
 
     @Composable
     fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
     )
 
     @Composable
-    fun createReplyInTimeline(element: TimelineElementViewModel<*>)
+    fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: TimelineElementViewModel<*>,
+    )
 
     @Composable
-    fun createReplyInSendMessage(element: TimelineElementViewModel<*>)
+    fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: TimelineElementViewModel<*>,
+    )
 }
 
 @Composable
@@ -67,7 +74,7 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
 
     @Composable
     override fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
     ) {
         val factory = rememberSelectFactory(element)
@@ -76,18 +83,20 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
 
     @Composable
     override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
     ) {
         val factory = rememberSelectFactory(element)
-        factory?.createReplyInTimeline(element)
+        factory?.createReplyInTimeline(holder, element)
     }
 
     @Composable
     override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
     ) {
         val factory = rememberSelectFactory(element)
-        factory?.createReplyInSendMessage(element)
+        factory?.createReplyInSendMessage(holder, element)
     }
 
     @Composable

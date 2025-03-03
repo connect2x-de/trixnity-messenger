@@ -2,13 +2,10 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleDisplayConfig.Companion.applyPreviewConfig
-import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInSendMessage
-import de.connect2x.messenger.compose.view.room.timeline.element.util.TextReplyInTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased.Emote
 import kotlin.reflect.KClass
-
 
 class EmoteRoomMessageTimelineElementView : TimelineElementView<Emote> {
     override val supports: KClass<Emote> =
@@ -23,24 +20,30 @@ class EmoteRoomMessageTimelineElementView : TimelineElementView<Emote> {
         holder: BaseTimelineElementHolderViewModel,
         element: Emote,
     ) {
-        TextBasedRoomMessageTimelineElementView(holder, element)
+        TextBasedRoomMessageTimelineElementView(holder, element, isPreview = false)
     }
 
     @Composable
     override fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: Emote,
     ) {
-        TextBasedRoomMessageTimelineElementView(holder, element) { applyPreviewConfig() }
+        TextBasedRoomMessageTimelineElementView(holder, element, isPreview = true)
     }
 
     @Composable
-    override fun createReplyInTimeline(element: Emote) {
-        TextReplyInTimeline(element)
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: Emote,
+    ) {
+        TextReplyInTimeline(holder, element)
     }
 
     @Composable
-    override fun createReplyInSendMessage(element: Emote) {
-        TextReplyInSendMessage(element)
+    override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: Emote,
+    ) {
+        TextReplyInSendMessage(holder, element)
     }
 }

@@ -16,6 +16,8 @@ import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReaders
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
+import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -43,6 +45,8 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getTimelineEventReplaceAggregation
@@ -89,11 +93,13 @@ interface TimelineElementHolderViewModelFactory {
         showUnreadMarker: Flow<Boolean>,
         showLoadingIndicatorBefore: Flow<Boolean>,
         showLoadingIndicatorAfter: Flow<Boolean>,
+        ignoreReplacedEvents: Boolean,
         getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
         onMessageReplace: (RoomId, EventId) -> Unit,
         onMessageReply: (RoomId, EventId) -> Unit,
         onMessageReport: (RoomId, EventId) -> Unit,
         onOpenMention: OpenMentionCallback,
+        onOpenMetadata: (eventId: EventId) -> Unit,
     ): TimelineElementHolderViewModel =
         TimelineElementHolderViewModelImpl(
             viewModelContext = viewModelContext,
@@ -107,11 +113,13 @@ interface TimelineElementHolderViewModelFactory {
             showUnreadMarker = showUnreadMarker,
             showLoadingIndicatorBefore = showLoadingIndicatorBefore,
             showLoadingIndicatorAfter = showLoadingIndicatorAfter,
+            ignoreReplacedEvents = ignoreReplacedEvents,
             getReceipts = getReceipts,
             onMessageReplace = onMessageReplace,
             onMessageReply = onMessageReply,
             onMessageReport = onMessageReport,
             onOpenMention = onOpenMention,
+            onOpenMetadata = onOpenMetadata,
         )
 
     companion object : TimelineElementHolderViewModelFactory
@@ -151,6 +159,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     fun report()
     fun addReaction(reaction: String)
     fun removeReaction(reaction: String)
+    fun openTimelineElementMetadata()
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -166,18 +175,21 @@ class TimelineElementHolderViewModelImpl(
     showUnreadMarker: Flow<Boolean>,
     showLoadingIndicatorBefore: Flow<Boolean>,
     showLoadingIndicatorAfter: Flow<Boolean>,
+    private val ignoreReplacedEvents: Boolean,
     private val getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
     private val onMessageReplace: (RoomId, EventId) -> Unit,
     private val onMessageReply: (RoomId, EventId) -> Unit,
     private val onMessageReport: (RoomId, EventId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
+    private val onOpenMetadata: (eventId: EventId) -> Unit,
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timelineEventFlow = timelineEventFlow.shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
     private val config = get<MatrixMessengerConfiguration>()
 
+    private val timeZone = get<TimeZone>()
     private val initials = get<Initials>()
     private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
-    private val repliedTimelineElementHolderViewModelFactory = get<RepliedTimelineElementHolderViewModelFactory>()
+    private val timelineElementHolderViewModelFactory = get<TimelineElementHolderViewModelFactory>()
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -287,6 +299,7 @@ class TimelineElementHolderViewModelImpl(
                 roomId,
                 EventIdOrTransactionId(eventId),
                 onOpenMention,
+                ignoreReplacedEvents,
             ).also {
                 elementCache.value = TimelineElementViewModelWrapper(it, lifecycle)
             }
@@ -303,20 +316,41 @@ class TimelineElementHolderViewModelImpl(
         else emit(true)
     }.stateIn(coroutineScope, Lazily, null)
 
-    override val repliedElement: StateFlow<RepliedTimelineElementHolderViewModel?> =
+    override val repliedElement: StateFlow<TimelineElementHolderViewModel?> =
         flow {
             // No need to subscribe for changes or manage the child lifecycle since a reply cannot be changed in Matrix.
             val eventContent = timelineEventFlow.first().event.content
             if (eventContent !is MessageEventContent) return@flow
             val repliedEventId = eventContent.relatesTo?.replyTo?.eventId
-                ?: return@flow // Emit nothing if repled element can't be resolved.
+                ?: return@flow // Emit nothing if replied element can't be resolved.
+            val repliedTimelineEventFlow = matrixClient.room.getTimelineEvent(roomId, repliedEventId).filterNotNull()
+            val repliedTimelineEvent = repliedTimelineEventFlow.first()
             emit(
-                repliedTimelineElementHolderViewModelFactory.create(
-                    childContext("repliedElement-$eventId"),
-                    matrixClient.room.getTimelineEvent(roomId, repliedEventId),
-                    roomId,
-                    repliedEventId,
-                    onOpenMention,
+                timelineElementHolderViewModelFactory.create(
+                    viewModelContext = childContext("element"),
+                    key = "element",
+                    timelineEventFlow = repliedTimelineEventFlow,
+                    roomId = roomId,
+                    eventId = eventId,
+                    sender = repliedTimelineEvent.sender,
+                    formattedDate = formatDate(
+                        Instant.fromEpochMilliseconds(repliedTimelineEvent.originTimestamp)
+                            .toLocalDateTime(timeZone)
+                    ),
+                    formattedTime = formatTime(
+                        Instant.fromEpochMilliseconds(repliedTimelineEvent.originTimestamp)
+                            .toLocalDateTime(timeZone)
+                    ),
+                    showLoadingIndicatorBefore = flowOf(false),
+                    showLoadingIndicatorAfter = flowOf(false),
+                    showUnreadMarker = flowOf(false),
+                    ignoreReplacedEvents = true,
+                    getReceipts = getReceipts,
+                    onMessageReplace = { _, _ -> },
+                    onMessageReply = { _, _ -> },
+                    onMessageReport = { _, _ -> },
+                    onOpenMention = { _, _ -> },
+                    onOpenMetadata = {},
                 )
             )
         }.stateIn(coroutineScope, Lazily, null) // only calculate once!
@@ -498,6 +532,10 @@ class TimelineElementHolderViewModelImpl(
             }
         }
     }
+
+    override fun openTimelineElementMetadata() {
+        onOpenMetadata(this.eventId)
+    }
 }
 
 class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
@@ -520,8 +558,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val showBigGapBefore: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isReply: MutableStateFlow<Boolean?> = MutableStateFlow(false)
-    override val repliedElement: MutableStateFlow<RepliedTimelineElementHolderViewModel?> =
-        MutableStateFlow(PreviewRepliedTimelineElementViewModel())
+    override val repliedElement: MutableStateFlow<TimelineElementHolderViewModel?> =
+        MutableStateFlow(PreviewTimelineElementViewModel2())
     override val showUnreadMarker: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -545,6 +583,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override fun report() {}
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: String) {}
+    override fun openTimelineElementMetadata() {}
 }
 
 class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -567,7 +606,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
         MutableStateFlow(UserInfoElement(UserId("bob", "server"), "Bob", "B"))
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val showBigGapBefore: MutableStateFlow<Boolean?> = MutableStateFlow(false)
-    override val repliedElement: MutableStateFlow<RepliedTimelineElementHolderViewModel?> = MutableStateFlow(null)
+    override val repliedElement: MutableStateFlow<TimelineElementHolderViewModel?> = MutableStateFlow(null)
     override val showUnreadMarker: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorBefore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLoadingIndicatorAfter: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -592,4 +631,5 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun report() {}
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: String) {}
+    override fun openTimelineElementMetadata() {}
 }

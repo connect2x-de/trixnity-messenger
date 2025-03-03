@@ -929,7 +929,8 @@ class TimelineViewModelTest : ShouldSpec() {
             onOpenSettings = mock(),
             onBack = onBackMock,
             onOpenMention = mock(),
-            onOpenUserProfile = mock()
+            onOpenUserProfile = mock(),
+            onOpenMetadata = mock(),
         )
     }
 }

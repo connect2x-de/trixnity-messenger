@@ -104,7 +104,7 @@ fun MemberList(
         }
 
         // The VerticalScrollbar causes the size of the box to always be maximum and thus no longer adapts to the content.
-        // TODO: Consider using the approach used in UnifiedMessageMetadata.kt for the user interactions list.
+        // TODO: Consider using the approach used in UnifiedTimelineElementMetadata.kt for the user interactions list.
         if (members.count() > 4) {
             VerticalScrollbar(
                 Modifier.align(Alignment.CenterEnd),

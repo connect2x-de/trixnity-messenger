@@ -63,10 +63,12 @@ import de.connect2x.messenger.compose.view.room.settings.RoomSettingsTopicView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsTopicViewImpl
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsViewImpl
-import de.connect2x.messenger.compose.view.room.settings.UserProfileView
-import de.connect2x.messenger.compose.view.room.settings.UserProfileViewImpl
 import de.connect2x.messenger.compose.view.room.settings.SearchUsersSettingsView
 import de.connect2x.messenger.compose.view.room.settings.SearchUsersSettingsViewImpl
+import de.connect2x.messenger.compose.view.room.settings.TimelineElementMetadataView
+import de.connect2x.messenger.compose.view.room.settings.TimelineElementMetadataViewImpl
+import de.connect2x.messenger.compose.view.room.settings.UserProfileView
+import de.connect2x.messenger.compose.view.room.settings.UserProfileViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.AudioReplyView
 import de.connect2x.messenger.compose.view.room.timeline.AudioReplyViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.FileReplyView
@@ -103,11 +105,8 @@ import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefaultView
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefaultViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyView
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.EmptyTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.EncryptedErrorTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.EncryptedWaitTimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfoView
-import de.connect2x.messenger.compose.view.room.timeline.element.MessageInfoViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerView
@@ -372,6 +371,7 @@ fun roomViewModule() = module {
 
 fun roomSettingsViewModule() = module {
     single<RoomSettingsView> { RoomSettingsViewImpl() }
+    single<TimelineElementMetadataView> { TimelineElementMetadataViewImpl() }
     single<ChangeRoomAvatarView> { ChangeRoomAvatarViewImpl() }
     single<RoomSettingsNameView> { RoomSettingsNameViewImpl() }
     single<RoomSettingsTopicView> { RoomSettingsTopicViewImpl() }
@@ -386,7 +386,6 @@ fun roomSettingsViewModule() = module {
     single<ExportRoomView> { ExportRoomViewImpl() }
     single<AddMembersToRoomView> { AddMembersToRoomViewImpl() }
     single<UserProfileView> { UserProfileViewImpl() }
-
 }
 
 inline fun <reified F : TimelineElementView<*>> Module.timelineElementView(
@@ -398,7 +397,6 @@ inline fun <reified F : TimelineElementDetailsView<*>> Module.timelineElementDet
 ) = single<F>(named<F>(), definition = definition).bind<TimelineElementDetailsView<*>>()
 
 fun timelineViewModule() = module {
-    timelineElementView<EmptyTimelineElementView> { EmptyTimelineElementView }
     timelineElementView<EncryptedErrorTimelineElementView> { EncryptedErrorTimelineElementView() }
     timelineElementView<EncryptedWaitTimelineElementView> { EncryptedWaitTimelineElementView() }
     timelineElementView<RedactedTimelineElementView> { RedactedTimelineElementView() }
@@ -433,7 +431,6 @@ fun timelineViewModule() = module {
     single<ScrollToEndButtonView> { ScrollToEndButtonViewImpl() }
     single<MessageBubbleView> { MessageBubbleViewImpl() }
     single<MessageReactionsView> { MessageReactionsViewImpl() }
-    single<MessageInfoView> { MessageInfoViewImpl() }
     single<FileBasedRoomMessageTimelineElementView> { FileBasedRoomMessageTimelineElementViewImpl() }
     single<ReadMarkerView> { ReadMarkerViewImpl() }
     single<ReplyToAreaView> { ReplyToAreaViewImpl() }

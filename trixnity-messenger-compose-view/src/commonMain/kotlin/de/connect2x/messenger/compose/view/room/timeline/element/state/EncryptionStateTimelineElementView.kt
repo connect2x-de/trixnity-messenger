@@ -6,7 +6,9 @@ import androidx.compose.runtime.collectAsState
 import de.connect2x.messenger.compose.view.room.timeline.Indicator
 import de.connect2x.messenger.compose.view.room.timeline.IndicatorText
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.EncryptionStateTimelineElementViewModel
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -31,10 +33,36 @@ class EncryptionStateTimelineElementView : TimelineElementView<EncryptionStateTi
 
     @Composable
     override fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: EncryptionStateTimelineElementViewModel,
     ) {
         StateElement(element)
+    }
+
+    @Composable
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: EncryptionStateTimelineElementViewModel
+    ) {
+        ReferencedMessagePill(
+            holder = holder,
+            content = {
+                StateElement(element)
+            }
+        )
+    }
+
+    @Composable
+    override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: EncryptionStateTimelineElementViewModel
+    ) {
+        ReferencedMessagePill(
+            holder = holder,
+            content = {
+                StateElement(element)
+            }
+        )
     }
 
     @Composable

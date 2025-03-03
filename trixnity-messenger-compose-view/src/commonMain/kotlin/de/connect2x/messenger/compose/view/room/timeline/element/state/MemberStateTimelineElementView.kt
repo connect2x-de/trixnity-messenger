@@ -6,7 +6,9 @@ import androidx.compose.runtime.collectAsState
 import de.connect2x.messenger.compose.view.room.timeline.Indicator
 import de.connect2x.messenger.compose.view.room.timeline.IndicatorText
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.MemberStateTimelineElementViewModel
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -23,17 +25,43 @@ class MemberStateTimelineElementView : TimelineElementView<MemberStateTimelineEl
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: MemberStateTimelineElementViewModel
+        element: MemberStateTimelineElementViewModel,
     ) {
         StateElement(element)
     }
 
     @Composable
     override fun createAsPreview(
-        holder: BaseTimelineElementHolderViewModel,
+        holder: TimelineElementHolderViewModel,
         element: MemberStateTimelineElementViewModel,
     ) {
         StateElement(element)
+    }
+
+    @Composable
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: MemberStateTimelineElementViewModel
+    ) {
+        ReferencedMessagePill(
+            holder = holder,
+            content = {
+                StateElement(element)
+            }
+        )
+    }
+
+    @Composable
+    override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: MemberStateTimelineElementViewModel
+    ) {
+        ReferencedMessagePill(
+            holder = holder,
+            content = {
+                StateElement(element)
+            }
+        )
     }
 
     @Composable
