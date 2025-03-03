@@ -166,7 +166,10 @@ open class AddMatrixAccountViewModelImpl(
                     val canRegisterNewUser = api.authentication.register()
                         .fold(
                             onSuccess = { it is UIA.Step<*> },
-                            onFailure = { false }
+                            onFailure = {
+                                log.debug(it) { "register error" }
+                                false
+                            }
                         )
                     emit(
                         ServerDiscoveryState.Success(

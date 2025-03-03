@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Allow to wait for `SettingsHolder` to be initialized
+- Introduce `MatrixMessengerWorker` and `MatrixMultiMessengerWorker`
+
 ### Changed
 
 - Debounce unread message counter in timeline to avoid flickering
