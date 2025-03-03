@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.room.timeline
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -35,6 +37,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,9 +58,10 @@ import de.connect2x.messenger.compose.view.common.icons.UnencryptedIcon
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
+import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
-
+import kotlin.math.max
 
 interface RoomHeaderView {
     @Composable
@@ -79,12 +87,21 @@ class RoomHeaderViewImpl : RoomHeaderView {
         val roomHeaderElement = roomHeaderViewModel.roomHeaderInfo.collectAsState().value
         val usersTyping = roomHeaderViewModel.usersTyping.collectAsState().value
         val canShowUserProfile = roomHeaderViewModel.isDirectChat.collectAsState().value
-        Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
+        val headerHeightFlow = MaxHeaderHeight.current
+        val headerHeight = headerHeightFlow.collectAsState().value
+
+        Surface(
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp,
+            modifier = Modifier.onGloballyPositioned { coordinates ->
+                val size = coordinates.size
+                headerHeightFlow.value = maxOf(headerHeight, size.height)
+            }
+        ) {
             Column {
                 Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.CenterHorizontally)
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     if (showBackButton) {
                         RoomBackButton(roomHeaderViewModel)
@@ -122,22 +139,20 @@ class RoomHeaderViewImpl : RoomHeaderView {
                             }
 
                             Column {
-                                val height = MaterialTheme.typography.labelMedium
-                                    .copy(color = MaterialTheme.colorScheme.onBackground).lineHeight.value.dp / 2
-                                val spacerRequired = usersTyping == null && roomHeaderElement.roomTopic.isEmpty()
-                                if (spacerRequired)
-                                    Spacer(Modifier.height(height))
-
                                 RoomName(roomHeaderElement)
                                 if (usersTyping != null) {
                                     UsersTyping(usersTyping)
                                 } else {
                                     RoomTopic(roomHeaderElement)
                                 }
-
-                                if (spacerRequired)
-                                    Spacer(Modifier.height(height))
                             }
+
+                            Text(
+                                text = " ",
+                                style = MaterialTheme.typography.labelMedium
+                                    .copy(color = MaterialTheme.colorScheme.onBackground),
+                                modifier = Modifier.height(headerHeight.dp - 8.dp)
+                            )
                         }
                         RoomExtras(roomHeaderViewModel, showSettingsButton)
                     }
