@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix Database can't be read on start up
+- Update Trixnity to 4.13.1
 - Delete reply on message delete
 - only create new viewModel for timeline elements when the event content changes
 - show correct error message colors on image details view
