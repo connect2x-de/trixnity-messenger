@@ -488,7 +488,7 @@ open class MainViewModelImpl(
                     return
                 }
 
-                log.warn { "Opening User Profile $otherUserId" }
+                log.debug { "Opening User Profile $otherUserId" }
                 onOpenUserProfile(userId, roomId, otherUserId)
             }
 

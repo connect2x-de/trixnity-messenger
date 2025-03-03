@@ -138,9 +138,10 @@ class UserProfileViewImpl : UserProfileView {
                     if (userInfoElement != null) {
                         Avatar(
                             image,
-                            userInfoElement.initials ?: "",
-                            50.dp
+                            userInfoElement.initials,
+                            150.dp
                         )
+                        Spacer(Modifier.height(20.dp))
                         Text(userInfoElement.name, style = MaterialTheme.typography.titleLarge)
                         if (userInfoElement.name != userId.full) {
                             Text(userId.full, style = MaterialTheme.typography.bodyLarge)
@@ -167,10 +168,10 @@ class UserProfileViewImpl : UserProfileView {
 
             Column {
                 if (!userProfileViewModel.isMyself) {
-
-                    HorizontalDivider(Modifier.fillMaxWidth())
                     SmallSpacer()
+                    RoomOptions(userProfileViewModel, i18n)
 
+                    VerySmallSpacer()
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.messengerDpConstants.small),
                         Arrangement.Start,
@@ -230,8 +231,6 @@ class UserProfileViewImpl : UserProfileView {
                             color = defaultColorForState(!verifying)
                         )
                     }
-
-                    RoomOptions(userProfileViewModel, i18n)
                 }
             }
         }
@@ -267,7 +266,7 @@ private fun RoomOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
         ) {
             Text(i18n.userProfileRoomOptions(), style = MaterialTheme.typography.titleMedium)
         }
-        VerySmallSpacer()
+        SmallSpacer()
 
         if (shouldShowChangePowerLevel) {
             ChangePowerLevelSection(userProfileViewModel, i18n)

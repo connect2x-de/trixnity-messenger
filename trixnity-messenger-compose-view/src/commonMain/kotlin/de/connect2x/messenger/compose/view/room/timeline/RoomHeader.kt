@@ -77,7 +77,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
     ) {
         val roomHeaderElement = roomHeaderViewModel.roomHeaderInfo.collectAsState().value
         val usersTyping = roomHeaderViewModel.usersTyping.collectAsState().value
-        val canShowUserProfile = roomHeaderViewModel.isDirectChat.collectAsState().value
+        val isDirectChat = roomHeaderViewModel.isDirectChat.collectAsState().value
         Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
             Column {
                 Row(
@@ -99,8 +99,8 @@ class RoomHeaderViewImpl : RoomHeaderView {
                             modifier = Modifier
                                 .weight(1f)
                                 .let {
-                                    if (canShowUserProfile) it.clip(MaterialTheme.shapes.extraLarge)
-                                        .clickable { roomHeaderViewModel.openUserProfile() } else it
+                                    if (isDirectChat) it.clip(MaterialTheme.shapes.extraLarge)
+                                        .clickable { roomHeaderViewModel.openRoomSettings() } else it
                                 }
                         ) {
                             Box {
