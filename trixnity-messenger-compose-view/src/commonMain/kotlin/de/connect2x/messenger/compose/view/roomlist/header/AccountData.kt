@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 
@@ -46,10 +47,14 @@ class AccountDataViewImpl : AccountDataView {
                 val size = coordinates.size
                 headerHeightFlow.value = maxOf(headerHeight, size.height)
             }, verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = " ",
-                    modifier = Modifier.height(with(LocalDensity.current) { headerHeight.toDp() })
-                )
+                if (!IsSinglePane.current) {
+                    Text(
+                        text = " ",
+                        style = MaterialTheme.typography.labelMedium
+                            .copy(color = MaterialTheme.colorScheme.onBackground),
+                        modifier = Modifier.height(headerHeight.dp - 8.dp)
+                    )
+                }
                 Row(Modifier.padding(horizontal = 10.dp, vertical = 4.dp).fillMaxWidth()) {
                     AccountAvatar(accountViewModel)
                     CloseProfile(roomListViewModel)

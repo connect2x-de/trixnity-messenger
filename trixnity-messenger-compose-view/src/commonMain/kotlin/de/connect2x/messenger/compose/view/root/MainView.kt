@@ -4,15 +4,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.SINGLE_PANE_THRESHOLD
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 
-private val MAX_WIDTH: Dp = 1600.dp
+val IsSinglePane = compositionLocalOf<Boolean> { error("compositionLocal not defined") }
 
 interface MainView {
     @Composable
@@ -30,7 +31,9 @@ class MainViewImpl : MainView {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             Box(Modifier.fillMaxSize()) {
                 val isSinglePane = this@BoxWithConstraints.maxWidth < SINGLE_PANE_THRESHOLD.dp
-                InitialSyncSwitch(mainViewModel, isSinglePane)
+                CompositionLocalProvider(IsSinglePane provides isSinglePane) {
+                    InitialSyncSwitch(mainViewModel, isSinglePane)
+                }
             }
         }
         DeviceVerificationSwitch(mainViewModel)

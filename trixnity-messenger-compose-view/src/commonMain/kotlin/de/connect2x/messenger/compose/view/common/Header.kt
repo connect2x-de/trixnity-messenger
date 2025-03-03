@@ -1,7 +1,5 @@
 package de.connect2x.messenger.compose.view.common
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.capitalize
@@ -35,6 +32,7 @@ import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 
 
@@ -69,10 +67,14 @@ fun Header(
     ) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = " ",
-                    modifier = Modifier.height(with(LocalDensity.current) { headerHeight.toDp() })
-                )
+                if (!IsSinglePane.current) {
+                    Text(
+                        text = " ",
+                        style = MaterialTheme.typography.labelMedium
+                            .copy(color = MaterialTheme.colorScheme.onBackground),
+                        modifier = Modifier.height(headerHeight.dp - 8.dp)
+                    )
+                }
                 Column(Modifier.fillMaxWidth().onGloballyPositioned { coordinates ->
                     val size = coordinates.size
                     headerHeightFlow.value = maxOf(headerHeight, size.height)
