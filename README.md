@@ -156,7 +156,7 @@ If you want to change the underlying `MatrixClientConfiguration`, you can regist
 `ConfigureMatrixClientConfiguration` in the DI:
 
 ```kotlin
-single<ConfigureMatrixClientConfiguration>(named("myConfig")) {
+single<ConfigureMatrixClientConfiguration>(named("myConfig")) { // don't forget to name the singleton
     ConfigureMatrixClientConfiguration {
         autoJoinUpgradedRooms = false
     }
@@ -372,6 +372,7 @@ Next, add it to the DI:
 
 ```kotlin
 fun catEventModule() = modules {
+    // don't forget to name the singleton
     single<EventContentSerializerMappings>(named("catEventContentSerializerMappings")) { catEventContentSerializerMappings }
     timelineElementViewModelFactory<CatMessageTimelineElementViewModelFactory> { CatMessageTimelineElementViewModelFactory }
     timelineElementView<CatMessageMessageTimelineElementView> { CatMessageMessageTimelineElementView() }
