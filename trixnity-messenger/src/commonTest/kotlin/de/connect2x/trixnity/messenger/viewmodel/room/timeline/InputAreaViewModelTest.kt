@@ -93,6 +93,8 @@ class InputAreaViewModelTest : ShouldSpec() {
         val bobRoomUser = roomUser(ourUserId, "Bob") // our == bob
         val alvinUserId = UserId("@alvin:example.org")
         val alvinRoomUser = roomUser(alvinUserId, "Alvin")
+        val alvin2UserId = UserId("@alvin:example.orgg")
+        val alvin2RoomUser = roomUser(alvin2UserId, "Alvina")
         val zoopUserId = UserId("@completelyDifferent:anotherplanet")
         val zoopRoomUser = roomUser(zoopUserId, "Zoop")
         val messageEvent = MessageEvent(
@@ -159,6 +161,7 @@ class InputAreaViewModelTest : ShouldSpec() {
             )
             every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(aliceRoomUser)
             every { userServiceMock.getById(roomId, alvinUserId) } returns MutableStateFlow(alvinRoomUser)
+            every { userServiceMock.getById(roomId, alvin2UserId) } returns MutableStateFlow(alvin2RoomUser)
             every { onMessageEditFinishedMock.invoke(any(), any()) } returns Unit
             every { onMessageReplToFinishedMock.invoke(any(), any()) } returns Unit
 
@@ -180,7 +183,15 @@ class InputAreaViewModelTest : ShouldSpec() {
                 mediaServiceMock.getThumbnail(any(), any(), any(), any(), any(), any())
             } returns Result.success(InMemoryPlatformMedia("image".toByteArray().toByteArrayFlow()))
 
-            everySuspend { roomsApiClientMock.setTyping(any(), any(), any(), any(), any()) } returns Result.success(Unit)
+            everySuspend {
+                roomsApiClientMock.setTyping(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            } returns Result.success(Unit)
         }
 
         should("not allow sending when message is empty") {
@@ -794,12 +805,13 @@ class InputAreaViewModelTest : ShouldSpec() {
             cut.textField.update(markdown)
 
             eventually(300.milliseconds) {
+                cut.textField.textValue shouldBe markdown
                 cut.isSendEnabled.value shouldBe true
             }
 
             cut.sendMessage()
 
-            eventually(300.milliseconds) {
+            eventually(3000.milliseconds) {
                 body shouldBe markdown
                 formattedBody shouldBe html
             }
@@ -808,11 +820,54 @@ class InputAreaViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
-        should("convert mentions into anchor tags") {
+        should("convert mentions with text inbetween into anchor tags") {
             val cut = inputAreaViewModel(coroutineContext)
             val job = subscribe(cut)
 
-            cut.textField.update("${aliceUserId.full} ${alvinUserId.full} hiii!")
+            cut.textField.update("Hiii ${aliceUserId.full} und ${alvinUserId.full}\nund ${alvin2UserId.full} und ${alvinUserId.full} zusammen!")
+
+            eventually(300.milliseconds) {
+                cut.isSendEnabled.value shouldBe true
+            }
+
+            cut.sendMessage()
+
+            eventually(300.milliseconds) {
+                formattedBody shouldBe "<p>Hiii <a href=\"https://matrix.to/#/${aliceUserId.full}\">${aliceRoomUser.name}</a> " +
+                        "und <a href=\"https://matrix.to/#/${alvinUserId.full}\">${alvinRoomUser.name}</a>\n" +
+                        "und <a href=\"https://matrix.to/#/${alvin2UserId.full}\">${alvin2RoomUser.name}</a> " +
+                        "und <a href=\"https://matrix.to/#/${alvinUserId.full}\">${alvinRoomUser.name}</a> zusammen!</p>"
+            }
+
+            job.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("convert single mention into anchor tag") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val job = subscribe(cut)
+
+            cut.textField.update(aliceUserId.full)
+
+            eventually(300.milliseconds) {
+                cut.isSendEnabled.value shouldBe true
+            }
+
+            cut.sendMessage()
+
+            eventually(300.milliseconds) {
+                formattedBody shouldBe "<p><a href=\"https://matrix.to/#/${aliceUserId.full}\">${aliceRoomUser.name}</a></p>"
+            }
+
+            job.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("convert mentions without text inbetween into anchor tags") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val job = subscribe(cut)
+
+            cut.textField.update("${aliceUserId.full} ${alvinUserId.full} hii!")
 
             eventually(300.milliseconds) {
                 cut.isSendEnabled.value shouldBe true
@@ -822,7 +877,7 @@ class InputAreaViewModelTest : ShouldSpec() {
 
             eventually(300.milliseconds) {
                 formattedBody shouldBe "<p><a href=\"https://matrix.to/#/${aliceUserId.full}\">${aliceRoomUser.name}</a> " +
-                        "<a href=\"https://matrix.to/#/${alvinUserId.full}\">${alvinRoomUser.name}</a> hiii!</p>"
+                        "<a href=\"https://matrix.to/#/${alvinUserId.full}\">${alvinRoomUser.name}</a> hii!</p>"
             }
 
             job.cancel()

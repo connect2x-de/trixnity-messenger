@@ -73,6 +73,11 @@ import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
 
+private sealed class SubstringType {
+    data class Text(val text: String) : SubstringType()
+    data class Mention(val mention: net.folivo.trixnity.core.model.Mention) : SubstringType()
+}
+
 interface InputAreaViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
@@ -249,24 +254,18 @@ open class InputAreaViewModelImpl(
                         }
                     }
 
-                    mention.match to """<a href="$matrixUri">$anchorContent</a>"""
-                }
+                                """<a href="$matrixUri">$anchorContent</a>"""
+                            } else null
+                        }.joinToString("")
 
-                val mentionedUsers = mentions.values.filterIsInstance<Mention.User>().map { it.userId }.toSet()
-                val formattedBody = text
-                    .split(" ")
-                    .joinToString(" ") { text ->
-                        mentionLinks[text] ?: text
-                    }
-                    .let {
-                        if (useMarkdown.value) {
-                            val flavour = CommonMarkFlavourDescriptor()
-                            val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(it)
-                            val html = HtmlGenerator(it, parsedTree, flavour).generateHtml()
+                val formattedBody =
+                    if (useMarkdown.value) {
+                        val flavour = CommonMarkFlavourDescriptor()
+                        val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(formattedMentions)
+                        val html = HtmlGenerator(formattedMentions, parsedTree, flavour).generateHtml()
 
-                            html.removePrefix("<body>").removeSuffix("</body>")
-                        } else it
-                    }
+                        html.removePrefix("<body>").removeSuffix("</body>")
+                    } else formattedMentions
 
                 val replacedEvent = currentReplace.value
                 val repliedEvent = currentReply.value
