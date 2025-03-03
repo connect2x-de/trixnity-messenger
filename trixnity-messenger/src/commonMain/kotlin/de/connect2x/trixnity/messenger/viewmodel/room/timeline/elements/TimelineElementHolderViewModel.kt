@@ -324,44 +324,55 @@ class TimelineElementHolderViewModelImpl(
         else emit(true)
     }.stateIn(coroutineScope, Lazily, null)
 
-    override val repliedElement: StateFlow<TimelineElementHolderViewModel?> =
-        flow {
-            // No need to subscribe for changes or manage the child lifecycle since a reply cannot be changed in Matrix.
-            val eventContent = timelineEventFlow.first().event.content
-            if (eventContent !is MessageEventContent) return@flow
+    private data class RepliedTimelineElementViewModelWrapper(
+        val viewModel: TimelineElementHolderViewModel,
+        val lifecycle: LifecycleRegistry,
+    )
+
+    private val repliedElementCache = MutableStateFlow<RepliedTimelineElementViewModelWrapper?>(null)
+    override val repliedElement =
+        timelineEventFlow.map { timelineEvent ->
+            val currentElement = repliedElementCache.value
+            currentElement?.lifecycle?.destroy()
+
+            val eventContent = timelineEvent.event.content
+            if (eventContent !is MessageEventContent) return@map null
             val repliedEventId = eventContent.relatesTo?.replyTo?.eventId
-                ?: return@flow // Emit nothing if replied element can't be resolved.
+                ?: return@map null // Emit nothing if replied element can't be resolved.
             val repliedTimelineEventFlow = matrixClient.room.getTimelineEvent(roomId, repliedEventId).filterNotNull()
             val repliedTimelineEvent = repliedTimelineEventFlow.first()
-            emit(
-                timelineElementHolderViewModelFactory.create(
-                    viewModelContext = childContext("element"),
-                    key = "element",
-                    timelineEventFlow = repliedTimelineEventFlow,
-                    roomId = roomId,
-                    eventId = eventId,
-                    sender = repliedTimelineEvent.sender,
-                    formattedDate = formatDate(
-                        Instant.fromEpochMilliseconds(repliedTimelineEvent.originTimestamp)
-                            .toLocalDateTime(timeZone)
-                    ),
-                    formattedTime = formatTime(
-                        Instant.fromEpochMilliseconds(repliedTimelineEvent.originTimestamp)
-                            .toLocalDateTime(timeZone)
-                    ),
-                    showLoadingIndicatorBefore = flowOf(false),
-                    showLoadingIndicatorAfter = flowOf(false),
-                    showUnreadMarker = flowOf(false),
-                    ignoreReplacedEvents = true,
-                    getReceipts = getReceipts,
-                    onMessageReplace = { _, _ -> },
-                    onMessageReply = { _, _ -> },
-                    onMessageReport = { _, _ -> },
-                    onOpenMention = { _, _ -> },
-                    onOpenMetadata = {},
-                )
-            )
-        }.stateIn(coroutineScope, Lazily, null) // only calculate once!
+
+            val lifecycle = LifecycleRegistry()
+            lifecycle.start()
+            timelineElementHolderViewModelFactory.create(
+                viewModelContext = childContext("replied-element"),
+                key = "replied-element",
+                timelineEventFlow = repliedTimelineEventFlow,
+                roomId = repliedTimelineEvent.roomId,
+                eventId = repliedTimelineEvent.eventId,
+                sender = repliedTimelineEvent.sender,
+                formattedDate = formatDate(
+                    Instant.fromEpochMilliseconds(repliedTimelineEvent.originTimestamp)
+                        .toLocalDateTime(timeZone)
+                ),
+                formattedTime = formatTime(
+                    Instant.fromEpochMilliseconds(repliedTimelineEvent.originTimestamp)
+                        .toLocalDateTime(timeZone)
+                ),
+                showLoadingIndicatorBefore = flowOf(false),
+                showLoadingIndicatorAfter = flowOf(false),
+                showUnreadMarker = flowOf(false),
+                ignoreReplacedEvents = true,
+                getReceipts = getReceipts,
+                onMessageReplace = { _, _ -> },
+                onMessageReply = { _, _ -> },
+                onMessageReport = { _, _ -> },
+                onOpenMention = { _, _ -> },
+                onOpenMetadata = {},
+            ).also {
+                repliedElementCache.value = RepliedTimelineElementViewModelWrapper(it, lifecycle)
+            }
+        }.stateIn(coroutineScope, Lazily, null)
 
     override val isFirstInUserSequence: StateFlow<Boolean?> =
         previousSupportedTimelineEvent.map { timelineEvent ->

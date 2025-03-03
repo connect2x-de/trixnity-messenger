@@ -9,9 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Allow to wait for `SettingsHolder` to be initialized
+- Introduce `MatrixMessengerWorker` and `MatrixMultiMessengerWorker`
+- Autofill (password manager) support
+
 ### Changed
 
 - Debounce unread message counter in timeline to avoid flickering
+- Focus message input text field when starting a reply
 - Use latest edit of an event for reader and isRead calculations
 
 ### Deprecated
@@ -21,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix Database can't be read on start up
+- Delete reply on message delete
+- TextFields behave according to their role
 
 ### Security
 

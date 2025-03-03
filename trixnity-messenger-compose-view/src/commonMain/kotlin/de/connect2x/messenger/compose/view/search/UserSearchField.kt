@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -53,7 +54,10 @@ class UserSearchFieldViewImpl : UserSearchFieldView {
                 )
             },
             placeholder = { Text(i18n.userSearchNameOrMatrixId()) },
-            keyboardOptions = KeyboardOptions(autoCorrectEnabled = false)
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Search,
+                autoCorrectEnabled = false
+            )
         )
     }
 }

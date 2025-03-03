@@ -368,7 +368,8 @@ fun catEventModule() = modules {
 moduleFactories += ::catEventModule
 ```
 
-If your custom event should support a full screen details view when the user clicks/taps on it, you may also implement `TimelineElementDetailsView` and
+If your custom event should support a full screen details view when the user clicks/taps on it, you may also implement
+`TimelineElementDetailsView` and
 add it to the DI using `timelineElementDetailsView<CatTimelineElementDetailsView> { CatTimelineElementDetailsView() }`
 
 ## Export room
@@ -395,6 +396,19 @@ For more details take a look at existing `FileBasedExportRoomSinkConverter` like
 It is possible to define a completely custom `RoomExportSink` to export a room to other targets then files. For example
 a REST endpoint. For this, a `ExportRoomSinkFactory` needs to be defined and put into the DI
 (e.g. via `singleOf(::CustomFactory).bind<ExportRoomSinkFactory>()`).
+
+## Worker
+
+Doing work while the messenger is running can be a common use case. To do that, you can implement
+`MatrixMessengerWorker` or `MatrixMultiMessengerWorker` and put it into the DI:
+
+```kotlin
+single<MatrixMessengerWorker>(named("MyWorker")) { // don't forget to name the singleton
+    MatrixMessengerWorker {
+        longRunningTask()
+    }
+}
+```
 
 ## Root path
 
