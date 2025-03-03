@@ -88,10 +88,10 @@ class InputAreaViewModelTest : ShouldSpec() {
 
     init {
         val eventId = EventId("0")
-        val aliceUserId = UserId("@alice:localhost")
+        val aliceUserId = UserId("@alice:hallo.com")
         val aliceRoomUser = roomUser(aliceUserId, "Alice")
         val bobRoomUser = roomUser(ourUserId, "Bob") // our == bob
-        val alvinUserId = UserId("@alvin:localhost")
+        val alvinUserId = UserId("@alvin:example.org")
         val alvinRoomUser = roomUser(alvinUserId, "Alvin")
         val zoopUserId = UserId("@completelyDifferent:anotherplanet")
         val zoopRoomUser = roomUser(zoopUserId, "Zoop")
@@ -158,6 +158,7 @@ class InputAreaViewModelTest : ShouldSpec() {
                 )
             )
             every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(aliceRoomUser)
+            every { userServiceMock.getById(roomId, alvinUserId) } returns MutableStateFlow(alvinRoomUser)
             every { onMessageEditFinishedMock.invoke(any(), any()) } returns Unit
             every { onMessageReplToFinishedMock.invoke(any(), any()) } returns Unit
 
@@ -178,6 +179,8 @@ class InputAreaViewModelTest : ShouldSpec() {
             everySuspend {
                 mediaServiceMock.getThumbnail(any(), any(), any(), any(), any(), any())
             } returns Result.success(InMemoryPlatformMedia("image".toByteArray().toByteArrayFlow()))
+
+            everySuspend { roomsApiClientMock.setTyping(any(), any(), any(), any(), any()) } returns Result.success(Unit)
         }
 
         should("not allow sending when message is empty") {
@@ -799,6 +802,27 @@ class InputAreaViewModelTest : ShouldSpec() {
             eventually(300.milliseconds) {
                 body shouldBe markdown
                 formattedBody shouldBe html
+            }
+
+            job.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
+        should("convert mentions into anchor tags") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val job = subscribe(cut)
+
+            cut.textField.update("${aliceUserId.full} ${alvinUserId.full} hiii!")
+
+            eventually(300.milliseconds) {
+                cut.isSendEnabled.value shouldBe true
+            }
+
+            cut.sendMessage()
+
+            eventually(300.milliseconds) {
+                formattedBody shouldBe "<p><a href=\"https://matrix.to/#/${aliceUserId.full}\">${aliceRoomUser.name}</a> " +
+                        "<a href=\"https://matrix.to/#/${alvinUserId.full}\">${alvinRoomUser.name}</a> hiii!</p>"
             }
 
             job.cancel()

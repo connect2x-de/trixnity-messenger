@@ -216,8 +216,8 @@ open class InputAreaViewModelImpl(
             textField.update("")
             coroutineScope.launch {
                 val mentions = MatrixRegex.findMentions(text)
-                val mentionLinks = mentions
-                    .mapValues { (_, mention) ->
+                val (_, mentionLinks) = mentions
+                    .toList().fold(0 to emptyList<Pair<IntRange, String>>()) { (offset, map), (range, mention) ->
                         // TODO should use matrix: uri instead!
                         val matrixUri: String
                         val anchorContent: String
@@ -249,10 +249,17 @@ open class InputAreaViewModelImpl(
                                 anchorContent = mention.label ?: userName ?: mention.userId.full
                             }
                         }
-                        """<a href="$matrixUri">$anchorContent</a>"""
+
+                        val entry = """<a href="$matrixUri">$anchorContent</a>"""
+                        val newOffset = offset + (entry.length - mention.match.length)
+                        val newMap = map + ((range.first + offset)..(range.last + offset) to entry)
+                        newOffset to newMap
                     }
+                log.debug { "Message: $text" }
+                log.debug { "Mentions: $mentions" }
+                log.debug { "Links: $mentionLinks" }
                 val mentionedUsers = mentions.values.filterIsInstance<Mention.User>().map { it.userId }.toSet()
-                val formattedBody = mentionLinks.entries.fold(text) { currentText, (range, newValue) ->
+                val formattedBody = mentionLinks.fold(text) { currentText, (range, newValue) ->
                     currentText.replaceRange(range, newValue)
                 }.let {
                     if (useMarkdown.value) {
