@@ -4,10 +4,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
 
@@ -15,6 +15,7 @@ private val log = KotlinLogging.logger {}
 
 interface SettingsHolder<S : Settings<S>> : StateFlow<S> {
     suspend fun init()
+    suspend fun waitForInit()
     suspend fun update(updater: MutableSettings<S>.(S) -> Unit)
 }
 
@@ -47,13 +48,20 @@ abstract class SettingsHolderImpl<S : Settings<S>>(
             storage.write(settingsJson.encodeToString<Map<String, JsonElement>>(newSettings))
         }
 
+    private val initMutex = Mutex()
     override suspend fun init() {
-        log.debug { "init SettingsHolder" }
-        val settingsString = storage.read()
-        val settingsContent =
-            if (settingsString == null) emptyMap()
-            else settingsJson.decodeFromString<Map<String, JsonElement>>(settingsString)
-        settings.value = settingsFactory(settingsContent)
+        initMutex.withLock {
+            if (settings.value == null) {
+                log.debug { "init SettingsHolder" }
+                val settingsString = storage.read()
+                val settingsContent =
+                    if (settingsString == null) emptyMap()
+                    else settingsJson.decodeFromString<Map<String, JsonElement>>(settingsString)
+                settings.value = settingsFactory(settingsContent)
+            } else {
+                log.debug { "init SettingsHolder skipped (already initialized)" }
+            }
+        }
     }
 
     override val replayCache: List<S>
@@ -65,4 +73,8 @@ abstract class SettingsHolderImpl<S : Settings<S>>(
         settings.collect {
             collector.emit(checkNotNull(it) { "SettingsHolder has not been initialized" })
         }
+
+    override suspend fun waitForInit() {
+        settings.first { it != null }
+    }
 }
