@@ -125,11 +125,15 @@ class ImageTimelineElementDetailsView :
                             Column {
                                 Icon(
                                     MaterialTheme.messengerIcons.typeImage, i18n.commonImage(),
-                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally)
+                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally),
+                                    tint = MaterialTheme.colorScheme.onBackground
                                 )
                                 if (error != null) {
-                                    Text(error)
-                                } else Text(i18n.imageCouldNotBeLoaded())
+                                    Text(error, color = MaterialTheme.colorScheme.onBackground)
+                                } else Text(
+                                    i18n.imageCouldNotBeLoaded(),
+                                    color = MaterialTheme.colorScheme.onBackground
+                                )
                             }
                         }
                     }

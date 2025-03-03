@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
@@ -10,10 +11,15 @@ import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
+import io.kotest.assertions.nondeterministic.continually
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
 import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldBeSameInstanceAs
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
@@ -28,6 +34,7 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.store.TimelineEventRelation
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.sender
@@ -39,6 +46,7 @@ import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
+import net.folivo.trixnity.core.model.events.m.RelationType
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
@@ -240,6 +248,44 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             advanceUntilIdle()
             cut.showSender.value shouldBe false
 
+            cancelNeverEndingCoroutines()
+        }
+        should("isRead: should use latest replacement") {
+            val replaceEventId = EventId("replace")
+            val replacement = MutableStateFlow<Map<EventId, Flow<TimelineEventRelation?>>?>(null)
+            every {
+                roomServiceMock.getTimelineEventRelations(roomId, eventId, RelationType.Replace)
+            } returns replacement
+            val timeline = timeline(roomServiceMock, roomId) {
+                +timelineEvent
+            }
+            val cut = cut()
+            receipts.value = mapOf(eventId to setOf(bob))
+            launch { cut.isRead.collect() }
+            advanceUntilIdle()
+            cut.isRead.value shouldBe true
+
+            timeline.addEvents {
+                +TimelineEvent(
+                    event = MessageEvent(
+                        TextBased.Text("Hi (edit)!"),
+                        id = replaceEventId,
+                        sender = alice,
+                        roomId = roomId,
+                        originTimestamp = 123456789L,
+                    ),
+                    previousEventId = null,
+                    nextEventId = null,
+                    gap = null,
+                )
+            }
+            replacement.value = mapOf(
+                replaceEventId to
+                        flowOf(TimelineEventRelation(roomId, replaceEventId, RelationType.Replace, eventId))
+            )
+
+            advanceUntilIdle()
+            cut.isRead.value shouldBe false
             cancelNeverEndingCoroutines()
         }
         should("showBigGapBefore: be true when first in a user sequence") {
@@ -445,10 +491,37 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+        should("element: not create a new viewModel when a new message is sent afterwards") {
+            val timeline = timeline(roomServiceMock, roomId) {
+                +messageEvent(sender = alice) {
+                    text("Don't change my viewModel!")
+                }
+            }
+            val event = timeline.eventsInStore.value[0]
+            val eventHolder = cut(
+                timelineEvent = event.value,
+                timelineEventFlow = event
+            )
+            launch { eventHolder.element.collect() }
+            val eventElement = eventHolder.element
+            eventually(3.seconds) {
+                eventElement.value.shouldBeInstanceOf<RoomMessageTimelineElementViewModel.TextBased.Text>()
+            }
+            val currentViewModel = eventElement.value
+            timeline.addEvents {
+                +messageEvent(sender = bob) {
+                    text("This shouldn't change the former messages viewModel")
+                }
+            }
+            continually(2.seconds) { eventElement.value shouldBeSameInstanceAs currentViewModel }
+
+            cancelNeverEndingCoroutines()
+        }
     }
 
     private fun TestScope.cut(
         timelineEvent: TimelineEvent = this@TimelineElementHolderViewModelTest.timelineEvent,
+        timelineEventFlow: Flow<TimelineEvent>? = null,
         eventId: EventId = timelineEvent.eventId
     ): TimelineElementHolderViewModel {
         val di = koinApplication {
@@ -474,7 +547,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             showLoadingIndicatorAfter = flowOf(false),
             ignoreReplacedEvents = false,
             getReceipts = { receipts },
-            timelineEventFlow = flowOf(timelineEvent),
+            timelineEventFlow = timelineEventFlow ?: flowOf(timelineEvent),
             onMessageReplace = mock(),
             onMessageReply = mock(),
             onMessageReport = mock(),
