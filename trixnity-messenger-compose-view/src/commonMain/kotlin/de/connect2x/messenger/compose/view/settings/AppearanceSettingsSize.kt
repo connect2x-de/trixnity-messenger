@@ -33,6 +33,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolder
 import de.connect2x.messenger.compose.view.theme.DefaultSizes
+import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.messenger.compose.view.theme.SystemDensity
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -64,6 +65,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
         val i18n = DI.get<I18nView>()
         val defaultSizes = DI.get<DefaultSizes>()
         val applySystemSizes by appearanceSettingsViewModel.applySystemSizes.collectAsState()
+        val maxHeaderHeight = MaxHeaderHeight.current
 
         // Font size
         val fontSize = appearanceSettingsViewModel.fontSize.collectAsState().value ?: defaultSizes.fontSize
@@ -104,6 +106,8 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                     appearanceSettingsViewModel.toggleApplySystemSizes()
                     newFontSize = -1F
                     newDisplaySize = -1F
+
+                    maxHeaderHeight.value = 0
                     appearanceSettingsViewModel.setDisplaySize(defaultSizes.displaySize)
                     appearanceSettingsViewModel.setFontSize(defaultSizes.fontSize)
                 }
@@ -159,6 +163,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
             Button(
                 enabled = !applySystemSizes,
                 onClick = {
+                    maxHeaderHeight.value = 0
                     appearanceSettingsViewModel.setDisplaySize(finalNewDisplaySize)
                     appearanceSettingsViewModel.setFontSize(finalNewFontSize)
                 }

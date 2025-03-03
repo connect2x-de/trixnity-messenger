@@ -36,7 +36,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -89,8 +91,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 8.dp,
             modifier = Modifier.onGloballyPositioned { coordinates ->
-                val size = coordinates.size
-                headerHeightFlow.value = maxOf(headerHeight, size.height)
+                headerHeightFlow.value = maxOf(headerHeight, coordinates.size.height)
             }
         ) {
             Column {
@@ -141,17 +142,20 @@ class RoomHeaderViewImpl : RoomHeaderView {
                                     RoomTopic(roomHeaderElement)
                                 }
                             }
-
-                            if (!IsSinglePane.current) {
-                                Text(
-                                    text = " ",
-                                    style = MaterialTheme.typography.labelMedium
-                                        .copy(color = MaterialTheme.colorScheme.onBackground),
-                                    modifier = Modifier.height(headerHeight.dp - 8.dp)
-                                )
-                            }
                         }
                         RoomExtras(roomHeaderViewModel, showSettingsButton)
+                    }
+
+                    // If we have a multi-pane view, we will display an invisible text that has the function of
+                    // forcing the three header elements to the same height.
+                    val density = LocalDensity.current
+                    if (!IsSinglePane.current) {
+                        Text(
+                            text = " ",
+                            style = MaterialTheme.typography.labelMedium
+                                .copy(color = MaterialTheme.colorScheme.onBackground),
+                            modifier = Modifier.height(with(density) { headerHeight.toDp() - 1.toDp() })
+                        )
                     }
                 }
                 HorizontalDivider(Modifier.fillMaxWidth())

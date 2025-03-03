@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.common
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.capitalize
@@ -67,17 +69,8 @@ fun Header(
     ) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (!IsSinglePane.current) {
-                    Text(
-                        text = " ",
-                        style = MaterialTheme.typography.labelMedium
-                            .copy(color = MaterialTheme.colorScheme.onBackground),
-                        modifier = Modifier.height(headerHeight.dp - 8.dp)
-                    )
-                }
                 Column(Modifier.fillMaxWidth().onGloballyPositioned { coordinates ->
-                    val size = coordinates.size
-                    headerHeightFlow.value = maxOf(headerHeight, size.height)
+                    headerHeightFlow.value = maxOf(headerHeight, coordinates.size.height)
                 }) {
                     Row(
                         Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
@@ -106,6 +99,18 @@ fun Header(
                             additionalButtons()
                         }
                     }
+                }
+
+                // If we have a multi-pane view, we will display an invisible text that has the function of forcing the
+                // three header elements to the same height.
+                val density = LocalDensity.current
+                if (!IsSinglePane.current) {
+                    Text(
+                        text = " ",
+                        style = MaterialTheme.typography.labelMedium
+                            .copy(color = MaterialTheme.colorScheme.onBackground),
+                        modifier = Modifier.height(with(density) { headerHeight.toDp() - 1.toDp() })
+                    )
                 }
             }
             HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
