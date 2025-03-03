@@ -100,11 +100,13 @@ interface TimelineElementHolderViewModelFactory {
         onMessageReport: (RoomId, EventId) -> Unit,
         onOpenMention: OpenMentionCallback,
         onOpenMetadata: (eventId: EventId) -> Unit,
+        showOriginal: Boolean = false,
     ): TimelineElementHolderViewModel =
         TimelineElementHolderViewModelImpl(
             viewModelContext = viewModelContext,
             key = key,
             timelineEventFlow = timelineEventFlow,
+            showOriginal = showOriginal,
             roomId = roomId,
             eventId = eventId,
             senderUserId = sender,
@@ -167,6 +169,7 @@ class TimelineElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val key: String,
     timelineEventFlow: Flow<TimelineEvent>,
+    private val showOriginal: Boolean,
     override val roomId: RoomId,
     override val eventId: EventId,
     private val senderUserId: UserId,
@@ -230,9 +233,14 @@ class TimelineElementHolderViewModelImpl(
     private fun getNewContentIfAvailable(msg: RoomOutboxMessage<*>?) =
         (msg?.content?.relatesTo as? RelatesTo.Replace)?.takeIf { it.eventId == eventId }?.newContent
 
-    private val newContentIfReplaced = matrixClient.room.getOutbox(roomId).flatten()
-        .map { it.reversed().firstNotNullOfOrNull(::getNewContentIfAvailable) }
-        .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+    private val newContentIfReplaced =
+        if (showOriginal) {
+            MutableStateFlow(null)
+        } else {
+            matrixClient.room.getOutbox(roomId).flatten()
+                .map { it.reversed().firstNotNullOfOrNull(::getNewContentIfAvailable) }
+                .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+        }
 
     override val isReplaced: StateFlow<Boolean> =
         combine(
@@ -395,9 +403,13 @@ class TimelineElementHolderViewModelImpl(
     override val isByMe: Boolean = senderUserId == userId
 
     private val lastReplacement =
-        matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId)
-            .map { it.replacedBy }
-            .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+        if (showOriginal) {
+            MutableStateFlow(null)
+        } else {
+            matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId)
+                .map { it.replacedBy }
+                .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+        }
 
     private val getEventReaders = get<GetEventReaders>()
     override val isRead =
