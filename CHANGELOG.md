@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Increase size of avatar and change order of settings in profile view
+
 ### Deprecated
 
 ### Removed
@@ -32,7 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Debounce unread message counter in timeline to avoid flickering
 - Focus message input text field when starting a reply
-- Increase size of avatar and change order of settings in profile view
 - Use latest edit of an event for reader and isRead calculations
 - Moved verification step to the last position in the setup wizard
 - Don't show verification methods in self verification wizard while initial sync is running
