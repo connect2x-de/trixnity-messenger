@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Increase size of avatar and change order of settings in profile view
+- Make room notification settings collapsable and change setting design to the one used by other room settings
 
 ### Deprecated
 
