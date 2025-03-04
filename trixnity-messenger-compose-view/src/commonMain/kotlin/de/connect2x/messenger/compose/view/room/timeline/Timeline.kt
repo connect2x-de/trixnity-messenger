@@ -284,12 +284,14 @@ class TimelineViewImpl : TimelineView {
                                         }
                                 }
                             }
-                            listState.layoutInfo.visibleItemsInfo.lastOrNull { (it.key as? String)?.startsWith('!') == true }
-                                ?.let { layoutInfo ->
-                                    timelineElementHolderViewModels.find { it.key == layoutInfo.key }?.let {
-                                        DateStickyHeader(it.formattedDate)
+                            Box(Modifier.padding(end = if (this@BoxWithConstraints.maxWidth.value > 1000) 0.dp else 8.dp)) {
+                                listState.layoutInfo.visibleItemsInfo.lastOrNull { (it.key as? String)?.startsWith('!') == true }
+                                    ?.let { layoutInfo ->
+                                        timelineElementHolderViewModels.find { it.key == layoutInfo.key }?.let {
+                                            DateStickyHeader(it.formattedDate)
+                                        }
                                     }
-                                }
+                            }
                             ScrollToEndButton(timelineViewModel, canScrollToEnd)
                             if (draggedFile != null) {
                                 Box(
