@@ -71,7 +71,6 @@ class GetEventReadersImpl : GetEventReaders {
         getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>
     ): Flow<IsReadSearchResult> =
         getReceipts(roomId).flatMapLatest { receipts ->
-            log.trace { "isReadSearch: roomId=$roomId eventId=$eventId" }
             matrixClient.room.getTimelineEvents(roomId, eventId, Direction.FORWARDS)
                 .transform {
                     val timelineEvent = it.first()
@@ -92,6 +91,8 @@ class GetEventReadersImpl : GetEventReaders {
                         )
 
                         else -> emit(IsReadSearchResult.Unread)
+                    }.also {
+                        log.trace { "isReadSearch: currentRoomId=$currentRoomId currentEventId=$currentEventId foundReaders=$foundReaders" }
                     }
                 }
         }

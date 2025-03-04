@@ -71,11 +71,11 @@ class AvatarCutterViewModelTest : ShouldSpec() {
             should("try to upload image") {
                 val thumbnailCapture = Capture.slot<ByteArrayFlow>()
                 everySuspend {
-                    mediaServiceMock.prepareUploadThumbnail(
+                    mediaServiceMock.prepareUploadMedia(
                         capture(thumbnailCapture),
                         any()
                     )
-                } returns Pair("cache://localhost/123456", ThumbnailInfo())
+                } returns "cache://localhost/123456"
                 everySuspend {
                     mediaServiceMock.uploadMedia(eq("cache://localhost/123456"), any(), any())
                 } returns Result.success("mxc://localhost/123456")
@@ -100,11 +100,11 @@ class AvatarCutterViewModelTest : ShouldSpec() {
                 var onCloseWasCalled = false
                 val thumbnailCapture = mutableListOf<ByteArrayFlow>()
                 everySuspend {
-                    mediaServiceMock.prepareUploadThumbnail(
+                    mediaServiceMock.prepareUploadMedia(
                         capture(thumbnailCapture),
                         any()
                     )
-                } returns Pair("cache://localhost/123456", ThumbnailInfo())
+                } returns "cache://localhost/123456"
                 everySuspend {
                     mediaServiceMock.uploadMedia(eq("cache://localhost/123456"), any(), any())
                 } returns Result.failure(RuntimeException("Oh no!"))
