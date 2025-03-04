@@ -150,6 +150,19 @@ val matrixMessenger = MatrixMessenger.create {
 }
 ```
 
+### MatrixClientConfiguration
+
+If you want to change the underlying `MatrixClientConfiguration`, you can register a
+`ConfigureMatrixClientConfiguration` in the DI:
+
+```kotlin
+single<ConfigureMatrixClientConfiguration>(named("myConfig")) { // don't forget to name the singleton
+    ConfigureMatrixClientConfiguration {
+        autoJoinUpgradedRooms = false
+    }
+}
+```
+
 ### Add HttpClientEngine
 
 Although Ktors `HttpClient`s used by Trixnity (Messenger) automatically use a `HttpClientEngine` defined in the
@@ -359,6 +372,7 @@ Next, add it to the DI:
 
 ```kotlin
 fun catEventModule() = modules {
+    // don't forget to name the singleton
     single<EventContentSerializerMappings>(named("catEventContentSerializerMappings")) { catEventContentSerializerMappings }
     timelineElementViewModelFactory<CatMessageTimelineElementViewModelFactory> { CatMessageTimelineElementViewModelFactory }
     timelineElementView<CatMessageMessageTimelineElementView> { CatMessageMessageTimelineElementView() }
