@@ -10,7 +10,6 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -90,7 +89,6 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
                         roomNotificationLevelSilent.explanation.collectAsState().value
                     )
                 ),
-                optionStyle = LocalTextStyle.current,
                 value = selectedLevel,
                 set = { roomSettingsNotificationsViewModel.changeSelectedRoomNotificationsLevel(newLevel = it) },
                 icon = when (selectedLevel.key) {
