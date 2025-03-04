@@ -24,15 +24,10 @@ fun startMessenger(
         configuration = configuration
     )
 
-// to set the lang to EN:   matrixMessenger.di.get<MatrixMessengerSettingsHolder>().update { it.copy(preferredLang = "en") }
+    // to set the lang to EN:   matrixMessenger.di.get<MatrixMessengerSettingsHolder>().update { it.copy(preferredLang = "en") }
 
     val urlHandler = matrixMultiMessenger.defaultUrlHandler
     urlHandler.start(args)
-
-    val isDebug = args
-        .find { arg -> arg.startsWith("debug=") }
-        ?.split("=")?.last()?.toBoolean()
-        ?: false
 
     messengerApp(matrixMultiMessenger, lifecycle, urlHandler)
 }

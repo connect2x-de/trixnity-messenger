@@ -124,7 +124,7 @@ class InputAreaViewImpl : InputAreaView {
         val isEdit = inputAreaViewModel.isReplace.collectAsState().value
         val emojisOpen = remember { mutableStateOf(false) }
         val focusRequester = remember { FocusRequester() }
-        val textField = inputAreaViewModel.textField.collectAsTextFieldValueState()
+        val textField = inputAreaViewModel.textField.collectAsTextFieldValueState(focusRequester)
 
         Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
             Column(Modifier.fillMaxWidth()) {

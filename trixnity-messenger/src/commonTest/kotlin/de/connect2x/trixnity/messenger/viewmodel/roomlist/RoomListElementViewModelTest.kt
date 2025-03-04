@@ -65,6 +65,7 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
+import net.folivo.trixnity.core.model.keys.KeyValue
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
@@ -454,7 +455,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
                             MessageEvent(
                                 MegolmEncryptedMessageEventContent(
                                     "",
-                                    Key.Curve25519Key(value = ""),
+                                    KeyValue.Curve25519KeyValue(""),
                                     deviceId = "",
                                     sessionId = "",
                                 ),
@@ -720,7 +721,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
             event = MessageEvent(
                 content = MegolmEncryptedMessageEventContent(
                     ciphertext = "",
-                    senderKey = Key.Curve25519Key(value = ""),
+                    senderKey = KeyValue.Curve25519KeyValue(""),
                     deviceId = "",
                     sessionId = ""
                 ),
