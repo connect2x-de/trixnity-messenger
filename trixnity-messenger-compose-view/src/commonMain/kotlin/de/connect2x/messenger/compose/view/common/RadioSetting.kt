@@ -1,10 +1,12 @@
 package de.connect2x.messenger.compose.view.common
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -69,7 +71,8 @@ internal fun <T> ColumnScope.RadioSetting(
             val (optionText, optionExplanation, optionEnabled, optionStyle) = option
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(10.dp).clickable { set(key) }
+                modifier = Modifier.padding(10.dp).clickable { set(key) },
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 if (optionExplanation != null) {
                     HelpIcon(optionExplanation)
