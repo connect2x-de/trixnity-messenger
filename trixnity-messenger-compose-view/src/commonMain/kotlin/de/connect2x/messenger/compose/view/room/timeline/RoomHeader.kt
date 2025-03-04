@@ -88,18 +88,14 @@ class RoomHeaderViewImpl : RoomHeaderView {
         val headerHeight = headerHeightFlow.collectAsState().value
         val density = LocalDensity.current
 
-        Surface(
-            color = MaterialTheme.colorScheme.surface,
-            modifier = Modifier.onGloballyPositioned { coordinates ->
-                val newHeaderHeight = with(density) { coordinates.size.height.toDp() - 1.toDp() }
-                headerHeightFlow.value = maxOf(headerHeight, newHeaderHeight)
-            },
-            tonalElevation = 8.dp
-        ) {
+        Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
             Column {
                 Row(
                     horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().onGloballyPositioned { coordinates ->
+                        val newHeaderHeight = with(density) { coordinates.size.height.toDp() - 1.toDp() }
+                        headerHeightFlow.value = maxOf(headerHeight, newHeaderHeight)
+                    }
                 ) {
                     if (showBackButton) {
                         RoomBackButton(roomHeaderViewModel)
