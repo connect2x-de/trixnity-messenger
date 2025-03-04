@@ -616,8 +616,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val key: String = eventId.full
     override val element: MutableStateFlow<TimelineElementViewModel<*>?> =
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
-            override val body: String = "Hello too!"
-            override val formattedBody: String = "Hello <b/>too!"
+            override val body: String = "Hello!"
+            override val formattedBody: String = "Hello!"
             override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
             override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
             override fun openMention(mention: TimelineElementMention) {}

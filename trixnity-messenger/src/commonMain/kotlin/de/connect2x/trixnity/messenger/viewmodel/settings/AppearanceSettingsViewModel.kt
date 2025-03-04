@@ -29,10 +29,16 @@ interface AppearanceSettingsViewModel {
     val themeMode: StateFlow<ThemeMode>
     val isHighContrast: StateFlow<Boolean>
     val accentColor: StateFlow<Long?>
+    val fontSize: StateFlow<Float?>
+    val displaySize: StateFlow<Float?>
+    val applySystemSizes: StateFlow<Boolean>
 
     fun setThemeMode(themeMode: ThemeMode)
     fun toggleHighContrast()
     fun setAccentColor(accentColor: Long?)
+    fun setFontSize(fontSize: Float?)
+    fun setDisplaySize(controlsSize: Float?)
+    fun toggleApplySystemSizes()
     fun back()
 }
 
@@ -52,6 +58,15 @@ class AppearanceSettingsViewModelImpl(
     override val accentColor: StateFlow<Long?> =
         settings.mapLatest { it.base.accentColor }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.accentColor)
+    override val fontSize: StateFlow<Float?> =
+        settings.mapLatest { it.base.fontSize }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.fontSize)
+    override val displaySize: StateFlow<Float?> =
+        settings.mapLatest { it.base.displaySize }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.displaySize)
+    override val applySystemSizes: StateFlow<Boolean> =
+        settings.mapLatest { it.base.applySystemSizes }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.applySystemSizes)
 
     private val backCallback = BackCallback {
         back()
@@ -81,6 +96,30 @@ class AppearanceSettingsViewModelImpl(
         coroutineScope.launch {
             settings.update<MatrixMessengerSettingsBase> {
                 it.copy(accentColor = accentColor)
+            }
+        }
+    }
+
+    override fun setFontSize(fontSize: Float?) {
+        coroutineScope.launch {
+            settings.update<MatrixMessengerSettingsBase> {
+                it.copy(fontSize = fontSize)
+            }
+        }
+    }
+
+    override fun setDisplaySize(controlsSize: Float?) {
+        coroutineScope.launch {
+            settings.update<MatrixMessengerSettingsBase> {
+                it.copy(displaySize = controlsSize)
+            }
+        }
+    }
+
+    override fun toggleApplySystemSizes() {
+        coroutineScope.launch {
+            settings.update<MatrixMessengerSettingsBase> {
+                it.copy(applySystemSizes = !it.applySystemSizes)
             }
         }
     }

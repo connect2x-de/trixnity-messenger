@@ -203,6 +203,8 @@ import de.connect2x.messenger.compose.view.settings.AppInfoView
 import de.connect2x.messenger.compose.view.settings.AppInfoViewImpl
 import de.connect2x.messenger.compose.view.settings.AppearanceSettingsColorView
 import de.connect2x.messenger.compose.view.settings.AppearanceSettingsColorViewImpl
+import de.connect2x.messenger.compose.view.settings.AppearanceSettingsSizeView
+import de.connect2x.messenger.compose.view.settings.AppearanceSettingsSizeViewImpl
 import de.connect2x.messenger.compose.view.settings.AppearanceSettingsThemeView
 import de.connect2x.messenger.compose.view.settings.AppearanceSettingsThemeViewImpl
 import de.connect2x.messenger.compose.view.settings.AppearanceSettingsView
@@ -225,6 +227,8 @@ import de.connect2x.messenger.compose.view.sharing.ShareDataView
 import de.connect2x.messenger.compose.view.sharing.ShareDataViewImpl
 import de.connect2x.messenger.compose.view.theme.DefaultAccentColor
 import de.connect2x.messenger.compose.view.theme.DefaultAccentColorImpl
+import de.connect2x.messenger.compose.view.theme.DefaultSizes
+import de.connect2x.messenger.compose.view.theme.DefaultSizesImpl
 import de.connect2x.messenger.compose.view.theme.Theme
 import de.connect2x.messenger.compose.view.theme.ThemeDarkColorScheme
 import de.connect2x.messenger.compose.view.theme.ThemeDarkColorSchemeImpl
@@ -293,6 +297,7 @@ fun themeViewModule(): Module = module {
     single<Theme> { ThemeImpl() }
     single<ThemeTypography> { ThemeTypographyImpl() }
     single<DefaultAccentColor> { DefaultAccentColorImpl() }
+    single<DefaultSizes> { DefaultSizesImpl() }
     single<ThemeLightColorScheme> { ThemeLightColorSchemeImpl() }
     single<ThemeDarkColorScheme> { ThemeDarkColorSchemeImpl() }
     single<ThemeHighContrastLightColorScheme> { ThemeHighContrastLightColorSchemeImpl() }
@@ -459,6 +464,7 @@ fun settingsViewModule() = module {
     single<AppearanceSettingsView> { AppearanceSettingsViewImpl() }
     single<AppearanceSettingsThemeView> { AppearanceSettingsThemeViewImpl() }
     single<AppearanceSettingsColorView> { AppearanceSettingsColorViewImpl() }
+    single<AppearanceSettingsSizeView> { AppearanceSettingsSizeViewImpl() }
     single<AppInfoView> { AppInfoViewImpl() }
     single<AppInfoVersionView> { AppInfoVersionViewImpl() }
     single<AppInfoPrivacyView> { AppInfoPrivacyViewImpl() }
