@@ -11,13 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow to wait for `SettingsHolder` to be initialized
 - Introduce `MatrixMessengerWorker` and `MatrixMultiMessengerWorker`
+- Introduced `ConfigureMatrixClientConfiguration` to easily extend `MatrixClientConfiguration`
 - Autofill (password manager) support
+- Introduced `ConfigureMatrixClientConfiguration` to easily extend `MatrixClientConfiguration`
 
 ### Changed
 
 - Debounce unread message counter in timeline to avoid flickering
 - Focus message input text field when starting a reply
 - Use latest edit of an event for reader and isRead calculations
+- Moved verification step to the last position in the setup wizard
+- Don't show verification methods in self verification wizard while initial sync is running
 - Make room notification settings collapsable and change setting design to the one used by other room settings
 
 ### Deprecated
@@ -43,9 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message Info view
 
 ### Changed
-- Moved verification step to the last position in the setup wizard
-- Don't show verification methods in self verification wizard while initial sync is running
-
 - Refactored message bubbles to support message previews
 - Refactored read receipts and reactions to be more modular
 - Removed default parameter from `FileBasedRoomMessageTimelineElementView` to allow overriding it

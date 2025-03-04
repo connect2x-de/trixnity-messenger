@@ -36,7 +36,7 @@ interface MatrixClientFactory {
 class MatrixClientFactoryImpl(
     private val repositoriesModuleCreation: CreateRepositoriesModule,
     private val createMediaStore: CreateMediaStore,
-    private val configuration: MatrixClientConfigurationHolder,
+    private val configurer: List<ConfigureMatrixClientConfiguration>,
     private val onLogin: suspend (loginInfo: LoginInfo, baseUrl: Url) -> Unit = { _, _ -> },
 ) : MatrixClientFactory {
 
@@ -66,7 +66,9 @@ class MatrixClientFactoryImpl(
                         loginInfo
                     }
                 },
-                configuration = configuration.matrixClientConfiguration,
+                configuration = {
+                    configurer.forEach { with(it) { invoke() } }
+                },
             ).getOrThrow(),
             databaseKey = databaseKey,
         )
@@ -80,7 +82,9 @@ class MatrixClientFactoryImpl(
         MatrixClient.fromStore(
             repositoriesModule = loadRepositoriesModuleOrThrow(userId, databasePassword),
             mediaStore = createMediaStore(userId),
-            configuration = configuration.matrixClientConfiguration,
+            configuration = {
+                configurer.forEach { with(it) { invoke() } }
+            },
         ).getOrThrow()
     }
 
