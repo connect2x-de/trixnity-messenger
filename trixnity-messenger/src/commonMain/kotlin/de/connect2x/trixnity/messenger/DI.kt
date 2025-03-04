@@ -171,7 +171,9 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 
-data class MatrixClientConfigurationHolder(val matrixClientConfiguration: MatrixClientConfiguration.() -> Unit)
+fun interface ConfigureMatrixClientConfiguration {
+    operator fun MatrixClientConfiguration.invoke()
+}
 
 fun interface DebugName {
     operator fun invoke(): String
@@ -183,11 +185,11 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<Clock> { Clock.System }
             single<TimeZone> { TimeZone.currentSystemDefault() }
 
-            single<MatrixClientConfigurationHolder> {
+            single<ConfigureMatrixClientConfiguration>(named("DefaultConfigureMatrixClientConfiguration")) {
                 val config = get<MatrixMessengerConfiguration>()
                 val relevantTimelineEvents = get<RelevantTimelineEvents>()
                 val eventContentSerializerMappings = getAll<EventContentSerializerMappings>()
-                MatrixClientConfigurationHolder {
+                ConfigureMatrixClientConfiguration {
                     name = getOrNull<DebugName>()?.invoke()
                     markOwnMessageAsRead = true
                     httpClientEngine = config.httpClientEngine
@@ -211,7 +213,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             }
 
             single<MatrixClientFactory> {
-                MatrixClientFactoryImpl(get(), get(), get())
+                MatrixClientFactoryImpl(get(), get(), getAll())
             }
             single<MatrixClients> {
                 MatrixClientsImpl(get(), get(), get(), get(), get())
