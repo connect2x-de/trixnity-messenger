@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduce `MatrixMessengerWorker` and `MatrixMultiMessengerWorker`
 - Introduced `ConfigureMatrixClientConfiguration` to easily extend `MatrixClientConfiguration`
 - Autofill (password manager) support
+- Introduced `ConfigureMatrixClientConfiguration` to easily extend `MatrixClientConfiguration`
 
 ### Changed
 
