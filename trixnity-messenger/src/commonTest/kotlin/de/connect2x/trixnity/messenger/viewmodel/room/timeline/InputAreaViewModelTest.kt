@@ -883,6 +883,27 @@ class InputAreaViewModelTest : ShouldSpec() {
             job.cancel()
             cancelNeverEndingCoroutines()
         }
+
+        should("convert mention at the end") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val job = subscribe(cut)
+
+            cut.textField.update("Hi ${aliceUserId.full}")
+
+            eventually(300.milliseconds) {
+                cut.isSendEnabled.value shouldBe true
+            }
+
+            cut.sendMessage()
+
+            eventually(300.milliseconds) {
+                formattedBody shouldBe "<p>Hi <a href=\"https://matrix.to/#/${aliceUserId.full}\">${aliceRoomUser.name}</a></p>"
+            }
+
+            job.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
     }
 
     private fun roomUser(userId: UserId, name: String) = RoomUser(
