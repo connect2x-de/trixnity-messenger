@@ -9,11 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+- Make room notification settings collapsable and change setting design to the one used by other room settings
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.4.1
+
+### Added
+
 - Allow to wait for `SettingsHolder` to be initialized
 - Introduce `MatrixMessengerWorker` and `MatrixMultiMessengerWorker`
 - Introduced `ConfigureMatrixClientConfiguration` to easily extend `MatrixClientConfiguration`
 - Autofill (password manager) support
-- Introduced `ConfigureMatrixClientConfiguration` to easily extend `MatrixClientConfiguration`
 
 ### Changed
 
@@ -22,11 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use latest edit of an event for reader and isRead calculations
 - Moved verification step to the last position in the setup wizard
 - Don't show verification methods in self verification wizard while initial sync is running
-- Make room notification settings collapsable and change setting design to the one used by other room settings
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -37,8 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - show correct error message colors on image details view
 - TextFields behave according to their role
 
-### Security
-
 ## 3.4.0
 
 ### Added
@@ -47,14 +55,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Message Info view
 
 ### Changed
+
 - Refactored message bubbles to support message previews
 - Refactored read receipts and reactions to be more modular
 - Removed default parameter from `FileBasedRoomMessageTimelineElementView` to allow overriding it
 - Moved message metadata into a unified view with a new design
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -66,8 +71,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix possible crash when entering rooms with large messages
 - Remove broken collapsed message bubbles
 - Empty reactions or RedactedEventContent do not block reaction computation
-
-### Security
 
 ## 3.3.0
 
