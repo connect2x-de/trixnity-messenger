@@ -47,7 +47,8 @@ class AccountDataViewImpl : AccountDataView {
         ) {
             Row(
                 Modifier.onGloballyPositioned { coordinates ->
-                    headerHeightFlow.value = maxOf(headerHeight, coordinates.size.height)
+                    val newHeaderHeight = with(density) { coordinates.size.height.toDp() - 1.toDp() }
+                    headerHeightFlow.value = maxOf(headerHeight, newHeaderHeight)
                 },
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -67,7 +68,7 @@ class AccountDataViewImpl : AccountDataView {
                         text = " ",
                         style = MaterialTheme.typography.labelMedium
                             .copy(color = MaterialTheme.colorScheme.onBackground),
-                        modifier = Modifier.height(with(density) { headerHeight.toDp() - 1.toDp() })
+                        modifier = Modifier.height(headerHeight)
                     )
                 }
             }

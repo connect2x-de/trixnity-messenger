@@ -10,11 +10,12 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import kotlinx.coroutines.flow.MutableStateFlow
 
-val MaxHeaderHeight = compositionLocalOf<MutableStateFlow<Int>> { error("compositionLocal not defined") }
+val MaxHeaderHeight = compositionLocalOf<MutableStateFlow<Dp>> { error("compositionLocal not defined") }
 
 interface Theme {
     @Composable
@@ -66,7 +67,7 @@ class ThemeImpl : Theme {
         density: Density,
         content: @Composable () -> Unit,
     ) {
-        val maxHeaderHeight = remember { MutableStateFlow(0) }
+        val maxHeaderHeight = remember { MutableStateFlow(Dp(0.0f)) }
 
         MaterialTheme(
             colorScheme = colorScheme,

@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
@@ -107,7 +108,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                     newFontSize = -1F
                     newDisplaySize = -1F
 
-                    maxHeaderHeight.value = 0
+                    maxHeaderHeight.value = Dp(0.0f)
                     appearanceSettingsViewModel.setDisplaySize(defaultSizes.displaySize)
                     appearanceSettingsViewModel.setFontSize(defaultSizes.fontSize)
                 }
@@ -163,7 +164,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
             Button(
                 enabled = !applySystemSizes,
                 onClick = {
-                    maxHeaderHeight.value = 0
+                    maxHeaderHeight.value = Dp(0.0f)
                     appearanceSettingsViewModel.setDisplaySize(finalNewDisplaySize)
                     appearanceSettingsViewModel.setFontSize(finalNewFontSize)
                 }

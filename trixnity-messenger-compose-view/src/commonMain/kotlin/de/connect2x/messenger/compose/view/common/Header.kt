@@ -63,6 +63,8 @@ fun Header(
     val i18n = DI.get<I18nView>()
     val headerHeightFlow = MaxHeaderHeight.current
     val headerHeight = headerHeightFlow.collectAsState().value
+    val density = LocalDensity.current
+
     Surface(
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp,
@@ -70,7 +72,8 @@ fun Header(
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.fillMaxWidth().onGloballyPositioned { coordinates ->
-                    headerHeightFlow.value = maxOf(headerHeight, coordinates.size.height)
+                    val newHeaderHeight = with(density) { coordinates.size.height.toDp() - 1.toDp() }
+                    headerHeightFlow.value = maxOf(headerHeight, newHeaderHeight)
                 }) {
                     Row(
                         Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
@@ -103,13 +106,12 @@ fun Header(
 
                 // If we have a multi-pane view, we will display an invisible text that has the function of forcing the
                 // three header elements to the same height.
-                val density = LocalDensity.current
                 if (!IsSinglePane.current) {
                     Text(
                         text = " ",
                         style = MaterialTheme.typography.labelMedium
                             .copy(color = MaterialTheme.colorScheme.onBackground),
-                        modifier = Modifier.height(with(density) { headerHeight.toDp() - 1.toDp() })
+                        modifier = Modifier.height(headerHeight)
                     )
                 }
             }
