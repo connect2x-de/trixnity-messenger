@@ -83,18 +83,18 @@ class RoomHeaderViewImpl : RoomHeaderView {
     ) {
         val roomHeaderElement = roomHeaderViewModel.roomHeaderInfo.collectAsState().value
         val usersTyping = roomHeaderViewModel.usersTyping.collectAsState().value
-        val canShowUserProfile = roomHeaderViewModel.isDirectChat.collectAsState().value
+        val isDirectChat = roomHeaderViewModel.isDirectChat.collectAsState().value
         val headerHeightFlow = MaxHeaderHeight.current
         val headerHeight = headerHeightFlow.collectAsState().value
         val density = LocalDensity.current
 
         Surface(
             color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 8.dp,
             modifier = Modifier.onGloballyPositioned { coordinates ->
                 val newHeaderHeight = with(density) { coordinates.size.height.toDp() - 1.toDp() }
                 headerHeightFlow.value = maxOf(headerHeight, newHeaderHeight)
-            }
+            },
+            tonalElevation = 8.dp
         ) {
             Column {
                 Row(
@@ -115,8 +115,8 @@ class RoomHeaderViewImpl : RoomHeaderView {
                             modifier = Modifier
                                 .weight(1f)
                                 .let {
-                                    if (canShowUserProfile) it.clip(MaterialTheme.shapes.extraLarge)
-                                        .clickable { roomHeaderViewModel.openUserProfile() } else it
+                                    if (isDirectChat) it.clip(MaterialTheme.shapes.extraLarge)
+                                        .clickable { roomHeaderViewModel.openRoomSettings() } else it
                                 }
                         ) {
                             Box {

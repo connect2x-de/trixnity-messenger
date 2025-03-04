@@ -261,7 +261,7 @@ class TimelineViewImpl : TimelineView {
                                 index != null && index != 0
                             }
                         }
-
+                        val additionalEndPadding = 8
                         Box {
                             LazyColumn(
                                 modifier = Modifier.fillMaxSize(),
@@ -269,9 +269,9 @@ class TimelineViewImpl : TimelineView {
                                     top = 10.dp,
                                     bottom = 10.dp,
                                     start = if (this@BoxWithConstraints.maxWidth.value > 1000)
-                                            (0.5 * (this@BoxWithConstraints.maxWidth.value - 1000) + 10).dp else 10.dp,
+                                        (0.5 * (this@BoxWithConstraints.maxWidth.value - 1000) + 10).dp else 10.dp,
                                     end = if (this@BoxWithConstraints.maxWidth.value > 1000)
-                                            (0.5 * (this@BoxWithConstraints.maxWidth.value - 1000) + 18).dp else 18.dp, // 10 + 8, since we cannot add a padding or Spacer at the end
+                                        (0.5 * (this@BoxWithConstraints.maxWidth.value - 1000) + (10 + additionalEndPadding)).dp else 18.dp // 10 + 8, since we cannot add a padding or Spacer at the end
                                 ),
                                 state = listState,
                                 reverseLayout = true,
@@ -288,12 +288,14 @@ class TimelineViewImpl : TimelineView {
                                         }
                                 }
                             }
-                            listState.layoutInfo.visibleItemsInfo.lastOrNull { (it.key as? String)?.startsWith('!') == true }
-                                ?.let { layoutInfo ->
-                                    timelineElementHolderViewModels.find { it.key == layoutInfo.key }?.let {
-                                        DateStickyHeader(it.formattedDate)
+                            Box(Modifier.padding(end = if (this@BoxWithConstraints.maxWidth.value > 1000) 0.dp else additionalEndPadding.dp)) {
+                                listState.layoutInfo.visibleItemsInfo.lastOrNull { (it.key as? String)?.startsWith('!') == true }
+                                    ?.let { layoutInfo ->
+                                        timelineElementHolderViewModels.find { it.key == layoutInfo.key }?.let {
+                                            DateStickyHeader(it.formattedDate)
+                                        }
                                     }
-                                }
+                            }
                             ScrollToEndButton(timelineViewModel, canScrollToEnd)
                             if (draggedFile != null) {
                                 Box(
