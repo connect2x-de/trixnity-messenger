@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
@@ -40,7 +41,6 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -72,6 +72,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
         )
     }.koin
     private val clock = di.get<Clock>()
+    private val config = di.get<MatrixMessengerConfiguration>()
 
     init {
         coroutineTestScope = true
@@ -244,7 +245,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
                     sender = us,
-                    sentAt = clock.now() - 1.hours - 1.seconds
+                    sentAt = clock.now() - config.timelineGroupingTimeout - 1.seconds
                 ) {
                     text("Hi!")
                 }
@@ -262,7 +263,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
                     sender = us,
-                    sentAt = clock.now() - 59.minutes // 59 Minutes instead of one hour so that test isn't flaky
+                    sentAt = clock.now() - config.timelineGroupingTimeout + 1.minutes // +1 Minute so that test isn't flaky
                 ) {
                     text("Hi!")
                 }

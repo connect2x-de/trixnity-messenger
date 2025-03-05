@@ -50,7 +50,6 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
-import kotlin.time.Duration.Companion.hours
 
 private val log = KotlinLogging.logger { }
 
@@ -245,7 +244,7 @@ class OutboxElementHolderViewModelImpl(
                     val previousTimestamp =
                         Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
                     val thisTimestamp = clock.now()
-                    thisTimestamp - previousTimestamp > 1.hours
+                    thisTimestamp - previousTimestamp > config.timelineGroupingTimeout
                 }
             }
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
