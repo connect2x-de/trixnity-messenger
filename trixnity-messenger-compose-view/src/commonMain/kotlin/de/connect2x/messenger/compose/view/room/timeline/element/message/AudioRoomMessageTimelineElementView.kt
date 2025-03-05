@@ -77,6 +77,7 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<Audio> {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
+            isPreview = true,
             overlay = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
