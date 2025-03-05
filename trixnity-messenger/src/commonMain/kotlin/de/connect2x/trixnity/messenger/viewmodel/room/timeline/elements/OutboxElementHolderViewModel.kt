@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -219,7 +220,7 @@ class OutboxElementHolderViewModelImpl(
     private val previousSupportedTimelineEvent = matrixClient.room.getLastTimelineEvents(roomId).filterNotNull()
         .flatMapLatest { lastTimelineEvents ->
             timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(lastTimelineEvents)
-        }
+        }.shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
     override val isFirstInUserSequence: StateFlow<Boolean?> =
         combine(
@@ -235,6 +236,7 @@ class OutboxElementHolderViewModelImpl(
 
     override val showSender: StateFlow<Boolean?> = MutableStateFlow(false).asStateFlow()
 
+    private val clock = get<Clock>()
     override val showBigGapBefore: StateFlow<Boolean?> =
         previousSupportedTimelineEvent.map { timelineEvent ->
             when {
@@ -242,7 +244,7 @@ class OutboxElementHolderViewModelImpl(
                 else -> {
                     val previousTimestamp =
                         Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
-                    val thisTimestamp = Clock.System.now()
+                    val thisTimestamp = clock.now()
                     thisTimestamp - previousTimestamp > 1.hours
                 }
             }
