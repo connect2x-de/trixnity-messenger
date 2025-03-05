@@ -150,6 +150,19 @@ val matrixMessenger = MatrixMessenger.create {
 }
 ```
 
+### MatrixClientConfiguration
+
+If you want to change the underlying `MatrixClientConfiguration`, you can register a
+`ConfigureMatrixClientConfiguration` in the DI:
+
+```kotlin
+single<ConfigureMatrixClientConfiguration>(named("myConfig")) { // don't forget to name the singleton
+    ConfigureMatrixClientConfiguration {
+        autoJoinUpgradedRooms = false
+    }
+}
+```
+
 ### Add HttpClientEngine
 
 Although Ktors `HttpClient`s used by Trixnity (Messenger) automatically use a `HttpClientEngine` defined in the
@@ -359,6 +372,7 @@ Next, add it to the DI:
 
 ```kotlin
 fun catEventModule() = modules {
+    // don't forget to name the singleton
     single<EventContentSerializerMappings>(named("catEventContentSerializerMappings")) { catEventContentSerializerMappings }
     timelineElementViewModelFactory<CatMessageTimelineElementViewModelFactory> { CatMessageTimelineElementViewModelFactory }
     timelineElementView<CatMessageMessageTimelineElementView> { CatMessageMessageTimelineElementView() }
@@ -368,7 +382,8 @@ fun catEventModule() = modules {
 moduleFactories += ::catEventModule
 ```
 
-If your custom event should support a full screen details view when the user clicks/taps on it, you may also implement `TimelineElementDetailsView` and
+If your custom event should support a full screen details view when the user clicks/taps on it, you may also implement
+`TimelineElementDetailsView` and
 add it to the DI using `timelineElementDetailsView<CatTimelineElementDetailsView> { CatTimelineElementDetailsView() }`
 
 ## Export room
@@ -395,6 +410,19 @@ For more details take a look at existing `FileBasedExportRoomSinkConverter` like
 It is possible to define a completely custom `RoomExportSink` to export a room to other targets then files. For example
 a REST endpoint. For this, a `ExportRoomSinkFactory` needs to be defined and put into the DI
 (e.g. via `singleOf(::CustomFactory).bind<ExportRoomSinkFactory>()`).
+
+## Worker
+
+Doing work while the messenger is running can be a common use case. To do that, you can implement
+`MatrixMessengerWorker` or `MatrixMultiMessengerWorker` and put it into the DI:
+
+```kotlin
+single<MatrixMessengerWorker>(named("MyWorker")) { // don't forget to name the singleton
+    MatrixMessengerWorker {
+        longRunningTask()
+    }
+}
+```
 
 ## Root path
 

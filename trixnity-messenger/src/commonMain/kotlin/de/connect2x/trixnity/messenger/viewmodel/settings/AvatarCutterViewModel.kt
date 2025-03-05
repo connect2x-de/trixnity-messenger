@@ -90,21 +90,11 @@ open class AvatarCutterViewModelImpl(
     override fun accept() {
         coroutineScope.launch {
             upload.value = true
-            val preparedUpload = matrixClient.media.prepareUploadThumbnail(
+            val cacheUri = matrixClient.media.prepareUploadMedia(
                 file.content,
                 file.mimeType,
             )
-
-            if (preparedUpload == null) {
-                log.error { "Failed to prepare upload thumbnail." }
-                upload.value = false
-                error.value = i18n.profileAvatarError()
-                return@launch
-            }
-
-            val (cache, _) = preparedUpload
-
-            matrixClient.media.uploadMedia(cache).fold(
+            matrixClient.media.uploadMedia(cacheUri).fold(
                 onSuccess = { url ->
                     if (roomId == null) setUserAvatar(url)
                     else setRoomAvatar(url, roomId)

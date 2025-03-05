@@ -6,8 +6,16 @@ import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
+import kotlinx.coroutines.flow.MutableStateFlow
+
+val MaxHeaderHeight = compositionLocalOf<MutableStateFlow<Dp>> { error("compositionLocal not defined") }
 
 interface Theme {
     @Composable
@@ -18,6 +26,7 @@ interface Theme {
         messengerIcons: MessengerIcons,
         shapes: Shapes,
         typography: Typography,
+        density: Density,
         content: @Composable () -> Unit,
     )
 }
@@ -30,10 +39,20 @@ fun MessengerTheme(
     messengerIcons: MessengerIcons = DefaultMessengerIcons,
     shapes: Shapes = MaterialTheme.shapes,
     typography: Typography = DI.get<ThemeTypography>().create(),
+    density: Density = DefaultMessengerDensity,
     content: @Composable () -> Unit,
 ) {
     DI.get<Theme>()
-        .create(colorScheme, messengerColors, messengerDpConstants, messengerIcons, shapes, typography, content)
+        .create(
+            colorScheme,
+            messengerColors,
+            messengerDpConstants,
+            messengerIcons,
+            shapes,
+            typography,
+            density,
+            content
+        )
 }
 
 class ThemeImpl : Theme {
@@ -45,8 +64,11 @@ class ThemeImpl : Theme {
         messengerIcons: MessengerIcons,
         shapes: Shapes,
         typography: Typography,
+        density: Density,
         content: @Composable () -> Unit,
     ) {
+        val maxHeaderHeight = remember { MutableStateFlow(Dp(0.0f)) }
+
         MaterialTheme(
             colorScheme = colorScheme,
             shapes = shapes,
@@ -56,6 +78,9 @@ class ThemeImpl : Theme {
                 MessengerColorsProvider provides messengerColors,
                 MessengerDpConstantsProvider provides messengerDpConstants,
                 MessengerIconsProvider provides messengerIcons,
+                LocalDensity provides density,
+                SystemDensity provides LocalDensity.current,
+                MaxHeaderHeight provides maxHeaderHeight
             ) {
                 content()
             }

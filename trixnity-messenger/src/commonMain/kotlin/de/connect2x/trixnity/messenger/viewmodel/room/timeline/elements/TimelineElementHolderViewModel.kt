@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -100,11 +101,13 @@ interface TimelineElementHolderViewModelFactory {
         onMessageReport: (RoomId, EventId) -> Unit,
         onOpenMention: OpenMentionCallback,
         onOpenMetadata: (eventId: EventId) -> Unit,
+        showOriginal: Boolean = false,
     ): TimelineElementHolderViewModel =
         TimelineElementHolderViewModelImpl(
             viewModelContext = viewModelContext,
             key = key,
             timelineEventFlow = timelineEventFlow,
+            showOriginal = showOriginal,
             roomId = roomId,
             eventId = eventId,
             senderUserId = sender,
@@ -167,6 +170,7 @@ class TimelineElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val key: String,
     timelineEventFlow: Flow<TimelineEvent>,
+    showOriginal: Boolean = false,
     override val roomId: RoomId,
     override val eventId: EventId,
     private val senderUserId: UserId,
@@ -230,9 +234,14 @@ class TimelineElementHolderViewModelImpl(
     private fun getNewContentIfAvailable(msg: RoomOutboxMessage<*>?) =
         (msg?.content?.relatesTo as? RelatesTo.Replace)?.takeIf { it.eventId == eventId }?.newContent
 
-    private val newContentIfReplaced = matrixClient.room.getOutbox(roomId).flatten()
-        .map { it.reversed().firstNotNullOfOrNull(::getNewContentIfAvailable) }
-        .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+    private val newContentIfReplaced =
+        if (showOriginal) {
+            MutableStateFlow(null)
+        } else {
+            matrixClient.room.getOutbox(roomId).flatten()
+                .map { it.reversed().firstNotNullOfOrNull(::getNewContentIfAvailable) }
+                .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+        }
 
     override val isReplaced: StateFlow<Boolean> =
         combine(
@@ -279,7 +288,7 @@ class TimelineElementHolderViewModelImpl(
     private val elementCache = MutableStateFlow<TimelineElementViewModelWrapper?>(null)
     override val element =
         combine(
-            timelineEventFlow,
+            timelineEventFlow.distinctUntilChangedBy { it.content },
             newContentIfReplaced.distinctUntilChanged(),
         ) { timelineEvent, newContent ->
             val currentElement = elementCache.value
@@ -316,44 +325,55 @@ class TimelineElementHolderViewModelImpl(
         else emit(true)
     }.stateIn(coroutineScope, Lazily, null)
 
-    override val repliedElement: StateFlow<TimelineElementHolderViewModel?> =
-        flow {
-            // No need to subscribe for changes or manage the child lifecycle since a reply cannot be changed in Matrix.
-            val eventContent = timelineEventFlow.first().event.content
-            if (eventContent !is MessageEventContent) return@flow
+    private data class RepliedTimelineElementViewModelWrapper(
+        val viewModel: TimelineElementHolderViewModel,
+        val lifecycle: LifecycleRegistry,
+    )
+
+    private val repliedElementCache = MutableStateFlow<RepliedTimelineElementViewModelWrapper?>(null)
+    override val repliedElement =
+        timelineEventFlow.map { timelineEvent ->
+            val currentElement = repliedElementCache.value
+            currentElement?.lifecycle?.destroy()
+
+            val eventContent = timelineEvent.event.content
+            if (eventContent !is MessageEventContent) return@map null
             val repliedEventId = eventContent.relatesTo?.replyTo?.eventId
-                ?: return@flow // Emit nothing if replied element can't be resolved.
+                ?: return@map null // Emit nothing if replied element can't be resolved.
             val repliedTimelineEventFlow = matrixClient.room.getTimelineEvent(roomId, repliedEventId).filterNotNull()
             val repliedTimelineEvent = repliedTimelineEventFlow.first()
-            emit(
-                timelineElementHolderViewModelFactory.create(
-                    viewModelContext = childContext("element"),
-                    key = "element",
-                    timelineEventFlow = repliedTimelineEventFlow,
-                    roomId = roomId,
-                    eventId = eventId,
-                    sender = repliedTimelineEvent.sender,
-                    formattedDate = formatDate(
-                        Instant.fromEpochMilliseconds(repliedTimelineEvent.originTimestamp)
-                            .toLocalDateTime(timeZone)
-                    ),
-                    formattedTime = formatTime(
-                        Instant.fromEpochMilliseconds(repliedTimelineEvent.originTimestamp)
-                            .toLocalDateTime(timeZone)
-                    ),
-                    showLoadingIndicatorBefore = flowOf(false),
-                    showLoadingIndicatorAfter = flowOf(false),
-                    showUnreadMarker = flowOf(false),
-                    ignoreReplacedEvents = true,
-                    getReceipts = getReceipts,
-                    onMessageReplace = { _, _ -> },
-                    onMessageReply = { _, _ -> },
-                    onMessageReport = { _, _ -> },
-                    onOpenMention = { _, _ -> },
-                    onOpenMetadata = {},
-                )
-            )
-        }.stateIn(coroutineScope, Lazily, null) // only calculate once!
+
+            val lifecycle = LifecycleRegistry()
+            lifecycle.start()
+            timelineElementHolderViewModelFactory.create(
+                viewModelContext = childContext("replied-element"),
+                key = "replied-element",
+                timelineEventFlow = repliedTimelineEventFlow,
+                roomId = repliedTimelineEvent.roomId,
+                eventId = repliedTimelineEvent.eventId,
+                sender = repliedTimelineEvent.sender,
+                formattedDate = formatDate(
+                    Instant.fromEpochMilliseconds(repliedTimelineEvent.originTimestamp)
+                        .toLocalDateTime(timeZone)
+                ),
+                formattedTime = formatTime(
+                    Instant.fromEpochMilliseconds(repliedTimelineEvent.originTimestamp)
+                        .toLocalDateTime(timeZone)
+                ),
+                showLoadingIndicatorBefore = flowOf(false),
+                showLoadingIndicatorAfter = flowOf(false),
+                showUnreadMarker = flowOf(false),
+                ignoreReplacedEvents = true,
+                getReceipts = getReceipts,
+                onMessageReplace = { _, _ -> },
+                onMessageReply = { _, _ -> },
+                onMessageReport = { _, _ -> },
+                onOpenMention = { _, _ -> },
+                onOpenMetadata = {},
+            ).also {
+                repliedElementCache.value = RepliedTimelineElementViewModelWrapper(it, lifecycle)
+            }
+        }.stateIn(coroutineScope, Lazily, null)
 
     override val isFirstInUserSequence: StateFlow<Boolean?> =
         previousSupportedTimelineEvent.map { timelineEvent ->
@@ -394,26 +414,39 @@ class TimelineElementHolderViewModelImpl(
 
     override val isByMe: Boolean = senderUserId == userId
 
+    private val lastReplacement =
+        if (showOriginal) {
+            MutableStateFlow(null)
+        } else {
+            matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId)
+                .map { it.replacedBy }
+                .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+        }
+
     private val getEventReaders = get<GetEventReaders>()
     override val isRead =
-        getEventReaders.isRead(
-            matrixClient = matrixClient,
-            roomId = roomId,
-            eventId = eventId,
-            sender = senderUserId,
-            getReceipts = getReceipts,
-        ).stateIn(coroutineScope, Lazily, false) // Lazily to not unnecessary recompute
+        lastReplacement.flatMapLatest {
+            getEventReaders.isRead(
+                matrixClient = matrixClient,
+                roomId = roomId,
+                eventId = it ?: eventId,
+                sender = senderUserId,
+                getReceipts = getReceipts,
+            )
+        }.stateIn(coroutineScope, Lazily, false) // Lazily to not unnecessary recompute
 
     override val readers =
-        getEventReaders.isReadBy(
-            matrixClient = matrixClient,
-            roomId = roomId,
-            eventId = eventId,
-            sender = senderUserId,
-            getReceipts = getReceipts,
-            initials = initials,
-            avatarMaxSize = config.avatarMaxSize,
-        ).stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+        lastReplacement.flatMapLatest {
+            getEventReaders.isReadBy(
+                matrixClient = matrixClient,
+                roomId = roomId,
+                eventId = it ?: eventId,
+                sender = senderUserId,
+                getReceipts = getReceipts,
+                initials = initials,
+                avatarMaxSize = config.avatarMaxSize,
+            )
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     private val getEventReactions = get<GetEventReactions>()
     override val reactions =
@@ -583,8 +616,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val key: String = eventId.full
     override val element: MutableStateFlow<TimelineElementViewModel<*>?> =
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
-            override val body: String = "Hello too!"
-            override val formattedBody: String = "Hello <b/>too!"
+            override val body: String = "Hello!"
+            override val formattedBody: String = "Hello!"
             override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
             override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
             override fun openMention(mention: TimelineElementMention) {}

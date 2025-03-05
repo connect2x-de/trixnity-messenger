@@ -2437,6 +2437,36 @@ open class I18nView(
         DE - "Farben"
     }
 
+    open fun appearanceAccessibilityTitle() = translate {
+        EN - "Accessibility"
+        DE - "Barrierefreiheit"
+    }
+
+    open fun appearanceSizesApplySystemHeading() = translate {
+        EN - "use system settings"
+        DE - "Systemeinstellungen verwenden"
+    }
+
+    open fun appearanceSizesApplySystemExplanation() = translate {
+        EN - "Apply the system's size settings to the app"
+        DE - "Größeneinstellungen des Systems auf die App anwenden"
+    }
+
+    open fun appearanceFontSizeHeading() = translate {
+        EN - "Font size"
+        DE - "Schriftgröße"
+    }
+
+    open fun appearanceDisplaySizeHeading() = translate {
+        EN - "Display size"
+        DE - "Anzeigegröße"
+    }
+
+    open fun appearanceSizesApply() = translate {
+        EN - "Apply sizes"
+        DE - "Größen anwenden"
+    }
+
     open fun appearanceThemeHeading(name: String) = translate {
         EN - "Theme: $name"
         DE - "Thema: $name"

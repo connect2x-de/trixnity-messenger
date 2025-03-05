@@ -9,9 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Font and control size settings
+
 ### Changed
 
-- Debounce unread message counter in timeline to avoid flickering
+- Insert formula in padding of the timeline
+- Increase size of avatar and change order of settings in profile view
+- Make room notification settings collapsable and change setting design to the one used by other room settings
+- Disable notification setting sub-options when notifications are disabled
 
 ### Deprecated
 
@@ -19,10 +24,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix Database can't be read on start up
+- Align padding for sticky date header with dates in the timeline on mobile
 - Inserting Mentions fails for multiple ones
 
 ### Security
+
+## 3.4.1
+
+### Added
+
+- Allow to wait for `SettingsHolder` to be initialized
+- Introduce `MatrixMessengerWorker` and `MatrixMultiMessengerWorker`
+- Introduced `ConfigureMatrixClientConfiguration` to easily extend `MatrixClientConfiguration`
+- Autofill (password manager) support
+
+### Changed
+
+- Debounce unread message counter in timeline to avoid flickering
+- Focus message input text field when starting a reply
+- Use latest edit of an event for reader and isRead calculations
+- Moved verification step to the last position in the setup wizard
+- Don't show verification methods in self verification wizard while initial sync is running
+
+### Fixed
+
+- Fix Database can't be read on start up
+- Update Trixnity to 4.13.1
+- Delete reply on message delete
+- only create new viewModel for timeline elements when the event content changes
+- show correct error message colors on image details view
+- TextFields behave according to their role
 
 ## 3.4.0
 
@@ -38,10 +69,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed default parameter from `FileBasedRoomMessageTimelineElementView` to allow overriding it
 - Moved message metadata into a unified view with a new design
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Only show users with sync errors in the info banner
@@ -52,8 +79,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix possible crash when entering rooms with large messages
 - Remove broken collapsed message bubbles
 - Empty reactions or RedactedEventContent do not block reaction computation
-
-### Security
 
 ## 3.3.0
 

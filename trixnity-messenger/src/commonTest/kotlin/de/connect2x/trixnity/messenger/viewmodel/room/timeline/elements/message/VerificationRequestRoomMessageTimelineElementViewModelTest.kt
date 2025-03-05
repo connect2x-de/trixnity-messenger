@@ -43,6 +43,7 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.keys.Key
 import net.folivo.trixnity.core.model.keys.KeyAlgorithm
+import net.folivo.trixnity.core.model.keys.KeyValue
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
@@ -233,10 +234,7 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest : ShouldSpec() 
                                     event = ClientEvent.RoomEvent.MessageEvent(
                                         content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
                                             ciphertext = "",
-                                            senderKey = Key.Curve25519Key(
-                                                value = "",
-                                                algorithm = KeyAlgorithm.Curve25519
-                                            ),
+                                            senderKey = KeyValue.Curve25519KeyValue(""),
                                             deviceId = "",
                                             sessionId = "",
                                         ),
