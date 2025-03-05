@@ -245,7 +245,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
                     sender = us,
-                    sentAt = clock.now() - config.timelineGroupingTimeout - 1.seconds
+                    sentAt = clock.now() - config.showBigGapBeforeThreshold - 1.seconds
                 ) {
                     text("Hi!")
                 }
@@ -263,7 +263,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
                     sender = us,
-                    sentAt = clock.now() - config.timelineGroupingTimeout + 1.minutes // +1 Minute so that test isn't flaky
+                    sentAt = clock.now() - config.showBigGapBeforeThreshold + 1.minutes // +1 Minute so that test isn't flaky
                 ) {
                     text("Hi!")
                 }

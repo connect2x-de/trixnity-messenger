@@ -60,7 +60,7 @@ data class MatrixMessengerConfiguration(
     /**
      * The maximum amount of time until message are seperated by extra space
      */
-    var timelineGroupingTimeout: Duration = 1.hours,
+    var showBigGapBeforeThreshold: Duration = 1.hours,
 
     /**
      * The maximum size of image attachments that are processed to change their rotation before upload in *Bytes*.

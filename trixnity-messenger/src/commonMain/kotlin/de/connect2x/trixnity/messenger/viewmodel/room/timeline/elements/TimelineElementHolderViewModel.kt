@@ -406,7 +406,7 @@ class TimelineElementHolderViewModelImpl(
                     val previousTimestamp =
                         Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
                     val thisTimestamp = Instant.fromEpochMilliseconds(timelineEventFlow.first().originTimestamp)
-                    thisTimestamp - previousTimestamp > config.timelineGroupingTimeout
+                    thisTimestamp - previousTimestamp > config.showBigGapBeforeThreshold
                 }
             }
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)

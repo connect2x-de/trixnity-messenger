@@ -244,7 +244,7 @@ class OutboxElementHolderViewModelImpl(
                     val previousTimestamp =
                         Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
                     val thisTimestamp = clock.now()
-                    thisTimestamp - previousTimestamp > config.timelineGroupingTimeout
+                    thisTimestamp - previousTimestamp > config.showBigGapBeforeThreshold
                 }
             }
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)

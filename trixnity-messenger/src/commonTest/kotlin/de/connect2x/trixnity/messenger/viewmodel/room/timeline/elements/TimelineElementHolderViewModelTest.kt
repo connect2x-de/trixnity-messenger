@@ -333,7 +333,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
                     sender = alice,
-                    sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - config.timelineGroupingTimeout - 1.seconds
+                    sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - config.showBigGapBeforeThreshold - 1.seconds
                 ) {
                     text("Hi!")
                 }
@@ -351,7 +351,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
                     sender = alice,
-                    sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - config.timelineGroupingTimeout
+                    sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - config.showBigGapBeforeThreshold
                 ) {
                     text("Hi!")
                 }
