@@ -71,7 +71,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             createTestDefaultTrixnityMessengerModules()
         )
     }.koin
-    private val clock = di.get<Clock>()
+    private val clock = mock<Clock>()
     private val config = di.get<MatrixMessengerConfiguration>()
 
     init {
@@ -105,6 +105,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             }
             outbox.value = listOf(outboxMessage)
             every { roomServiceMock.getOutbox(roomId) } returns outbox.map { it.map { flowOf(it) } }
+            every { clock.now() } returns Instant.fromEpochMilliseconds(123456789L)
         }
 
         should("isFirstInUserSequence: be true when last timeline event is not by us") {
@@ -263,7 +264,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
                     sender = us,
-                    sentAt = clock.now() - config.showBigGapBeforeThreshold + 1.minutes // +1 Minute so that test isn't flaky
+                    sentAt = clock.now() - config.showBigGapBeforeThreshold
                 ) {
                     text("Hi!")
                 }
@@ -283,7 +284,10 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
     private fun TestScope.cut(eventId: EventId = this@OutboxElementHolderViewModelTest.eventId): OutboxElementHolderViewModel {
         val di = koinApplication {
             modules(
-                createTestDefaultTrixnityMessengerModules(mapOf(us to matrixClientMock))
+                createTestDefaultTrixnityMessengerModules(mapOf(us to matrixClientMock)) +
+                        module {
+                            single { clock }
+                        }
             )
         }.koin
         return OutboxElementHolderViewModelImpl(
