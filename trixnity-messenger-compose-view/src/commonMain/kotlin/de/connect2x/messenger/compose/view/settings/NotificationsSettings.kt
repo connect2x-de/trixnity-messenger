@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AlternateEmail
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -88,22 +89,22 @@ fun NotificationSettingsSingleAccount(
             toggle = { viewModel.toggleEnabledForThisDevice() }
         )
         Spacer(Modifier.size(16.dp))
-        PlatformNotificationSettings(viewModel)
+        PlatformNotificationSettings(viewModel, enabledForThisDevice)
         Spacer(Modifier.size(16.dp))
-        PlatformNotificationAccountSettings(viewModel)
+        PlatformNotificationAccountSettings(viewModel, enabledForThisDevice)
     }
 }
 
 @Composable
 internal expect fun ColumnScope.PlatformNotificationSettings(
     viewModel: NotificationSettingsSingleAccountViewModel,
-    enabled : Boolean = true
+    enabled: Boolean = true
 )
 
 @Composable
 fun ColumnScope.PlatformNotificationAccountSettings(
     viewModel: NotificationSettingsSingleAccountViewModel,
-    enabled : Boolean = true
+    enabled: Boolean = true
 ) {
     val i18n = DI.get<I18nView>()
     val settings by viewModel.accountSettings.collectAsState()
@@ -123,19 +124,23 @@ fun ColumnScope.PlatformNotificationAccountSettings(
         options = mapOf(
             NotificationSettings.DefaultLevel.ROOM to RadioSettingOption(
                 text = i18n.notificationsSettingsAccountDefaultLevelRoom(),
-                enabled = canChangeSettings
+                enabled = canChangeSettings,
+                style = MaterialTheme.typography.labelLarge
             ),
             NotificationSettings.DefaultLevel.DM to RadioSettingOption(
                 text = i18n.notificationsSettingsAccountDefaultLevelDM(),
-                enabled = canChangeSettings
+                enabled = canChangeSettings,
+                style = MaterialTheme.typography.labelLarge
             ),
             NotificationSettings.DefaultLevel.MENTION to RadioSettingOption(
                 text = i18n.notificationsSettingsAccountDefaultLevelMention(),
-                enabled = canChangeSettings
+                enabled = canChangeSettings,
+                style = MaterialTheme.typography.labelLarge
             ),
             NotificationSettings.DefaultLevel.NONE to RadioSettingOption(
                 text = i18n.notificationsSettingsAccountDefaultLevelNone(),
-                enabled = canChangeSettings
+                enabled = canChangeSettings,
+                style = MaterialTheme.typography.labelLarge
             ),
         ),
         value = settings.defaultLevel,
