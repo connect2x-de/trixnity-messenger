@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.trixnity.messenger.MatrixClients.InitFromStoreResult
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -258,7 +259,16 @@ class MatrixClientsImpl(
                 // result.
                 matrixClient.logout().fold(
                     onSuccess = { remove(userId) },
-                    onFailure = { Result.failure(it) }
+                    onFailure = {
+                        // If the logout fails, we send an HTTP request to the Well-Known Endpoint of the Matrix
+                        // Server If a response is received, the logout process itself has failed. Otherwise, the
+                        // server is currently unavailable.
+                        if (matrixClient.api.discovery.getWellKnown().isSuccess) {
+                            return@fold Result.failure(it)
+                        }
+
+                        remove(userId)
+                    }
                 )
             }
         } ?: Result.success(Unit)
