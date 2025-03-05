@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Insert formula in padding of the timeline
 - Increase size of avatar and change order of settings in profile view
+- Check for server reachability when logout fails
 
 ### Deprecated
 
