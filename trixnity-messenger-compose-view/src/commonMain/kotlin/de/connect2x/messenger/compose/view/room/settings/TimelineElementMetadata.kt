@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -81,6 +83,8 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
         val sender = element?.sender?.collectAsState()?.value
         val reactions = element?.reactions?.collectAsState()?.value
         val readers = element?.readers?.collectAsState()?.value
+        val scroll = rememberScrollState()
+
         if (element == null || reactions == null || readers == null || sender == null) {
             LoadingSpinner(Modifier.fillMaxSize())
         } else {
@@ -96,6 +100,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                     Column(
                         Modifier
                             .padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp))
+                            .verticalScroll(scroll)
                     ) {
                         SubHeading(i18n.timelineElementMetadataSender())
                         UserInfo(
@@ -138,7 +143,7 @@ fun ColumnScope.ReadersAndReactions(
         val allReadersAndReactions = remember(readers, reactions) {
             (readers.associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, false) } +
                     reactions.byUser).values.toList()
-        }
+        }.sortedByDescending { it.reactions.size }
         val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
 
         if (hasReadersOrReactions) {
@@ -147,14 +152,12 @@ fun ColumnScope.ReadersAndReactions(
                 style = MaterialTheme.typography.titleMedium,
             )
             SmallSpacer()
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(allReadersAndReactions, { it.sender.userId.full }) { eventReaction ->
-                    UserInfo(
-                        eventReaction.sender,
-                        eventReaction.reactions.keys,
-                        onOpenUserProfile = viewModel::openUserProfile,
-                    )
-                }
+            for (eventReaction in allReadersAndReactions) {
+                UserInfo(
+                    eventReaction.sender,
+                    eventReaction.reactions.keys,
+                    onOpenUserProfile = viewModel::openUserProfile,
+                )
             }
         } else {
             Text(
