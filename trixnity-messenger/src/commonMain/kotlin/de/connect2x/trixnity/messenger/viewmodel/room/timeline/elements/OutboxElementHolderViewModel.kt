@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -48,6 +49,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
+import kotlin.time.Duration.Companion.hours
 
 private val log = KotlinLogging.logger { }
 
@@ -136,8 +138,7 @@ class OutboxElementHolderViewModelImpl(
         outboxMessageFlow.map { outboxMessage ->
             if (outboxMessage == null) return@map false
             val repliedEventId = outboxMessage.content.relatesTo?.replyTo?.eventId
-            if (repliedEventId == null) return@map false
-            else return@map true
+            return@map repliedEventId != null
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     private val getReceiptsByEventCache = concurrentMutableMap<RoomId, Flow<Map<EventId, Set<UserId>>>>()
@@ -215,12 +216,14 @@ class OutboxElementHolderViewModelImpl(
     override val isByMe: Boolean = true
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    private val previousSupportedTimelineEvent = matrixClient.room.getLastTimelineEvents(roomId).filterNotNull()
+        .flatMapLatest { lastTimelineEvents ->
+            timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(lastTimelineEvents)
+        }
+
     override val isFirstInUserSequence: StateFlow<Boolean?> =
         combine(
-            matrixClient.room.getLastTimelineEvents(roomId).filterNotNull()
-                .flatMapLatest { lastTimelineEvents ->
-                    timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(lastTimelineEvents)
-                },
+            previousSupportedTimelineEvent,
             matrixClient.room.getOutbox(roomId).flatten(),
         ) { lastTimelineEvent, outbox ->
             val lastTimelineEventTransactionId = lastTimelineEvent?.event?.unsigned?.transactionId
@@ -232,7 +235,18 @@ class OutboxElementHolderViewModelImpl(
 
     override val showSender: StateFlow<Boolean?> = MutableStateFlow(false).asStateFlow()
 
-    override val showBigGapBefore: StateFlow<Boolean?> = MutableStateFlow(false).asStateFlow()
+    override val showBigGapBefore: StateFlow<Boolean?> =
+        previousSupportedTimelineEvent.map { timelineEvent ->
+            when {
+                timelineEvent?.sender != matrixClient.userId -> true
+                else -> {
+                    val previousTimestamp =
+                        Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
+                    val thisTimestamp = Clock.System.now()
+                    thisTimestamp - previousTimestamp > 1.hours
+                }
+            }
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val uploadProgress: StateFlow<FileTransferProgressElement?> =

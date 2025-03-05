@@ -10,15 +10,16 @@ import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -38,7 +39,10 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 
 class OutboxElementHolderViewModelTest : ShouldSpec() {
@@ -63,8 +67,6 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
     private val outbox = MutableStateFlow<List<RoomOutboxMessage<*>>>(listOf(outboxMessage))
 
     init {
-        coroutineTestScope = true
-
         beforeTest {
             resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
             every { matrixClientMock.di } returns koinApplication {
@@ -110,9 +112,11 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                 )
             }
             val cut = cut()
-            async { cut.isFirstInUserSequence.collect() }
-            delay(500.milliseconds)
-            cut.isFirstInUserSequence.value shouldBe true
+            launch { cut.isFirstInUserSequence.collect() }
+
+            eventually(300.milliseconds) {
+                cut.isFirstInUserSequence.value shouldBe true
+            }
 
             cancelNeverEndingCoroutines()
         }
@@ -131,9 +135,11 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                 ), outboxMessage
             )
             val cut = cut()
-            async { cut.isFirstInUserSequence.collect() }
-            delay(500.milliseconds)
-            cut.isFirstInUserSequence.value shouldBe true
+            launch { cut.isFirstInUserSequence.collect() }
+
+            eventually(300.milliseconds) {
+                cut.isFirstInUserSequence.value shouldBe true
+            }
 
             cancelNeverEndingCoroutines()
         }
@@ -144,9 +150,11 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                 }
             }
             val cut = cut()
-            async { cut.isFirstInUserSequence.collect() }
-            delay(500.milliseconds)
-            cut.isFirstInUserSequence.value shouldBe false
+            launch { cut.isFirstInUserSequence.collect() }
+
+            eventually(300.milliseconds) {
+                cut.isFirstInUserSequence.value shouldBe false
+            }
 
             cancelNeverEndingCoroutines()
         }
@@ -165,9 +173,11 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                 ), outboxMessage
             )
             val cut = cut()
-            async { cut.isFirstInUserSequence.collect() }
-            delay(500.milliseconds)
-            cut.isFirstInUserSequence.value shouldBe false
+            launch { cut.isFirstInUserSequence.collect() }
+
+            eventually(300.milliseconds) {
+                cut.isFirstInUserSequence.value shouldBe false
+            }
 
             cancelNeverEndingCoroutines()
         }
@@ -179,9 +189,89 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.showSender.collect() }
-            delay(500.milliseconds)
-            cut.showSender.value shouldBe false
+            launch { cut.showSender.collect() }
+
+            eventually(300.milliseconds) {
+                cut.showSender.value shouldBe false
+            }
+
+            cancelNeverEndingCoroutines()
+        }
+
+
+        should("showBigGapBefore: be true when first in a user sequence") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(
+                    sender = bob,
+                    sentAt = Clock.System.now()
+                ) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            launch { cut.showBigGapBefore.collect() }
+
+            eventually(300.milliseconds) {
+                cut.showBigGapBefore.value shouldBe true
+            }
+
+            cancelNeverEndingCoroutines()
+        }
+        should("showBigGapBefore: false when not first in a user sequence") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(
+                    sender = us,
+                    sentAt = Clock.System.now()
+                ) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            launch { cut.showBigGapBefore.collect() }
+
+            eventually(300.milliseconds) {
+                cut.showBigGapBefore.value shouldBe false
+            }
+
+            cancelNeverEndingCoroutines()
+        }
+        should("showBigGapBefore: be true when time gap is large enough") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(
+                    sender = us,
+                    sentAt = Clock.System.now() - 1.hours - 1.seconds
+                ) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            launch { cut.showBigGapBefore.collect() }
+
+            eventually(300.milliseconds) {
+                cut.showBigGapBefore.value shouldBe true
+            }
+
+            cancelNeverEndingCoroutines()
+        }
+        should("showBigGapBefore: be false when time gap is not large enough") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(
+                    sender = us,
+                    sentAt = Clock.System.now() - 59.minutes // 59 Minutes instead of one hour so that test isn't flaky
+                ) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            launch { cut.showBigGapBefore.collect() }
+
+            eventually(300.milliseconds) {
+                cut.showBigGapBefore.value shouldBe false
+            }
 
             cancelNeverEndingCoroutines()
         }
