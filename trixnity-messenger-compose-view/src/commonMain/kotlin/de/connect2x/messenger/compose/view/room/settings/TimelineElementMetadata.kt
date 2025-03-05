@@ -262,26 +262,30 @@ private fun ColumnScope.MessageContentHistorySwitch(
 
 @Composable
 private fun ColumnScope.MessageContent(
-    messageHolder: TimelineElementHolderViewModel?,
+    messageHolder: TimelineElementHolderViewModel,
+    lastMessageHolder: TimelineElementHolderViewModel? = null,
 ) {
-    messageHolder?.let { holder ->
+    if (lastMessageHolder == null || messageHolder.formattedDate != lastMessageHolder.formattedDate) {
         DateStickyHeader(messageHolder.formattedDate)
-        holder.element.collectAsState().value?.let { element ->
-            Column(
-                Modifier.padding(end = 8.dp),
-            ) {
-                DI.get<TimelineElementViewSelector>().createAsPreview(holder, element)
-            }
-            SmallSpacer()
+    }
+    
+    messageHolder.element.collectAsState().value?.let { element ->
+        Column(
+            Modifier.padding(end = 8.dp),
+        ) {
+            DI.get<TimelineElementViewSelector>().createAsPreview(messageHolder, element)
         }
+        SmallSpacer()
     }
 }
 
 @Composable
 private fun ColumnScope.MessageHistory(elementHistory: List<TimelineElementHolderViewModel>?) {
     if (elementHistory?.isNotEmpty() == true) {
+        var lastMessageHolder: TimelineElementHolderViewModel? = null
         elementHistory.forEach { elementHolder ->
-            MessageContent(elementHolder)
+            MessageContent(elementHolder, lastMessageHolder)
+            lastMessageHolder = elementHolder
         }
     }
 }
