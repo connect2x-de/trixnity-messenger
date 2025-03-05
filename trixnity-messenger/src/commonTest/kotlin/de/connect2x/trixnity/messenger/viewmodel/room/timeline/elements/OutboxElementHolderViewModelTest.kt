@@ -10,10 +10,11 @@ import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
-import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
+import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
@@ -65,8 +66,16 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
     )
 
     private val outbox = MutableStateFlow<List<RoomOutboxMessage<*>>>(listOf(outboxMessage))
+    private val di = koinApplication {
+        modules(
+            createTestDefaultTrixnityMessengerModules()
+        )
+    }.koin
+    private val clock = di.get<Clock>()
 
     init {
+        coroutineTestScope = true
+
         beforeTest {
             resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
             every { matrixClientMock.di } returns koinApplication {
@@ -114,9 +123,8 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             val cut = cut()
             launch { cut.isFirstInUserSequence.collect() }
 
-            eventually(300.milliseconds) {
-                cut.isFirstInUserSequence.value shouldBe true
-            }
+            delay(500.milliseconds)
+            cut.isFirstInUserSequence.value shouldBe true
 
             cancelNeverEndingCoroutines()
         }
@@ -137,9 +145,8 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             val cut = cut()
             launch { cut.isFirstInUserSequence.collect() }
 
-            eventually(300.milliseconds) {
-                cut.isFirstInUserSequence.value shouldBe true
-            }
+            delay(500.milliseconds)
+            cut.isFirstInUserSequence.value shouldBe true
 
             cancelNeverEndingCoroutines()
         }
@@ -152,9 +159,8 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             val cut = cut()
             launch { cut.isFirstInUserSequence.collect() }
 
-            eventually(300.milliseconds) {
-                cut.isFirstInUserSequence.value shouldBe false
-            }
+            delay(500.milliseconds)
+            cut.isFirstInUserSequence.value shouldBe false
 
             cancelNeverEndingCoroutines()
         }
@@ -175,9 +181,8 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             val cut = cut()
             launch { cut.isFirstInUserSequence.collect() }
 
-            eventually(300.milliseconds) {
-                cut.isFirstInUserSequence.value shouldBe false
-            }
+            delay(500.milliseconds)
+            cut.isFirstInUserSequence.value shouldBe false
 
             cancelNeverEndingCoroutines()
         }
@@ -191,9 +196,8 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
 
             launch { cut.showSender.collect() }
 
-            eventually(300.milliseconds) {
-                cut.showSender.value shouldBe false
-            }
+            delay(500.milliseconds)
+            cut.showSender.value shouldBe false
 
             cancelNeverEndingCoroutines()
         }
@@ -203,7 +207,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
                     sender = bob,
-                    sentAt = Clock.System.now()
+                    sentAt = clock.now()
                 ) {
                     text("Hi!")
                 }
@@ -212,9 +216,8 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
 
             launch { cut.showBigGapBefore.collect() }
 
-            eventually(300.milliseconds) {
-                cut.showBigGapBefore.value shouldBe true
-            }
+            advanceUntilIdle()
+            cut.showBigGapBefore.value shouldBe true
 
             cancelNeverEndingCoroutines()
         }
@@ -222,7 +225,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
                     sender = us,
-                    sentAt = Clock.System.now()
+                    sentAt = clock.now()
                 ) {
                     text("Hi!")
                 }
@@ -231,9 +234,9 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
 
             launch { cut.showBigGapBefore.collect() }
 
-            eventually(300.milliseconds) {
-                cut.showBigGapBefore.value shouldBe false
-            }
+            advanceUntilIdle()
+            cut.showBigGapBefore.value shouldBe false
+
 
             cancelNeverEndingCoroutines()
         }
@@ -241,7 +244,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
                     sender = us,
-                    sentAt = Clock.System.now() - 1.hours - 1.seconds
+                    sentAt = clock.now() - 1.hours - 1.seconds
                 ) {
                     text("Hi!")
                 }
@@ -250,9 +253,8 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
 
             launch { cut.showBigGapBefore.collect() }
 
-            eventually(300.milliseconds) {
-                cut.showBigGapBefore.value shouldBe true
-            }
+            advanceUntilIdle()
+            cut.showBigGapBefore.value shouldBe true
 
             cancelNeverEndingCoroutines()
         }
@@ -260,7 +262,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
                     sender = us,
-                    sentAt = Clock.System.now() - 59.minutes // 59 Minutes instead of one hour so that test isn't flaky
+                    sentAt = clock.now() - 59.minutes // 59 Minutes instead of one hour so that test isn't flaky
                 ) {
                     text("Hi!")
                 }
@@ -269,9 +271,9 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
 
             launch { cut.showBigGapBefore.collect() }
 
-            eventually(300.milliseconds) {
-                cut.showBigGapBefore.value shouldBe false
-            }
+            advanceUntilIdle()
+            cut.showBigGapBefore.value shouldBe false
+
 
             cancelNeverEndingCoroutines()
         }
