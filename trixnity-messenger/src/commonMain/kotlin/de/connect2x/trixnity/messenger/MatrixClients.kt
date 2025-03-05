@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.trixnity.messenger.MatrixClients.InitFromStoreResult
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -258,7 +259,7 @@ class MatrixClientsImpl(
                 // result.
                 matrixClient.logout().fold(
                     onSuccess = { remove(userId) },
-                    onFailure = { Result.failure(it) }
+                    onFailure = { remove(userId) }
                 )
             }
         } ?: Result.success(Unit)
