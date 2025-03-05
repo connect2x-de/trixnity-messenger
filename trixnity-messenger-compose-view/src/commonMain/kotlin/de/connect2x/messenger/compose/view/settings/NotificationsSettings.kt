@@ -89,9 +89,9 @@ fun NotificationSettingsSingleAccount(
             toggle = { viewModel.toggleEnabledForThisDevice() }
         )
         Spacer(Modifier.size(16.dp))
-        PlatformNotificationSettings(viewModel)
+        PlatformNotificationSettings(viewModel, enabledForThisDevice)
         Spacer(Modifier.size(16.dp))
-        PlatformNotificationAccountSettings(viewModel)
+        PlatformNotificationAccountSettings(viewModel, enabledForThisDevice)
     }
 }
 
