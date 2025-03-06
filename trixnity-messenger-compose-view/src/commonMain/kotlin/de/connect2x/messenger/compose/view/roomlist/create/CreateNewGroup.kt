@@ -12,15 +12,19 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Dangerous
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +43,8 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 interface CreateNewGroupView {
     @Composable
@@ -58,9 +64,16 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
         val error = createNewGroupViewModel.error.collectAsState()
         val isPrivate by createNewGroupViewModel.isPrivate.collectAsState()
         val isEncrypted by createNewGroupViewModel.isEncrypted.collectAsState()
-        val isCreating = createNewGroupViewModel.isCreating.collectAsState()
+        val isCreating by createNewGroupViewModel.isCreating.collectAsState()
         val optionalRoomName = createNewGroupViewModel.optionalRoomName.collectAsTextFieldValueState()
         val optionalRoomTopic = createNewGroupViewModel.optionalGroupTopic.collectAsTextFieldValueState()
+
+        var showProgressBar by remember { mutableStateOf(false) }
+
+        LaunchedEffect(isCreating) {
+            delay(120.milliseconds)
+            showProgressBar = isCreating
+        }
 
         val roomOptionsString = buildString {
             append(i18n.roomType())
@@ -74,78 +87,77 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
             append(roomType)
         }
 
-        if (isCreating.value) {
-            Box(Modifier.fillMaxSize()) {
-                CircularProgressIndicator(Modifier.align(Alignment.Center))
-            }
-        } else {
-            Box(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize()) {
 
-                if (error.value != null) {
-                    ErrorDialog(error.value.orEmpty(), { createNewGroupViewModel.errorDismiss() })
-                }
-                Column(
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Column {
-                        Header(createNewGroupViewModel::back, {
-                            Text(
-                                i18n.createNewGroupNewGroup(),
-                                fontWeight = Bold,
-                                fontSize = 16.sp,
-                            )
-                        })
-                        Spacer(Modifier.height(15.dp))
-                        LimitedSizeStickyHeaderColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            header = {
-                                MoreOptions(roomOptionsString) {
-                                    CreateGroupOptions(createNewGroupViewModel)
-                                }
-                                Spacer(Modifier.height(15.dp))
-                                OptionalRoomNameInput(optionalRoomName)
-                                Spacer(Modifier.height(15.dp))
-                                OptionalRoomTopicInput(optionalRoomTopic)
-                                UsersInGroup(createNewGroupViewModel)
-                            },
-                            body = { shouldScroll ->
-                                SearchUsers(
-                                    createNewGroupViewModel.createNewRoomViewModel,
-                                    shouldScroll = shouldScroll,
-                                    createNewGroupViewModel::onUserClick,
-                                )
+            if (error.value != null) {
+                ErrorDialog(error.value.orEmpty(), { createNewGroupViewModel.errorDismiss() })
+            }
+            Column(
+                verticalArrangement = Arrangement.SpaceBetween,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Column {
+                    Header(createNewGroupViewModel::back, {
+                        Text(
+                            i18n.createNewGroupNewGroup(),
+                            fontWeight = Bold,
+                            fontSize = 16.sp,
+                        )
+                    })
+
+                    if (showProgressBar) {
+                        LinearProgressIndicator(Modifier.fillMaxWidth())
+                    }
+
+                    Spacer(Modifier.height(15.dp))
+                    LimitedSizeStickyHeaderColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        header = {
+                            MoreOptions(roomOptionsString, modifier = Modifier.padding(horizontal=10.dp)) {
+                                CreateGroupOptions(createNewGroupViewModel)
                             }
-                        )
-                    }
+                            Spacer(Modifier.height(15.dp))
+                            OptionalRoomNameInput(optionalRoomName)
+                            Spacer(Modifier.height(15.dp))
+                            OptionalRoomTopicInput(optionalRoomTopic)
+                            UsersInGroup(createNewGroupViewModel)
+                        },
+                        body = { shouldScroll ->
+                            SearchUsers(
+                                createNewGroupViewModel.createNewRoomViewModel,
+                                shouldScroll = shouldScroll,
+                                createNewGroupViewModel::onUserClick,
+                            )
+                        }
+                    )
                 }
-                if (canCreateNewGroup.value) {
-                    Box(
-                        Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(bottom = 20.dp, end = 20.dp)
-                    ) {
-                        ExtendedFloatingActionButton(
-                            text = { Text(i18n.createNewGroupCreate()) },
-                            icon = { Icon(Icons.Default.Check, i18n.createNewGroupCreate()) },
-                            onClick = { createNewGroupViewModel.createNewGroup() },
-                            modifier = Modifier.buttonPointerModifier(),
-                        )
-                    }
-                } else {
-                    Box(
-                        Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(bottom = 20.dp, end = 20.dp)
-                    ) {
-                        ExtendedFloatingActionButton(
-                            text = { Text(i18n.createNewGroupCreate()) },
-                            icon = { Icon(Icons.Default.Dangerous, i18n.createNewGroupCreate()) },
-                            onClick = { },
-                            containerColor = Color.LightGray,
-                            modifier = Modifier.buttonPointerModifier(),
-                        )
-                    }
+            }
+            if (canCreateNewGroup.value) {
+                Box(
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 20.dp, end = 20.dp)
+                ) {
+                    ExtendedFloatingActionButton(
+                        text = { Text(i18n.createNewGroupCreate()) },
+                        icon = { Icon(Icons.Default.Check, i18n.createNewGroupCreate()) },
+                        onClick = { createNewGroupViewModel.createNewGroup() },
+                        modifier = Modifier.buttonPointerModifier(),
+                    )
+                }
+            } else {
+                Box(
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 20.dp, end = 20.dp)
+                ) {
+                    ExtendedFloatingActionButton(
+                        text = { Text(i18n.createNewGroupCreate()) },
+                        icon = { Icon(Icons.Default.Dangerous, i18n.createNewGroupCreate()) },
+                        onClick = { },
+                        containerColor = Color.LightGray,
+                        modifier = Modifier.buttonPointerModifier(),
+                    )
                 }
             }
         }
