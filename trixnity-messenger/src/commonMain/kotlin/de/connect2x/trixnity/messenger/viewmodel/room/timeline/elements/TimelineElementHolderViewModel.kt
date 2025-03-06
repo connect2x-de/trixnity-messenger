@@ -295,9 +295,20 @@ class TimelineElementHolderViewModelImpl(
             currentElement?.lifecycle?.destroy()
 
             log.trace { "compute element (timelineEvent=$timelineEvent, newContent=$newContent)" }
-            val content =
-                if (timelineEvent.event.content is RedactedEventContent) timelineEvent.content
-                else newContent?.let { Result.success(it) } ?: timelineEvent.content
+            val content = when {
+                timelineEvent.event.content is RedactedEventContent -> timelineEvent.content
+                newContent != null -> Result.success(newContent)
+                else -> timelineEvent.content?.map { eventContent ->
+                    if (showOriginal && eventContent is TextBased.Text && eventContent.relatesTo is RelatesTo.Replace) {
+                        val replacement = (requireNotNull(eventContent.relatesTo) as RelatesTo.Replace).newContent
+                        if (replacement != null)
+                            return@map replacement
+                    }
+                    eventContent
+                }
+            }
+
+            println(content)
 
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
