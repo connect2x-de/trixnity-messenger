@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -84,7 +85,6 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
         val sender = element?.sender?.collectAsState()?.value
         val reactions = element?.reactions?.collectAsState()?.value
         val readers = element?.readers?.collectAsState()?.value
-        val scroll = rememberScrollState()
 
         if (element == null || reactions == null || readers == null || sender == null) {
             LoadingSpinner(Modifier.fillMaxSize())
@@ -101,7 +101,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                     Column(
                         Modifier
                             .padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp))
-                            .verticalScroll(scroll)
+                            .fillMaxSize()
                     ) {
                         SubHeading(i18n.timelineElementMetadataSender())
                         UserInfo(
@@ -109,7 +109,9 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                             onOpenUserProfile = viewModel::openUserProfile,
                         )
                         SubHeading(i18n.timelineElementMetadataMessage())
-                        MessageContentHistorySwitch(element, elementHistory)
+                        Column(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.75f)) {
+                            MessageContentHistorySwitch(element, elementHistory)
+                        }
                         SmallSpacer()
                         HorizontalDivider()
                         MiddleSpacer()
@@ -153,12 +155,15 @@ fun ColumnScope.ReadersAndReactions(
                 style = MaterialTheme.typography.titleMedium,
             )
             SmallSpacer()
-            for (eventReaction in allReadersAndReactions) {
-                UserInfo(
-                    eventReaction.sender,
-                    eventReaction.reactions.keys,
-                    onOpenUserProfile = viewModel::openUserProfile,
-                )
+            LazyColumn {
+                items(allReadersAndReactions) { eventReaction ->
+                    UserInfo(
+                        eventReaction.sender,
+                        eventReaction.reactions.keys,
+                        onOpenUserProfile = viewModel::openUserProfile,
+                    )
+                    Spacer(Modifier.height(5.dp))
+                }
             }
         } else {
             Text(
@@ -284,10 +289,12 @@ private fun ColumnScope.MessageContent(
 @Composable
 private fun ColumnScope.MessageHistory(elementHistory: List<TimelineElementHolderViewModel>?) {
     if (elementHistory?.isNotEmpty() == true) {
-        var lastMessageHolder: TimelineElementHolderViewModel? = null
-        elementHistory.forEach { elementHolder ->
-            MessageContent(elementHolder, lastMessageHolder)
-            lastMessageHolder = elementHolder
+        LazyColumn {
+            var lastMessageHolder: TimelineElementHolderViewModel? = null
+            items(elementHistory) { elementHolder ->
+                MessageContent(elementHolder, lastMessageHolder)
+                lastMessageHolder = elementHolder
+            }
         }
     }
 }
