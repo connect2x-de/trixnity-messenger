@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Dangerous
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -57,6 +58,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
         val error = createNewGroupViewModel.error.collectAsState()
         val isPrivate by createNewGroupViewModel.isPrivate.collectAsState()
         val isEncrypted by createNewGroupViewModel.isEncrypted.collectAsState()
+        val isCreating = createNewGroupViewModel.isCreating.collectAsState()
         val optionalRoomName = createNewGroupViewModel.optionalRoomName.collectAsTextFieldValueState()
         val optionalRoomTopic = createNewGroupViewModel.optionalGroupTopic.collectAsTextFieldValueState()
 
@@ -72,7 +74,11 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
             append(roomType)
         }
 
-        Box(Modifier.fillMaxSize()) {
+        if (isCreating.value) {
+            Box(Modifier.fillMaxSize()) {
+                CircularProgressIndicator(Modifier.align(Alignment.Center))
+            }
+        } else {
             Box(Modifier.fillMaxSize()) {
 
                 if (error.value != null) {
