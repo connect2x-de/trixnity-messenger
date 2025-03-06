@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Align padding for sticky date header with dates in the timeline on mobile
+- `isReplaced` should be initially false
 
 ### Security
 
