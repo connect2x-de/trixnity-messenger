@@ -54,7 +54,7 @@ class UsersInGroupViewImpl : UsersInGroupView {
         val groupUsers = createNewGroupViewModel.groupUsers.collectAsState()
         val removedUser = remember { mutableStateOf<SearchUserElement?>(null) }
         if (groupUsers.value.isNotEmpty()) {
-            Box(Modifier.padding(vertical = 15.dp)) {
+            Box(Modifier.padding(horizontal = 10.dp, vertical = 15.dp)) {
                 VerticalGrid(spacing = 10.dp) {
                     groupUsers.value.map { groupUser ->
                         Column(
