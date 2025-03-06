@@ -354,7 +354,7 @@ fun ReportMessageSwitch(timelineViewModel: TimelineViewModel) {
     }
 }
 
-private fun CoroutineScope.launchWithTimeoutHint(message: () -> String, hint: () -> String, block: suspend () -> Unit) =
+internal fun CoroutineScope.launchWithTimeoutHint(message: () -> String, hint: () -> String, block: suspend () -> Unit) =
     launch {
         try {
             block()

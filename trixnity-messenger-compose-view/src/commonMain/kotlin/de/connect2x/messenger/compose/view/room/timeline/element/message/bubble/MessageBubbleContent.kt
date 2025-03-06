@@ -208,7 +208,7 @@ private fun MessageBubbleContentInfo(isReplaced: Boolean, holder: BaseTimelineEl
     val i18n = DI.get<I18nView>()
 
     Row {
-        if (isReplaced) {
+        /*if (isReplaced) {
             Text(
                 i18n.messageBubbleEdited(),
                 style = MaterialTheme.typography.labelSmall,
@@ -216,7 +216,7 @@ private fun MessageBubbleContentInfo(isReplaced: Boolean, holder: BaseTimelineEl
                     .padding(end = 2.dp),
                 maxLines = 1,
             )
-        }
+        }*/
         Box(
             contentAlignment = Alignment.BottomEnd
         ) {
