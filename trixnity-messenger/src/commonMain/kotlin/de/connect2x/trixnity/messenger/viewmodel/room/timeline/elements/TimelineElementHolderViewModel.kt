@@ -308,8 +308,6 @@ class TimelineElementHolderViewModelImpl(
                 }
             }
 
-            println(content)
-
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
             timelineElementViewModelFactorySelector.create(
