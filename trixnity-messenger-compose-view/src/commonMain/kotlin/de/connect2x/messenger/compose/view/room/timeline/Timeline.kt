@@ -48,25 +48,21 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.theme.messengerIcons
+import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Duration.Companion.seconds
-
 
 private val log = KotlinLogging.logger {}
 
@@ -113,57 +109,8 @@ class TimelineViewImpl : TimelineView {
                 log.trace { "wait for elements to be ready" }
                 withContext(Dispatchers.Default) {
                     (elements - elementsFromLastCollect).forEach { element ->
-                        val message = { "waited for element ${element.key}, but timed out: " }
                         launch {
-                            withTimeoutOrNull(3.seconds) {
-                                val elementElement = element.element.filterNotNull().first()
-                                if (elementElement is TimelineElementViewModel.Empty) return@withTimeoutOrNull
-                                launchWithTimeoutHint(message, { "element ${elementElement::class.simpleName}" }) {
-                                    timelineElementViewSelector.waitFor(elementElement)
-                                }
-                                launchWithTimeoutHint(message, { "isFirstInUserSequence" }) {
-                                    element.isFirstInUserSequence.filterNotNull().first()
-                                }
-                                launchWithTimeoutHint(message, { "sender" }) {
-                                    val showSender = element.showSender.filterNotNull().first()
-                                    if (showSender) element.sender.filterNotNull().first()
-                                }
-                                launchWithTimeoutHint(message, { "showBigGapBefore" }) {
-                                    element.showBigGapBefore.filterNotNull().first()
-                                }
-                                launchWithTimeoutHint(message, { "repliedElement" }) {
-                                    val isReply = element.isReply.filterNotNull().first()
-                                    if (isReply)
-                                        timelineElementViewSelector.waitFor(
-                                            element.repliedElement.filterNotNull().first()
-                                                .element.filterNotNull().first()
-                                        )
-                                }
-                                when (element) {
-                                    is TimelineElementHolderViewModel -> {
-                                        launchWithTimeoutHint(message, { "showUnreadMarker" }) {
-                                            element.showUnreadMarker.filterNotNull().first()
-                                        }
-                                        launchWithTimeoutHint(message, { "showLoadingIndicatorBefore" }) {
-                                            element.showLoadingIndicatorBefore.filterNotNull().first()
-                                        }
-                                        launchWithTimeoutHint(message, { "showLoadingIndicatorAfter" }) {
-                                            element.showLoadingIndicatorAfter.filterNotNull().first()
-                                        }
-                                        if (element.isByMe) launchWithTimeoutHint(
-                                            message,
-                                            { "isRead" }) { element.isRead.filterNotNull().first() }
-                                        launchWithTimeoutHint(message, { "reactions" }) {
-                                            element.reactions.filterNotNull().first()
-                                        }
-                                        launchWithTimeoutHint(message, { "isReplaced" }) {
-                                            element.isReplaced.filterNotNull().first()
-                                        }
-                                    }
-
-                                    is OutboxElementHolderViewModel -> {}
-                                }
-                            }
+                            waitForElementWithTimeout(timelineElementViewSelector, element)
                         }
                     }
                 }
@@ -187,14 +134,23 @@ class TimelineViewImpl : TimelineView {
                         it is TimelineElementHolderViewModel && it.showUnreadMarker.value
                     })
                 }
+
+                val currentIndex = timelineViewModel.viewState.value?.lastVisibleElement
+                    ?.let { key ->
+                        var dateCount = 0
+                        timelineElementViewModelGrouped.mapIndexedNotNull { index, elementPair ->
+                            if (elementPair.second.key == key)
+                                return@mapIndexedNotNull index + dateCount
+                            if (elementPair.first != null)
+                                dateCount++
+                            return@mapIndexedNotNull null
+                        }.firstOrNull()
+                    }?: 0
+
                 val listState =
                     rememberLazyListState(initialFirstVisibleItemIndex =
-                        if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else timelineViewModel.firstVisibleElementIndex.value)
-                LaunchedEffect(listState) {
-                    snapshotFlow { listState.firstVisibleItemIndex }.collectLatest {
-                        timelineViewModel.firstVisibleElementIndex.value = it
-                    }
-                }
+                        if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else currentIndex)
+
 
                 val visible by remember {
                     derivedStateOf {

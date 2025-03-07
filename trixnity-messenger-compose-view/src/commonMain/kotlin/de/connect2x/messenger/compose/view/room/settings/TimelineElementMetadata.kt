@@ -24,10 +24,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,25 +47,21 @@ import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.util.Tooltip
-import de.connect2x.messenger.compose.view.room.timeline.launchWithTimeoutHint
+import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 import net.folivo.trixnity.core.model.UserId
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 interface TimelineElementMetadataView {
     @Composable
@@ -71,63 +69,6 @@ interface TimelineElementMetadataView {
         viewModel: TimelineElementMetadataViewModel,
         isBottomOfStack: Boolean, isSinglePane: Boolean,
     )
-}
-
-suspend fun waitForElementWithTimeout(
-    timelineElementViewSelector: TimelineElementViewSelector,
-    element: BaseTimelineElementHolderViewModel
-) {
-    val message = { "waited for element ${element.key}, but timed out: " }
-
-    withTimeoutOrNull(3.seconds) {
-        val elementElement = element.element.filterNotNull().first()
-        if (elementElement is TimelineElementViewModel.Empty) return@withTimeoutOrNull
-        launchWithTimeoutHint(message, { "element ${elementElement::class.simpleName}" }) {
-            timelineElementViewSelector.waitFor(elementElement)
-        }
-        launchWithTimeoutHint(message, { "isFirstInUserSequence" }) {
-            element.isFirstInUserSequence.filterNotNull().first()
-        }
-        launchWithTimeoutHint(message, { "sender" }) {
-            val showSender = element.showSender.filterNotNull().first()
-            if (showSender) element.sender.filterNotNull().first()
-        }
-        launchWithTimeoutHint(message, { "showBigGapBefore" }) {
-            element.showBigGapBefore.filterNotNull().first()
-        }
-        launchWithTimeoutHint(message, { "repliedElement" }) {
-            val isReply = element.isReply.filterNotNull().first()
-            if (isReply)
-                timelineElementViewSelector.waitFor(
-                    element.repliedElement.filterNotNull().first()
-                        .element.filterNotNull().first()
-                )
-        }
-        when (element) {
-            is TimelineElementHolderViewModel -> {
-                launchWithTimeoutHint(message, { "showUnreadMarker" }) {
-                    element.showUnreadMarker.filterNotNull().first()
-                }
-                launchWithTimeoutHint(message, { "showLoadingIndicatorBefore" }) {
-                    element.showLoadingIndicatorBefore.filterNotNull().first()
-                }
-                launchWithTimeoutHint(message, { "showLoadingIndicatorAfter" }) {
-                    element.showLoadingIndicatorAfter.filterNotNull().first()
-                }
-                if (element.isByMe) launchWithTimeoutHint(
-                    message,
-                    { "isRead" }) { element.isRead.filterNotNull().first() }
-                launchWithTimeoutHint(message, { "reactions" }) {
-                    element.reactions.filterNotNull().first()
-                }
-                launchWithTimeoutHint(message, { "isReplaced" }) {
-                    element.isReplaced.filterNotNull().first()
-                }
-            }
-
-            is OutboxElementHolderViewModel -> {}
-        }
-    }
 }
 
 @Composable
@@ -197,9 +138,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                         )
                         SubHeading(i18n.timelineElementMetadataMessage())
                         Column(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.6f)) {
-                            element?.let {
-                                MessageContentHistorySwitch(it, elements)
-                            }
+                            MessageContentHistorySwitch(element, elements)
                         }
                         SmallSpacer()
                         HorizontalDivider()
@@ -329,7 +268,7 @@ private fun UserInfo(
 
 @Composable
 private fun ColumnScope.MessageContentHistorySwitch(
-    element: TimelineElementHolderViewModel,
+    element: TimelineElementHolderViewModel?,
     elementHistory: List<TimelineElementHolderViewModel>,
 ) {
     val i18n = DI.get<I18nView>()
@@ -350,27 +289,27 @@ private fun ColumnScope.MessageContentHistorySwitch(
         }
     }
 
+    if ((showHistory && elementHistory.isEmpty()) || (!showHistory && element == null)) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            LoadingSpinner()
+        }
+        return
+    }
+
     if (showHistory) {
         MessageHistory(elementHistory)
     } else {
-        MessageContent(element)
+        val finalElement = requireNotNull(element)
+        DateStickyHeader(finalElement.formattedDate)
+        Spacer(Modifier.height(8.dp))
+        MessageContent(finalElement)
     }
-
 }
 
 @Composable
-private fun ColumnScope.MessageContent(
-    messageHolder: TimelineElementHolderViewModel,
-    lastMessageHolder: TimelineElementHolderViewModel? = null,
-) {
+private fun ColumnScope.MessageContent(messageHolder: TimelineElementHolderViewModel) {
     val element = messageHolder.element.collectAsState().value
     val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
-
-    if (lastMessageHolder == null || messageHolder.formattedDate != lastMessageHolder.formattedDate) {
-        DateStickyHeader(messageHolder.formattedDate)
-        Spacer(Modifier.height(8.dp))
-    }
-
     Column {
         element?.let { element ->
             timelineElementViewSelector.createAsPreview(messageHolder, element)
@@ -379,13 +318,36 @@ private fun ColumnScope.MessageContent(
 }
 
 @Composable
-private fun ColumnScope.MessageHistory(elementHistory: List<TimelineElementHolderViewModel>?) {
-    if (elementHistory?.isNotEmpty() == true) {
+private fun ColumnScope.MessageHistory(elementHistory: List<TimelineElementHolderViewModel>) {
+    if (elementHistory.isNotEmpty()) {
+        val elementHistoryGrouped by derivedStateOf {
+            buildList(elementHistory.size) {
+                var lastDate: String? = null
+                for (index in elementHistory.indices) {
+                    val vm = elementHistory[index]
+                    when {
+                        lastDate == vm.formattedDate -> add(null to vm)
+                        vm.element.value is TimelineElementViewModel.Empty -> add(null to vm)
+                        else -> {
+                            add(vm.formattedDate to vm)
+                            lastDate = vm.formattedDate
+                        }
+                    }
+                }
+            }
+        }
+
         LazyColumn {
-            var lastMessageHolder: TimelineElementHolderViewModel? = null
-            items(elementHistory, key = { it.eventId }) { elementHolder ->
-                MessageContent(elementHolder, lastMessageHolder)
-                lastMessageHolder = elementHolder
+            elementHistoryGrouped.forEach { (date, viewModel) ->
+                if (date != null) {
+                    item("date-$date-${viewModel.key}") {
+                        DateStickyHeader(date)
+                        Spacer(Modifier.height(8.dp))
+                    }
+                }
+                item(viewModel.key) {
+                    MessageContent(viewModel)
+                }
             }
         }
     }

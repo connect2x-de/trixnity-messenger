@@ -82,6 +82,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<Image> {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
+            isPreview = true,
             overlay = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(

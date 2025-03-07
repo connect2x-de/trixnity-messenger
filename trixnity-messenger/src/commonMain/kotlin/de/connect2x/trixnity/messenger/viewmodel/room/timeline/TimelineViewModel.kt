@@ -146,7 +146,6 @@ interface TimelineViewModelFactory {
  */
 interface TimelineViewModel {
     val elements: StateFlow<List<BaseTimelineElementHolderViewModel>>
-    val firstVisibleElementIndex: MutableStateFlow<Int>
 
     /**
      * Use this to set the state of the current UI.
@@ -338,7 +337,6 @@ class TimelineViewModelImpl(
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override val draggedFile: MutableStateFlow<FileDescriptor?> = MutableStateFlow(null)
-    override val firstVisibleElementIndex: MutableStateFlow<Int> = MutableStateFlow(0)
 
     private val directRoom = get<DirectRoom>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
@@ -1063,7 +1061,6 @@ class TimelineViewModelImpl(
 }
 
 class PreviewTimelineViewModel : TimelineViewModel {
-    override val firstVisibleElementIndex: MutableStateFlow<Int> = MutableStateFlow(0)
     override val elements: MutableStateFlow<List<BaseTimelineElementHolderViewModel>> =
         MutableStateFlow(
             listOf(

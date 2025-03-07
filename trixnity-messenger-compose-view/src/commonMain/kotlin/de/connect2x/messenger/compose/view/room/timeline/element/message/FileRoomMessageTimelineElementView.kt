@@ -77,6 +77,7 @@ class FileRoomMessageTimelineElementView : TimelineElementView<File> {
     ) {
         FileBasedRoomMessageTimelineElement(
             holder, element,
+            isPreview = true,
             overlay = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(

@@ -298,13 +298,14 @@ class TimelineElementHolderViewModelImpl(
             val content = when {
                 timelineEvent.event.content is RedactedEventContent -> timelineEvent.content
                 newContent != null -> Result.success(newContent)
-                else -> timelineEvent.content?.map { eventContent ->
-                    if (showOriginal && eventContent is TextBased.Text && eventContent.relatesTo is RelatesTo.Replace) {
-                        val replacement = (requireNotNull(eventContent.relatesTo) as RelatesTo.Replace).newContent
+                else -> timelineEvent.content?.map { content ->
+                    if (showOriginal && content is MessageEventContent && content.relatesTo is RelatesTo.Replace) {
+                        val relatesTo = content.relatesTo as RelatesTo.Replace
+                        val replacement = relatesTo.newContent
                         if (replacement != null)
                             return@map replacement
                     }
-                    eventContent
+                    content
                 }
             }
 
