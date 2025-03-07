@@ -249,7 +249,7 @@ class TimelineElementHolderViewModelImpl(
             matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId)
         ) { newContentIfReplaced, replaceAggregation ->
             newContentIfReplaced != null || replaceAggregation.replacedBy != null
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, true)
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override val canBeReactedTo: StateFlow<Boolean> =
         combine(
