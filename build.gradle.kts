@@ -28,7 +28,7 @@ plugins {
     alias(libs.plugins.compose.compiler).apply(false)
 }
 
-tasks.register("codeCoverage") {
+tasks.register("testCoverage") {
     val reportTasks = project.subprojects.map { it.tasks.named("koverXmlReportJvm") }
     dependsOn(reportTasks)
     doLast {
