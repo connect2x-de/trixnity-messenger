@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make room notification settings collapsable and change setting design to the one used by other room settings
 - Disable notification setting sub-options when notifications are disabled
 - Use fastzip in CI
+- Upgrade Trixnity to 4.13.2
 
 ### Deprecated
 
