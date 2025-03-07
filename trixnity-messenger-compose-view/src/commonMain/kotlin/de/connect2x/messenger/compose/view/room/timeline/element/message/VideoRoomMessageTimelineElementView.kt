@@ -83,6 +83,7 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<Video> {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
+            isPreview = true,
             overlay = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
