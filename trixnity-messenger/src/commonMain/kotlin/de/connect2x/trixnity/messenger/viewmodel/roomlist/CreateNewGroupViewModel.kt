@@ -109,7 +109,7 @@ open class CreateNewGroupViewModelImpl(
             return
         }
         if (_isCreating.getAndUpdate { true }) {
-            log.debug { "group creation is already in progress" }
+            log.warn { "group creation is already in progress" }
             return
         }
         log.info { "create new group with ${groupUsers.value.joinToString { it.displayName }}" }
