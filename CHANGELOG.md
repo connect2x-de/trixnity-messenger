@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disable notification setting sub-options when notifications are disabled
 - Sort users with reactions on the top of the user list on the metadata view
 - Save timeline scroll state when opening sub-menu of room
+- Use fastzip in CI
 
 ### Deprecated
 
@@ -32,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix content of message replacements in history of message metadata view
 - Allow to show audio messages as preview
 - Scrollbar to message metadata view for long messages/long message history
+- Inserting Mentions fails for multiple ones
 
 ### Security
 
