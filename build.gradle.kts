@@ -21,9 +21,28 @@ plugins {
     alias(libs.plugins.kmmbridge).apply(false)
     `maven-publish`
     alias(libs.plugins.dokka)
+    alias(libs.plugins.kotlinx.kover)
+
     // ui
     alias(libs.plugins.compose.multiplatform).apply(false)
     alias(libs.plugins.compose.compiler).apply(false)
+}
+
+tasks.register("codeCoverage") {
+    val reportTasks = project.subprojects.map { it.tasks.named("koverXmlReportJvm") }
+    dependsOn(reportTasks)
+    doLast {
+        val regex = """<counter type="INSTRUCTION" missed="(\d+)" covered="(\d+)"/>""".toRegex()
+        val (covered, missed) = reportTasks.flatMap { it.get().outputs.files }.mapNotNull { file ->
+            file.useLines { lines ->
+                val coverage = lines.last(regex::containsMatchIn)
+                regex.find(coverage)?.let { coverageData ->
+                    Pair(coverageData.groupValues[2].toInt(), coverageData.groupValues[1].toInt())
+                }
+            }
+        }.reduce { acc, value -> (acc.first + value.first) to (acc.second + value.second) }
+        println("Total test coverage: ${covered * 100 / (missed + covered)}")
+    }
 }
 
 allprojects {
