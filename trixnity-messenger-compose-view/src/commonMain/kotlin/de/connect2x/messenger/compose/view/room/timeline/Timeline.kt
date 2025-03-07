@@ -191,7 +191,9 @@ class TimelineViewImpl : TimelineView {
                     rememberLazyListState(initialFirstVisibleItemIndex =
                         if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else timelineViewModel.firstVisibleElementIndex.value)
                 LaunchedEffect(listState) {
-                    timelineViewModel.firstVisibleElementIndex = snapshotFlow { listState.firstVisibleItemIndex }.stateIn(this)
+                    snapshotFlow { listState.firstVisibleItemIndex }.collectLatest {
+                        timelineViewModel.firstVisibleElementIndex.value = it
+                    }
                 }
 
                 val visible by remember {
