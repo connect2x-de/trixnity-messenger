@@ -299,8 +299,8 @@ class TimelineElementHolderViewModelImpl(
                 timelineEvent.event.content is RedactedEventContent -> timelineEvent.content
                 newContent != null -> Result.success(newContent)
                 else -> timelineEvent.content?.map { content ->
-                    if (showOriginal && content is MessageEventContent && content.relatesTo is RelatesTo.Replace) {
-                        val relatesTo = content.relatesTo as RelatesTo.Replace
+                    val relatesTo = (content as? MessageEventContent)?.relatesTo
+                    if (showOriginal && relatesTo is RelatesTo.Replace) {
                         val replacement = relatesTo.newContent
                         if (replacement != null)
                             return@map replacement

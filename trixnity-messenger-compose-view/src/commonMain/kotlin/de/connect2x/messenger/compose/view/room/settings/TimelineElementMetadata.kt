@@ -88,7 +88,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
         val i18n = DI.get<I18nView>()
 
         val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
-        var elements by remember { mutableStateOf(listOf<TimelineElementHolderViewModel>()) }
+        var elementHistory by remember { mutableStateOf(listOf<TimelineElementHolderViewModel>()) }
         var element by remember { mutableStateOf<TimelineElementHolderViewModel?>(null) }
         val sender = element?.sender?.collectAsState()?.value
         val reactions = element?.reactions?.collectAsState()?.value
@@ -96,15 +96,15 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
 
         LaunchedEffect(Unit) {
             launch {
-                viewModel.elementHistory.filterNotNull().collect { elementHistory ->
+                viewModel.elementHistory.filterNotNull().collect { history ->
                     withContext(Dispatchers.Default) {
-                        elementHistory.forEach { element ->
+                        history.forEach { element ->
                             launch {
                                 waitForElementWithTimeout(timelineElementViewSelector, element)
                             }
                         }
                     }
-                    elements = elementHistory
+                    elementHistory = history
                 }
             }
             viewModel.element.filterNotNull().collect { newElement ->
@@ -113,7 +113,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
             }
         }
 
-        if (element == null || reactions == null || readers == null || sender == null) {
+        if (element == null || reactions == null || readers == null || sender == null || element == null || elementHistory.isEmpty()) {
             LoadingSpinner(Modifier.fillMaxSize())
         } else {
             ExtrasPaneHeader(
@@ -138,7 +138,9 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                         )
                         SubHeading(i18n.timelineElementMetadataMessage())
                         Column(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.6f)) {
-                            MessageContentHistorySwitch(element, elements)
+                            element?.let {
+                                MessageContentHistorySwitch(it, elementHistory)
+                            }
                         }
                         SmallSpacer()
                         HorizontalDivider()
@@ -268,7 +270,7 @@ private fun UserInfo(
 
 @Composable
 private fun ColumnScope.MessageContentHistorySwitch(
-    element: TimelineElementHolderViewModel?,
+    element: TimelineElementHolderViewModel,
     elementHistory: List<TimelineElementHolderViewModel>,
 ) {
     val i18n = DI.get<I18nView>()
@@ -289,20 +291,12 @@ private fun ColumnScope.MessageContentHistorySwitch(
         }
     }
 
-    if ((showHistory && elementHistory.isEmpty()) || (!showHistory && element == null)) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            LoadingSpinner()
-        }
-        return
-    }
-
     if (showHistory) {
         MessageHistory(elementHistory)
     } else {
-        val finalElement = requireNotNull(element)
-        DateStickyHeader(finalElement.formattedDate)
+        DateStickyHeader(element.formattedDate)
         Spacer(Modifier.height(8.dp))
-        MessageContent(finalElement)
+        MessageContent(element)
     }
 }
 

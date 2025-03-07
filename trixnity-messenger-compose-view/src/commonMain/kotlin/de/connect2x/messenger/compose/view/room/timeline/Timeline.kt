@@ -57,8 +57,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -135,17 +133,19 @@ class TimelineViewImpl : TimelineView {
                     })
                 }
 
-                val currentIndex = timelineViewModel.viewState.value?.lastVisibleElement
-                    ?.let { key ->
-                        var dateCount = 0
-                        timelineElementViewModelGrouped.mapIndexedNotNull { index, elementPair ->
-                            if (elementPair.second.key == key)
-                                return@mapIndexedNotNull index + dateCount
-                            if (elementPair.first != null)
-                                dateCount++
-                            return@mapIndexedNotNull null
-                        }.firstOrNull()
-                    }?: 0
+                val currentIndex = remember {
+                    timelineViewModel.viewState.value?.lastVisibleElement
+                        ?.let { key ->
+                            var dateCount = 0
+                            timelineElementViewModelGrouped.mapIndexedNotNull { index, elementPair ->
+                                if (elementPair.second.key == key)
+                                    return@mapIndexedNotNull index + dateCount
+                                if (elementPair.first != null)
+                                    dateCount++
+                                return@mapIndexedNotNull null
+                            }.firstOrNull()
+                        }?: 0
+                }
 
                 val listState =
                     rememberLazyListState(initialFirstVisibleItemIndex =
@@ -318,12 +318,3 @@ fun ReportMessageSwitch(timelineViewModel: TimelineViewModel) {
         }.let {}
     }
 }
-
-internal fun CoroutineScope.launchWithTimeoutHint(message: () -> String, hint: () -> String, block: suspend () -> Unit) =
-    launch {
-        try {
-            block()
-        } catch (_: TimeoutCancellationException) {
-            log.warn { message() + hint() }
-        }
-    }
