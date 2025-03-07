@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.4.2
+
+### Added
+
 - Font and control size settings
 
 ### Changed
@@ -23,10 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use fastzip in CI
 - Upgrade Trixnity to 4.13.2
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Align padding for sticky date header with dates in the timeline on mobile
@@ -37,8 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Scrollbar to message metadata view for long messages/long message history
 - Inserting Mentions fails for multiple ones
 - Don't process date for invisible elements
-
-### Security
 
 ## 3.4.1
 
