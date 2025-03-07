@@ -94,9 +94,14 @@ class TimelineViewImpl : TimelineView {
                 var lastDate: String? = null
                 for (index in vms.indices.reversed()) {
                     val vm = vms[index]
-                    if (lastDate != vm.formattedDate) add(vm.formattedDate to vm)
-                    else add(null to vm)
-                    lastDate = vm.formattedDate
+                    when {
+                        lastDate == vm.formattedDate  -> add(null to vm)
+                        vm.element.value is TimelineElementViewModel.Empty -> add(null to vm)
+                        else -> {
+                            add(vm.formattedDate to vm)
+                            lastDate = vm.formattedDate
+                        }
+                    }
                 }
             }.asReversed()
         }

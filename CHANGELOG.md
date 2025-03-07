@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow to show audio messages as preview
 - Scrollbar to message metadata view for long messages/long message history
 - Inserting Mentions fails for multiple ones
+- Don't process date for invisible elements
 
 ### Security
 
