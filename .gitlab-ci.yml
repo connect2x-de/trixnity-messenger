@@ -167,7 +167,7 @@ test:linux:
     - *if-merge-request-or-main
   script:
     - ./gradlew
-      {jvm,js}Test -x :integrationtests:jvmTest
+      {jvm,js}Test testCoverage -x :integrationtests:jvmTest
       --stacktrace
   coverage: '/Total code coverage.+ ([0-9]{1,3}%)/'
 
