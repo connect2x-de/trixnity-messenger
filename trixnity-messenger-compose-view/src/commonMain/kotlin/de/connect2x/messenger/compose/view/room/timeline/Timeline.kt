@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -57,8 +58,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -185,7 +188,11 @@ class TimelineViewImpl : TimelineView {
                     })
                 }
                 val listState =
-                    rememberLazyListState(initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else 0)
+                    rememberLazyListState(initialFirstVisibleItemIndex =
+                        if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else timelineViewModel.firstVisibleElementIndex.value)
+                LaunchedEffect(listState) {
+                    timelineViewModel.firstVisibleElementIndex = snapshotFlow { listState.firstVisibleItemIndex }.stateIn(this)
+                }
 
                 val visible by remember {
                     derivedStateOf {

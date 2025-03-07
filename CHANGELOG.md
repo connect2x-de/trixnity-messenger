@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make room notification settings collapsable and change setting design to the one used by other room settings
 - Disable notification setting sub-options when notifications are disabled
 - Sort users with reactions on the top of the user list on the metadata view
+- Save timeline scroll state when opening sub-menu of room
 
 ### Deprecated
 
