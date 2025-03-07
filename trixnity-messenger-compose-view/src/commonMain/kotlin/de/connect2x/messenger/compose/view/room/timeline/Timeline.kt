@@ -82,7 +82,7 @@ class TimelineViewImpl : TimelineView {
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
         val i18n = DI.get<I18nView>()
         val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
-        val isFocused = IsFocused.current
+        val isFocused = IsFocused.current<
         var scrollTo by remember { mutableStateOf<String?>(null) }
         LaunchedEffect(Unit) {
             timelineViewModel.scrollTo.collect { scrollTo = it }
@@ -97,6 +97,9 @@ class TimelineViewImpl : TimelineView {
                 var lastDate: String? = null
                 for (index in vms.indices.reversed()) {
                     val vm = vms[index]
+                    if (vm.element.value is TimelineElementViewModel.Empty)
+                        continue
+
                     if (lastDate != vm.formattedDate) add(vm.formattedDate to vm)
                     else add(null to vm)
                     lastDate = vm.formattedDate
