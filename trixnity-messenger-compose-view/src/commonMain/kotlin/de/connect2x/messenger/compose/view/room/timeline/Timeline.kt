@@ -82,7 +82,7 @@ class TimelineViewImpl : TimelineView {
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
         val i18n = DI.get<I18nView>()
         val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
-        val isFocused = IsFocused.current<
+        val isFocused = IsFocused.current
         var scrollTo by remember { mutableStateOf<String?>(null) }
         LaunchedEffect(Unit) {
             timelineViewModel.scrollTo.collect { scrollTo = it }

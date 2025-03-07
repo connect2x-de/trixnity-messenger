@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Align padding for sticky date header with dates in the timeline on mobile
 - Inserting Mentions fails for multiple ones
+- Don't process date for invisible elements
 
 ### Security
 
