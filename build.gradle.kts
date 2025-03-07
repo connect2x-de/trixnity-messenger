@@ -29,11 +29,11 @@ plugins {
 }
 
 tasks.register("testCoverage") {
-    val reportTasks = project.subprojects.map { it.tasks.named("koverXmlReportJvm") }
+    val reportTasks = project.subprojects.mapNotNull { it.tasks.findByName("koverXmlReportJvm") }
     dependsOn(reportTasks)
     doLast {
         val regex = """<counter type="INSTRUCTION" missed="(\d+)" covered="(\d+)"/>""".toRegex()
-        val (covered, missed) = reportTasks.flatMap { it.get().outputs.files }.mapNotNull { file ->
+        val (covered, missed) = reportTasks.flatMap { it.outputs.files }.mapNotNull { file ->
             file.useLines { lines ->
                 val coverage = lines.last(regex::containsMatchIn)
                 regex.find(coverage)?.let { coverageData ->

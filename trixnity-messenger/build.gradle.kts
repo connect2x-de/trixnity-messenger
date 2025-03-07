@@ -15,6 +15,7 @@ plugins {
     alias(libs.plugins.skie)
     alias(libs.plugins.kmmbridge)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.kotlinx.kover)
 }
 
 kotlin {

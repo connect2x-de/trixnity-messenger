@@ -6,6 +6,7 @@ plugins {
     kotlin("multiplatform")
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlinx.kover)
     id("kotlin-parcelize")
 }
 
