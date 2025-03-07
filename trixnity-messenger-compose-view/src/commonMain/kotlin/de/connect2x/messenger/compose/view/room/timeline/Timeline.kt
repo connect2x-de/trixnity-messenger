@@ -133,7 +133,7 @@ class TimelineViewImpl : TimelineView {
                     })
                 }
 
-                val currentIndex = remember {
+                val initialIndex = remember {
                     timelineViewModel.viewState.value?.lastVisibleElement
                         ?.let { key ->
                             var dateCount = 0
@@ -149,7 +149,7 @@ class TimelineViewImpl : TimelineView {
 
                 val listState =
                     rememberLazyListState(initialFirstVisibleItemIndex =
-                        if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else currentIndex)
+                        if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else initialIndex)
 
 
                 val visible by remember {

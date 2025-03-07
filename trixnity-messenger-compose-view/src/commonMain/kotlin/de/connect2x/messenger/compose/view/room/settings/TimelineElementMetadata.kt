@@ -113,15 +113,15 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
             }
         }
 
-        if (element == null || reactions == null || readers == null || sender == null || element == null || elementHistory.isEmpty()) {
-            LoadingSpinner(Modifier.fillMaxSize())
-        } else {
-            ExtrasPaneHeader(
-                title = i18n.timelineElementMetadataTitle(),
-                error = null,
-                onBack = { viewModel.back() },
-                backButtonType = if (isSinglePane || isBottomOfStack.not()) BACK else CLOSE,
-            ) {
+        ExtrasPaneHeader(
+            title = i18n.timelineElementMetadataTitle(),
+            error = null,
+            onBack = { viewModel.back() },
+            backButtonType = if (isSinglePane || isBottomOfStack.not()) BACK else CLOSE,
+        ) {
+            if (reactions == null || readers == null || sender == null || element == null || elementHistory.isEmpty()) {
+                LoadingSpinner(Modifier.fillMaxSize())
+            } else {
                 Box(
                     Modifier.fillMaxSize()
                 ) {
