@@ -41,7 +41,7 @@ tasks.register("testCoverage") {
                 }
             }
         }.reduce { acc, value -> (acc.first + value.first) to (acc.second + value.second) }
-        println("Total test coverage: ${covered * 100 / (missed + covered)}")
+        println("Total test coverage: ${covered * 100 / (missed + covered)}%")
     }
 }
 
