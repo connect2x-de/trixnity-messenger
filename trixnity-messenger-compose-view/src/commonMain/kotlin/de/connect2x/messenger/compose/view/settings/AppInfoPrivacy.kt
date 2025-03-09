@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.settings
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
@@ -28,15 +29,15 @@ class AppInfoPrivacyViewImpl : AppInfoPrivacyView {
     @Composable
     override fun create(appInfoViewModel: AppInfoViewModel) {
         val i18n = DI.get<I18nView>()
-        val privacyInfoUrl = DI.get<MatrixMessengerConfiguration>().privacyInfoUrl
-        if (privacyInfoUrl != null) {
+        val privacyInfo = DI.get<MatrixMessengerConfiguration>().privacyInfo
+        if (privacyInfo != null) {
             val richTextState = rememberRichTextState()
             LaunchedEffect(Unit) {
-                richTextState.addLink(i18n.appInfoPrivacyLink(), privacyInfoUrl)
+                richTextState.setMarkdown(privacyInfo)
             }
             MessengerModal(onDismiss = { appInfoViewModel.showPrivacy.value = false }, i18n.appInfoPrivacy()) {
                 MessengerModalContent {
-                    RichText(richTextState)
+                    RichText(richTextState, color = MaterialTheme.colorScheme.onBackground)
                 }
                 MessengerModalButtonRow({
                     NextButton(text = i18n.commonBack()) { appInfoViewModel.showPrivacy.value = false }
