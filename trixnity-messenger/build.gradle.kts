@@ -15,6 +15,7 @@ plugins {
     alias(libs.plugins.skie)
     alias(libs.plugins.kmmbridge)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.kotlinx.kover)
 }
 
 kotlin {
@@ -165,6 +166,24 @@ kotlin {
             dependsOn(jvmAndNativeTest)
             dependencies {
 //                implementation(libs.ktor.client.android)
+            }
+        }
+    }
+}
+
+tasks.register("testCoverage") {
+    val reportTask = tasks.named("koverXmlReportJvm").get()
+    dependsOn(reportTask)
+    doLast {
+        val regex = """<counter type="INSTRUCTION" missed="(\d+)" covered="(\d+)"/>""".toRegex()
+        for (file in reportTask.outputs.files) {
+            file.useLines { lines ->
+                val coverage = lines.last(regex::containsMatchIn)
+                regex.find(coverage)?.let { coverageData ->
+                    val covered = coverageData.groupValues[2].toInt()
+                    val missed = coverageData.groupValues[1].toInt()
+                    println("Total test coverage: ${covered * 100 / (missed + covered)}%")
+                }
             }
         }
     }
