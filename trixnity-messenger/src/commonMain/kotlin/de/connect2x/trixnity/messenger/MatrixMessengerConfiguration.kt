@@ -84,7 +84,13 @@ data class MatrixMessengerConfiguration(
 
     override var sendLogsEmailAddress: String? = null,
 
+    /**
+     * The privacy info of the application in a Markdown format
+     */
     override var privacyInfo: String? = null,
+    /**
+     * The imprint of the application in a Markdown format
+     */
     override var imprint: String? = null,
     override var licenses: String? = null,
 
