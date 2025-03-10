@@ -169,7 +169,7 @@ test:linux:
     - ./gradlew
       {jvm,js}Test testCoverage -x :integrationtests:jvmTest
       --stacktrace
-  coverage: '/Total code coverage.+ ([0-9]{1,3}%)/'
+  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
 test:smoketest-desktop-linux:
   stage: test

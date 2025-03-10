@@ -28,23 +28,6 @@ plugins {
     alias(libs.plugins.compose.compiler).apply(false)
 }
 
-tasks.register("testCoverage") {
-    val reportTasks = project.subprojects.mapNotNull { it.tasks.findByName("koverXmlReportJvm") }
-    dependsOn(reportTasks)
-    doLast {
-        val regex = """<counter type="INSTRUCTION" missed="(\d+)" covered="(\d+)"/>""".toRegex()
-        val (covered, missed) = reportTasks.flatMap { it.outputs.files }.mapNotNull { file ->
-            file.useLines { lines ->
-                val coverage = lines.last(regex::containsMatchIn)
-                regex.find(coverage)?.let { coverageData ->
-                    Pair(coverageData.groupValues[2].toInt(), coverageData.groupValues[1].toInt())
-                }
-            }
-        }.reduce { acc, value -> (acc.first + value.first) to (acc.second + value.second) }
-        println("Total test coverage: ${covered * 100 / (missed + covered)}%")
-    }
-}
-
 allprojects {
     group = "de.connect2x"
     version = withVersionSuffix("3.4.3")
