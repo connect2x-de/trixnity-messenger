@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -93,6 +95,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
         val sender = element?.sender?.collectAsState()?.value
         val reactions = element?.reactions?.collectAsState()?.value
         val readers = element?.readers?.collectAsState()?.value
+        val scrollState = rememberScrollState()
 
         LaunchedEffect(Unit) {
             launch {
@@ -130,6 +133,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                         modifier = Modifier
                             .padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp))
                             .fillMaxSize()
+                            .verticalScroll(scrollState)
                     ) {
                         SubHeading(i18n.timelineElementMetadataSender())
                         UserInfo(
@@ -137,10 +141,8 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                             onOpenUserProfile = viewModel::openUserProfile,
                         )
                         SubHeading(i18n.timelineElementMetadataMessage())
-                        Column(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.6f)) {
-                            element?.let {
-                                MessageContentHistorySwitch(it, elementHistory)
-                            }
+                        element?.let {
+                            MessageContentHistorySwitch(it, elementHistory)
                         }
                         SmallSpacer()
                         HorizontalDivider()
@@ -187,15 +189,13 @@ fun ColumnScope.ReadersAndReactions(
                 style = MaterialTheme.typography.titleMedium,
             )
             SmallSpacer()
-            LazyColumn {
-                items(allReadersAndReactions) { eventReaction ->
-                    UserInfo(
-                        eventReaction.sender,
-                        eventReaction.reactions.keys,
-                        onOpenUserProfile = viewModel::openUserProfile,
-                    )
-                    Spacer(Modifier.height(5.dp))
-                }
+            for (eventReaction in allReadersAndReactions) {
+                UserInfo(
+                    eventReaction.sender,
+                    eventReaction.reactions.keys,
+                    onOpenUserProfile = viewModel::openUserProfile,
+                )
+                Spacer(Modifier.height(5.dp))
             }
         } else {
             Text(
@@ -237,6 +237,7 @@ private fun UserInfo(
         ) {
             Box(
                 Modifier
+                    .padding(start = 4.dp, top = 4.dp, bottom = 4.dp)
                     .align(CenterVertically)
             ) {
                 Avatar(image, userInfo.initials)
@@ -254,7 +255,6 @@ private fun UserInfo(
                     maxLines = 1,
                 )
                 if (hasReactions) {
-                    Spacer(Modifier.size(4.dp))
                     Text(
                         compiledReactionsList,
                         style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
@@ -331,18 +331,12 @@ private fun ColumnScope.MessageHistory(elementHistory: List<TimelineElementHolde
             }
         }
 
-        LazyColumn {
-            elementHistoryGrouped.forEach { (date, viewModel) ->
-                if (date != null) {
-                    item("date-$date-${viewModel.key}") {
-                        DateStickyHeader(date)
-                        Spacer(Modifier.height(8.dp))
-                    }
-                }
-                item(viewModel.key) {
-                    MessageContent(viewModel)
-                }
+        for ((date, viewModel) in elementHistoryGrouped) {
+            if (date != null) {
+                DateStickyHeader(date)
+                Spacer(Modifier.height(8.dp))
             }
+            MessageContent(viewModel)
         }
     }
 }
