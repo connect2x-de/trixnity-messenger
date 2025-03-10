@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Unrecommended HTML tags are being sent
+
 ### Security
 
 ## 3.4.2
