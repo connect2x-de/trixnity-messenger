@@ -36,7 +36,6 @@ markdown = "0.7.3" # https://github.com/JetBrains/markdown
 pdfjs = "4.10.38" # https://www.npmjs.com/package/pdfjs-dist
 pdfbox = "3.0.4" # https://pdfbox.apache.org/
 icu4j = "76.1" # https://github.com/unicode-org/icu/releases
-jacoco = "0.8.12" # https://github.com/jacoco/jacoco/releases
 kotlinx-kover = "0.9.1" # https://github.com/Kotlin/kotlinx-kover/releases
 
 # integration tests
