@@ -219,7 +219,7 @@ open class InputAreaViewModelImpl(
             autoClose: Boolean
         ): CharSequence = when (tagName) {
             // Recommended Tag Whitelist
-            // https://spec.matrix.org/v1.10/client-server-api/#mroommessage-msgtypes
+            // https://spec.matrix.org/v1.13/client-server-api/#mroommessage-msgtypes
             "del", "h1", "h2", "h3", "h4", "h5", "h6",
             "blockquote", "p", "a", "ul", "ol", "sup",
             "sub", "li", "b", "i", "u", "strong", "em",

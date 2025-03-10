@@ -17,7 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Unrecommended HTML tags are being sent
+- Unrecommended HTML tags are not being sent any more
+- Shared Plaintext is not interpreted as Markdown
 
 ### Security
 
