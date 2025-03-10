@@ -189,7 +189,6 @@ tasks.register("testCoverage") {
     }
 }
 
-
 android {
     namespace = "de.connect2x.trixnity.messenger"
     compileSdk = libs.versions.androidCompileSDK.get().toInt()
