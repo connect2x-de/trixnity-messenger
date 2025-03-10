@@ -66,8 +66,10 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import net.folivo.trixnity.utils.concurrentMutableMap
+import org.intellij.markdown.ast.ASTNode
 import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
+import org.intellij.markdown.html.HtmlGenerator.TagRenderer
 import org.intellij.markdown.parser.MarkdownParser
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
@@ -206,6 +208,45 @@ open class InputAreaViewModelImpl(
     override val listOfMentionsLoading: StateFlow<Boolean> = _listOfMentionsLoading.asStateFlow()
 
     override val useMarkdown = MutableStateFlow(true)
+    private val markdownFlavourDescriptor = CommonMarkFlavourDescriptor()
+    private val markdownParser = MarkdownParser(markdownFlavourDescriptor)
+
+    private class HtmlTagRenderer() : TagRenderer {
+        override fun openTag(
+            node: ASTNode,
+            tagName: CharSequence,
+            vararg attributes: CharSequence?,
+            autoClose: Boolean
+        ): CharSequence = when (tagName) {
+            // Recommended Tag Whitelist
+            // https://spec.matrix.org/v1.10/client-server-api/#mroommessage-msgtypes
+            "del", "h1", "h2", "h3", "h4", "h5", "h6",
+            "blockquote", "p", "a", "ul", "ol", "sup",
+            "sub", "li", "b", "i", "u", "strong", "em",
+            "s", "code", "hr", "br", "div", "table",
+            "thead", "tbody", "tr", "th", "td", "caption",
+            "pre", "span", "img", "details", "summary" ->
+                buildString {
+                    append("<$tagName")
+                    attributes.forEach { attribute ->
+                        if (attribute != null) {
+                            append(" $attribute")
+                        }
+                    }
+
+                    if (autoClose) {
+                        append(" />")
+                    } else {
+                        append(">")
+                    }
+                }
+            else -> ""
+        }
+
+        override fun closeTag(tagName: CharSequence): CharSequence = if (tagName == "body") "" else "</$tagName>"
+
+        override fun printHtml(html: CharSequence): CharSequence = html
+    }
 
     override val listOfMentions: StateFlow<List<UserInfoElement>?> =
         textField.map { textFieldValue ->
@@ -292,13 +333,16 @@ open class InputAreaViewModelImpl(
                         .ifBlank { text }
 
                 val formattedBody =
-                    if (useMarkdown.value) {
-                        val flavour = CommonMarkFlavourDescriptor()
-                        val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(formattedMentions)
-                        val html = HtmlGenerator(formattedMentions, parsedTree, flavour).generateHtml()
+                    when (useMarkdown.value) {
+                        true ->
+                            HtmlGenerator(
+                                formattedMentions,
+                                markdownParser.buildMarkdownTreeFromString(formattedMentions),
+                                markdownFlavourDescriptor
+                            ).generateHtml(HtmlTagRenderer())
 
-                        html.removePrefix("<body>").removeSuffix("</body>")
-                    } else formattedMentions
+                        false -> formattedMentions
+                    }
 
                 val replacedEvent = currentReplace.value
                 val repliedEvent = currentReply.value
