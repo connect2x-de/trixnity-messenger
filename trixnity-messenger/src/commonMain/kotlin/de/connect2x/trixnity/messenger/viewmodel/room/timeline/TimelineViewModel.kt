@@ -235,7 +235,6 @@ class TimelineViewModelImpl(
     private val onOpenMention: OpenMentionCallback,
     private val onOpenMetadata: (eventId: EventId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
-
     init {
         log.debug { "::: init timelineViewModel: $viewModelContext" }
     }

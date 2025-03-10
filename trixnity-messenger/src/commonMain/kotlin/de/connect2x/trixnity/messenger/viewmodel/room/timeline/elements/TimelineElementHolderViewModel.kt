@@ -249,7 +249,7 @@ class TimelineElementHolderViewModelImpl(
             matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId)
         ) { newContentIfReplaced, replaceAggregation ->
             newContentIfReplaced != null || replaceAggregation.replacedBy != null
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, true)
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override val canBeReactedTo: StateFlow<Boolean> =
         combine(
@@ -295,9 +295,19 @@ class TimelineElementHolderViewModelImpl(
             currentElement?.lifecycle?.destroy()
 
             log.trace { "compute element (timelineEvent=$timelineEvent, newContent=$newContent)" }
-            val content =
-                if (timelineEvent.event.content is RedactedEventContent) timelineEvent.content
-                else newContent?.let { Result.success(it) } ?: timelineEvent.content
+            val content = when {
+                timelineEvent.event.content is RedactedEventContent -> timelineEvent.content
+                newContent != null -> Result.success(newContent)
+                else -> timelineEvent.content?.map { content ->
+                    val relatesTo = (content as? MessageEventContent)?.relatesTo
+                    if (showOriginal && relatesTo is RelatesTo.Replace) {
+                        val replacement = relatesTo.newContent
+                        if (replacement != null)
+                            return@map replacement
+                    }
+                    content
+                }
+            }
 
             val lifecycle = LifecycleRegistry()
             lifecycle.start()

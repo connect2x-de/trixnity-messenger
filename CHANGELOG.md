@@ -9,8 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Font and control size settings
+### Changed
+
+- Change imprint and privacy information formatting to Markdown to support them in app instead of via link
 - Documentation for `AccountSetupWizard`
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.4.2
+
+### Added
+
+- Font and control size settings
 
 ### Changed
 
@@ -19,18 +35,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Check for server reachability when logout fails
 - Make room notification settings collapsable and change setting design to the one used by other room settings
 - Disable notification setting sub-options when notifications are disabled
+- Sort users with reactions on the top of the user list on the metadata view
+- Save timeline scroll state when opening sub-menu of room
 - Use fastzip in CI
-
-### Deprecated
-
-### Removed
+- Upgrade Trixnity to 4.13.2
 
 ### Fixed
 
 - Align padding for sticky date header with dates in the timeline on mobile
+- `isReplaced` should be initially false
+- Date bubble is only shown when the date is changed in message metadata view
+- Fix content of message replacements in history of message metadata view
+- Allow to show audio messages as preview
+- Scrollbar to message metadata view for long messages/long message history
 - Inserting Mentions fails for multiple ones
-
-### Security
+- Don't process date for invisible elements
 
 ## 3.4.1
 
