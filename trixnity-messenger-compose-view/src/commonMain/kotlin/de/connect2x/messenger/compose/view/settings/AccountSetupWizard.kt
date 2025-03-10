@@ -20,6 +20,13 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter.Wra
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModel
 
 
+/**
+ * Represents a step in the Account Setup Wizard, utilizing a unique identifier for each step.
+ * This class serves as a base for defining various specific steps within the wizard process.
+ * Inherit from this class to create or replace steps.
+ *
+ * @property stepId Unique identifier for the specific step.
+ */
 open class AccountSetupWizardStep(val stepId: String) {
     data object ExplanationStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_EXPLANATION")
     data object VerificationStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_VERIFICATION")
@@ -28,6 +35,10 @@ open class AccountSetupWizardStep(val stepId: String) {
     data object ConfirmationStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_CONFIRM")
 }
 
+/**
+ * Represents a list of steps in the account setup wizard process.
+ * To change certain or add new steps, replace `AccountSetupWizardStepListImpl`
+ */
 interface AccountSetupWizardStepList {
     val steps: List<AccountSetupWizardStep>
 }
@@ -43,6 +54,19 @@ class AccountSetupWizardStepListImpl : AccountSetupWizardStepList {
 }
 
 
+/**
+ * This interface allows for the creation of custom steps within the wizard by providing
+ * its own specific logic and user interface components as part of the wizard flow.
+ *
+ * This is built upon `AccountSetupWizardStep` and is used
+ * to extend the default functionality of the account setup process.
+ *
+ * If you with to add multiple steps, they should still be handled it by
+ * resolving the appropriate `AccountSetupWizardStep`
+ *
+ * @see AccountSetupWizardStep
+ * @see WizardStep
+ */
 interface AdditionalAccountSetupWizardStep {
     fun <T : Any> create(viewModel: T, step: AccountSetupWizardStep): WizardStep
 }
@@ -109,7 +133,6 @@ private fun wizardStepExplanation(
     step: AccountSetupWizardStep,
     i18n: I18nView
 ): WizardStep {
-
     return WizardStep(
         id = step.stepId,
         title = { "${i18n.commonWelcome()} ${viewModel.userId.localpart}" },
