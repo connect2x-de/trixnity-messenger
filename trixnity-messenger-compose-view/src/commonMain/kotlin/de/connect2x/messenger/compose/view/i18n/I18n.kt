@@ -1067,7 +1067,7 @@ open class I18nView(
     }
 
     open fun inputAreaPrompt() = translate {
-        EN - "Your messsage..."
+        EN - "Your message..."
         DE - "Ihre Nachricht..."
     }
 
