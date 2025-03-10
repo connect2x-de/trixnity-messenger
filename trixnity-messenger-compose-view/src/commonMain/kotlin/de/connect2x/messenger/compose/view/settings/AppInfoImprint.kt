@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.settings
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
@@ -28,15 +29,15 @@ class AppInfoImprintViewImpl : AppInfoImprintView {
     @Composable
     override fun create(appInfoViewModel: AppInfoViewModel) {
         val i18n = DI.get<I18nView>()
-        val imprintUrl = DI.get<MatrixMessengerConfiguration>().imprintUrl
-        if (imprintUrl != null) {
+        val imprint = DI.get<MatrixMessengerConfiguration>().imprint
+        if (imprint != null) {
             val richTextState = rememberRichTextState()
             LaunchedEffect(Unit) {
-                richTextState.addLink(i18n.appInfoImprintLink(), imprintUrl)
+                richTextState.setMarkdown(imprint)
             }
             MessengerModal(onDismiss = { appInfoViewModel.showImprint.value = false }, i18n.appInfoImprint()) {
                 MessengerModalContent {
-                    RichText(richTextState)
+                    RichText(richTextState, color = MaterialTheme.colorScheme.onBackground)
                 }
                 MessengerModalButtonRow({
                     NextButton(text = i18n.commonBack()) { appInfoViewModel.showImprint.value = false }
