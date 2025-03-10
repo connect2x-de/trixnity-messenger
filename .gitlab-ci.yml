@@ -189,7 +189,7 @@ test:smoketest-desktop-linux:
   script:
     - ./gradlew
       :trixnity-messenger-compose-view:desktopTest
-      :trixnity-messenger-compose:view:testCoverage
+      :trixnity-messenger-compose-view:testCoverage
       --stacktrace
   coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
