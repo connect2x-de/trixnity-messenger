@@ -38,7 +38,6 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
@@ -112,6 +111,7 @@ fun ColumnScope.MessengerModalButtonRow(
     }
 }
 
+// TODO: Can be deleted?
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
         /**

@@ -332,6 +332,11 @@ open class I18nView(
         DE - "Verkleinern"
     }
 
+    open fun commonSubmit() = translate {
+        EN - "submit"
+        DE - "absenden"
+    }
+
     open fun ban() = translate {
         EN - "ban"
         DE - "Bannen"
@@ -2727,6 +2732,16 @@ open class I18nView(
     open fun settingsRoomMemberListKickUserWarningTitleGroup(username: String) = translate {
         EN - "Remove user $username from group?"
         DE - "Nutzer $username aus der Gruppe entfernen?"
+    }
+
+    open fun knockRequest() = translate {
+        EN - "Request Membership"
+        DE - "Teilhabe anfragen"
+    }
+
+    open fun knockExplanation() = translate {
+        EN - "This room requires you to request to a membership"
+        DE - "Dieser Raum erfordert, dass Sie eine Mitgliedschaft anfordern"
     }
 }
 
