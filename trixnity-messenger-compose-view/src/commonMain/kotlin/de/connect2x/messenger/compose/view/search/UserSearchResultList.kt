@@ -17,10 +17,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,7 +68,6 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
         val searchWasApplied =
             remember { userSearchHandler.searchTerm.map { it.text.isNotBlank() } }.collectAsState(false).value
 
-        val clickedUser = remember { mutableStateOf<SearchUserElement?>(null) }
         val scroll = rememberScrollState()
         val modifier = remember(shouldScroll) {
             if (shouldScroll) {
@@ -107,7 +104,7 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
                         }
                     }
                     users.map { user ->
-                        UserElement(user, onClick = { clickedUser.value = user })
+                        UserElement(user, onClick = { userClickReaction(user) })
                     }
                 }
                 if (shouldScroll) {
@@ -117,9 +114,6 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
                     )
                 }
             }
-        }
-        LaunchedEffect(clickedUser.value) {
-            clickedUser.value?.let { userClickReaction(it) }
         }
     }
 }
