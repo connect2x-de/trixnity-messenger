@@ -48,7 +48,9 @@ fun RoomListElement(
 class RoomListElementViewImpl : RoomListElementView {
     @Composable
     override fun create(roomListViewModel: RoomListViewModel, roomListElementViewModel: RoomListElementViewModel) {
-        val isInvite = roomListElementViewModel.isInvite.collectAsState().value
+        val isInvite = roomListElementViewModel.isInvite.collectAsState().value == true
+        val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
+
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
             MatrixClientColor(roomListElementViewModel)
             Box(
@@ -60,7 +62,9 @@ class RoomListElementViewImpl : RoomListElementView {
                     }
                     Spacer(Modifier.size(10.dp))
 
-                    if (isInvite == true) {
+                    if (isKnock) {
+                        Knock(roomListElementViewModel)
+                    } else if (isInvite) {
                         Invite(roomListElementViewModel)
                     } else {
                         Column(Modifier.align(Alignment.CenterVertically)) {

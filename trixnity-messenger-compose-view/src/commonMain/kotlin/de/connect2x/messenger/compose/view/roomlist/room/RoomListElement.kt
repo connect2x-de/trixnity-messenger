@@ -52,7 +52,10 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
     ) {
         val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState().value
         val roomName = roomListElementViewModel.roomName.collectAsState().value
-        val isInvite = roomListElementViewModel.isInvite.collectAsState().value
+        val isInvite = roomListElementViewModel.isInvite.collectAsState().value == true
+        val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
+        val selectable = roomName != null && !isInvite && !isKnock
+
         Modifier
             .fillMaxWidth()
         Box(
@@ -64,7 +67,7 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                     visibilityThreshold = IntOffset.VisibilityThreshold
                 )
             )
-                .clickable(enabled = roomName != null && (isInvite == null || isInvite == false)) {
+                .clickable(enabled = selectable) {
                     roomListViewModel.selectRoom(roomId)
                 }
                 .background(
@@ -72,7 +75,7 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                         MaterialTheme.colorScheme.primaryContainer
                     } else Color.Unspecified
                 )
-                .buttonPointerModifier(enabled = isInvite == null || isInvite == false)
+                .buttonPointerModifier(enabled = selectable)
         ) {
             RoomListElement(roomListViewModel, roomListElementViewModel)
         }
