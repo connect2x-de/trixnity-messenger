@@ -21,10 +21,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -35,6 +38,7 @@ import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.common.TextFieldModal
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -121,12 +125,22 @@ fun SearchGroupResults(searchGroupViewModel: SearchGroupViewModel) {
 
 @Composable
 fun SearchGroupResult(group: SearchGroupViewModel.SearchGroup, searchGroupViewModel: SearchGroupViewModel) {
+    val i18n = DI.current.get<I18nView>()
     val image = group.image.collectAsState().value
+    val knockGroupModalShown = searchGroupViewModel.knockGroupModalShown.collectAsState().value
+    val reason = remember { mutableStateOf(TextFieldValue()) }
+
     Tooltip({ TooltipText(group.groupName) }) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .clickable { searchGroupViewModel.joinGroup(group.roomId) }
+                .clickable {
+                    if (group.isKnock) {
+                        searchGroupViewModel.showKnockGroupModal()
+                    } else {
+                        searchGroupViewModel.joinGroup(group)
+                    }
+                }
                 .buttonPointerModifier()
                 .padding(bottom = 20.dp)
         ) {
@@ -149,5 +163,20 @@ fun SearchGroupResult(group: SearchGroupViewModel.SearchGroup, searchGroupViewMo
                 }
             }
         }
+    }
+
+    if (knockGroupModalShown) {
+        TextFieldModal(
+            title = i18n.knockRequest(),
+            description = i18n.knockExplanation(),
+            textFieldValueState = reason,
+            onSubmit = {
+                searchGroupViewModel.knockGroup(group, reason.value.text)
+                searchGroupViewModel.hideKnockGroupModal()
+            },
+            onCancel = {
+                searchGroupViewModel.hideKnockGroupModal()
+            }
+        )
     }
 }
