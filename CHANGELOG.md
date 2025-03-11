@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Removed useless suspense in addmembers viewmodel
+- Fix Back Button for image preview
 
 ### Security
 
