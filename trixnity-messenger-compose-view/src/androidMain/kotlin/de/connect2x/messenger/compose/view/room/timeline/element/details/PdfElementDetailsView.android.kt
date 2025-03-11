@@ -83,6 +83,12 @@ actual fun PDFReader(
             onError(temporaryFileResult.exceptionOrNull()?.message)
         }
     }
+    LaunchedEffect(reader?.documentWidth, viewSize.width, scale, density) {
+        reader?.documentWidth?.toFloat()?.let {
+            val maxDpi = 1f / it * 1800f
+            reader?.dpi = (viewSize.width / it * scale / density * 2f).coerceAtMost(maxDpi)
+        }
+    }
     DisposableEffect(Unit) {
         @OptIn(DelicateCoroutinesApi::class)
         onDispose {
@@ -98,62 +104,61 @@ actual fun PDFReader(
             .fillMaxSize()
             .onSizeChanged { viewSize = it }
     ) {
-        readerError?.let {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp)
-                    .background(Color.Cyan),
-            ) { Text(it) }
-        } ?: reader?.let { pdfReader ->
-            if (pdfReader.pageCount == 0) {
-                CenteredElement {
-                    Text(i18nView.fileOverlayPreviewNotSupported())
-                }
-                return@let
-            }
-            val dwidth: Float = pdfReader.documentWidth?.toFloat()
-                ?: return
-            val maxDpi = 1f / dwidth * 1800f
-            val newDpi = (viewSize.width / dwidth * scale / density * 2f).coerceAtMost(maxDpi)
-            if (pdfReader.dpi != newDpi) {
-                pdfReader.dpi = newDpi
-            }
-            val lazyListState = rememberLazyListState()
-            val horizontalScroll = rememberScrollState()
-            LazyColumn(
-                modifier = Modifier
-                    .horizontalScroll(horizontalScroll)
-                    .simpleVerticalScrollbar(lazyListState, MaterialTheme.colorScheme.primary)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(8.dp),
-                state = lazyListState,
-                content = {
-                    items(count = pdfReader.pageCount, key = { it }) { pageId ->
-                        pdfReader[pageId]?.pageContent?.let { img ->
-                            Image(
-                                bitmap = img,
-                                contentDescription = i18nView.fileOverlayPdfPageDescriptor(pageId),
-                                modifier = Modifier
-                                    .background(color = Color.White) // Avoid performance drops on transparent images.
-                                    .width(viewSize.width.dp / density * scale - 16.dp),
-                                contentScale = ContentScale.FillWidth,
-                            )
-                        }
+        if (readerError == null) {
+            reader?.let { pdfReader ->
+                if (pdfReader.pageCount == 0) {
+                    CenteredElement {
+                        Text(i18nView.fileOverlayPreviewNotSupported())
                     }
+                    return@let
                 }
-            )
-            HorizontalScrollbar(
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth(),
-                horizontalScroll,
-            )
-        } ?: CenteredElement {
-            CircularProgressIndicator(Modifier.size(32.dp))
+                if (pdfReader.documentWidth != null) {
+                    val lazyListState = rememberLazyListState()
+                    val horizontalScroll = rememberScrollState()
+                    LazyColumn(
+                        modifier = Modifier
+                            .horizontalScroll(horizontalScroll)
+                            .simpleVerticalScrollbar(lazyListState, MaterialTheme.colorScheme.primary)
+                            .fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(8.dp),
+                        state = lazyListState,
+                        content = {
+                            items(count = pdfReader.pageCount, key = { it }) { pageId ->
+                                pdfReader[pageId]?.pageContent?.let { img ->
+                                    Image(
+                                        bitmap = img,
+                                        contentDescription = i18nView.fileOverlayPdfPageDescriptor(pageId),
+                                        modifier = Modifier
+                                            .background(color = Color.White) // Avoid performance drops on transparent images.
+                                            .width(viewSize.width.dp / density * scale - 16.dp),
+                                        contentScale = ContentScale.FillWidth,
+                                    )
+                                }
+                            }
+                        }
+                    )
+                    HorizontalScrollbar(
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth(),
+                        horizontalScroll,
+                    )
+                }
+            } ?: CenteredElement {
+                CircularProgressIndicator(Modifier.size(32.dp))
+            }
+        } else {
+            readerError?.let {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp)
+                        .background(Color.Cyan),
+                ) { Text(it) }
+            }
         }
     }
 }
