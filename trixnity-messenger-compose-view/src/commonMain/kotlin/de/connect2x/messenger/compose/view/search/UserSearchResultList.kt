@@ -44,7 +44,7 @@ interface UserSearchResultListView {
     fun create(
         userSearchHandler: UserSearchHandler,
         shouldScroll: Boolean,
-        userClickReaction: suspend (SearchUserElement) -> Unit,
+        userClickReaction: (SearchUserElement) -> Unit,
     )
 }
 
@@ -52,7 +52,7 @@ interface UserSearchResultListView {
 fun UserSearchResultList(
     userSearchHandler: UserSearchHandler,
     shouldScroll: Boolean,
-    userClickReaction: suspend (SearchUserElement) -> Unit,
+    userClickReaction: (SearchUserElement) -> Unit,
 ) {
     DI.get<UserSearchResultListView>().create(userSearchHandler, shouldScroll, userClickReaction)
 }
@@ -62,7 +62,7 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
     override fun create(
         userSearchHandler: UserSearchHandler,
         shouldScroll: Boolean,
-        userClickReaction: suspend (SearchUserElement) -> Unit,
+        userClickReaction: (SearchUserElement) -> Unit,
     ) {
         val i18n = DI.get<I18nView>()
         val users = userSearchHandler.foundUsers.collectAsState().value
