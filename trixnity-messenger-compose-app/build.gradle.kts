@@ -97,6 +97,16 @@ kotlin {
         }
         binaries.executable()
     }
+    listOf(
+//        iosX64(),
+//        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "TrixnityMessengerUI"
+            isStatic = true
+        }
+    }
 
     sourceSets {
         all {

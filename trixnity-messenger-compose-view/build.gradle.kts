@@ -44,6 +44,11 @@ kotlin {
         }
         binaries.library()
     }
+    listOf(
+//        iosX64(),
+//        iosArm64(),
+        iosSimulatorArm64()
+    )
 
     sourceSets {
         all {
