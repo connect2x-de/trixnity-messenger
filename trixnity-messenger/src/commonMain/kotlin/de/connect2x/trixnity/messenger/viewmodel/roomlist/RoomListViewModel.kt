@@ -466,8 +466,10 @@ class RoomListViewModelImpl(
         coroutineScope.launch {
             val matrixClient = allRoomsFlow.first()[roomId]?.matrixClient
                 ?: return@launch log.error { "cannot find NamedMatrixClient for room $roomId" }
-            val isInvite =
-                matrixClient.room.getById(roomId).filterNotNull().map { it.membership == Membership.INVITE }.first()
+            val (isInvite, isKnock) =
+                matrixClient.room.getById(roomId).filterNotNull().map {
+                    Pair(it.membership == Membership.INVITE, it.membership == Membership.KNOCK)
+                }.first()
             log.debug { "switch to room $roomId (isInvite: $isInvite)" }
             when {
                 isInvite && _syncState.value[matrixClient.userId] == SyncState.ERROR -> {
@@ -490,6 +492,8 @@ class RoomListViewModelImpl(
                         }
                     )
                 }
+
+                isKnock -> {}
 
                 else -> onRoomSelected(matrixClient.userId, roomId)
             }

@@ -64,6 +64,9 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
         val roomName = roomListElementViewModel.roomName.collectAsState().value
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value
         val interactionSource = remember { MutableInteractionSource() }
+        val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
+        val selectable = roomName != null && !isInvite && !isKnock
+
         Box(
             Modifier.animateItem(
                 fadeInSpec = null,
