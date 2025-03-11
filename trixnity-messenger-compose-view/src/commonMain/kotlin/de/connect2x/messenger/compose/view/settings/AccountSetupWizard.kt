@@ -61,7 +61,7 @@ class AccountSetupWizardStepListImpl : AccountSetupWizardStepList {
  * This is built upon `AccountSetupWizardStep` and is used
  * to extend the default functionality of the account setup process.
  *
- * If you with to add multiple steps, they should still be handled it by
+ * If you wish to add multiple steps, they should still be handled by
  * resolving the appropriate `AccountSetupWizardStep`
  *
  * @see AccountSetupWizardStep
