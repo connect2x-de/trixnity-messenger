@@ -2127,6 +2127,11 @@ open class I18nView(
         DE - "Ablehnen und Nutzer blocken"
     }
 
+    open fun unknock() = translate {
+        EN - "Take back membership request"
+        DE - "Beitrittsanfrage zurücknehmen"
+    }
+
     open fun blockedContactsHeader() = translate {
         EN - "Blocked contacts"
         DE - "Blockierte Kontakte"
@@ -2736,7 +2741,7 @@ open class I18nView(
 
     open fun knockRequest() = translate {
         EN - "Request Membership"
-        DE - "Teilhabe anfragen"
+        DE - "Beitrittsanfrage"
     }
 
     open fun knockExplanation() = translate {

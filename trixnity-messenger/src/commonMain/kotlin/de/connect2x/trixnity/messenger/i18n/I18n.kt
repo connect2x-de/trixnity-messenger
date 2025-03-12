@@ -354,6 +354,16 @@ open class I18n(
         DE - "Es gab einen Fehler. Bitte versuchen Sie es später."
     }
 
+    open fun roomListKnockOffline() = translate {
+        EN - "You cannot take your membership request back while you are offline."
+        DE - "Sie können offline die Beitrittsanfrage nicht zurücknehmen."
+    }
+
+    open fun roomListKnockError() = translate {
+        EN - "There has been an error. Please try again later."
+        DE - "Es gab einen Fehler. Bitte versuchen Sie es später."
+    }
+
     open fun roomListContentImage() = translate {
         EN - "Image"
         DE - "Bild"
