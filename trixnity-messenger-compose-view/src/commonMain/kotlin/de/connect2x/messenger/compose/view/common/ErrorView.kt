@@ -8,14 +8,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun ErrorView(errorMessage: String) {
     Box(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.error)) {
-        Box(Modifier.fillMaxWidth().padding(20.dp)) {
-            Text(errorMessage, color = Color.White)
-        }
+        Text(
+            errorMessage,
+            Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            color = MaterialTheme.colorScheme.onError
+        )
     }
 }

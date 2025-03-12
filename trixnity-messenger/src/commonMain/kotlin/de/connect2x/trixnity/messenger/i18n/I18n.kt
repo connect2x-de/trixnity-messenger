@@ -1212,6 +1212,26 @@ open class I18n(
         EN - "$appName is already running in another tab or window. Please close it first."
         DE - "$appName läuft bereits in einem anderen Tab oder Fenster. Bitte schließen Sie es zuerst."
     }
+
+    open fun searchGroupFailedSearch() = translate {
+        EN - "Searching rooms failed"
+        DE - "Raumsuche ist fehlgeschlagen"
+    }
+
+    open fun searchGroupFailedJoin() = translate {
+        EN - "Joining the room failed"
+        DE - "Raumbeitritt ist fehlgeschlagen"
+    }
+
+    open fun searchGroupFailedPrivate() = translate {
+        EN - "Cannot join a private room"
+        DE - "Kann einem privaten Raum nicht beitreten"
+    }
+
+    open fun searchGroupFailedInvite() = translate {
+        EN - "Joining room is invite-only"
+        DE - "Kann Raum nur mit Einladung betreten"
+    }
 }
 
 internal fun getLang(
