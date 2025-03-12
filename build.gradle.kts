@@ -21,6 +21,8 @@ plugins {
     alias(libs.plugins.kmmbridge).apply(false)
     `maven-publish`
     alias(libs.plugins.dokka)
+    alias(libs.plugins.kotlinx.kover)
+
     // ui
     alias(libs.plugins.compose.multiplatform).apply(false)
     alias(libs.plugins.compose.compiler).apply(false)

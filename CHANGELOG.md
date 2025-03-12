@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Test coverage in GitLab pipeline
+
 ### Changed
+
+- Change imprint and privacy information formatting to Markdown to support them in app instead of via link
 
 ### Deprecated
 
@@ -18,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Bug in file attachment upload size
+- Removed useless suspense in addmembers viewmodel
+- Fix Back Button for image preview
 
 ### Security
 
