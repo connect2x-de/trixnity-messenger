@@ -1,10 +1,12 @@
 package de.connect2x.messenger.compose.view.common
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -30,6 +32,7 @@ fun TextFieldModal(
         Column {
             description?.let { Text(it) }
             OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
                 value = textFieldValueState.value,
                 onValueChange = {
                     textFieldValueState.value = it

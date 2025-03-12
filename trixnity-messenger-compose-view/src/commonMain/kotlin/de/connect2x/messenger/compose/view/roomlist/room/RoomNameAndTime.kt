@@ -26,9 +26,10 @@ import de.connect2x.messenger.compose.view.common.placeholder
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
-fun RoomName(roomName: String?) {
+fun RoomName(roomName: String?, modifier: Modifier = Modifier) {
     Tooltip(
         { TooltipText(roomName ?: " ") },
+        modifier,
         delayMillis = 1_000,
     ) {
         Text(

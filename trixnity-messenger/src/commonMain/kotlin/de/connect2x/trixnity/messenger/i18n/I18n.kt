@@ -1167,6 +1167,26 @@ open class I18n(
         EN - "Download failed: ${error ?: commonUnknown()}"
         DE - "Herunterladen fehlgeschlagen: ${error ?: commonUnknown()}"
     }
+
+    open fun searchGroupFailedSearch() = translate {
+        EN - "Searching rooms failed"
+        DE - "Raumsuche ist fehlgeschlagen"
+    }
+
+    open fun searchGroupFailedJoin() = translate {
+        EN - "Joining the room failed"
+        DE - "Raumbeitritt ist fehlgeschlagen"
+    }
+
+    open fun searchGroupFailedPrivate() = translate {
+        EN - "Cannot join a private room"
+        DE - "Kann einem privaten Raum nicht beitreten"
+    }
+
+    open fun searchGroupFailedInvite() = translate {
+        EN - "Joining room is invite-only"
+        DE - "Kann Raum nur mit Einladung betreten"
+    }
 }
 
 internal fun getLang(

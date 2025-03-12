@@ -316,7 +316,7 @@ class RoomListViewModelImpl(
                         val isSpace = room.createEventContent?.type == RoomType.Space
                         val includedInSearch = searchedRooms.contains(room.roomId)
                         val isDisplayed = !isSpace &&
-                                (room.membership == Membership.INVITE || room.membership == Membership.JOIN) &&
+                                (room.membership == Membership.INVITE || room.membership == Membership.JOIN || room.membership == Membership.KNOCK) &&
                                 includedInSearch
                         isDisplayed
                     }.onEach { log.trace { "filtered rooms: $it" } }
@@ -327,6 +327,7 @@ class RoomListViewModelImpl(
                         val sortTime =
                             when {
                                 room.membership == Membership.INVITE -> Instant.DISTANT_FUTURE
+                                room.membership == Membership.KNOCK -> Instant.DISTANT_FUTURE - 1.seconds
                                 lastRelevantEventTime == null -> roomWithMeta.matrixClient
                                     .room.getState<CreateEventContent>(room.roomId, "").first()
                                     ?.originTimestamp?.let { Instant.fromEpochMilliseconds(it) }
@@ -334,7 +335,8 @@ class RoomListViewModelImpl(
                                 else -> lastRelevantEventTime
                             }
                         SortableRoom(roomWithMeta, sortTime)
-                    }.toList<SortableRoom>()
+                    }
+                    .toList<SortableRoom>()
                     .sortedByDescending<SortableRoom, Instant> { (_, sortTime) -> sortTime }
                     .asFlow<SortableRoom>()
                     .map<SortableRoom, RoomWithMatrixClient> { it.roomWithMatrixClient }
@@ -493,8 +495,7 @@ class RoomListViewModelImpl(
         }
     }
 
-    override val closeProfileNeeded: Boolean = getOrNull<MatrixMultiMessengerConfiguration>()
-        ?.multiProfile ?: false
+    override val closeProfileNeeded: Boolean = getOrNull<MatrixMultiMessengerConfiguration>()?.multiProfile == true
 
     override fun closeProfile() {
         log.debug { "close profile" }

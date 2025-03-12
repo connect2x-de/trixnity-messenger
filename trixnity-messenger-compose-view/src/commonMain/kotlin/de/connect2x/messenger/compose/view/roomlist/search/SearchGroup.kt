@@ -1,7 +1,9 @@
 package de.connect2x.messenger.compose.view.roomlist.search
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,10 +17,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,13 +41,17 @@ import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Avatar
+import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.TextFieldModal
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.util.isKnock
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel.SearchGroup
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 interface SearchGroupView {
     @Composable
@@ -58,8 +67,10 @@ class SearchGroupViewImpl : SearchGroupView {
     @Composable
     override fun create(searchGroupViewModel: SearchGroupViewModel) {
         val i18n = DI.get<I18nView>()
+        val reason = remember { mutableStateOf(TextFieldValue()) }
+        val knockGroupModalShownFor = remember { mutableStateOf<SearchGroup?>(null) }
 
-        Box(Modifier.fillMaxSize()) {
+        BoxWithConstraints(Modifier.fillMaxSize()) {
             Box {
                 Column {
                     Header(searchGroupViewModel::back, i18n.searchGroupTitle())
@@ -67,8 +78,24 @@ class SearchGroupViewImpl : SearchGroupView {
                     Spacer(Modifier.size(10.dp))
                     HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
                     Spacer(Modifier.size(10.dp))
-                    SearchGroupResults(searchGroupViewModel)
+                    SearchGroupResults(searchGroupViewModel, knockGroupModalShownFor)
                 }
+            }
+
+            knockGroupModalShownFor.value?.let {
+                TextFieldModal(
+                    title = i18n.knockRequest(),
+                    description = i18n.knockExplanation(),
+                    textFieldValueState = reason,
+                    onSubmit = {
+                        searchGroupViewModel.addGroup(it, reason.value.text)
+                        knockGroupModalShownFor.value = null
+                    },
+                    onCancel = {
+                        knockGroupModalShownFor.value = null
+                    },
+                    width = maxWidth.minus(20.dp).coerceAtMost(800.dp),
+                )
             }
         }
     }
@@ -93,52 +120,62 @@ fun SearchGroupSearchBar(searchGroupViewModel: SearchGroupViewModel) {
 }
 
 @Composable
-fun SearchGroupResults(searchGroupViewModel: SearchGroupViewModel) {
+fun SearchGroupResults(searchGroupViewModel: SearchGroupViewModel, knockGroupModalShownFor: MutableState<SearchGroup?>) {
     val foundGroups = searchGroupViewModel.foundGroups.collectAsState().value
     val groupSearchInProgress = searchGroupViewModel.groupSearchInProgress.collectAsState().value
+    val error by searchGroupViewModel.error.collectAsState()
     val listState = rememberLazyListState()
+    var showLoadingBar by remember { mutableStateOf(false) }
 
     val i18n = DI.get<I18nView>()
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        contentAlignment = Alignment.Center
-    ) {
+    LaunchedEffect(groupSearchInProgress) {
+        delay(120.milliseconds)
+        showLoadingBar = groupSearchInProgress
+    }
+
+    Column(Modifier.fillMaxSize(), Arrangement.Top) {
+        error?.let { ErrorView(it) }
+
         if (groupSearchInProgress) {
-            LoadingSpinner()
+            if (showLoadingBar) {
+                LinearProgressIndicator(Modifier.fillMaxWidth())
+            }
         } else {
-            if (foundGroups.isEmpty()) {
-                Text(i18n.searchGroupNotFound())
-            } else {
-                LazyColumn(Modifier.fillMaxSize(), listState) {
-                    items(foundGroups, { group -> group.roomId.full }) { group ->
-                        SearchGroupResult(group, searchGroupViewModel)
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(20.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (foundGroups.isEmpty()) {
+                    Text(i18n.searchGroupNotFound())
+                } else {
+                    LazyColumn(Modifier.fillMaxSize(), listState) {
+                        items(foundGroups, { group -> group.roomId.full }) { group ->
+                            SearchGroupResult(group, searchGroupViewModel, knockGroupModalShownFor)
+                        }
                     }
+                    VerticalScrollbar(Modifier.align(Alignment.CenterEnd), listState, false)
                 }
-                VerticalScrollbar(Modifier.align(Alignment.CenterEnd), listState, false)
             }
         }
     }
 }
 
 @Composable
-fun SearchGroupResult(group: SearchGroupViewModel.SearchGroup, searchGroupViewModel: SearchGroupViewModel) {
-    val i18n = DI.current.get<I18nView>()
+fun SearchGroupResult(group: SearchGroup, searchGroupViewModel: SearchGroupViewModel, knockGroupModalShownFor: MutableState<SearchGroup?>) {
     val image = group.image.collectAsState().value
-    val knockGroupModalShown = searchGroupViewModel.knockGroupModalShown.collectAsState().value
-    val reason = remember { mutableStateOf(TextFieldValue()) }
 
     Tooltip({ TooltipText(group.groupName) }) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .clickable {
-                    if (group.isKnock) {
-                        searchGroupViewModel.showKnockGroupModal()
+                    if (group.joinRule.isKnock) {
+                        knockGroupModalShownFor.value = group
                     } else {
-                        searchGroupViewModel.joinGroup(group)
+                        searchGroupViewModel.addGroup(group)
                     }
                 }
                 .buttonPointerModifier()
@@ -163,20 +200,5 @@ fun SearchGroupResult(group: SearchGroupViewModel.SearchGroup, searchGroupViewMo
                 }
             }
         }
-    }
-
-    if (knockGroupModalShown) {
-        TextFieldModal(
-            title = i18n.knockRequest(),
-            description = i18n.knockExplanation(),
-            textFieldValueState = reason,
-            onSubmit = {
-                searchGroupViewModel.knockGroup(group, reason.value.text)
-                searchGroupViewModel.hideKnockGroupModal()
-            },
-            onCancel = {
-                searchGroupViewModel.hideKnockGroupModal()
-            }
-        )
     }
 }

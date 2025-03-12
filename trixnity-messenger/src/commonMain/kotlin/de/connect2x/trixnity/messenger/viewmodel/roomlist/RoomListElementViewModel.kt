@@ -130,7 +130,7 @@ open class RoomListElementViewModelImpl(
         roomFlow.map { it.membership == Membership.INVITE }
             .stateIn(coroutineScope, WhileSubscribed(), null)
     override val isKnock: StateFlow<Boolean?> =
-        roomFlow.map { it.membership == Membership.INVITE }
+        roomFlow.map { it.membership == Membership.KNOCK }
             .stateIn(coroutineScope, WhileSubscribed(), null)
     private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
 
