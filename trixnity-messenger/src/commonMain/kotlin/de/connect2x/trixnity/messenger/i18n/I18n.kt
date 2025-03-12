@@ -18,6 +18,7 @@ import net.folivo.trixnity.core.model.UserId
 private val log = KotlinLogging.logger { }
 
 // TODO this is not lazy -> use property delegation or one class for one language instead
+@Suppress("UNUSED")
 open class I18n(
     languages: Languages,
     settings: MatrixMessengerSettingsHolder,
