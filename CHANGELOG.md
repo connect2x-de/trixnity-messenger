@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Change imprint and privacy information formatting to Markdown to support them in app instead of via link
+- Documentation for `AccountSetupWizard`
+
 ### Deprecated
 
 ### Removed
