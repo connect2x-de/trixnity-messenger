@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -52,6 +53,7 @@ import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.util.Tooltip
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -94,7 +96,8 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
         val sender = element?.sender?.collectAsState()?.value
         val reactions = element?.reactions?.collectAsState()?.value
         val readers = element?.readers?.collectAsState()?.value
-        val scrollState = rememberScrollState()
+
+        var showHistory by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
             launch {
@@ -124,31 +127,57 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
             if (reactions == null || readers == null || sender == null || element == null || elementHistory.isEmpty()) {
                 LoadingSpinner(Modifier.fillMaxSize())
             } else {
-                Box(
-                    Modifier.fillMaxSize()
+                val allReadersAndReactions = remember(readers, reactions) {
+                    (readers.associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, false) } +
+                            reactions.byUser).values.toList()
+                }.sortedByDescending { it.reactions.size }
+
+                LazyColumn(
+                    verticalArrangement = Arrangement.Top,
+                    modifier = Modifier
+                        .padding(PaddingValues( horizontal = 20.dp))
+                        .fillMaxSize()
                 ) {
-                    Column(
-                        verticalArrangement = Arrangement.Top,
-                        modifier = Modifier
-                            .padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp))
-                            .fillMaxSize()
-                            .verticalScroll(scrollState)
-                    ) {
-                        SubHeading(i18n.timelineElementMetadataSender())
-                        UserInfo(
-                            sender,
-                            onOpenUserProfile = viewModel::openUserProfile,
-                        )
-                        SubHeading(i18n.timelineElementMetadataMessage())
-                        element?.let {
-                            MessageContentHistorySwitch(it, elementHistory)
+                    item("header") {
+                        Column {
+                            SubHeading(i18n.timelineElementMetadataSender())
+                            UserInfo(
+                                sender,
+                                onOpenUserProfile = viewModel::openUserProfile,
+                            )
+                            SubHeading(i18n.timelineElementMetadataMessage())
                         }
+
+                        // History/Message switch
+                        if (elementHistory.isNotEmpty() && elementHistory.size > 1) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.clickable { showHistory = showHistory.not() }.buttonPointerModifier(),
+                            ) {
+                                Text(text = i18n.timelineElementMetadataHistory(), style = MaterialTheme.typography.titleSmall)
+                                Spacer(Modifier.size(5.dp).weight(1f, true))
+                                Switch(
+                                    checked = showHistory,
+                                    onCheckedChange = { showHistory = it },
+                                    modifier = Modifier.buttonPointerModifier(),
+                                )
+                            }
+                        }
+                    }
+
+                    element?.let {
+                        MessageContentHistorySwitch(it, elementHistory, showHistory)
+                    }
+
+                    item("separator") {
                         SmallSpacer()
                         HorizontalDivider()
                         MiddleSpacer()
-                        element?.let {
-                            ReadersAndReactions(it, viewModel)
-                        }
+                    }
+
+                    ReadersAndReactions(viewModel, allReadersAndReactions, i18n)
+
+                    item("footer") {
                         SmallSpacer()
                     }
                 }
@@ -157,61 +186,103 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
     }
 }
 
-@Composable
-fun ColumnScope.SubHeading(heading: String) {// TODO re-use in other components
-    MiddleSpacer()
-    Text(
-        text = heading,
-        style = MaterialTheme.typography.titleMedium,
-    )
-    SmallSpacer()
+private fun LazyListScope.ReadersAndReactions(
+    viewModel: TimelineElementMetadataViewModel,
+    allReadersAndReactions: List<EventReactions.ByUserInfo>,
+    i18n: I18nView
+) {
+    val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
+
+    if (hasReadersOrReactions) {
+        item("readers-and-reactions-header") {
+            Text(
+                text = i18n.timelineElementMetadataReadersAndReactions(),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            SmallSpacer()
+        }
+        items(allReadersAndReactions) { eventReaction ->
+            UserInfo(
+                eventReaction.sender,
+                eventReaction.reactions.keys,
+                onOpenUserProfile = viewModel::openUserProfile,
+            )
+            Spacer(Modifier.height(5.dp))
+        }
+    } else {
+        item("readers-and-reactions-header") {
+            Text(
+                text = i18n.timelineElementMetadataReadersAndReactionsNone(),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            SmallSpacer()
+        }
+    }
 }
 
-@Composable
-fun ColumnScope.ReadersAndReactions(
+private fun LazyListScope.MessageContentHistorySwitch(
     element: TimelineElementHolderViewModel,
-    viewModel: TimelineElementMetadataViewModel,
+    elementHistory: List<TimelineElementHolderViewModel>,
+    showHistory: Boolean
 ) {
-    val i18n = DI.get<I18nView>()
-    val reactions = element.reactions.collectAsState().value
-    val readers = element.readers.collectAsState().value
-    val state = rememberLazyListState()
-
-    if (reactions != null && readers != null) {
-        val allReadersAndReactions = remember(readers, reactions) {
-            (readers.associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, false) } +
-                    reactions.byUser).values.toList()
-        }.sortedByDescending { it.reactions.size }
-        val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
-
-        Column(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
-            if (hasReadersOrReactions) {
-                Text(
-                    text = i18n.timelineElementMetadataReadersAndReactions(),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                SmallSpacer()
-                Row {
-                    LazyColumn(state = state) {
-                        items(allReadersAndReactions) { eventReaction ->
-                            UserInfo(
-                                eventReaction.sender,
-                                eventReaction.reactions.keys,
-                                onOpenUserProfile = viewModel::openUserProfile,
-                            )
-                            Spacer(Modifier.height(5.dp))
-                        }
-                    }
-                }
-            } else {
-                Text(
-                    text = i18n.timelineElementMetadataReadersAndReactionsNone(),
-                    style = MaterialTheme.typography.labelMedium,
-                )
+    if (showHistory) {
+        MessageHistory(elementHistory)
+    } else {
+        item("message") {
+            Column(Modifier.padding(end = 10.dp)) {
+                DateStickyHeader(element.formattedDate)
+                Spacer(Modifier.height(8.dp))
+                MessageContent(element)
             }
         }
     }
 }
+
+private fun LazyListScope.MessageHistory(elementHistory: List<TimelineElementHolderViewModel>) {
+    if (elementHistory.isNotEmpty()) {
+        val elementHistoryGrouped by derivedStateOf {
+            buildList(elementHistory.size) {
+                var lastDate: String? = null
+                for (index in elementHistory.indices) {
+                    val vm = elementHistory[index]
+                    when {
+                        lastDate == vm.formattedDate -> add(null to vm)
+                        vm.element.value is TimelineElementViewModel.Empty -> add(null to vm)
+                        else -> {
+                            add(vm.formattedDate to vm)
+                            lastDate = vm.formattedDate
+                        }
+                    }
+                }
+            }
+        }
+
+        elementHistoryGrouped.forEach { (date, viewModel) ->
+            if (date != null) {
+                item("date-$date-${viewModel.key}") {
+                    DateStickyHeader(date)
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+            item(viewModel.key) {
+                MessageContent(viewModel)
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun MessageContent(messageHolder: TimelineElementHolderViewModel) {
+    val element = messageHolder.element.collectAsState().value
+    val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
+    Column {
+        element?.let { element ->
+            timelineElementViewSelector.createAsPreview(messageHolder, element)
+        }
+    }
+}
+
 
 @Composable
 private fun UserInfo(
@@ -276,85 +347,11 @@ private fun UserInfo(
 }
 
 @Composable
-private fun ColumnScope.MessageContentHistorySwitch(
-    element: TimelineElementHolderViewModel,
-    elementHistory: List<TimelineElementHolderViewModel>,
-) {
-    val i18n = DI.get<I18nView>()
-    var showHistory by remember { mutableStateOf(false) }
-
-    if (elementHistory.isNotEmpty() && elementHistory.size > 1) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable { showHistory = showHistory.not() }.buttonPointerModifier(),
-        ) {
-            Text(text = i18n.timelineElementMetadataHistory(), style = MaterialTheme.typography.titleSmall)
-            Spacer(Modifier.size(5.dp).weight(1f, true))
-            Switch(
-                checked = showHistory,
-                onCheckedChange = { showHistory = it },
-                modifier = Modifier.buttonPointerModifier(),
-            )
-        }
-    }
-
-    Column(Modifier.heightIn(min = 100.dp, max = 500.dp)) {
-        if (showHistory) {
-            MessageHistory(elementHistory)
-        } else {
-            val scrollState = rememberScrollState()
-            Column(Modifier.verticalScroll(scrollState).padding(end = 10.dp)) {
-                DateStickyHeader(element.formattedDate)
-                Spacer(Modifier.height(8.dp))
-                MessageContent(element)
-            }
-        }
-    }
-}
-
-@Composable
-private fun MessageContent(messageHolder: TimelineElementHolderViewModel) {
-    val element = messageHolder.element.collectAsState().value
-    val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
-    Column {
-        element?.let { element ->
-            timelineElementViewSelector.createAsPreview(messageHolder, element)
-        }
-    }
-}
-
-@Composable
-private fun MessageHistory(elementHistory: List<TimelineElementHolderViewModel>) {
-    if (elementHistory.isNotEmpty()) {
-        val elementHistoryGrouped by derivedStateOf {
-            buildList(elementHistory.size) {
-                var lastDate: String? = null
-                for (index in elementHistory.indices) {
-                    val vm = elementHistory[index]
-                    when {
-                        lastDate == vm.formattedDate -> add(null to vm)
-                        vm.element.value is TimelineElementViewModel.Empty -> add(null to vm)
-                        else -> {
-                            add(vm.formattedDate to vm)
-                            lastDate = vm.formattedDate
-                        }
-                    }
-                }
-            }
-        }
-
-        LazyColumn(Modifier.fillMaxWidth().padding(end = 10.dp)) {
-            elementHistoryGrouped.forEach { (date, viewModel) ->
-                if (date != null) {
-                    item("date-$date-${viewModel.key}") {
-                        DateStickyHeader(date)
-                        Spacer(Modifier.height(8.dp))
-                    }
-                }
-                item(viewModel.key) {
-                    MessageContent(viewModel)
-                }
-            }
-        }
-    }
+fun ColumnScope.SubHeading(heading: String) {// TODO re-use in other components
+    MiddleSpacer()
+    Text(
+        text = heading,
+        style = MaterialTheme.typography.titleMedium,
+    )
+    SmallSpacer()
 }
