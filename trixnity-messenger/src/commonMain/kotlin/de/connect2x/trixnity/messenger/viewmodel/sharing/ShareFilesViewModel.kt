@@ -22,9 +22,6 @@ import net.folivo.trixnity.client.room.message.image
 import net.folivo.trixnity.client.room.message.text
 import net.folivo.trixnity.client.room.message.video
 import net.folivo.trixnity.core.model.RoomId
-import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
-import org.intellij.markdown.html.HtmlGenerator
-import org.intellij.markdown.parser.MarkdownParser
 import org.koin.core.component.get
 
 interface ShareDataViewModelFactory {
@@ -105,16 +102,10 @@ class SharedDataViewModelImpl(
         }
     }
 
-    private val markdownFlavor = CommonMarkFlavourDescriptor()
-    private val markdownParser = MarkdownParser(markdownFlavor)
     private suspend fun sendPlainText(body: String, matrixClient: MatrixClient, roomId: RoomId) {
         // TODO: unified SendMessage viewmodel
-        val parsedTree = markdownParser.buildMarkdownTreeFromString(body)
-        val formattedBody = HtmlGenerator(body, parsedTree, markdownFlavor).generateHtml()
-        formattedBody.removePrefix("<body>").removeSuffix("</body>")
-
         matrixClient.room.sendMessage(roomId) {
-            text(body = body, format = "org.matrix.custom.html", formattedBody = formattedBody)
+            text(body)
         }
     }
 
