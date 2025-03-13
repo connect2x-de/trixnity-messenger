@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whi
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
+import de.connect2x.trixnity.messenger.viewmodel.util.debounceAfterFirst
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
@@ -50,6 +51,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
+import kotlin.time.Duration.Companion.milliseconds
 
 private val log = KotlinLogging.logger { }
 
@@ -216,10 +218,13 @@ class OutboxElementHolderViewModelImpl(
     override val isByMe: Boolean = true
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val previousSupportedTimelineEvent = matrixClient.room.getLastTimelineEvents(roomId).filterNotNull()
+    private val previousSupportedTimelineEvent = matrixClient.room.getLastTimelineEvents(roomId)
+        .filterNotNull()
+        // Prevent Race Condition: previousSupportedTimelineEvent becomes sent Outbox Event
+        .debounceAfterFirst(500.milliseconds)
         .flatMapLatest { lastTimelineEvents ->
             timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(lastTimelineEvents)
-        }.shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+        }.shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
 
     override val isFirstInUserSequence: StateFlow<Boolean?> =
         combine(
@@ -237,17 +242,20 @@ class OutboxElementHolderViewModelImpl(
 
     private val clock = get<Clock>()
     override val showBigGapBefore: StateFlow<Boolean?> =
-        previousSupportedTimelineEvent.map { timelineEvent ->
-            when {
-                timelineEvent?.sender != matrixClient.userId -> true
-                else -> {
-                    val previousTimestamp =
-                        Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
-                    val thisTimestamp = clock.now()
-                    thisTimestamp - previousTimestamp > config.showBigGapBeforeThreshold
+        previousSupportedTimelineEvent
+            .map { timelineEvent ->
+                when {
+                    timelineEvent?.sender != matrixClient.userId -> true
+                    else -> {
+                        val previousTimestamp =
+                            Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
+                        val thisTimestamp = clock.now()
+                        thisTimestamp - previousTimestamp > config.showBigGapBeforeThreshold
+                    }
+                }.apply {
+                    log.debug { "Outbox showBigGap: $this for ${element.value}" }
                 }
-            }
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+            }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val uploadProgress: StateFlow<FileTransferProgressElement?> =

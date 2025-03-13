@@ -42,7 +42,6 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Text
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -130,6 +129,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("isFirstInUserSequence: ignore other outbox messages with transactionId same as last timeline event") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = bob, transactionId = "t0") {
@@ -152,6 +152,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("isFirstInUserSequence: be false when last timeline event is by us") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = us) {
@@ -166,6 +167,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("isFirstInUserSequence: be false when not first outbox message") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = us) {
@@ -188,6 +190,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showSender: always be false") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = bob) {
@@ -203,7 +206,6 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
-
 
         should("showBigGapBefore: be true when first in a user sequence") {
             timeline(roomServiceMock, roomId) {
@@ -242,6 +244,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showBigGapBefore: be true when time gap is large enough") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
@@ -260,6 +263,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
         should("showBigGapBefore: be false when time gap is not large enough") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
