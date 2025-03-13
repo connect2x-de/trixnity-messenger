@@ -139,7 +139,7 @@ internal fun FileBasedView(
 ) {
     val downloadProgressElement = element.downloadMediaProgress.collectAsState()
     val uploadProgress = holder.asOutboxElementHolder()?.uploadProgress?.collectAsState()?.value
-    val elementDetailsFactory = DI.get<ElementDetailsViewSelector>().create(element)
+    val elementDetailsFactory = DI.get<ElementDetailsViewSelector>().rememberFactory(element)
     var openElementDetails by remember { mutableStateOf(false) }
 
     Column(
