@@ -50,7 +50,7 @@ class SendAttachmentViewModelTest {
     }
 
     @Test
-    fun `should have no error when uploading file more than max file size`() = runTestWithCoroutineScope {
+    fun `should have no error when uploading file less than max file size`() = runTestWithCoroutineScope {
         val cut = sendAttachmentViewModel(coroutineContext, 40.mb())
         delay(500.milliseconds)
         assertTrue { cut.error.value == null }
