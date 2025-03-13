@@ -21,6 +21,8 @@ plugins {
     alias(libs.plugins.kmmbridge).apply(false)
     `maven-publish`
     alias(libs.plugins.dokka)
+    alias(libs.plugins.kotlinx.kover)
+
     // ui
     alias(libs.plugins.compose.multiplatform).apply(false)
     alias(libs.plugins.compose.compiler).apply(false)
@@ -28,7 +30,7 @@ plugins {
 
 allprojects {
     group = "de.connect2x"
-    version = withVersionSuffix("3.4.2")
+    version = withVersionSuffix("3.4.4")
 
     repositories {
         mavenCentral()

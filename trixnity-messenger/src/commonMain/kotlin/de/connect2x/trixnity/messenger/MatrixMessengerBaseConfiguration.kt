@@ -11,8 +11,14 @@ interface MatrixMessengerBaseConfiguration {
     var urlProtocol: String
     var urlHost: String
     var sendLogsEmailAddress: String?
-    var privacyInfoUrl: String?
-    var imprintUrl: String?
+    /**
+     * The privacy info of the application in a Markdown format
+     */
+    var privacyInfo: String?
+    /**
+     * The imprint of the application in a Markdown format
+     */
+    var imprint: String?
     var licenses: String?
     var pushUrl: String?
 
@@ -26,8 +32,8 @@ interface MatrixMessengerBaseConfiguration {
         other.urlProtocol = urlProtocol
         other.urlHost = urlHost
         other.sendLogsEmailAddress = sendLogsEmailAddress
-        other.privacyInfoUrl = privacyInfoUrl
-        other.imprintUrl = imprintUrl
+        other.privacyInfo = privacyInfo
+        other.imprint = imprint
         other.licenses = licenses
         other.pushUrl = pushUrl
         other.httpClientEngine = httpClientEngine

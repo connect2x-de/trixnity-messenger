@@ -9,14 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Font and control size settings
-
 ### Changed
 
-- Insert formula in padding of the timeline
-- Increase size of avatar and change order of settings in profile view
-- Make room notification settings collapsable and change setting design to the one used by other room settings
-- Disable notification setting sub-options when notifications are disabled
+- Change imprint and privacy information formatting to Markdown to support them in app instead of via link
+- Documentation for `AccountSetupWizard`
 
 ### Deprecated
 
@@ -24,10 +20,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Align padding for sticky date header with dates in the timeline on mobile
+- Unrecommended HTML tags are not being sent any more
+- Shared Plaintext is not interpreted as Markdown
+
+### Security
+
+## 3.4.3
+
+### Added
+
+- Test coverage in GitLab pipeline
+
+### Changed
+
+- Change imprint and privacy information formatting to Markdown to support them in app instead of via link
+- Upgrade to Trixnity 4.13.3 to fix rollback issues in IndexedDB
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Removed useless suspense in addmembers viewmodel
+- Fix Back Button for image preview
 - Removed flickering due to padding
 
 ### Security
+
+## 3.4.2
+
+### Added
+
+- Font and control size settings
+- Loading indicator for room creation
+
+### Changed
+
+- Insert formula in padding of the timeline
+- Increase size of avatar and change order of settings in profile view
+- Check for server reachability when logout fails
+- Make room notification settings collapsable and change setting design to the one used by other room settings
+- Disable notification setting sub-options when notifications are disabled
+- Sort users with reactions on the top of the user list on the metadata view
+- Save timeline scroll state when opening sub-menu of room
+- Use fastzip in CI
+- Upgrade Trixnity to 4.13.2
+
+### Fixed
+
+- Align padding for sticky date header with dates in the timeline on mobile
+- `isReplaced` should be initially false
+- Date bubble is only shown when the date is changed in message metadata view
+- Fix content of message replacements in history of message metadata view
+- Allow to show audio messages as preview
+- Scrollbar to message metadata view for long messages/long message history
+- Inserting Mentions fails for multiple ones
+- Don't process date for invisible elements
 
 ## 3.4.1
 

@@ -41,7 +41,7 @@ interface AddMembersViewModel {
     val error: StateFlow<String?>
     val errorCause: StateFlow<String?>
 
-    suspend fun onUserClick(user: Search.SearchUserElement)
+    fun onUserClick(user: Search.SearchUserElement)
     fun addMembers()
     fun errorDismiss()
     fun back()
@@ -141,7 +141,7 @@ class AddMembersViewModelImpl(
         error.value = null
     }
 
-    override suspend fun onUserClick(user: Search.SearchUserElement) {
+    override fun onUserClick(user: Search.SearchUserElement) {
         if (groupUsers.value.contains(user).not()) {
             groupUsers.value += user
             removeUserFromList(user)
