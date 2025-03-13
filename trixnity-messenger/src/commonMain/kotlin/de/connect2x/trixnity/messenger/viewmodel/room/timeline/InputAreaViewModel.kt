@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.room.message.mentions
@@ -57,7 +58,7 @@ import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.Mention
+import net.folivo.trixnity.core.model.Mention as TrixnityMention
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
@@ -72,6 +73,57 @@ import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
+
+private sealed interface SubstringType {
+    suspend fun format(matrixClient: MatrixClient, roomId: RoomId): String
+
+    data class Text(val text: String) : SubstringType {
+        override suspend fun format(matrixClient: MatrixClient, roomId: RoomId): String =
+            this.text
+    }
+
+    data class Mention(val mention: TrixnityMention) : SubstringType {
+        override suspend fun format(matrixClient: MatrixClient, roomId: RoomId): String =
+            when (val mention = this.mention) {
+                is TrixnityMention.Event -> {
+                    val roomId = mention.roomId ?: roomId
+                    val matrixUri = "https://matrix.to/#/${roomId.full}/${mention.eventId.full}"
+                    val anchorContent = mention.label ?: matrixUri
+
+                    """<a href="$matrixUri">$anchorContent</a>"""
+                }
+
+                is TrixnityMention.Room -> {
+                    val alias =
+                        matrixClient.room.getState<CanonicalAliasEventContent>(mention.roomId)
+                            .first()
+                            ?.content?.run { alias ?: aliases?.firstOrNull() }
+                    val matrixUri =
+                        if (alias != null) "https://matrix.to/#/${alias.full}"
+                        else "https://matrix.to/#/${roomId.full}"
+                    val anchorContent = mention.label ?: alias?.full ?: mention.roomId.full
+
+                    """<a href="$matrixUri">$anchorContent</a>"""
+                }
+
+                is TrixnityMention.RoomAlias -> {
+                    val matrixUri = "https://matrix.to/#/${mention.roomAliasId.full}"
+                    val anchorContent = mention.label ?: mention.roomAliasId.full
+
+                    """<a href="$matrixUri">$anchorContent</a>"""
+                }
+
+                is TrixnityMention.User -> {
+                    val userName =
+                        matrixClient.user.getById(roomId, mention.userId).first()?.name
+                    val matrixUri = "https://matrix.to/#/${mention.userId.full}"
+                    val anchorContent = mention.label ?: userName ?: mention.userId.full
+
+                    """<a href="$matrixUri">$anchorContent</a>"""
+                }
+            }
+    }
+}
 
 interface InputAreaViewModelFactory {
     fun create(
@@ -216,53 +268,37 @@ open class InputAreaViewModelImpl(
             textField.update("")
             coroutineScope.launch {
                 val mentions = MatrixRegex.findMentions(text)
-                val mentionLinks = mentions
-                    .mapValues { (_, mention) ->
-                        // TODO should use matrix: uri instead!
-                        val matrixUri: String
-                        val anchorContent: String
-                        when (mention) {
-                            is Mention.Event -> {
-                                val roomId = mention.roomId ?: roomId
-                                matrixUri = "https://matrix.to/#/${roomId.full}/${mention.eventId.full}"
-                                anchorContent = mention.label ?: matrixUri
-                            }
+                val mentionedUsers = mentions.values.filterIsInstance<TrixnityMention.User>().map { it.userId }.toSet()
+                val formattedMentions =
+                    mentions.entries.withIndex()
+                        .windowed(
+                            size = 2,
+                            partialWindows = true
+                        ) { mentionWindow ->
+                            val first = mentionWindow[0]
+                            val second = mentionWindow.getOrNull(1)
 
-                            is Mention.Room -> {
-                                val alias =
-                                    matrixClient.room.getState<CanonicalAliasEventContent>(mention.roomId).first()
-                                        ?.content?.run { alias ?: aliases?.firstOrNull() }
-                                matrixUri =
-                                    if (alias != null) "https://matrix.to/#/${alias.full}"
-                                    else "https://matrix.to/#/${roomId.full}"
-                                anchorContent = mention.label ?: alias?.full ?: mention.roomId.full
-                            }
+                            listOfNotNull(
+                                if (first.index == 0) SubstringType.Text(text.substring(0 until first.value.key.first))
+                                else null,
+                                SubstringType.Mention(first.value.value),
+                                if (second == null) SubstringType.Text(text.substring(first.value.key.last + 1 until text.length))
+                                else SubstringType.Text(text.substring(first.value.key.last + 1 until second.value.key.start))
+                            )
+                        }.flatten()
+                        .map { substring ->
+                            substring.format(matrixClient, roomId)
+                        }.joinToString("")
+                        .ifBlank { text }
 
-                            is Mention.RoomAlias -> {
-                                matrixUri = "https://matrix.to/#/${mention.roomAliasId.full}"
-                                anchorContent = mention.label ?: mention.roomAliasId.full
-                            }
-
-                            is Mention.User -> {
-                                val userName = matrixClient.user.getById(roomId, mention.userId).first()?.name
-                                matrixUri = "https://matrix.to/#/${mention.userId.full}"
-                                anchorContent = mention.label ?: userName ?: mention.userId.full
-                            }
-                        }
-                        """<a href="$matrixUri">$anchorContent</a>"""
-                    }
-                val mentionedUsers = mentions.values.filterIsInstance<Mention.User>().map { it.userId }.toSet()
-                val formattedBody = mentionLinks.entries.fold(text) { currentText, (range, newValue) ->
-                    currentText.replaceRange(range, newValue)
-                }.let {
+                val formattedBody =
                     if (useMarkdown.value) {
                         val flavour = CommonMarkFlavourDescriptor()
-                        val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(it)
-                        val html = HtmlGenerator(it, parsedTree, flavour).generateHtml()
+                        val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(formattedMentions)
+                        val html = HtmlGenerator(formattedMentions, parsedTree, flavour).generateHtml()
 
                         html.removePrefix("<body>").removeSuffix("</body>")
-                    } else it
-                }
+                    } else formattedMentions
 
                 val replacedEvent = currentReplace.value
                 val repliedEvent = currentReply.value

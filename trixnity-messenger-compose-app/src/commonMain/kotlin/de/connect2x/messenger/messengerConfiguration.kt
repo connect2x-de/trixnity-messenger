@@ -16,8 +16,8 @@ fun messengerConfiguration(
 ): MatrixMultiMessengerConfiguration.() -> Unit = {
     appName = BuildConfig.appName
     appId = BuildConfig.appId
-    privacyInfoUrl = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
-    imprintUrl = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
+    privacyInfo = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
+    imprint = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
     licenses = BuildConfig.licenses
     sendLogsEmailAddress = null
     urlProtocol = BuildConfig.appId

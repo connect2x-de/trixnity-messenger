@@ -13,8 +13,8 @@ data class MatrixMultiMessengerConfiguration(
     override var urlProtocol: String = appId,
     override var urlHost: String = "localhost",
     override var sendLogsEmailAddress: String? = null,
-    override var privacyInfoUrl: String? = null,
-    override var imprintUrl: String? = null,
+    override var privacyInfo: String? = null,
+    override var imprint: String? = null,
     override var licenses: String? = null,
     override var pushUrl: String? = null,
     /**

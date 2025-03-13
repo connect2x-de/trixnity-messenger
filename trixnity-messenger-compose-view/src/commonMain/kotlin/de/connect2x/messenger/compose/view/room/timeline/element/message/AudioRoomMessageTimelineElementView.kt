@@ -74,7 +74,22 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<Audio> {
         holder: TimelineElementHolderViewModel,
         element: Audio,
     ) {
-
+        FileBasedRoomMessageTimelineElement(
+            holder,
+            element,
+            isPreview = true,
+            overlay = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "${shortenFileName(element)}, ${element.duration?.let { formatDuration(it.milliseconds) }} ${element.size}",
+                        color = MaterialTheme.messengerColors.metaDataPreview,
+                        maxLines = 1,
+                    )
+                }
+            }
+        ) { showActionMenu, onSave ->
+            MessageAudio(element, showActionMenu, onSave)
+        }
     }
 
     @Composable

@@ -42,6 +42,7 @@ interface FileBasedRoomMessageTimelineElementView {
     fun create(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
+        isPreview: Boolean,
         overlay: @Composable BoxScope.() -> Unit,
         content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     )
@@ -51,11 +52,12 @@ interface FileBasedRoomMessageTimelineElementView {
 fun FileBasedRoomMessageTimelineElement(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
+    isPreview: Boolean = false,
     overlay: @Composable BoxScope.() -> Unit,
     content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
 ) {
     DI.get<FileBasedRoomMessageTimelineElementView>()
-        .create(holder, element, overlay, content)
+        .create(holder, element, isPreview, overlay, content)
 }
 
 class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimelineElementView {
@@ -63,6 +65,7 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
     override fun create(
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
+        isPreview: Boolean,
         overlay: @Composable BoxScope.() -> Unit,
         content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     ) {
@@ -74,7 +77,14 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
             error,
             element::downloadMedia,
         ) { saveDialogOpen = false }
-        FileBasedRoomMessageTimelineElementMessageBubble(holder, element, { saveDialogOpen = true }, overlay, content)
+        FileBasedRoomMessageTimelineElementMessageBubble(
+            holder,
+            element,
+            { saveDialogOpen = true },
+            isPreview,
+            overlay,
+            content
+        )
     }
 }
 
@@ -83,6 +93,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     onSave: () -> Unit,
+    isPreview: Boolean = false,
     overlay: @Composable BoxScope.() -> Unit,
     content: @Composable ColumnScope.(() -> Unit, () -> Unit) -> Unit
 ) {
@@ -109,7 +120,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
             ).render(onClose)
         },
         overlay,
-        isPreview = false,
+        isPreview = isPreview,
     ) { showActionMenu ->
         FileBasedView(holder, element, onSave, showActionMenu, content)
     }
