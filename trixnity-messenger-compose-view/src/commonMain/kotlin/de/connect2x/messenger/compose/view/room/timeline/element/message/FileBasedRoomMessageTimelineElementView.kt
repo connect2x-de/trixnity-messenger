@@ -29,13 +29,16 @@ import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.files.SaveFileDialog
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsSelector
+import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+private val log = KotlinLogging.logger { }
 
 interface FileBasedRoomMessageTimelineElementView {
     @Composable
@@ -136,14 +139,19 @@ internal fun FileBasedView(
 ) {
     val downloadProgressElement = element.downloadMediaProgress.collectAsState()
     val uploadProgress = holder.asOutboxElementHolder()?.uploadProgress?.collectAsState()?.value
-
+    val elementDetailsFactory = DI.get<ElementDetailsViewSelector>().create(element)
     var openElementDetails by remember { mutableStateOf(false) }
 
     Column(
         Modifier
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = { openElementDetails = true },
+                    onTap = {
+                        if (elementDetailsFactory == null) {
+                            log.warn { "no overlay found for ${element::class.simpleName} -> directly save" }
+                            onSave()
+                        } else openElementDetails = true
+                    },
                     onLongPress = { showActionMenu() },
                 )
             }
@@ -151,7 +159,10 @@ internal fun FileBasedView(
     ) {
         // content based on the actual file
         content(showActionMenu) {
-            openElementDetails = true
+            if (elementDetailsFactory == null) {
+                log.warn { "no overlay found for ${element::class.simpleName} -> directly save" }
+                onSave()
+            } else openElementDetails = true
         }
     }
 
@@ -178,9 +189,7 @@ internal fun FileBasedView(
         Spacer(Modifier.size(10.dp))
     }
 
-    if (openElementDetails) {
-        ElementDetailsSelector(element, onSave) {
-            openElementDetails = false
-        }
+    if (openElementDetails && elementDetailsFactory != null) {
+        elementDetailsFactory.create(element, onSave, onClose = { openElementDetails = false })
     }
 }
