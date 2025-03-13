@@ -252,8 +252,6 @@ class OutboxElementHolderViewModelImpl(
                         val thisTimestamp = clock.now()
                         thisTimestamp - previousTimestamp > config.showBigGapBeforeThreshold
                     }
-                }.apply {
-                    log.debug { "Outbox showBigGap: $this for ${element.value}" }
                 }
             }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
