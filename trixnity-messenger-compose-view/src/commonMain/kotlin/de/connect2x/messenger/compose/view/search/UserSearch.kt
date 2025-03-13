@@ -9,7 +9,7 @@ import de.connect2x.trixnity.messenger.util.UserSearchHandler
 fun ColumnScope.SearchUsersLocally(
     searchHandler: UserSearchHandler,
     shouldScroll: Boolean = true,
-    onUserClick: suspend (Search.SearchUserElement) -> Unit,
+    onUserClick: (Search.SearchUserElement) -> Unit,
 ) {
     UserSearchField(searchHandler)
     UserSearchResultList(searchHandler, shouldScroll) { searchUserElement ->

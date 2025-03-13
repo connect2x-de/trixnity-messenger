@@ -6,6 +6,7 @@ plugins {
     kotlin("multiplatform")
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlinx.kover)
     id("kotlin-parcelize")
 }
 
@@ -155,6 +156,24 @@ android {
     sourceSets {
         named("main") {
             manifest.srcFile("src/androidMain/AndroidManifest.xml")
+        }
+    }
+}
+
+tasks.register("testCoverage") {
+    val reportTask = tasks.named("koverXmlReportJvm").get()
+    dependsOn(reportTask)
+    doLast {
+        val regex = """<counter type="INSTRUCTION" missed="(\d+)" covered="(\d+)"/>""".toRegex()
+        for (file in reportTask.outputs.files) {
+            file.useLines { lines ->
+                val coverage = lines.last(regex::containsMatchIn)
+                regex.find(coverage)?.let { coverageData ->
+                    val covered = coverageData.groupValues[2].toInt()
+                    val missed = coverageData.groupValues[1].toInt()
+                    println("Total test coverage: ${covered * 100 / (missed + covered)}%")
+                }
+            }
         }
     }
 }
