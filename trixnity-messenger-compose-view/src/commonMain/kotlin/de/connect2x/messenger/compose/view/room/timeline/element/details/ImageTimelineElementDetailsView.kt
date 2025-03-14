@@ -95,7 +95,7 @@ class ImageTimelineElementDetailsView :
                         .focusable()
                         .onKeyEvent { keyEvent ->
                             canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
-                            true
+                            false
                         }
                         .zoomModifier(focusRequester, canZoom, zoom)
                         // performance when image is rendered with no alpha channel

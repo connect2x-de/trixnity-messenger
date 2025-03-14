@@ -820,6 +820,27 @@ class InputAreaViewModelTest : ShouldSpec() {
             cancelNeverEndingCoroutines()
         }
 
+        should("convert message with only one Link to HTML properly") {
+            val cut = inputAreaViewModel(coroutineContext)
+            val job = subscribe(cut)
+
+            cut.textField.update("https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O.")
+
+            eventually(300.milliseconds) {
+                cut.isSendEnabled.value shouldBe true
+            }
+
+            cut.sendMessage()
+
+            eventually(300.milliseconds) {
+                body shouldBe "https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O."
+                formattedBody shouldBe "<p>https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O.</p>"
+            }
+
+            job.cancel()
+            cancelNeverEndingCoroutines()
+        }
+
         should("convert mentions with text inbetween into anchor tags") {
             val cut = inputAreaViewModel(coroutineContext)
             val job = subscribe(cut)

@@ -41,9 +41,10 @@ fun ColumnScope.MoreOptions(
     title: @Composable () -> Unit,
     enabled: Boolean = true,
     icon: ImageVector = Icons.Default.Settings,
+    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    MoreInfo(title, enabled, content, icon)
+    MoreInfo(title, enabled, content, icon, modifier)
 }
 
 
@@ -52,18 +53,20 @@ fun ColumnScope.MoreOptions(
     title: String,
     enabled: Boolean = true,
     icon: ImageVector = Icons.Default.Settings,
+    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    MoreInfo({ Text(title, style = MaterialTheme.typography.titleSmall) }, enabled, content, icon)
+    MoreInfo({ Text(title, style = MaterialTheme.typography.titleSmall) }, enabled, content, icon, modifier)
 }
 
 @Composable
 fun ColumnScope.MoreInfo(
     title: String,
     enabled: Boolean = true,
+    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    MoreInfo({ Text(title, style = MaterialTheme.typography.titleSmall) }, enabled, content, Icons.Default.Info)
+    MoreInfo({ Text(title, style = MaterialTheme.typography.titleSmall) }, enabled, content, Icons.Default.Info, modifier)
 }
 
 @Composable
@@ -72,7 +75,8 @@ private fun ColumnScope.MoreInfo(
     enabled: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
     icon: ImageVector,
-) {
+    modifier: Modifier = Modifier,
+    ) {
     val i18n = DI.get<I18nView>()
     var expanded by remember { mutableStateOf(false) }
     val rotateState by animateFloatAsState(
@@ -84,7 +88,7 @@ private fun ColumnScope.MoreInfo(
     if (!enabled) expanded = false
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .clickable(interactionSource, indication = null, onClick = {
                 if (enabled) expanded = expanded.not()
             })
