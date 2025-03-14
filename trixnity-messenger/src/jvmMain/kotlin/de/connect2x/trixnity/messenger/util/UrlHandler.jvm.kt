@@ -28,7 +28,7 @@ class UrlHandlerImpl(
     config: MatrixMessengerBaseConfiguration,
     private val fileSystem: FileSystem,
     rootPath: RootPath,
-    private val closeApp: CloseApp
+    private val closeApp: CloseApp?
 ) :
     UrlHandlerBase(config) {
 
@@ -178,7 +178,7 @@ class UrlHandlerImpl(
                 } finally {
                     socket.close()
                 }
-                closeApp()
+                closeApp?.invoke()
             } else {
                 listenForArgs(null) // fallback
             }
@@ -188,7 +188,7 @@ class UrlHandlerImpl(
 
 actual fun platformUrlHandlerModule(): Module = module {
     single<UrlHandler> {
-        UrlHandlerImpl(get(), get(), get(), get())
+        UrlHandlerImpl(get(), get(), get(), getOrNull())
     }
 }
 
