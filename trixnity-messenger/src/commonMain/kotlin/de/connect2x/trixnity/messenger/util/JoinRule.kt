@@ -21,68 +21,81 @@ val JoinRule.isKnock: Boolean
 /**
  * Joins a room based on its joinRule
  */
-suspend fun joinRoom(
-    matrixClient: MatrixClient,
-    roomId: RoomId,
-    joinRule: JoinRule,
-    reason: String? = null
-): JoinResult =
-    when (joinRule) {
-        JoinRule.Knock ->
-            matrixClient.api.room.knockRoom(roomId = roomId, reason = reason).fold(
-                onFailure = {
-                    JoinResult.Error(joinRule, it)
-                },
-                onSuccess = {
-                    JoinResult.Success(joinRule)
-                }
-            )
+interface joinRoom {
+    suspend operator fun invoke(
+        matrixClient: MatrixClient,
+        roomId: RoomId,
+        joinRule: JoinRule,
+        reason: String? = null
+    ): JoinResult
 
-        JoinRule.Public ->
-            matrixClient.api.room.joinRoom(roomId).fold(
-                onFailure = {
-                    JoinResult.Error(joinRule, it)
-                },
-                onSuccess = {
-                    JoinResult.Success(joinRule)
-                }
-            )
+    companion object: joinRoom {
+        /**
+         * Whether you pass the restrictions to join. See [JoinRule.Restricted] and [JoinRule.KnockRestricted]
+         */
+        private suspend fun passesJoinRestriction(matrixClient: MatrixClient, roomId: RoomId): Boolean =
+            matrixClient.api.room.getStateEvent<JoinRulesEventContent>(roomId)
+                .map {
+                    it.allow?.any {
+                        matrixClient.room.getById(roomId).filterNotNull().firstOrNull()?.membership == Membership.JOIN
+                    } == true
+                }.getOrElse { false }
 
-        JoinRule.KnockRestricted ->
-            if (passesJoinRestriction(matrixClient, roomId))
-                joinRoom(matrixClient, roomId, JoinRule.Public, reason)
-            else
-                joinRoom(matrixClient, roomId, JoinRule.Knock, reason)
+        override suspend operator fun invoke(
+            matrixClient: MatrixClient,
+            roomId: RoomId,
+            joinRule: JoinRule,
+            reason: String?
+        ): JoinResult =
+            when (joinRule) {
+                JoinRule.Knock ->
+                    matrixClient.api.room.knockRoom(roomId = roomId, reason = reason).fold(
+                        onFailure = {
+                            JoinResult.Error(joinRule, it)
+                        },
+                        onSuccess = {
+                            JoinResult.Success(joinRule)
+                        }
+                    )
 
-        JoinRule.Restricted ->
-            if (passesJoinRestriction(matrixClient, roomId))
-                joinRoom(matrixClient, roomId, JoinRule.Public, reason)
-            else
-                JoinResult.Failed(joinRule)
+                JoinRule.Public ->
+                    matrixClient.api.room.joinRoom(roomId).fold(
+                        onFailure = {
+                            JoinResult.Error(joinRule, it)
+                        },
+                        onSuccess = {
+                            JoinResult.Success(joinRule)
+                        }
+                    )
 
-        JoinRule.Invite ->
-            if (matrixClient.room.getById(roomId).filterNotNull().firstOrNull()?.membership == Membership.INVITE)
-                joinRoom(matrixClient, roomId, JoinRule.Public, reason)
-            else
-                JoinResult.Failed(joinRule)
+                JoinRule.KnockRestricted ->
+                    if (passesJoinRestriction(matrixClient, roomId))
+                        invoke(matrixClient, roomId, JoinRule.Public, reason)
+                    else
+                        invoke(matrixClient, roomId, JoinRule.Knock, reason)
 
-        JoinRule.Private ->
-            JoinResult.Failed(joinRule)
+                JoinRule.Restricted ->
+                    if (passesJoinRestriction(matrixClient, roomId))
+                        invoke(matrixClient, roomId, JoinRule.Public, reason)
+                    else
+                        JoinResult.Failed(joinRule)
 
-        is JoinRule.Unknown ->
-            JoinResult.Failed(joinRule)
+                JoinRule.Invite ->
+                    if (matrixClient.room.getById(roomId).filterNotNull()
+                            .firstOrNull()?.membership == Membership.INVITE
+                    )
+                        invoke(matrixClient, roomId, JoinRule.Public, reason)
+                    else
+                        JoinResult.Failed(joinRule)
+
+                JoinRule.Private ->
+                    JoinResult.Failed(joinRule)
+
+                is JoinRule.Unknown ->
+                    JoinResult.Failed(joinRule)
+            }
     }
-
-/**
- * Whether you pass the restrictions to join. See [JoinRule.Restricted] and [JoinRule.KnockRestricted]
- */
-suspend fun passesJoinRestriction(matrixClient: MatrixClient, roomId: RoomId): Boolean =
-    matrixClient.api.room.getStateEvent<JoinRulesEventContent>(roomId)
-        .map {
-            it.allow?.any {
-                matrixClient.room.getById(roomId).filterNotNull().firstOrNull()?.membership == Membership.JOIN
-            } == true
-        }.getOrElse { false }
+}
 
 sealed interface JoinResult {
     data class Success(val kind: JoinRule) : JoinResult

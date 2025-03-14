@@ -137,7 +137,7 @@ class SearchGroupViewModelImpl(
         }
 
         coroutineScope.launch {
-            joinRoom(
+            get<joinRoom>()(
                 matrixClient,
                 searchGroup.roomId,
                 searchGroup.joinRule,
