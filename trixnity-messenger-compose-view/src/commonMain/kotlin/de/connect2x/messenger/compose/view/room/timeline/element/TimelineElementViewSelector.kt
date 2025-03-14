@@ -72,7 +72,7 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
                                         "This can be a missing view in the DI or might be an element that should not be " +
                                         "visible in the timeline."
                             }
-                            EmptyTimelineElementView as TimelineElementView<TimelineElementViewModel<*>>
+                            EmptyTimelineElementView
                         }
                 factoryMapping.update { it + (timelineElementViewModelClass to foundFactory) }
                 foundFactory
