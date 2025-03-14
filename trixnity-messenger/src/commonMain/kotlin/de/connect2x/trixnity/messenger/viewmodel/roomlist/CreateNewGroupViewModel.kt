@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PRIVATE
@@ -43,6 +44,7 @@ interface CreateNewGroupViewModel {
     val groupUsers: StateFlow<List<SearchUserElement>>
     val isPrivate: MutableStateFlow<Boolean>
     val isEncrypted: MutableStateFlow<Boolean>
+    val isCreating: StateFlow<Boolean>
     val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility>
     val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?>
     val optionalRoomName: TextFieldViewModel
@@ -73,6 +75,8 @@ open class CreateNewGroupViewModelImpl(
     MatrixClientViewModelContext by viewModelContext {
     override val isPrivate = MutableStateFlow(true)
     override val isEncrypted = MutableStateFlow(true)
+    private val _isCreating = MutableStateFlow(false)
+    override val isCreating: StateFlow<Boolean> = _isCreating
     override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
         HistoryVisibilityEventContent.HistoryVisibility.entries
     override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
@@ -102,6 +106,10 @@ open class CreateNewGroupViewModelImpl(
     override fun createNewGroup() {
         if (canCreateNewGroup.value.not()) {
             log.warn { "cannot create new group, since canCreateNewGroup is false" }
+            return
+        }
+        if (_isCreating.getAndUpdate { true }) {
+            log.warn { "group creation is already in progress" }
             return
         }
         log.info { "create new group with ${groupUsers.value.joinToString { it.displayName }}" }
@@ -136,7 +144,7 @@ open class CreateNewGroupViewModelImpl(
                     createNewRoomViewModel.error.value = i18n.createNewGroupError()
                 }
             )
-        }
+        }.invokeOnCompletion { _isCreating.value = false }
     }
 
     override fun errorDismiss() {
@@ -197,6 +205,7 @@ class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
     override val groupUsers: MutableStateFlow<List<SearchUserElement>> = MutableStateFlow(emptyList())
     override val isPrivate: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val isCreating: StateFlow<Boolean> = MutableStateFlow(false)
     override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
         HistoryVisibilityEventContent.HistoryVisibility.entries
     override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =

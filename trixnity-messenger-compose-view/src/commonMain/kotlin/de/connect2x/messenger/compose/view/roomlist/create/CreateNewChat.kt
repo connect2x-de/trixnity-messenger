@@ -15,9 +15,15 @@ import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -30,6 +36,8 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 interface CreateNewChatView {
     @Composable
@@ -45,7 +53,16 @@ class CreateNewChatViewImpl : CreateNewChatView {
     @Composable
     override fun create(createNewChatViewModel: CreateNewChatViewModel) {
         val i18n = DI.get<I18nView>()
+        val isCreating by createNewChatViewModel.isCreating.collectAsState()
         val error = createNewChatViewModel.error.collectAsState()
+
+        var showProgressBar by remember { mutableStateOf(false) }
+
+        LaunchedEffect(isCreating) {
+            delay(120.milliseconds)
+            showProgressBar = isCreating
+        }
+
         Box(Modifier.fillMaxSize()) {
             Box {
                 if (error.value != null) {
@@ -54,9 +71,15 @@ class CreateNewChatViewImpl : CreateNewChatView {
 
                 Column {
                     Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
+                    if (showProgressBar) {
+                        LinearProgressIndicator(Modifier.fillMaxWidth())
+                    }
                     AddOrSearchGroup(createNewChatViewModel)
                     HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
-                    SearchUsers(createNewChatViewModel.createNewRoomViewModel, onUserClick = createNewChatViewModel::onUserClick)
+                    SearchUsers(
+                        createNewChatViewModel.createNewRoomViewModel,
+                        onUserClick = createNewChatViewModel::onUserClick
+                    )
                 }
             }
         }
@@ -69,7 +92,8 @@ fun AddOrSearchGroup(createNewChatViewModel: CreateNewChatViewModel) {
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(Modifier.weight(1.0f, fill = true)
+        Box(
+            Modifier.weight(1.0f, fill = true)
             .clickable { createNewChatViewModel.createGroup() }
             .buttonPointerModifier()
         ) {
@@ -83,7 +107,8 @@ fun AddOrSearchGroup(createNewChatViewModel: CreateNewChatViewModel) {
             }
         }
         Spacer(Modifier.size(20.dp))
-        Box(Modifier.weight(1.0f, fill = true)
+        Box(
+            Modifier.weight(1.0f, fill = true)
             .clickable { createNewChatViewModel.searchGroup() }
             .buttonPointerModifier()
         ) {
