@@ -1173,19 +1173,19 @@ open class I18n(
         DE - "Raumsuche ist fehlgeschlagen"
     }
 
-    open fun searchGroupFailedJoin() = translate {
+    open fun searchGroupJoinFailedGeneric() = translate {
         EN - "Joining the room failed"
         DE - "Raumbeitritt ist fehlgeschlagen"
     }
 
-    open fun searchGroupFailedPrivate() = translate {
+    open fun searchGroupJoinFailedIsPrivate() = translate {
         EN - "Cannot join a private room"
         DE - "Kann einem privaten Raum nicht beitreten"
     }
 
-    open fun searchGroupFailedInvite() = translate {
+    open fun searchGroupJoinFailedRequiresInvite() = translate {
         EN - "Joining room is invite-only"
-        DE - "Kann Raum nur mit Einladung betreten"
+        DE - "Kann Raum nur auf Einladung betreten"
     }
 }
 

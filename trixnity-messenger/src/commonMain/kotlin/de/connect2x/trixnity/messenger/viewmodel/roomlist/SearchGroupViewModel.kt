@@ -162,11 +162,11 @@ class SearchGroupViewModelImpl(
                 },
                 onFailure = {
                     error.value = when (it.kind) {
-                        JoinRule.Private, JoinRule.Restricted -> i18n.searchGroupFailedPrivate()
-                        JoinRule.Invite -> i18n.searchGroupFailedInvite()
+                        JoinRule.Private, JoinRule.Restricted -> i18n.searchGroupJoinFailedIsPrivate()
+                        JoinRule.Invite -> i18n.searchGroupJoinFailedRequiresInvite()
                         is JoinRule.Unknown -> {
                             log.warn { "Encountered Unknown join rule (${it.kind.name}) for room (${searchGroup.roomId})" }
-                            i18n.searchGroupFailedJoin()
+                            i18n.searchGroupJoinFailedGeneric()
                         }
 
                         else -> {
@@ -179,33 +179,33 @@ class SearchGroupViewModelImpl(
                     error.value = when (it.kind) {
                         JoinRule.Private, JoinRule.Restricted -> {
                             log.error(it.error) { "Determining whether or not to join (${searchGroup.roomId}) failed" }
-                            i18n.searchGroupFailedJoin()
+                            i18n.searchGroupJoinFailedGeneric()
                         }
 
                         JoinRule.Invite -> {
                             log.error(it.error) { "Determining whether or not to join (${searchGroup.roomId}) failed" }
-                            i18n.searchGroupFailedJoin()
+                            i18n.searchGroupJoinFailedGeneric()
                         }
 
                         JoinRule.Public -> {
                             log.error(it.error) { "cannot join room (${searchGroup.roomId})" }
-                            i18n.searchGroupFailedJoin()
+                            i18n.searchGroupJoinFailedGeneric()
                         }
 
                         JoinRule.Knock -> {
                             log.error(it.error) { "cannot knock room (${searchGroup.roomId}) ${if (reason == null) "" else "with reason $reason"}" }
-                            i18n.searchGroupFailedJoin()
+                            i18n.searchGroupJoinFailedGeneric()
                         }
 
                         JoinRule.KnockRestricted -> {
                             log.error(it.error) { "Determining whether or not to join (${searchGroup.roomId}) failed" }
-                            i18n.searchGroupFailedJoin()
+                            i18n.searchGroupJoinFailedGeneric()
                         }
 
 
                         is JoinRule.Unknown -> {
                             log.error(it.error) { "Unknown join rule (${it.kind.name}) for room (${searchGroup.roomId}) failed" }
-                            i18n.searchGroupFailedJoin()
+                            i18n.searchGroupJoinFailedGeneric()
                         }
                     }
                 },
