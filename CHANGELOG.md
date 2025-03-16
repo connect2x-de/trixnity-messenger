@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Check to ensure a single running instance of the messenger in the browser
+
 ### Changed
 
 - Change imprint and privacy information formatting to Markdown to support them in app instead of via link
