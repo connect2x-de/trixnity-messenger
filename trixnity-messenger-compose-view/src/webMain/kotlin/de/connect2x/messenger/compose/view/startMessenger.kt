@@ -8,8 +8,10 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.createRoot
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.create
@@ -24,6 +26,7 @@ import web.dom.DocumentVisibilityState
 import web.dom.document
 import web.events.Event
 import web.events.addEventListener
+import web.prompts.alert
 import web.uievents.FocusEvent
 import web.window.window
 
@@ -37,6 +40,16 @@ suspend fun startMessenger(
     logLevel = Level.DEBUG
 
     val matrixMultiMessenger = MatrixMultiMessenger.create(configuration = configuration)
+    val config = matrixMultiMessenger.di.get<MatrixMessengerBaseConfiguration>()
+    val i18n = matrixMultiMessenger.di.get<I18n>()
+
+    if (!isPrimaryInstance()) {
+        log.info { "${config.appName} is already running, skipping initialization" }
+        alert(i18n.alreadyRunningError(config.appName))
+        window.location.href = "about:blank" // Redirect to empty tab
+        return
+    }
+
     val lifecycleRegistry = LifecycleRegistry(Lifecycle.State.STARTED)
     val windowIsFocused = MutableStateFlow(false)
 
@@ -74,8 +87,8 @@ suspend fun startMessenger(
 
     matrixMultiMessenger.singleMode { matrixMessenger ->
         try {
-            val rootViewModel = matrixMessenger.createRoot(DefaultComponentContext(lifecycleRegistry))
             val config = matrixMessenger.di.get<MatrixMessengerConfiguration>()
+            val rootViewModel = matrixMessenger.createRoot(DefaultComponentContext(lifecycleRegistry))
             onWasmReady {
                 CanvasBasedWindow(config.appName) {
                     // As this is hopefully only temporary until FontFallback works automatically on Web with
