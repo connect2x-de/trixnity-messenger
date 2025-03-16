@@ -43,7 +43,7 @@ suspend fun startMessenger(
     val config = matrixMultiMessenger.di.get<MatrixMessengerBaseConfiguration>()
     val i18n = matrixMultiMessenger.di.get<I18n>()
 
-    if (!isPrimaryInstance()) {
+    if (!isPrimaryInstance(config)) {
         log.info { "${config.appName} is already running, skipping initialization" }
         alert(i18n.alreadyRunningError(config.appName))
         window.location.href = "about:blank" // Redirect to empty tab
