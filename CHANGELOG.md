@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Unrecommended HTML tags are not being sent any more
 - Shared Plaintext is not interpreted as Markdown
+- CloseApp should not be injected when null
 
 ### Security
 
@@ -36,16 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change imprint and privacy information formatting to Markdown to support them in app instead of via link
 - Upgrade to Trixnity 4.13.3 to fix rollback issues in IndexedDB
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Removed useless suspense in addmembers viewmodel
 - Fix Back Button for image preview
-
-### Security
 
 ## 3.4.2
 
