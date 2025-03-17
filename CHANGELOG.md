@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unrecommended HTML tags are not being sent any more
 - Shared Plaintext is not interpreted as Markdown
 - CloseApp should not be injected when null
+- Fixed file save dialog repeatedly opening
 
 ### Security
 
