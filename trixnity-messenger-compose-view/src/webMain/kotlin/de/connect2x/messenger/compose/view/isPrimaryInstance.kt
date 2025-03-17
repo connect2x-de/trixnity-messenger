@@ -7,7 +7,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import web.broadcast.BroadcastChannel
 import web.events.EventHandler
 import web.window.window
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val BROADCAST_PING: String = "ping!"
 private const val BROADCAST_PONG: String = "pong!"
@@ -43,7 +43,7 @@ internal suspend fun isPrimaryInstance(config: MatrixMessengerBaseConfiguration)
             }
         }
     }
-    return withTimeoutOrNull(2.seconds) {
+    return withTimeoutOrNull(500.milliseconds) {
         isSecondary.await()
         false
     } ?: true
