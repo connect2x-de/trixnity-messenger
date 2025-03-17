@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whi
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
-import de.connect2x.trixnity.messenger.viewmodel.util.debounceAfterFirst
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
@@ -51,7 +50,6 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
-import kotlin.time.Duration.Companion.milliseconds
 
 private val log = KotlinLogging.logger { }
 
@@ -220,10 +218,13 @@ class OutboxElementHolderViewModelImpl(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val previousSupportedTimelineEvent = matrixClient.room.getLastTimelineEvents(roomId)
         .filterNotNull()
-        // Prevent Race Condition: previousSupportedTimelineEvent becomes sent Outbox Event
-        .debounceAfterFirst(500.milliseconds)
         .flatMapLatest { lastTimelineEvents ->
-            timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(lastTimelineEvents)
+            timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
+                lastTimelineEvents,
+                filter = {
+                    it.event.unsigned?.transactionId != transactionId
+                }
+            )
         }.shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
 
     override val isFirstInUserSequence: StateFlow<Boolean?> =

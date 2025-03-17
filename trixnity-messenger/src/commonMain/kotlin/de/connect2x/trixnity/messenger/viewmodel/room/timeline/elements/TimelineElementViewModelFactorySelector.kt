@@ -21,7 +21,7 @@ import kotlin.reflect.KClass
 private val log = KotlinLogging.logger {}
 
 interface TimelineElementViewModelFactorySelector {
-    fun nextSupportedTimelineEvent(timelineEvents: Flow<Flow<TimelineEvent>>): Flow<TimelineEvent?>
+    fun nextSupportedTimelineEvent(timelineEvents: Flow<Flow<TimelineEvent>>, filter: ((TimelineEvent) -> Boolean)? = null): Flow<TimelineEvent?>
     suspend fun supports(timelineEvent: Flow<TimelineEvent>): Boolean
 
     suspend fun create(
@@ -55,11 +55,11 @@ class TimelineElementViewModelFactorySelectorImpl(
 
     private val factoryMapping = concurrentMutableMap<KClass<out RoomEventContent>, Mapping>()
 
-    override fun nextSupportedTimelineEvent(timelineEvents: Flow<Flow<TimelineEvent>>): Flow<TimelineEvent?> =
+    override fun nextSupportedTimelineEvent(timelineEvents: Flow<Flow<TimelineEvent>>, filter: ((TimelineEvent) -> Boolean)?): Flow<TimelineEvent?> =
         flow {
             timelineEvents.collect { timelineEvent ->
                 timelineEvent
-                    .map { supports(it.event.content, it.content) }
+                    .map { filter?.invoke(it) == true && supports(it.event.content, it.content) }
                     .onEach { if (it) emitAll(timelineEvent) else emit(null) }
                     .first { !it }
             }

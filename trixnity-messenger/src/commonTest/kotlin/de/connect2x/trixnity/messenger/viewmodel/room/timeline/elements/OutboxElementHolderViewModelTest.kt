@@ -283,6 +283,33 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
 
             cancelNeverEndingCoroutines()
         }
+
+        should("showBigGapBefore: skip sent transaction") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(
+                    sender = us,
+                    sentAt = clock.now() - config.showBigGapBeforeThreshold - 1.seconds
+                ) {
+                    text("Hi!")
+                }
+
+                +messageEvent(
+                    sender = us,
+                    sentAt = clock.now(),
+                    transactionId = "t1"
+                ) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            launch { cut.showBigGapBefore.collect() }
+
+            advanceUntilIdle()
+            cut.showBigGapBefore.value shouldBe true
+
+            cancelNeverEndingCoroutines()
+        }
     }
 
     private fun TestScope.cut(eventId: EventId = this@OutboxElementHolderViewModelTest.eventId): OutboxElementHolderViewModel {
