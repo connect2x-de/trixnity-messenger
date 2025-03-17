@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import com.arkivanov.essenty.backhandler.BackCallback
-import de.connect2x.trixnity.messenger.util.joinRoom
+import de.connect2x.trixnity.messenger.util.JoinRoom
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
@@ -81,6 +81,7 @@ class SearchGroupViewModelImpl(
     }
 
     private val initials = get<Initials>()
+    private val joinRoom = get<JoinRoom>()
 
     override val searchTerm = TextFieldViewModelImpl()
     override val groupSearchInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -137,7 +138,7 @@ class SearchGroupViewModelImpl(
         }
 
         coroutineScope.launch {
-            get<joinRoom>()(
+            joinRoom(
                 matrixClient,
                 searchGroup.roomId,
                 searchGroup.joinRule,
