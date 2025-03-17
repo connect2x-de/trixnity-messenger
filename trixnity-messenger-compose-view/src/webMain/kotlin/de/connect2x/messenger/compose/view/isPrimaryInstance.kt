@@ -43,7 +43,7 @@ internal suspend fun isPrimaryInstance(config: MatrixMessengerBaseConfiguration)
             }
         }
     }
-    return withTimeoutOrNull(500.milliseconds) {
+    return withTimeoutOrNull(200.milliseconds) {
         isSecondary.await()
         false
     } ?: true
