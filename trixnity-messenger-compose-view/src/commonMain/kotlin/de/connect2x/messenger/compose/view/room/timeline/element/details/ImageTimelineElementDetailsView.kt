@@ -84,7 +84,7 @@ class ImageTimelineElementDetailsView :
             element.loadMedia()
         }
 
-        FileBasedDetailsDialog(element, onClose, additions = { ZoomButtons(zoom) }) {
+        FileBasedDetailsDialog(element, onSave, onClose, additions = { ZoomButtons(zoom) }) {
             // we need focus in the box to capture key events
             val focusRequester = remember { FocusRequester() }
             BoxWithConstraints(Modifier.zIndex(0.0f)) {
@@ -95,7 +95,7 @@ class ImageTimelineElementDetailsView :
                         .focusable()
                         .onKeyEvent { keyEvent ->
                             canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
-                            true
+                            false
                         }
                         .zoomModifier(focusRequester, canZoom, zoom)
                         // performance when image is rendered with no alpha channel

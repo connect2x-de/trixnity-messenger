@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.membership
@@ -48,6 +49,7 @@ interface CreateNewChatViewModel {
     val createNewRoomViewModel: CreateNewRoomViewModel
     val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility>
     val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?>
+    val isCreating: StateFlow<Boolean>
     val error: StateFlow<String?>
     fun onUserClick(user: SearchUserElement)
     fun createGroup()
@@ -69,6 +71,8 @@ open class CreateNewChatViewModelImpl(
         HistoryVisibilityEventContent.HistoryVisibility.entries - HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
     override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
         MutableStateFlow(null)
+    private val _isCreating = MutableStateFlow(false)
+    override val isCreating: StateFlow<Boolean> = _isCreating
 
     private val backCallback = BackCallback {
         cancel()
@@ -99,7 +103,8 @@ open class CreateNewChatViewModelImpl(
         val userId = user.userId
         coroutineScope.launch {
             val existingRoomIds = createNewRoomViewModel.existingDirectRooms.value[userId]
-            if (existingRoomIds?.isNotEmpty() == true &&
+            if (
+                existingRoomIds?.isNotEmpty() == true &&
                 existingRoomIds.any { matrixClient.room.getById(it).first() != null }
             ) {
                 log.debug { "Check whether there is already existing room with $userId" }
@@ -130,6 +135,11 @@ open class CreateNewChatViewModelImpl(
     }
 
     private suspend fun createNewRoom(userId: UserId) {
+        if (_isCreating.getAndUpdate { true }) {
+            log.warn { "group creation is already in progress" }
+            return
+        }
+
         log.info { "create new room with $userId" }
         val encryption = listOf(InitialStateEvent(EncryptionEventContent(), ""))
         val historyVisibility = optionalRoomHistoryVisibility.value?.let {
@@ -150,6 +160,8 @@ open class CreateNewChatViewModelImpl(
                 createNewRoomViewModel.error.value = i18n.createNewChatError()
             }
         )
+
+        _isCreating.value = false
     }
 
 }
@@ -161,6 +173,7 @@ class PreviewCreateNewChatViewModel : CreateNewChatViewModel {
         HistoryVisibilityEventContent.HistoryVisibility.entries - HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
     override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
         MutableStateFlow(null)
+    override val isCreating: StateFlow<Boolean> = MutableStateFlow(false)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override fun onUserClick(user: SearchUserElement) {}
