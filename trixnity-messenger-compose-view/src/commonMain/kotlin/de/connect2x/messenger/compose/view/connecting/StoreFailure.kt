@@ -21,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,9 +35,7 @@ import de.connect2x.messenger.compose.view.common.RunningText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationFailureViewModel
-import kotlinx.coroutines.delay
 
 interface MatrixClientInitializationFailureView {
     @Composable
@@ -128,14 +125,6 @@ class MatrixClientInitializationFailureViewImpl : MatrixClientInitializationFail
                 Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
                 scroll,
             )
-        }
-
-        val closeApp = DI.get<CloseApp>()
-        LaunchedEffect(Unit) {
-            if (deleteEnabled.not()) {
-                delay(5_000)
-                closeApp()
-            }
         }
     }
 }

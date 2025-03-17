@@ -48,20 +48,12 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 @Composable
 fun FileBasedDetailsHeader(
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
+    onSave: () -> Unit,
     onClose: () -> Unit,
     additionalButtons: @Composable RowScope.() -> Unit = {},
 ) {
     val i18n = DI.get<I18nView>()
     val downloadProgress = element.downloadMediaProgress.collectAsState().value
-    val error = element.downloadMediaError.collectAsState().value
-
-    var saveDialogOpen by remember { mutableStateOf(false) }
-    if (saveDialogOpen) SaveFileDialog(
-        element.name,
-        element.mimeType,
-        error,
-        element::downloadMedia,
-    ) { saveDialogOpen = false }
 
     Row(
         Modifier
@@ -102,7 +94,7 @@ fun FileBasedDetailsHeader(
         additionalButtons(this)
 
         if (downloadProgress == null) {
-            FileBasedDetailsHeaderButton(Icons.Outlined.Download, i18n.downloadMessage()) { saveDialogOpen = true }
+            FileBasedDetailsHeaderButton(Icons.Outlined.Download, i18n.downloadMessage(), onSave)
         } else {
             CircularProgressIndicator(
                 progress = {

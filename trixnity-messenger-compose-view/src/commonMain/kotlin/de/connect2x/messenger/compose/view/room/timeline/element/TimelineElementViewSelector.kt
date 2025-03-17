@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -15,32 +14,34 @@ import kotlin.reflect.KClass
 
 private val log = KotlinLogging.logger {}
 
-interface TimelineElementViewSelector {
-    suspend fun waitFor(element: TimelineElementViewModel<*>)
+interface TimelineElementViewSelector :
+    TimelineElementViewFactorySelector<TimelineElementView<TimelineElementViewModel<*>>> {
+    suspend fun waitFor(element: TimelineElementViewModel<*>) =
+        selectFactory(element).waitFor(element)
 
     @Composable
     fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-    )
+    ) = rememberFactory(element).createInTimeline(holder, element)
 
     @Composable
     fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-    )
+    ) = rememberFactory(element).createInTimeline(holder, element)
 
     @Composable
     fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-    )
+    ) = rememberFactory(element).createInTimeline(holder, element)
 
     @Composable
     fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-    )
+    ) = rememberFactory(element).createInTimeline(holder, element)
 }
 
 @Composable
@@ -58,66 +59,21 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
             emptyMap()
         )
 
-    override suspend fun waitFor(element: TimelineElementViewModel<*>) {
-        val factory = selectFactory(element)
-        factory.waitFor(element)
-    }
-
-    @Composable
-    override fun createInTimeline(
-        holder: BaseTimelineElementHolderViewModel,
-        element: TimelineElementViewModel<*>,
-    ) {
-        val factory = rememberSelectFactory(element)
-        factory?.createInTimeline(holder, element)
-    }
-
-    @Composable
-    override fun createAsPreview(
-        holder: TimelineElementHolderViewModel,
-        element: TimelineElementViewModel<*>,
-    ) {
-        val factory = rememberSelectFactory(element)
-        factory?.createAsPreview(holder, element)
-    }
-
-    @Composable
-    override fun createReplyInTimeline(
-        holder: TimelineElementHolderViewModel,
-        element: TimelineElementViewModel<*>,
-    ) {
-        val factory = rememberSelectFactory(element)
-        factory?.createReplyInTimeline(holder, element)
-    }
-
-    @Composable
-    override fun createReplyInSendMessage(
-        holder: TimelineElementHolderViewModel,
-        element: TimelineElementViewModel<*>,
-    ) {
-        val factory = rememberSelectFactory(element)
-        factory?.createReplyInSendMessage(holder, element)
-    }
-
-    @Composable
-    private fun rememberSelectFactory(element: TimelineElementViewModel<*>): TimelineElementView<TimelineElementViewModel<*>>? =
-        remember(element) { selectFactory(element) }
-
-    private fun selectFactory(element: TimelineElementViewModel<*>): TimelineElementView<TimelineElementViewModel<*>> {
+    override fun selectFactory(element: TimelineElementViewModel<*>): TimelineElementView<TimelineElementViewModel<*>> {
         val timelineElementViewModelClass = element::class
         return factoryMapping.value[timelineElementViewModelClass]
             ?: run {
-                val foundFactory = factories.firstOrNull { it.supports.isInstance(element) }
-                    ?: run {
-                        log.warn {
-                            "There are no registered views for ${element::class.simpleName}. " +
-                                    "This can be a missing view in the DI or might be an element that should not be " +
-                                    "visible in the timeline."
-                        }
-                        EmptyTimelineElementView
-                    }
                 @Suppress("UNCHECKED_CAST")
-                foundFactory as TimelineElementView<TimelineElementViewModel<*>>
+                val foundFactory =
+                    factories.firstOrNull { it.supports.isInstance(element) } as TimelineElementView<TimelineElementViewModel<*>>?
+                        ?: run {
+                            log.warn {
+                                "There are no registered views for ${element::class.simpleName}. " +
+                                        "This can be a missing view in the DI or might be an element that should not be " +
+                                        "visible in the timeline."
+                            }
+                            EmptyTimelineElementView
+                        }
                 factoryMapping.update { it + (timelineElementViewModelClass to foundFactory) }
                 foundFactory
             }
