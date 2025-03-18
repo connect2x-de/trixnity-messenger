@@ -1,7 +1,11 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.GetSystemLang
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.runTestWithCoroutineScope
+import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
@@ -17,6 +21,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.core.ErrorResponse
@@ -40,6 +45,12 @@ class JoinRoomTest {
     private val matrixApiClientMock = mock<MatrixClientServerApiClient>()
     private val roomApiClientMock = mock<RoomApiClient>()
     private val roomServiceMock = mock<RoomService>()
+    private val i18n = object : I18n(
+        DefaultLanguages,
+        createTestMatrixMessengerSettingsHolder(),
+        GetSystemLang { "en" },
+        TimeZone.of("CET"),
+    ) {}
 
     @BeforeTest
     fun setup() {
@@ -68,13 +79,13 @@ class JoinRoomTest {
     fun `Knock room`() = runTestWithCoroutineScope {
         val res = cut.invoke(
             matrixClientMock,
-            roomId,
-            JoinRulesEventContent.JoinRule.Knock
+            JoinRulesEventContent.JoinRule.Knock,
+            roomId
         )
 
         delay(500.milliseconds)
 
-        res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.Knock)
+        res shouldBe JoinRoom.Result.Success(JoinRulesEventContent.JoinRule.Knock)
     }
 
     @Test
@@ -87,26 +98,26 @@ class JoinRoomTest {
 
         val res = cut.invoke(
             matrixClientMock,
-            roomId,
-            JoinRulesEventContent.JoinRule.Knock
+            JoinRulesEventContent.JoinRule.Knock,
+            roomId
         )
 
         delay(500.milliseconds)
 
-        res shouldBe JoinResult.Error(JoinRulesEventContent.JoinRule.Knock, exception)
+        res shouldBe JoinRoom.Result.Error(JoinRulesEventContent.JoinRule.Knock, exception)
     }
 
     @Test
     fun `Join room`() = runTestWithCoroutineScope {
         val res = cut.invoke(
             matrixClientMock,
-            roomId,
-            JoinRulesEventContent.JoinRule.Public
+            JoinRulesEventContent.JoinRule.Public,
+            roomId
         )
 
         delay(500.milliseconds)
 
-        res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.Public)
+        res shouldBe JoinRoom.Result.Success(JoinRulesEventContent.JoinRule.Public)
     }
 
 
@@ -114,13 +125,13 @@ class JoinRoomTest {
     fun `Join allowed restricted room`() = runTestWithCoroutineScope {
         val res = cut.invoke(
             matrixClientMock,
-            roomId,
-            JoinRulesEventContent.JoinRule.Restricted
+            JoinRulesEventContent.JoinRule.Restricted,
+            roomId
         )
 
         delay(500.milliseconds)
 
-        res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.Restricted)
+        res shouldBe JoinRoom.Result.Success(JoinRulesEventContent.JoinRule.Restricted)
     }
 
 
@@ -132,13 +143,13 @@ class JoinRoomTest {
 
         val res = cut.invoke(
             matrixClientMock,
-            roomId,
-            JoinRulesEventContent.JoinRule.Restricted
+            JoinRulesEventContent.JoinRule.Restricted,
+            roomId
         )
 
         delay(500.milliseconds)
 
-        res shouldBe JoinResult.Failed(JoinRulesEventContent.JoinRule.Restricted)
+        res shouldBe JoinRoom.Result.Failed(JoinRulesEventContent.JoinRule.Restricted, i18n.joinRoomFailedRestricted())
     }
 
 
@@ -146,13 +157,13 @@ class JoinRoomTest {
     fun `Join allowed KnockRestricted room`() = runTestWithCoroutineScope {
         val res = cut.invoke(
             matrixClientMock,
-            roomId,
-            JoinRulesEventContent.JoinRule.KnockRestricted
+            JoinRulesEventContent.JoinRule.KnockRestricted,
+            roomId
         )
 
         delay(500.milliseconds)
 
-        res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.KnockRestricted)
+        res shouldBe JoinRoom.Result.Success(JoinRulesEventContent.JoinRule.KnockRestricted)
     }
 
 
@@ -163,13 +174,13 @@ class JoinRoomTest {
 
         val res = cut.invoke(
             matrixClientMock,
-            roomId,
-            JoinRulesEventContent.JoinRule.KnockRestricted
+            JoinRulesEventContent.JoinRule.KnockRestricted,
+            roomId
         )
 
         delay(500.milliseconds)
 
-        res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.Knock)
+        res shouldBe JoinRoom.Result.Success(JoinRulesEventContent.JoinRule.Knock)
     }
 
 
@@ -179,13 +190,13 @@ class JoinRoomTest {
 
         val res = cut.invoke(
             matrixClientMock,
-            roomId,
-            JoinRulesEventContent.JoinRule.Invite
+            JoinRulesEventContent.JoinRule.Invite,
+            roomId
         )
 
         delay(500.milliseconds)
 
-        res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.Public)
+        res shouldBe JoinRoom.Result.Success(JoinRulesEventContent.JoinRule.Public)
     }
 
 
@@ -193,38 +204,38 @@ class JoinRoomTest {
     fun `Not join Invite room we are not invited to`() = runTestWithCoroutineScope {
         val res = cut.invoke(
             matrixClientMock,
-            roomId,
-            JoinRulesEventContent.JoinRule.Invite
+            JoinRulesEventContent.JoinRule.Invite,
+            roomId
         )
 
         delay(500.milliseconds)
 
-        res shouldBe JoinResult.Failed(JoinRulesEventContent.JoinRule.Invite)
+        res shouldBe JoinRoom.Result.Failed(JoinRulesEventContent.JoinRule.Invite, i18n.joinRoomFailedInvite())
     }
 
     @Test
     fun `Not join private room`() = runTestWithCoroutineScope {
         val res = cut.invoke(
             matrixClientMock,
-            roomId,
-            JoinRulesEventContent.JoinRule.Private
+            JoinRulesEventContent.JoinRule.Private,
+            roomId
         )
 
         delay(500.milliseconds)
 
-        res shouldBe JoinResult.Failed(JoinRulesEventContent.JoinRule.Private)
+        res shouldBe JoinRoom.Result.Failed(JoinRulesEventContent.JoinRule.Private, i18n.joinRoomFailedGenericJoin())
     }
 
     @Test
     fun `Not join unknown`() = runTestWithCoroutineScope {
         val res = cut.invoke(
             matrixClientMock,
-            roomId,
-            JoinRulesEventContent.JoinRule.Unknown("cooked")
+            JoinRulesEventContent.JoinRule.Unknown("cooked"),
+            roomId
         )
 
         delay(500.milliseconds)
 
-        res shouldBe JoinResult.Failed(JoinRulesEventContent.JoinRule.Unknown("cooked"))
+        res shouldBe JoinRoom.Result.Failed(JoinRulesEventContent.JoinRule.Unknown("cooked"), i18n.joinRoomFailedGenericJoin())
     }
 }
