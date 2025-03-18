@@ -1237,6 +1237,36 @@ open class I18n(
         EN - "Joining room is invite-only"
         DE - "Kann Raum nur auf Einladung betreten"
     }
+
+    open fun joinRoomFailedGenericJoin() = translate {
+        EN - "Joining the room failed"
+        DE - "Raumbeitritt ist fehlgeschlagen"
+    }
+
+    open fun joinRoomFailedRestricted() = translate {
+        EN - "Unqualified to join this room"
+        DE - "Unqualifiziert diesen Raum beizutreten"
+    }
+
+    open fun joinRoomFailedInvite() = translate {
+        EN - "Joining room is invite-only"
+        DE - "Kann Raum nur auf Einladung betreten"
+    }
+
+    open fun joinRoomFailedGenericKnock() = translate {
+        EN - "Membership request failed"
+        DE - "Raummitgliedschaftssanfrage ist fehlgeschlagen"
+    }
+
+    open fun joinRoomFailedNoPermission() = translate {
+        EN - "No Permission to join this room"
+        DE - "Fehlende Berechtigung diesem Raum beizutreten"
+    }
+
+    open fun joinRoomFailedRoomDoesNotExist() = translate {
+        EN - "Room does not exist"
+        DE - "Raum existiert nicht"
+    }
 }
 
 internal fun getLang(

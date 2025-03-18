@@ -140,13 +140,13 @@ class SearchGroupViewModelImpl(
         coroutineScope.launch {
             joinRoom(
                 matrixClient,
-                searchGroup.roomId,
                 searchGroup.joinRule,
+                searchGroup.roomId,
                 reason
             ).fold(
                 onSuccess = {
                     when (it.kind) {
-                        is JoinRule.Public -> {
+                        is JoinRule.Public, is JoinRule.Invite, is JoinRule.Restricted -> {
                             onGroupJoined(userId, searchGroup.roomId)
                         }
 
@@ -162,53 +162,11 @@ class SearchGroupViewModelImpl(
                     error.value = null
                 },
                 onFailure = {
-                    error.value = when (it.kind) {
-                        JoinRule.Private, JoinRule.Restricted -> i18n.searchGroupJoinFailedIsPrivate()
-                        JoinRule.Invite -> i18n.searchGroupJoinFailedRequiresInvite()
-                        is JoinRule.Unknown -> {
-                            log.warn { "Encountered Unknown join rule (${it.kind.name}) for room (${searchGroup.roomId})" }
-                            i18n.searchGroupJoinFailedGeneric()
-                        }
-
-                        else -> {
-                            log.warn { "This should never happen as you can always join a room with a Join, Knock or KnockRestricted rule" }
-                            null
-                        }
-                    }
+                    error.value = it.reason
                 },
                 onError = {
-                    error.value = when (it.kind) {
-                        JoinRule.Private, JoinRule.Restricted -> {
-                            log.error(it.error) { "Determining whether or not to join (${searchGroup.roomId}) failed" }
-                            i18n.searchGroupJoinFailedGeneric()
-                        }
-
-                        JoinRule.Invite -> {
-                            log.error(it.error) { "Determining whether or not to join (${searchGroup.roomId}) failed" }
-                            i18n.searchGroupJoinFailedGeneric()
-                        }
-
-                        JoinRule.Public -> {
-                            log.error(it.error) { "cannot join room (${searchGroup.roomId})" }
-                            i18n.searchGroupJoinFailedGeneric()
-                        }
-
-                        JoinRule.Knock -> {
-                            log.error(it.error) { "cannot knock room (${searchGroup.roomId}) ${if (reason == null) "" else "with reason $reason"}" }
-                            i18n.searchGroupJoinFailedGeneric()
-                        }
-
-                        JoinRule.KnockRestricted -> {
-                            log.error(it.error) { "Determining whether or not to join (${searchGroup.roomId}) failed" }
-                            i18n.searchGroupJoinFailedGeneric()
-                        }
-
-
-                        is JoinRule.Unknown -> {
-                            log.error(it.error) { "Unknown join rule (${it.kind.name}) for room (${searchGroup.roomId}) failed" }
-                            i18n.searchGroupJoinFailedGeneric()
-                        }
-                    }
+                    log.error(it.error) { "Failed to join room ${searchGroup.roomId} using ${it.kind} (room has ${searchGroup.joinRule})" }
+                    error.value = i18n.searchGroupJoinFailedGeneric()
                 },
             )
         }.invokeOnCompletion { addGroupInProgress.value = false }
