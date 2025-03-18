@@ -82,6 +82,11 @@ open class I18n(
         DE - "Einladung in $groupOrChat '$roomName'"
     }
 
+    open fun roomNameKnockFor(roomId: String) = translate {
+        EN - "Mebership request for $roomId"
+        DE - "Beitrittsanfrage für $roomId"
+    }
+
     open fun roomNamePeople(count: Int) = translate {
         EN - "$count persons"
         DE - "$count Personen"
