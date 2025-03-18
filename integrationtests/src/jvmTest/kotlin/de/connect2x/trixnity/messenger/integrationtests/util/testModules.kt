@@ -7,7 +7,7 @@ import de.connect2x.trixnity.messenger.create
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerImpl
 import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
-import de.connect2x.trixnity.messenger.util.SecretByteArray
+import de.connect2x.trixnity.messenger.secrets.SecretByteArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import net.folivo.trixnity.client.store.repository.createInMemoryRepositoriesModule

@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.trixnity.messenger.MatrixClients.InitFromStoreResult
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -127,7 +126,7 @@ class MatrixClientsImpl(
             checkExisting = { checkExisting(it, baseUrl) },
         ).map {
             applyLogin(it)
-            it.matrixClient
+            it
         }
 
     override suspend fun login(
@@ -155,7 +154,7 @@ class MatrixClientsImpl(
             checkExisting = { checkExisting(it, baseUrl) },
         ).map {
             applyLogin(it)
-            it.matrixClient
+            it
         }
 
     override suspend fun loginWith(
@@ -168,11 +167,10 @@ class MatrixClientsImpl(
             checkExisting = { checkExisting(it, baseUrl) },
         ).map {
             applyLogin(it)
-            it.matrixClient
+            it
         }
 
-    private suspend fun applyLogin(loginResult: MatrixClientFactory.LoginResult) {
-        val (matrixClient, databasePassword) = loginResult
+    private suspend fun applyLogin(matrixClient: MatrixClient) {
         val displayColor =
             config.generateInitialAccountColor?.let { generateInitialAccountColor ->
                 generateInitialAccountColor(
@@ -181,7 +179,6 @@ class MatrixClientsImpl(
             }
         settings.update<MatrixMessengerAccountSettingsBase>(matrixClient.userId) {
             MatrixMessengerAccountSettingsBase.withConfigDefaults(
-                databasePassword = databasePassword,
                 displayColor = displayColor,
                 config = config
             )
@@ -221,7 +218,7 @@ class MatrixClientsImpl(
         val newMatrixClients = settings.value.base.accounts.map { (userId, accountSettings) ->
             async {
                 if (matrixClients.value[userId] == null) {
-                    val newMatrixClient = factory.initFromStore(userId, accountSettings.base.databasePassword)
+                    val newMatrixClient = factory.initFromStore(userId)
                         .fold(
                             onSuccess = { newMatrixClient ->
                                 if (newMatrixClient != null) success.update { it + userId }

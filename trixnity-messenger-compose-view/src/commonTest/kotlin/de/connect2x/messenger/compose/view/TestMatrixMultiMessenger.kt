@@ -9,7 +9,7 @@ import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
-import de.connect2x.trixnity.messenger.util.SecretByteArray
+import de.connect2x.trixnity.messenger.secrets.SecretByteArray
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.media.InMemoryMediaStore
 import net.folivo.trixnity.client.media.MediaStore

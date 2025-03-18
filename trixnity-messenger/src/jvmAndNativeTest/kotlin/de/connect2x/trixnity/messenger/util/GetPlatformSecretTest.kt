@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.messenger.secrets.platformPlatformSecretByteArrayKeyProviderModule
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -8,7 +9,7 @@ import org.koin.dsl.koinApplication
 
 class GetPlatformSecretTest : ShouldSpec({
     val cut = koinApplication {
-        modules(platformGetPlatformSecret())
+        modules(platformPlatformSecretByteArrayKeyProviderModule())
     }.koin.get<GetPlatformSecret>()
 
     val id: String = GetPlatformSecretTest::class.qualifiedName ?: "trixnity-messenger-GetPlatformSecretTest"

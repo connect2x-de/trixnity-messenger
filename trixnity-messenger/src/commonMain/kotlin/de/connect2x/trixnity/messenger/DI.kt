@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
 import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
+import de.connect2x.trixnity.messenger.secrets.secretsModule
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
@@ -17,11 +18,9 @@ import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
 import de.connect2x.trixnity.messenger.util.SharedDataHandler
 import de.connect2x.trixnity.messenger.util.SharedDataHandlerImpl
-import de.connect2x.trixnity.messenger.util.convertSecretByteArrayModule
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
-import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey
 import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule
 import de.connect2x.trixnity.messenger.util.platformMinimizeAppModule
 import de.connect2x.trixnity.messenger.util.platformPathsModule
@@ -213,7 +212,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             }
 
             single<MatrixClientFactory> {
-                MatrixClientFactoryImpl(get(), get(), getAll())
+                MatrixClientFactoryImpl(get(), get(), get(), get(), getAll())
             }
             single<MatrixClients> {
                 MatrixClientsImpl(get(), get(), get(), get(), get())
@@ -277,8 +276,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
     ::platformPathsModule,
     ::platformCreateRepositoriesModuleModule,
     ::platformCreateMediaStoreModule,
-    ::platformGetSecretByteArrayKey,
-    ::convertSecretByteArrayModule,
+    ::secretsModule,
     ::platformGetSystemLangModule,
     ::platformDeleteAccountDataModule,
     ::platformMatrixMessengerSettingsHolderModule,
