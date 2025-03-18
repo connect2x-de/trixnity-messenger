@@ -7,15 +7,15 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
-import io.kotest.assertions.nondeterministic.eventually
-import io.kotest.matchers.shouldBe
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import dev.mokkery.matcher.any
+import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
@@ -30,7 +30,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 
 class JoinRoomTest {
-    private val cut = JoinRoom.Companion
+    private val cut = JoinRoomImpl()
 
     private val roomId = RoomId("room1", "localhost")
     private val room = Room(roomId)
@@ -55,10 +55,12 @@ class JoinRoomTest {
 
         every { matrixClientMock.api } returns matrixApiClientMock
         every { matrixApiClientMock.room } returns roomApiClientMock
-        everySuspend { roomApiClientMock.knockRoom(eq(roomId), any(), any(), any()) } returns Result.success(roomId)
-        everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns Result.success(
-            roomId
-        )
+        everySuspend { roomApiClientMock.knockRoom(eq(roomId), any(), any(), any()) } returns
+                Result.success(roomId)
+
+        everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
+                Result.success(roomId)
+
         everySuspend { roomServiceMock.getById(eq(roomId)) } returns flowOf(room)
     }
 
@@ -70,9 +72,28 @@ class JoinRoomTest {
             JoinRulesEventContent.JoinRule.Knock
         )
 
-        eventually(500.milliseconds) {
-            res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.Knock)
-        }
+        delay(500.milliseconds)
+
+        res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.Knock)
+    }
+
+    @Test
+    fun `Fail to knock unknown room`() = runTestWithCoroutineScope {
+        val exception = MatrixServerException(
+            HttpStatusCode.NotFound,
+            ErrorResponse.NotFound("roomid not found")
+        )
+        everySuspend { roomApiClientMock.knockRoom(eq(roomId), any(), any(), any()) } returns Result.failure(exception)
+
+        val res = cut.invoke(
+            matrixClientMock,
+            roomId,
+            JoinRulesEventContent.JoinRule.Knock
+        )
+
+        delay(500.milliseconds)
+
+        res shouldBe JoinResult.Error(JoinRulesEventContent.JoinRule.Knock, exception)
     }
 
     @Test
@@ -83,10 +104,11 @@ class JoinRoomTest {
             JoinRulesEventContent.JoinRule.Public
         )
 
-        eventually(500.milliseconds) {
-            res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.Public)
-        }
+        delay(500.milliseconds)
+
+        res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.Public)
     }
+
 
     @Test
     fun `Join allowed restricted room`() = runTestWithCoroutineScope {
@@ -96,10 +118,11 @@ class JoinRoomTest {
             JoinRulesEventContent.JoinRule.Restricted
         )
 
-        eventually(500.milliseconds) {
-            res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.Restricted)
-        }
+        delay(500.milliseconds)
+
+        res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.Restricted)
     }
+
 
     @Test
     fun `Fail to join restricted room`() = runTestWithCoroutineScope {
@@ -113,10 +136,11 @@ class JoinRoomTest {
             JoinRulesEventContent.JoinRule.Restricted
         )
 
-        eventually(500.milliseconds) {
-            res shouldBe JoinResult.Failed(JoinRulesEventContent.JoinRule.Restricted)
-        }
+        delay(500.milliseconds)
+
+        res shouldBe JoinResult.Failed(JoinRulesEventContent.JoinRule.Restricted)
     }
+
 
     @Test
     fun `Join allowed KnockRestricted room`() = runTestWithCoroutineScope {
@@ -126,10 +150,11 @@ class JoinRoomTest {
             JoinRulesEventContent.JoinRule.KnockRestricted
         )
 
-        eventually(500.milliseconds) {
-            res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.KnockRestricted)
-        }
+        delay(500.milliseconds)
+
+        res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.KnockRestricted)
     }
+
 
     @Test
     fun `Knock KnockRestricted room`() = runTestWithCoroutineScope {
@@ -142,10 +167,11 @@ class JoinRoomTest {
             JoinRulesEventContent.JoinRule.KnockRestricted
         )
 
-        eventually(500.milliseconds) {
-            res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.Knock)
-        }
+        delay(500.milliseconds)
+
+        res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.Knock)
     }
+
 
     @Test
     fun `Join Invite room we are invited to`() = runTestWithCoroutineScope {
@@ -157,10 +183,11 @@ class JoinRoomTest {
             JoinRulesEventContent.JoinRule.Invite
         )
 
-        eventually(500.milliseconds) {
-            res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.Public)
-        }
+        delay(500.milliseconds)
+
+        res shouldBe JoinResult.Success(JoinRulesEventContent.JoinRule.Public)
     }
+
 
     @Test
     fun `Not join Invite room we are not invited to`() = runTestWithCoroutineScope {
@@ -170,9 +197,9 @@ class JoinRoomTest {
             JoinRulesEventContent.JoinRule.Invite
         )
 
-        eventually(500.milliseconds) {
-            res shouldBe JoinResult.Failed(JoinRulesEventContent.JoinRule.Invite)
-        }
+        delay(500.milliseconds)
+
+        res shouldBe JoinResult.Failed(JoinRulesEventContent.JoinRule.Invite)
     }
 
     @Test
@@ -183,9 +210,9 @@ class JoinRoomTest {
             JoinRulesEventContent.JoinRule.Private
         )
 
-        eventually(500.milliseconds) {
-            res shouldBe JoinResult.Failed(JoinRulesEventContent.JoinRule.Private)
-        }
+        delay(500.milliseconds)
+
+        res shouldBe JoinResult.Failed(JoinRulesEventContent.JoinRule.Private)
     }
 
     @Test
@@ -196,8 +223,8 @@ class JoinRoomTest {
             JoinRulesEventContent.JoinRule.Unknown("cooked")
         )
 
-        eventually(500.milliseconds) {
-            res shouldBe JoinResult.Failed(JoinRulesEventContent.JoinRule.Unknown("cooked"))
-        }
+        delay(500.milliseconds)
+
+        res shouldBe JoinResult.Failed(JoinRulesEventContent.JoinRule.Unknown("cooked"))
     }
 }
