@@ -94,6 +94,7 @@ class SearchGroupViewImpl : SearchGroupView {
                     onCancel = {
                         knockGroupModalShownFor.value = null
                     },
+                    label = i18n.knockLabel(),
                     width = maxWidth.minus(20.dp).coerceAtMost(800.dp),
                 )
             }
