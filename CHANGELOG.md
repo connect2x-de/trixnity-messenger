@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Display rooms correctly the first time on join
+
 ### Security
 
 ## 3.4.4
