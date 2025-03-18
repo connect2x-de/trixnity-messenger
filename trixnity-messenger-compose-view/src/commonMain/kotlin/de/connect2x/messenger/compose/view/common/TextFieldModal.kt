@@ -20,6 +20,8 @@ fun TextFieldModal(
     textFieldValueState: MutableState<TextFieldValue>,
     onSubmit: () -> Unit,
     onCancel: () -> Unit,
+    label: String? = null,
+    placeholder: String? = null,
     width: Dp = 800.dp,
 ) {
     val i18n = DI.current.get<I18nView>()
@@ -36,6 +38,16 @@ fun TextFieldModal(
                 value = textFieldValueState.value,
                 onValueChange = {
                     textFieldValueState.value = it
+                },
+                label = label?.let {
+                    {
+                        Text(it)
+                    }
+                },
+                placeholder = placeholder?.let {
+                    {
+                        Text(it)
+                    }
                 }
             )
 

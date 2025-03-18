@@ -2762,6 +2762,11 @@ open class I18nView(
         EN - "This room requires you to request to a membership"
         DE - "Dieser Raum erfordert, dass Sie eine Mitgliedschaft anfordern"
     }
+
+    open fun knockLabel() = translate {
+        EN - "Why do you wish to join? (Optional)"
+        DE - "Warum möchtest du beitreten? (Optional)"
+    }
 }
 
 fun i18nViewModule() = module {
