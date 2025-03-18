@@ -1156,6 +1156,11 @@ open class I18n(
         EN - "Download failed: ${error ?: commonUnknown()}"
         DE - "Herunterladen fehlgeschlagen: ${error ?: commonUnknown()}"
     }
+
+    open fun alreadyRunningError(appName: String) = translate {
+        EN - "$appName is already running in another tab or window. Please close it first."
+        DE - "$appName läuft bereits in einem anderen Tab oder Fenster. Bitte schließen Sie es zuerst."
+    }
 }
 
 internal fun getLang(

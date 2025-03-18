@@ -63,7 +63,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
             element.downloadMediaError.collect { setError(it) }
         }
 
-        FileBasedDetailsDialog(element, onClose, additions = { ZoomButtons(zoom) }) {
+        FileBasedDetailsDialog(element, onSave, onClose, additions = { ZoomButtons(zoom) }) {
             val focusRequester = remember { FocusRequester() }
             Column {
                 Box(

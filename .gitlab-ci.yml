@@ -76,6 +76,9 @@ variables:
   paths: [ "**/build/reports" ]
   reports:
     junit: "**/build/test-results/**/TEST-*.xml"
+    coverage_report:
+      coverage_format: jacoco
+      path: trixnity-messenger/build/reports/kover/reportJvm.xml
 
 .docker-variables: &docker-variables
   DOCKER_HOST: tcp://docker:2376
@@ -167,8 +170,9 @@ test:linux:
     - *if-merge-request-or-main
   script:
     - ./gradlew
-      {jvm,js}Test -x :integrationtests:jvmTest
+      {jvm,js}Test :trixnity-messenger:testCoverage -x :integrationtests:jvmTest
       --stacktrace
+  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
 test:smoketest-desktop-linux:
   stage: test
@@ -185,7 +189,9 @@ test:smoketest-desktop-linux:
   script:
     - ./gradlew
       :trixnity-messenger-compose-view:desktopTest
+      :trixnity-messenger-compose-view:testCoverage
       --stacktrace
+  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
 test:smoketest-web:
   stage: test

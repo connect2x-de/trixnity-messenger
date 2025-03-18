@@ -13,7 +13,7 @@ interface SearchUsersView {
     fun create(
         createNewRoomViewModel: CreateNewRoomViewModel,
         shouldScroll: Boolean,
-        onUserClick: suspend (Search.SearchUserElement) -> Unit,
+        onUserClick: (Search.SearchUserElement) -> Unit,
     )
 }
 
@@ -21,7 +21,7 @@ interface SearchUsersView {
 fun SearchUsers(
     createNewRoomViewModel: CreateNewRoomViewModel,
     shouldScroll: Boolean = true,
-    onUserClick: suspend (Search.SearchUserElement) -> Unit,
+    onUserClick: (Search.SearchUserElement) -> Unit,
 ) {
     DI.get<SearchUsersView>().create(createNewRoomViewModel, shouldScroll, onUserClick)
 }
@@ -31,7 +31,7 @@ class SearchUsersViewImpl : SearchUsersView {
     override fun create(
         createNewRoomViewModel: CreateNewRoomViewModel,
         shouldScroll: Boolean,
-        onUserClick: suspend (Search.SearchUserElement) -> Unit,
+        onUserClick: (Search.SearchUserElement) -> Unit,
     ) {
         Column {
             SearchUsersLocally(createNewRoomViewModel.searchHandler, shouldScroll, onUserClick)
