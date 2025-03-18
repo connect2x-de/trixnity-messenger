@@ -281,7 +281,7 @@ open class RoomListElementViewModelImpl(
 
     override fun unknock() {
         coroutineScope.launch {
-            if (matrixClient.syncState.value == SyncState.ERROR) {
+            if (matrixClient.syncState.value != SyncState.RUNNING) {
                 log.debug { "try to reject room invitation while not connected" }
                 error.value = i18n.roomListKnockOffline()
             } else {
