@@ -1,28 +1,35 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.details
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.TransformableState
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Text
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
-import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.files.GlobalWorkerOptions
 import de.connect2x.messenger.compose.view.files.PdfReaderWeb
+import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import js.date.Date
-import kotlinx.coroutines.flow.MutableStateFlow
+import io.ktor.utils.io.core.toByteArray
 import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
 import net.folivo.trixnity.client.media.opfs.OpfsPlatformMedia
+import simpleVerticalScrollbar
 import web.blob.Blob
+import web.html.HTMLCanvasElement
 import kotlin.math.max
 import kotlin.math.min
 
@@ -36,12 +43,11 @@ actual fun PDFReader(
     onError: (String?) -> Unit,
 ) {
     val i18nView = DI.current.get<I18nView>()
-    //val renderer = remember { mutableStateOf<PdfRenderer?>(null) }
     val density = LocalDensity.current.density
     var viewSize by remember { mutableStateOf(IntSize.Zero) }
     val pageCacheSize = max(2f, min(16f, 8f / scale)).toInt()
     val cache = remember {
-        mutableStateOf<MutableMap<String, Pair<Long, MutableStateFlow<String?>>>>(mutableMapOf())
+        mutableStateOf<MutableMap<String, Pair<Long, HTMLCanvasElement>>>(mutableMapOf())
     }
     val dpi = remember { mutableStateOf<Float?>(null) }
     val documentWidth = remember { mutableStateOf<Int?>(null) }
@@ -60,7 +66,6 @@ actual fun PDFReader(
             try {
                 setTemporaryFile(newTemporaryFile)
                 val createdReader = newTemporaryFile?.let { PdfReaderWeb(it) }
-                println(createdReader?.pageSize)
                 reader.value = createdReader
                 //documentWidth.value = renderer.value?.openPage(0).use { it?.width }
             } catch (exception: Exception) {
@@ -77,26 +82,22 @@ actual fun PDFReader(
         }
     }
 
+    val listState = rememberLazyListState()
     reader.value?.let { reader ->
-        LazyColumn {
-            reader.pageSize.value?.let {
+        val pageCount = reader.pageSize.value
+        pageCount?.let {
+            LazyColumn(
+                modifier = Modifier
+                    .simpleVerticalScrollbar(listState, MaterialTheme.colorScheme.primary)
+                    .fillMaxWidth(),
+                state = listState
+            ) {
                 items(it) { pageId ->
-                    val currentId = pageId + 1
-                    val cacheKey = "$pageId"
-                    val currentUrl = cache.value[cacheKey]?.second ?: run {
-                        val dataUrl = reader.renderPage(currentId)
-                        cache.value[cacheKey] = Pair(Date.now().toLong(), dataUrl)
-                        cache.value.toList().sortedBy { it.second.first }
-                            .subList(0, 0.coerceAtLeast(cache.value.size - pageCacheSize))
-                            .forEach { cache.value.remove(it.first) }
-                        dataUrl
-                    }
-                    currentUrl.value?.let {
-                        AsyncImage(model = it, contentDescription = "PDF display of page $currentId")
+                    val currentBitmap = reader.getOrRenderPage(pageId).collectAsState().value
+                    currentBitmap?.let {
+                        Image(it, contentDescription = "Image of PDF")
                     }
                 }
-            } ?: item {
-                Text("Cant load, REPLACE")
             }
         }
     }

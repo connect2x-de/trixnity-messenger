@@ -5,8 +5,6 @@ package de.connect2x.messenger.compose.view.files
 
 import js.promise.Promise
 import web.canvas.CanvasRenderingContext2D
-import web.dom.Element
-import web.html.HTMLCollectionOf
 import web.url.URL
 
 internal external class GlobalWorkerOptions {
