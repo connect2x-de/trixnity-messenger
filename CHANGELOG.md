@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix timeline rendering bug caused by "fix-file-onsave-handling"
+- Display rooms correctly the first time on join
+
 ### Security
 
 ## 3.4.4
