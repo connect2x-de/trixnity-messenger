@@ -224,7 +224,7 @@ class OutboxElementHolderViewModelImpl(
                 filter = {
                     it.event.unsigned?.transactionId != transactionId
                 }
-            )
+            ).filterNotNull()
         }.shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
 
     override val isFirstInUserSequence: StateFlow<Boolean?> =
@@ -232,11 +232,11 @@ class OutboxElementHolderViewModelImpl(
             previousSupportedTimelineEvent,
             matrixClient.room.getOutbox(roomId).flatten(),
         ) { lastTimelineEvent, outbox ->
-            val lastTimelineEventTransactionId = lastTimelineEvent?.event?.unsigned?.transactionId
+            val lastTimelineEventTransactionId = lastTimelineEvent.event.unsigned?.transactionId
             val firstOutboxTransactionId =
                 outbox.firstOrNull { it.transactionId != lastTimelineEventTransactionId }?.transactionId
-            log.trace { "transactionId=$transactionId, lastTimelineEventTransactionId=$lastTimelineEventTransactionId, firstOutboxTransactionId=$firstOutboxTransactionId, sender=${lastTimelineEvent?.sender}" }
-            firstOutboxTransactionId == transactionId && lastTimelineEvent?.sender != userId
+            log.trace { "transactionId=$transactionId, lastTimelineEventTransactionId=$lastTimelineEventTransactionId, firstOutboxTransactionId=$firstOutboxTransactionId, sender=${lastTimelineEvent.sender}" }
+            firstOutboxTransactionId == transactionId && lastTimelineEvent.sender != userId
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showSender: StateFlow<Boolean?> = MutableStateFlow(false).asStateFlow()
@@ -246,10 +246,9 @@ class OutboxElementHolderViewModelImpl(
         previousSupportedTimelineEvent
             .map { timelineEvent ->
                 when {
-                    timelineEvent?.sender != matrixClient.userId -> true
+                    timelineEvent.sender != matrixClient.userId -> true
                     else -> {
-                        val previousTimestamp =
-                            Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
+                        val previousTimestamp = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
                         val thisTimestamp = clock.now()
                         thisTimestamp - previousTimestamp > config.showBigGapBeforeThreshold
                     }
