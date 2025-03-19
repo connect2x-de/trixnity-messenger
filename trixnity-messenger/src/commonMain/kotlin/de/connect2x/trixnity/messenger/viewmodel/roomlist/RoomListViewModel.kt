@@ -472,7 +472,7 @@ class RoomListViewModelImpl(
                 matrixClient.room.getById(roomId).filterNotNull().map {
                     Pair(it.membership == Membership.INVITE, it.membership == Membership.KNOCK)
                 }.first()
-            log.debug { "switch to room $roomId (isInvite: $isInvite)" }
+            log.debug { "switch to room $roomId (isInvite: $isInvite isKnock: $isKnock)" }
             when {
                 isInvite && _syncState.value[matrixClient.userId] == SyncState.ERROR -> {
                     log.debug { "try to join room while not connected" }
