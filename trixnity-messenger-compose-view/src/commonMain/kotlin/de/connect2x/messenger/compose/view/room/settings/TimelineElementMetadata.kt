@@ -204,7 +204,9 @@ fun ColumnScope.ReadersAndReactions(
                             Spacer(Modifier.height(5.dp))
                         }
                     }
-                    VerticalScrollbar(Modifier.align(Alignment.CenterEnd), state, false)
+                    if (allReadersAndReactions.size > 6) {
+                        VerticalScrollbar(Modifier.align(Alignment.CenterEnd), state, false)
+                    }
                 }
             } else {
                 Text(
@@ -301,7 +303,7 @@ private fun ColumnScope.MessageContentHistorySwitch(
         }
     }
 
-    Column(Modifier.heightIn(min = 100.dp, max = 500.dp)) {
+    Column(Modifier.heightIn(min = 50.dp, max = 500.dp)) {
         if (showHistory) {
             MessageHistory(elementHistory)
         } else {
