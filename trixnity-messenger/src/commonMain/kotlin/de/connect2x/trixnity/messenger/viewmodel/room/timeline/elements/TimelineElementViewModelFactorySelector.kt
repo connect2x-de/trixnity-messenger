@@ -59,7 +59,7 @@ class TimelineElementViewModelFactorySelectorImpl(
         flow {
             timelineEvents.collect { timelineEvent ->
                 timelineEvent
-                    .map { filter?.invoke(it) == true && supports(it.event.content, it.content) }
+                    .map { filter?.invoke(it) != false && supports(it.event.content, it.content) }
                     .onEach { if (it) emitAll(timelineEvent) else emit(null) }
                     .first { !it }
             }
