@@ -18,7 +18,6 @@ import net.folivo.trixnity.core.model.UserId
 private val log = KotlinLogging.logger { }
 
 // TODO this is not lazy -> use property delegation or one class for one language instead
-@Suppress("UNUSED")
 open class I18n(
     languages: Languages,
     settings: MatrixMessengerSettingsHolder,
@@ -1171,6 +1170,11 @@ open class I18n(
     open fun downloadFailed(error: String?) = translate {
         EN - "Download failed: ${error ?: commonUnknown()}"
         DE - "Herunterladen fehlgeschlagen: ${error ?: commonUnknown()}"
+    }
+
+    open fun alreadyRunningError(appName: String) = translate {
+        EN - "$appName is already running in another tab or window. Please close it first."
+        DE - "$appName läuft bereits in einem anderen Tab oder Fenster. Bitte schließen Sie es zuerst."
     }
 
     open fun searchGroupFailedSearch() = translate {
