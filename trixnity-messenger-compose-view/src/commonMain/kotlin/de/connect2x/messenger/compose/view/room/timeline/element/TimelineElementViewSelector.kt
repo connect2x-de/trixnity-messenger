@@ -29,19 +29,19 @@ interface TimelineElementViewSelector :
     fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-    ) = rememberFactory(element).createInTimeline(holder, element)
+    ) = rememberFactory(element).createAsPreview(holder, element)
 
     @Composable
     fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-    ) = rememberFactory(element).createInTimeline(holder, element)
+    ) = rememberFactory(element).createReplyInTimeline(holder, element)
 
     @Composable
     fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-    ) = rememberFactory(element).createInTimeline(holder, element)
+    ) = rememberFactory(element).createReplyInSendMessage(holder, element)
 }
 
 @Composable
