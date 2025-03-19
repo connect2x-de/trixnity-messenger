@@ -10,7 +10,6 @@ plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
     `maven-publish`
-    alias(libs.plugins.kotest)
     alias(libs.plugins.mokkery)
     alias(libs.plugins.skie)
     alias(libs.plugins.kmmbridge)
@@ -20,38 +19,22 @@ plugins {
 
 kotlin {
     val kotlinJvm = libs.versions.kotlinJvmTarget.get()
+
     jvmToolchain(kotlinJvm.toInt())
     androidTarget {
-        compilations.all {
+        compilations.configureEach {
             kotlinOptions.jvmTarget = kotlinJvm
         }
         publishLibraryVariants("release")
     }
     jvm {
-        compilations.all {
+        compilations.configureEach {
             kotlinOptions.jvmTarget = kotlinJvm
-        }
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-            // testLogging.showStandardStreams = true   // activate when detailed information in tests is required
-        }
-        tasks.withType<Test>().configureEach {
-            if (isCI.not()) {
-                maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
-            }
         }
     }
     js {
-        browser {
-            testTask {
-                enabled = false // TODO
-//                useKarma {
-//                    useFirefoxHeadless()
-//                    useConfigDirectory(rootDir.resolve("karma.config.d"))
-//                    webpackConfig.configDirectory = rootDir.resolve("webpack.config.d")
-//                }
-            }
-        }
+        browser()
+        nodejs()
         binaries.library()
         generateTypeScriptDefinitions()
     }
@@ -73,7 +56,7 @@ kotlin {
             languageSettings.optIn("kotlin.RequiresOptIn")
             languageSettings.optIn("kotlin.experimental.ExperimentalObjCName")
         }
-        commonMain {
+        val commonMain by getting {
             dependencies {
                 api(libs.trixnity.client)
                 implementation(libs.trixnity.crypto.core)
@@ -91,18 +74,18 @@ kotlin {
                 implementation(libs.skie.annotations)
             }
         }
-        commonTest {
+        val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(libs.okio.fakefilesystem)
                 implementation(libs.kotlinx.coroutines.test)
-                implementation(libs.bundles.kotest)
+                implementation(libs.kotest.assertion.core)
                 implementation(libs.ktor.client.mock)
                 implementation(libs.mokkery.coroutines)
             }
         }
         val jvmAndNativeMain by creating {
-            dependsOn(commonMain.get())
+            dependsOn(commonMain)
             dependencies {
                 implementation(libs.trixnity.client.repository.room)
                 api(libs.trixnity.client.media.okio)
@@ -110,6 +93,7 @@ kotlin {
         }
         jvmMain {
             dependsOn(jvmAndNativeMain)
+            kotlin.srcDirs("src/icu4j/kotlin")
             dependencies {
                 implementation(libs.bundles.jna)
                 implementation(libs.androidx.sqlite3mc.bundled)
@@ -130,7 +114,8 @@ kotlin {
         }
         iosMain {
             dependencies {
-                implementation(libs.ktor.client.darwin) // since with iOS projects, we cannot include the engine, we select it here
+                // since with iOS projects, we cannot include the engine, we select it here
+                implementation(libs.ktor.client.darwin)
                 implementation(libs.androidx.sqlite3.bundled)
             }
         }
@@ -147,25 +132,32 @@ kotlin {
                 implementation(libs.ktor.client.js) // since there is only 1 engine in web, we select it here
             }
         }
+        val nonAndroidTest by creating {
+            dependsOn(commonTest)
+        }
         val jvmAndNativeTest by creating {
-            dependsOn(commonTest.get())
+            dependsOn(commonTest)
         }
         jvmTest {
             dependsOn(jvmAndNativeTest)
+            dependsOn(nonAndroidTest)
             dependencies {
-                implementation(libs.kotest.junit.runner)
-                implementation(libs.slf4j.api)
                 implementation(libs.logback.classic)
-//                implementation(libs.ktor.client.java)
             }
         }
         nativeTest {
+            dependsOn(nonAndroidTest)
             dependsOn(jvmAndNativeTest)
         }
-        val androidUnitTest by getting {
+        jsTest {
+            dependsOn(nonAndroidTest)
+        }
+        androidUnitTest {
             dependsOn(jvmAndNativeTest)
+            kotlin.srcDirs("src/icu4j/kotlin")
             dependencies {
-//                implementation(libs.ktor.client.android)
+                implementation(libs.logback.classic)
+                implementation(libs.icu4j)
             }
         }
     }
@@ -232,7 +224,10 @@ skie {
             FlowInterop.Enabled(true)
             EnumInterop.Enabled(false)
             SealedInterop.Enabled(false)
-            DefaultArgumentInterop.Enabled(true) // is disabled by default (see https://skie.touchlab.co/features/default-arguments), so we have to use annotations where necessary
+
+            // is disabled by default (see https://skie.touchlab.co/features/default-arguments),
+            // so we have to use annotations where necessary
+            DefaultArgumentInterop.Enabled(true)
         }
         group("de.connect2x.trixnity.messenger.settings") {
             FlowInterop.Enabled(false)

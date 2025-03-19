@@ -1,5 +1,8 @@
 package de.connect2x.trixnity.messenger.util
 
+import org.koin.core.module.Module
+import org.koin.dsl.module
+
 /*
  * See https://unicode.org/reports/tr51/tr51-28.html,
  * https://unicode.org/emoji/charts/full-emoji-list.html and
@@ -16,10 +19,53 @@ private const val DIACRITICS: String = """[\u0300-\u036F]"""
 private val emojiPattern: Regex =
     Regex("^($SURROGATE_PAIR|$SYMBOLICS|$KEYCAPS|$FLAGS|$DIACRITICS|$VAR_SELECTOR)+$")
 
-expect val String.graphCount: Int
+interface GraphemeIterableProvider {
+    operator fun invoke(string: String) : GraphemeIterable
+}
 
-expect inline fun String.forEachGraph(crossinline consumer: (graph: String, index: Int) -> Boolean)
+interface GraphemeIterable : Iterable<String> {
+    val graphemeCount: Int
 
+    override fun iterator(): GraphemeIterator
+}
+
+interface GraphemeIterator : Iterator<String>
+
+fun platformStringsModule(): Module = module {
+    single<GraphemeIterableProvider> { PlatformGraphemeIterableProvider }
+}
+
+internal expect fun platformGraphemeIterableProvider(): GraphemeIterableProvider
+
+object PlatformGraphemeIterableProvider : GraphemeIterableProvider {
+    private val provider = platformGraphemeIterableProvider()
+
+    override fun invoke(string: String): GraphemeIterable = provider(string)
+}
+
+@Deprecated(
+    message = "This cannot be overridden by DI, please use platformStringModule instead",
+    level = DeprecationLevel.WARNING
+)
+val String.graphCount: Int
+    get() = PlatformGraphemeIterableProvider(this).graphemeCount
+
+@Deprecated(
+    message = "This cannot be overridden by DI, please use platformStringModule instead",
+    level = DeprecationLevel.WARNING
+)
+inline fun String.forEachGraph(crossinline consumer: (graph: String, index: Int) -> Boolean) {
+    PlatformGraphemeIterableProvider(this).forEachIndexed { index, graph ->
+        println(graph)
+        if (!consumer(graph, index)) return
+    }
+}
+
+@Deprecated(
+    message = "This cannot be overridden by DI, please use platformStringModule instead",
+    level = DeprecationLevel.WARNING
+)
+@Suppress("DEPRECATION")
 fun String.subGraph(start: Int, end: Int = graphCount - 1): String {
     if (isEmpty()) return ""
     var buffer = ""
@@ -34,6 +80,11 @@ fun String.subGraph(start: Int, end: Int = graphCount - 1): String {
     return buffer
 }
 
+@Deprecated(
+    message = "This cannot be overridden by DI, please use platformStringModule instead",
+    level = DeprecationLevel.WARNING
+)
+@Suppress("DEPRECATION")
 fun String.firstGraph(): String {
     if (isEmpty()) return ""
     var buffer = ""

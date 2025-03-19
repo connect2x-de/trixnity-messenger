@@ -14,16 +14,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Layout of message metadata info
+- Use kotlin.test for all tests
 
 ### Deprecated
 
 ### Removed
+
+- Kotest as test engine
 
 ### Fixed
 
 - Fix timeline rendering bug caused by "fix-file-onsave-handling"
 - Display rooms correctly the first time on join
 - Set directory visibility of public rooms to public
+- Correctly use test dispatcher
 
 ### Security
 

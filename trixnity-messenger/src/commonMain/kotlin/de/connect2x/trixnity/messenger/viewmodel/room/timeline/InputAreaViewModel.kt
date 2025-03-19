@@ -72,6 +72,7 @@ import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.html.HtmlGenerator.TagRenderer
 import org.intellij.markdown.parser.MarkdownParser
 import org.koin.core.component.get
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }

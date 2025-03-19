@@ -1,27 +1,21 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
+import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
-import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.TestScope
-import io.kotest.core.test.advanceUntilIdle
-import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
@@ -38,9 +32,10 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
-class NameStateTimelineElementViewModelTest : ShouldSpec() {
+class NameStateTimelineElementViewModelTest {
 
     val roomId = RoomId("room", "server")
     val sender = UserId("user", "server")
@@ -53,95 +48,86 @@ class NameStateTimelineElementViewModelTest : ShouldSpec() {
     val senderName = MutableStateFlow("Sender")
 
     init {
-        coroutineTestScope = true
-        beforeTest {
-            resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
-            every { matrixClientMock.di } returns koinApplication {
-                modules(
-                    module {
-                        single { roomServiceMock }
-                        single { userServiceMock }
-                    }
+        resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
+        every { matrixClientMock.di } returns koinApplication {
+            modules(
+                module {
+                    single { roomServiceMock }
+                    single { userServiceMock }
+                })
+        }.koin
+        senderName.value = "Bob"
+        every { userServiceMock.getById(roomId, sender) } returns senderName.map {
+            RoomUser(
+                roomId, sender, it, StateEvent(
+                    content = MemberEventContent(membership = Membership.JOIN),
+                    id = eventId,
+                    sender = sender,
+                    roomId = roomId,
+                    originTimestamp = 0L,
+                    stateKey = "",
                 )
-            }.koin
-            senderName.value = "Bob"
-            every { userServiceMock.getById(roomId, sender) } returns senderName.map {
-                RoomUser(
-                    roomId, sender, it, StateEvent(
-                        content = MemberEventContent(membership = Membership.JOIN),
-                        id = eventId,
-                        sender = sender,
-                        roomId = roomId,
-                        originTimestamp = 0L,
-                        stateKey = "",
-                    )
-                )
-            }
-            isDirect.value = false
-            every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it) }
-        }
-
-        should("display who changed the room's name (with reference to the old name)") {
-            val cut = roomNameChangeStatusViewModel(
-                oldName = "old name",
             )
-            val subscriberJob = launch { cut.changeMessage.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
+        }
+        isDirect.value = false
+        every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it) }
+    }
 
+    @Test
+    fun `display who changed the room's name (with reference to the old name)`() = runTest {
+        val cut = roomNameChangeStatusViewModel(
+            oldName = "old name",
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+
+        eventually(100.milliseconds) {
             cut.changeMessage.value shouldBe """Bob has changed the name of the group from 'old name' to 'new name'"""
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("display who changed the room's name without the old name if not set") {
-            val cut =
-                roomNameChangeStatusViewModel()
-            val subscriberJob = launch { cut.changeMessage.collect {} }
-            testCoroutineScheduler.advanceUntilIdle()
-
-            cut.changeMessage.value shouldBe """Bob has changed the name of the group to 'new name'"""
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("react to username changes") {
-            val cut = roomNameChangeStatusViewModel()
-            val subscriberJob = launch { cut.changeMessage.collect {} }
-            advanceUntilIdle()
-            cut.changeMessage.first() shouldBe """Bob has changed the name of the group to 'new name'"""
-
-            senderName.value = "Bobby"
-            advanceUntilIdle()
-            cut.changeMessage.first() shouldBe """Bobby has changed the name of the group to 'new name'"""
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-
-        should("react to changes of room's direct value") {
-            val cut = roomNameChangeStatusViewModel()
-            val subscriberJob = launch { cut.changeMessage.collect {} }
-            advanceUntilIdle()
-            cut.changeMessage.first() shouldBe """Bob has changed the name of the group to 'new name'"""
-
-            isDirect.value = true
-            advanceUntilIdle()
-            cut.changeMessage.first() shouldBe """Bob has changed the name of the chat to 'new name'"""
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
         }
     }
 
-    private suspend fun TestScope.roomNameChangeStatusViewModel(
+    @Test
+    fun `display who changed the room's name without the old name if not set`() = runTest {
+        val cut = roomNameChangeStatusViewModel()
+        backgroundScope.launch { cut.changeMessage.collect {} }
+
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe """Bob has changed the name of the group to 'new name'"""
+        }
+    }
+
+    @Test
+    fun `react to username changes`() = runTest {
+        val cut = roomNameChangeStatusViewModel()
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        delay(100)
+
+        cut.changeMessage.first() shouldBe """Bob has changed the name of the group to 'new name'"""
+
+        senderName.value = "Bobby"
+        delay(100)
+        cut.changeMessage.first() shouldBe """Bobby has changed the name of the group to 'new name'"""
+    }
+
+    @Test
+    fun `react to changes of room's direct value`() = runTest {
+        val cut = roomNameChangeStatusViewModel()
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        delay(100)
+        cut.changeMessage.first() shouldBe """Bob has changed the name of the group to 'new name'"""
+
+        isDirect.value = true
+        delay(100)
+        cut.changeMessage.first() shouldBe """Bob has changed the name of the chat to 'new name'"""
+    }
+
+    private fun TestScope.roomNameChangeStatusViewModel(
         oldName: String? = null,
     ): NameStateTimelineElementViewModel {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher.Key]))
         val di = koinApplication {
             modules(
-                createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock))
+                createTestDefaultTrixnityMessengerModules(
+                    mapOf(UserId("test", "server") to matrixClientMock)
+                )
             )
         }.koin
         val timelineEvent = TimelineEvent(

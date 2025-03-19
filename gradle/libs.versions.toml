@@ -22,7 +22,7 @@ kotlinxDatetime = "0.6.2" # https://github.com/Kotlin/kotlinx-datetime/releases
 koin = "4.0.2" # https://github.com/InsertKoinIO/koin/tags
 ktor = "3.1.1" # https://github.com/ktorio/ktor/releases
 mokkery = "2.7.0" # https://github.com/lupuuss/Mokkery/releases
-kotest = "6.0.0.M1" # https://github.com/kotest/kotest/releases
+kotest = "6.0.0.M2" # https://github.com/kotest/kotest/releases
 jna = "5.16.0" # https://github.com/java-native-access/jna/tags
 okio = "3.10.2" # https://square.github.io/okio/changelog
 uuid = "0.8.4" # https://github.com/benasher44/uuid/releases
@@ -95,8 +95,6 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 uuid = { module = "com.benasher44:uuid", version.ref = "uuid" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
-kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
-kotest-engine-framework = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
 kotest-assertion-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
@@ -107,7 +105,6 @@ androidx-sqlite3-bundled = { module = "androidx.sqlite:sqlite-bundled", version.
 androidx-sqlite3mc-bundled = { module = "androidx.sqlite:sqlite3mc-bundled", version.ref = "androidxSqlite3mc" }
 kotlin-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version.ref = "kotlinWrappers" }
 kotlin-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser" }
-kotest-junit-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testContainers" }
 kim = { module = "com.ashampoo:kim", version.ref = "kim" }
@@ -141,14 +138,12 @@ mokkery-coroutines = { module = "dev.mokkery:mokkery-coroutines", version.ref = 
 androidx-autofill = { module = "androidx.autofill:autofill", version.ref = "autofill" }
 
 [bundles]
-kotest = ["kotest-common", "kotest-engine-framework", "kotest-assertion-core"]
 jna = ["jna", "jna-platform"]
 testcontainers = ["testcontainers", "testcontainers-junit-jupiter"]
 # ui
 android-common = ["androidx-appcompat", "androidx-work-runtime-ktx", "androidx-lifecycle-livedata-ktx", "androidx-activity-compose", "logback-android"]
 
 [plugins]
-kotest = { id = "io.kotest.multiplatform", version.ref = "kotest" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 skie = { id = "co.touchlab.skie", version.ref = "skie" }
 kmmbridge = { id = "co.touchlab.kmmbridge.gitlab", version.ref = "kmmBridge" }
