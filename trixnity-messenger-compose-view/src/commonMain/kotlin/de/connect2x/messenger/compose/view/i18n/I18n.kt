@@ -866,6 +866,16 @@ open class I18nView(
         DE - "Teilnehmer bannen"
     }
 
+    open fun userProfileAcceptKnock() = translate {
+        EN - "Accept membership request"
+        DE - "Beitrittsanfrage annehmen"
+    }
+
+    open fun userProfileRejectKnock() = translate {
+        EN - "Reject membership request"
+        DE - "Beitrittsanfrage ablehnen"
+    }
+
     open fun userProfileBlockUser() = translate {
         EN - "block user"
         DE - "Teilnehmer blockieren"
@@ -2727,6 +2737,11 @@ open class I18nView(
     open fun settingsRoomMemberListKickUserWarningTitleGroup(username: String) = translate {
         EN - "Remove user $username from group?"
         DE - "Nutzer $username aus der Gruppe entfernen?"
+    }
+
+    open fun knockIcon() = translate {
+        EN - "room membership request"
+        DE - "Raumbeitrittsanfrage"
     }
 }
 

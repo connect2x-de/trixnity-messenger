@@ -76,9 +76,10 @@ open class MemberListViewModelImpl(
             allUsers
         ) { powerLevels, createEvent, roomUsers ->
             val relevantRoomUsers = roomUsers.filter { roomUser ->
-                roomUser.membership == Membership.JOIN ||
-                        roomUser.membership == Membership.INVITE ||
-                        roomUser.membership == Membership.BAN
+                when (roomUser.membership) {
+                    Membership.JOIN, Membership.INVITE, Membership.BAN, Membership.KNOCK -> true
+                    Membership.LEAVE -> false
+                }
             }.sortedByDescending { roomUser ->
                 matrixClient.user.getPowerLevel(
                     roomUser.userId,

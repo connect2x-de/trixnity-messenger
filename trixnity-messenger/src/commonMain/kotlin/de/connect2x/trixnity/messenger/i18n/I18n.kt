@@ -177,8 +177,8 @@ open class I18n(
     }
 
     open fun eventChangeKnock(username: String, groupOrChat: String) = translate {
-        EN - "$username wants to join $groupOrChat"
-        DE - "$username möchte $groupOrChat beitreten"
+        EN - "$username requested to join $groupOrChat. Check the room settings to manage the Request"
+        DE - "$username möchte $groupOrChat beitreten. Du kannst die Anfrage in den Raumeinstellungen verwalten"
     }
 
     open fun eventMessageRedacted(username: String) = translate {
@@ -1155,6 +1155,21 @@ open class I18n(
     open fun downloadFailed(error: String?) = translate {
         EN - "Download failed: ${error ?: commonUnknown()}"
         DE - "Herunterladen fehlgeschlagen: ${error ?: commonUnknown()}"
+    }
+
+    open fun acceptKnockFailed() = translate {
+        EN - "Failed to accept the membership request"
+        DE - "Beitrittanfrage annehmen ist fehlgeschlagen"
+    }
+
+    open fun rejectKnockFailed() = translate {
+        EN - "Failed to reject the membership request"
+        DE - "Beitrittanfrage ablehnen ist fehlgeschlagen"
+    }
+
+    open fun banningFailed() = translate {
+        EN - "Failed to ban user"
+        DE - "Bannen dieses Teilnehmers ist fehlgeschlagen"
     }
 }
 
