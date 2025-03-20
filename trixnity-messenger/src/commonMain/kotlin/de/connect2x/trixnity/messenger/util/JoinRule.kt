@@ -5,7 +5,6 @@ import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent.JoinRu
 val JoinRule.isKnock: Boolean
     get() =
         when (this) {
-            JoinRule.Knock -> true
-            JoinRule.KnockRestricted -> true
-            else -> false
+            JoinRule.Knock, JoinRule.KnockRestricted -> true
+            JoinRule.Invite, JoinRule.Private, JoinRule.Public, JoinRule.Restricted, is JoinRule.Unknown -> false
         }
