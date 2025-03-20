@@ -12,11 +12,12 @@ actual fun platformUriCallerModule(): Module = module {
     single<UriCaller> {
         val activityGetter = get<ActivityGetter>()
         UriCaller { uri, _ ->
-            log.info { "call uri: $uri" }
+            val safeUri = Uri.parse(uri)
+            log.info { "call uri: $safeUri" }
             val customTabsIntent = CustomTabsIntent.Builder().apply {
                 setShowTitle(true)
             }.build()
-            activityGetter()?.let { customTabsIntent.launchUrl(it, Uri.parse(uri)) }
+            activityGetter()?.let { customTabsIntent.launchUrl(it, safeUri) }
         }
     }
 }
