@@ -15,6 +15,7 @@ import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.core.component.get
 
 
@@ -24,7 +25,7 @@ interface RoomSettingsViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        onLeaveRoom: () -> Unit,
+        onForgetRoom: () -> Unit,
         onOpenAddMembers: () -> Unit,
         onOpenExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
@@ -37,7 +38,7 @@ interface RoomSettingsViewModelFactory {
         onOpenExportRoom = onOpenExportRoom,
         onCloseRoomSettings = onCloseRoomSettings,
         onOpenAvatarCutter = onOpenAvatarCutter,
-        onLeaveRoom = onLeaveRoom,
+        onForgetRoom = onForgetRoom,
         onOpenUserProfile = onOpenUserProfile,
     )
 
@@ -54,19 +55,23 @@ interface RoomSettingsViewModel {
     val roomSettingsJoinRulesViewModel: RoomSettingsJoinRulesViewModel
     val roomSettingsSecurityViewModel: RoomSettingsSecurityViewModel
     val roomSettingsAliasViewModel: RoomSettingsAliasViewModel
+    val memberListViewModel: MemberListViewModel
+    val hasPowerToInvite: StateFlow<Boolean>
+    val isDirect: StateFlow<Boolean>
+    val hasLeft: StateFlow<Boolean>
+    val isEncrypted: StateFlow<Boolean>
+
+    // Messages
     val leaveRoomSettingEntryText: StateFlow<String>
     val leaveRoomWarningOpen: StateFlow<Boolean>
     val leaveRoomWarningTitle: StateFlow<String>
     val leaveRoomWarningMessage: StateFlow<String>
     val leaveRoomWarningConfirmButtonText: StateFlow<String>
-    val memberListViewModel: MemberListViewModel
-    val hasPowerToInvite: StateFlow<Boolean>
-    val isDirect: StateFlow<Boolean>
-    val isEncrypted: StateFlow<Boolean>
 
     fun openAddMembersView()
     fun openExportRoomView()
     fun leaveRoom()
+    fun forgetRoom()
     fun openLeaveRoomWarningDialog()
     fun closeLeaveRoomWarningDialog()
     fun close()
@@ -79,7 +84,7 @@ class RoomSettingsViewModelImpl(
     private val onOpenAddMembers: () -> Unit,
     private val onOpenExportRoom: () -> Unit,
     private val onCloseRoomSettings: () -> Unit,
-    private val onLeaveRoom: () -> Unit,
+    private val onForgetRoom: () -> Unit,
     private val onOpenAvatarCutter: OpenAvatarCutterCallback,
     private val onOpenUserProfile: (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
@@ -140,6 +145,7 @@ class RoomSettingsViewModelImpl(
     override val leaveRoomWarningOpen = MutableStateFlow(false)
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val hasLeft: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override val memberListViewModel: MemberListViewModel =
         get<MemberListViewModelFactory>().create(
@@ -157,19 +163,35 @@ class RoomSettingsViewModelImpl(
         coroutineScope.launch {
             matrixClient.room.getById(selectedRoomId).collect {
                 isDirect.value = it?.isDirect ?: false
-                if (isDirect.value) {
-                    leaveRoomSettingEntryText.value = i18n.settingsRoomLeaveRoomMessageChat()
-                    leaveRoomWarningTitle.value = i18n.settingsRoomLeaveRoomWarningTitleChat()
-                    leaveRoomWarningMessage.value = i18n.settingsRoomLeaveRoomWarningMessageChat()
-                    leaveRoomWarningConfirmButtonText.value = i18n.settingsRoomLeaveRoomWarningConfirmButtonChat()
-
-                } else {
-                    leaveRoomSettingEntryText.value = i18n.settingsRoomLeaveRoomMessageGroup()
-                    leaveRoomWarningTitle.value = i18n.settingsRoomLeaveRoomWarningTitleGroup()
-                    leaveRoomWarningMessage.value = i18n.settingsRoomLeaveRoomWarningMessageGroup()
-                    leaveRoomWarningConfirmButtonText.value = i18n.settingsRoomLeaveRoomWarningConfirmButtonGroup()
-                }
                 isEncrypted.value = it?.encrypted ?: false
+                hasLeft.value = it?.membership?.let { membership -> membership == Membership.LEAVE } ?: false
+
+                if (hasLeft.value) {
+                    if (isDirect.value) {
+                        leaveRoomSettingEntryText.value = i18n.settingsRoomForgetRoomMessageChat()
+                        leaveRoomWarningTitle.value = i18n.settingsRoomForgetRoomWarningTitleChat()
+                        leaveRoomWarningMessage.value = i18n.settingsRoomLeaveRoomWarningMessageChat()
+                        leaveRoomWarningConfirmButtonText.value = i18n.settingsRoomForgetRoomWarningConfirmButtonChat()
+                    } else {
+                        leaveRoomSettingEntryText.value = i18n.settingsRoomForgetRoomMessageGroup()
+                        leaveRoomWarningTitle.value = i18n.settingsRoomForgetRoomWarningTitleGroup()
+                        leaveRoomWarningMessage.value = i18n.settingsRoomLeaveRoomWarningMessageGroup()
+                        leaveRoomWarningConfirmButtonText.value = i18n.settingsRoomForgetRoomWarningConfirmButtonGroup()
+                    }
+                } else {
+                    if (isDirect.value) {
+                        leaveRoomSettingEntryText.value = i18n.settingsRoomLeaveRoomMessageChat()
+                        leaveRoomWarningTitle.value = i18n.settingsRoomLeaveRoomWarningTitleChat()
+                        leaveRoomWarningMessage.value = i18n.settingsRoomLeaveRoomWarningMessageChat()
+                        leaveRoomWarningConfirmButtonText.value = i18n.settingsRoomLeaveRoomWarningConfirmButtonChat()
+
+                    } else {
+                        leaveRoomSettingEntryText.value = i18n.settingsRoomLeaveRoomMessageGroup()
+                        leaveRoomWarningTitle.value = i18n.settingsRoomLeaveRoomWarningTitleGroup()
+                        leaveRoomWarningMessage.value = i18n.settingsRoomLeaveRoomWarningMessageGroup()
+                        leaveRoomWarningConfirmButtonText.value = i18n.settingsRoomLeaveRoomWarningConfirmButtonGroup()
+                    }
+                }
             }
         }
     }
@@ -180,7 +202,7 @@ class RoomSettingsViewModelImpl(
                 error.value = i18n.settingsRoomLeaveRoomErrorOffline()
             } else {
                 matrixClient.api.room.leaveRoom(selectedRoomId).fold(
-                    onSuccess = { onLeaveRoom() },
+                    onSuccess = { },
                     onFailure = {
                         if (it is CancellationException) {
                             return@launch
@@ -194,6 +216,32 @@ class RoomSettingsViewModelImpl(
                     }
                 )
             }
+        }
+    }
+
+    override fun forgetRoom() {
+        coroutineScope.launch {
+            if (matrixClient.syncState.value == SyncState.ERROR) {
+                error.value = i18n.settingsRoomForgetRoomErrorOffline()
+                return@launch
+            }
+
+            matrixClient.api.room.forgetRoom(selectedRoomId).fold(
+                onSuccess = {},
+                onFailure = {
+                    if (it is CancellationException) {
+                        return@launch
+                    }
+
+                    log.error(it) { "cannot forget room $selectedRoomId" }
+                    error.value = i18n.settingsRoomForgetRoomError(
+                        if (isDirect.value) i18n.eventChangeChatGenitive()
+                        else i18n.eventChangeGroupGenitive()
+                    )
+                }
+            )
+            matrixClient.room.forgetRoom(selectedRoomId)
+            onForgetRoom()
         }
     }
 
@@ -241,10 +289,12 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val hasPowerToInvite = MutableStateFlow(true)
     override val isDirect = MutableStateFlow(true)
     override val isEncrypted = MutableStateFlow(false)
+    override val hasLeft = MutableStateFlow(false)
     override fun openAddMembersView() {}
     override fun openExportRoomView() {}
     override fun openUserProfile(userId: UserId) {}
     override fun leaveRoom() {}
+    override fun forgetRoom() {}
     override fun openLeaveRoomWarningDialog() {}
     override fun closeLeaveRoomWarningDialog() {}
     override fun close() {}

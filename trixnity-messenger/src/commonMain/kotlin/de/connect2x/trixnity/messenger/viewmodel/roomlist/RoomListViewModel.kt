@@ -46,6 +46,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.flattenValues
 import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.room
@@ -305,28 +306,32 @@ class RoomListViewModelImpl(
                 allRoomsFlow,
                 directRoomsFlow,
                 searchedRoomsFlow,
-            ) { roomsWithMeta, directRooms, searchedRooms ->
+            ) { roomsWithMeta, _, searchedRooms ->
                 data class SortableRoom(
                     val roomWithMatrixClient: RoomWithMatrixClient,
                     val sortTime: Instant?,
                 )
 
                 val relevantRooms = roomsWithMeta.values.asFlow()
-                    .filter { (room, _) ->
+                    .filter { (room, matrixClient) ->
                         val isSpace = room.createEventContent?.type == RoomType.Space
                         val includedInSearch = searchedRooms.contains(room.roomId)
+                        val clientConfiguration = matrixClient.di.get<MatrixClientConfiguration>()
+
+                        val isArchived = !clientConfiguration.deleteRoomsOnLeave && room.membership == Membership.LEAVE
                         val isDisplayed = !isSpace &&
-                                (room.membership == Membership.INVITE || room.membership == Membership.JOIN) &&
+                                (room.membership == Membership.INVITE || room.membership == Membership.JOIN || isArchived) &&
                                 includedInSearch
                         isDisplayed
                     }.onEach { log.trace { "filtered rooms: $it" } }
-                    .map<RoomWithMatrixClient, SortableRoom> { roomWithMeta ->
+                    .map { roomWithMeta ->
                         // Use `map` to get the creation time here since `sortedByDescending` won't support suspended function calls.
                         val room = roomWithMeta.room
                         val lastRelevantEventTime = room.lastRelevantEventTimestamp
                         val sortTime =
                             when {
                                 room.membership == Membership.INVITE -> Instant.DISTANT_FUTURE
+                                room.membership == Membership.LEAVE -> Instant.DISTANT_PAST
                                 lastRelevantEventTime == null -> roomWithMeta.matrixClient
                                     .room.getState<CreateEventContent>(room.roomId, "").first()
                                     ?.originTimestamp?.let { Instant.fromEpochMilliseconds(it) }
@@ -334,10 +339,10 @@ class RoomListViewModelImpl(
                                 else -> lastRelevantEventTime
                             }
                         SortableRoom(roomWithMeta, sortTime)
-                    }.toList<SortableRoom>()
-                    .sortedByDescending<SortableRoom, Instant> { (_, sortTime) -> sortTime }
-                    .asFlow<SortableRoom>()
-                    .map<SortableRoom, RoomWithMatrixClient> { it.roomWithMatrixClient }
+                    }.toList()
+                    .sortedByDescending { (_, sortTime) -> sortTime }
+                    .asFlow()
+                    .map { it.roomWithMatrixClient }
                     .toList()
                     .associate { it.room.roomId to it.matrixClient.userId }
 

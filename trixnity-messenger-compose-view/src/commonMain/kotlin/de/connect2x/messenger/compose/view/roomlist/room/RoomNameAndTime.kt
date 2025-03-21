@@ -17,12 +17,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.PlaceholderHighlight
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.fade
 import de.connect2x.messenger.compose.view.common.icons.UnencryptedIcon
 import de.connect2x.messenger.compose.view.common.placeholder
+import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.util.TextLabel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
@@ -31,12 +35,14 @@ fun RoomName(roomName: String?) {
         { TooltipText(roomName ?: " ") },
         delayMillis = 1_000,
     ) {
-        Text(
-            text = roomName ?: " ",
-            style = MaterialTheme.typography.labelLarge,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+        Row {
+            Text(
+                text = roomName ?: " ",
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 
@@ -60,6 +66,9 @@ fun RowScope.RoomTime(roomListElementViewModel: RoomListElementViewModel, modifi
 @Composable
 fun RoomNameAndTime(roomListElementViewModel: RoomListElementViewModel) {
     val roomName = roomListElementViewModel.roomName.collectAsState().value
+    val hasLeft = roomListElementViewModel.hasLeft.collectAsState().value
+    val i18n = DI.get<I18nView>()
+
     Row(
         modifier = Modifier.placeholder(
             visible = roomName == null,
@@ -69,12 +78,14 @@ fun RoomNameAndTime(roomListElementViewModel: RoomListElementViewModel) {
         ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            Modifier.fillMaxWidth().weight(1.0f, false).alignByBaseline()
-        ) {
+        Row(Modifier.fillMaxWidth().weight(1.0f, false), verticalAlignment = Alignment.CenterVertically) {
             RoomName(roomName = roomName)
+            Spacer(Modifier.size(7.dp))
+            if (hasLeft == true) {
+                TextLabel(i18n.commonArchived())
+            }
         }
-        Spacer(Modifier.size(10.dp))
+
         RoomTime(roomListElementViewModel)
     }
 }

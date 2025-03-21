@@ -21,6 +21,10 @@ open class I18nView(
     getSystemLang: GetSystemLang,
     timeZone: TimeZone,
 ) : I18nBase(lang, messengerSettings, getSystemLang, timeZone) {
+    open fun commonArchived() = translate {
+        EN - "Archived"
+        DE - "Archiviert"
+    }
 
     open fun commonContextMenu() = translate {
         EN - "context menu"

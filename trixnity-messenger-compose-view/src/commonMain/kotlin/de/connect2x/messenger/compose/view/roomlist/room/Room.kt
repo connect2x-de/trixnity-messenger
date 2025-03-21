@@ -49,6 +49,7 @@ class RoomListElementViewImpl : RoomListElementView {
     @Composable
     override fun create(roomListViewModel: RoomListViewModel, roomListElementViewModel: RoomListElementViewModel) {
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value
+
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
             MatrixClientColor(roomListElementViewModel)
             Box(

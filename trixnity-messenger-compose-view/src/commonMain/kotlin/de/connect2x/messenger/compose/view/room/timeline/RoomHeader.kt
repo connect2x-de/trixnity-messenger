@@ -36,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
@@ -57,6 +56,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
+import de.connect2x.messenger.compose.view.util.TextLabel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
 
@@ -86,6 +86,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
         val isDirectChat = roomHeaderViewModel.isDirectChat.collectAsState().value
         val headerHeightFlow = MaxHeaderHeight.current
         val headerHeight = headerHeightFlow.collectAsState().value
+        val i18n = DI.get<I18nView>()
         val density = LocalDensity.current
 
         Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
@@ -133,7 +134,13 @@ class RoomHeaderViewImpl : RoomHeaderView {
                             }
 
                             Column {
-                                RoomName(roomHeaderElement)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    RoomName(roomHeaderElement)
+                                    Spacer(Modifier.size(7.dp))
+                                    if (roomHeaderElement.hasLeft) {
+                                        TextLabel(i18n.commonArchived())
+                                    }
+                                }
                                 if (usersTyping != null) {
                                     UsersTyping(usersTyping)
                                 } else {
@@ -175,7 +182,7 @@ fun RowScope.RoomBackButton(roomHeaderViewModel: RoomHeaderViewModel) {
 }
 
 @Composable
-fun ColumnScope.RoomName(
+fun RoomName(
     roomHeaderElement: RoomHeaderInfo,
 ) {
     Tooltip({

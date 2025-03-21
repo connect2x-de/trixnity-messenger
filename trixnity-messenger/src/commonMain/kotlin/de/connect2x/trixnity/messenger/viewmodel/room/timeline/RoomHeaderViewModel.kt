@@ -38,6 +38,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
+import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.core.component.get
 
 
@@ -72,6 +73,7 @@ data class RoomHeaderInfo(
     val presence: Presence?,
     val isEncrypted: Boolean,
     val isPublic: Boolean,
+    val hasLeft: Boolean
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -87,6 +89,7 @@ data class RoomHeaderInfo(
         if (presence != other.presence) return false
         if (isEncrypted != other.isEncrypted) return false
         if (isPublic != other.isPublic) return false
+        if (hasLeft != other.hasLeft) return false
         return true
     }
 
@@ -98,6 +101,7 @@ data class RoomHeaderInfo(
         result = 31 * result + (presence?.hashCode() ?: 0)
         result = 31 * result + isEncrypted.hashCode()
         result = 31 * result + isPublic.hashCode()
+        result = 31 * result + hasLeft.hashCode()
         return result
     }
 }
@@ -184,6 +188,7 @@ open class RoomHeaderViewModelImpl(
                 presence = userPresence?.presence,
                 isEncrypted = room?.encrypted == true,
                 isPublic = joinRules?.content?.joinRule == JoinRulesEventContent.JoinRule.Public,
+                hasLeft = room?.membership?.let { it == Membership.LEAVE }?: false
             )
         }.stateIn(
             coroutineScope,
@@ -196,6 +201,7 @@ open class RoomHeaderViewModelImpl(
                 presence = Presence.OFFLINE,
                 isEncrypted = false,
                 isPublic = true,
+                hasLeft = false
             )
         )
 
@@ -303,6 +309,7 @@ class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
             presence = null,
             isEncrypted = false,
             isPublic = true,
+            hasLeft = false
         )
     )
     override val usersTyping: MutableStateFlow<String?> = MutableStateFlow("is typing...")

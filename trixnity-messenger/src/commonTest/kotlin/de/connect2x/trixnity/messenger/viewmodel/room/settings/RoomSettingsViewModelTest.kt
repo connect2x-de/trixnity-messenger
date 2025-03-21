@@ -295,7 +295,7 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext,
             ),
             selectedRoomId = roomId,
-            onLeaveRoom = onBackMock,
+            onForgetRoom = onBackMock,
             onCloseRoomSettings = mock(),
             onOpenAvatarCutter = { _, _, _ -> },
             onOpenAddMembers = mock(),
