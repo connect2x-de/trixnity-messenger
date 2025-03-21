@@ -11,13 +11,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Layout of message metadata info
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
+- Fix timeline rendering bug caused by "fix-file-onsave-handling"
+- Display rooms correctly the first time on join
+
 ### Security
+
+- Sanitize Uri in Web
+
+## 3.4.4
+
+### Added
+
+- Check to ensure a single running instance of the messenger in the browser
+
+### Changed
+
+- Change imprint and privacy information formatting to Markdown to support them in app instead of via link
+- Documentation for `AccountSetupWizard`
+
+### Fixed
+
+- Bug in file attachment upload size
+- Unrecommended HTML tags are not being sent any more
+- Shared Plaintext is not interpreted as Markdown
+- CloseApp should not be injected when null
+- Fixed file save dialog repeatedly opening
+- Fixed missing favicon in web version
 
 ## 3.4.3
 
@@ -30,16 +57,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change imprint and privacy information formatting to Markdown to support them in app instead of via link
 - Upgrade to Trixnity 4.13.3 to fix rollback issues in IndexedDB
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Removed useless suspense in addmembers viewmodel
 - Fix Back Button for image preview
-
-### Security
 
 ## 3.4.2
 
@@ -453,8 +474,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hide multi profile mode in trixnity messenger
 - not shown redaction messages now also include not supported events in unencrypted rooms
 
-### Deprecated
-
 ### Removed
 
 - `app_name` from compose-view
@@ -507,14 +526,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgraded Trixnity
 - Upgraded dependencies
 
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
-
 ## 2.1.2
 
 ### Added
@@ -542,14 +553,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - upgrade trixnity version
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## 2.1.0
 

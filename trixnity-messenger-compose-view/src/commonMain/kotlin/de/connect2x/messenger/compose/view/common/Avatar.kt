@@ -15,10 +15,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
@@ -34,6 +41,12 @@ import de.connect2x.messenger.compose.view.theme.SystemDensity
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
+import kotlinx.coroutines.withContext
 import net.folivo.trixnity.core.model.events.m.Presence
 
 
@@ -46,17 +59,21 @@ fun Avatar(
     size: Dp = avatarSize().dp,
     overlay: @Composable (BoxScope.() -> Unit)? = null,
 ) {
+    var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(image) {
+        withContext(currentCoroutineContext() + Dispatchers.Default) {
+            imageBitmap = image?.toImageBitmap()
+        }
+    }
+
     val i18n = DI.get<I18nView>()
-    image?.toImageBitmap()?.let { bitmap ->
+    imageBitmap?.let { bitmap -> // toImageBitmap is the problem
         val maxScaleX = size / bitmap.width
         val maxScaleY = size / bitmap.height
         val scale = max(maxScaleX, maxScaleY)
         val width = scale * bitmap.width
         val height = scale * bitmap.height
-        log.trace {
-            "size ($size), image (${bitmap.width},${bitmap.height})" +
-                    ", scale ($scale), dim ($width,$height)"
-        }
+        log.trace { "size ($size), image (${bitmap.width}x${bitmap.height}), scale ($scale), dim (${width}x$height)" }
         Box {
             AvatarWithImage(size) {
                 Image(

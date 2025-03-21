@@ -16,6 +16,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 @Composable
 fun FileBasedDetailsDialog(
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
+    onSave: () -> Unit,
     onClose: () -> Unit,
     additions: @Composable RowScope.() -> Unit = {},
     content: @Composable () -> Unit,
@@ -26,7 +27,7 @@ fun FileBasedDetailsDialog(
     ) {
         BoxWithConstraints {
             Column(Modifier.fillMaxSize().background(Color.Black)) {
-                FileBasedDetailsHeader(element, onClose, additions)
+                FileBasedDetailsHeader(element, onSave, onClose, additions)
                 Box(
                     Modifier
                         .fillMaxSize()
