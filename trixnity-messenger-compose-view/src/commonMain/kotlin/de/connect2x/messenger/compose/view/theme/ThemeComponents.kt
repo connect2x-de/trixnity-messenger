@@ -1,10 +1,13 @@
 package de.connect2x.messenger.compose.view.theme
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
+import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 
 interface ThemeComponents {
     @Composable
@@ -38,6 +41,37 @@ class ThemeComponentsImpl : ThemeComponents {
                 containerColor = MaterialTheme.colorScheme.error,
                 contentColor = MaterialTheme.colorScheme.onError,
             )
+        ),
+        // surfaces
+        sidebar = SurfaceStyle.default(
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            tonalElevation = 4.dp,
+        ),
+        header = SurfaceStyle.default(
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp,
+        ),
+        timeline = SurfaceStyle.default(),
+        // input area
+        inputAreaSurface = SurfaceStyle.default(
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp,
+        ),
+        // message bubbles
+        messageBubbleOwn = SurfaceStyle.default(
+            color = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            shape = RoundedCornerShape(8.dp),
+        ),
+        messageBubbleOther = SurfaceStyle.default(
+            color = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            shape = RoundedCornerShape(8.dp),
+        ),
+        messageBubbleError = SurfaceStyle.default(
+            color = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+            shape = RoundedCornerShape(8.dp),
         ),
     )
 }

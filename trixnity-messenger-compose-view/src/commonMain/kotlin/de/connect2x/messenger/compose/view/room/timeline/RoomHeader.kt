@@ -57,6 +57,8 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
 
@@ -88,7 +90,9 @@ class RoomHeaderViewImpl : RoomHeaderView {
         val headerHeight = headerHeightFlow.collectAsState().value
         val density = LocalDensity.current
 
-        Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
+        ThemedSurface(
+            style = MaterialTheme.components.header,
+        ) {
             Column {
                 Row(
                     horizontalArrangement = Arrangement.Center,
