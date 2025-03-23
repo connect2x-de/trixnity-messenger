@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -35,12 +33,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.CloseModalButton
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.verification.AcceptSasStartViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelectVerificationMethodViewModel
@@ -179,17 +178,18 @@ fun BoxScope.CompareEmojisOrNumbers(verificationStepCompareViewModel: Verificati
     CompareEmojisOrNumbersContent(verificationStepCompareViewModel)
     Spacer(Modifier.size(20.dp))
     Row(horizontalArrangement = Arrangement.SpaceEvenly) {
-        Button(
-            verificationStepCompareViewModel::decline,
-            Modifier.buttonPointerModifier().weight(1.0f, fill = false),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+        ThemedButton(
+            style = MaterialTheme.components.destructiveButton,
+            onClick = verificationStepCompareViewModel::decline,
+            modifier = Modifier.weight(1.0f, fill = false),
         ) {
             Text(i18n.verificationNotMatch(), color = Color.White)
         }
         Spacer(Modifier.size(20.dp))
-        Button(
-            verificationStepCompareViewModel::accept,
-            Modifier.buttonPointerModifier().weight(1.0f, fill = false)
+        ThemedButton(
+            style = MaterialTheme.components.primaryButton,
+            onClick = verificationStepCompareViewModel::accept,
+            modifier = Modifier.weight(1.0f, fill = false)
         ) {
             Text(i18n.verificationMatch())
         }
@@ -327,7 +327,10 @@ private fun OkButton(onClick: () -> Unit) {
     val i18n = DI.get<I18nView>()
     Row(Modifier.fillMaxWidth()) {
         Spacer(Modifier.weight(1.0f, fill = true))
-        Button(onClick, Modifier.buttonPointerModifier()) {
+        ThemedButton(
+            style = MaterialTheme.components.primaryButton,
+            onClick = onClick,
+        ) {
             Text(i18n.commonOk())
         }
     }

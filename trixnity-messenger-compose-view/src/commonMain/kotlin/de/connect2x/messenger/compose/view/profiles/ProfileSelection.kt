@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -24,6 +24,8 @@ import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import kotlinx.coroutines.launch
 
@@ -75,11 +77,11 @@ class ProfileSelectionViewImpl : ProfileSelectionView {
             }
             MessengerModalButtonRow(
                 button1 = {
-                    Button(
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
                         onClick = {
                             showProfileCreation.value = true
                         },
-                        modifier = Modifier.buttonPointerModifier(),
                     ) {
                         Text(i18n.selectProfileCreateInstead())
                     }
