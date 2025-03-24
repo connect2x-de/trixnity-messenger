@@ -975,6 +975,11 @@ open class I18nView(
         DE - "Bisher keine Nachrichtsinteraktionen"
     }
 
+    open fun timelineJumpToEnd() = translate {
+        EN - "Jump to the end"
+        DE - "Ans Ende springen"
+    }
+
     open fun roomSettings() = translate {
         EN - "room settings"
         DE - "Raumeinstellungen"

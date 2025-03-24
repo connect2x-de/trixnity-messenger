@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Dangerous
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,6 +43,8 @@ import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
@@ -132,33 +135,18 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                     )
                 }
             }
-            if (canCreateNewGroup.value) {
-                Box(
-                    Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(bottom = 20.dp, end = 20.dp)
-                ) {
-                    ExtendedFloatingActionButton(
-                        text = { Text(i18n.createNewGroupCreate()) },
-                        icon = { Icon(Icons.Default.Check, i18n.createNewGroupCreate()) },
-                        onClick = { createNewGroupViewModel.createNewGroup() },
-                        modifier = Modifier.buttonPointerModifier(),
-                    )
-                }
-            } else {
-                Box(
-                    Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(bottom = 20.dp, end = 20.dp)
-                ) {
-                    ExtendedFloatingActionButton(
-                        text = { Text(i18n.createNewGroupCreate()) },
-                        icon = { Icon(Icons.Default.Dangerous, i18n.createNewGroupCreate()) },
-                        onClick = { },
-                        containerColor = Color.LightGray,
-                        modifier = Modifier.buttonPointerModifier(),
-                    )
-                }
+            Box(
+                Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 20.dp, end = 20.dp)
+            ) {
+                ThemedFloatingActionButton(
+                    expanded = true,
+                    enabled = canCreateNewGroup.value,
+                    onClick = { createNewGroupViewModel.createNewGroup() },
+                    text = { Text(i18n.createNewGroupCreate()) },
+                    icon = { Icon(Icons.Default.Check, i18n.createNewGroupCreate()) },
+                )
             }
         }
     }
