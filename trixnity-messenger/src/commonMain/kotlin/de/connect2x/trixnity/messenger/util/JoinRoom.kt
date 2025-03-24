@@ -69,6 +69,8 @@ class JoinRoomImpl() : JoinRoom {
                                 else ->
                                     JoinRoom.Result.Failed(joinRule, i18n.joinRoomFailedGenericJoin())
                             }
+                        } else if (it is MatrixServerException) {
+                            JoinRoom.Result.Failed(joinRule, i18n.joinRoomFailedGenericJoin())
                         } else JoinRoom.Result.Error(joinRule, it)
                     },
                     onSuccess = {
@@ -89,9 +91,6 @@ class JoinRoomImpl() : JoinRoom {
 
                                 HttpStatusCode.NotFound ->
                                     JoinRoom.Result.Failed(joinRule, i18n.joinRoomFailedRoomDoesNotExist())
-
-                                HttpStatusCode.TooManyRequests ->
-                                    JoinRoom.Result.Failed(joinRule, i18n.joinRoomFailedGenericKnock())
 
                                 else ->
                                     JoinRoom.Result.Failed(joinRule, i18n.joinRoomFailedGenericKnock())

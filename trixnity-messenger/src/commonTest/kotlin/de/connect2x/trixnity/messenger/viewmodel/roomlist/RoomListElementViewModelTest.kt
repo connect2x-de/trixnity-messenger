@@ -10,6 +10,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
@@ -17,7 +18,17 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
+import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.core.test.testCoroutineScheduler
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
@@ -613,6 +624,35 @@ class RoomListElementViewModelTest {
             cut.isEncrypted.value shouldBe true
         }
     }
+
+    @Test
+    fun `knocking - should unknock successfully`() {
+            var left = false
+            everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } calls {
+                left = true
+                Result.success(Unit)
+            }
+
+            val cut = roomListElementViewModel(roomId, coroutineContext)
+            delay(500.milliseconds)
+
+            cut.unknock()
+            delay(500.milliseconds)
+
+            left shouldBe true
+        }
+@Test
+fun `knocking - should handle unknock failure`() {
+            everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } returns Result.failure(Throwable(""))
+
+            val cut = roomListElementViewModel(roomId, coroutineContext)
+            delay(500.milliseconds)
+
+            cut.unknock()
+            delay(500.milliseconds)
+            cut.error.value.shouldNotBeNull()
+        }
+
 
     private fun TestScope.roomListElementViewModel(
         roomId: RoomId
