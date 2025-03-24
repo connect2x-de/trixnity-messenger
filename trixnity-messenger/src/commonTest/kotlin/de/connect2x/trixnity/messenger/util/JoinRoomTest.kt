@@ -75,6 +75,7 @@ class JoinRoomTest {
                 Result.success(roomId)
 
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.Knock,
             roomId
@@ -91,6 +92,7 @@ class JoinRoomTest {
                 Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
 
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.Knock,
             roomId
@@ -107,6 +109,7 @@ class JoinRoomTest {
                 Result.failure(MatrixServerException(HttpStatusCode.NotFound, ErrorResponse.NotFound("")))
 
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.Knock,
             roomId
@@ -123,6 +126,7 @@ class JoinRoomTest {
                 Result.failure(MatrixServerException(HttpStatusCode(418, "I'm a tea pot"), ErrorResponse.Forbidden("")))
 
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.Knock,
             roomId
@@ -140,6 +144,7 @@ class JoinRoomTest {
                 Result.failure(error)
 
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.Knock,
             roomId
@@ -156,6 +161,7 @@ class JoinRoomTest {
                 Result.success(roomId)
 
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.Public,
             roomId
@@ -172,6 +178,7 @@ class JoinRoomTest {
                 Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
 
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.Public,
             roomId
@@ -188,6 +195,7 @@ class JoinRoomTest {
                 Result.failure(MatrixServerException(HttpStatusCode(418, "I'm a tea pot"), ErrorResponse.Forbidden("")))
 
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.Public,
             roomId
@@ -205,6 +213,7 @@ class JoinRoomTest {
                 Result.failure(error)
 
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.Public,
             roomId
@@ -221,6 +230,7 @@ class JoinRoomTest {
                 Result.success(roomId)
 
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.Invite,
             roomId
@@ -237,6 +247,7 @@ class JoinRoomTest {
                 Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
 
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.Invite,
             roomId
@@ -253,6 +264,7 @@ class JoinRoomTest {
                 Result.success(roomId)
 
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.Restricted,
             roomId
@@ -269,6 +281,7 @@ class JoinRoomTest {
                 Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
 
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.Restricted,
             roomId
@@ -285,6 +298,7 @@ class JoinRoomTest {
                 Result.success(roomId)
 
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.KnockRestricted,
             roomId
@@ -303,6 +317,7 @@ class JoinRoomTest {
                 Result.success(roomId)
 
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.KnockRestricted,
             roomId
@@ -316,6 +331,7 @@ class JoinRoomTest {
     @Test
     fun `private - should fail private room`() = runTestWithCoroutineScope {
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.Private,
             roomId
@@ -329,6 +345,7 @@ class JoinRoomTest {
     @Test
     fun `unknown - should fail unknown JoinRule`() = runTestWithCoroutineScope {
         val res = cut.invoke(
+            i18n,
             matrixClientMock,
             JoinRule.Unknown("cooked_rule"),
             roomId

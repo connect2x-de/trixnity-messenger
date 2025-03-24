@@ -14,6 +14,7 @@ import net.folivo.trixnity.core.model.keys.Signed
  */
 interface JoinRoom {
     suspend operator fun invoke(
+        i18n: I18n,
         matrixClient: MatrixClient,
         joinRule: JoinRule,
         roomId: RoomId,
@@ -39,6 +40,7 @@ interface JoinRoom {
 
 class JoinRoomImpl() : JoinRoom {
     override suspend operator fun invoke(
+        i18n: I18n,
         matrixClient: MatrixClient,
         joinRule: JoinRule,
         roomId: RoomId,
@@ -46,8 +48,6 @@ class JoinRoomImpl() : JoinRoom {
         via: Set<String>?,
         thirdPartySigned: Signed<Request.ThirdParty, String>?
     ): JoinRoom.Result {
-        val i18n = matrixClient.di.get<I18n>()
-
         return when (joinRule) {
             JoinRule.Invite, JoinRule.Public, JoinRule.Restricted, JoinRule.KnockRestricted ->
                 matrixClient.api.room.joinRoom(roomId, via, reason, thirdPartySigned).fold(
@@ -58,7 +58,7 @@ class JoinRoomImpl() : JoinRoom {
                         ) {
                             when (joinRule) {
                                 JoinRule.KnockRestricted ->
-                                    invoke(matrixClient, JoinRule.Knock, roomId, reason, via, thirdPartySigned)
+                                    invoke(i18n, matrixClient, JoinRule.Knock, roomId, reason, via, thirdPartySigned)
 
                                 JoinRule.Invite ->
                                     JoinRoom.Result.Failed(JoinRule.Invite, i18n.joinRoomFailedInvite())
