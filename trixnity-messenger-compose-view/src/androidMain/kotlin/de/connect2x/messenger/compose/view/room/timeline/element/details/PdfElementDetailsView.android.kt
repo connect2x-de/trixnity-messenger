@@ -8,6 +8,7 @@ import android.os.ParcelFileDescriptor.MODE_READ_ONLY
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.TransformableState
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -26,12 +27,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -61,6 +64,7 @@ actual fun PDFReader(
     media: PlatformMedia,
     scale: Float,
     isZooming: Boolean,
+    offset: MutableState<Offset>,
     state: TransformableState,
     onError: (String?) -> Unit,
 ) {
@@ -103,37 +107,51 @@ actual fun PDFReader(
             renderer.value?.close()
         }
     }
+    val lazyListState = rememberLazyListState()
+    val horizontalScroll = rememberScrollState()
 
+    LaunchedEffect(offset.value) {
+        lazyListState.scrollBy(-offset.value.y)
+        horizontalScroll.scrollBy(-offset.value.x)
+        offset.value = Offset.Zero
+    }
 
     Box(
         Modifier
             .fillMaxSize()
-            .onSizeChanged { viewSize = it }
+            .onSizeChanged { viewSize = it },
+        contentAlignment = Alignment.Center
     ) {
         val pdfReader = renderer.value
         val dpi = dpi.value
         if (pdfReader != null && dpi != null && pdfReader.pageCount > 0) {
-            val lazyListState = rememberLazyListState()
-            val horizontalScroll = rememberScrollState()
             LazyColumn(
                 modifier = Modifier
-                    .transformable(state)
                     .horizontalScroll(horizontalScroll)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .transformable(state),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(8.dp),
                 state = lazyListState,
-                userScrollEnabled = !isZooming,
+                userScrollEnabled = false,
                 content = {
                     items(count = pdfReader.pageCount, key = { it }) { pageId ->
                         val cacheKey = "$pageId:${dpi}"
                         val currentPage = cache.value[cacheKey]?.second ?: run {
                             pdfReader.openPage(pageId).use { page ->
+                                val width = (page.width * dpi).toInt()
+                                val height = (page.height * dpi).toInt()
                                 val bitmap = Bitmap.createBitmap(
-                                    (page.width * dpi).toInt(),
-                                    (page.height * dpi).toInt(),
+                                    width,
+                                    height,
                                     Bitmap.Config.ARGB_8888
                                 )
+                                log.debug {
+                                    "render pdf page $pageId " +
+                                            "to viewport (${width}x${height}) " +
+                                            "at scale factor: $scale " +
+                                            "with ${cache.value.size} pages already cached"
+                                }
                                 page.render(bitmap, null, null, RENDER_MODE_FOR_DISPLAY)
                                 val image = bitmap.asImageBitmap()
                                 cache.value[cacheKey] = Pair(System.currentTimeMillis(), image)
@@ -161,9 +179,11 @@ actual fun PDFReader(
                     .fillMaxWidth(),
                 horizontalScroll,
             )
-            VerticalScrollbar(Modifier
-                .align(Alignment.CenterEnd)
-                .fillMaxHeight(), lazyListState, false)
+            VerticalScrollbar(
+                Modifier
+                    .align(Alignment.CenterEnd)
+                    .fillMaxHeight(), lazyListState, false
+            )
 
         } //No Renderer yet -> Display a loading indicator
         else if (pdfReader == null) CenteredElement {

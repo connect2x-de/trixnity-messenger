@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.room.timeline.element.details
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.TransformableState
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -22,11 +23,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -53,6 +56,7 @@ actual fun PDFReader(
     media: PlatformMedia,
     scale: Float,
     isZooming: Boolean,
+    offset: MutableState<Offset>,
     state: TransformableState,
     onError: (String?) -> Unit,
 ) {
@@ -107,8 +111,14 @@ actual fun PDFReader(
         }
     }
 
-    val listState = rememberLazyListState()
+    val lazyListState = rememberLazyListState()
     val horizontalScroll = rememberScrollState()
+
+    LaunchedEffect(offset.value) {
+        lazyListState.scrollBy(-offset.value.y)
+        horizontalScroll.scrollBy(-offset.value.x)
+        offset.value = Offset.Zero
+    }
     Box(Modifier.fillMaxSize().onSizeChanged { viewSize.value = it }, contentAlignment = Alignment.Center) {
         reader.value?.let { reader ->
             val pageCount = reader.pageSize.value
@@ -118,7 +128,7 @@ actual fun PDFReader(
                         .horizontalScroll(horizontalScroll)
                         .fillMaxSize()
                         .transformable(state),
-                    state = listState,
+                    state = lazyListState,
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     contentPadding = PaddingValues(8.dp)
@@ -146,7 +156,7 @@ actual fun PDFReader(
             }
         }
         HorizontalScrollbar(Modifier.align(Alignment.BottomCenter).fillMaxWidth(), horizontalScroll)
-        VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), listState, false)
+        VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), lazyListState, false)
     }
 }
 

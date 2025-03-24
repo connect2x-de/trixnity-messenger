@@ -3,6 +3,8 @@ package de.connect2x.messenger.compose.view.room.timeline.element.details
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.TransformableState
+import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -22,12 +24,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
@@ -61,6 +65,7 @@ actual fun PDFReader(
     media: PlatformMedia,
     scale: Float,
     isZooming: Boolean,
+    offset: MutableState<Offset>,
     state: TransformableState,
     onError: (String?) -> Unit,
 ) {
@@ -106,6 +111,12 @@ actual fun PDFReader(
     val lazyListState = rememberLazyListState()
     val horizontalScroll = rememberScrollState()
 
+    LaunchedEffect(offset.value) {
+        lazyListState.scrollBy(-offset.value.y)
+        horizontalScroll.scrollBy(-offset.value.x)
+        offset.value = Offset.Zero
+    }
+
     Box(
         Modifier
             .fillMaxSize()
@@ -133,7 +144,6 @@ actual fun PDFReader(
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
                 contentPadding = PaddingValues(horizontal = MaterialTheme.messengerDpConstants.middle),
                 state = lazyListState,
-                userScrollEnabled = !isZooming,
                 content = {
                     items(count = documentData.numberOfPages, key = { it }) { pageId ->
                         val cacheKey = "$pageId:${newDpi.toInt()}"

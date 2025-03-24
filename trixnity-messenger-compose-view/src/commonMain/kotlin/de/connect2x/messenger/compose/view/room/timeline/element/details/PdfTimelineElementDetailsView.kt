@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
@@ -55,8 +57,11 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         val progress = element.downloadMediaProgress.collectAsState().value
         val (error, setError) = remember { mutableStateOf<String?>(null) }
         var zoom = remember { mutableStateOf(1.0f) }
-        val state = rememberTransformableState { zoomChange, _, _ ->
+        val offset = remember { mutableStateOf(Offset.Zero) }
+        val state = rememberTransformableState { zoomChange, offsetChange, _ ->
             zoom.value = (zoom.value * zoomChange).coerceIn(0.8f, 4f)
+            offset.value = offset.value + offsetChange.times(zoom.value)
+
         }
         val canZoom = remember { mutableStateOf(false) }
         val i18n = DI.current.get<I18nView>()
@@ -108,7 +113,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                             DownloadProgress(progress, element::cancelDownloadMedia)
                         }
 
-                        media != null -> PDFReader(media, zoom.value, canZoom.value, state) {
+                        media != null -> PDFReader(media, zoom.value, canZoom.value, offset, state) {
                             setError(it ?: i18n.fileCouldNotBeLoaded())
                         }
 
@@ -133,6 +138,7 @@ expect fun PDFReader(
     media: PlatformMedia,
     scale: Float = 1f,
     isZooming: Boolean,
+    offset: MutableState<Offset>,
     state: TransformableState,
     onError: (String?) -> Unit
 )
