@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 
@@ -19,6 +20,8 @@ data class ComponentStyles(
     val sidebar: SurfaceStyle,
     val header: SurfaceStyle,
     val timeline: SurfaceStyle,
+    // room list
+    val roomListSelection: SurfaceStyle,
     // input area
     val inputAreaSurface: SurfaceStyle,
     // messages

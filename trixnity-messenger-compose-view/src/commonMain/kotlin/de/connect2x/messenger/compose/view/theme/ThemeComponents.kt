@@ -63,6 +63,11 @@ class ThemeComponentsImpl : ThemeComponents {
             tonalElevation = 8.dp,
         ),
         timeline = SurfaceStyle.default(),
+        // room list
+        roomListSelection = SurfaceStyle.default(
+            color = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onBackground,
+        ),
         // input area
         inputAreaSurface = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.surface,
