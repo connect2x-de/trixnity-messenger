@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - AddMembersViewModel now has indicator when users are currently added
+- See and accept knocks via Roomsettings
 
 ### Changed
 
