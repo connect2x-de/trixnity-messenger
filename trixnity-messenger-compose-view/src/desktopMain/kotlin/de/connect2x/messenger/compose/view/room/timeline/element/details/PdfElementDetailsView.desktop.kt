@@ -2,10 +2,13 @@ package de.connect2x.messenger.compose.view.room.timeline.element.details
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.TransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -35,6 +38,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
+import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
@@ -47,7 +51,6 @@ import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.PDFRenderer
-import simpleVerticalScrollbar
 import kotlin.math.max
 import kotlin.math.min
 
@@ -57,6 +60,8 @@ private val log = KotlinLogging.logger { }
 actual fun PDFReader(
     media: PlatformMedia,
     scale: Float,
+    isZooming: Boolean,
+    state: TransformableState,
     onError: (String?) -> Unit,
 ) {
     val i18n = DI.current.get<I18nView>()
@@ -68,10 +73,10 @@ actual fun PDFReader(
     val renderCache by remember {
         mutableStateOf<MutableMap<String, Pair<Long, ImageBitmap>>>(mutableMapOf())
     }
-
     val (temporaryFile, setTemporaryFile) = remember { mutableStateOf<OkioPlatformMedia.TemporaryFile?>(null) }
+
     LaunchedEffect(Unit) {
-        val temporaryFileResult = (media as OkioPlatformMedia).getTemporaryFile()
+        val temporaryFileResult = (media as OkioPlatformMedia).getTemporaryFile(coroutineContext)
         if (temporaryFileResult.isSuccess) {
             val newTemporaryFile = temporaryFileResult.getOrThrow()
             try {
@@ -123,11 +128,12 @@ actual fun PDFReader(
             LazyColumn(
                 modifier = Modifier
                     .horizontalScroll(horizontalScroll)
-                    .simpleVerticalScrollbar(lazyListState, Color.Gray)
-                    .fillMaxWidth(),
+                    .fillMaxSize()
+                    .transformable(state),
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
                 contentPadding = PaddingValues(horizontal = MaterialTheme.messengerDpConstants.middle),
                 state = lazyListState,
+                userScrollEnabled = !isZooming,
                 content = {
                     items(count = documentData.numberOfPages, key = { it }) { pageId ->
                         val cacheKey = "$pageId:${newDpi.toInt()}"
@@ -164,5 +170,6 @@ actual fun PDFReader(
             Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
             horizontalScroll,
         )
+        VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), lazyListState, false)
     }
 }

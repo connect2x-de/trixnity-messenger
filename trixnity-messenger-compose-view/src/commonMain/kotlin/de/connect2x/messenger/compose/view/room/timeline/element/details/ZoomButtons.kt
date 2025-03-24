@@ -29,6 +29,8 @@ fun Modifier.zoomModifier(
     focusRequester: FocusRequester,
     canZoom: MutableState<Boolean>,
     zoom: MutableState<Float>,
+    minScale: Float? = 0.2f,
+    maxScale: Float? = 4f
 ): Modifier {
     return this.then(
         Modifier.pointerInput(Unit) {
@@ -40,7 +42,7 @@ fun Modifier.zoomModifier(
                             focusRequester.requestFocus() // otherwise, key events will be lost
                             if (canZoom.value) {
                                 val delta = 0.1f * -it.scrollDelta.y
-                                zoom.value = (zoom.value + delta).coerceIn(0.2f, 4f)
+                                zoom.value = (zoom.value + delta).coerceIn(minScale, maxScale)
                             }
                         }
                 }
