@@ -9,8 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- AddMembersViewModel now has indicator when users are currently added
+- New system for customizing styles of each component
+
 ### Changed
 
+- Layout of message metadata info
 - Completely new SecretByteArray architecture, that allows to have a keychain
 
 ### Deprecated
@@ -21,8 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix timeline rendering bug caused by "fix-file-onsave-handling"
 - Display rooms correctly the first time on join
+- Set directory visibility of public rooms to public
+- No more flickering in timeline when writing new messages
 
 ### Security
+
+- Sanitize Uri in Web
 
 ## 3.4.4
 

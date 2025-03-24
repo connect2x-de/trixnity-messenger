@@ -154,9 +154,16 @@ class RootRouter(
         }
     }
 
-    fun showInitialization() {
+    /**
+     * Use parameter [force] to show the initialization regardless of the current config. If false, the initialization is only shown when the current stack is empty.
+     */
+    fun showInitialization(force: Boolean = true) {
         log.debug { "showInitialization" }
-        navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.MatrixClientInitialization)
+        navigation.launchNavigate(viewModelContext.coroutineScope) {
+            if (it == listOf(Config.None) || force) {
+                listOf(Config.MatrixClientInitialization)
+            } else it
+        }
     }
 
     private fun showMain() {

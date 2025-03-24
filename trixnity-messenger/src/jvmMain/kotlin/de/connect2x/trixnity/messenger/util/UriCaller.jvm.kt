@@ -11,14 +11,15 @@ private val log = KotlinLogging.logger { }
 actual fun platformUriCallerModule(): Module = module {
     single<UriCaller> {
         UriCaller { uri, external ->
-            log.info { "call uri: $uri" }
+            val safeUri = URI(uri)
+            log.info { "call uri: $safeUri" }
             if (!external) log.debug { "does not support internal uri calling yet" }
             val desktop = Desktop.getDesktop()
             if (desktop.isSupported(Desktop.Action.BROWSE)) {
-                desktop.browse(URI(uri))
+                desktop.browse(safeUri)
             } else when (getOs()) {
                 OS.LINUX -> {
-                    Runtime.getRuntime().exec(arrayOf("xdg-open", URI(uri).toString()))
+                    Runtime.getRuntime().exec(arrayOf("xdg-open", safeUri.toString()))
                 }
 
                 else -> throw UnsupportedOperationException("AWT does not support the BROWSE action on this platform")
