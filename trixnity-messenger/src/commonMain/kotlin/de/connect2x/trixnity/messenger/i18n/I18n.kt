@@ -1228,32 +1228,32 @@ open class I18n(
         DE - "Raumbeitritt ist fehlgeschlagen"
     }
 
-    open fun joinRoomFailedGenericJoin() = translate {
+    open fun enterRoomFailedGenericJoin() = translate {
         EN - "Joining the room failed"
         DE - "Raumbeitritt ist fehlgeschlagen"
     }
 
-    open fun joinRoomFailedRestricted() = translate {
+    open fun enterRoomFailedRestricted() = translate {
         EN - "Unqualified to join this room"
         DE - "Unqualifiziert diesen Raum beizutreten"
     }
 
-    open fun joinRoomFailedInvite() = translate {
+    open fun enterRoomFailedInvite() = translate {
         EN - "Joining room is invite-only"
         DE - "Kann Raum nur auf Einladung betreten"
     }
 
-    open fun joinRoomFailedGenericKnock() = translate {
+    open fun enterRoomFailedGenericKnock() = translate {
         EN - "Membership request failed"
         DE - "Raummitgliedschaftssanfrage ist fehlgeschlagen"
     }
 
-    open fun joinRoomFailedNoPermission() = translate {
+    open fun enterRoomFailedNoPermission() = translate {
         EN - "No Permission to join this room"
         DE - "Fehlende Berechtigung diesem Raum beizutreten"
     }
 
-    open fun joinRoomFailedRoomDoesNotExist() = translate {
+    open fun enterRoomFailedRoomDoesNotExist() = translate {
         EN - "Room does not exist"
         DE - "Raum existiert nicht"
     }

@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import com.arkivanov.essenty.backhandler.BackCallback
-import de.connect2x.trixnity.messenger.util.JoinRoom
+import de.connect2x.trixnity.messenger.util.EnterRoom
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
@@ -46,11 +46,23 @@ interface SearchGroupViewModelFactory {
 interface SearchGroupViewModel {
     val searchTerm: TextFieldViewModel
     val groupSearchInProgress: StateFlow<Boolean>
-    val addGroupInProgress: StateFlow<Boolean>
+
+    @Deprecated(
+        message = "Use `enterGroupInProgress` instead after switching to `enterGroup`",
+        replaceWith = ReplaceWith("enterGroupInProgress")
+    )
+    val joinGroupInProgress: StateFlow<Boolean>
+    val enterGroupInProgress: StateFlow<Boolean>
     val error: StateFlow<String?>
     val foundGroups: StateFlow<List<SearchGroup>>
 
-    fun addGroup(searchGroup: SearchGroup, reason: String? = null)
+    fun enterGroup(roomId: RoomId, reason: String? = null)
+
+    @Deprecated(
+        message = "`joinGroup` only handles Public rooms, use `enterGroup` instead.",
+        replaceWith = ReplaceWith("enterGroup(roomId)")
+    )
+    fun joinGroup(roomId: RoomId)
     fun back()
 
     data class SearchGroup(
@@ -81,11 +93,17 @@ class SearchGroupViewModelImpl(
     }
 
     private val initials = get<Initials>()
-    private val joinRoom = get<JoinRoom>()
+    private val enterRoom = get<EnterRoom>()
 
     override val searchTerm = TextFieldViewModelImpl()
     override val groupSearchInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val addGroupInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
+    @Deprecated(
+        "Use `enterGroupInProgress` instead after switching to `enterGroup`",
+        replaceWith = ReplaceWith("enterGroupInProgress")
+    )
+    override val joinGroupInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val enterGroupInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override val foundGroups: StateFlow<List<SearchGroupViewModel.SearchGroup>> = searchTerm
@@ -131,32 +149,62 @@ class SearchGroupViewModelImpl(
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
-    override fun addGroup(searchGroup: SearchGroupViewModel.SearchGroup, reason: String?) {
-        if (addGroupInProgress.getAndUpdate { true }) {
-            log.warn { "Adding room (${searchGroup.roomId}) is already in progress" }
+    @Deprecated(
+        "`joinGroup` only handles Public rooms, use `enterGroup` instead.",
+        replaceWith = ReplaceWith("enterGroup(roomId)")
+    )
+    override fun joinGroup(roomId: RoomId) {
+        coroutineScope.launch {
+            joinGroupInProgress.update { true }
+            try {
+                matrixClient.api.room.joinRoom(roomId)
+                    .onFailure {
+                        log.error(it) { "cannot join room" }
+                        error.value = i18n.searchGroupJoinFailedGeneric()
+                    }
+                    .onSuccess {
+                        onGroupJoined(userId, roomId)
+                        error.value = null
+                    }
+            } finally {
+                joinGroupInProgress.update { false }
+            }
+        }
+    }
+
+    override fun enterGroup(roomId: RoomId, reason: String?) {
+        if (enterGroupInProgress.getAndUpdate { true }) {
+            log.warn { "Adding room ($roomId) is already in progress" }
+            return
+        }
+
+        val searchGroup = foundGroups.value.firstOrNull { it.roomId == roomId }
+
+        if (searchGroup == null) {
+            log.warn { "Tried to add unknown group ($roomId)" }
             return
         }
 
         coroutineScope.launch {
-            joinRoom(
+            enterRoom(
                 i18n,
                 matrixClient,
                 searchGroup.joinRule,
-                searchGroup.roomId,
+                roomId,
                 reason
             ).fold(
                 onSuccess = {
                     when (it.kind) {
                         is JoinRule.Public, is JoinRule.Invite, is JoinRule.Restricted -> {
-                            onGroupJoined(userId, searchGroup.roomId)
+                            onGroupJoined(userId, roomId)
                         }
 
                         is JoinRule.Knock -> {
-                            onGroupKnocked(searchGroup.roomId)
+                            onGroupKnocked(roomId)
                         }
 
                         else -> {
-                            log.warn { "Join rule (${it.kind.name}) for room (${searchGroup.roomId}) succeeded. This shouldn't happen" }
+                            log.warn { "Join rule (${it.kind.name}) for room (${roomId}) succeeded. This shouldn't happen" }
                         }
                     }
 
@@ -166,11 +214,11 @@ class SearchGroupViewModelImpl(
                     error.value = it.reason
                 },
                 onError = {
-                    log.error(it.error) { "Failed to join room ${searchGroup.roomId} using ${it.kind} (room has ${searchGroup.joinRule})" }
+                    log.error(it.error) { "Failed to join room $roomId using ${it.kind} (room has ${searchGroup.joinRule})" }
                     error.value = i18n.searchGroupJoinFailedGeneric()
                 },
             )
-        }.invokeOnCompletion { addGroupInProgress.value = false }
+        }.invokeOnCompletion { enterGroupInProgress.value = false }
     }
 
     override fun back() {

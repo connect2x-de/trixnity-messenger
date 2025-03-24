@@ -12,7 +12,7 @@ import net.folivo.trixnity.core.model.keys.Signed
 /**
  * Joins a room based on its joinRule
  */
-interface JoinRoom {
+interface EnterRoom {
     suspend operator fun invoke(
         i18n: I18n,
         matrixClient: MatrixClient,
@@ -38,7 +38,7 @@ interface JoinRoom {
     }
 }
 
-class JoinRoomImpl() : JoinRoom {
+class EnterRoomImpl() : EnterRoom {
     override suspend operator fun invoke(
         i18n: I18n,
         matrixClient: MatrixClient,
@@ -47,7 +47,7 @@ class JoinRoomImpl() : JoinRoom {
         reason: String?,
         via: Set<String>?,
         thirdPartySigned: Signed<Request.ThirdParty, String>?
-    ): JoinRoom.Result {
+    ): EnterRoom.Result {
         return when (joinRule) {
             JoinRule.Invite, JoinRule.Public, JoinRule.Restricted, JoinRule.KnockRestricted ->
                 matrixClient.api.room.joinRoom(roomId, via, reason, thirdPartySigned).fold(
@@ -61,20 +61,20 @@ class JoinRoomImpl() : JoinRoom {
                                     invoke(i18n, matrixClient, JoinRule.Knock, roomId, reason, via, thirdPartySigned)
 
                                 JoinRule.Invite ->
-                                    JoinRoom.Result.Failed(JoinRule.Invite, i18n.joinRoomFailedInvite())
+                                    EnterRoom.Result.Failed(JoinRule.Invite, i18n.enterRoomFailedInvite())
 
                                 JoinRule.Restricted ->
-                                    JoinRoom.Result.Failed(JoinRule.Invite, i18n.joinRoomFailedRestricted())
+                                    EnterRoom.Result.Failed(JoinRule.Invite, i18n.enterRoomFailedRestricted())
 
                                 else ->
-                                    JoinRoom.Result.Failed(joinRule, i18n.joinRoomFailedGenericJoin())
+                                    EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedGenericJoin())
                             }
                         } else if (it is MatrixServerException) {
-                            JoinRoom.Result.Failed(joinRule, i18n.joinRoomFailedGenericJoin())
-                        } else JoinRoom.Result.Error(joinRule, it)
+                            EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedGenericJoin())
+                        } else EnterRoom.Result.Error(joinRule, it)
                     },
                     onSuccess = {
-                        JoinRoom.Result.Success(
+                        EnterRoom.Result.Success(
                             if (joinRule == JoinRule.KnockRestricted) JoinRule.Restricted
                             else joinRule
                         )
@@ -87,23 +87,23 @@ class JoinRoomImpl() : JoinRoom {
                         if (it is MatrixServerException) {
                             when (it.statusCode) {
                                 HttpStatusCode.Forbidden ->
-                                    JoinRoom.Result.Failed(joinRule, i18n.joinRoomFailedNoPermission())
+                                    EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedNoPermission())
 
                                 HttpStatusCode.NotFound ->
-                                    JoinRoom.Result.Failed(joinRule, i18n.joinRoomFailedRoomDoesNotExist())
+                                    EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedRoomDoesNotExist())
 
                                 else ->
-                                    JoinRoom.Result.Failed(joinRule, i18n.joinRoomFailedGenericKnock())
+                                    EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedGenericKnock())
                             }
-                        } else JoinRoom.Result.Error(joinRule, it)
+                        } else EnterRoom.Result.Error(joinRule, it)
                     },
                     onSuccess = {
-                        JoinRoom.Result.Success(joinRule)
+                        EnterRoom.Result.Success(joinRule)
                     }
                 )
 
             JoinRule.Private, is JoinRule.Unknown ->
-                JoinRoom.Result.Failed(joinRule, i18n.joinRoomFailedGenericJoin())
+                EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedGenericJoin())
         }
     }
 }

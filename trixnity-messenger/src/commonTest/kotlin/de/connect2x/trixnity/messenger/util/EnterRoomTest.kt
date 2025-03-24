@@ -33,8 +33,8 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
 
-class JoinRoomTest {
-    private val cut = JoinRoomImpl()
+class EnterRoomTest {
+    private val cut = EnterRoomImpl()
 
     private val roomId = RoomId("room1", "localhost")
     private val room = Room(roomId)
@@ -83,7 +83,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Success(JoinRule.Knock)
+        res shouldBe EnterRoom.Result.Success(JoinRule.Knock)
     }
 
     @Test
@@ -100,7 +100,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Failed(JoinRule.Knock, i18n.joinRoomFailedNoPermission())
+        res shouldBe EnterRoom.Result.Failed(JoinRule.Knock, i18n.enterRoomFailedNoPermission())
     }
 
     @Test
@@ -117,7 +117,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Failed(JoinRule.Knock, i18n.joinRoomFailedRoomDoesNotExist())
+        res shouldBe EnterRoom.Result.Failed(JoinRule.Knock, i18n.enterRoomFailedRoomDoesNotExist())
     }
 
     @Test
@@ -134,7 +134,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Failed(JoinRule.Knock, i18n.joinRoomFailedGenericKnock())
+        res shouldBe EnterRoom.Result.Failed(JoinRule.Knock, i18n.enterRoomFailedGenericKnock())
     }
 
     @Test
@@ -152,7 +152,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Error(JoinRule.Knock, error)
+        res shouldBe EnterRoom.Result.Error(JoinRule.Knock, error)
     }
 
     @Test
@@ -169,7 +169,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Success(JoinRule.Public)
+        res shouldBe EnterRoom.Result.Success(JoinRule.Public)
     }
 
     @Test
@@ -186,7 +186,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Failed(JoinRule.Public, i18n.joinRoomFailedGenericJoin())
+        res shouldBe EnterRoom.Result.Failed(JoinRule.Public, i18n.enterRoomFailedGenericJoin())
     }
 
     @Test
@@ -203,7 +203,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Failed(JoinRule.Public, i18n.joinRoomFailedGenericJoin())
+        res shouldBe EnterRoom.Result.Failed(JoinRule.Public, i18n.enterRoomFailedGenericJoin())
     }
 
     @Test
@@ -221,7 +221,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Error(JoinRule.Public, error)
+        res shouldBe EnterRoom.Result.Error(JoinRule.Public, error)
     }
 
     @Test
@@ -238,7 +238,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Success(JoinRule.Invite)
+        res shouldBe EnterRoom.Result.Success(JoinRule.Invite)
     }
 
     @Test
@@ -255,7 +255,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Failed(JoinRule.Invite, i18n.joinRoomFailedInvite())
+        res shouldBe EnterRoom.Result.Failed(JoinRule.Invite, i18n.enterRoomFailedInvite())
     }
 
     @Test
@@ -272,7 +272,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Success(JoinRule.Restricted)
+        res shouldBe EnterRoom.Result.Success(JoinRule.Restricted)
     }
 
     @Test
@@ -289,7 +289,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Failed(JoinRule.Invite, i18n.joinRoomFailedRestricted())
+        res shouldBe EnterRoom.Result.Failed(JoinRule.Invite, i18n.enterRoomFailedRestricted())
     }
 
     @Test
@@ -306,7 +306,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Success(JoinRule.Restricted)
+        res shouldBe EnterRoom.Result.Success(JoinRule.Restricted)
     }
 
     @Test
@@ -325,7 +325,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Success(JoinRule.Knock)
+        res shouldBe EnterRoom.Result.Success(JoinRule.Knock)
     }
 
     @Test
@@ -339,7 +339,7 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Failed(JoinRule.Private, i18n.joinRoomFailedGenericJoin())
+        res shouldBe EnterRoom.Result.Failed(JoinRule.Private, i18n.enterRoomFailedGenericJoin())
     }
 
     @Test
@@ -353,6 +353,6 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Failed(JoinRule.Unknown("cooked_rule"), i18n.joinRoomFailedGenericJoin())
+        res shouldBe EnterRoom.Result.Failed(JoinRule.Unknown("cooked_rule"), i18n.enterRoomFailedGenericJoin())
     }
 }
