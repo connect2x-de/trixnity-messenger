@@ -176,7 +176,7 @@ class MemberListElementViewModelTest {
     }
 
     @Test
-    fun `role computation for the member list ~ Member is admin ~ return the role admin`() = runTest {
+    fun `role computation for the member list » Member is admin » return the role admin`() = runTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
@@ -186,7 +186,7 @@ class MemberListElementViewModelTest {
     }
 
     @Test
-    fun `role computation for the member list ~ Member is admin ~ show role name in view`() = runTest {
+    fun `role computation for the member list » Member is admin » show role name in view`() = runTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
@@ -196,7 +196,7 @@ class MemberListElementViewModelTest {
     }
 
     @Test
-    fun `role computation for the member list ~ Member is moderator ~ return the role moderator`() = runTest {
+    fun `role computation for the member list » Member is moderator » return the role moderator`() = runTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
@@ -206,7 +206,7 @@ class MemberListElementViewModelTest {
     }
 
     @Test
-    fun `role computation for the member list ~ Member is moderator ~ show role name in view`() = runTest {
+    fun `role computation for the member list » Member is moderator » show role name in view`() = runTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
@@ -218,7 +218,7 @@ class MemberListElementViewModelTest {
 
 
     @Test
-    fun `role computation for the member list ~ Member is a normal user ~ return the role user`() = runTest {
+    fun `role computation for the member list » Member is a normal user » return the role user`() = runTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
@@ -228,7 +228,7 @@ class MemberListElementViewModelTest {
     }
 
     @Test
-    fun `role computation for the member list ~ Member is a normal user ~ do not show role name in view`() = runTest {
+    fun `role computation for the member list » Member is a normal user » do not show role name in view`() = runTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)

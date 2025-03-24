@@ -240,7 +240,7 @@ class UserProfileViewModelTest {
     }
 
     @Test
-    fun `kicking a user ~ return to room settings after kicking an user`() = runTest {
+    fun `kicking a user » return to room settings after kicking an user`() = runTest {
         setupKickingAUser()
         everySuspend {
             roomsApiClientMock.kickUser(
@@ -261,7 +261,7 @@ class UserProfileViewModelTest {
     }
 
     @Test
-    fun `kicking a user ~ show an error message when trying to kick an user and we are not connected`() = runTest {
+    fun `kicking a user » show an error message when trying to kick an user and we are not connected`() = runTest {
         setupKickingAUser()
         syncStateMocker returns MutableStateFlow(SyncState.ERROR)
 
@@ -275,7 +275,7 @@ class UserProfileViewModelTest {
     }
 
     @Test
-    fun `kicking a user ~ show an error message when kicking an user fails`() = runTest {
+    fun `kicking a user » show an error message when kicking an user fails`() = runTest {
         setupKickingAUser()
         everySuspend {
             roomsApiClientMock.kickUser(
@@ -305,7 +305,7 @@ class UserProfileViewModelTest {
 
 
     @Test
-    fun `role computation for the member list ~ member is admin ~ return the role admin`() = runTest {
+    fun `role computation for the member list » member is admin » return the role admin`() = runTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
@@ -315,7 +315,7 @@ class UserProfileViewModelTest {
     }
 
     @Test
-    fun `role computation for the member list ~ member is admin ~ show role name in view`() = runTest {
+    fun `role computation for the member list » member is admin » show role name in view`() = runTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
@@ -326,7 +326,7 @@ class UserProfileViewModelTest {
 
 
     @Test
-    fun `role computation for the member list ~ member is moderator ~ return the role moderator`() = runTest {
+    fun `role computation for the member list » member is moderator » return the role moderator`() = runTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
@@ -336,7 +336,7 @@ class UserProfileViewModelTest {
     }
 
     @Test
-    fun `role computation for the member list ~ member is moderator ~ show role name in view`() = runTest {
+    fun `role computation for the member list » member is moderator » show role name in view`() = runTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
@@ -347,7 +347,7 @@ class UserProfileViewModelTest {
 
 
     @Test
-    fun `role computation for the member list ~ member is a normal user ~ return the role user`() = runTest {
+    fun `role computation for the member list » member is a normal user » return the role user`() = runTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
@@ -357,7 +357,7 @@ class UserProfileViewModelTest {
     }
 
     @Test
-    fun `role computation for the member list ~ member is a normal user ~ do not show role name in view`() = runTest {
+    fun `role computation for the member list » member is a normal user » do not show role name in view`() = runTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)

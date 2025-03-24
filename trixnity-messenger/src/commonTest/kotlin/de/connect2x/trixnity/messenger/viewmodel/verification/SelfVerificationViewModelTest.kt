@@ -72,7 +72,7 @@ class SelfVerificationViewModelTest {
     }
 
     @Test
-    fun `show verification help, initially`() = runTest {
+    fun `show verification help initially`() = runTest {
         val cut = selfVerificationViewModel()
 
         cut.showVerificationHelp.value shouldBe true
@@ -101,7 +101,7 @@ class SelfVerificationViewModelTest {
     }
 
     @Test
-    fun `show self verification options (even if there is only one)`() = runTest {
+    fun `show self verification options even if there is only one`() = runTest {
         val selfVerificationMethods = MutableStateFlow(
             CrossSigningEnabled(
                 setOf(

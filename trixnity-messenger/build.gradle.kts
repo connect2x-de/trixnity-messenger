@@ -33,7 +33,13 @@ kotlin {
         }
     }
     js {
-        browser()
+        browser {
+            testTask {
+                useKarma {
+                    useFirefoxHeadless()
+                }
+            }
+        }
         nodejs()
         binaries.library()
         generateTypeScriptDefinitions()

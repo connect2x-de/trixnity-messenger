@@ -357,7 +357,7 @@ class RoomListElementViewModelTest {
     }
 
     @Test
-    fun `display a special text for file based messages (not encrypted and decrypted)`() = runTest {
+    fun `display a special text for file based messages not encrypted and decrypted`() = runTest {
         val eventId1 = EventId("\$event1")
         val eventId2 = EventId("\$event2")
         val room1 = Room(

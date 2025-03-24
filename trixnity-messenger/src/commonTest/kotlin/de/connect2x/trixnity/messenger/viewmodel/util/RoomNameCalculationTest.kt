@@ -113,7 +113,7 @@ class RoomNameCalculationTest {
     }
 
     @Test
-    fun `return the room id when isEmpty=false, num(heroes)=0, otherUserCount=0`() = runTest {
+    fun `return the room id when isEmpty=false numHeroes=0 otherUserCount=0`() = runTest {
         val cut = RoomNameImpl(i18n, roomInviterMock)
         cut.calculateRoomName(
             roomId,
@@ -129,7 +129,7 @@ class RoomNameCalculationTest {
     }
 
     @Test
-    fun `return the display name of the hero, when isEmpty=false, num(heroes)=1, otherUserCount=0`() = runTest {
+    fun `return the display name of the hero when isEmpty=false numHeroes=1 otherUserCount=0`() = runTest {
         val cut = RoomNameImpl(i18n, roomInviterMock)
         cut.calculateRoomName(
             roomId,
@@ -145,7 +145,7 @@ class RoomNameCalculationTest {
     }
 
     @Test
-    fun `return the display names of all heroes, when isEmpty=false, num(heroes)=2, otherUserCount=0`() = runTest {
+    fun `return the display names of all heroes when isEmpty=false numHeroes=2 otherUserCount=0`() = runTest {
         val cut = RoomNameImpl(i18n, roomInviterMock)
         cut.calculateRoomName(
             roomId,
@@ -161,7 +161,7 @@ class RoomNameCalculationTest {
     }
 
     @Test
-    fun `return the display names of all heroes, when isEmpty=false, num(heroes)=3, otherUserCount=0`() = runTest {
+    fun `return the display names of all heroes when isEmpty=false numHeroes=3 otherUserCount=0`() = runTest {
         val cut = RoomNameImpl(i18n, roomInviterMock)
         cut.calculateRoomName(
             roomId,
@@ -177,7 +177,7 @@ class RoomNameCalculationTest {
     }
 
     @Test
-    fun `return the display name of the hero along with a count of the remaining users when isEmpty=false, num(heroes)=1, otherUserCount=1`() =
+    fun `return the display name of the hero along with a count of the remaining users when isEmpty=false numHeroes=1 otherUserCount=1`() =
         runTest {
             val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
@@ -194,7 +194,7 @@ class RoomNameCalculationTest {
         }
 
     @Test
-    fun `return the display names of the heroes along with a count of the remaining users when isEmpty=false, num(heroes)=2, otherUserCount=1`() =
+    fun `return the display names of the heroes along with a count of the remaining users when isEmpty=false numHeroes=2 otherUserCount=1`() =
         runTest {
             val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
@@ -211,7 +211,7 @@ class RoomNameCalculationTest {
         }
 
     @Test
-    fun `return the display name of the hero along with a count of the remaining users when isEmpty=false, num(heroes)=1, otherUserCount=2`() =
+    fun `return the display name of the hero along with a count of the remaining users when isEmpty=false numHeroes=1 otherUserCount=2`() =
         runTest {
             val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
@@ -228,7 +228,7 @@ class RoomNameCalculationTest {
         }
 
     @Test
-    fun `return the display names of the heroes along with a count of the remaining users when isEmpty=false, num(heroes)=2, otherUserCount=2`() =
+    fun `return the display names of the heroes along with a count of the remaining users when isEmpty=false numHeroes=2 otherUserCount=2`() =
         runTest {
             val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
@@ -245,7 +245,7 @@ class RoomNameCalculationTest {
         }
 
     @Test
-    fun `return 'Empty Chat' when isEmpty=true, num(heroes)=0, otherUserCount=0`() = runTest {
+    fun `return "Empty Chat" when isEmpty=true numHeroes=0 otherUserCount=0`() = runTest {
         val cut = RoomNameImpl(i18n, roomInviterMock)
         cut.calculateRoomName(
             roomId,
@@ -261,7 +261,7 @@ class RoomNameCalculationTest {
     }
 
     @Test
-    fun `return the display name of the hero surrounded by an Empty-Room-String when isEmpty=true num(heroes)=1, otherUserCount=0`() =
+    fun `return the display name of the hero surrounded by an Empty-Room-String when isEmpty=true numHeroes=1 otherUserCount=0`() =
         runTest {
             val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
@@ -278,7 +278,7 @@ class RoomNameCalculationTest {
         }
 
     @Test
-    fun `return the display names of the heroes surrounded by an Empty-Room-String, when isEmpty=true, num(heroes)=2, otherUserCount=0`() =
+    fun `return the display names of the heroes surrounded by an Empty-Room-String when isEmpty=true numHeroes=2 otherUserCount=0`() =
         runTest {
             val roomDisplayName = RoomDisplayName(
                 explicitName = null,
@@ -297,7 +297,7 @@ class RoomNameCalculationTest {
         }
 
     @Test
-    fun `return the display names of the heroes surrounded by an Empty-Room-String, when isEmpty=true, num(heroes)=3, otherUserCount=0`() =
+    fun `return the display names of the heroes surrounded by an Empty-Room-String when isEmpty=true numHeroes=3 otherUserCount=0`() =
         runTest {
             val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
@@ -314,7 +314,7 @@ class RoomNameCalculationTest {
         }
 
     @Test
-    fun `return the display name of the hero along with a count of the remaining users surrounded by an Empty-Room-String when isEmpty=true, num(heroes)=1, otherUserCount=1`() =
+    fun `return the display name of the hero along with a count of the remaining users surrounded by an Empty-Room-String when isEmpty=true numHeroes=1 otherUserCount=1`() =
         runTest {
             val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
@@ -331,7 +331,7 @@ class RoomNameCalculationTest {
         }
 
     @Test
-    fun `return the display names of the heroes along with a count of the remaining users surrounded by an Empty-Room-String when isEmpty=true, num(heroes)=2, otherUserCount=1`() =
+    fun `return the display names of the heroes along with a count of the remaining users surrounded by an Empty-Room-String when isEmpty=true numHeroes=2 otherUserCount=1`() =
         runTest {
             val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
@@ -348,7 +348,7 @@ class RoomNameCalculationTest {
         }
 
     @Test
-    fun `return the display name of the hero along with the count of the remaining users surrounded by an Empty-Room-String when isEmpty=true, num(heroes)=1, otherUserCount=2`() =
+    fun `return the display name of the hero along with the count of the remaining users surrounded by an Empty-Room-String when isEmpty=true numHeroes=1 otherUserCount=2`() =
         runTest {
             val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
@@ -365,7 +365,7 @@ class RoomNameCalculationTest {
         }
 
     @Test
-    fun `return the display names of the heroes along with a count of the remaining users surrounded by an Empty-Room-String when isEmpty=true, num(heroes)=2, otherUserCount=2`() =
+    fun `return the display names of the heroes along with a count of the remaining users surrounded by an Empty-Room-String when isEmpty=true numHeroes=2 otherUserCount=2`() =
         runTest {
             val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(
@@ -405,7 +405,7 @@ class RoomNameCalculationTest {
     }
 
     @Test
-    fun `return the UserId from the hero without RoomDisplayName object when isEmpty=true, num(heroes)=2, otherUserCount=2`() =
+    fun `return the UserId from the hero without RoomDisplayName object when isEmpty=true numHeroes=2 otherUserCount=2`() =
         runTest {
             val cut = RoomNameImpl(i18n, roomInviterMock)
             cut.calculateRoomName(

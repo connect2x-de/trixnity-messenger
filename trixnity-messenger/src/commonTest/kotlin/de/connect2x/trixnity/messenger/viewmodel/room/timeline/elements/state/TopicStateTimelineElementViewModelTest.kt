@@ -73,7 +73,7 @@ class TopicStateTimelineElementViewModelTest {
     }
 
     @Test
-    fun `display who changed the room's topic (with reference to the old topic)`() = runTest {
+    fun `display who changed the room's topic with reference to the old topic`() = runTest {
         val cut = roomTopicChangeStatusViewModel(
             oldTopic = "old topic",
         )

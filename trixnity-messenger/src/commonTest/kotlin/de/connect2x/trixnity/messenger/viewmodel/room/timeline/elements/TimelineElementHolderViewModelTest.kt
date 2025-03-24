@@ -125,7 +125,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `isFirstInUserSequence ~ be true when first in a user sequence`() = runTest {
+    fun `isFirstInUserSequence » be true when first in a user sequence`() = runTest {
         timeline(roomServiceMock, roomId) {
             (1..4).forEach {
                 +messageEvent(sender = bob) {
@@ -151,7 +151,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `isFirstInUserSequence ~ false when not first in a user sequence`() = runTest {
+    fun `isFirstInUserSequence » false when not first in a user sequence`() = runTest {
         timeline(roomServiceMock, roomId) {
             (1..4).forEach {
                 +messageEvent(sender = alice) {
@@ -177,7 +177,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showSender ~ be true when first in a user sequence`() = runTest {
+    fun `showSender » be true when first in a user sequence`() = runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = bob) {
                 text("Hi!")
@@ -193,7 +193,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showSender ~ be true when state event before`() = runTest {
+    fun `showSender » be true when state event before`() = runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -212,7 +212,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showSender ~ false when not first in a user sequence`() = runTest {
+    fun `showSender » false when not first in a user sequence`() = runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -228,7 +228,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showSender ~ be false when we are the sender`() = runTest {
+    fun `showSender » be false when we are the sender`() = runTest {
         val ourTimelineEvent = timelineEvent.copy(event = (timelineEvent.event as MessageEvent).copy(sender = us))
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = bob) {
@@ -245,7 +245,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showSender ~ be false when room is direct`() = runTest {
+    fun `showSender » be false when room is direct`() = runTest {
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = bob) {
                 text("Hi!")
@@ -266,7 +266,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `isRead ~ should use latest replacement`() = runTest {
+    fun `isRead » should use latest replacement`() = runTest {
         val replaceEventId = EventId("replace")
         val replacement = MutableStateFlow<Map<EventId, Flow<TimelineEventRelation?>>?>(null)
         every {
@@ -306,7 +306,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showBigGapBefore ~ be true when first in a user sequence`() = runTest {
+    fun `showBigGapBefore » be true when first in a user sequence`() = runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(
                 sender = bob, sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
@@ -324,7 +324,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showBigGapBefore ~ false when not first in a user sequence`() = runTest {
+    fun `showBigGapBefore » false when not first in a user sequence`() = runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(
                 sender = alice, sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
@@ -342,7 +342,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showBigGapBefore ~ be true when time gap is large enough`() = runTest {
+    fun `showBigGapBefore » be true when time gap is large enough`() = runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(
                 sender = alice,
@@ -362,7 +362,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showBigGapBefore ~ be false when time gap is not large enough`() = runTest {
+    fun `showBigGapBefore » be false when time gap is not large enough`() = runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(
                 sender = alice, sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
@@ -381,7 +381,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showUnreadMarker ~ show the unread marker when event is set`() = runTest {
+    fun `showUnreadMarker » show the unread marker when event is set`() = runTest {
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -404,7 +404,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showUnreadMarker ~ show the unread marker when subsequent event is added`() = runTest {
+    fun `showUnreadMarker » show the unread marker when subsequent event is added`() = runTest {
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -429,7 +429,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showUnreadMarker ~ not show the unread marker when subsequent event is added but by us`() = runTest {
+    fun `showUnreadMarker » not show the unread marker when subsequent event is added but by us`() = runTest {
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -454,7 +454,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showUnreadMarker ~ remove the unread marker when marker removed`() = runTest {
+    fun `showUnreadMarker » remove the unread marker when marker removed`() = runTest {
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -478,7 +478,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showUnreadMarker ~ not show the unread marker, when no subsequent event`() = runTest {
+    fun `showUnreadMarker » not show the unread marker when no subsequent event`() = runTest {
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -494,7 +494,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showUnreadMarker ~ not show the unread marker, when none of the next events is supported`() = runTest {
+    fun `showUnreadMarker » not show the unread marker when none of the next events is supported`() = runTest {
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -524,7 +524,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `element ~ not create a new viewModel when a new message is sent afterwards`() = runTest {
+    fun `element » not create a new viewModel when a new message is sent afterwards`() = runTest {
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Don't change my viewModel!")

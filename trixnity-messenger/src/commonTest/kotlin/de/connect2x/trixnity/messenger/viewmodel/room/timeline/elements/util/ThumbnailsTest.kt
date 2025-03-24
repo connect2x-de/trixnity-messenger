@@ -68,7 +68,7 @@ class ThumbnailsTest {
     }
 
     @Test
-    fun `get the original file (less than 1MB) when the the encrypted thumbnail could not be loaded`() = runTest {
+    fun `get the original file less than 1MB when the the encrypted thumbnail could not be loaded`() = runTest {
         val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
         everySuspend {
             mediaServiceMock.getEncryptedMedia(

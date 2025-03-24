@@ -78,7 +78,7 @@ class PotentialMembersViewModelTest {
     }
 
     @Test
-    fun `room has no members ~ filter users by search term`() = runTest {
+    fun `room has no members » filter users by search term`() = runTest {
         every { userServiceMock.getAll(roomId) } returns MutableStateFlow(emptyMap())
         everySuspend {
             usersApiClientMock.searchUsers(
@@ -200,7 +200,7 @@ class PotentialMembersViewModelTest {
     }
 
     @Test
-    fun `room has members ~ filter users by search term + do not show users who are already in the room`() = runTest {
+    fun `room has members » filter users by search term + do not show users who are already in the room`() = runTest {
         setupRoomHasMembers()
         everySuspend {
             usersApiClientMock.searchUsers(

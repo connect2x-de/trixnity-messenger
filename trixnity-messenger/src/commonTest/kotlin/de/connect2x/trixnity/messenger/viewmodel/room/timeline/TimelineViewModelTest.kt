@@ -207,7 +207,7 @@ class TimelineViewModelTest {
     }
 
     @Test
-    fun `elements ~ show new messages when at the end of timeline (end of timeline has been starting element)`() =
+    fun `elements » show new messages when at the end of timeline end of timeline has been starting element`() =
         runTest {
             val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
@@ -240,7 +240,7 @@ class TimelineViewModelTest {
         }
 
     @Test
-    fun `elements ~ only show outbox messages of this room`() = runTest {
+    fun `elements » only show outbox messages of this room`() = runTest {
         outboxMessagesFlow.value = listOf(
             RoomOutboxMessage(
                 transactionId = "1",
@@ -270,7 +270,7 @@ class TimelineViewModelTest {
     }
 
     @Test
-    fun `elements ~ filter outbox message that is already in the timeline`() = runTest {
+    fun `elements » filter outbox message that is already in the timeline`() = runTest {
         outboxMessagesFlow.value = listOf(
             RoomOutboxMessage(
                 transactionId = "1",
@@ -299,7 +299,7 @@ class TimelineViewModelTest {
     }
 
     @Test
-    fun `elements ~ add new outbox message and when it is received as timeline event from the server not show as outbox message`() =
+    fun `elements » add new outbox message and when it is received as timeline event from the server not show as outbox message`() =
         runTest {
             val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = me, transactionId = "1") {
@@ -334,7 +334,7 @@ class TimelineViewModelTest {
         }
 
     @Test
-    fun `elements ~ only contain the newest version of a replace event`() = runTest {
+    fun `elements » only contain the newest version of a replace event`() = runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hello!!!")
@@ -379,7 +379,7 @@ class TimelineViewModelTest {
     }
 
     @Test
-    fun `viewState ~ load more messages before`() = runTest {
+    fun `viewState » load more messages before`() = runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hello")
@@ -406,7 +406,7 @@ class TimelineViewModelTest {
     }
 
     @Test
-    fun `viewState ~ not load more messages before`() = runTest {
+    fun `viewState » not load more messages before`() = runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hello")
@@ -431,7 +431,7 @@ class TimelineViewModelTest {
     }
 
     @Test
-    fun `viewState ~ load more messages after`() = runTest {
+    fun `viewState » load more messages after`() = runTest {
         val timelineMock = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hello")
@@ -459,7 +459,7 @@ class TimelineViewModelTest {
     }
 
     @Test
-    fun `viewState ~ load more messages after when outbox is last message`() = runTest {
+    fun `viewState » load more messages after when outbox is last message`() = runTest {
         val timelineMock = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hello")
@@ -497,7 +497,7 @@ class TimelineViewModelTest {
     }
 
     @Test
-    fun `viewState ~ not load more messages after`() = runTest {
+    fun `viewState » not load more messages after`() = runTest {
         val timelineMock = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hello")
@@ -527,7 +527,7 @@ class TimelineViewModelTest {
     }
 
     @Test
-    fun `jumpToEndOfTimeline ~ directly jump to the end of the timeline if the last event is already in the timeline`() =
+    fun `jumpToEndOfTimeline » directly jump to the end of the timeline if the last event is already in the timeline`() =
         runTest {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
@@ -548,7 +548,7 @@ class TimelineViewModelTest {
         }
 
     @Test
-    fun `jumpToEndOfTimeline ~load the last event of the room and add it to the timeline if it is not yet present in the timeline`() =
+    fun `jumpToEndOfTimeline »load the last event of the room and add it to the timeline if it is not yet present in the timeline`() =
         runTest {
             val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
@@ -576,7 +576,7 @@ class TimelineViewModelTest {
         }
 
     @Test
-    fun `leaveRoom ~ show an error message when trying to leave a room and we are not connected`() = runTest {
+    fun `leaveRoom » show an error message when trying to leave a room and we are not connected`() = runTest {
         syncStateMocker returns MutableStateFlow(SyncState.ERROR)
         timeline(roomServiceMock, roomId) {}
 
@@ -591,7 +591,7 @@ class TimelineViewModelTest {
     }
 
     @Test
-    fun `leaveRoom ~ show an error message when leaving the room fails`() = runTest {
+    fun `leaveRoom » show an error message when leaving the room fails`() = runTest {
         everySuspend {
             roomsApiClientMock.leaveRoom(roomId, any(), eqNull())
         } returns Result.failure(RuntimeException("Oh no!"))
@@ -607,7 +607,7 @@ class TimelineViewModelTest {
 
 
     @Test
-    fun `scrollTo ~ scroll to the end when we put a message in the outbox`() = runTest {
+    fun `scrollTo » scroll to the end when we put a message in the outbox`() = runTest {
         val timelineMock = timeline(roomServiceMock, roomId) { }
         val cut = timelineViewModel()
         val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
@@ -649,7 +649,7 @@ class TimelineViewModelTest {
     }
 
     @Test
-    fun `scrollTo ~ scroll to the end when a new message is added at the end of the timeline where the user is active`() =
+    fun `scrollTo » scroll to the end when a new message is added at the end of the timeline where the user is active`() =
         runTest {
             val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
@@ -682,7 +682,7 @@ class TimelineViewModelTest {
         }
 
     @Test
-    fun `scrollTo ~ not scroll to the end when a new message is added, but the end of the timeline is not visible`() =
+    fun `scrollTo » not scroll to the end when a new message is added but the end of the timeline is not visible`() =
         runTest {
             val timelineMock = timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = alice) {
@@ -721,7 +721,7 @@ class TimelineViewModelTest {
         }
 
     @Test
-    fun `unreadCount ~ count unread messages correctly when adding messages`() = runTest {
+    fun `unreadCount » count unread messages correctly when adding messages`() = runTest {
         val timelineMock = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) { text("Read message") }
         }
@@ -744,7 +744,7 @@ class TimelineViewModelTest {
     }
 
     @Test
-    fun `unreadCount ~ count unread messages correctly when last read event changes`() = runTest {
+    fun `unreadCount » count unread messages correctly when last read event changes`() = runTest {
         val timelineMock = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) { text("Read message") }
             +messageEvent(sender = alice) { text("Unread message") }
@@ -771,7 +771,7 @@ class TimelineViewModelTest {
     }
 
     @Test
-    fun `unreadCount ~ show an indicator when there are more than 99 unread messages`() = runTest {
+    fun `unreadCount » show an indicator when there are more than 99 unread messages`() = runTest {
         val timelineMock = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) { text("Read message") }
             (1..100).forEach {
@@ -791,7 +791,7 @@ class TimelineViewModelTest {
     }
 
     @Test
-    fun `unreadCount ~ not count unsupported timeline events`() = runTest {
+    fun `unreadCount » not count unsupported timeline events`() = runTest {
         val timelineMock = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) { text("Read message") }
             +MessageEvent(

@@ -345,7 +345,7 @@ class InputAreaViewModelTest {
     }
 
     @Test
-    fun `set 'is not typing' when the message is deleted (i_e_, it is empty again)`() = runTest {
+    fun `set isNotTyping when the message is cleared`() = runTest {
         var setTypingCancelWasCalled = false
         everySuspend {
             roomsApiClientMock.setTyping(any(), any(), eq(false), any(), eqNull())
@@ -628,7 +628,7 @@ class InputAreaViewModelTest {
     }
 
     @Test
-    fun `find the right replacement target in a message line with several '@'s`() = runTest {
+    fun `find the right replacement target in a message line with several at's`() = runTest {
         val cut = inputAreaViewModel()
         subscribe(cut)
 
@@ -652,7 +652,7 @@ class InputAreaViewModelTest {
     }
 
     @Test
-    fun `ignore a replacement where no @ can be found`() = runTest {
+    fun `ignore a replacement where no "at" can be found`() = runTest {
         val cut = inputAreaViewModel()
         subscribe(cut)
 

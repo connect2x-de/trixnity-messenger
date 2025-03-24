@@ -211,7 +211,7 @@ class CreateNewChatViewModelTest {
     }
 
     @Test
-    fun `create a new room if a direct room can be found, but not in the room list`() = runTest {
+    fun `create a new room if a direct room can be found but not in the room list`() = runTest {
         val roomId = RoomId("room1", "localhost")
         var createRoomCalled = false
         everySuspend {
@@ -289,7 +289,7 @@ class CreateNewChatViewModelTest {
     }
 
     @Test
-    fun `create a new room if a direct room can be found, but other user already left`() = runTest {
+    fun `create a new room if a direct room can be found but other user already left`() = runTest {
         val roomId = RoomId("room1", "localhost")
         val existingRoomId = RoomId("existingRoom", "localhost")
         everySuspend {

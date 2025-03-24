@@ -74,7 +74,7 @@ class NameStateTimelineElementViewModelTest {
     }
 
     @Test
-    fun `display who changed the room's name (with reference to the old name)`() = runTest {
+    fun `display who changed the room's name with reference to the old name`() = runTest {
         val cut = roomNameChangeStatusViewModel(
             oldName = "old name",
         )

@@ -109,7 +109,7 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
     }
 
     @Test
-    fun `show as inactive when the verification has not timed out, but is done or cancelled`() = runTest {
+    fun `show as inactive when the verification has not timed out but is done or cancelled`() = runTest {
         every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
         everySuspend {
             activeVerifications.getActiveVerification(

@@ -143,7 +143,7 @@ class MatrixClientsTest {
     }
 
     @Test
-    fun `login ~ login and register new account locally`() = runTest {
+    fun `login » login and register new account locally`() = runTest {
         val cut = createCut()
         cut.login(Url("https://example.org"), User("test1"), "password", "").getOrThrow()
         cut.value shouldBe mapOf(UserId("test1", "server") to matrixClientMock1)
@@ -151,7 +151,7 @@ class MatrixClientsTest {
     }
 
     @Test
-    fun `login ~ login for another account and create additional MatrixClient`() = runTest {
+    fun `login » login for another account and create additional MatrixClient`() = runTest {
         val cut = createCut()
         cut.login(Url("https://example.org"), User("test1"), "password", "").getOrThrow()
         cut.login(Url("https://example2.org"), User("test2"), "password2", "").getOrThrow()
@@ -163,7 +163,7 @@ class MatrixClientsTest {
     }
 
     @Test
-    fun `login ~ not login again, if MatrixClient already present for account`() = runTest {
+    fun `login » not login again if MatrixClient already present for account`() = runTest {
         val cut = createCut()
         cut.login(Url("https://example.org"), User("test1"), "password", "").getOrThrow()
         loginCalled = false
@@ -174,7 +174,7 @@ class MatrixClientsTest {
     }
 
     @Test
-    fun `login ~ return exception in Result if login is not possible`() = runTest {
+    fun `login » return exception in Result if login is not possible`() = runTest {
         val cut = createCut()
         val exception = IllegalHeaderValueException("header", 0)
         login returns Result.failure(exception)
@@ -184,7 +184,7 @@ class MatrixClientsTest {
     }
 
     @Test
-    fun `initFromStore ~ init from the store and settings`() = runTest {
+    fun `initFromStore » init from the store and settings`() = runTest {
         val cut = createCut()
         settings.update(UserId("test1", "server")) { it }
         settings.update(UserId("test2", "server")) { it }
@@ -204,7 +204,7 @@ class MatrixClientsTest {
     }
 
     @Test
-    fun `initFromStore ~ skip init from store when matrix client is already present`() = runTest {
+    fun `initFromStore » skip init from store when matrix client is already present`() = runTest {
         val cut = createCut()
         settings.update(UserId("test1", "server")) { it }
         settings.update(UserId("test2", "server")) { it }
@@ -224,7 +224,7 @@ class MatrixClientsTest {
     }
 
     @Test
-    fun `initFromStore ~ have failure when init from store is not possible`() = runTest {
+    fun `initFromStore » have failure when init from store is not possible`() = runTest {
         val cut = createCut()
         settings.update(UserId("test1", "server")) { it }
         everySuspend { matrixClientFactory.initFromStore(any(), any()) } calls {
@@ -242,7 +242,7 @@ class MatrixClientsTest {
     }
 
     @Test
-    fun `initFromStore ~ have failure on exception`() = runTest {
+    fun `initFromStore » have failure on exception`() = runTest {
         val cut = createCut()
         settings.update(UserId("test1", "server")) { it }
         everySuspend { matrixClientFactory.initFromStore(any(), any()) } calls {
@@ -255,7 +255,7 @@ class MatrixClientsTest {
     }
 
     @Test
-    fun `logout ~ logout matrix client`() = runTest {
+    fun `logout » logout matrix client`() = runTest {
         val cut = createCut()
         settings.update(UserId("test1", "server")) { it }
         settings.update(UserId("test2", "server")) { it }
@@ -281,7 +281,7 @@ class MatrixClientsTest {
 
 
     @Test
-    fun `external logout ~ remove matrix client`() = runTest {
+    fun `external logout » remove matrix client`() = runTest {
         val cut = createCut()
         settings.update(UserId("test1", "server")) { it }
         mutableMatrixClients.value = mapOf(
@@ -303,7 +303,7 @@ class MatrixClientsTest {
 
 
     @Test
-    fun `remove ~ remove matrix client`() = runTest {
+    fun `remove » remove matrix client`() = runTest {
         val cut = createCut()
         settings.update<MatrixMessengerAccountSettingsBase>(UserId("test1", "server")) { it }
         settings.update<MatrixMessengerAccountSettingsBase>(UserId("test2", "server")) { it }

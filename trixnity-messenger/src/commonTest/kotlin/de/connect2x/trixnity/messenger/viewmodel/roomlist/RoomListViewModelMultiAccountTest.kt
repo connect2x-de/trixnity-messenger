@@ -402,7 +402,7 @@ class RoomListViewModelMultiAccountTest {
     }
 
     @Test
-    fun `sort rooms by last received message, even if the rooms are of different matrix accounts`() = runTest {
+    fun `sort rooms by last received message even if the rooms are of different matrix accounts`() = runTest {
         every {
             roomServiceMock3.getState(roomId5, CreateEventContent::class, "")
         } returns flowOf(

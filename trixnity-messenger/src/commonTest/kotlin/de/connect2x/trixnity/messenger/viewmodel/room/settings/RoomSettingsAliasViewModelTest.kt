@@ -199,7 +199,7 @@ class RoomSettingsAliasViewModelTest {
     }
 
     @Test
-    fun `main alias ~ set main alias`() = runTest {
+    fun `main alias » set main alias`() = runTest {
         val addError = MutableStateFlow<String?>(null)
         val changeMainAliasError = MutableStateFlow<String?>(null)
         val viewModel = roomSettingsAliasViewModel(
@@ -240,7 +240,7 @@ class RoomSettingsAliasViewModelTest {
     }
 
     @Test
-    fun `main alias ~ remove main alias when null is passed`() = runTest {
+    fun `main alias » remove main alias when null is passed`() = runTest {
         val addError = MutableStateFlow<String?>(null)
         val changeMainAliasError = MutableStateFlow<String?>(null)
         val viewModel = roomSettingsAliasViewModel(
@@ -290,7 +290,7 @@ class RoomSettingsAliasViewModelTest {
     }
 
     @Test
-    fun `main alias ~ don't change main alias when main alias is passed`() = runTest {
+    fun `main alias » don't change main alias when main alias is passed`() = runTest {
         val addError = MutableStateFlow<String?>(null)
         val changeMainAliasError = MutableStateFlow<String?>(null)
         val viewModel = roomSettingsAliasViewModel(
@@ -330,7 +330,7 @@ class RoomSettingsAliasViewModelTest {
     }
 
     @Test
-    fun `main alias ~ set main alias and degrade original main alias`() = runTest {
+    fun `main alias » set main alias and degrade original main alias`() = runTest {
         val addError = MutableStateFlow<String?>(null)
         val changeMainAliasError = MutableStateFlow<String?>(null)
         val viewModel = roomSettingsAliasViewModel(

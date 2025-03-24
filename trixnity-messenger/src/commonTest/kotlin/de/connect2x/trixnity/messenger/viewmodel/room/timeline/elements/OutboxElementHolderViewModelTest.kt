@@ -107,7 +107,7 @@ class OutboxElementHolderViewModelTest {
     }
 
     @Test
-    fun `isFirstInUserSequence ~ be true when last timeline event is not by us`() = scope.runTest {
+    fun `isFirstInUserSequence » be true when last timeline event is not by us`() = scope.runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = bob) {
                 text("Hi!")
@@ -128,7 +128,7 @@ class OutboxElementHolderViewModelTest {
     }
 
     @Test
-    fun `isFirstInUserSequence ~ ignore other outbox messages with transactionId same as last timeline event`() =
+    fun `isFirstInUserSequence » ignore other outbox messages with transactionId same as last timeline event`() =
         scope.runTest {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = bob, transactionId = "t0") {
@@ -150,7 +150,7 @@ class OutboxElementHolderViewModelTest {
         }
 
     @Test
-    fun `isFirstInUserSequence ~ be false when last timeline event is by us`() = scope.runTest {
+    fun `isFirstInUserSequence » be false when last timeline event is by us`() = scope.runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = us) {
                 text("Hi!")
@@ -163,7 +163,7 @@ class OutboxElementHolderViewModelTest {
     }
 
     @Test
-    fun `isFirstInUserSequence ~ be false when not first outbox message`() = scope.runTest {
+    fun `isFirstInUserSequence » be false when not first outbox message`() = scope.runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = us) {
                 text("Hi!")
@@ -184,7 +184,7 @@ class OutboxElementHolderViewModelTest {
     }
 
     @Test
-    fun `showSender ~ always be false`() = scope.runTest {
+    fun `showSender » always be false`() = scope.runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = bob) {
                 text("Hi!")
@@ -198,7 +198,7 @@ class OutboxElementHolderViewModelTest {
     }
 
     @Test
-    fun `showBigGapBefore ~ be true when first in a user sequence`() = scope.runTest {
+    fun `showBigGapBefore » be true when first in a user sequence`() = scope.runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(
                 sender = bob,
@@ -215,7 +215,7 @@ class OutboxElementHolderViewModelTest {
     }
 
     @Test
-    fun `showBigGapBefore ~ false when not first in a user sequence`() = scope.runTest {
+    fun `showBigGapBefore » false when not first in a user sequence`() = scope.runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(
                 sender = us,
@@ -233,7 +233,7 @@ class OutboxElementHolderViewModelTest {
     }
 
     @Test
-    fun `showBigGapBefore ~ be true when time gap is large enough`() = scope.runTest {
+    fun `showBigGapBefore » be true when time gap is large enough`() = scope.runTest {
         delay(7.days)
         timeline(roomServiceMock, roomId) {
             +messageEvent(
@@ -251,7 +251,7 @@ class OutboxElementHolderViewModelTest {
     }
 
     @Test
-    fun `showBigGapBefore ~ be false when time gap is not large enough`() = scope.runTest {
+    fun `showBigGapBefore » be false when time gap is not large enough`() = scope.runTest {
         delay(7.days)
         timeline(roomServiceMock, roomId) {
             +messageEvent(
@@ -269,7 +269,7 @@ class OutboxElementHolderViewModelTest {
     }
 
     @Test
-    fun `showBigGapBefore ~ skip sent transaction`() = scope.runTest {
+    fun `showBigGapBefore » skip sent transaction`() = scope.runTest {
         delay(7.days)
         timeline(roomServiceMock, roomId) {
             +messageEvent(

@@ -183,7 +183,7 @@ class VerificationViewModelTest {
     }
 
     @Test
-    fun `show request screen again, when verification is re-initiated`() = runTest {
+    fun `show request screen again when verification is re-initiated`() = runTest {
         every {
             keyServiceMock.getTrustLevel(eq(ownUserId), eq(ownDeviceId))
         } returns MutableStateFlow(DeviceTrustLevel.Valid(false))
