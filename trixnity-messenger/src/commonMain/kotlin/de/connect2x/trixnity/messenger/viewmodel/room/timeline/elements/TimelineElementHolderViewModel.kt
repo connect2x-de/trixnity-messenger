@@ -75,7 +75,6 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.core.component.get
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -417,7 +416,7 @@ class TimelineElementHolderViewModelImpl(
                     val previousTimestamp =
                         Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
                     val thisTimestamp = Instant.fromEpochMilliseconds(timelineEventFlow.first().originTimestamp)
-                    thisTimestamp - previousTimestamp > 1.hours
+                    thisTimestamp - previousTimestamp > config.showBigGapBeforeThreshold
                 }
             }
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)

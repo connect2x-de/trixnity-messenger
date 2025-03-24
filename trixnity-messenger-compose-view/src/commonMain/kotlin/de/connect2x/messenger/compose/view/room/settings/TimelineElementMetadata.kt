@@ -8,15 +8,18 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -30,12 +33,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
@@ -47,7 +50,6 @@ import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
-import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.util.Tooltip
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
@@ -93,6 +95,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
         val sender = element?.sender?.collectAsState()?.value
         val reactions = element?.reactions?.collectAsState()?.value
         val readers = element?.readers?.collectAsState()?.value
+        val scrollState = rememberScrollState()
 
         LaunchedEffect(Unit) {
             launch {
@@ -130,6 +133,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                         modifier = Modifier
                             .padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp))
                             .fillMaxSize()
+                            .verticalScroll(scrollState)
                     ) {
                         SubHeading(i18n.timelineElementMetadataSender())
                         UserInfo(
@@ -137,10 +141,8 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                             onOpenUserProfile = viewModel::openUserProfile,
                         )
                         SubHeading(i18n.timelineElementMetadataMessage())
-                        Column(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.6f)) {
-                            element?.let {
-                                MessageContentHistorySwitch(it, elementHistory)
-                            }
+                        element?.let {
+                            MessageContentHistorySwitch(it, elementHistory)
                         }
                         SmallSpacer()
                         HorizontalDivider()
@@ -150,6 +152,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                         }
                         SmallSpacer()
                     }
+                    VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
                 }
             }
         }
@@ -174,6 +177,8 @@ fun ColumnScope.ReadersAndReactions(
     val i18n = DI.get<I18nView>()
     val reactions = element.reactions.collectAsState().value
     val readers = element.readers.collectAsState().value
+    val state = rememberLazyListState()
+
     if (reactions != null && readers != null) {
         val allReadersAndReactions = remember(readers, reactions) {
             (readers.associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, false) } +
@@ -181,27 +186,34 @@ fun ColumnScope.ReadersAndReactions(
         }.sortedByDescending { it.reactions.size }
         val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
 
-        if (hasReadersOrReactions) {
-            Text(
-                text = i18n.timelineElementMetadataReadersAndReactions(),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            SmallSpacer()
-            LazyColumn {
-                items(allReadersAndReactions) { eventReaction ->
-                    UserInfo(
-                        eventReaction.sender,
-                        eventReaction.reactions.keys,
-                        onOpenUserProfile = viewModel::openUserProfile,
-                    )
-                    Spacer(Modifier.height(5.dp))
+        Column(Modifier.heightIn(min = 100.dp, max = 500.dp)) {
+            if (hasReadersOrReactions) {
+                Text(
+                    text = i18n.timelineElementMetadataReadersAndReactions(),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                SmallSpacer()
+                Box {
+                    LazyColumn(state = state) {
+                        items(allReadersAndReactions) { eventReaction ->
+                            UserInfo(
+                                eventReaction.sender,
+                                eventReaction.reactions.keys,
+                                onOpenUserProfile = viewModel::openUserProfile,
+                            )
+                            Spacer(Modifier.height(5.dp))
+                        }
+                    }
+                    if (allReadersAndReactions.size > 6) {
+                        VerticalScrollbar(Modifier.align(Alignment.CenterEnd), state, false)
+                    }
                 }
+            } else {
+                Text(
+                    text = i18n.timelineElementMetadataReadersAndReactionsNone(),
+                    style = MaterialTheme.typography.labelMedium,
+                )
             }
-        } else {
-            Text(
-                text = i18n.timelineElementMetadataReadersAndReactionsNone(),
-                style = MaterialTheme.typography.labelMedium,
-            )
         }
     }
 }
@@ -237,13 +249,14 @@ private fun UserInfo(
         ) {
             Box(
                 Modifier
-                    .align(CenterVertically)
+                    .padding(start = 4.dp, top = 4.dp, bottom = 4.dp)
+                    .align(Alignment.CenterVertically)
             ) {
                 Avatar(image, userInfo.initials)
             }
             Column(
                 Modifier
-                    .align(CenterVertically)
+                    .align(Alignment.CenterVertically)
                     .padding(start = 8.dp)
             ) {
                 Text(
@@ -254,7 +267,6 @@ private fun UserInfo(
                     maxLines = 1,
                 )
                 if (hasReactions) {
-                    Spacer(Modifier.size(4.dp))
                     Text(
                         compiledReactionsList,
                         style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
@@ -278,7 +290,7 @@ private fun ColumnScope.MessageContentHistorySwitch(
 
     if (elementHistory.isNotEmpty() && elementHistory.size > 1) {
         Row(
-            verticalAlignment = CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.clickable { showHistory = showHistory.not() }.buttonPointerModifier(),
         ) {
             Text(text = i18n.timelineElementMetadataHistory(), style = MaterialTheme.typography.titleSmall)
@@ -291,17 +303,25 @@ private fun ColumnScope.MessageContentHistorySwitch(
         }
     }
 
-    if (showHistory) {
-        MessageHistory(elementHistory)
-    } else {
-        DateStickyHeader(element.formattedDate)
-        Spacer(Modifier.height(8.dp))
-        MessageContent(element)
+    Column(Modifier.heightIn(min = 50.dp, max = 500.dp)) {
+        if (showHistory) {
+            MessageHistory(elementHistory)
+        } else {
+            val scrollState = rememberScrollState()
+            Box {
+                Column(Modifier.verticalScroll(scrollState).padding(end = 10.dp)) {
+                    DateStickyHeader(element.formattedDate)
+                    Spacer(Modifier.height(8.dp))
+                    MessageContent(element)
+                }
+                VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
+            }
+        }
     }
 }
 
 @Composable
-private fun ColumnScope.MessageContent(messageHolder: TimelineElementHolderViewModel) {
+private fun MessageContent(messageHolder: TimelineElementHolderViewModel) {
     val element = messageHolder.element.collectAsState().value
     val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
     Column {
@@ -312,7 +332,9 @@ private fun ColumnScope.MessageContent(messageHolder: TimelineElementHolderViewM
 }
 
 @Composable
-private fun ColumnScope.MessageHistory(elementHistory: List<TimelineElementHolderViewModel>) {
+private fun MessageHistory(elementHistory: List<TimelineElementHolderViewModel>) {
+    val scrollState = rememberLazyListState()
+
     if (elementHistory.isNotEmpty()) {
         val elementHistoryGrouped by derivedStateOf {
             buildList(elementHistory.size) {
@@ -331,18 +353,21 @@ private fun ColumnScope.MessageHistory(elementHistory: List<TimelineElementHolde
             }
         }
 
-        LazyColumn {
-            elementHistoryGrouped.forEach { (date, viewModel) ->
-                if (date != null) {
-                    item("date-$date-${viewModel.key}") {
-                        DateStickyHeader(date)
-                        Spacer(Modifier.height(8.dp))
+        Box {
+            LazyColumn(Modifier.fillMaxWidth().padding(end = 10.dp), state = scrollState) {
+                elementHistoryGrouped.forEach { (date, viewModel) ->
+                    if (date != null) {
+                        item("date-$date-${viewModel.key}") {
+                            DateStickyHeader(date)
+                            Spacer(Modifier.height(8.dp))
+                        }
+                    }
+                    item(viewModel.key) {
+                        MessageContent(viewModel)
                     }
                 }
-                item(viewModel.key) {
-                    MessageContent(viewModel)
-                }
             }
+            VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState, false)
         }
     }
 }

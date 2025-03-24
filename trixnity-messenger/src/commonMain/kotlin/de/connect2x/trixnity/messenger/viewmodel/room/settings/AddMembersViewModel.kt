@@ -40,6 +40,7 @@ interface AddMembersViewModel {
     val canAddMembers: StateFlow<Boolean>
     val error: StateFlow<String?>
     val errorCause: StateFlow<String?>
+    val isAddingMembers: StateFlow<Boolean>
 
     fun onUserClick(user: Search.SearchUserElement)
     fun addMembers()
@@ -80,7 +81,11 @@ class AddMembersViewModelImpl(
     override val errorCause = MutableStateFlow<String?>(null)
     internal val foundUsers = potentialMembersViewModel.searchHandler.foundUsers
 
+    override val isAddingMembers = MutableStateFlow(false)
+
     override fun addMembers() {
+        isAddingMembers.value = true
+
         log.info { "add ${groupUsers.value.joinToString { it.displayName }} to group" }
         coroutineScope.launch {
             val failedInvitations = mutableListOf<Pair<Search.SearchUserElement, Throwable>>()
@@ -98,7 +103,10 @@ class AddMembersViewModelImpl(
                     )
             }
             when (failedInvitations.count()) {
-                0 -> onBack()
+                0 -> {
+                    isAddingMembers.value = false
+                    onBack()
+                }
 
                 1 -> {
                     val throwable = failedInvitations.first().second
@@ -134,6 +142,7 @@ class AddMembersViewModelImpl(
                     }
                 }
             }
+            isAddingMembers.value = false
         }
     }
 
