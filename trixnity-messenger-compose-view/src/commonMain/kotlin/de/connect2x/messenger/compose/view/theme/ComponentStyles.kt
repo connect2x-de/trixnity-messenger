@@ -4,6 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
+import de.connect2x.messenger.compose.view.theme.components.TooltipStyle
 
 data class ComponentStyles(
     // buttons
@@ -11,6 +12,8 @@ data class ComponentStyles(
     val secondaryButton: ButtonStyle,
     val commonButton: ButtonStyle,
     val destructiveButton: ButtonStyle,
+    // tooltips
+    val tooltip: TooltipStyle,
 )
 
 internal val LocalComponentStyles = staticCompositionLocalOf<ComponentStyles> { error("compositionLocal not defined") }

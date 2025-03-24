@@ -12,11 +12,13 @@ fun Tooltip(
     modifier: Modifier = Modifier,
     delay: Duration,
     onClick: (() -> Unit)? = null,
+    enabled: Boolean = true,
     content: @Composable () -> Unit,
 ) = Tooltip(
     tooltip,
     modifier,
     delay.inWholeMilliseconds.toInt(),
     onClick,
+    enabled,
     content,
 )

@@ -42,6 +42,7 @@ expect fun Tooltip(
     modifier: Modifier = Modifier,
     delayMillis: Int = 500,
     onClick: (() -> Unit)? = null,
+    enabled: Boolean = true,
     content: @Composable () -> Unit,
 )
 
