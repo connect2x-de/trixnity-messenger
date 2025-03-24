@@ -83,5 +83,9 @@ class ThemeComponentsImpl : ThemeComponents {
             contentColor = MaterialTheme.colorScheme.onErrorContainer,
             shape = RoundedCornerShape(8.dp),
         ),
+        messageReference = SurfaceStyle.default(
+            shape = RoundedCornerShape(8.dp),
+            color = Color(0x55FFFFFF),
+        )
     )
 }

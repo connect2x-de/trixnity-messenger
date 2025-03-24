@@ -24,6 +24,7 @@ data class ComponentStyles(
     val messageBubbleOwn: SurfaceStyle,
     val messageBubbleOther: SurfaceStyle,
     val messageBubbleError: SurfaceStyle,
+    val messageReference: SurfaceStyle,
 )
 
 internal val LocalComponentStyles = staticCompositionLocalOf<ComponentStyles> { error("compositionLocal not defined") }
