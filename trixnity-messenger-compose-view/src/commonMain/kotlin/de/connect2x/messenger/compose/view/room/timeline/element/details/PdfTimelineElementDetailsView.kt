@@ -2,6 +2,8 @@ package de.connect2x.messenger.compose.view.room.timeline.element.details
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.TransformableState
+import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,6 +55,9 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         val progress = element.downloadMediaProgress.collectAsState().value
         val (error, setError) = remember { mutableStateOf<String?>(null) }
         var zoom = remember { mutableStateOf(1.0f) }
+        val state = rememberTransformableState { zoomChange, _, _ ->
+            zoom.value = (zoom.value * zoomChange).coerceIn(0.8f, 4f)
+        }
         val canZoom = remember { mutableStateOf(false) }
         val i18n = DI.current.get<I18nView>()
 
@@ -63,7 +68,11 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
             element.downloadMediaError.collect { setError(it) }
         }
 
-        FileBasedDetailsDialog(element, onSave, onClose, additions = { ZoomButtons(zoom) }) {
+        FileBasedDetailsDialog(
+            element,
+            onSave,
+            onClose,
+            additions = { ZoomButtons(zoom, minScale = 1f, maxScale = 4f) }) {
             val focusRequester = remember { FocusRequester() }
             Column {
                 Box(
@@ -76,7 +85,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                             canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
                             true
                         }
-                        .zoomModifier(focusRequester, canZoom, zoom),
+                        .zoomModifier(focusRequester, canZoom, zoom, 0.8f, 4f),
                 ) {
                     when {
                         error != null -> {
@@ -88,9 +97,10 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                                 Icon(
                                     MaterialTheme.messengerIcons.typeFile,
                                     i18n.commonFile(),
-                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally)
+                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally),
+                                    tint = MaterialTheme.colorScheme.onBackground
                                 )
-                                Text(error)
+                                Text(error, color = MaterialTheme.colorScheme.onBackground)
                             }
                         }
 
@@ -98,7 +108,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                             DownloadProgress(progress, element::cancelDownloadMedia)
                         }
 
-                        media != null -> PDFReader(media, zoom.value) {
+                        media != null -> PDFReader(media, zoom.value, canZoom.value, state) {
                             setError(it ?: i18n.fileCouldNotBeLoaded())
                         }
 
@@ -119,4 +129,10 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
 }
 
 @Composable
-expect fun PDFReader(media: PlatformMedia, scale: Float = 1f, onError: (String?) -> Unit)
+expect fun PDFReader(
+    media: PlatformMedia,
+    scale: Float = 1f,
+    isZooming: Boolean,
+    state: TransformableState,
+    onError: (String?) -> Unit
+)
