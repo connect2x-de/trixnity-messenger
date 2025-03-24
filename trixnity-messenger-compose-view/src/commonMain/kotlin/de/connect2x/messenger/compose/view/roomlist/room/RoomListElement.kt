@@ -53,8 +53,6 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
         val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState().value
         val roomName = roomListElementViewModel.roomName.collectAsState().value
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value
-        Modifier
-            .fillMaxWidth()
         Box(
             Modifier.animateItem(
                 fadeInSpec = null,

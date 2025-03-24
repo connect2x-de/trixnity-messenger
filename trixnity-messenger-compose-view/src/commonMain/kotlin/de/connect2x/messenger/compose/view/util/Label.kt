@@ -24,6 +24,7 @@ fun TextLabel(text: String, color: Color = MaterialTheme.colorScheme.onSecondary
             text = text,
             color = color,
             style = MaterialTheme.typography.bodySmall,
+            maxLines = 1
         )
     }
 }
