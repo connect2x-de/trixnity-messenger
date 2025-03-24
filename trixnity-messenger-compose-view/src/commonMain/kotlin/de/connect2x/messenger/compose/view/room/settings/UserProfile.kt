@@ -24,7 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.filled.Wysiwyg
-import androidx.compose.material.icons.filled.DoorBack
+import androidx.compose.material.icons.filled.DoorFront
 import androidx.compose.material.icons.filled.DoorSliding
 import androidx.compose.material.icons.filled.PersonOff
 import androidx.compose.material.icons.filled.Verified
@@ -369,7 +369,7 @@ private fun RejectKnockSection(userProfileViewModel: UserProfileViewModel, i18n:
         userProfileViewModel.rejectKnock()
     }) {
         Icon(
-            Icons.Filled.DoorBack,
+            Icons.Filled.DoorFront,
             i18n.userProfileRejectKnock(),
             Modifier.size(24.dp)
         )
