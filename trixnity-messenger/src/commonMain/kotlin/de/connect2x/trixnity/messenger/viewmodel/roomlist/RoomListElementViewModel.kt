@@ -72,6 +72,7 @@ interface RoomListElementViewModelFactory {
 interface RoomListElementViewModel {
     val account: UserId
     val roomId: RoomId
+    val isLoaded: StateFlow<Boolean>
     val error: StateFlow<String?>
     val isDirect: StateFlow<Boolean?>
     val isInvite: StateFlow<Boolean?>
@@ -264,6 +265,14 @@ open class RoomListElementViewModelImpl(
             .map { it?.presence }
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
+    override val isLoaded: StateFlow<Boolean> =
+        combine(
+            roomName,
+            isInvite,
+            lastMessage
+        ) { roomName, isInvite, lastMessage -> roomName != null && isInvite != null && lastMessage != null }
+            .stateIn(coroutineScope, WhileSubscribed(), false)
+
     override fun acceptInvitation() {
         coroutineScope.launch {
             if (matrixClient.syncState.value == SyncState.ERROR) {
@@ -373,6 +382,7 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     private val roomId1 = RoomId("1", "localhost")
     override val account: UserId = UserId("user", "server")
     override val roomId: RoomId = roomId1
+    override val isLoaded: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isDirect: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val isLeave: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -400,6 +410,7 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     private val roomId2 = RoomId("2", "localhost")
     override val account: UserId = UserId("0", "server")
     override val roomId: RoomId = roomId2
+    override val isLoaded: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isDirect: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isLeave: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -428,6 +439,7 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     private val roomId3 = RoomId("3", "localhost")
     override val account: UserId = UserId("1", "server")
     override val roomId: RoomId = roomId3
+    override val isLoaded: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isDirect: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val isLeave: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -456,6 +468,7 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     private val roomId3 = RoomId("4", "localhost")
     override val account: UserId = UserId("1", "server")
     override val roomId: RoomId = roomId3
+    override val isLoaded: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isLeave: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isDirect: MutableStateFlow<Boolean?> = MutableStateFlow(true)

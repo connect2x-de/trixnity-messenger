@@ -5,22 +5,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.Tooltip
-import de.connect2x.messenger.compose.view.common.PlaceholderHighlight
 import de.connect2x.messenger.compose.view.common.TooltipText
-import de.connect2x.messenger.compose.view.common.fade
 import de.connect2x.messenger.compose.view.common.icons.UnencryptedIcon
-import de.connect2x.messenger.compose.view.common.placeholder
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
@@ -60,15 +55,8 @@ fun RowScope.RoomTime(roomListElementViewModel: RoomListElementViewModel, modifi
 @Composable
 fun RoomNameAndTime(roomListElementViewModel: RoomListElementViewModel) {
     val roomName = roomListElementViewModel.roomName.collectAsState().value
-    val isLeave = roomListElementViewModel.isLeave.collectAsState().value?: false
 
     Row(
-        modifier = Modifier.placeholder(
-            visible = roomName == null,
-            color = Color.LightGray,
-            shape = RoundedCornerShape(8.dp),
-            highlight = PlaceholderHighlight.fade(highlightColor = Color(0xFFDDDDDD))
-        ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(Modifier.fillMaxWidth().weight(1.0f, false), verticalAlignment = Alignment.CenterVertically) {
