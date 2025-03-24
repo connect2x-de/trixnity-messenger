@@ -12,6 +12,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
@@ -21,6 +22,7 @@ import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
@@ -64,13 +67,13 @@ import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.keys.Key
 import net.folivo.trixnity.core.model.keys.KeyValue
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -662,6 +665,33 @@ class RoomListElementViewModelTest : ShouldSpec() {
             cut.isEncrypted.value shouldBe true
 
             cancelNeverEndingCoroutines()
+        }
+
+        should("knocking - should unknock successfully") {
+            var left = false
+            everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } calls {
+                left = true
+                Result.success(Unit)
+            }
+
+            val cut = roomListElementViewModel(roomId, coroutineContext)
+            delay(500.milliseconds)
+
+            cut.unknock()
+            delay(500.milliseconds)
+
+            left shouldBe true
+        }
+
+        should("knocking - should handle unknock failure") {
+            everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } returns Result.failure(Throwable(""))
+
+            val cut = roomListElementViewModel(roomId, coroutineContext)
+            delay(500.milliseconds)
+
+            cut.unknock()
+            delay(500.milliseconds)
+            cut.error.value.shouldNotBeNull()
         }
     }
 

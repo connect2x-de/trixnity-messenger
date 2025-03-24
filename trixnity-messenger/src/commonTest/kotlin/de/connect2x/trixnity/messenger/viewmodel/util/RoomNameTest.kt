@@ -113,6 +113,17 @@ class RoomNameTest : ShouldSpec() {
                 )
             result.value shouldBe "Room name"
         }
+
+        should("room name - should display fallback when room.name is null on a knocking room") {
+            every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
+                createBasicRoom(null, Membership.KNOCK)
+            )
+
+            val cut = RoomNameImpl(i18n, roomInviter)
+            val scope = CoroutineScope(Dispatchers.Unconfined)
+            val result = cut.getRoomName(roomId, matrixClientMock, true).stateIn(scope)
+            result.value shouldBe i18n.roomNameKnockFor(roomId.full)
+        }
     }
 
     private fun createRoomUser(
@@ -141,13 +152,13 @@ class RoomNameTest : ShouldSpec() {
         )
     }
 
-    private fun createBasicRoom(name: RoomDisplayName?): Room {
+    private fun createBasicRoom(name: RoomDisplayName?, membership: Membership = Membership.JOIN): Room {
         return Room(
             roomId = roomId,
             name = name,
             lastEventId = null,
             unreadMessageCount = 0,
-            membership = Membership.JOIN,
+            membership = membership,
             membersLoaded = false,
         )
     }

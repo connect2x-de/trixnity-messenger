@@ -70,7 +70,7 @@ class JoinRoomTest {
     }
 
     @Test
-    fun `Knock - Knock room Successfully`() = runTestWithCoroutineScope {
+    fun `knock - should knock room successfully`() = runTestWithCoroutineScope {
         everySuspend { roomApiClientMock.knockRoom(eq(roomId), any(), any(), any()) } returns
                 Result.success(roomId)
 
@@ -86,7 +86,7 @@ class JoinRoomTest {
     }
 
     @Test
-    fun `Knock - Fail to knock if no permissions`() = runTestWithCoroutineScope {
+    fun `knock - should fail to knock if no permissions`() = runTestWithCoroutineScope {
         everySuspend { roomApiClientMock.knockRoom(eq(roomId), any(), any(), any()) } returns
                 Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
 
@@ -102,7 +102,7 @@ class JoinRoomTest {
     }
 
     @Test
-    fun `Knock - Fail unknown room id`() = runTestWithCoroutineScope {
+    fun `knock - should fail unknown room id`() = runTestWithCoroutineScope {
         everySuspend { roomApiClientMock.knockRoom(eq(roomId), any(), any(), any()) } returns
                 Result.failure(MatrixServerException(HttpStatusCode.NotFound, ErrorResponse.NotFound("")))
 
@@ -118,9 +118,9 @@ class JoinRoomTest {
     }
 
     @Test
-    fun `Knock - Fail too many requests`() = runTestWithCoroutineScope {
+    fun `knock - should handle unexpected MatrixServerException`() = runTestWithCoroutineScope {
         everySuspend { roomApiClientMock.knockRoom(eq(roomId), any(), any(), any()) } returns
-                Result.failure(MatrixServerException(HttpStatusCode.NotFound, ErrorResponse.NotFound("")))
+                Result.failure(MatrixServerException(HttpStatusCode(418, "I'm a tea pot"), ErrorResponse.Forbidden("")))
 
         val res = cut.invoke(
             matrixClientMock,
@@ -130,11 +130,28 @@ class JoinRoomTest {
 
         delay(500.milliseconds)
 
-        res shouldBe JoinRoom.Result.Failed(JoinRule.Knock, i18n.joinRoomFailedRoomDoesNotExist())
+        res shouldBe JoinRoom.Result.Failed(JoinRule.Knock, i18n.joinRoomFailedGenericKnock())
     }
 
     @Test
-    fun `Public - Join Room Successfully`() = runTestWithCoroutineScope {
+    fun `knock - should handle error`() = runTestWithCoroutineScope {
+        val error = Throwable("something went wrong :(")
+        everySuspend { roomApiClientMock.knockRoom(eq(roomId), any(), any(), any()) } returns
+                Result.failure(error)
+
+        val res = cut.invoke(
+            matrixClientMock,
+            JoinRule.Knock,
+            roomId
+        )
+
+        delay(500.milliseconds)
+
+        res shouldBe JoinRoom.Result.Error(JoinRule.Knock, error)
+    }
+
+    @Test
+    fun `public - should join room successfully`() = runTestWithCoroutineScope {
         everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
                 Result.success(roomId)
 
@@ -150,7 +167,56 @@ class JoinRoomTest {
     }
 
     @Test
-    fun `Invite - Join Room Successfully`() = runTestWithCoroutineScope {
+    fun `public - should handle unexpected forbidden error`() = runTestWithCoroutineScope {
+        everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
+                Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
+
+        val res = cut.invoke(
+            matrixClientMock,
+            JoinRule.Public,
+            roomId
+        )
+
+        delay(500.milliseconds)
+
+        res shouldBe JoinRoom.Result.Failed(JoinRule.Public, i18n.joinRoomFailedGenericJoin())
+    }
+
+    @Test
+    fun `public - should handle unexpected MatrixServerException`() = runTestWithCoroutineScope {
+        everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any()) } returns
+                Result.failure(MatrixServerException(HttpStatusCode(418, "I'm a tea pot"), ErrorResponse.Forbidden("")))
+
+        val res = cut.invoke(
+            matrixClientMock,
+            JoinRule.Public,
+            roomId
+        )
+
+        delay(500.milliseconds)
+
+        res shouldBe JoinRoom.Result.Failed(JoinRule.Public, i18n.joinRoomFailedGenericJoin())
+    }
+
+    @Test
+    fun `public - should handle error`() = runTestWithCoroutineScope {
+        val error = Throwable("something went wrong :(")
+        everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
+                Result.failure(error)
+
+        val res = cut.invoke(
+            matrixClientMock,
+            JoinRule.Public,
+            roomId
+        )
+
+        delay(500.milliseconds)
+
+        res shouldBe JoinRoom.Result.Error(JoinRule.Public, error)
+    }
+
+    @Test
+    fun `invite - should join room successfully`() = runTestWithCoroutineScope {
         everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
                 Result.success(roomId)
 
@@ -166,7 +232,7 @@ class JoinRoomTest {
     }
 
     @Test
-    fun `Invite - Fail room we're not invited in`() = runTestWithCoroutineScope {
+    fun `invite - should fail room we're not invited in`() = runTestWithCoroutineScope {
         everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
                 Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
 
@@ -182,7 +248,7 @@ class JoinRoomTest {
     }
 
     @Test
-    fun `Restricted - Join Room Successfully`() = runTestWithCoroutineScope {
+    fun `restricted - should join room successfully`() = runTestWithCoroutineScope {
         everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
                 Result.success(roomId)
 
@@ -198,7 +264,7 @@ class JoinRoomTest {
     }
 
     @Test
-    fun `Invite - Fail room we do not qualify for`() = runTestWithCoroutineScope {
+    fun `invite - should fail room we do not qualify for`() = runTestWithCoroutineScope {
         everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
                 Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
 
@@ -214,7 +280,7 @@ class JoinRoomTest {
     }
 
     @Test
-    fun `KnockRestricted - Join Room Successfully and return strategy`() = runTestWithCoroutineScope {
+    fun `knock restricted - should join room successfully and return strategy`() = runTestWithCoroutineScope {
         everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
                 Result.success(roomId)
 
@@ -230,7 +296,7 @@ class JoinRoomTest {
     }
 
     @Test
-    fun `KnockRestricted - Knock Room Successfully and return strategy`() = runTestWithCoroutineScope {
+    fun `knock restricted - should knock room successfully and return strategy`() = runTestWithCoroutineScope {
         everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
                 Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
         everySuspend { roomApiClientMock.knockRoom(eq(roomId), any(), any(), any()) } returns
@@ -248,7 +314,7 @@ class JoinRoomTest {
     }
 
     @Test
-    fun `Private - Fail private room`() = runTestWithCoroutineScope {
+    fun `private - should fail private room`() = runTestWithCoroutineScope {
         val res = cut.invoke(
             matrixClientMock,
             JoinRule.Private,
@@ -261,7 +327,7 @@ class JoinRoomTest {
     }
 
     @Test
-    fun `Unknown - Fail unknown JoinRule`() = runTestWithCoroutineScope {
+    fun `unknown - should fail unknown JoinRule`() = runTestWithCoroutineScope {
         val res = cut.invoke(
             matrixClientMock,
             JoinRule.Unknown("cooked_rule"),
