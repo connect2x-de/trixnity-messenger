@@ -9,10 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Test coverage in GitLab pipeline
 - Knocking public rooms
+- AddMembersViewModel now has indicator when users are currently added
 
 ### Changed
+
+- Layout of message metadata info
 
 ### Deprecated
 
@@ -22,8 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix timeline rendering bug caused by "fix-file-onsave-handling"
 - Display rooms correctly the first time on join
+- Set directory visibility of public rooms to public
 
 ### Security
+
+- Sanitize Uri in Web
 
 ## 3.4.4
 
@@ -39,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Bug in file attachment upload size
+- No more flickering in timeline when writing new messages
 - Unrecommended HTML tags are not being sent any more
 - Shared Plaintext is not interpreted as Markdown
 - CloseApp should not be injected when null
