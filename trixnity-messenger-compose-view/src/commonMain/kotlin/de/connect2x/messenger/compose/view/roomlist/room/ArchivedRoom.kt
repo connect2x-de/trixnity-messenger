@@ -23,6 +23,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -91,7 +93,7 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
                                     onClick = { roomListElementViewModel.forgetRoom(); showWarning = false },
                                     modifier = Modifier.buttonPointerModifier().width(250.dp),
                                 ) {
-                                    Text(i18n.commonConfirm())
+                                    Text(i18n.commonConfirm().capitalize(Locale.current))
                                 }
                             }
                             Spacer(Modifier.size(20.dp))
@@ -100,7 +102,7 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
                                     onClick = { showWarning = false },
                                     modifier = Modifier.buttonPointerModifier().width(250.dp),
                                 ) {
-                                    Text(i18n.commonBack(), textAlign = TextAlign.Center)
+                                    Text(i18n.commonBack().capitalize(Locale.current), textAlign = TextAlign.Center)
                                 }
                             }
                         }
