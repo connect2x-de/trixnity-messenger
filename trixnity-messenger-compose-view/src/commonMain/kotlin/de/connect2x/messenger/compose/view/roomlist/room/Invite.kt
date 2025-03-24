@@ -1,12 +1,10 @@
 package de.connect2x.messenger.compose.view.roomlist.room
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -37,7 +35,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
-interface InviteView {
+interface InviteRoomListElement {
     @Composable
     fun create(roomListElementViewModel: RoomListElementViewModel)
 }
@@ -46,10 +44,10 @@ interface InviteView {
 fun Invite(
     roomListElementViewModel: RoomListElementViewModel,
 ) {
-    DI.get<InviteView>().create(roomListElementViewModel)
+    DI.get<InviteRoomListElement>().create(roomListElementViewModel)
 }
 
-class InviteViewImpl : InviteView {
+class InviteRoomListElementImpl : InviteRoomListElement {
     @Composable
     override fun create(roomListElementViewModel: RoomListElementViewModel) {
         val i18n = DI.get<I18nView>()

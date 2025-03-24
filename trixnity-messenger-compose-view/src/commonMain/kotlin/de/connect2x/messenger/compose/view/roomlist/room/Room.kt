@@ -49,7 +49,7 @@ class RoomListElementViewImpl : RoomListElementView {
     @Composable
     override fun create(roomListViewModel: RoomListViewModel, roomListElementViewModel: RoomListElementViewModel) {
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value
-        val hasLeft = roomListElementViewModel.hasLeft.collectAsState().value
+        val isLeave = roomListElementViewModel.isLeave.collectAsState().value
 
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
             MatrixClientColor(roomListElementViewModel)
@@ -64,7 +64,7 @@ class RoomListElementViewImpl : RoomListElementView {
 
                     when {
                         isInvite == true -> Invite(roomListElementViewModel)
-                        hasLeft == true -> ArchivedRoom(roomListElementViewModel)
+                        isLeave == true -> ArchivedRoom(roomListElementViewModel)
                         else -> Column(Modifier.align(Alignment.CenterVertically)) {
                             RoomNameAndTime(roomListElementViewModel)
                             LastMessageAndUnreadMessagesCounter(roomListElementViewModel)

@@ -137,7 +137,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     RoomName(roomHeaderElement)
                                     Spacer(Modifier.size(7.dp))
-                                    if (roomHeaderElement.hasLeft) {
+                                    if (roomHeaderElement.isLeave) {
                                         TextLabel(i18n.commonArchived())
                                     }
                                 }

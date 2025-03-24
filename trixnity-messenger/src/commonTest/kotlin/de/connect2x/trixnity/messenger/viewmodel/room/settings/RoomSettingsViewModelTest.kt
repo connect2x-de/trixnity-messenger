@@ -15,7 +15,6 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
-import dev.mokkery.verifySuspend
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -269,7 +268,7 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext,
             ),
             selectedRoomId = roomId,
-            onForgetRoom = onBackMock,
+            onCloseRoom = onBackMock,
             onCloseRoomSettings = mock(),
             onOpenAvatarCutter = { _, _, _ -> },
             onOpenAddMembers = mock(),

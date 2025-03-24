@@ -52,6 +52,7 @@ class RoomListRouter(
     private val onRemoveAccount: (userId: UserId) -> Unit,
     private val onAccountSelected: () -> Unit,
     private val onStartAccountSetup: (userId: UserId) -> Unit,
+    private val onCloseRoom: () -> Unit
 ) {
 
     private val navigation = StackNavigation<Config>()
@@ -95,6 +96,7 @@ class RoomListRouter(
                     onSendLogs = onSendLogs,
                     onOpenAccountsOverview = ::onOpenAccountsOverview,
                     onAccountSelected = onAccountSelected,
+                    onCloseRoom = onCloseRoom
                 )
             )
 

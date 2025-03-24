@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
+import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -25,7 +26,7 @@ interface RoomSettingsViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        onForgetRoom: () -> Unit,
+        onCloseRoom: () -> Unit,
         onOpenAddMembers: () -> Unit,
         onOpenExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
@@ -38,7 +39,7 @@ interface RoomSettingsViewModelFactory {
         onOpenExportRoom = onOpenExportRoom,
         onCloseRoomSettings = onCloseRoomSettings,
         onOpenAvatarCutter = onOpenAvatarCutter,
-        onForgetRoom = onForgetRoom,
+        onCloseRoom = onCloseRoom,
         onOpenUserProfile = onOpenUserProfile,
     )
 
@@ -58,7 +59,7 @@ interface RoomSettingsViewModel {
     val memberListViewModel: MemberListViewModel
     val hasPowerToInvite: StateFlow<Boolean>
     val isDirect: StateFlow<Boolean>
-    val hasLeft: StateFlow<Boolean>
+    val isLeave: StateFlow<Boolean>
     val isEncrypted: StateFlow<Boolean>
 
     // Messages
@@ -84,7 +85,7 @@ class RoomSettingsViewModelImpl(
     private val onOpenAddMembers: () -> Unit,
     private val onOpenExportRoom: () -> Unit,
     private val onCloseRoomSettings: () -> Unit,
-    private val onForgetRoom: () -> Unit,
+    private val onCloseRoom: () -> Unit,
     private val onOpenAvatarCutter: OpenAvatarCutterCallback,
     private val onOpenUserProfile: (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
@@ -145,7 +146,7 @@ class RoomSettingsViewModelImpl(
     override val leaveRoomWarningOpen = MutableStateFlow(false)
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val hasLeft: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isLeave: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override val memberListViewModel: MemberListViewModel =
         get<MemberListViewModelFactory>().create(
@@ -164,9 +165,9 @@ class RoomSettingsViewModelImpl(
             matrixClient.room.getById(selectedRoomId).collect {
                 isDirect.value = it?.isDirect ?: false
                 isEncrypted.value = it?.encrypted ?: false
-                hasLeft.value = it?.membership?.let { membership -> membership == Membership.LEAVE } ?: false
+                isLeave.value = it?.membership?.let { membership -> membership == Membership.LEAVE } ?: false
 
-                if (hasLeft.value) {
+                if (isLeave.value) {
                     if (isDirect.value) {
                         leaveRoomSettingEntryText.value = i18n.settingsRoomForgetRoomMessageChat()
                         leaveRoomWarningTitle.value = i18n.settingsRoomForgetRoomWarningTitleChat()
@@ -221,7 +222,7 @@ class RoomSettingsViewModelImpl(
 
     override fun forgetRoom() {
         coroutineScope.launch {
-            if (matrixClient.syncState.value == SyncState.ERROR) {
+            if (matrixClient.syncState.value != SyncState.RUNNING) {
                 error.value = i18n.forgetRoomErrorOffline()
                 return@launch
             }
@@ -229,7 +230,7 @@ class RoomSettingsViewModelImpl(
             matrixClient.api.room.forgetRoom(selectedRoomId).fold(
                 onSuccess = {},
                 onFailure = {
-                    if (it is CancellationException) {
+                    if (it !is MatrixServerException) {
                         return@launch
                     }
 
@@ -241,7 +242,7 @@ class RoomSettingsViewModelImpl(
                 }
             )
             matrixClient.room.forgetRoom(selectedRoomId)
-            onForgetRoom()
+            onCloseRoom()
         }
     }
 
@@ -289,7 +290,7 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val hasPowerToInvite = MutableStateFlow(true)
     override val isDirect = MutableStateFlow(true)
     override val isEncrypted = MutableStateFlow(false)
-    override val hasLeft = MutableStateFlow(false)
+    override val isLeave = MutableStateFlow(false)
     override fun openAddMembersView() {}
     override fun openExportRoomView() {}
     override fun openUserProfile(userId: UserId) {}

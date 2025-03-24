@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -35,17 +34,17 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
-interface ArchivedRoomView {
+interface ArchivedRoomListElement {
     @Composable
     fun create(roomListElementViewModel: RoomListElementViewModel)
 }
 
 @Composable
 fun ArchivedRoom(roomListElementViewModel: RoomListElementViewModel) {
-    DI.get<ArchivedRoomView>().create(roomListElementViewModel)
+    DI.get<ArchivedRoomListElement>().create(roomListElementViewModel)
 }
 
-class ArchivedRoomViewImpl : ArchivedRoomView {
+class ArchivedRoomListElementImpl : ArchivedRoomListElement {
     @Composable
     override fun create(roomListElementViewModel: RoomListElementViewModel) {
         val i18n = DI.get<I18nView>()

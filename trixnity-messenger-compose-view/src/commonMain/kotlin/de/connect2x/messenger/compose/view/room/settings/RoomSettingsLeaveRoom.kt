@@ -60,7 +60,7 @@ class RoomSettingsLeaveRoomViewImpl : RoomSettingsLeaveRoomView {
 @Composable
 fun RoomSettingsLeaveRoomWarning(roomSettingsViewModel: RoomSettingsViewModel) {
     val i18n = DI.get<I18nView>()
-    val hasLeft = roomSettingsViewModel.hasLeft.collectAsState().value
+    val isLeave = roomSettingsViewModel.isLeave.collectAsState().value
     val leaveRoomWarningMessage = roomSettingsViewModel.leaveRoomWarningMessage.collectAsState().value
     val leaveRoomWarningTitle = roomSettingsViewModel.leaveRoomWarningTitle.collectAsState().value
     val leaveRoomWarningConfirmButtonText =
@@ -73,7 +73,7 @@ fun RoomSettingsLeaveRoomWarning(roomSettingsViewModel: RoomSettingsViewModel) {
         confirmButtonText = leaveRoomWarningConfirmButtonText,
         dismissAction = { roomSettingsViewModel.closeLeaveRoomWarningDialog() },
         confirmAction = {
-            if (hasLeft) {
+            if (isLeave) {
                 roomSettingsViewModel.forgetRoom()
             } else {
                 roomSettingsViewModel.leaveRoom()

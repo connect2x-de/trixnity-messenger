@@ -73,7 +73,7 @@ data class RoomHeaderInfo(
     val presence: Presence?,
     val isEncrypted: Boolean,
     val isPublic: Boolean,
-    val hasLeft: Boolean
+    val isLeave: Boolean
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -89,7 +89,7 @@ data class RoomHeaderInfo(
         if (presence != other.presence) return false
         if (isEncrypted != other.isEncrypted) return false
         if (isPublic != other.isPublic) return false
-        if (hasLeft != other.hasLeft) return false
+        if (isLeave != other.isLeave) return false
         return true
     }
 
@@ -101,7 +101,7 @@ data class RoomHeaderInfo(
         result = 31 * result + (presence?.hashCode() ?: 0)
         result = 31 * result + isEncrypted.hashCode()
         result = 31 * result + isPublic.hashCode()
-        result = 31 * result + hasLeft.hashCode()
+        result = 31 * result + isLeave.hashCode()
         return result
     }
 }
@@ -188,7 +188,7 @@ open class RoomHeaderViewModelImpl(
                 presence = userPresence?.presence,
                 isEncrypted = room?.encrypted == true,
                 isPublic = joinRules?.content?.joinRule == JoinRulesEventContent.JoinRule.Public,
-                hasLeft = room?.membership?.let { it == Membership.LEAVE }?: false
+                isLeave = room?.membership?.let { it == Membership.LEAVE }?: false
             )
         }.stateIn(
             coroutineScope,
@@ -201,7 +201,7 @@ open class RoomHeaderViewModelImpl(
                 presence = Presence.OFFLINE,
                 isEncrypted = false,
                 isPublic = true,
-                hasLeft = false
+                isLeave = false
             )
         )
 
@@ -309,7 +309,7 @@ class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
             presence = null,
             isEncrypted = false,
             isPublic = true,
-            hasLeft = false
+            isLeave = false
         )
     )
     override val usersTyping: MutableStateFlow<String?> = MutableStateFlow("is typing...")
