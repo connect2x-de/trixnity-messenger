@@ -370,11 +370,11 @@ private fun RejectKnockSection(userProfileViewModel: UserProfileViewModel, i18n:
     }) {
         Icon(
             Icons.Filled.DoorBack,
-            i18n.userProfileAcceptKnock(),
+            i18n.userProfileRejectKnock(),
             Modifier.size(24.dp)
         )
         Spacer(Modifier.size(10.dp))
-        Text(i18n.userProfileAcceptKnock())
+        Text(i18n.userProfileRejectKnock())
     }
 }
 
