@@ -54,7 +54,7 @@ class AccountDataViewImpl : AccountDataView {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
-                    Modifier.padding(horizontal = 10.dp, vertical = 4.dp).fillMaxWidth(),
+                    Modifier.padding(start = 6.dp, end = 10.dp, top = 2.dp, bottom = 2.dp).fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     AccountAvatar(accountViewModel)

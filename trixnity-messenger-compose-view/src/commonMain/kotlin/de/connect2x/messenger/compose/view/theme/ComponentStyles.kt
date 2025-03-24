@@ -22,6 +22,7 @@ data class ComponentStyles(
     val timeline: SurfaceStyle,
     // room list
     val roomListSelection: SurfaceStyle,
+    val accountSelector: ButtonStyle,
     // input area
     val inputAreaSurface: SurfaceStyle,
     // messages

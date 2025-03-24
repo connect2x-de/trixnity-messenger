@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.theme
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -67,6 +68,14 @@ class ThemeComponentsImpl : ThemeComponents {
         roomListSelection = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onBackground,
+        ),
+        accountSelector = ButtonStyle.filled(
+            contentPadding = PaddingValues(0.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+            ),
+            elevation = null,
         ),
         // input area
         inputAreaSurface = SurfaceStyle.default(
