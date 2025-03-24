@@ -26,17 +26,14 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.setMain
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
@@ -67,7 +64,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
 class UserProfileViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 4_000
+    // override fun timeout(): Long = 4_000
 
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
@@ -173,6 +170,7 @@ class UserProfileViewModelTest : ShouldSpec() {
             every { userServiceMock.getById(eq(roomId), eq(alice)) } returns roomUserAliceFlow
             every { userServiceMock.getById(eq(roomId), eq(bob)) } returns roomUserBobFlow
             every { userServiceMock.getById(eq(roomId), eq(carol)) } returns flowOf(null)
+            every { userServiceMock.canInviteUser(eq(roomId), any()) } returns MutableStateFlow(true)
             every { userServiceMock.canKickUser(eq(roomId), any()) } returns MutableStateFlow(true)
             every { userServiceMock.canBanUser(eq(roomId), any()) } returns MutableStateFlow(true)
             every { userServiceMock.canUnbanUser(eq(roomId), any()) } returns MutableStateFlow(true)
@@ -415,6 +413,39 @@ class UserProfileViewModelTest : ShouldSpec() {
         // CONTEXT_END: "Member is a normal user"
 
         // CONTEXT_END: "role computation for the member list"
+        context("knocking") {
+            beforeTest {
+                everySuspend { roomsApiClientMock.kickUser(eq(roomId), any(), any(), any()) } returns Result.success(Unit)
+                everySuspend { roomsApiClientMock.inviteUser(eq(roomId), any(), any(), any()) } returns Result.success(Unit)
+            }
+
+            should("knocking - accept knock") {
+                val cut = userProfileViewModel(coroutineContext, alice)
+                cut.acceptKnock()
+                delay(500.milliseconds)
+
+                cut.error.value shouldBe null
+                verifySuspend {
+                    roomsApiClientMock.inviteUser(eq(roomId), eq(alice), any(), any())
+                }
+
+                cut.membershipChanging.value shouldBe false
+                cancelNeverEndingCoroutines()
+            }
+
+            should("knocking - reject knock") {
+                val cut = userProfileViewModel(coroutineContext, alice)
+                cut.rejectKnock()
+                delay(500.milliseconds)
+
+                cut.error.value shouldBe null
+                verifySuspend {
+                    roomsApiClientMock.kickUser(eq(roomId), eq(alice), any(), any())
+                }
+                cut.membershipChanging.value shouldBe false
+                cancelNeverEndingCoroutines()
+            }
+        }
     }
 
     private fun setMemberEventContentOf(roomUser: MutableStateFlow<RoomUser?>, eventContent: MemberEventContent) {
@@ -430,10 +461,10 @@ class UserProfileViewModelTest : ShouldSpec() {
         )
     }
 
-    private suspend fun userProfileViewModel(
+    private fun userProfileViewModel(
         coroutineContext: CoroutineContext, userId: UserId
     ): UserProfileViewModelImpl {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+        // Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         return UserProfileViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
