@@ -60,6 +60,7 @@ fun RowScope.RoomTime(roomListElementViewModel: RoomListElementViewModel, modifi
 @Composable
 fun RoomNameAndTime(roomListElementViewModel: RoomListElementViewModel) {
     val roomName = roomListElementViewModel.roomName.collectAsState().value
+    val isLeave = roomListElementViewModel.isLeave.collectAsState().value?: false
 
     Row(
         modifier = Modifier.placeholder(

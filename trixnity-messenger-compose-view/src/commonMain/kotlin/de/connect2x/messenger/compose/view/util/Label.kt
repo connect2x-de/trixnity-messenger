@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun TextLabel(text: String, color: Color = MaterialTheme.colorScheme.primary) {
+fun TextLabel(text: String, color: Color = MaterialTheme.colorScheme.onSecondary) {
     Box(
         Modifier
             .background(color.copy(alpha = 0.25f), shape = RoundedCornerShape(16.dp))

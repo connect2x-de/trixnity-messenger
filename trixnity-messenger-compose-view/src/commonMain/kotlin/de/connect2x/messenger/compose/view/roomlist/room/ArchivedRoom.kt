@@ -32,6 +32,7 @@ import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.util.TextLabel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 interface ArchivedRoomListElement {
@@ -49,14 +50,12 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
     override fun create(roomListElementViewModel: RoomListElementViewModel) {
         val i18n = DI.get<I18nView>()
         var showWarning by remember { mutableStateOf(false) }
-        val lastMessage = roomListElementViewModel.lastMessage.collectAsState().value
-        val usersTyping = roomListElementViewModel.usersTyping.collectAsState().value
 
         SpecialRoomComponent(
             roomListElementViewModel = roomListElementViewModel,
-            roomNameLabel = i18n.commonArchived(),
             extraInfo = {
-                LastMessage(lastMessage, usersTyping)
+                Spacer(Modifier.size(5.dp))
+                TextLabel(i18n.commonArchived())
             }
         ) {
             IconButton({ showWarning = true }, Modifier.buttonPointerModifier()) {

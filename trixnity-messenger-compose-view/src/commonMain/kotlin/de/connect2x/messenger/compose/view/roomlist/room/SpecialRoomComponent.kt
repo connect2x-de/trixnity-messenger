@@ -18,7 +18,6 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewMod
 @Composable
 fun SpecialRoomComponent(
     roomListElementViewModel: RoomListElementViewModel,
-    roomNameLabel: String? = null,
     extraInfo: @Composable ColumnScope.() -> Unit = {},
     buttons: @Composable RowScope.() -> Unit
 ) {
@@ -26,13 +25,7 @@ fun SpecialRoomComponent(
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.fillMaxWidth().weight(1.0f, false)) {
-            Row {
-                RoomName(roomName = roomName)
-                if (roomNameLabel != null) {
-                    Spacer(Modifier.size(5.dp))
-                    TextLabel(roomNameLabel)
-                }
-            }
+            RoomName(roomName = roomName)
             extraInfo()
         }
         Spacer(Modifier.size(10.dp))

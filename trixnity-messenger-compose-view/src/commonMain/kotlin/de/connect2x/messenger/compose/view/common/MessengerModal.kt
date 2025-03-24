@@ -56,7 +56,6 @@ fun MessengerModal(
         Modifier
             .fillMaxSize()
             .blockPointerInput()
-            .background(Color.Black.copy(alpha = 0.4f))
     ) {
         Surface(
             tonalElevation = 1.dp,
@@ -79,7 +78,7 @@ fun MessengerModal(
 @Composable
 fun ColumnScope.MessengerModalContent(content: @Composable ColumnScope.() -> Unit) {
     val scrollState = rememberScrollState()
-    Column(Modifier.verticalScroll(scrollState).weight(1.0f, fill = true)) {
+    Column(Modifier.verticalScroll(scrollState).weight(1.0f, fill = false)) {
         content()
     }
     // do not display scroll bar as it sets the height to max and is not used on mobile (where scrolling might be needed)
