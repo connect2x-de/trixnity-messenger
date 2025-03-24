@@ -43,6 +43,16 @@ class ThemeComponentsImpl : ThemeComponents {
             )
         ),
         // surfaces
+        dialog = SurfaceStyle.default(
+            shape = RoundedCornerShape(4.dp),
+            color = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.onBackground,
+        ),
+        popup = SurfaceStyle.default(
+            shadowElevation = 4.dp,
+            tonalElevation = 4.dp,
+            shape = MaterialTheme.shapes.medium
+        ),
         sidebar = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.surfaceContainerLow,
             tonalElevation = 4.dp,
