@@ -170,9 +170,9 @@ class UserProfileViewModelImpl(
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val roomUserOriginalName = MutableStateFlow<String?>(null)
 
-    val isUserInRoom = matrixClient.user.getById(selectedRoomId, userId)
+    private val isUserInRoom = matrixClient.user.getById(selectedRoomId, userId)
         .map { it != null }
-        .shareIn(coroutineScope, SharingStarted.WhileSubscribed())
+        .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
     override val userTrustLevel: StateFlow<UserTrustLevel?> = matrixClient.key.getTrustLevel(userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -195,15 +195,11 @@ class UserProfileViewModelImpl(
         ) { inRoom, canKick -> inRoom && canKick }
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
-    private val isKnocking: SharedFlow<Boolean> =
-        membership.map { it == Membership.KNOCK }.shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
-
     override val iHavePowerToBanUser: StateFlow<Boolean> =
         combine(
             isUserInRoom,
-            isKnocking,
             matrixClient.user.canBanUser(selectedRoomId, userId)
-        ) { inRoom, isKnocking, canBan -> (inRoom || isKnocking) && canBan }
+        ) { inRoom, canBan -> inRoom && canBan }
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val banUserReason = TextFieldViewModelImpl()
@@ -216,6 +212,9 @@ class UserProfileViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val unbanUserReason = TextFieldViewModelImpl()
+
+    private val isKnocking: SharedFlow<Boolean> =
+        membership.map { it == Membership.KNOCK }.shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
     override val iHavePowerToAcceptKnock: StateFlow<Boolean> =
         combine(

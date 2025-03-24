@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
+import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.RoomId
@@ -80,23 +81,29 @@ open class MemberListViewModelImpl(
             allUsers,
             filterByMemberships
         ) { powerLevels, createEvent, roomUsers, filterByMemberships ->
-            val relevantRoomUsers = roomUsers.filter { roomUser ->
-                filterByMemberships.contains(roomUser.membership)
-            }.sortedByDescending { roomUser ->
-                matrixClient.user.getPowerLevel(
-                    roomUser.userId,
-                    createEvent.sender,
-                    powerLevels
-                )
-            }.sortedBy { roomUser ->
-                when (roomUser.membership) {
-                    Membership.JOIN -> 1
-                    Membership.KNOCK -> 2
-                    Membership.INVITE -> 3
-                    Membership.BAN -> 4
-                    Membership.LEAVE -> 5
-                }
-            }.associateBy { it.userId }
+            val relevantRoomUsers =
+                roomUsers
+                    .filter { roomUser ->
+                        filterByMemberships.contains(roomUser.membership)
+                    }
+                    .sortedWith(
+                        compareBy<RoomUser> { roomUser ->
+                            when (roomUser.membership) {
+                                Membership.JOIN -> 1
+                                Membership.KNOCK -> 2
+                                Membership.INVITE -> 3
+                                Membership.BAN -> 4
+                                Membership.LEAVE -> 5
+                            }
+                        }.thenByDescending { roomUser ->
+                            matrixClient.user.getPowerLevel(
+                                roomUser.userId,
+                                createEvent.sender,
+                                powerLevels
+                            )
+                        }
+                    )
+                    .associateBy { it.userId }
 
             elementCache.mapNotNull { (userId, wrapper) ->
                 if (relevantRoomUsers[userId] == null) {
