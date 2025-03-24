@@ -911,6 +911,21 @@ open class I18nView(
         DE - "Benutzeroptionen"
     }
 
+    open fun settingsRoomMemberListCurrent() = translate {
+        EN - "Current"
+        DE - "Aktuelle"
+    }
+
+    open fun settingsRoomMemberListPending() = translate {
+        EN - "Requesting"
+        DE - "Anfragend"
+    }
+
+    open fun settingsRoomMemberListFormer() = translate {
+        EN - "Former"
+        DE - "Ehemalige"
+    }
+
     open fun unbannable() = translate {
         EN - "unbanable"
         DE - "entbannbar"

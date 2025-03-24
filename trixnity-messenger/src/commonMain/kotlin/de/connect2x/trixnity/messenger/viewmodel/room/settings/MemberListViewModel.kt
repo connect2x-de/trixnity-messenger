@@ -42,6 +42,7 @@ interface MemberListViewModelFactory {
 }
 
 interface MemberListViewModel {
+    val filterByMemberships: MutableStateFlow<Set<Membership>>
     val elements: StateFlow<List<MemberListElementViewModel>>
     val membershipCounts: StateFlow<Map<Membership, Int>>
     val showLoadingSpinner: StateFlow<Boolean>
@@ -69,23 +70,32 @@ open class MemberListViewModelImpl(
     private val allUsers = matrixClient.user.getAll(selectedRoomId).flattenNotNull().map { it.values }
         .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
 
+    override val filterByMemberships: MutableStateFlow<Set<Membership>> =
+        MutableStateFlow(setOf(Membership.JOIN, Membership.KNOCK, Membership.INVITE, Membership.BAN))
+
     override val elements: StateFlow<List<MemberListElementViewModel>> =
         combine(
             matrixClient.room.getState<PowerLevelsEventContent>(selectedRoomId).map { it?.content },
             matrixClient.room.getState<CreateEventContent>(selectedRoomId).filterNotNull(),
-            allUsers
-        ) { powerLevels, createEvent, roomUsers ->
+            allUsers,
+            filterByMemberships
+        ) { powerLevels, createEvent, roomUsers, filterByMemberships ->
             val relevantRoomUsers = roomUsers.filter { roomUser ->
-                when (roomUser.membership) {
-                    Membership.JOIN, Membership.INVITE, Membership.BAN, Membership.KNOCK -> true
-                    Membership.LEAVE -> false
-                }
+                filterByMemberships.contains(roomUser.membership)
             }.sortedByDescending { roomUser ->
                 matrixClient.user.getPowerLevel(
                     roomUser.userId,
                     createEvent.sender,
                     powerLevels
                 )
+            }.sortedBy { roomUser ->
+                when (roomUser.membership) {
+                    Membership.JOIN -> 1
+                    Membership.KNOCK -> 2
+                    Membership.INVITE -> 3
+                    Membership.BAN -> 4
+                    Membership.LEAVE -> 5
+                }
             }.associateBy { it.userId }
 
             elementCache.mapNotNull { (userId, wrapper) ->
@@ -125,6 +135,8 @@ open class MemberListViewModelImpl(
 
 
 class PreviewMemberListViewModel : MemberListViewModel {
+    override val filterByMemberships: MutableStateFlow<Set<Membership>> =
+        MutableStateFlow(emptySet())
     override val elements: MutableStateFlow<List<MemberListElementViewModel>> =
         MutableStateFlow(emptyList())
     override val membershipCounts: StateFlow<Map<Membership, Int>> = MutableStateFlow(emptyMap())
