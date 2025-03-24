@@ -195,11 +195,15 @@ class UserProfileViewModelImpl(
         ) { inRoom, canKick -> inRoom && canKick }
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
+    private val isKnocking: SharedFlow<Boolean> =
+        membership.map { it == Membership.KNOCK }.shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
+
     override val iHavePowerToBanUser: StateFlow<Boolean> =
         combine(
             isUserInRoom,
+            isKnocking,
             matrixClient.user.canBanUser(selectedRoomId, userId)
-        ) { inRoom, canBan -> inRoom && canBan }
+        ) { inRoom, isKnocking, canBan -> (inRoom || isKnocking) && canBan }
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val banUserReason = TextFieldViewModelImpl()
@@ -213,8 +217,6 @@ class UserProfileViewModelImpl(
 
     override val unbanUserReason = TextFieldViewModelImpl()
 
-    private val isKnocking: SharedFlow<Boolean> =
-        membership.map { it == Membership.KNOCK }.shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
     override val iHavePowerToAcceptKnock: StateFlow<Boolean> =
         combine(
             isKnocking,
