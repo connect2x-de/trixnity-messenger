@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
 import dev.mokkery.answering.calls
@@ -19,8 +18,9 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
@@ -29,6 +29,7 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
+import net.folivo.trixnity.clientserverapi.model.rooms.GetPublicRoomsResponse
 import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.RoomId
@@ -36,7 +37,6 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent.JoinRule
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.coroutineContext
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
@@ -44,15 +44,6 @@ import kotlin.time.Duration.Companion.milliseconds
 class SearchGroupViewModelTest {
     private val roomId = RoomId("room1", "localhost")
     private val room = Room(roomId)
-    private val group = SearchGroupViewModel.SearchGroup(
-        roomId = roomId,
-        groupName = roomId.full,
-        topic = null,
-        image = MutableStateFlow(null),
-        initials = Initials.compute(roomId.full),
-        joinedMembersCount = 0L,
-        joinRule = JoinRule.Unknown("null")
-    )
 
     private val matrixClientMock = mock<MatrixClient>()
     private val matrixApiClientMock = mock<MatrixClientServerApiClient>()
@@ -84,7 +75,6 @@ class SearchGroupViewModelTest {
 
         every { matrixClientMock.api } returns matrixApiClientMock
         every { matrixApiClientMock.room } returns roomApiClientMock
-
         every { onGroupJoinedMock.invoke(any(), any()) } calls {
             joined = true
         }
@@ -98,15 +88,19 @@ class SearchGroupViewModelTest {
     }
 
     @Test
-    fun `adding groups - should handle successful joining`() = runTest {
+    fun `entering groups - should handle successful joining`() = runTest {
         everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
                 Result.success(roomId)
 
         val cut = searchGroupViewModel()
 
         listOf(JoinRule.Public, JoinRule.Invite, JoinRule.Restricted, JoinRule.KnockRestricted).forEach { rule ->
+            everySuspend { roomApiClientMock.getPublicRooms(any(), any(), any(), any(), any(), any(), any()) } returns
+                    Result.success(getPublicRoomsResponse(rule))
+            loadData(cut)
+
             joined = false
-            cut.addGroup(group.copy(joinRule = rule))
+            cut.enterGroup(roomId)
             delay(500.milliseconds)
             joined shouldBe true
             knocked shouldBe false
@@ -114,7 +108,7 @@ class SearchGroupViewModelTest {
     }
 
     @Test
-    fun `adding groups - should handle successful knocking`() = runTest {
+    fun `entering groups - should handle successful knocking`() = runTest {
         everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
                 Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
         everySuspend { roomApiClientMock.knockRoom(eq(roomId), any(), any(), any()) } returns
@@ -123,8 +117,12 @@ class SearchGroupViewModelTest {
         val cut = searchGroupViewModel()
 
         listOf(JoinRule.Knock, JoinRule.KnockRestricted).forEach { rule ->
+            everySuspend { roomApiClientMock.getPublicRooms(any(), any(), any(), any(), any(), any(), any()) } returns
+                    Result.success(getPublicRoomsResponse(rule))
+            loadData(cut)
+
             knocked = false
-            cut.addGroup(group.copy(joinRule = rule))
+            cut.enterGroup(roomId)
             delay(500.milliseconds)
             joined shouldBe false
             knocked shouldBe true
@@ -132,25 +130,49 @@ class SearchGroupViewModelTest {
     }
 
     @Test
-    fun `adding groups - should handle failure`() = runTest {
+    fun `entering groups - should handle failure`() = runTest {
+        everySuspend { roomApiClientMock.getPublicRooms(any(), any(), any(), any(), any(), any(), any()) } returns
+                Result.success(getPublicRoomsResponse(JoinRule.Public))
+        everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
+                Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
+
         val cut = searchGroupViewModel()
-        cut.addGroup(group)
+        loadData(cut)
+
+        cut.enterGroup(roomId)
         delay(500.milliseconds)
-        cut.error.value shouldBe i18n.joinRoomFailedGenericJoin()
+        cut.error.value shouldBe i18n.enterRoomFailedGenericJoin()
     }
 
     @Test
-    fun `adding groups - should handle error`() = runTest {
+    fun `entering groups - should handle error`() = runTest {
         everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
                 Result.failure(Throwable("something went wrong :("))
+        everySuspend { roomApiClientMock.getPublicRooms(any(), any(), any(), any(), any(), any(), any()) } returns
+                Result.success(getPublicRoomsResponse(JoinRule.Public))
 
         val cut = searchGroupViewModel()
-        cut.addGroup(group.copy(joinRule = JoinRule.Public))
+        loadData(cut)
+
+        cut.enterGroup(roomId)
         delay(500.milliseconds)
-        cut.error.value shouldBe i18n.joinRoomFailedGenericJoin()
+        cut.error.value shouldBe i18n.enterRoomFailedGenericJoin()
     }
 
-    private suspend fun searchGroupViewModel() =
+    private fun getPublicRoomsResponse(joinRule: JoinRule) =
+        GetPublicRoomsResponse(
+            listOf(
+                GetPublicRoomsResponse.PublicRoomsChunk(
+                    guestCanJoin = false,
+                    joinedMembersCount = 1L,
+                    roomId = roomId,
+                    worldReadable = false,
+                    joinRule = joinRule
+                )
+            )
+        )
+
+    private fun CoroutineScope.searchGroupViewModel() =
         SearchGroupViewModelFactory.create(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
@@ -168,4 +190,8 @@ class SearchGroupViewModelTest {
             onGroupKnocked = onGroupKnockedMock,
             onBack = mock()
         )
+
+    private suspend fun loadData(cut: SearchGroupViewModel) {
+        cut.foundGroups.firstOrNull { it.isNotEmpty() }
+    }
 }

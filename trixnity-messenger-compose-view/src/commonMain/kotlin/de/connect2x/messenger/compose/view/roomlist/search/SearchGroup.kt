@@ -88,7 +88,7 @@ class SearchGroupViewImpl : SearchGroupView {
                     description = i18n.knockExplanation(),
                     textFieldValueState = reason,
                     onSubmit = {
-                        searchGroupViewModel.addGroup(it, reason.value.text)
+                        searchGroupViewModel.enterGroup(it.roomId, reason.value.text)
                         knockGroupModalShownFor.value = null
                     },
                     onCancel = {
@@ -176,7 +176,7 @@ fun SearchGroupResult(group: SearchGroup, searchGroupViewModel: SearchGroupViewM
                     if (group.joinRule.isKnock) {
                         knockGroupModalShownFor.value = group
                     } else {
-                        searchGroupViewModel.addGroup(group)
+                        searchGroupViewModel.enterGroup(group.roomId)
                     }
                 }
                 .buttonPointerModifier()
