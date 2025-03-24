@@ -8,8 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,13 +22,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.TabInTextField
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModel
 
 interface UiaRegistrationTokenView {
@@ -67,16 +67,16 @@ class UiaRegistrationTokenViewImpl : UiaRegistrationTokenView {
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
-                    OutlinedButton(
+                    ThemedButton(
+                        style = MaterialTheme.components.commonButton,
                         onClick = uiaStepRegistrationTokenViewModel::cancel,
-                        modifier = Modifier.buttonPointerModifier(),
                     ) {
                         Text(i18n.commonCancel().capitalize(Locale.current))
                     }
-                    Button(
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
                         enabled = !isSubmitting,
                         onClick = uiaStepRegistrationTokenViewModel::submit,
-                        modifier = Modifier.buttonPointerModifier(),
                     ) {
                         Text(i18n.uiaRegistrationTokenButtonSubmit().capitalize(Locale.current))
                     }

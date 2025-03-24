@@ -1,20 +1,19 @@
 package de.connect2x.messenger.compose.view.connecting
 
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardNavigationButton
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModel
@@ -64,9 +63,9 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
                 PasswordLogin(viewModel)
             },
             additionalButton = {
-                OutlinedButton(
+                ThemedButton(
+                    style = MaterialTheme.components.commonButton,
                     onClick = viewModel::back,
-                    modifier = Modifier.buttonPointerModifier()
                 ) {
                     Text(i18n.commonBack().capitalize(Locale.current))
                 }
@@ -75,10 +74,10 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
                 WizardNavigationButton.Custom {
                     val state = viewModel.addMatrixAccountState.collectAsState().value
                     val canLogin = viewModel.canLogin.collectAsState().value
-                    Button(
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
                         enabled = canLogin && state !is AddMatrixAccountState.Connecting,
                         onClick = { viewModel.tryLogin() },
-                        modifier = Modifier.buttonPointerModifier(enabled = canLogin)
                     ) {
                         Text(i18n.login())
                     }
@@ -93,9 +92,9 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
                 SSOLogin(viewModel)
             },
             additionalButton = {
-                OutlinedButton(
+                ThemedButton(
+                    style = MaterialTheme.components.commonButton,
                     onClick = viewModel::back,
-                    modifier = Modifier.buttonPointerModifier()
                 ) {
                     Text(i18n.commonBack().capitalize(Locale.current))
                 }
@@ -105,10 +104,10 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
                     val state = viewModel.addMatrixAccountState.collectAsState().value
                     val waitForRedirect = viewModel.waitForRedirect.collectAsState().value
                     val canLogin = !waitForRedirect && state !is AddMatrixAccountState.Connecting
-                    Button(
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
                         enabled = canLogin,
                         onClick = { viewModel.tryLogin() },
-                        modifier = Modifier.buttonPointerModifier(enabled = canLogin)
                     ) {
                         Text(i18n.login())
                     }
@@ -123,9 +122,9 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
                 RegisterNewAccount(viewModel)
             },
             additionalButton = {
-                OutlinedButton(
+                ThemedButton(
+                    style = MaterialTheme.components.commonButton,
                     onClick = viewModel::back,
-                    modifier = Modifier.buttonPointerModifier()
                 ) {
                     Text(i18n.commonBack().capitalize(Locale.current))
                 }
@@ -133,10 +132,10 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
             nextButton = {
                 WizardNavigationButton.Custom {
                     val canRegisterNewUser = viewModel.canRegisterNewUser.collectAsState().value
-                    Button(
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
                         enabled = canRegisterNewUser,
                         onClick = { viewModel.register() },
-                        modifier = Modifier.buttonPointerModifier(enabled = canRegisterNewUser)
                     ) {
                         Text(i18n.register())
                     }
