@@ -222,7 +222,7 @@ class RoomSettingsViewModelImpl(
     override fun forgetRoom() {
         coroutineScope.launch {
             if (matrixClient.syncState.value == SyncState.ERROR) {
-                error.value = i18n.settingsRoomForgetRoomErrorOffline()
+                error.value = i18n.forgetRoomErrorOffline()
                 return@launch
             }
 
@@ -234,7 +234,7 @@ class RoomSettingsViewModelImpl(
                     }
 
                     log.error(it) { "cannot forget room $selectedRoomId" }
-                    error.value = i18n.settingsRoomForgetRoomError(
+                    error.value = i18n.forgetRoomError(
                         if (isDirect.value) i18n.eventChangeChatGenitive()
                         else i18n.eventChangeGroupGenitive()
                     )

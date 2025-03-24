@@ -9,9 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Show archived rooms after leaving
+- Replace `leave room` with `forget room` if room is archived
+- Add settings to forget rooms in room list and settings view
+
 ### Changed
 
 - Layout of message metadata info
+- Show archived rooms in room list
 
 ### Deprecated
 

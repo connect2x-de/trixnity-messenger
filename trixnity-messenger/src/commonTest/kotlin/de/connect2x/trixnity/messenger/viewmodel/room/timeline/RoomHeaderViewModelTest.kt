@@ -177,6 +177,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                 Presence.ONLINE,
                 isEncrypted = false,
                 isPublic = true,
+                hasLeft = false
             )
 
             roomName.value = "New Room Name"
@@ -189,6 +190,7 @@ class RoomHeaderViewModelTest : ShouldSpec() {
                 Presence.ONLINE,
                 isEncrypted = false,
                 isPublic = true,
+                hasLeft = false
             )
             cancelNeverEndingCoroutines()
         }

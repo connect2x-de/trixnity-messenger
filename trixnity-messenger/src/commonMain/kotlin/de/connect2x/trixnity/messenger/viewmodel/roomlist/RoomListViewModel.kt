@@ -331,7 +331,6 @@ class RoomListViewModelImpl(
                         val sortTime =
                             when {
                                 room.membership == Membership.INVITE -> Instant.DISTANT_FUTURE
-                                room.membership == Membership.LEAVE -> Instant.DISTANT_PAST
                                 lastRelevantEventTime == null -> roomWithMeta.matrixClient
                                     .room.getState<CreateEventContent>(room.roomId, "").first()
                                     ?.originTimestamp?.let { Instant.fromEpochMilliseconds(it) }

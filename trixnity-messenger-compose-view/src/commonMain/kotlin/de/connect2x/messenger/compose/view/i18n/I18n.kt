@@ -2586,6 +2586,16 @@ open class I18nView(
         DE - "Akzentfarbe"
     }
 
+    open fun forgetRoomWarningHeader() = translate {
+        EN - "Forget room?"
+        DE - "Raum vergessen?"
+    }
+
+    open fun formattedForgetRoomWarningBody(roomName: String?, isDirect: Boolean) = translate {
+        EN - "Do you really want to forget ${if (isDirect) "chat" else "group"} ${if (roomName != null) "'$roomName'" else ""}? If you continue, you can't access the room and it's content anymore."
+        DE - "Wollen Sie ${if (isDirect) "den Chat" else "die Gruppe"} ${if (roomName != null) "'$roomName'" else ""} wirklich vergessen? Wenn sie fortfahren, können Sie auf den Raum und dessen Inhalte nicht mehr zugreifen."
+    }
+
     open fun formattedInvitationBody(inviterName: String, roomName: String?) = translate {
         EN - "Invitation from $inviterName${if (roomName != null) " to '$roomName'" else ""}"
         DE - "Einladung von $inviterName${if (roomName != null) " zu '$roomName'" else ""}"

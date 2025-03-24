@@ -18,7 +18,7 @@ fun TextLabel(text: String, color: Color = MaterialTheme.colorScheme.primary) {
         Modifier
             .background(color.copy(alpha = 0.25f), shape = RoundedCornerShape(16.dp))
             .border(width = 1.dp, color = color, shape = RoundedCornerShape(16.dp))
-            .padding(5.dp)
+            .padding(start = 5.dp, end = 5.dp, top = 2.dp, bottom = 2.dp)
     ) {
         Text(
             text = text,

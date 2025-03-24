@@ -17,6 +17,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -93,6 +94,7 @@ interface RoomListElementViewModel {
     fun acceptInvitation()
     fun rejectInvitation()
     fun rejectInvitationAndBlockInviter()
+    fun forgetRoom()
     fun clearError()
 }
 
@@ -306,6 +308,31 @@ open class RoomListElementViewModelImpl(
         }
     }
 
+    override fun forgetRoom() {
+        coroutineScope.launch {
+            if (matrixClient.syncState.value == SyncState.ERROR) {
+                error.value = i18n.forgetRoomErrorOffline()
+                return@launch
+            }
+
+            matrixClient.api.room.forgetRoom(roomId).fold(
+                onSuccess = {},
+                onFailure = {
+                    if (it is CancellationException) {
+                        return@launch
+                    }
+
+                    log.error(it) { "cannot forget room $roomId" }
+                    error.value = i18n.forgetRoomError(
+                        if (isDirect.value == true) i18n.eventChangeChatGenitive()
+                        else i18n.eventChangeGroupGenitive()
+                    )
+                }
+            )
+            matrixClient.room.forgetRoom(roomId)
+        }
+    }
+
     override fun clearError() {
         error.value = null
     }
@@ -365,6 +392,7 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
+    override fun forgetRoom() {}
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
 }
@@ -392,6 +420,7 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
+    override fun forgetRoom() {}
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
 }
@@ -419,6 +448,7 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
+    override fun forgetRoom() {}
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
 }
@@ -446,6 +476,7 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
+    override fun forgetRoom() {}
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
 }

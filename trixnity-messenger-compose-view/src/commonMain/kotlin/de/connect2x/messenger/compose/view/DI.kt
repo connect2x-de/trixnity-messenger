@@ -165,6 +165,8 @@ import de.connect2x.messenger.compose.view.roomlist.header.CloseProfileView
 import de.connect2x.messenger.compose.view.roomlist.header.CloseProfileViewImpl
 import de.connect2x.messenger.compose.view.roomlist.header.ShowSearchView
 import de.connect2x.messenger.compose.view.roomlist.header.ShowSearchViewImpl
+import de.connect2x.messenger.compose.view.roomlist.room.ArchivedRoomView
+import de.connect2x.messenger.compose.view.roomlist.room.ArchivedRoomViewImpl
 import de.connect2x.messenger.compose.view.roomlist.room.InviteView
 import de.connect2x.messenger.compose.view.roomlist.room.InviteViewImpl
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainerView
@@ -346,6 +348,7 @@ fun roomListViewModule() = module {
     single<RoomListElementContainerView> { RoomListElementContainerViewImpl() }
     single<RoomListElementView> { RoomListElementViewImpl() }
     single<InviteView> { InviteViewImpl() }
+    single<ArchivedRoomView> { ArchivedRoomViewImpl() }
     single<RoomView> { RoomViewImpl() }
 }
 

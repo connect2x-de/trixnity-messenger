@@ -577,12 +577,12 @@ open class I18n(
         DE - "Sie können niemanden einladen, wenn Sie offline sind."
     }
 
-    open fun settingsRoomForgetRoomError(groupOrChat: String) = translate {
+    open fun forgetRoomError(groupOrChat: String) = translate {
         EN - "There has been an error forgetting $groupOrChat."
         DE - "Fehler beim Vergessen $groupOrChat."
     }
 
-    open fun settingsRoomForgetRoomErrorOffline() = translate {
+    open fun forgetRoomErrorOffline() = translate {
         EN - "You cannot leave a chat or group when you are offline."
         DE - "Sie können offline keine Chats oder Gruppen verlassen."
     }
