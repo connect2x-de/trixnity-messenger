@@ -13,6 +13,7 @@ data class ComponentStyles(
     val commonButton: ButtonStyle,
     val destructiveButton: ButtonStyle,
     // surfaces
+    val background: SurfaceStyle,
     val dialog: SurfaceStyle,
     val popup: SurfaceStyle,
     val sidebar: SurfaceStyle,

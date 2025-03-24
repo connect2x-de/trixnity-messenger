@@ -43,6 +43,7 @@ class ThemeComponentsImpl : ThemeComponents {
             )
         ),
         // surfaces
+        background = SurfaceStyle.default(),
         dialog = SurfaceStyle.default(
             shape = RoundedCornerShape(4.dp),
             color = MaterialTheme.colorScheme.background,
