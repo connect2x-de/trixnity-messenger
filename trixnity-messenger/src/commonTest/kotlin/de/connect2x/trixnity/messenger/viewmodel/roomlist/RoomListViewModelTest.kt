@@ -1195,7 +1195,8 @@ class RoomListViewModelTest : ShouldSpec() {
             onOpenAppInfo = mock(),
             onOpenAccountsOverview = mock(),
             onSendLogs = mock(),
-            onAccountSelected = onAccountSelected
+            onAccountSelected = onAccountSelected,
+            onCloseRoom = mock()
         )
     }
 
