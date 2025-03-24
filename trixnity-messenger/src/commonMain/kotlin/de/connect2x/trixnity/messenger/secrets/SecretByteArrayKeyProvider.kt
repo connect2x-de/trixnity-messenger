@@ -13,17 +13,20 @@ interface SecretByteArrayKeyProvider {
      */
     val level: Int
 
-    data class GetResult(
-        val getKey: GetKey,
-        val extra: JsonObject?,
-    )
-
     /**
      * This may suspend for a while when e.g. user interaction is needed.
      *
      * @return The key or null, when provider disabled.
      */
-    suspend fun get(extra: JsonObject?, getInputKey: GetKey?): GetResult?
+    suspend fun get(extra: JsonObject?, getInputKey: GetKey?): GetKey?
+
+    data class RotateResult(
+        val getOldKey: GetKey?,
+        val getNewKey: GetKey?,
+        val newExtra: JsonObject?,
+    )
+
+    suspend fun rotate(oldExtra: JsonObject?, getOldInputKey: GetKey?, getNewInputKey: GetKey?): RotateResult
 
     @Deprecated("for backwards compatibility") // TODO can be removed in future
     suspend fun getLegacy(): ByteArray?

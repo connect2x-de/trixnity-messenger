@@ -13,6 +13,7 @@ import kotlinx.cinterop.value
 import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.crypto.core.SecureRandom
 import org.koin.core.module.Module
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import platform.CoreFoundation.CFAutorelease
 import platform.CoreFoundation.CFDictionaryAddValue
@@ -41,17 +42,17 @@ private val log = KotlinLogging.logger {}
 
 @OptIn(ExperimentalForeignApi::class)
 actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
-    single<SecretByteArrayKeyProvider> {
+    single<SecretByteArrayKeyProvider>(named("de.connect2x.trixnity.messenger.secrets.platform")) {
         val config = get<MatrixMessengerConfiguration>()
         object : SecretByteArrayKeyProvider {
             override val id = "de.connect2x.trixnity.messenger.secrets.platform"
             override val level: Int = 0
 
-            override suspend fun get(extra: JsonObject?, getInputKey: GetKey?): SecretByteArrayKeyProvider.GetResult? {
-                return try {
-                    val appId = config.appId
-                    val existingKey = getSecret(appId, id)
-                    SecretByteArrayKeyProvider.GetResult({ size ->
+            override suspend fun get(extra: JsonObject?, getInputKey: GetKey?): GetKey {
+                return GetKey { size ->
+                    try {
+                        val appId = config.appId
+                        val existingKey = getSecret(appId, id)
                         when {
                             existingKey == null -> {
                                 val newKey = SecureRandom.nextBytes(size)
@@ -83,12 +84,18 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
 
                             else -> existingKey.copyOf(size)
                         }
-                    }, null)
-                } catch (exc: Exception) {
-                    log.error(exc) { "Cannot read or set secret ('$id')." }
-                    null
+                    } catch (ex: Exception) {
+                        throw SecretByteArrayException("cannot read or set secret ('$id')", ex)
+                    }
                 }
             }
+
+            override suspend fun rotate(
+                oldExtra: JsonObject?,
+                getOldInputKey: GetKey?,
+                getNewInputKey: GetKey?
+            ): SecretByteArrayKeyProvider.RotateResult =
+                get(oldExtra, null).let { SecretByteArrayKeyProvider.RotateResult(it, it, null) }
 
             @Deprecated("for backwards compatibility")
             override suspend fun getLegacy(): ByteArray? {

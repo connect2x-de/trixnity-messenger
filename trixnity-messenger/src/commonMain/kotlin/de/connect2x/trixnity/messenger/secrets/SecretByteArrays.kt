@@ -4,8 +4,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.update
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.crypto.core.AesHmacSha2EncryptedData
 import net.folivo.trixnity.crypto.core.decryptAesHmacSha2
@@ -20,7 +18,7 @@ interface SecretByteArrays {
 
     suspend fun rotateKeys(
         changedProviderId: String,
-        changedProviderGet: suspend (extra: JsonObject?, getInputKey: GetKey?) -> SecretByteArrayKeyProvider.GetResult?
+        changedProviderRotate: suspend (oldExtra: JsonObject?, getOldInputKey: GetKey?, getNewInputKey: GetKey?) -> SecretByteArrayKeyProvider.RotateResult
     )
 
     data class GetInputKeyAndExtraResult(
@@ -111,36 +109,46 @@ class SecretByteArraysImpl(
 
     override suspend fun rotateKeys(
         changedProviderId: String,
-        changedProviderGet: suspend (extra: JsonObject?, getInputKey: GetKey?) -> SecretByteArrayKeyProvider.GetResult?
+        changedProviderRotate: suspend (oldExtra: JsonObject?, getOldInputKey: GetKey?, getNewInputKey: GetKey?) -> SecretByteArrayKeyProvider.RotateResult
     ) {
         val oldKey = getKey(keySize)
-        return rotateKeys(oldKey, changedProviderId, changedProviderGet)
+        return rotateKeys(oldKey, changedProviderId, changedProviderRotate)
     }
 
     private suspend fun rotateKeys( // TODO this helper function with nullable params is for backwards compatibility and can be moved into the other without nullable
         oldKey: ByteArray?,
         changedProviderId: String?,
-        changedProviderGet: (suspend (extra: JsonObject?, getInputKey: GetKey?) -> SecretByteArrayKeyProvider.GetResult?)?
+        changedProviderRotate: (suspend (oldExtra: JsonObject?, getOldInputKey: GetKey?, getNewInputKey: GetKey?) -> SecretByteArrayKeyProvider.RotateResult)?
     ) {
+        log.debug { "rotateKeys (changedProviderId=$changedProviderId)" }
         val oldSecretByteArrayKeyInfos = settings.value.base.secretByteArrayKeyInfos
         val newSecretByteArrayKeyInfos = mutableMapOf<String, SecretByteArrayKeyInfo>()
         val newKey =
-            secretByteArrayKeyProviders.fold((null to null) as Pair<String?, GetKey?>) { (inputProviderId, getInputKey), secretByteArrayKeyProvider ->
+            secretByteArrayKeyProviders.fold((null to null) as Pair<String?, SecretByteArrayKeyProvider.RotateResult?>) { (inputProviderId, inputRotateResult), secretByteArrayKeyProvider ->
                 val outputProviderId = secretByteArrayKeyProvider.id
-                val getResult =
-                    if (changedProviderGet != null && outputProviderId == changedProviderId) {
-                        changedProviderGet(oldSecretByteArrayKeyInfos[outputProviderId]?.extra, getInputKey)
+                val outputRotateResult =
+                    if (changedProviderRotate != null && outputProviderId == changedProviderId) {
+                        changedProviderRotate(
+                            oldSecretByteArrayKeyInfos[outputProviderId]?.extra,
+                            inputRotateResult?.getOldKey,
+                            inputRotateResult?.getNewKey
+                        )
                     } else {
-                        secretByteArrayKeyProvider.get(oldSecretByteArrayKeyInfos[outputProviderId]?.extra, getInputKey)
+                        secretByteArrayKeyProvider.rotate(
+                            oldSecretByteArrayKeyInfos[outputProviderId]?.extra,
+                            inputRotateResult?.getOldKey,
+                            inputRotateResult?.getNewKey
+                        )
                     }
-                if (getResult == null) {
-                    log.info { "skip key provider $outputProviderId" }
-                    return@fold inputProviderId to getInputKey
+                if (outputRotateResult.getNewKey == null) {
+                    log.debug { "rotateKeys skip key provider $outputProviderId" }
+                    return@fold inputProviderId to inputRotateResult
                 }
-                newSecretByteArrayKeyInfos[outputProviderId] = SecretByteArrayKeyInfo(inputProviderId, getResult.extra)
-                outputProviderId to getResult.getKey
-            }.second
-                ?.let { it(keySize) }
+                newSecretByteArrayKeyInfos[outputProviderId] =
+                    SecretByteArrayKeyInfo(inputProviderId, outputRotateResult.newExtra)
+                log.debug { "rotateKeys next provider ($inputProviderId -> $outputProviderId)" }
+                outputProviderId to outputRotateResult
+            }.second?.let { it.getNewKey?.invoke(keySize) }
 
         val newSecretByteArrays = settings.value.base.secretByteArrays.mapValues { (id, secretByteArray) ->
             val byteArray = get(id, secretByteArray, oldKey)
@@ -166,7 +174,7 @@ class SecretByteArraysImpl(
                         secretByteArrayKeyProvider.get(
                             secretByteArrayKeyInfos[secretByteArrayKeyProvider.id]?.extra,
                             getInputKey
-                        )?.getKey
+                        )
                     }
             } else null
         return SecretByteArrays.GetInputKeyAndExtraResult(inputKey, extra)
@@ -174,7 +182,7 @@ class SecretByteArraysImpl(
 
     @Deprecated("for backwards compatibility")
     override suspend fun getLegacy(secretByteArray: SecretByteArray): ByteArray {
-        log.info { "getLegacy SecretByteArray" }
+        log.debug { "getLegacy SecretByteArray" }
         return when (secretByteArray) {
             is SecretByteArray.AesHmacSha2 -> {
                 val getSecretByteArrayKey =
@@ -202,7 +210,7 @@ class SecretByteArraysImpl(
             secretByteArrayKeyProvider.get(
                 secretByteArrayKeyInfos[secretByteArrayKeyProvider.id]?.extra,
                 getInputKey
-            )?.getKey
+            )
         }?.invoke(size)
     }
 
@@ -222,8 +230,7 @@ class SecretByteArraysImpl(
         return orderedProviderIds.map { id ->
             val provider = secretByteArrayKeyProviders.find { it.id == id }
             if (provider == null) {
-                log.error { "could not find provider for id: $id" }
-                return emptyList()
+                throw SecretByteArrayException("could not find provider for id: $id")
             }
             provider
         }
@@ -231,6 +238,7 @@ class SecretByteArraysImpl(
 
     @Deprecated("for backwards compatibility")
     private suspend fun getLegacyKey(): ByteArray? {
+        log.debug { "getLegacyKey" }
         val secretByteArrayKeyFromSettings = settings.value.base.secretByteArrayKey ?: return null
         val secretByteArrayKey = when (secretByteArrayKeyFromSettings) {
             is LegacySecretByteArrayKey.AesHmacSha2 -> {
