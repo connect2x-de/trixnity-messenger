@@ -84,8 +84,8 @@ class ThemeComponentsImpl : ThemeComponents {
             shape = RoundedCornerShape(8.dp),
         ),
         messageBubbleOther = SurfaceStyle.default(
-            color = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            color = MaterialTheme.colorScheme.secondary,
+            contentColor = MaterialTheme.colorScheme.onSecondary,
             shape = RoundedCornerShape(8.dp),
         ),
         messageBubbleError = SurfaceStyle.default(
