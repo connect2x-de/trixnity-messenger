@@ -60,7 +60,7 @@ class PasswordLoginViewModelTest : ShouldSpec() {
                     any(),
                     any(),
                 )
-            } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
+            } returns Result.success(matrixClientMock)
             val cut = viewModel()
             cut.canLogin.first { it }
             cut.tryLogin()
@@ -128,7 +128,7 @@ class PasswordLoginViewModelTest : ShouldSpec() {
                     any(),
                     any(),
                 )
-            } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
+            } returns Result.success(matrixClientMock)
             val cut = viewModel()
             cut.canLogin.first { it }
             cut.back()

@@ -60,7 +60,6 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                         "user1",
                         "local.local"
                     ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
-                        databasePassword = null,
                         config = MatrixMessengerConfiguration(),
                         displayColor = null,
                     ),
@@ -82,7 +81,6 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                         "user1",
                         "local.local"
                     ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
-                        databasePassword = null,
                         config = MatrixMessengerConfiguration(),
                         displayColor = null,
                     ),
@@ -101,7 +99,6 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                         "user1",
                         "local.local"
                     ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
-                        databasePassword = null,
                         config = MatrixMessengerConfiguration(),
                         displayColor = null,
                     ),
@@ -109,7 +106,6 @@ class MatrixClientInitializationViewModelTest : ShouldSpec() {
                         "user2",
                         "local.local"
                     ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
-                        databasePassword = null,
                         config = MatrixMessengerConfiguration(),
                         displayColor = null,
                     ),

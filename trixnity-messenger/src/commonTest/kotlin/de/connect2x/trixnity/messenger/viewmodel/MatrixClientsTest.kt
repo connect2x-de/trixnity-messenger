@@ -60,7 +60,7 @@ class MatrixClientsTest : ShouldSpec() {
     private var initFromStoreCalled = false
     private var initFromStoreCalledCount = 0
 
-    private lateinit var login: SuspendAnsweringScope<Result<MatrixClientFactory.LoginResult>>
+    private lateinit var login: SuspendAnsweringScope<Result<MatrixClient>>
     private lateinit var initFromStore: SuspendAnsweringScope<Result<MatrixClient?>>
 
     init {
@@ -100,18 +100,15 @@ class MatrixClientsTest : ShouldSpec() {
                     (it.args[2] as? suspend (MatrixClient.LoginInfo) -> Unit)
                         ?.invoke(loginInfo)
                     loginCalled = true
-                    val username = loginInfo.userId.localpart
-                    MatrixClientFactory.LoginResult(
-                        when (username) {
-                            "test1" -> matrixClientMock1
-                            "test2" -> matrixClientMock2
-                            else -> fail("username $username not supported in login")
-                        }, null
-                    )
+                    when (val username = loginInfo.userId.localpart) {
+                        "test1" -> matrixClientMock1
+                        "test2" -> matrixClientMock2
+                        else -> fail("username $username not supported in login")
+                    }
                 }
             }
 
-            initFromStore = everySuspend { matrixClientFactory.initFromStore(any(), any()) }
+            initFromStore = everySuspend { matrixClientFactory.initFromStore(any()) }
             initFromStore calls {
                 val username = checkNotNull((it.args[0] as? UserId)).localpart
                 initFromStoreCalled = true

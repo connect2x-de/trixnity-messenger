@@ -11,7 +11,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl
 import de.connect2x.trixnity.messenger.createTrixnityMessengerDefaultModuleFactories
-import de.connect2x.trixnity.messenger.secrets.SecretByteArray
 import de.connect2x.trixnity.messenger.settings.SettingsStorage
 import de.connect2x.trixnity.messenger.update
 import io.ktor.http.*
@@ -107,10 +106,9 @@ fun createTestDefaultTrixnityMessengerModules(
         object : CreateRepositoriesModule {
             val module by lazy { createInMemoryRepositoriesModule() }
 
-            override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult =
-                CreateRepositoriesModule.CreateResult(module, null)
-
-            override suspend fun load(userId: UserId, databaseKey: SecretByteArray?): Module = module
+            override suspend fun generateDatabaseKey(): ByteArray? = null
+            override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module = module
+            override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module = module
         }
     }
     single<CreateMediaStore> {

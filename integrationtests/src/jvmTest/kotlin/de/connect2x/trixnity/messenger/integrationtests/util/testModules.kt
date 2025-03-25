@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.create
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerImpl
 import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
-import de.connect2x.trixnity.messenger.secrets.SecretByteArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import net.folivo.trixnity.client.store.repository.createInMemoryRepositoriesModule
@@ -25,14 +24,15 @@ fun createTrixnityMessengerTestModule(debugName: String = "client") = module {
     single<CreateRepositoriesModule> {
         object : CreateRepositoriesModule {
             val modules: MutableMap<UserId, Module> = HashMap()
+            override suspend fun generateDatabaseKey(): ByteArray? = null
 
-            override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult {
+            override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module {
                 val module = createInMemoryRepositoriesModule()
                 modules += (userId to module)
-                return CreateRepositoriesModule.CreateResult(module, null)
+                return module
             }
 
-            override suspend fun load(userId: UserId, databaseKey: SecretByteArray?): Module =
+            override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module =
                 modules[userId] ?: throw IllegalStateException("Repositories module for $userId not instantiated")
         }
     }
