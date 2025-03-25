@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import io.github.oshai.kotlinlogging.KotlinLogging
 import js.date.Date
+import js.typedarrays.Uint8Array
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import web.blob.Blob
@@ -26,7 +27,6 @@ class PdfReaderWeb(blob: Blob) {
         }
     }
 
-    private val pageCacheSize = max(2f, min(16f, 8f / 1f)).toInt()
 
     val documentWidth = mutableStateOf<Int?>(null)
     val cache = mutableMapOf<String, Triple<Long, MutableStateFlow<ImageBitmap?>, Int>>()
@@ -47,8 +47,7 @@ class PdfReaderWeb(blob: Blob) {
                 val canvas = getOrCreatePageCanvas(pageIndex)
                 val document = pdfDocument.value
                 document?.getPage(pageIndex)?.then { page ->
-                    val pageScale = scale / 72f
-                    val scaledViewport = page.getViewport(params = ViewportParams(scale = pageScale))
+                    val scaledViewport = page.getViewport(params = ViewportParams(scale = scale))
                     log.debug {
                         "render pdf page $pageIndex " +
                                 "to viewport (${scaledViewport.width}x${scaledViewport.height}) " +
@@ -62,8 +61,8 @@ class PdfReaderWeb(blob: Blob) {
                         page.render(RenderParams(context, scaledViewport)).promise.then {
                             canvas.toBlob(callback = { blob ->
                                 blob?.let {
-                                    blob.bytesAsync().then {
-                                        urlFlow.value = it.toByteArray().toImageBitmap()
+                                    blob.arrayBufferAsync().then { buffer ->
+                                        urlFlow.value = Uint8Array(buffer).toByteArray().toImageBitmap()
                                         dom.getElementById("pdf-canvas-page-$pageIndex")?.remove()
                                     }
                                 }
@@ -82,22 +81,30 @@ class PdfReaderWeb(blob: Blob) {
             }) as HTMLCanvasElement
     }
 
-    fun getOrRenderPage(pageId: Int, scale: Float): StateFlow<ImageBitmap?> {
+    fun getOrRenderPage(pageId: Int, dpi: Float, scale: Float): StateFlow<ImageBitmap?> {
         val oneBasedId = pageId + 1
+        val pageScale = dpi / 72f
         val cacheKey = "$oneBasedId"
         val element = cache[cacheKey]
-        return if (element?.third == scale.toInt()) {
+        val pageCacheSize = max(2f, min(16f, 8f / scale)).toInt()
+
+        return if (element?.third == pageScale.toInt()) {
             element.second
-        } else {
-            val urlFlow = element?.second ?: MutableStateFlow<ImageBitmap?>(null)
-            cache[cacheKey] = Triple(Date.now().toLong(), urlFlow, scale.toInt())
-            urlFlow.also {
-                renderPage(oneBasedId, urlFlow, scale)
-                cache.toList().sortedBy { it.second.first }
-                    .subList(0, 0.coerceAtLeast(cache.size - pageCacheSize))
-                    .forEach { cache.remove(it.first) }
-            }
+        } else element?.second?.also {
+            renderPage(oneBasedId, it, pageScale)
+            removeOldElements(pageCacheSize)
         }
+            ?: MutableStateFlow<ImageBitmap?>(null).also {
+                cache[cacheKey] = Triple(Date.now().toLong(), it, pageScale.toInt())
+                renderPage(oneBasedId, it, pageScale)
+                removeOldElements(pageCacheSize)
+            }
+    }
+
+    private fun removeOldElements(pageCacheSize: Int) {
+        cache.toList().sortedBy { it.second.first }
+            .subList(0, 0.coerceAtLeast(cache.size - pageCacheSize))
+            .forEach { cache.remove(it.first) }
     }
 
     fun clearCache() {

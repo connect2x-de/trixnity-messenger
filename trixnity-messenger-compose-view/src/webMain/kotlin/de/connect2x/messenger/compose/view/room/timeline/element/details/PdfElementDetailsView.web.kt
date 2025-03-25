@@ -8,12 +8,11 @@ import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -136,24 +135,34 @@ actual fun PDFReader(
                     items(it) { pageId ->
                         val dpi = dpi.value
                         dpi?.let {
-                            val currentBitmap = reader.getOrRenderPage(pageId, dpi).collectAsState().value
-                            currentBitmap?.let {
+                            LaunchedEffect(dpi) {
+                                reader.getOrRenderPage(pageId, dpi, scale)
+                            }
+                            val currentBitmap =
+                                reader.getOrRenderPage(pageId, dpi, scale).collectAsState(initial = null).value
+                            if (currentBitmap != null) {
                                 Image(
-                                    it,
+                                    currentBitmap,
                                     contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),
                                     modifier = Modifier
                                         .background(color = MaterialTheme.colorScheme.background) // Avoid performance drops on transparent images.
                                         .width(viewSize.value.width.dp / density * scale - MaterialTheme.messengerDpConstants.middle * 2),
                                     contentScale = ContentScale.FillWidth,
                                 )
-                            } ?: Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) { CircularProgressIndicator(Modifier.padding(100.dp)) }
+                            } else Box(
+                                Modifier.height(reader.documentWidth.value?.dp ?: 1000f.dp).width(
+                                    reader.documentWidth.value?.dp ?: 1000f.dp
+                                ), contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
                         }
                     }
                 }
             }
+        }
+        if (dpi.value == null) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
         HorizontalScrollbar(Modifier.align(Alignment.BottomCenter).fillMaxWidth(), horizontalScroll)
         VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), lazyListState, false)
