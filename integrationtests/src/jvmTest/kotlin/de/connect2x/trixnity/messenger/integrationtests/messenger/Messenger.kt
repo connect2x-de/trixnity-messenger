@@ -29,6 +29,7 @@ import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -226,7 +227,7 @@ suspend fun MatrixMessengerWithRoot.rejectTheInvitationToRoomAndBlock(roomId: Ro
         findRoomWithId(roomId).rejectInvitationAndBlockInviter()
         stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
             .roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
-            .elements.first { it.none { it.roomId == roomId } }
+            .elements.first { it.count { it.roomId == roomId } == 1 }
         Unit
     }
 }
@@ -237,14 +238,13 @@ suspend fun MatrixMessengerWithRoot.acceptInvitationToRoom(roomId: RoomId) = wit
         val roomListElementViewModel = findRoomWithId(roomId)
         roomListElementViewModel.isInvite.first { it == true }
         roomListElementViewModel.acceptInvitation()
-        val roomName = roomListElementViewModel.roomName.first {
-            it?.startsWith("invitation")?.not() ?: false
-        }
+        val roomName = roomListElementViewModel.roomName.first { it?.startsWith("invitation")?.not() == true }
         log.info { "accepted invitation to room $roomId -> check whether room is open" }
         val timelineViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
             .roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
             .timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
-        timelineViewModel.roomHeaderViewModel.roomHeaderInfo.map { it.roomName }.first { it == roomName }
+        timelineViewModel.roomHeaderViewModel.roomHeaderInfo.filter { it.isLeave != true }
+            .map { it.roomName }.first { it == roomName }
     }
 }
 
@@ -264,7 +264,7 @@ suspend fun MatrixMessengerWithRoot.leaveRoom(roomId: RoomId) = with(root) {
         log.debug { "left room $roomId" }
         mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.None::class)
         roomListViewModel.elements.first { roomListElements ->
-            roomListElements.none { it.roomId == roomId }
+            roomListElements.count { it.roomId == roomId } == 1
         }
         log.debug { "left room is no longer in room list" }
     }
