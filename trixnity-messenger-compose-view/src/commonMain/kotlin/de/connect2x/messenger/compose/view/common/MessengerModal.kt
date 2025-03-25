@@ -42,6 +42,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 
 @Composable
@@ -57,13 +58,9 @@ fun MessengerModal(
             .blockPointerInput()
             .background(Color.Black.copy(alpha = 0.4f))
     ) {
-        Surface(
-            tonalElevation = 1.dp,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .clip(RoundedCornerShape(8.dp))
-                .width(width)
-                .border(Dp.Hairline, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+        ThemedSurface(
+            style = MaterialTheme.components.dialog,
+            modifier = Modifier.align(Alignment.Center).width(width)
         ) {
             Column {
                 MessengerModalHeader(onDismiss, title)

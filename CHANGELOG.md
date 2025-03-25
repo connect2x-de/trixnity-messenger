@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Layout of message metadata info
-- Updated UI to use new styling system for buttons
+- Updated UI to use new styling system for buttons, surfaces
 
 ### Deprecated
 

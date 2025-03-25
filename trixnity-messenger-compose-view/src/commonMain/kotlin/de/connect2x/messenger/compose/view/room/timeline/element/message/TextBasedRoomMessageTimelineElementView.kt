@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -117,14 +118,12 @@ private fun MessageTextContent(
             MessageRichText(
                 uriHandler,
                 richTextState,
-                holder.isByMe,
                 showActionMenu,
             )
         } else {
             MessageRichText(
                 LocalUriHandler.current,
                 richTextState,
-                holder.isByMe,
                 showActionMenu,
             )
         }
@@ -135,7 +134,6 @@ private fun MessageTextContent(
 private fun MessageRichText(
     uriHandler: UriHandler,
     state: RichTextState,
-    isByMe: Boolean,
     showActionMenu: () -> Unit
 ) {
     CompositionLocalProvider(
@@ -148,10 +146,7 @@ private fun MessageRichText(
                     onLongPress = { showActionMenu() }
                 )
             },
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = if (isByMe) MaterialTheme.colorScheme.onPrimary
-                else MaterialTheme.colorScheme.onSecondary
-            )
+            style = MaterialTheme.typography.bodyMedium.copy(color = LocalContentColor.current)
         )
     }
 }

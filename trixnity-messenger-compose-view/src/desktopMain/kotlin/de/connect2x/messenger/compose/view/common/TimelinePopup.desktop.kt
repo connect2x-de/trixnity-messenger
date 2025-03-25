@@ -21,6 +21,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 
 @Composable
 actual fun TimelinePopup(
@@ -47,8 +49,9 @@ actual fun TimelinePopup(
                 exit = fadeOut() + shrinkVertically(),
             ) {
                 val focusManager = LocalFocusManager.current
-                Surface(
-                    Modifier.size(320.dp, 240.dp).onKeyEvent { event ->
+                ThemedSurface(
+                    style = MaterialTheme.components.popup,
+                    modifier = Modifier.size(320.dp, 240.dp).onKeyEvent { event ->
                         when (event.key) {
                             Key.DirectionUp -> focusManager.moveFocus(FocusDirection.Up)
                             Key.DirectionLeft -> focusManager.moveFocus(FocusDirection.Left)
@@ -57,9 +60,6 @@ actual fun TimelinePopup(
                             else -> false
                         }
                     },
-                    shadowElevation = 4.dp,
-                    tonalElevation = 4.dp,
-                    shape = MaterialTheme.shapes.medium
                 ) {
                     content()
                 }
