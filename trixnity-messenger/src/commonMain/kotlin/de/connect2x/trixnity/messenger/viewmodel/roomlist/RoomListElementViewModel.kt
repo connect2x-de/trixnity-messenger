@@ -18,6 +18,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -130,7 +131,7 @@ open class RoomListElementViewModelImpl(
             .stateIn(coroutineScope, WhileSubscribed(), null)
     override val isLeave: StateFlow<Boolean?> =
         roomFlow.map { it.membership == Membership.LEAVE }
-            .stateIn(coroutineScope, WhileSubscribed(), null)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, null)
     private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
 
     override val inviterUserInfo: StateFlow<UserInfoElement?> =

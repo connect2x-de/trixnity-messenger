@@ -176,9 +176,9 @@ suspend fun MatrixMessengerWithRoot.createChatWithUser(username: String) = with(
         val sortedRoomListElementViewModels = roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
             .viewModel.elements
         sortedRoomListElementViewModels.flatMapLatest { roomListElements ->
-            combine(roomListElements.map { it.roomName }) { roomNames ->
-                log.debug { "roomNames: ${roomNames.joinToString { it ?: "<unknown>" }}" }
-                roomNames.any { it == username }
+            combine(roomListElements.filter { it.isLeave.value == false }.map { it.roomName }) { names ->
+                log.debug { "roomNames: ${names.joinToString { it ?: "<unknown>" }}" }
+                names.any { it == username }
             }
         }.first { it }
         log.debug { "found room -> return" }
