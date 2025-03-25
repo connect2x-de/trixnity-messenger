@@ -57,7 +57,7 @@ class RoomSettingsSecurityViewModelImpl(
         .mapLatest { it?.isDirect == true }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val isEncrypted: StateFlow<Boolean> = matrixClient.room.getById(selectedRoomId)
-        .mapLatest { room -> requireNotNull(room).encrypted }
+        .mapLatest { room -> room?.encrypted == true }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val canEnableEncryption: StateFlow<Boolean> =
         combine(

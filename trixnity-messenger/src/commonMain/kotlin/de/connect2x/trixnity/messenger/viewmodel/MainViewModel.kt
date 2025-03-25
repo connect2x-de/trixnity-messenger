@@ -139,6 +139,7 @@ open class MainViewModelImpl(
             onRemoveAccount = ::onRemoveAccountInternal,
             onAccountSelected = ::onAccountSelected,
             onStartAccountSetup = ::startAccountSetup,
+            onCloseRoom = ::closeDetailsAndShowList
         )
     override val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>> =
         roomListRouter.stack

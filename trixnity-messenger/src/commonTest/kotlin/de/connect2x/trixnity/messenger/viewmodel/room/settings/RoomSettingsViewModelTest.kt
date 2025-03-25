@@ -15,7 +15,6 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
-import dev.mokkery.verifySuspend
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.shouldBe
@@ -165,32 +164,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
             every { userServiceMock.canSetPowerLevelToMax(eq(roomId), any()) } returns MutableStateFlow(100)
         }
 
-        should("go back to the room list view when leaving the room successfully") {
-            every {
-                userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
-            } returns MutableStateFlow(null)
-            everySuspend {
-                roomsApiClientMock.leaveRoom(
-                    eq(roomId),
-                    any(),
-                    eqNull()
-                )
-            } returns
-                    Result.success(Unit)
-            val onBackMock = mock<Function0<Unit>>()
-            val cut = roomSettingsViewModel(coroutineContext, onBackMock)
-
-            cut.leaveRoom()
-            testCoroutineScheduler.advanceUntilIdle()
-
-            verifySuspend {
-                roomsApiClientMock.leaveRoom(eq(roomId), any(), eqNull())
-                onBackMock()
-            }
-
-            cancelNeverEndingCoroutines()
-        }
-
         should("show an error message when trying to leave a room and we are not connected") {
             every {
                 userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
@@ -295,7 +268,7 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                 coroutineContext = coroutineContext,
             ),
             selectedRoomId = roomId,
-            onLeaveRoom = onBackMock,
+            onCloseRoom = onBackMock,
             onCloseRoomSettings = mock(),
             onOpenAvatarCutter = { _, _, _ -> },
             onOpenAddMembers = mock(),

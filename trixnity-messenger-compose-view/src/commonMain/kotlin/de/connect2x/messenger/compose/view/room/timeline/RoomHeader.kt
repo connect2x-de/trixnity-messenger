@@ -55,6 +55,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
+import de.connect2x.messenger.compose.view.util.TextLabel
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
@@ -86,6 +87,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
         val isDirectChat = roomHeaderViewModel.isDirectChat.collectAsState().value
         val headerHeightFlow = MaxHeaderHeight.current
         val headerHeight = headerHeightFlow.collectAsState().value
+        val i18n = DI.get<I18nView>()
         val density = LocalDensity.current
 
         ThemedSurface(
@@ -135,7 +137,13 @@ class RoomHeaderViewImpl : RoomHeaderView {
                             }
 
                             Column {
-                                RoomName(roomHeaderElement)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    RoomName(roomHeaderElement)
+                                    Spacer(Modifier.size(7.dp))
+                                    if (roomHeaderElement.isLeave) {
+                                        TextLabel(i18n.commonArchived())
+                                    }
+                                }
                                 if (usersTyping != null) {
                                     UsersTyping(usersTyping)
                                 } else {
@@ -177,7 +185,7 @@ fun RowScope.RoomBackButton(roomHeaderViewModel: RoomHeaderViewModel) {
 }
 
 @Composable
-fun ColumnScope.RoomName(
+fun RoomName(
     roomHeaderElement: RoomHeaderInfo,
 ) {
     Tooltip({

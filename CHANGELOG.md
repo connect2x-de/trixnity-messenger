@@ -9,12 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Show archived rooms after leaving
+- Replace `leave room` with `forget room` if room is archived
+- Add settings to forget rooms in room list and settings view
 - AddMembersViewModel now has indicator when users are currently added
 - New system for customizing styles of each component
 
 ### Changed
 
 - Layout of message metadata info
+- Show archived rooms in room list
 - Updated UI to use new styling system for buttons, surfaces, inputarea, tooltips
 
 ### Deprecated
@@ -26,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix timeline rendering bug caused by "fix-file-onsave-handling"
 - Display rooms correctly the first time on join
 - Set directory visibility of public rooms to public
+- Don't max out the dialog height
 - Styling inconsistencies
 
 ### Security

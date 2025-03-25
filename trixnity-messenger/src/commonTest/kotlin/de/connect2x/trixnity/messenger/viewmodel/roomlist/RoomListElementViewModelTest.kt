@@ -695,6 +695,7 @@ class RoomListElementViewModelTest : ShouldSpec() {
             ),
             roomId,
             onRoomSelected = onRoomSelectedMock,
+            onRoomClose = {},
         )
         scope.launch { cut.isPublic.collect() }
         scope.launch { cut.isEncrypted.collect() }
