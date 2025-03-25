@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.room.timeline
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -10,6 +11,8 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 
@@ -39,7 +42,11 @@ fun RoomContent(
 ) {
     Column(Modifier.fillMaxSize()) {
         RoomHeader(timelineViewModel.roomHeaderViewModel, showSettingsButton, showBackButton)
-        AttachmentTimelineSwitch(timelineViewModel)
+        ThemedSurface(
+            style = MaterialTheme.components.timeline,
+        ) {
+            AttachmentTimelineSwitch(timelineViewModel)
+        }
     }
 }
 

@@ -15,11 +15,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.RadioButton
@@ -54,6 +52,8 @@ import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.verification.SelfVerificationMethodsListEntries.SelectSelfVerificationMethod
@@ -199,12 +199,13 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                         currentStepId.value =
                             SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation.stepId
                     }
-                    Button(
-                        modifier = Modifier.buttonPointerModifier(),
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
                         onClick = {
                             selfVerificationViewModel.waitForAvailableVerificationMethods()
                             nextStep?.let { currentStepId.value = it }
-                        }) {
+                        },
+                    ) {
                         Text(i18n.commonNext())
                     }
                 }
@@ -213,11 +214,10 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                 val isSetup = selfVerificationViewModel.isSetup.collectAsState().value
                 Custom {
                     if (isSetup) {
-                        OutlinedButton(
-                            modifier = Modifier.buttonPointerModifier(),
-                            onClick = {
-                                selfVerificationViewModel.close()
-                            }) {
+                        ThemedButton(
+                            style = MaterialTheme.components.commonButton,
+                            onClick = { selfVerificationViewModel.close() },
+                        ) {
                             Text(i18n.commonBack())
                         }
                     }
@@ -357,13 +357,13 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             backButton = {
                 Custom {
-                    OutlinedButton(
-                        modifier = Modifier.buttonPointerModifier(),
+                    ThemedButton(
+                        style = MaterialTheme.components.commonButton,
                         onClick = {
                             selfVerificationViewModel.backToHelp()
                             previousStep?.let { currentStepId.value = it }
-
-                        }) {
+                        },
+                    ) {
                         Text(i18n.commonBack())
                     }
                 }
@@ -372,8 +372,8 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                 val methodsLoaded = methodsLoaded.collectAsState().value
                 Custom {
                     if (methodsLoaded == true) {
-                        Button(
-                            modifier = Modifier.buttonPointerModifier(),
+                        ThemedButton(
+                            style = MaterialTheme.components.primaryButton,
                             enabled = selectedMethod.value != null,
                             onClick = {
                                 when (selectedMethod.value) {
@@ -407,7 +407,8 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                                     }
                                 }
 
-                            }) {
+                            },
+                        ) {
                             Text(i18n.commonNext())
                         }
                     }
@@ -462,23 +463,25 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             nextButton = {
                 Custom {
-                    Button(
-                        modifier = Modifier.buttonPointerModifier(),
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
                         onClick = {
                             selfVerificationViewModel.verifyWithRecoveryKey(recoveryKey.value)
-                        }) {
+                        },
+                    ) {
                         Text(i18n.commonNext())
                     }
                 }
             },
             backButton = {
                 Custom {
-                    OutlinedButton(
-                        modifier = Modifier.buttonPointerModifier(),
+                    ThemedButton(
+                        style = MaterialTheme.components.commonButton,
                         onClick = {
                             selfVerificationViewModel.backToChoose()
                             currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardMethods.stepId
-                        }) {
+                        },
+                    ) {
                         Text(i18n.commonBack())
                     }
                 }
@@ -526,23 +529,25 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             nextButton = {
                 Custom {
-                    Button(
-                        modifier = Modifier.buttonPointerModifier(),
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
                         onClick = {
                             selfVerificationViewModel.verifyWithPassphrase(passphrase.value.text)
-                        }) {
+                        },
+                    ) {
                         Text(i18n.commonNext())
                     }
                 }
             },
             backButton = {
                 Custom {
-                    OutlinedButton(
-                        modifier = Modifier.buttonPointerModifier(),
+                    ThemedButton(
+                        style = MaterialTheme.components.commonButton,
                         onClick = {
                             selfVerificationViewModel.backToChoose()
                             currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardMethods.stepId
-                        }) {
+                        },
+                    ) {
                         Text(i18n.commonBack())
                     }
                 }
@@ -578,20 +583,21 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             backButton = {
                 Custom {
-                    OutlinedButton(onClick = {
-                        currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardMethods.stepId
-                    }, modifier = Modifier.buttonPointerModifier()) {
+                    ThemedButton(
+                        style = MaterialTheme.components.commonButton,
+                        onClick = {
+                            currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardMethods.stepId
+                        },
+                    ) {
                         Text(i18n.commonBack())
                     }
                 }
             },
             nextButton = {
                 Custom {
-                    Button(
-                        onClick = {
-                            selfVerificationViewModel.resetRecovery()
-                        },
-                        modifier = Modifier.buttonPointerModifier(),
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
+                        onClick = { selfVerificationViewModel.resetRecovery() },
                         enabled = checked.value
                     ) {
                         Text(i18n.commonNext())
@@ -622,12 +628,12 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             nextButton = {
                 Custom {
-                    Button(
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
                         onClick = {
                             selfVerificationViewModel.backToChoose()
                             selfVerificationViewModel.close()
                         },
-                        modifier = Modifier.buttonPointerModifier()
                     ) {
                         Text(i18n.commonNext())
                     }
@@ -636,9 +642,9 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             backButton = {
                 Custom {
-                    OutlinedButton(
+                    ThemedButton(
+                        style = MaterialTheme.components.commonButton,
                         onClick = { selfVerificationViewModel.close() },
-                        modifier = Modifier.buttonPointerModifier()
                     ) {
                         Text(i18n.commonBack())
                     }

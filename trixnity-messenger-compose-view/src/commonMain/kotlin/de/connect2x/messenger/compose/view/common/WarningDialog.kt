@@ -9,10 +9,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,9 +26,10 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 
 @Composable
 fun WarningDialog(
@@ -47,10 +46,10 @@ fun WarningDialog(
     AlertDialog(
         onDismissRequest = { dismissAction() },
         confirmButton = {
-            Button(
+            ThemedButton(
+                style = MaterialTheme.components.primaryButton,
                 onClick = { confirmAction() },
-                Modifier
-                    .buttonPointerModifier()
+                modifier = Modifier
                     .onKeyEvent { keyEvent ->
                         if (keyEvent.key == Key.Enter) {
                             confirmAction()
@@ -66,9 +65,9 @@ fun WarningDialog(
         modifier = Modifier
             .defaultMinSize(minWidth = 400.dp),
         dismissButton = {
-            OutlinedButton(
+            ThemedButton(
+                style = MaterialTheme.components.commonButton,
                 onClick = { dismissAction() },
-                Modifier.buttonPointerModifier()
             ) {
                 Text(dismissButtonText, textAlign = TextAlign.Center)
             }

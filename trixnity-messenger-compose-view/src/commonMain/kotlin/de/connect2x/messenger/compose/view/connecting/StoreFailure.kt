@@ -15,8 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,10 +28,11 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.RunningText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationFailureViewModel
 
@@ -83,13 +82,9 @@ class MatrixClientInitializationFailureViewImpl : MatrixClientInitializationFail
                     Text(text = i18n.closeApp(appName), fontWeight = FontWeight.Bold)
                     Text(text = i18n.storeFailureLocalDbRestart(appName))
                     Spacer(Modifier.size(20.dp))
-                    Button(
-                        { matrixClientInitializationFailureViewModel.closeApplication() },
-                        Modifier.buttonPointerModifier(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error,
-                            contentColor = MaterialTheme.colorScheme.onError
-                        )
+                    ThemedButton(
+                        style = MaterialTheme.components.destructiveButton,
+                        onClick = { matrixClientInitializationFailureViewModel.closeApplication() },
                     ) {
                         Text(i18n.closeApp(appName))
                     }
@@ -109,13 +104,9 @@ class MatrixClientInitializationFailureViewImpl : MatrixClientInitializationFail
                         modifier = Modifier.padding(top = 10.dp),
                     )
                     Spacer(Modifier.size(20.dp))
-                    Button(
-                        { matrixClientInitializationFailureViewModel.delete() },
-                        Modifier.buttonPointerModifier(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error,
-                            contentColor = MaterialTheme.colorScheme.onError
-                        )
+                    ThemedButton(
+                        style = MaterialTheme.components.destructiveButton,
+                        onClick = { matrixClientInitializationFailureViewModel.delete() },
                     ) {
                         Text(i18n.storeFailureDeleteDb())
                     }
