@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import net.folivo.trixnity.core.model.RoomId
@@ -103,14 +106,12 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                         }
                     )
                 }
-                .background(
-                    if (roomId == selectedRoomId) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else Color.Unspecified
-                )
+                .background(if (roomId == selectedRoomId) { MaterialTheme.components.roomListSelection.color } else Color.Unspecified)
                 .buttonPointerModifier(enabled = isInvite == null || isInvite == false)
         ) {
-            RoomListElement(roomListViewModel, roomListElementViewModel)
+            CompositionLocalProvider(LocalContentColor provides if (roomId == selectedRoomId) MaterialTheme.components.roomListSelection.contentColor else LocalContentColor.current) {
+                RoomListElement(roomListViewModel, roomListElementViewModel)
+            }
         }
         HorizontalDivider(Modifier.fillMaxWidth().width(1.dp).padding(horizontal = 10.dp))
     }

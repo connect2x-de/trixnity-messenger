@@ -22,6 +22,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import de.connect2x.messenger.compose.view.theme.components.ThemedPlainTooltip
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import org.koin.core.Koin
@@ -74,20 +75,14 @@ actual fun Tooltip(
     modifier: Modifier,
     delayMillis: Int,
     onClick: (() -> Unit)?,
+    enabled: Boolean,
     content: @Composable () -> Unit,
 ) {
     TooltipBox(
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-        tooltip = {
-            PlainTooltip(
-                modifier = modifier.clickable(onClick = onClick ?: {}),
-                caretSize = TooltipDefaults.caretSize,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                content = { tooltip() }
-            )
-        },
+        tooltip = { ThemedPlainTooltip(content = { tooltip() }) },
         state = rememberTooltipState(),
+        enableUserInput = enabled,
     ) {
         content()
     }

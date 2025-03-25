@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Layout of message metadata info
 - Show archived rooms in room list
-- Updated UI to use new styling system for buttons
+- Updated UI to use new styling system for buttons, surfaces, inputarea, tooltips
 
 ### Deprecated
 

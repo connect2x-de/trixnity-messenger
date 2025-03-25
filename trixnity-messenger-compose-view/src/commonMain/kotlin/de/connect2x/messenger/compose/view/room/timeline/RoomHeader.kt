@@ -26,7 +26,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -57,6 +56,8 @@ import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.messenger.compose.view.util.TextLabel
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
 
@@ -89,7 +90,9 @@ class RoomHeaderViewImpl : RoomHeaderView {
         val i18n = DI.get<I18nView>()
         val density = LocalDensity.current
 
-        Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
+        ThemedSurface(
+            style = MaterialTheme.components.header,
+        ) {
             Column {
                 Row(
                     horizontalArrangement = Arrangement.Center,
@@ -217,7 +220,7 @@ fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
     }) {
         Text(
             topic,
-            style = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.onBackground),
+            style = MaterialTheme.typography.labelMedium,
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
         )
