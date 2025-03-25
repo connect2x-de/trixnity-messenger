@@ -8,7 +8,6 @@ import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.crypto.core.AesHmacSha2EncryptedData
 import net.folivo.trixnity.crypto.core.decryptAesHmacSha2
 import net.folivo.trixnity.crypto.core.encryptAesHmacSha2
-import org.koin.core.Koin
 
 private val log = KotlinLogging.logger {}
 
@@ -34,11 +33,11 @@ interface SecretByteArrays {
 
 class SecretByteArraysImpl(
     private val settings: MatrixMessengerSettingsHolder,
-    private val di: Koin,
+    secretByteArrayKeyProviders: Lazy<List<SecretByteArrayKeyProvider>>,
 ) : SecretByteArrays {
     private val keySize = 32
     private val secretByteArrayKeyProviders: List<SecretByteArrayKeyProvider> by lazy {
-        di.getAll<SecretByteArrayKeyProvider>().sortedWith(
+        secretByteArrayKeyProviders.value.sortedWith(
             compareBy<SecretByteArrayKeyProvider> { it.level }.thenBy { it.id }
         )
     }
@@ -83,7 +82,6 @@ class SecretByteArraysImpl(
         return if (secretByteArray == null) return null
         else {
             val secretByteArrayKey = getKey(keySize)
-                ?: throw SecretByteArrayException("secret $id requires a key, but none was found")
             get(id, secretByteArray, secretByteArrayKey)
         }
     }

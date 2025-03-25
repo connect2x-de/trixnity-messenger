@@ -4,5 +4,5 @@ import org.koin.dsl.module
 
 fun secretsModule() = module {
     includes(platformSecretByteArrayKeyProviderModule())
-    single<SecretByteArrays> { SecretByteArraysImpl(get(), getKoin()) }
+    single<SecretByteArrays> { SecretByteArraysImpl(get(), lazy { getAll() }) }
 }
