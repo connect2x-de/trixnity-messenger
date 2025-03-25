@@ -37,12 +37,7 @@ class ThemeComponentsImpl : ThemeComponents {
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             ),
         ),
-        commonButton = ButtonStyle.filled(
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.secondary,
-            ),
-        ),
+        commonButton = ButtonStyle.outlined(),
         destructiveButton = ButtonStyle.filled(
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.error,
@@ -78,6 +73,7 @@ class ThemeComponentsImpl : ThemeComponents {
         accountSelector = ButtonStyle.filled(
             contentPadding = PaddingValues(0.dp),
             colors = ButtonDefaults.buttonColors(
+                contentColor = MaterialTheme.colorScheme.onSurface,
                 containerColor = Color.Transparent,
                 disabledContainerColor = Color.Transparent,
             ),
@@ -123,8 +119,8 @@ class ThemeComponentsImpl : ThemeComponents {
             shape = RoundedCornerShape(8.dp),
         ),
         messageBubbleOther = SurfaceStyle.default(
-            color = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            color = MaterialTheme.colorScheme.secondary,
+            contentColor = MaterialTheme.colorScheme.onSecondary,
             shape = RoundedCornerShape(8.dp),
         ),
         messageBubbleError = SurfaceStyle.default(

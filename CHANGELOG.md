@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Display rooms correctly the first time on join
 - Set directory visibility of public rooms to public
 - Don't max out the dialog height
+- Styling inconsistencies
 
 ### Security
 
