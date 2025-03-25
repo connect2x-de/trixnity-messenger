@@ -3,12 +3,17 @@ package de.connect2x.messenger.compose.view.theme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
+import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
+import de.connect2x.messenger.compose.view.theme.components.TooltipStyle
 
 interface ThemeComponents {
     @Composable
@@ -16,6 +21,7 @@ interface ThemeComponents {
 }
 
 class ThemeComponentsImpl : ThemeComponents {
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun create(): ComponentStyles = ComponentStyles(
         // buttons
@@ -78,6 +84,34 @@ class ThemeComponentsImpl : ThemeComponents {
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 8.dp,
         ),
+        inputArea = InputAreaStyle.default(
+            shape = RoundedCornerShape(8.dp),
+            textStyle = MaterialTheme.typography.bodyMedium,
+            colors = TextFieldDefaults.colors(
+                cursorColor = MaterialTheme.colorScheme.onSurface,
+
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                errorContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent,
+
+                unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                errorPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                errorTextColor = MaterialTheme.colorScheme.onSurface,
+            ),
+            contentPadding = PaddingValues(7.dp),
+        ),
         // message bubbles
         messageBubbleOwn = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.primary,
@@ -97,6 +131,15 @@ class ThemeComponentsImpl : ThemeComponents {
         messageReference = SurfaceStyle.default(
             shape = RoundedCornerShape(8.dp),
             color = Color(0x55FFFFFF),
+        ),
+        // tooltip
+        tooltip = TooltipStyle.default(
+            contentPadding = PaddingValues(5.dp),
+            colors = TooltipDefaults.richTooltipColors(
+                contentColor = MaterialTheme.colorScheme.onTertiary,
+                containerColor = MaterialTheme.colorScheme.tertiary,
+            ),
+            textStyle = MaterialTheme.typography.bodySmall,
         )
     )
 }
