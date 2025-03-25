@@ -18,6 +18,7 @@ import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.core.content.ContextCompat.getSystemService
+import de.connect2x.messenger.compose.view.theme.components.ThemedPlainTooltip
 import de.connect2x.trixnity.messenger.util.ActivityGetter
 import org.koin.core.Koin
 
@@ -55,20 +56,14 @@ actual fun Tooltip(
     modifier: Modifier,
     delayMillis: Int,
     onClick: (() -> Unit)?,
+    enabled: Boolean,
     content: @Composable () -> Unit,
 ) {
     TooltipBox(
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-        tooltip = {
-            PlainTooltip(
-                modifier = onClick?.let { modifier.clickable(onClick = it) } ?: modifier,
-                caretSize = TooltipDefaults.caretSize,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                content = { tooltip() }
-            )
-        },
+        tooltip = { ThemedPlainTooltip(content = { tooltip() }) },
         state = rememberTooltipState(),
+        enableUserInput = enabled,
     ) {
         content()
     }
