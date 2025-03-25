@@ -15,7 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.FilePickerType
 import de.connect2x.messenger.compose.view.common.FilePickerType.ATTACHMENT_FILE
 import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_AND_VIDEO_FILE
@@ -41,6 +40,8 @@ import de.connect2x.messenger.compose.view.files.CameraDialogCapturingMode.PHOTO
 import de.connect2x.messenger.compose.view.files.CameraDialogCapturingMode.VIDEO
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.UriFileDescriptor
@@ -253,10 +254,12 @@ fun CameraDialog(
         onDismissRequest = onCloseCameraDialog,
         title = {},
         dismissButton = {
-            Button(
-                onCloseCameraDialog,
-                Modifier.buttonPointerModifier(),
-            ) { Text(i18n.commonOk()) }
+            ThemedButton(
+                style = MaterialTheme.components.primaryButton,
+                onClick = onCloseCameraDialog,
+            ) {
+                Text(i18n.commonOk())
+            }
         },
         confirmButton = {},
         shape = RoundedCornerShape(8.dp),

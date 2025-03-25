@@ -3,9 +3,7 @@ package de.connect2x.messenger.compose.view.profiles
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,13 +15,14 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModel
 
 interface ProfileCreationView {
@@ -65,21 +64,21 @@ class ProfileCreationViewImpl : ProfileCreationView {
             }
             MessengerModalButtonRow(
                 button1 = {
-                    OutlinedButton(
+                    ThemedButton(
+                        style = MaterialTheme.components.commonButton,
                         onClick = { onFinish() },
-                        modifier = Modifier.buttonPointerModifier()
                     ) {
                         Text(i18n.commonCancel().capitalize(Locale.current))
                     }
                 },
                 button2 = {
-                    Button(
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
                         onClick = {
                             profileCreationViewModel.createProfile()
                             onFinish()
                         },
                         enabled = canCreateProfile,
-                        modifier = Modifier.buttonPointerModifier(),
                     ) {
                         Text(i18n.createProfileAction())
                     }
