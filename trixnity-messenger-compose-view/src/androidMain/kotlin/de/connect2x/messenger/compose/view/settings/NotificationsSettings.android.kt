@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -16,6 +16,8 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModel
 import net.folivo.trixnity.core.model.UserId
@@ -29,7 +31,8 @@ fun DeviceSettingsButton(viewModel: NotificationSettingsSingleAccountViewModel, 
     val context = LocalContext.current
     val messengerConfig = DI.get<MatrixMessengerConfiguration>()
     val i18n = DI.get<I18nView>()
-    Button(
+    ThemedButton(
+        style = MaterialTheme.components.primaryButton,
         onClick = {
             val intent: Intent = Intent(android.provider.Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS).putExtra(
                 android.provider.Settings.EXTRA_APP_PACKAGE,

@@ -21,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -48,6 +47,8 @@ import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
 
@@ -146,7 +147,8 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                         }
                     },
                     button2 = {
-                        Button(
+                        ThemedButton(
+                            style = MaterialTheme.components.primaryButton,
                             onClick = { showLogoutWarning = null },
                         ) {
                             Text(i18n.commonCancel().capitalize(Locale.current))

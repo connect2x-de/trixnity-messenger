@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
@@ -35,34 +37,32 @@ fun ReferencedMessagePill(
     val sender = holder.sender.collectAsState().value
     val senderNameColor = sender?.let { MaterialTheme.messengerColors.getUserColor(sender.userId) } ?: Color.Unspecified
     val fillMaxWidth = if (suffix == null) Modifier else Modifier.fillMaxWidth()
-    Box(
-        Modifier
-            .clip(RoundedCornerShape(8.dp))
+    ThemedSurface(
+        style = MaterialTheme.components.messageReference,
+        modifier = Modifier
             .height(IntrinsicSize.Min)
             .then(fillMaxWidth)
     ) {
-        Surface(color = Color(0x55FFFFFF)) { // We just want to have a slightly modified background
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    Modifier
-                        .width(5.dp)
-                        .fillMaxHeight()
-                        .clip(RoundedCornerShape(5.dp))
-                        .background(MaterialTheme.colorScheme.outline)
-                )
-                val weight = if (suffix == null) Modifier else Modifier.weight(1.0f, fill = true)
-                Box(Modifier.padding(5.dp).then(weight)) {
-                    Column {
-                        Text(
-                            sender?.name ?: "",
-                            style = MaterialTheme.typography.labelLarge.copy(color = senderNameColor)
-                        )
-                        Spacer(Modifier.size(5.dp))
-                        content()
-                    }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier
+                    .width(5.dp)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(MaterialTheme.colorScheme.outline)
+            )
+            val weight = if (suffix == null) Modifier else Modifier.weight(1.0f, fill = true)
+            Box(Modifier.padding(5.dp).then(weight)) {
+                Column {
+                    Text(
+                        sender?.name ?: "",
+                        style = MaterialTheme.typography.labelLarge.copy(color = senderNameColor)
+                    )
+                    Spacer(Modifier.size(5.dp))
+                    content()
                 }
-                suffix?.invoke()
             }
+            suffix?.invoke()
         }
     }
 }

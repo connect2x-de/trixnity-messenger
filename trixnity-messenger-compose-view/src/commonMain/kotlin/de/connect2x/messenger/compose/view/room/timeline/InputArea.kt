@@ -35,7 +35,6 @@ import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -88,6 +87,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
@@ -125,7 +125,9 @@ class InputAreaViewImpl : InputAreaView {
         val focusRequester = remember { FocusRequester() }
         val textField = inputAreaViewModel.textField.collectAsTextFieldValueState(focusRequester)
 
-        Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 8.dp) {
+        ThemedSurface(
+            style = MaterialTheme.components.inputAreaSurface,
+        ) {
             Column(Modifier.fillMaxWidth()) {
                 HorizontalDivider(Modifier.fillMaxWidth())
                 if (isReplyTo) {
