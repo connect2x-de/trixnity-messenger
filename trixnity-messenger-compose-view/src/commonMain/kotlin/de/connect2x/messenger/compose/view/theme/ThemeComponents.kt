@@ -67,6 +67,7 @@ class ThemeComponentsImpl : ThemeComponents {
         accountSelector = ButtonStyle.filled(
             contentPadding = PaddingValues(0.dp),
             colors = ButtonDefaults.buttonColors(
+                contentColor = MaterialTheme.colorScheme.onSurface,
                 containerColor = Color.Transparent,
                 disabledContainerColor = Color.Transparent,
             ),
