@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -36,9 +35,7 @@ import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -48,10 +45,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -68,6 +63,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -90,6 +86,7 @@ import de.connect2x.messenger.compose.view.getOrNull
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -230,7 +227,8 @@ fun UserSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: FocusRe
 fun RowScope.InputAreaTextField(
     inputAreaViewModel: InputAreaViewModel,
     textField: MutableState<TextFieldValue>,
-    focusRequester: FocusRequester
+    focusRequester: FocusRequester,
+    style: InputAreaStyle = MaterialTheme.components.inputArea,
 ) {
     val platformType = Platform.current
     val i18n = DI.get<I18nView>()
@@ -264,11 +262,10 @@ fun RowScope.InputAreaTextField(
             )
         }
         BasicTextField(
-            cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
+            cursorBrush = SolidColor(style.colors.cursorColor),
             modifier = Modifier
                 .focusRequester(focusRequester)
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
                 .onPreviewKeyEvent {
                     if (it.type == KeyEventType.KeyDown) {
                         when {
@@ -304,8 +301,9 @@ fun RowScope.InputAreaTextField(
             onValueChange = { textFieldValue ->
                 textField.value = textFieldValue
             },
+            interactionSource = interactionSource,
             maxLines = 6,
-            textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+            textStyle = style.textStyle.copy(color = style.textColor(enabled = true, isError = false, focused = IsFocused.current)),
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Sentences,
             )
@@ -321,22 +319,11 @@ fun RowScope.InputAreaTextField(
                 placeholder = {
                     Text(
                         i18n.inputAreaPrompt(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                        style = style.textStyle.copy(color = style.placeholderColor(enabled = true, isError = false, focused = IsFocused.current)),
                     )
                 },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    cursorColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                ),
-                contentPadding = OutlinedTextFieldDefaults.contentPadding(
-                    start = 7.dp, end = 7.dp, top = 7.dp, bottom = 7.dp,
-                ),
+                colors = style.colors,
+                contentPadding = style.contentPadding,
             )
         }
     }

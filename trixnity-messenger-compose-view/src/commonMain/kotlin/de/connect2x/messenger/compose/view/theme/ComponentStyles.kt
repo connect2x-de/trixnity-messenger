@@ -3,8 +3,8 @@ package de.connect2x.messenger.compose.view.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.Color
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
+import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 
 data class ComponentStyles(
@@ -25,6 +25,7 @@ data class ComponentStyles(
     val accountSelector: ButtonStyle,
     // input area
     val inputAreaSurface: SurfaceStyle,
+    val inputArea: InputAreaStyle,
     // messages
     val messageBubbleOwn: SurfaceStyle,
     val messageBubbleOther: SurfaceStyle,
