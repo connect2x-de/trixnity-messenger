@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +38,8 @@ import de.connect2x.messenger.compose.view.common.contrastByLuminance
 import de.connect2x.messenger.compose.view.common.deriveFromHue
 import de.connect2x.messenger.compose.view.common.hue
 import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 
 interface AppearanceSettingsColorView {
     @Composable
@@ -99,10 +100,13 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                     track = { HueSliderTrack() }
                 )
                 Spacer(Modifier.width(10.dp))
-                Button({
-                    newHue = defaultColor.hue
-                    set(defaultColor)
-                }) {
+                ThemedButton(
+                    style = MaterialTheme.components.primaryButton,
+                    onClick = {
+                        newHue = defaultColor.hue
+                        set(defaultColor)
+                    },
+                ) {
                     Icon(
                         imageVector = Icons.Filled.Refresh,
                         contentDescription = null,

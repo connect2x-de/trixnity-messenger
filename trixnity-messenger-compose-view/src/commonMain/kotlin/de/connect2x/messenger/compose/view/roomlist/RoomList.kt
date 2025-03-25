@@ -21,7 +21,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,6 +41,8 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.header.AccountMenuItem
 import de.connect2x.messenger.compose.view.roomlist.header.SelectAccountHeader
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainer
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -77,9 +78,9 @@ class RoomListViewImpl : RoomListView {
                             Text(i18n.roomListNoRoom())
                             Spacer(Modifier.size(10.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                OutlinedButton(
+                                ThemedButton(
+                                    style = MaterialTheme.components.commonButton,
                                     onClick = { roomListViewModel.createNewRoom() },
-                                    Modifier.buttonPointerModifier(),
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.AutoMirrored.Filled.Chat, i18n.accountCreateNewRoom())
