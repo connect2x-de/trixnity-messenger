@@ -13,11 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replace `leave room` with `forget room` if room is archived
 - Add settings to forget rooms in room list and settings view
 - AddMembersViewModel now has indicator when users are currently added
+- New system for customizing styles of each component
 
 ### Changed
 
 - Layout of message metadata info
 - Show archived rooms in room list
+- Updated UI to use new styling system for buttons
 
 ### Deprecated
 

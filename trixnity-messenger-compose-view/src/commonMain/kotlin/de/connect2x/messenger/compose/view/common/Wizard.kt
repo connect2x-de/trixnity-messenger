@@ -16,9 +16,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,11 +32,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.WizardButtons.NextButton
 import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 
 typealias StepId = String
@@ -250,9 +249,9 @@ private fun NextButtonImpl(
     nextButton: WizardNavigationButton.Standard
 ) {
     val i18n = DI.get<I18nView>()
-    Button(
+    ThemedButton(
+        style = MaterialTheme.components.primaryButton,
         onClick = { currentStep.value = nextStep },
-        modifier = Modifier.buttonPointerModifier(),
         enabled = nextButton.enabled(),
     ) {
         if (nextButton.content != null) {
@@ -286,9 +285,9 @@ private fun BackButtonImpl(
     backButton: WizardNavigationButton.Standard
 ) {
     val i18n = DI.get<I18nView>()
-    OutlinedButton(
+    ThemedButton(
+        style = MaterialTheme.components.commonButton,
         onClick = { currentStep.value = previousStep },
-        modifier = Modifier.buttonPointerModifier(),
         enabled = backButton.enabled(),
     ) {
         if (backButton.content != null) {

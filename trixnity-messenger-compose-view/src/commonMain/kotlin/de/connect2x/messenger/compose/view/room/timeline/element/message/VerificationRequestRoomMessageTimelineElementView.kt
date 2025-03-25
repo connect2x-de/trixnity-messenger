@@ -14,7 +14,6 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SportsScore
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +38,8 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.verification.AcceptSasStart
 import de.connect2x.messenger.compose.view.verification.CompareEmojisOrNumbers
 import de.connect2x.messenger.compose.view.verification.DeviceVerificationWaitForOther
@@ -214,7 +215,10 @@ private fun UserVerificationRequest(verificationStepRequestViewModel: Verificati
         Spacer(Modifier.size(20.dp))
         Row(Modifier.fillMaxWidth()) {
             Spacer(Modifier.weight(1.0f, fill = true))
-            Button(verificationStepRequestViewModel::next, Modifier.buttonPointerModifier()) {
+            ThemedButton(
+                style = MaterialTheme.components.primaryButton,
+                onClick = verificationStepRequestViewModel::next,
+            ) {
                 Text(i18n.commonNext().capitalize(Locale.current))
             }
         }

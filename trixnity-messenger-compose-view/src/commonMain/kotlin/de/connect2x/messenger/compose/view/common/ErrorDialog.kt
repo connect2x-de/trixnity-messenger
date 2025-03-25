@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,9 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 
 @Composable
 fun ErrorDialog(
@@ -33,7 +33,10 @@ fun ErrorDialog(
         onDismissRequest = { dismissAction() },
         confirmButton = {
             confirmText?.let {
-                Button({ confirmAction() }, Modifier.buttonPointerModifier()) {
+                ThemedButton(
+                    style = MaterialTheme.components.primaryButton,
+                    onClick = { confirmAction() },
+                ) {
                     Text(it)
                 }
             }
@@ -41,7 +44,10 @@ fun ErrorDialog(
         modifier = Modifier.defaultMinSize(minWidth = 400.dp)
             .background(MaterialTheme.colorScheme.errorContainer),
         dismissButton = {
-            Button({ dismissAction() }, Modifier.buttonPointerModifier()) {
+            ThemedButton(
+                style = MaterialTheme.components.primaryButton,
+                onClick = { dismissAction() },
+            ) {
                 Text(i18n.commonOk())
             }
         },

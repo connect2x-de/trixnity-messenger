@@ -1,20 +1,20 @@
 package de.connect2x.messenger.compose.view.settings
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModel
@@ -138,7 +138,10 @@ private fun wizardStepExplanation(
         title = { "${i18n.commonWelcome()} ${viewModel.userId.localpart}" },
         content = { Text(i18n.accountSetupWizardExplanationMessage()) },
         additionalButton = {
-            Button(modifier = Modifier.buttonPointerModifier(), onClick = { viewModel.closeAccountSetup() }) {
+            ThemedButton(
+                style = MaterialTheme.components.primaryButton,
+                onClick = { viewModel.closeAccountSetup() },
+            ) {
                 Text(i18n.commonSkip())
             }
         },
@@ -179,7 +182,10 @@ private fun wizardStepConfirmation(
         Text(i18n.accountSetupWizardFinishSetup())
     }, nextButton = {
         Custom {
-            Button(modifier = Modifier.buttonPointerModifier(), onClick = { viewModel.closeAccountSetup() }) {
+            ThemedButton(
+                style = MaterialTheme.components.primaryButton,
+                onClick = { viewModel.closeAccountSetup() },
+            ) {
                 Text(i18n.commonConfirm())
             }
         }

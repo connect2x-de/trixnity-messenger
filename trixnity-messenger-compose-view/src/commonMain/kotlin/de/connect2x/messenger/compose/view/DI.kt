@@ -232,6 +232,8 @@ import de.connect2x.messenger.compose.view.theme.DefaultAccentColorImpl
 import de.connect2x.messenger.compose.view.theme.DefaultSizes
 import de.connect2x.messenger.compose.view.theme.DefaultSizesImpl
 import de.connect2x.messenger.compose.view.theme.Theme
+import de.connect2x.messenger.compose.view.theme.ThemeComponents
+import de.connect2x.messenger.compose.view.theme.ThemeComponentsImpl
 import de.connect2x.messenger.compose.view.theme.ThemeDarkColorScheme
 import de.connect2x.messenger.compose.view.theme.ThemeDarkColorSchemeImpl
 import de.connect2x.messenger.compose.view.theme.ThemeHighContrastDarkColorScheme
@@ -298,6 +300,7 @@ fun composeViewModule(): Module = module {
 fun themeViewModule(): Module = module {
     single<Theme> { ThemeImpl() }
     single<ThemeTypography> { ThemeTypographyImpl() }
+    single<ThemeComponents> { ThemeComponentsImpl() }
     single<DefaultAccentColor> { DefaultAccentColorImpl() }
     single<DefaultSizes> { DefaultSizesImpl() }
     single<ThemeLightColorScheme> { ThemeLightColorSchemeImpl() }
