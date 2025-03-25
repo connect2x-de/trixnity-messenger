@@ -31,12 +31,7 @@ class ThemeComponentsImpl : ThemeComponents {
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             ),
         ),
-        commonButton = ButtonStyle.filled(
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.secondary,
-            ),
-        ),
+        commonButton = ButtonStyle.outlined(),
         destructiveButton = ButtonStyle.filled(
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.error,

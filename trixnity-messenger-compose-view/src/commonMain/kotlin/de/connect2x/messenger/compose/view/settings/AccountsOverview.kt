@@ -136,12 +136,12 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                 }
                 MessengerModalButtonRow(
                     button1 = {
-                        OutlinedButton(
+                        ThemedButton(
+                            style = MaterialTheme.components.destructiveButton,
                             onClick = {
                                 showLogoutWarning?.userId?.let { accountsOverviewViewModel.removeAccount(it) }
                                 showLogoutWarning = null
                             },
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
                         ) {
                             Text(i18n.accountsOverviewLogout())
                         }
