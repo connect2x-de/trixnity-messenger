@@ -103,7 +103,7 @@ actual fun PDFReader(
         }
     }
 
-    LaunchedEffect(reader.value?.documentWidth?.value, scale, viewSize) {
+    LaunchedEffect(reader.value?.documentWidth?.value, scale, viewSize.value) {
         reader.value?.documentWidth?.value?.toFloat()?.let {
             val maxDpi = 1f / it * 64f * 3600f
             dpi.value = (viewSize.value.width / it * scale / density * 64f).coerceAtMost(maxDpi)
@@ -133,11 +133,10 @@ actual fun PDFReader(
                     contentPadding = PaddingValues(8.dp)
                 ) {
                     items(it) { pageId ->
-                        val dpi = dpi.value
-                        dpi?.let {
+                        dpi.value?.let {
                             val currentBitmap = reader.cache["${pageId + 1}"]?.second?.collectAsState()?.value
-                            LaunchedEffect(dpi) {
-                                reader.renderPageWhenNecessary(pageId, dpi, scale)
+                            LaunchedEffect(it) {
+                                reader.renderPageWhenNecessary(pageId, it, scale)
                             }
                             if (currentBitmap != null) {
                                 Image(
@@ -149,12 +148,18 @@ actual fun PDFReader(
                                     contentScale = ContentScale.FillWidth,
                                 )
                             } else Box(
-                                Modifier.height((reader.documentWidth.value?.dp?.times(2)) ?: 1000f.dp).width(
-                                    reader.documentWidth.value?.dp ?: 1000f.dp
-                                ), contentAlignment = Alignment.Center
+                                Modifier.height(viewSize.value.height.dp / density * scale - MaterialTheme.messengerDpConstants.middle * 2)
+                                    .width(viewSize.value.width.dp / density * scale - MaterialTheme.messengerDpConstants.middle * 2),
+                                contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator()
                             }
+                        } ?: Box(
+                            Modifier.height(viewSize.value.height.dp / density * scale - MaterialTheme.messengerDpConstants.middle * 2)
+                                .width(viewSize.value.width.dp / density * scale - MaterialTheme.messengerDpConstants.middle * 2),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
                         }
                     }
                 }
