@@ -204,6 +204,7 @@ class SecretByteArraysImpl(
     private suspend fun getKey(size: Int): ByteArray? {
         val secretByteArrayKeyInfos = settings.value.base.secretByteArrayKeyInfos
         val orderedSecretByteArrayKeyProviders = getOrderedSecretByteArrayKeyProviders()
+        log.debug { "getKey (size=$size, orderedSecretByteArrayKeyProviders=${orderedSecretByteArrayKeyProviders.map { it.id }})" }
         return orderedSecretByteArrayKeyProviders.fold(null as GetKey?) { getInputKey, secretByteArrayKeyProvider ->
             secretByteArrayKeyProvider.get(
                 secretByteArrayKeyInfos[secretByteArrayKeyProvider.id]?.extra,
