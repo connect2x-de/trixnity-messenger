@@ -14,7 +14,7 @@ import dev.mokkery.resetCalls
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.errorCollector
 import io.kotest.assertions.withClue
-import io.kotest.core.names.TestName
+import io.kotest.common.KotestInternal
 import io.kotest.core.names.TestNameBuilder
 import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.ShouldSpec
@@ -170,6 +170,7 @@ fun TestScope.testMatrixClientViewModelContext(di: Koin, userId: UserId) = objec
  * setting `coroutineTestScope` is causing any issues or possibly
  * if multiple tests in the same file have an identical name.
  */
+@OptIn(KotestInternal::class)
 fun ShouldSpec.shouldGroup(contextName: String, test: suspend ShouldSpecContainerScope.() -> Unit) {
     // TODO: Add optional config parameter to control test container behavior for our use cases.
     //  this would allow us to set per-testcase configs
@@ -185,6 +186,7 @@ fun ShouldSpec.shouldGroup(contextName: String, test: suspend ShouldSpecContaine
  *
  * Currently matches the implementation of ShouldSpecContainerScope.kt/context(name, test)
  */
+@OptIn(KotestInternal::class)
 suspend fun ShouldSpecContainerScope.shouldGroup(
     contextName: String,
     test: suspend ShouldSpecContainerScope.() -> Unit,
@@ -197,6 +199,7 @@ suspend fun ShouldSpecContainerScope.shouldGroup(
     }
 }
 
+@OptIn(KotestInternal::class)
 private fun testConfig(spec: Spec): TestConfig {
     val config = TestConfig(
         timeout = spec.timeout?.milliseconds ?: 15.seconds,
@@ -220,6 +223,7 @@ private fun testConfig(spec: Spec): TestConfig {
  * should("test something").withCleanup { ... }
  * ```
  */
+@OptIn(KotestInternal::class)
 fun RootTestWithConfigBuilder.withCleanup(test: suspend TestScope.() -> Unit): Unit =
     config { runTest(test) }
 
@@ -233,9 +237,11 @@ fun RootTestWithConfigBuilder.withCleanup(test: suspend TestScope.() -> Unit): U
  * }
  * ```
  */
+@OptIn(KotestInternal::class)
 suspend fun TestWithConfigBuilder.withCleanup(test: suspend TestScope.() -> Unit): Unit =
     config { runTest(test) }
 
+@OptIn(KotestInternal::class)
 private suspend fun TestScope.runTest(test: suspend TestScope.() -> Unit) {
     val testName = "should " + testCase.name.name
     log.debug { "- - starting test: <$testName>" }
