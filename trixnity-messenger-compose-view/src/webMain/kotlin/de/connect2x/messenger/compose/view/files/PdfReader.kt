@@ -1,17 +1,19 @@
 package de.connect2x.messenger.compose.view.files
 
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import io.github.oshai.kotlinlogging.KotlinLogging
-import js.date.Date
 import js.typedarrays.Uint8Array
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import web.blob.Blob
 import web.canvas.CanvasRenderingContext2D
 import web.dom.document
 import web.html.HTMLCanvasElement
 import web.url.URL
+import kotlin.js.Date
 import kotlin.math.max
 import kotlin.math.min
 
@@ -29,7 +31,7 @@ class PdfReaderWeb(blob: Blob) {
 
 
     val documentWidth = mutableStateOf<Int?>(null)
-    val cache = mutableMapOf<String, Triple<Long, MutableStateFlow<ImageBitmap?>, Int>>()
+    val cache = mutableStateMapOf<String, Triple<MutableStateFlow<Long?>, MutableStateFlow<ImageBitmap?>, MutableStateFlow<Int?>>>()
 
     private val pdfDocument = mutableStateOf<PDFDocumentProxy?>(null)
     private val dom = document
@@ -41,7 +43,9 @@ class PdfReaderWeb(blob: Blob) {
         override var viewport: PDFPageViewport
     ) : PDFRenderParams
 
-    fun renderPage(pageIndex: Int, urlFlow: MutableStateFlow<ImageBitmap?>, scale: Float) {
+    private val mutex = Mutex()
+
+    fun renderPage(pageIndex: Int, bitmapFlow: MutableStateFlow<ImageBitmap?>, scale: Float) {
         pageSize.value?.let { pageSize ->
             if (pageIndex <= pageSize) {
                 val canvas = getOrCreatePageCanvas(pageIndex)
@@ -62,7 +66,7 @@ class PdfReaderWeb(blob: Blob) {
                             canvas.toBlob(callback = { blob ->
                                 blob?.let {
                                     blob.arrayBufferAsync().then { buffer ->
-                                        urlFlow.value = Uint8Array(buffer).toByteArray().toImageBitmap()
+                                        bitmapFlow.value = Uint8Array(buffer).toByteArray().toImageBitmap()
                                         dom.getElementById("pdf-canvas-page-$pageIndex")?.remove()
                                     }
                                 }
@@ -81,28 +85,35 @@ class PdfReaderWeb(blob: Blob) {
             }) as HTMLCanvasElement
     }
 
-    fun getOrRenderPage(pageId: Int, dpi: Float, scale: Float): StateFlow<ImageBitmap?> {
+    suspend fun renderPageWhenNecessary(pageId: Int, dpi: Float, scale: Float) {
         val oneBasedId = pageId + 1
         val pageScale = dpi / 72f
         val cacheKey = "$oneBasedId"
-        val element = cache[cacheKey]
         val pageCacheSize = max(2f, min(16f, 8f / scale)).toInt()
 
-        return if (element?.third == pageScale.toInt()) {
-            element.second
-        } else element?.second?.also {
-            renderPage(oneBasedId, it, pageScale)
-            removeOldElements(pageCacheSize)
-        }
-            ?: MutableStateFlow<ImageBitmap?>(null).also {
-                cache[cacheKey] = Triple(Date.now().toLong(), it, pageScale.toInt())
-                renderPage(oneBasedId, it, pageScale)
-                removeOldElements(pageCacheSize)
+        mutex.withLock {
+            val element = cache[cacheKey] ?: run {
+                cache[cacheKey] =
+                    Triple<MutableStateFlow<Long?>, MutableStateFlow<ImageBitmap?>, MutableStateFlow<Int?>>(
+                        MutableStateFlow(null),
+                        MutableStateFlow(null),
+                        MutableStateFlow(null)
+                    )
+                cache[cacheKey]
             }
+            if (element?.third?.value != pageScale.toInt()) {
+                element?.first?.value = Date.now().toLong()
+                element?.third?.value = pageScale.toInt()
+                element?.second?.also {
+                    removeOldElements(pageCacheSize)
+                    renderPage(oneBasedId, it, pageScale)
+                }
+            }
+        }
     }
 
     private fun removeOldElements(pageCacheSize: Int) {
-        cache.toList().sortedBy { it.second.first }
+        cache.toList().sortedBy { it.second.first.value }
             .subList(0, 0.coerceAtLeast(cache.size - pageCacheSize))
             .forEach { cache.remove(it.first) }
     }

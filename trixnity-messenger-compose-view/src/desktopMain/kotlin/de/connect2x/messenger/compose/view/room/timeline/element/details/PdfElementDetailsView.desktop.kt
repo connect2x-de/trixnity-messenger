@@ -81,7 +81,7 @@ actual fun PDFReader(
     val (temporaryFile, setTemporaryFile) = remember { mutableStateOf<OkioPlatformMedia.TemporaryFile?>(null) }
 
     LaunchedEffect(Unit) {
-        val temporaryFileResult = (media as OkioPlatformMedia).getTemporaryFile(coroutineContext)
+        val temporaryFileResult = (media as OkioPlatformMedia).getTemporaryFile()
         if (temporaryFileResult.isSuccess) {
             val newTemporaryFile = temporaryFileResult.getOrThrow()
             try {

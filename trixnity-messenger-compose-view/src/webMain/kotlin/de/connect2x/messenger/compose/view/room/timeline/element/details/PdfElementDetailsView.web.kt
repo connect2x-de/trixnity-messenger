@@ -135,11 +135,10 @@ actual fun PDFReader(
                     items(it) { pageId ->
                         val dpi = dpi.value
                         dpi?.let {
+                            val currentBitmap = reader.cache["${pageId + 1}"]?.second?.collectAsState()?.value
                             LaunchedEffect(dpi) {
-                                reader.getOrRenderPage(pageId, dpi, scale)
+                                reader.renderPageWhenNecessary(pageId, dpi, scale)
                             }
-                            val currentBitmap =
-                                reader.getOrRenderPage(pageId, dpi, scale).collectAsState(initial = null).value
                             if (currentBitmap != null) {
                                 Image(
                                     currentBitmap,
@@ -150,7 +149,7 @@ actual fun PDFReader(
                                     contentScale = ContentScale.FillWidth,
                                 )
                             } else Box(
-                                Modifier.height(reader.documentWidth.value?.dp ?: 1000f.dp).width(
+                                Modifier.height((reader.documentWidth.value?.dp?.times(2)) ?: 1000f.dp).width(
                                     reader.documentWidth.value?.dp ?: 1000f.dp
                                 ), contentAlignment = Alignment.Center
                             ) {
