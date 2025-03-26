@@ -42,10 +42,10 @@ private val log = KotlinLogging.logger {}
 
 @OptIn(ExperimentalForeignApi::class)
 actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
-    single<SecretByteArrayKeyProvider>(named("de.connect2x.trixnity.messenger.secrets.platform")) {
+    single<SecretByteArrayKeyProvider>(named(PLATFORM_SECRET_BYTE_ARRAY_KEY_PROVIDER_ID)) {
         val config = get<MatrixMessengerConfiguration>()
         object : SecretByteArrayKeyProvider {
-            override val id = "de.connect2x.trixnity.messenger.secrets.platform"
+            override val id = PLATFORM_SECRET_BYTE_ARRAY_KEY_PROVIDER_ID
             override val level: Int = 0
 
             override suspend fun get(extra: JsonObject?, getInputKey: GetKey?): GetKey {
