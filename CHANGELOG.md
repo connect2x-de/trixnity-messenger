@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Forgetting the room with invite after rejection of the invitation
+
 ### Security
 
 ## 3.5.0
