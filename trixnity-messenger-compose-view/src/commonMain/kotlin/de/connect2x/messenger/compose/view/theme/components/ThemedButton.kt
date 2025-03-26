@@ -81,7 +81,7 @@ data class ButtonStyle(
         fun filled(
             shape: Shape = ButtonDefaults.shape,
             colors: ButtonColors = ButtonDefaults.buttonColors(),
-            elevation: ButtonElevation? = ButtonDefaults.elevatedButtonElevation(),
+            elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
             contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
             textStyle: TextStyle? = null,
             iconSize: Dp = ButtonDefaults.IconSize,

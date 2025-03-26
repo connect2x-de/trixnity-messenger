@@ -366,7 +366,7 @@ class RoomViewModelTest : ShouldSpec() {
                                     ): RoomHeaderViewModel = object : RoomHeaderViewModel {
                                         override val error: StateFlow<String?> = MutableStateFlow(null)
                                         override val roomHeaderInfo: StateFlow<RoomHeaderInfo> = MutableStateFlow(
-                                            RoomHeaderInfo("", "", "", null, null, false, false)
+                                            RoomHeaderInfo("", "", "", null, null, false, false, false)
                                         )
                                         override val usersTyping: StateFlow<String?> = MutableStateFlow(null)
                                         override val userTrustLevel: StateFlow<UserTrustLevel?> = MutableStateFlow(null)

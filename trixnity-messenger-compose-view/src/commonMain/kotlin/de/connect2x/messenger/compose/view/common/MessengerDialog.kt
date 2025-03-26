@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 
 @Composable
 fun MessengerDialog(
@@ -17,11 +19,9 @@ fun MessengerDialog(
     Dialog(
         onDismissRequest = onDismissRequest
     ) {
-        Surface(
+        ThemedSurface(
+            style = MaterialTheme.components.dialog,
             modifier = Modifier.defaultMinSize(400.dp).wrapContentHeight().width(IntrinsicSize.Min),
-            shape = RoundedCornerShape(4.dp),
-            color = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.onBackground,
         ) {
             Box(Modifier.padding(15.dp).wrapContentHeight()) {
                 text()

@@ -9,12 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- AddMembersViewModel now has indicator when users are currently added
-- New system for customizing styles of each component
-
 ### Changed
 
-- Layout of message metadata info
 - Completely new SecretByteArray architecture, that allows to have a keychain
 
 ### Deprecated
@@ -23,9 +19,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 3.5.0
+
+### Added
+
+- Archived rooms support
+- Add settings to forget rooms in room list and settings view
+- AddMembersViewModel now has indicator when users are currently added
+- New system for customizing styles of each component
+
+### Changed
+
+- Layout of message metadata info
+- Updated UI to use new styling system for buttons, surfaces, inputarea, tooltips
+
+### Fixed
+
 - Fix timeline rendering bug caused by "fix-file-onsave-handling"
 - Display rooms correctly the first time on join
 - Set directory visibility of public rooms to public
+- Don't max out the dialog height
+- Styling inconsistencies
 - No more flickering in timeline when writing new messages
 
 ### Security

@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -23,7 +21,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -34,6 +31,8 @@ import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
 import kotlinx.coroutines.flow.map
@@ -73,14 +72,12 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
 
     if (activeAccountInfo != null) {
         Box(Modifier.Companion.weight(1.0f, false).fillMaxWidth()) {
-            Button(
+            ThemedButton(
+                style = MaterialTheme.components.accountSelector,
                 onClick = {
                     if (isSingleAccount) accountViewModel.openUserProfile()
                     else accountSelectionOpen.value = accountSelectionOpen.value.not()
                 },
-                modifier = Modifier.buttonPointerModifier(),
-                contentPadding = PaddingValues(0.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
             ) {
                 AvatarArea(activeAccountInfo)
                 if (isSingleAccount.not()) {
@@ -127,13 +124,13 @@ fun AvatarArea(
                 accountInfo.displayName,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onBackground),
+                style = MaterialTheme.typography.titleMedium,
             )
             Text(
                 accountInfo.userId.full,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.onBackground),
+                style = MaterialTheme.typography.labelMedium,
             )
         }
     }
@@ -146,11 +143,9 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
     val accountSelectionOpen = remember { mutableStateOf(false) }
 
     Box(Modifier.Companion.weight(1.0f, false).fillMaxWidth()) {
-        Button(
+        ThemedButton(
+            style = MaterialTheme.components.accountSelector,
             onClick = { accountSelectionOpen.value = accountSelectionOpen.value.not() },
-            modifier = Modifier.buttonPointerModifier(),
-            contentPadding = PaddingValues(0.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Avatar(null, "*")
@@ -168,13 +163,13 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
                             i18n.accountAllAccounts(),
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onBackground),
+                            style = MaterialTheme.typography.titleMedium,
                         )
                         Text(
                             accounts.joinToString { account -> account.displayName },
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.onBackground),
+                            style = MaterialTheme.typography.labelMedium,
                         )
                     }
                 }
@@ -267,7 +262,6 @@ fun SelectAccountHeader(header: String) {
         Text(
             header,
             modifier = Modifier.padding(horizontal = 20.dp),
-            color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.titleLarge,
         )
     }
