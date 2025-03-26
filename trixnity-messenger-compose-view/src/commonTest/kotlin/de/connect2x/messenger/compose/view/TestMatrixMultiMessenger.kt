@@ -9,7 +9,6 @@ import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
-import de.connect2x.trixnity.messenger.secrets.SecretByteArray
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.media.InMemoryMediaStore
 import net.folivo.trixnity.client.media.MediaStore
@@ -51,13 +50,14 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
                         object : CreateRepositoriesModule {
                             val modules: MutableMap<UserId, Module> = HashMap()
 
-                            override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult {
+                            override suspend fun generateDatabaseKey(): ByteArray? = null
+                            override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module {
                                 val module = createInMemoryRepositoriesModule()
                                 modules += (userId to module)
-                                return CreateRepositoriesModule.CreateResult(module, null)
+                                return module
                             }
 
-                            override suspend fun load(userId: UserId, databaseKey: SecretByteArray?): Module =
+                            override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module =
                                 modules[userId]
                                     ?: throw IllegalStateException("Repositories module for $userId not instantiated")
                         }
