@@ -156,7 +156,7 @@ class ExtrasRouterImpl(
         is RoomSettings.Main -> Wrapper.RoomSettings(
             viewModelContext.get<RoomSettingsViewModelFactory>().create(
                 viewModelContext = viewModelContext.childContext(componentContext),
-                onLeaveRoom = onCloseRoom,
+                onCloseRoom = onCloseRoom,
                 selectedRoomId = config.roomId,
                 onOpenAddMembers = { onOpenAddMembers(config.roomId) },
                 onOpenExportRoom = { onOpenExportRoom(config.roomId) },

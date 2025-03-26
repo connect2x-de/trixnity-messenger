@@ -892,6 +892,7 @@ class RoomListViewModelMultiAccountTest : ShouldSpec() {
             onOpenAccountsOverview = mock(),
             onSendLogs = mock(),
             onAccountSelected = mock(),
+            onCloseRoom = mock()
         )
     }
 

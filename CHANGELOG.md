@@ -11,16 +11,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Layout of message metadata info
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
+### Security
+
+## 3.5.0
+
+### Added
+
+- Archived rooms support
+- Add settings to forget rooms in room list and settings view
+- AddMembersViewModel now has indicator when users are currently added
+- New system for customizing styles of each component
+
+### Changed
+
+- Layout of message metadata info
+- Updated UI to use new styling system for buttons, surfaces, inputarea, tooltips
+
+### Fixed
+
 - Fix timeline rendering bug caused by "fix-file-onsave-handling"
 - Display rooms correctly the first time on join
+- Set directory visibility of public rooms to public
+- Don't max out the dialog height
+- Styling inconsistencies
 
 ### Security
 
@@ -40,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Bug in file attachment upload size
+- No more flickering in timeline when writing new messages
 - Unrecommended HTML tags are not being sent any more
 - Shared Plaintext is not interpreted as Markdown
 - CloseApp should not be injected when null

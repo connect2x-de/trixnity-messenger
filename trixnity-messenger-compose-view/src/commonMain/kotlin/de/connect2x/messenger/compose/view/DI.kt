@@ -166,8 +166,10 @@ import de.connect2x.messenger.compose.view.roomlist.header.CloseProfileView
 import de.connect2x.messenger.compose.view.roomlist.header.CloseProfileViewImpl
 import de.connect2x.messenger.compose.view.roomlist.header.ShowSearchView
 import de.connect2x.messenger.compose.view.roomlist.header.ShowSearchViewImpl
-import de.connect2x.messenger.compose.view.roomlist.room.InviteView
-import de.connect2x.messenger.compose.view.roomlist.room.InviteViewImpl
+import de.connect2x.messenger.compose.view.roomlist.room.ArchivedRoomListElement
+import de.connect2x.messenger.compose.view.roomlist.room.ArchivedRoomListElementImpl
+import de.connect2x.messenger.compose.view.roomlist.room.InviteRoomListElement
+import de.connect2x.messenger.compose.view.roomlist.room.InviteRoomListElementImpl
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainerView
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainerViewImpl
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementView
@@ -231,6 +233,8 @@ import de.connect2x.messenger.compose.view.theme.DefaultAccentColorImpl
 import de.connect2x.messenger.compose.view.theme.DefaultSizes
 import de.connect2x.messenger.compose.view.theme.DefaultSizesImpl
 import de.connect2x.messenger.compose.view.theme.Theme
+import de.connect2x.messenger.compose.view.theme.ThemeComponents
+import de.connect2x.messenger.compose.view.theme.ThemeComponentsImpl
 import de.connect2x.messenger.compose.view.theme.ThemeDarkColorScheme
 import de.connect2x.messenger.compose.view.theme.ThemeDarkColorSchemeImpl
 import de.connect2x.messenger.compose.view.theme.ThemeHighContrastDarkColorScheme
@@ -297,6 +301,7 @@ fun composeViewModule(): Module = module {
 fun themeViewModule(): Module = module {
     single<Theme> { ThemeImpl() }
     single<ThemeTypography> { ThemeTypographyImpl() }
+    single<ThemeComponents> { ThemeComponentsImpl() }
     single<DefaultAccentColor> { DefaultAccentColorImpl() }
     single<DefaultSizes> { DefaultSizesImpl() }
     single<ThemeLightColorScheme> { ThemeLightColorSchemeImpl() }
@@ -346,7 +351,8 @@ fun roomListViewModule() = module {
     single<RoomListView> { RoomListViewImpl() }
     single<RoomListElementContainerView> { RoomListElementContainerViewImpl() }
     single<RoomListElementView> { RoomListElementViewImpl() }
-    single<InviteView> { InviteViewImpl() }
+    single<InviteRoomListElement> { InviteRoomListElementImpl() }
+    single<ArchivedRoomListElement> { ArchivedRoomListElementImpl() }
     single<RoomView> { RoomViewImpl() }
 }
 

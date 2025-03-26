@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
 import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
@@ -12,13 +13,15 @@ import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
+import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -39,6 +42,7 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Text
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 
 class OutboxElementHolderViewModelTest : ShouldSpec() {
@@ -61,6 +65,13 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
     )
 
     private val outbox = MutableStateFlow<List<RoomOutboxMessage<*>>>(listOf(outboxMessage))
+    private val di = koinApplication {
+        modules(
+            createTestDefaultTrixnityMessengerModules()
+        )
+    }.koin
+    private val clock = mock<Clock>()
+    private val config = di.get<MatrixMessengerConfiguration>()
 
     init {
         coroutineTestScope = true
@@ -93,6 +104,7 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             }
             outbox.value = listOf(outboxMessage)
             every { roomServiceMock.getOutbox(roomId) } returns outbox.map { it.map { flowOf(it) } }
+            every { clock.now() } returns Instant.fromEpochMilliseconds(123456789L)
         }
 
         should("isFirstInUserSequence: be true when last timeline event is not by us") {
@@ -110,12 +122,14 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                 )
             }
             val cut = cut()
-            async { cut.isFirstInUserSequence.collect() }
+            launch { cut.isFirstInUserSequence.collect() }
+
             delay(500.milliseconds)
             cut.isFirstInUserSequence.value shouldBe true
 
             cancelNeverEndingCoroutines()
         }
+
         should("isFirstInUserSequence: ignore other outbox messages with transactionId same as last timeline event") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = bob, transactionId = "t0") {
@@ -131,12 +145,14 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                 ), outboxMessage
             )
             val cut = cut()
-            async { cut.isFirstInUserSequence.collect() }
+            launch { cut.isFirstInUserSequence.collect() }
+
             delay(500.milliseconds)
             cut.isFirstInUserSequence.value shouldBe true
 
             cancelNeverEndingCoroutines()
         }
+
         should("isFirstInUserSequence: be false when last timeline event is by us") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = us) {
@@ -144,12 +160,14 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                 }
             }
             val cut = cut()
-            async { cut.isFirstInUserSequence.collect() }
+            launch { cut.isFirstInUserSequence.collect() }
+
             delay(500.milliseconds)
             cut.isFirstInUserSequence.value shouldBe false
 
             cancelNeverEndingCoroutines()
         }
+
         should("isFirstInUserSequence: be false when not first outbox message") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = us) {
@@ -165,12 +183,14 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                 ), outboxMessage
             )
             val cut = cut()
-            async { cut.isFirstInUserSequence.collect() }
+            launch { cut.isFirstInUserSequence.collect() }
+
             delay(500.milliseconds)
             cut.isFirstInUserSequence.value shouldBe false
 
             cancelNeverEndingCoroutines()
         }
+
         should("showSender: always be false") {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(sender = bob) {
@@ -179,9 +199,114 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
             }
             val cut = cut()
 
-            async { cut.showSender.collect() }
+            launch { cut.showSender.collect() }
+
             delay(500.milliseconds)
             cut.showSender.value shouldBe false
+
+            cancelNeverEndingCoroutines()
+        }
+
+        should("showBigGapBefore: be true when first in a user sequence") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(
+                    sender = bob,
+                    sentAt = clock.now()
+                ) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            launch { cut.showBigGapBefore.collect() }
+
+            advanceUntilIdle()
+            cut.showBigGapBefore.value shouldBe true
+
+            cancelNeverEndingCoroutines()
+        }
+        should("showBigGapBefore: false when not first in a user sequence") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(
+                    sender = us,
+                    sentAt = clock.now()
+                ) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            launch { cut.showBigGapBefore.collect() }
+
+            advanceUntilIdle()
+            cut.showBigGapBefore.value shouldBe false
+
+
+            cancelNeverEndingCoroutines()
+        }
+
+        should("showBigGapBefore: be true when time gap is large enough") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(
+                    sender = us,
+                    sentAt = clock.now() - config.showBigGapBeforeThreshold - 1.seconds
+                ) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            launch { cut.showBigGapBefore.collect() }
+
+            advanceUntilIdle()
+            cut.showBigGapBefore.value shouldBe true
+
+            cancelNeverEndingCoroutines()
+        }
+
+        should("showBigGapBefore: be false when time gap is not large enough") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(
+                    sender = us,
+                    sentAt = clock.now() - config.showBigGapBeforeThreshold
+                ) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            launch { cut.showBigGapBefore.collect() }
+
+            advanceUntilIdle()
+            cut.showBigGapBefore.value shouldBe false
+
+
+            cancelNeverEndingCoroutines()
+        }
+
+        should("showBigGapBefore: skip sent transaction") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(
+                    sender = us,
+                    sentAt = clock.now() - config.showBigGapBeforeThreshold - 1.seconds
+                ) {
+                    text("Hi!")
+                }
+
+                +messageEvent(
+                    sender = us,
+                    sentAt = clock.now(),
+                    transactionId = "t1"
+                ) {
+                    text("Hi!")
+                }
+            }
+            val cut = cut()
+
+            launch { cut.showBigGapBefore.collect() }
+
+            advanceUntilIdle()
+            cut.showBigGapBefore.value shouldBe true
 
             cancelNeverEndingCoroutines()
         }
@@ -190,7 +315,10 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
     private fun TestScope.cut(eventId: EventId = this@OutboxElementHolderViewModelTest.eventId): OutboxElementHolderViewModel {
         val di = koinApplication {
             modules(
-                createTestDefaultTrixnityMessengerModules(mapOf(us to matrixClientMock))
+                createTestDefaultTrixnityMessengerModules(mapOf(us to matrixClientMock)) +
+                        module {
+                            single { clock }
+                        }
             )
         }.koin
         return OutboxElementHolderViewModelImpl(

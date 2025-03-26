@@ -22,8 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,11 +36,13 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 
 @Composable
@@ -56,15 +56,10 @@ fun MessengerModal(
         Modifier
             .fillMaxSize()
             .blockPointerInput()
-            .background(Color.Black.copy(alpha = 0.4f))
     ) {
-        Surface(
-            tonalElevation = 1.dp,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .clip(RoundedCornerShape(8.dp))
-                .width(width)
-                .border(Dp.Hairline, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+        ThemedSurface(
+            style = MaterialTheme.components.dialog,
+            modifier = Modifier.align(Alignment.Center).width(width)
         ) {
             Column {
                 MessengerModalHeader(onDismiss, title)
@@ -79,7 +74,7 @@ fun MessengerModal(
 @Composable
 fun ColumnScope.MessengerModalContent(content: @Composable ColumnScope.() -> Unit) {
     val scrollState = rememberScrollState()
-    Column(Modifier.verticalScroll(scrollState).weight(1.0f, fill = true)) {
+    Column(Modifier.verticalScroll(scrollState).weight(1.0f, fill = false)) {
         content()
     }
     // do not display scroll bar as it sets the height to max and is not used on mobile (where scrolling might be needed)
@@ -157,10 +152,10 @@ fun ColumnScope.MessengerModalThreeButtonRow(
 @Composable
 fun RowScope.NextButton(enabled: Boolean = true, text: String? = null, nextAction: () -> Unit) {
     val i18n = DI.get<I18nView>()
-    Button(
+    ThemedButton(
+        style = MaterialTheme.components.primaryButton,
         onClick = nextAction,
-        modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false)
-            .width(IntrinsicSize.Max), // avoid wrapping button text if possibles
+        modifier = Modifier.weight(1.0f, fill = false).width(IntrinsicSize.Max), // avoid wrapping button text if possibles
         enabled = enabled,
     ) {
         Text(text ?: i18n.commonNext().capitalize(Locale.current))
@@ -170,14 +165,10 @@ fun RowScope.NextButton(enabled: Boolean = true, text: String? = null, nextActio
 @Composable
 fun RowScope.CloseModalButton(closeModalAction: () -> Unit, caption: String? = null) {
     val i18n = DI.get<I18nView>()
-    Button(
+    ThemedButton(
+        style = MaterialTheme.components.destructiveButton,
         onClick = { closeModalAction() },
-        modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false)
-            .width(IntrinsicSize.Max), // avoid wrapping button text if possible
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.error,
-            contentColor = Color.White
-        )
+        modifier = Modifier.weight(1.0f, fill = false).width(IntrinsicSize.Max), // avoid wrapping button text if possible
     ) {
         Text(caption ?: i18n.commonClose())
     }
@@ -187,13 +178,10 @@ fun RowScope.CloseModalButton(closeModalAction: () -> Unit, caption: String? = n
 fun RowScope.CloseMessengerButton(closeMessengerAction: () -> Unit) {
     val i18n = DI.get<I18nView>()
     val appName = DI.get<MatrixMessengerConfiguration>().appName
-    Button(
+    ThemedButton(
+        style = MaterialTheme.components.destructiveButton,
         onClick = { closeMessengerAction() },
-        modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.error,
-            contentColor = Color.White
-        )
+        modifier = Modifier.weight(1.0f, fill = false),
     ) {
         Text(i18n.closeApp(appName))
     }
@@ -202,9 +190,10 @@ fun RowScope.CloseMessengerButton(closeMessengerAction: () -> Unit) {
 @Composable
 fun RowScope.BackButton(onBack: () -> Unit) {
     val i18n = DI.get<I18nView>()
-    Button(
+    ThemedButton(
+        style = MaterialTheme.components.primaryButton,
         onClick = onBack,
-        modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false),
+        modifier = Modifier.weight(1.0f, fill = false),
     ) {
         Text(i18n.commonBack())
     }

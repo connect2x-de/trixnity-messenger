@@ -27,6 +27,7 @@ interface Theme {
         shapes: Shapes,
         typography: Typography,
         density: Density,
+        componentStyles: ThemeComponents,
         content: @Composable () -> Unit,
     )
 }
@@ -40,6 +41,7 @@ fun MessengerTheme(
     shapes: Shapes = MaterialTheme.shapes,
     typography: Typography = DI.get<ThemeTypography>().create(),
     density: Density = DefaultMessengerDensity,
+    componentStyles: ThemeComponents = DI.get<ThemeComponents>(),
     content: @Composable () -> Unit,
 ) {
     DI.get<Theme>()
@@ -51,6 +53,7 @@ fun MessengerTheme(
             shapes,
             typography,
             density,
+            componentStyles,
             content
         )
 }
@@ -65,6 +68,7 @@ class ThemeImpl : Theme {
         shapes: Shapes,
         typography: Typography,
         density: Density,
+        componentStyles: ThemeComponents,
         content: @Composable () -> Unit,
     ) {
         val maxHeaderHeight = remember { MutableStateFlow(Dp(0.0f)) }
@@ -80,7 +84,8 @@ class ThemeImpl : Theme {
                 MessengerIconsProvider provides messengerIcons,
                 LocalDensity provides density,
                 SystemDensity provides LocalDensity.current,
-                MaxHeaderHeight provides maxHeaderHeight
+                MaxHeaderHeight provides maxHeaderHeight,
+                LocalComponentStyles provides componentStyles.create(),
             ) {
                 content()
             }

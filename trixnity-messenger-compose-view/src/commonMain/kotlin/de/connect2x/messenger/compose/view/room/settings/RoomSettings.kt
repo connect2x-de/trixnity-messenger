@@ -57,8 +57,9 @@ class RoomSettingsViewImpl : RoomSettingsView {
         val i18n = DI.get<I18nView>()
         val error = roomSettingsViewModel.error.collectAsState().value
         val leaveRoomWarningOpen = roomSettingsViewModel.leaveRoomWarningOpen.collectAsState().value
-        val scroll = rememberScrollState()
         val joinRule = roomSettingsViewModel.roomSettingsJoinRulesViewModel.joinRule.collectAsState().value
+        val scroll = rememberScrollState()
+
         ExtrasPaneHeader(
             i18n.roomSettings(),
             error,

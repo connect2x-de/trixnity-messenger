@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
@@ -52,7 +53,6 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -83,7 +83,12 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
     )
 
     private val receipts = MutableStateFlow<Map<EventId, Set<UserId>>>(mapOf())
-
+    private val di = koinApplication {
+        modules(
+            createTestDefaultTrixnityMessengerModules()
+        )
+    }.koin
+    private val config = di.get<MatrixMessengerConfiguration>()
     init {
         coroutineTestScope = true
 
@@ -328,7 +333,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
                     sender = alice,
-                    sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - 1.hours - 1.seconds
+                    sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - config.showBigGapBeforeThreshold - 1.seconds
                 ) {
                     text("Hi!")
                 }
@@ -346,7 +351,7 @@ class TimelineElementHolderViewModelTest : ShouldSpec() {
             timeline(roomServiceMock, roomId) {
                 +messageEvent(
                     sender = alice,
-                    sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - 1.hours
+                    sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp) - config.showBigGapBeforeThreshold
                 ) {
                     text("Hi!")
                 }
