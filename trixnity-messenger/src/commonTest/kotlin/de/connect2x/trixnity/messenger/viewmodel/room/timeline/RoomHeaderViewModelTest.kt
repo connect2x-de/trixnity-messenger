@@ -164,6 +164,7 @@ class RoomHeaderViewModelTest {
             Presence.ONLINE,
             isEncrypted = false,
             isPublic = true,
+            isLeave = false,
         )
 
         roomName.value = "New Room Name"
@@ -177,6 +178,7 @@ class RoomHeaderViewModelTest {
             Presence.ONLINE,
             isEncrypted = false,
             isPublic = true,
+            isLeave = false,
         )
     }
 

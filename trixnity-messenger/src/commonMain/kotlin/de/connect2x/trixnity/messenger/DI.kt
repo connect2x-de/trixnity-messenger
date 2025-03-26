@@ -199,6 +199,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                     markOwnMessageAsRead = true
                     httpClientEngine = config.httpClientEngine
                     httpClientConfig = config.httpClientConfig
+                    deleteRoomsOnLeave = false
                     lastRelevantEventFilter =
                         { relevantTimelineEvents.isRelevantTimelineEvent(it.content) }
                     if (eventContentSerializerMappings.isNotEmpty()) {

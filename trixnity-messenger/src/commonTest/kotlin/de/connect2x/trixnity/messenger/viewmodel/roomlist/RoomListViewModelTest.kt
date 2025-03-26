@@ -1098,14 +1098,9 @@ class RoomListViewModelTest {
                                         onAccountSelected(userId) // needed to influence RoomListViewModel
                                     }
 
-                                    override fun openUserSettings() {
-                                    }
-
-                                    override fun openUserProfile() {
-                                    }
-
-                                    override fun openAppInfo() {
-                                    }
+                                    override fun openUserSettings() {}
+                                    override fun openUserProfile() {}
+                                    override fun openAppInfo() {}
                                 }
                             }
                         }
@@ -1127,7 +1122,8 @@ class RoomListViewModelTest {
             onOpenAppInfo = mock(),
             onOpenAccountsOverview = mock(),
             onSendLogs = mock(),
-            onAccountSelected = onAccountSelected
+            onAccountSelected = onAccountSelected,
+            onCloseRoom = mock()
         )
     }
 

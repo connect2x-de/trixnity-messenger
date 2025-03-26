@@ -639,6 +639,7 @@ class RoomListElementViewModelTest {
             ),
             roomId,
             onRoomSelected = onRoomSelectedMock,
+            onRoomClose = {},
         )
         backgroundScope.launch { cut.isPublic.collect() }
         backgroundScope.launch { cut.isEncrypted.collect() }

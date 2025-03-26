@@ -577,14 +577,54 @@ open class I18n(
         DE - "Sie können niemanden einladen, wenn Sie offline sind."
     }
 
-    open fun settingsRoomLeaveRoomError(groupOrChat: String) = translate {
-        EN - "There has been an error leaving $groupOrChat."
-        DE - "Fehler beim Verlassen $groupOrChat."
+    open fun forgetRoomError(groupOrChat: String) = translate {
+        EN - "There has been an error forgetting $groupOrChat."
+        DE - "Fehler beim Vergessen $groupOrChat."
+    }
+
+    open fun forgetRoomErrorOffline() = translate {
+        EN - "You cannot leave a chat or group when you are offline."
+        DE - "Sie können offline keine Chats oder Gruppen verlassen."
     }
 
     open fun settingsRoomLeaveRoomErrorOffline() = translate {
-        EN - "You cannot leave a chat or group when you are offline."
-        DE - "Sie können offline keine Chats oder Gruppen verlassen."
+        EN - "You cannot forget a chat or group when you are offline."
+        DE - "Sie können offline keine Chats oder Gruppen vergessen."
+    }
+
+    open fun settingsRoomForgetRoomMessageChat() = translate {
+        EN - "Forget chat"
+        DE - "Chat vergessen"
+    }
+
+    open fun settingsRoomForgetRoomMessageGroup() = translate {
+        EN - "Forget group"
+        DE - "Gruppe vergessen"
+    }
+
+    open fun settingsRoomForgetRoomWarningConfirmButtonChat() = translate {
+        EN - "Yes, forget chat"
+        DE - "Ja, Chat vergessen"
+    }
+
+    open fun settingsRoomForgetRoomWarningConfirmButtonGroup() = translate {
+        EN - "Yes, forget group"
+        DE - "Ja, Gruppe vergessen"
+    }
+
+    open fun settingsRoomForgetRoomWarningTitleChat() = translate {
+        EN - "Forget chat?"
+        DE - "Den Chat vergessen?"
+    }
+
+    open fun settingsRoomForgetRoomWarningTitleGroup() = translate {
+        EN - "Forget room?"
+        DE - "Die Gruppe vergessen?"
+    }
+
+    open fun settingsRoomLeaveRoomError(groupOrChat: String) = translate {
+        EN - "There has been an error leaving $groupOrChat."
+        DE - "Fehler beim Verlassen $groupOrChat."
     }
 
     open fun settingsRoomLeaveRoomMessageChat() = translate {

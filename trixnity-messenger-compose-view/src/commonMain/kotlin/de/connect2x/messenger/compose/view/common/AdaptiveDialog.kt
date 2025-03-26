@@ -17,6 +17,8 @@ import androidx.compose.ui.window.DialogProperties
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.SINGLE_PANE_THRESHOLD
 import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 
 interface AdaptiveDialog {
@@ -45,11 +47,10 @@ class AdaptiveDialogImpl : AdaptiveDialog {
                     if (isSinglePane) Modifier
                     else Modifier.sizeIn(maxWidth = maxContentWidth, maxHeight = maxContentHeight)
                 ) {
-                    Surface(
-                        Modifier.fillMaxSize(),
-                        if (isSinglePane) RectangleShape
-                        else RoundedCornerShape(MaterialTheme.messengerDpConstants.small),
-                        shadowElevation = 6.dp
+                    ThemedSurface(
+                        style = if (isSinglePane) MaterialTheme.components.dialog.copy(shape = RectangleShape)
+                        else MaterialTheme.components.dialog,
+                        modifier = Modifier.fillMaxSize(),
                     ) {
                         content()
                     }

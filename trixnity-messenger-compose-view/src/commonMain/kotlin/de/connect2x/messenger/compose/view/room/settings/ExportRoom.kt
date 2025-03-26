@@ -137,13 +137,10 @@ class ExportRoomViewImpl : ExportRoomView {
                 Row(Modifier.fillMaxWidth()) {
                     val abortText = i18n.exportRoomAbort()
                     Column(Modifier.weight(0.5f), horizontalAlignment = Alignment.Start) {
-                        OutlinedButton(
+                        ThemedButton(
+                            style = MaterialTheme.components.destructiveButton,
                             onClick = { exportRoomViewModel.abort() },
                             enabled = isExporting,
-                            modifier = Modifier.buttonPointerModifier(),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.error
-                            )
                         ) {
                             Text(
                                 text = abortText,

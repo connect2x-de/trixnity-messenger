@@ -124,7 +124,7 @@ class TimelineViewImpl : TimelineView {
 
         val focusManager = LocalFocusManager.current
 
-        Surface(modifier = Modifier.weight(1.0f, fill = true)) {
+        Box(modifier = Modifier.weight(1.0f, fill = true)) {
             if (timelineElementHolderViewModels.isEmpty()) {
                 Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
             } else {

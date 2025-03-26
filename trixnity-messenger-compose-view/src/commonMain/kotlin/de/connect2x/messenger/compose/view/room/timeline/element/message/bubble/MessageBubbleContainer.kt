@@ -11,9 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -32,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.pointerMoveFilter
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
@@ -50,12 +50,11 @@ fun MessageBubbleContainer(
     val showActionMenu = remember { mutableStateOf(false) }
     val hoverMessage = remember { mutableStateOf(false) }
 
-    val messageBackground =
-        when {
-            sendError != null -> MaterialTheme.colorScheme.errorContainer
-            holder.isByMe -> MaterialTheme.colorScheme.primary
-            else -> MaterialTheme.colorScheme.secondary
-        }
+    val messageBubbleStyle = when {
+        sendError != null -> MaterialTheme.components.messageBubbleError
+        holder.isByMe -> MaterialTheme.components.messageBubbleOwn
+        else -> MaterialTheme.components.messageBubbleOther
+    }
 
     Column {
         Box(
@@ -81,7 +80,7 @@ fun MessageBubbleContainer(
                         Box(
                             Modifier
                                 .background(
-                                    messageBackground,
+                                    messageBubbleStyle.color,
                                     shape = ChatEdgeLeft(with(LocalDensity.current) { 8.dp.roundToPx() })
                                 )
                                 .requiredWidth(8.dp)
@@ -90,9 +89,8 @@ fun MessageBubbleContainer(
                         Spacer(Modifier.requiredWidth(8.dp))
                     }
                 }
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = messageBackground,
+                ThemedSurface(
+                    style = messageBubbleStyle,
                 ) {
                     Box(modifier = Modifier.width(IntrinsicSize.Max)) {
                         MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = true }, content)
@@ -108,7 +106,7 @@ fun MessageBubbleContainer(
                     Box(
                         Modifier
                             .background(
-                                messageBackground,
+                                messageBubbleStyle.color,
                                 shape = ChatEdgeRight(with(LocalDensity.current) { 8.dp.roundToPx() })
                             )
                             .zIndex(-1f)

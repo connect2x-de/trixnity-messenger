@@ -82,6 +82,7 @@ interface RoomListViewModelFactory {
         onSendLogs: () -> Unit,
         onOpenAccountsOverview: () -> Unit,
         onAccountSelected: () -> Unit,
+        onCloseRoom: () -> Unit
     ): RoomListViewModel {
         return RoomListViewModelImpl(
             viewModelContext,
@@ -94,6 +95,7 @@ interface RoomListViewModelFactory {
             onSendLogs,
             onOpenAccountsOverview,
             onAccountSelected,
+            onCloseRoom
         )
     }
 
@@ -162,6 +164,7 @@ class RoomListViewModelImpl(
     private val onSendLogs: () -> Unit,
     private val onOpenAccountsOverview: () -> Unit,
     private val onAccountSelected: () -> Unit, // TODO provide userId as argument?
+    onCloseRoom: () -> Unit
 ) : ViewModelContext by viewModelContext, RoomListViewModel {
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
@@ -308,7 +311,7 @@ class RoomListViewModelImpl(
                 allRoomsFlow,
                 directRoomsFlow,
                 searchedRoomsFlow,
-            ) { roomsWithMeta, directRooms, searchedRooms ->
+            ) { roomsWithMeta, _, searchedRooms ->
                 data class SortableRoom(
                     val roomWithMatrixClient: RoomWithMatrixClient,
                     val sortTime: Instant?,
@@ -319,11 +322,11 @@ class RoomListViewModelImpl(
                         val isSpace = room.createEventContent?.type == RoomType.Space
                         val includedInSearch = searchedRooms.contains(room.roomId)
                         val isDisplayed = !isSpace &&
-                                (room.membership == Membership.INVITE || room.membership == Membership.JOIN) &&
+                                (room.membership == Membership.INVITE || room.membership == Membership.JOIN || room.membership == Membership.LEAVE) &&
                                 includedInSearch
                         isDisplayed
                     }.onEach { log.trace { "filtered rooms: $it" } }
-                    .map<RoomWithMatrixClient, SortableRoom> { roomWithMeta ->
+                    .map { roomWithMeta ->
                         // Use `map` to get the creation time here since `sortedByDescending` won't support suspended function calls.
                         val room = roomWithMeta.room
                         val lastRelevantEventTime = room.lastRelevantEventTimestamp
@@ -337,10 +340,10 @@ class RoomListViewModelImpl(
                                 else -> lastRelevantEventTime
                             }
                         SortableRoom(roomWithMeta, sortTime)
-                    }.toList<SortableRoom>()
-                    .sortedByDescending<SortableRoom, Instant> { (_, sortTime) -> sortTime }
-                    .asFlow<SortableRoom>()
-                    .map<SortableRoom, RoomWithMatrixClient> { it.roomWithMatrixClient }
+                    }.toList()
+                    .sortedByDescending { (_, sortTime) -> sortTime }
+                    .asFlow()
+                    .map { it.roomWithMatrixClient }
                     .toList()
                     .associate { it.room.roomId to it.matrixClient.userId }
 
@@ -363,6 +366,7 @@ class RoomListViewModelImpl(
                                 ),
                                 roomId,
                                 onRoomSelected = { onRoomSelected(userId, roomId) },
+                                onCloseRoom = { onCloseRoom() }
                             ).also {
                                 elementCache[roomId] = RoomListElementViewModelWrapper(it, lifecycleRegistry)
                             }

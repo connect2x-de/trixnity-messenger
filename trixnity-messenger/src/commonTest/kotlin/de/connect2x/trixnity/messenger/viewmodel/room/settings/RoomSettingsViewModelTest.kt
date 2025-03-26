@@ -141,17 +141,14 @@ class RoomSettingsViewModelTest {
                 eq(roomId), any(), eqNull()
             )
         } returns Result.success(Unit)
-        val onBackMock = mock<Function0<Unit>> {
-            every { invoke() } returns Unit
-        }
-        val cut = roomSettingsViewModel(onBackMock)
+
+        val cut = roomSettingsViewModel()
 
         cut.leaveRoom()
         yield()
 
         verifySuspend {
             roomsApiClientMock.leaveRoom(eq(roomId), any(), eqNull())
-            onBackMock()
         }
     }
 
@@ -245,7 +242,7 @@ class RoomSettingsViewModelTest {
                 userId = me,
             ),
             selectedRoomId = roomId,
-            onLeaveRoom = onBackMock,
+            onCloseRoom = onBackMock,
             onCloseRoomSettings = mock(),
             onOpenAvatarCutter = { _, _, _ -> },
             onOpenAddMembers = mock(),

@@ -5,10 +5,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -18,10 +16,11 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.WarningDialog
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
 interface RoomSettingsLeaveRoomView {
@@ -39,12 +38,9 @@ class RoomSettingsLeaveRoomViewImpl : RoomSettingsLeaveRoomView {
     override fun create(roomSettingsViewModel: RoomSettingsViewModel) {
         val leaveRoomSettingEntryText = roomSettingsViewModel.leaveRoomSettingEntryText.collectAsState().value
         Row(verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(
+            ThemedButton(
+                style = MaterialTheme.components.destructiveButton,
                 onClick = { roomSettingsViewModel.openLeaveRoomWarningDialog() },
-                modifier = Modifier.buttonPointerModifier(),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                )
             ) {
                 Icon(Icons.AutoMirrored.Filled.Logout, leaveRoomSettingEntryText)
                 Spacer(Modifier.size(10.dp))
@@ -60,6 +56,7 @@ class RoomSettingsLeaveRoomViewImpl : RoomSettingsLeaveRoomView {
 @Composable
 fun RoomSettingsLeaveRoomWarning(roomSettingsViewModel: RoomSettingsViewModel) {
     val i18n = DI.get<I18nView>()
+    val isLeave = roomSettingsViewModel.isLeave.collectAsState().value
     val leaveRoomWarningMessage = roomSettingsViewModel.leaveRoomWarningMessage.collectAsState().value
     val leaveRoomWarningTitle = roomSettingsViewModel.leaveRoomWarningTitle.collectAsState().value
     val leaveRoomWarningConfirmButtonText =
@@ -71,6 +68,13 @@ fun RoomSettingsLeaveRoomWarning(roomSettingsViewModel: RoomSettingsViewModel) {
         dismissButtonText = i18n.commonCancel().capitalize(Locale.current),
         confirmButtonText = leaveRoomWarningConfirmButtonText,
         dismissAction = { roomSettingsViewModel.closeLeaveRoomWarningDialog() },
-        confirmAction = { roomSettingsViewModel.leaveRoom(); roomSettingsViewModel.closeLeaveRoomWarningDialog() }
+        confirmAction = {
+            if (isLeave) {
+                roomSettingsViewModel.forgetRoom()
+            } else {
+                roomSettingsViewModel.leaveRoom()
+            }
+            roomSettingsViewModel.closeLeaveRoomWarningDialog()
+        }
     )
 }
