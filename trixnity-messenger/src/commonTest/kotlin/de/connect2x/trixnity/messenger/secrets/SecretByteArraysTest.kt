@@ -154,6 +154,23 @@ class SecretByteArraysTest {
     }
 
     @Test
+    fun `getInputKeyAndExtra - should use key chain`() = runTest {
+        val extra1 = JsonObject(mapOf("p1" to JsonPrimitive("v1")))
+        val extra2 = JsonObject(mapOf("p1" to JsonPrimitive("v1")))
+        secretByteArrayKeyProviders = listOf(provider1, provider2)
+        settings.update<MatrixMessengerSettingsBase> {
+            MatrixMessengerSettingsBase(
+                secretByteArrayKeyInfos = mapOf(
+                    "provider-1" to SecretByteArrayKeyInfo(extra = extra1),
+                    "provider-2" to SecretByteArrayKeyInfo(dependsOn = "provider-1", extra2),
+                )
+            )
+        }
+        cut.getInputKeyAndExtra("provider-2") shouldBe
+                SecretByteArrays.GetInputKeyAndExtraResult(getInputKey = aesKey1, extra = extra2)
+    }
+
+    @Test
     fun `rotateKeys - should use key chain`() = runTest {
         val extra1 = JsonObject(mapOf("p1" to JsonPrimitive("v1")))
         val extra2 = JsonObject(mapOf("p2" to JsonPrimitive("v2")))
