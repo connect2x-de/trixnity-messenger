@@ -1,10 +1,10 @@
 plugins {
-    id("application")
-    kotlin("jvm")
-    kotlin("plugin.serialization") version libs.versions.kotlin.get() // for creation of Emojis.kt
+    application
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
 }
 
-val jvmTarget = libs.versions.kotlinJvmTarget.get().toInt()
+val jvmTarget = libs.versions.jvmTarget.get().toInt()
 
 java {
     toolchain {

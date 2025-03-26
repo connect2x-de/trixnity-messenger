@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.kotlinx.kover) apply false
     alias(libs.plugins.android.library) apply false
@@ -16,6 +17,7 @@ plugins {
 allprojects {
     group = "de.connect2x"
     version = withVersionSuffix(rootProject.libs.versions.trixnityMessenger)
+
     if (System.getenv("WITH_LOCK")?.toBoolean() == true) {
         dependencyLocking {
             lockAllConfigurations()
