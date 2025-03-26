@@ -172,4 +172,3 @@ actual fun PDFReader(
         VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), lazyListState, false)
     }
 }
-

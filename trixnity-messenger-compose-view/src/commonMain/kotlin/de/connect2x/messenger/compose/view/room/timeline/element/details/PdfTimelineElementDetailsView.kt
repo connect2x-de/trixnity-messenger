@@ -61,7 +61,6 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         val state = rememberTransformableState { zoomChange, offsetChange, _ ->
             zoom.value = (zoom.value * zoomChange).coerceIn(0.8f, 4f)
             offset.value = offset.value + offsetChange.times(zoom.value)
-
         }
         val canZoom = remember { mutableStateOf(false) }
         val i18n = DI.current.get<I18nView>()

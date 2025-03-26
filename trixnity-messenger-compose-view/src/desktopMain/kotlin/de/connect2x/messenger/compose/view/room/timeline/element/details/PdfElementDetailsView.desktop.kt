@@ -3,7 +3,6 @@ package de.connect2x.messenger.compose.view.room.timeline.element.details
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.TransformableState
-import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.horizontalScroll
