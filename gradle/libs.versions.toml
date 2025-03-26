@@ -3,12 +3,14 @@ jvmTarget = "17"
 kotlinJvmTarget = "11"
 kotlin = "2.1.10" # https://github.com/JetBrains/kotlin/releases
 
+trixnityMessenger = "3.5.1"
+trixnityMessengerApp = "1.0.0"
+appName = "Trixnity Messenger"
+appId = "de.connect2x.messenger"
+
 androidCompileSDK = "35"
 androidMinimalSDK = "28"
 androidTargetSDK = "34"
-messenger = "1.0.0"
-appName = "Trixnity Messenger"
-appId = "de.connect2x.messenger"
 
 trixnity = "4.13.5" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages

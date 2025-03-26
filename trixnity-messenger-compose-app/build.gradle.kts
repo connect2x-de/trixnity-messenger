@@ -12,7 +12,7 @@ plugins {
     // TODO active when you want to use google-services for notifications (needs google-services.json)   id("com.google.gms.google-services")
 }
 
-val version = libs.versions.messenger.get()
+val version = libs.versions.trixnityMessengerApp.get()
 val appName = libs.versions.appName.get()
 val appId = libs.versions.appId.get()
 
@@ -160,7 +160,7 @@ compose {
                 targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
                 appResourcesRootDir.set(layout.buildDirectory) // @see https://github.com/JetBrains/compose-jb/tree/master/tutorials/Native_distributions_and_local_execution#jvm-resource-loading
                 packageName = appId
-                packageVersion = libs.versions.messenger.get()
+                packageVersion = libs.versions.trixnityMessengerApp.get()
 
                 windows {
                     menu = true

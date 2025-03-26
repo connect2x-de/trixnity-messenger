@@ -15,7 +15,7 @@ plugins {
 
 allprojects {
     group = "de.connect2x"
-    version = withVersionSuffix("3.5.1")
+    version = withVersionSuffix(rootProject.libs.versions.trixnityMessenger)
     if (System.getenv("WITH_LOCK")?.toBoolean() == true) {
         dependencyLocking {
             lockAllConfigurations()
