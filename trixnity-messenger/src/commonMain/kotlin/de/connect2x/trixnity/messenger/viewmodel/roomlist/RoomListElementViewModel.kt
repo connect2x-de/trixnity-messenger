@@ -357,6 +357,8 @@ open class RoomListElementViewModelImpl(
                     error.value = i18n.roomListInvitationError()
                 }
             )
+
+            forgetRoom()
         }
     }
 
