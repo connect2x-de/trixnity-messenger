@@ -1,8 +1,8 @@
 [versions]
+jvmTarget = "17"
 kotlinJvmTarget = "11"
 kotlin = "2.1.10" # https://github.com/JetBrains/kotlin/releases
 
-jvmTarget = "17"
 androidCompileSDK = "35"
 androidMinimalSDK = "28"
 androidTargetSDK = "34"
@@ -85,6 +85,7 @@ ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktor-client-java = { module = "io.ktor:ktor-client-java", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlinLogging" }
@@ -114,17 +115,16 @@ kim = { module = "com.ashampoo:kim", version.ref = "kim" }
 markdown = { module = "org.jetbrains:markdown", version.ref = "markdown" }
 pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu4j" }
+mokkery-coroutines = { module = "dev.mokkery:mokkery-coroutines", version.ref = "mokkery" }
 
 # ui
 logback-android = { module = "com.github.tony19:logback-android", version.ref = "logbackAndroid" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 decompose-extensions = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
 compose-richeditor = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richeditor" }
 qrcode = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrCodeKotlin" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidxBrowser" }
-gms-google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinxCoroutines" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workManager" }
@@ -137,25 +137,34 @@ filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "file
 ui-test-junit4-android = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "composeUiTest" }
 ui-test-android-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "composeUiTest" }
 androidx-test-monitor = { module = "androidx.test:monitor", version.ref = "androidTestMonitor" }
-mokkery-coroutines = { module = "dev.mokkery:mokkery-coroutines", version.ref = "mokkery" }
 androidx-autofill = { module = "androidx.autofill:autofill", version.ref = "autofill" }
 
 [bundles]
 kotest = ["kotest-common", "kotest-engine-framework", "kotest-assertion-core"]
 jna = ["jna", "jna-platform"]
 testcontainers = ["testcontainers", "testcontainers-junit-jupiter"]
-# ui
-android-common = ["androidx-appcompat", "androidx-work-runtime-ktx", "androidx-lifecycle-livedata-ktx", "androidx-activity-compose", "logback-android"]
+
+android-common = [
+    "androidx-appcompat",
+    "androidx-work-runtime-ktx",
+    "androidx-lifecycle-livedata-ktx",
+    "androidx-activity-compose",
+    "logback-android"
+]
 
 [plugins]
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kotlinx-kover" }
+android-library = { id = "com.android.library", version.ref = "androidGradle" }
+android-application = { id = "com.android.application", version.ref = "androidGradle" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 kotest = { id = "io.kotest.multiplatform", version.ref = "kotest" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 skie = { id = "co.touchlab.skie", version.ref = "skie" }
 kmmbridge = { id = "co.touchlab.kmmbridge.gitlab", version.ref = "kmmBridge" }
 mokkery = { id = "dev.mokkery", version.ref = "mokkery" }
-kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kotlinx-kover" }
-
-# ui
 aboutlibraries-plugin = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }
+
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
