@@ -59,7 +59,7 @@ class RoomListElementViewImpl : RoomListElementView {
             MatrixClientColor(roomListElementViewModel)
             Row(
                 Modifier
-                    .height(90.dp)
+                    .height(72.dp)
                     .padding(top = 10.dp, bottom = 10.dp, end = 10.dp)
                     .placeholder(
                         visible = !isLoaded,
