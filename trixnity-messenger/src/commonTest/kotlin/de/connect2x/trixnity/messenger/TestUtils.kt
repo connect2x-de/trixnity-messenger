@@ -14,7 +14,8 @@ import dev.mokkery.resetCalls
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.errorCollector
 import io.kotest.assertions.withClue
-import io.kotest.core.names.TestName
+import io.kotest.common.KotestInternal
+import io.kotest.core.names.TestNameBuilder
 import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.spec.style.scopes.RootTestWithConfigBuilder
@@ -169,11 +170,12 @@ fun TestScope.testMatrixClientViewModelContext(di: Koin, userId: UserId) = objec
  * setting `coroutineTestScope` is causing any issues or possibly
  * if multiple tests in the same file have an identical name.
  */
+@OptIn(KotestInternal::class)
 fun ShouldSpec.shouldGroup(contextName: String, test: suspend ShouldSpecContainerScope.() -> Unit) {
     // TODO: Add optional config parameter to control test container behavior for our use cases.
     //  this would allow us to set per-testcase configs
     val config = testConfig(this)
-    addTest(TestName("context ", contextName, false), false, config, TestType.Test) {
+    addTest(TestNameBuilder.builder(contextName).build(), false, config) {
         ShouldSpecContainerScope(this).test()
     }
 }
@@ -184,6 +186,7 @@ fun ShouldSpec.shouldGroup(contextName: String, test: suspend ShouldSpecContaine
  *
  * Currently matches the implementation of ShouldSpecContainerScope.kt/context(name, test)
  */
+@OptIn(KotestInternal::class)
 suspend fun ShouldSpecContainerScope.shouldGroup(
     contextName: String,
     test: suspend ShouldSpecContainerScope.() -> Unit,
@@ -191,11 +194,12 @@ suspend fun ShouldSpecContainerScope.shouldGroup(
     // TODO: Add optional config parameter to control test container behavior for our use cases.
     //  this would allow us to set per-testcase configs
     val config = testConfig(this.testScope.testCase.spec)
-    registerTest(TestName(contextName), false, config, TestType.Test) {
+    registerTest(TestNameBuilder.builder(contextName).build(), false, config, TestType.Test) {
         ShouldSpecContainerScope(this).test()
     }
 }
 
+@OptIn(KotestInternal::class)
 private fun testConfig(spec: Spec): TestConfig {
     val config = TestConfig(
         timeout = spec.timeout?.milliseconds ?: 15.seconds,
@@ -204,7 +208,6 @@ private fun testConfig(spec: Spec): TestConfig {
         coroutineTestScope = spec.coroutineTestScope, // ?: true,
         coroutineDebugProbes = true,
         blockingTest = true,
-        threads = spec.threads ?: 1,
 //        assertionMode = ,
 //        assertSoftly = ,
 //        concurrency = concurrency ?: 1,
@@ -220,6 +223,7 @@ private fun testConfig(spec: Spec): TestConfig {
  * should("test something").withCleanup { ... }
  * ```
  */
+@OptIn(KotestInternal::class)
 fun RootTestWithConfigBuilder.withCleanup(test: suspend TestScope.() -> Unit): Unit =
     config { runTest(test) }
 
@@ -233,11 +237,13 @@ fun RootTestWithConfigBuilder.withCleanup(test: suspend TestScope.() -> Unit): U
  * }
  * ```
  */
+@OptIn(KotestInternal::class)
 suspend fun TestWithConfigBuilder.withCleanup(test: suspend TestScope.() -> Unit): Unit =
     config { runTest(test) }
 
+@OptIn(KotestInternal::class)
 private suspend fun TestScope.runTest(test: suspend TestScope.() -> Unit) {
-    val testName = "should " + testCase.name.testName
+    val testName = "should " + testCase.name.name
     log.debug { "- - starting test: <$testName>" }
     test()
     cancelNeverEndingCoroutines()
