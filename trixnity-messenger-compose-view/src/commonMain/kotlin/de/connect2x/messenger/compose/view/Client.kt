@@ -2,11 +2,13 @@ package de.connect2x.messenger.compose.view
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.root.RootSwitch
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.uia.UiaSwitch
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
 import org.koin.core.Koin
@@ -48,8 +50,9 @@ fun Client(rootViewModel: RootViewModel) {
 class ClientViewImpl : ClientView {
     @Composable
     override fun create(rootViewModel: RootViewModel) {
-        Surface(
-            Modifier
+        ThemedSurface(
+            style = MaterialTheme.components.background,
+            modifier = Modifier
                 .fillMaxSize()
                 .safeDrawingPadding()
         ) {

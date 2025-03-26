@@ -28,7 +28,10 @@ import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -41,6 +44,7 @@ import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
@@ -157,7 +161,7 @@ suspend fun MatrixMessengerWithRoot.registerAccountWithToken(serverUrl: String, 
         }
     }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 suspend fun MatrixMessengerWithRoot.createChatWithUser(username: String) = with(root) {
     withTimeout(15.seconds) {
         log.info { "create a chat with user '$username'" }
@@ -175,13 +179,15 @@ suspend fun MatrixMessengerWithRoot.createChatWithUser(username: String) = with(
         val sortedRoomListElementViewModels = roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
             .viewModel.elements
         sortedRoomListElementViewModels.flatMapLatest { roomListElements ->
-            combine(roomListElements.map { it.roomName }) { roomNames ->
-                log.debug { "roomNames: ${roomNames.joinToString { it ?: "<unknown>" }}" }
-                roomNames.any { it == username }
+            combine(roomListElements.filter { !it.isLeave.debounce(100.milliseconds).filterNotNull().first() }
+                .map { it.roomName }) { names ->
+                log.debug { "roomNames: ${names.joinToString { it ?: "<unknown>" }}" }
+                names.any { it == username }
             }
         }.first { it }
         log.debug { "found room -> return" }
-        sortedRoomListElementViewModels.value.first { it.roomName.value == username }
+        sortedRoomListElementViewModels.value.filter { !it.isLeave.debounce(100.milliseconds).filterNotNull().first() }
+            .first { it.roomName.value == username }
     }
 }
 
@@ -226,7 +232,7 @@ suspend fun MatrixMessengerWithRoot.rejectTheInvitationToRoomAndBlock(roomId: Ro
         findRoomWithId(roomId).rejectInvitationAndBlockInviter()
         stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
             .roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
-            .elements.first { it.none { it.roomId == roomId } }
+            .elements.first { it.count { it.roomId == roomId } == 1 }
         Unit
     }
 }
@@ -237,14 +243,13 @@ suspend fun MatrixMessengerWithRoot.acceptInvitationToRoom(roomId: RoomId) = wit
         val roomListElementViewModel = findRoomWithId(roomId)
         roomListElementViewModel.isInvite.first { it == true }
         roomListElementViewModel.acceptInvitation()
-        val roomName = roomListElementViewModel.roomName.first {
-            it?.startsWith("invitation")?.not() ?: false
-        }
+        val roomName = roomListElementViewModel.roomName.first { it?.startsWith("invitation")?.not() == true }
         log.info { "accepted invitation to room $roomId -> check whether room is open" }
         val timelineViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
             .roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
             .timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
-        timelineViewModel.roomHeaderViewModel.roomHeaderInfo.map { it.roomName }.first { it == roomName }
+        timelineViewModel.roomHeaderViewModel.roomHeaderInfo.filter { !it.isLeave }
+            .map { it.roomName }.first { it == roomName }
     }
 }
 
@@ -264,7 +269,7 @@ suspend fun MatrixMessengerWithRoot.leaveRoom(roomId: RoomId) = with(root) {
         log.debug { "left room $roomId" }
         mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.None::class)
         roomListViewModel.elements.first { roomListElements ->
-            roomListElements.none { it.roomId == roomId }
+            roomListElements.count { it.roomId == roomId } == 1
         }
         log.debug { "left room is no longer in room list" }
     }

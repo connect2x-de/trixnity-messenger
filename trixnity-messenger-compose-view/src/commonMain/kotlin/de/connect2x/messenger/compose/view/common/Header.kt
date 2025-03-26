@@ -36,6 +36,8 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 
 
 @Composable
@@ -65,9 +67,8 @@ fun Header(
     val headerHeight = headerHeightFlow.collectAsState().value
     val density = LocalDensity.current
 
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp,
+    ThemedSurface(
+        style = MaterialTheme.components.header,
     ) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {

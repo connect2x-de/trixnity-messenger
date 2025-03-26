@@ -39,6 +39,7 @@ import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
+import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
@@ -62,11 +63,8 @@ interface RoomListElementViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId,
         onRoomSelected: () -> Unit,
-    ): RoomListElementViewModel {
-        return RoomListElementViewModelImpl(
-            viewModelContext, roomId, onRoomSelected,
-        )
-    }
+        onCloseRoom: () -> Unit
+    ): RoomListElementViewModel = RoomListElementViewModelImpl(viewModelContext, roomId, onRoomSelected, onCloseRoom)
 
     companion object : RoomListElementViewModelFactory
 }
@@ -74,9 +72,11 @@ interface RoomListElementViewModelFactory {
 interface RoomListElementViewModel {
     val account: UserId
     val roomId: RoomId
+    val isLoaded: StateFlow<Boolean>
     val error: StateFlow<String?>
     val isDirect: StateFlow<Boolean?>
     val isInvite: StateFlow<Boolean?>
+    val isLeave: StateFlow<Boolean?>
     val inviterUserInfo: StateFlow<UserInfoElement?>
     val isEncrypted: StateFlow<Boolean?>
     val isPublic: StateFlow<Boolean?>
@@ -92,6 +92,7 @@ interface RoomListElementViewModel {
     fun acceptInvitation()
     fun rejectInvitation()
     fun rejectInvitationAndBlockInviter()
+    fun forgetRoom()
     fun clearError()
 }
 
@@ -100,6 +101,7 @@ open class RoomListElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val roomId: RoomId,
     private val onRoomSelected: () -> Unit,
+    private val onRoomClose: () -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, RoomListElementViewModel {
     private val roomInviter = get<RoomInviter>()
     private val userPresence = get<UserPresence>()
@@ -125,6 +127,9 @@ open class RoomListElementViewModelImpl(
             .stateIn(coroutineScope, WhileSubscribed(), null)
     override val isInvite: StateFlow<Boolean?> =
         roomFlow.map { it.membership == Membership.INVITE }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
+    override val isLeave: StateFlow<Boolean?> =
+        roomFlow.map { it.membership == Membership.LEAVE }
             .stateIn(coroutineScope, WhileSubscribed(), null)
     private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
 
@@ -260,6 +265,14 @@ open class RoomListElementViewModelImpl(
             .map { it?.presence }
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
+    override val isLoaded: StateFlow<Boolean> =
+        combine(
+            roomName,
+            isInvite,
+            lastMessage
+        ) { roomName, isInvite, lastMessage -> roomName != null && isInvite != null && lastMessage != null }
+            .stateIn(coroutineScope, WhileSubscribed(), false)
+
     override fun acceptInvitation() {
         coroutineScope.launch {
             if (matrixClient.syncState.value == SyncState.ERROR) {
@@ -299,6 +312,32 @@ open class RoomListElementViewModelImpl(
                     error.value = i18n.blockUserError(inviter.full)
                 }
             }
+        }
+    }
+
+    override fun forgetRoom() {
+        coroutineScope.launch {
+            if (matrixClient.syncState.value != SyncState.RUNNING) {
+                error.value = i18n.forgetRoomErrorOffline()
+                return@launch
+            }
+
+            matrixClient.api.room.forgetRoom(roomId).fold(
+                onSuccess = {},
+                onFailure = {
+                    if (it !is MatrixServerException) {
+                        return@launch
+                    }
+
+                    log.error(it) { "cannot forget room $roomId" }
+                    error.value = i18n.forgetRoomError(
+                        if (isDirect.value == true) i18n.eventChangeChatGenitive()
+                        else i18n.eventChangeGroupGenitive()
+                    )
+                }
+            )
+            matrixClient.room.forgetRoom(roomId)
+            onRoomClose()
         }
     }
 
@@ -343,8 +382,10 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     private val roomId1 = RoomId("1", "localhost")
     override val account: UserId = UserId("user", "server")
     override val roomId: RoomId = roomId1
+    override val isLoaded: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isDirect: MutableStateFlow<Boolean?> = MutableStateFlow(true)
+    override val isLeave: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isInvite: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val inviterUserInfo: StateFlow<UserInfoElement?> = MutableStateFlow(null)
     override val isEncrypted: MutableStateFlow<Boolean?> = MutableStateFlow(true)
@@ -360,6 +401,7 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
+    override fun forgetRoom() {}
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
 }
@@ -368,8 +410,10 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     private val roomId2 = RoomId("2", "localhost")
     override val account: UserId = UserId("0", "server")
     override val roomId: RoomId = roomId2
+    override val isLoaded: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isDirect: MutableStateFlow<Boolean?> = MutableStateFlow(false)
+    override val isLeave: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isInvite: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isEncrypted: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val inviterUserInfo: StateFlow<UserInfoElement?> = MutableStateFlow(null)
@@ -386,6 +430,7 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
+    override fun forgetRoom() {}
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
 }
@@ -394,8 +439,10 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     private val roomId3 = RoomId("3", "localhost")
     override val account: UserId = UserId("1", "server")
     override val roomId: RoomId = roomId3
+    override val isLoaded: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isDirect: MutableStateFlow<Boolean?> = MutableStateFlow(true)
+    override val isLeave: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isInvite: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isEncrypted: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val isPublic: MutableStateFlow<Boolean?> = MutableStateFlow(true)
@@ -412,6 +459,7 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
+    override fun forgetRoom() {}
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
 }
@@ -420,7 +468,9 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     private val roomId3 = RoomId("4", "localhost")
     override val account: UserId = UserId("1", "server")
     override val roomId: RoomId = roomId3
+    override val isLoaded: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val isLeave: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isDirect: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val isInvite: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val inviterUserInfo: StateFlow<UserInfoElement?> = MutableStateFlow(null)
@@ -438,6 +488,7 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
+    override fun forgetRoom() {}
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
 }

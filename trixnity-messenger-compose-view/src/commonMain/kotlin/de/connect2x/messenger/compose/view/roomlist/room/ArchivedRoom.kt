@@ -4,15 +4,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -22,6 +23,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -31,59 +34,52 @@ import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.theme.components
-import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.util.TextLabel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
-interface InviteRoomListElement {
+interface ArchivedRoomListElement {
     @Composable
     fun create(roomListElementViewModel: RoomListElementViewModel)
 }
 
 @Composable
-fun Invite(
-    roomListElementViewModel: RoomListElementViewModel,
-) {
-    DI.get<InviteRoomListElement>().create(roomListElementViewModel)
+fun ArchivedRoom(roomListElementViewModel: RoomListElementViewModel) {
+    DI.get<ArchivedRoomListElement>().create(roomListElementViewModel)
 }
 
-class InviteRoomListElementImpl : InviteRoomListElement {
+class ArchivedRoomListElementImpl : ArchivedRoomListElement {
     @Composable
     override fun create(roomListElementViewModel: RoomListElementViewModel) {
         val i18n = DI.get<I18nView>()
-        var showReject by remember { mutableStateOf(false) }
-        val roomName = roomListElementViewModel.roomName.collectAsState().value
-        val inviterUserInfo = roomListElementViewModel.inviterUserInfo.collectAsState().value
+        var showWarning by remember { mutableStateOf(false) }
 
         SpecialRoomComponent(
             roomListElementViewModel = roomListElementViewModel,
             extraInfo = {
-                inviterUserInfo?.let { inviterUserInfo ->
-                    RoomInviterUserInfo(inviterNameOrUserId = inviterUserInfo.name)
-                    RoomInviterUserInfo(inviterNameOrUserId = inviterUserInfo.userId.full)
-                }
+                Spacer(Modifier.size(5.dp))
+                TextLabel(i18n.commonArchived())
             }
         ) {
-            IconButton({ roomListElementViewModel.acceptInvitation() }, Modifier.buttonPointerModifier()) {
-                Icon(Icons.Default.Check, i18n.invitationAccept())
-            }
-            IconButton({ showReject = true }, Modifier.buttonPointerModifier()) {
-                Icon(Icons.Default.Close, i18n.invitationReject())
+            IconButton({ showWarning = true }, Modifier.buttonPointerModifier()) {
+                Icon(Icons.Default.Delete, null)
             }
         }
 
-        if (showReject) {
-            Dialog(onDismissRequest = { showReject = false }) {
+        if (showWarning) {
+            val roomName = roomListElementViewModel.roomName.collectAsState().value
+            val isDirect = roomListElementViewModel.isDirect.collectAsState().value
+
+            Dialog(onDismissRequest = { showWarning = false }) {
                 MessengerModal(
-                    onDismiss = { showReject = false },
+                    onDismiss = { showWarning = false },
                     width = 500.dp,
-                    title = i18n.invitationRejectHeader(),
+                    title = i18n.forgetRoomWarningHeader()
                 ) {
                     MessengerModalContent {
                         Text(
-                            text = i18n.formattedInvitationBody(
-                                inviterName = inviterUserInfo?.name ?: i18n.commonUnknown(),
-                                roomName = roomName,
+                            text = i18n.formattedForgetRoomWarningBody(
+                                isDirect = isDirect == true,
+                                roomName = roomName
                             ),
                             style = MaterialTheme.typography.titleSmall
                         )
@@ -93,21 +89,20 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                             modifier = Modifier.height(IntrinsicSize.Min)
                         ) {
                             Box(Modifier.weight(1.0f, fill = true), contentAlignment = Alignment.Center) {
-                                ThemedButton(
-                                    style = MaterialTheme.components.primaryButton,
-                                    onClick = { roomListElementViewModel.rejectInvitation() },
-                                    modifier = Modifier.fillMaxSize(),
+                                Button(
+                                    onClick = { roomListElementViewModel.forgetRoom(); showWarning = false },
+                                    modifier = Modifier.buttonPointerModifier().width(250.dp),
                                 ) {
-                                    Text(i18n.invitationReject())
+                                    Text(i18n.commonConfirm().capitalize(Locale.current))
                                 }
                             }
                             Spacer(Modifier.size(20.dp))
                             Box(Modifier.weight(1.0f, fill = true), contentAlignment = Alignment.Center) {
-                                ThemedButton(
-                                    style = MaterialTheme.components.commonButton,
-                                    onClick = { roomListElementViewModel.rejectInvitationAndBlockInviter() },
+                                OutlinedButton(
+                                    onClick = { showWarning = false },
+                                    modifier = Modifier.buttonPointerModifier().width(250.dp),
                                 ) {
-                                    Text(i18n.invitationBlock(), textAlign = TextAlign.Center)
+                                    Text(i18n.commonBack().capitalize(Locale.current), textAlign = TextAlign.Center)
                                 }
                             }
                         }
@@ -115,14 +110,5 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                 }
             }
         }
-    }
-
-    @Composable
-    fun RoomInviterUserInfo(inviterNameOrUserId: String) {
-        Text(
-            inviterNameOrUserId,
-            style = MaterialTheme.typography.labelMedium,
-            maxLines = 1,
-        )
     }
 }

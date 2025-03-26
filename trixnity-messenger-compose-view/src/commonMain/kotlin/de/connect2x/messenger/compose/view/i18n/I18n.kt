@@ -21,6 +21,10 @@ open class I18nView(
     getSystemLang: GetSystemLang,
     timeZone: TimeZone,
 ) : I18nBase(lang, messengerSettings, getSystemLang, timeZone) {
+    open fun commonArchived() = translate {
+        EN - "Archived"
+        DE - "Archiviert"
+    }
 
     open fun commonContextMenu() = translate {
         EN - "context menu"
@@ -2605,6 +2609,16 @@ open class I18nView(
     open fun appearanceAccentColorHeading() = translate {
         EN - "Accent Color"
         DE - "Akzentfarbe"
+    }
+
+    open fun forgetRoomWarningHeader() = translate {
+        EN - "Forget room?"
+        DE - "Raum vergessen?"
+    }
+
+    open fun formattedForgetRoomWarningBody(roomName: String?, isDirect: Boolean) = translate {
+        EN - "Do you really want to forget ${if (isDirect) "chat" else "group"} ${if (roomName != null) "'$roomName'" else ""}? If you continue, you can't access the room and it's content anymore."
+        DE - "Wollen Sie ${if (isDirect) "den Chat" else "die Gruppe"} ${if (roomName != null) "'$roomName'" else ""} wirklich vergessen? Wenn sie fortfahren, können Sie auf den Raum und dessen Inhalte nicht mehr zugreifen."
     }
 
     open fun formattedInvitationBody(inviterName: String, roomName: String?) = translate {

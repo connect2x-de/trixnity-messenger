@@ -28,7 +28,6 @@ import androidx.compose.material.icons.filled.DoorFront
 import androidx.compose.material.icons.filled.DoorSliding
 import androidx.compose.material.icons.filled.PersonOff
 import androidx.compose.material.icons.filled.Verified
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,6 +69,8 @@ import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
 import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel
@@ -585,14 +586,16 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Button(
-                        { userProfileViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog() },
-                        Modifier.buttonPointerModifier().weight(0.4f)
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
+                        onClick = { userProfileViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog() },
+                        modifier = Modifier.weight(0.4f)
                     ) {
                         Text(i18n.commonCancel().capitalize(Locale.current))
                     }
                     Spacer(Modifier.size(15.dp))
-                    Button(
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
                         enabled = changingPowerLevelDialogError == null && changePowerLevelInput.text != "",
                         onClick = {
                             userProfileViewModel.changePowerLevelViewModel.setPowerLevelTo(
@@ -600,8 +603,10 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                             )
                             userProfileViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog()
                         },
-                        modifier = Modifier.buttonPointerModifier().weight(0.4f)
-                    ) { Text(text = i18n.userProfileChangePowerLevel(), textAlign = TextAlign.Center) }
+                        modifier = Modifier.weight(0.4f)
+                    ) {
+                        Text(text = i18n.userProfileChangePowerLevel(), textAlign = TextAlign.Center)
+                    }
                 }
                 if (showPowerLevelHelp) {
                     Column(modifier = Modifier.align(alignment = Alignment.Start)) {
