@@ -1,12 +1,11 @@
+package de.connect2x.conventions
+
 import org.gradle.api.provider.Provider
 import java.time.Instant
 
-val isCI = System.getenv("CI") != null
-val isRelease = System.getenv("CI_COMMIT_TAG")?.matches("^v\\d+.\\d+.\\d+.*".toRegex()) ?: false
-
-fun withVersionSuffix(versionProvider: Provider<String>) {
+fun withVersionSuffix(versionProvider: Provider<String>): String {
     val version = versionProvider.get()
-    when {
+    return when {
         isRelease -> {
             val commitTagVersion = System.getenv("CI_COMMIT_TAG").removePrefix("v")
             check(version == commitTagVersion.substringBefore("-")) {
