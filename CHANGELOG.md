@@ -13,11 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Completely new SecretByteArray architecture, that allows to have a keychain
 
+- Reduce height of room list elements
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- Forgetting the room with invite after rejection of the invitation
 
 ### Security
 
