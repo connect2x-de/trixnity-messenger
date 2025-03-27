@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Forgetting the room with invite after rejection of the invitation
 - Correctly use test dispatcher
 - Fix tests on IOS
+- Fix wrong UriCaller encoding in web
 
 ### Security
 
