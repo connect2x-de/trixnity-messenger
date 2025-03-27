@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.export
 
 import externals.jszip.ZipWriterStream
 import js.typedarrays.Uint8Array
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import net.folivo.trixnity.utils.ByteArrayFlow
@@ -28,6 +29,8 @@ class WebZipFileBasedExportRoomSinkWriter(
     private val zipper = ZipWriterStream()
     private val fileStream = zipper.writable<String>(fileName)
     private val fileStreamWriter = fileStream.getWriter()
+
+    @OptIn(DelicateCoroutinesApi::class)
     private val pipeToDestination = GlobalScope.async {
         zipper.readable.pipeTo(destination.stream)
     }

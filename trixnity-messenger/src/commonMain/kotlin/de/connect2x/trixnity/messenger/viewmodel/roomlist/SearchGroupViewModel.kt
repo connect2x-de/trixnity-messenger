@@ -155,7 +155,7 @@ class SearchGroupViewModelImpl(
     )
     override fun joinGroup(roomId: RoomId) {
         coroutineScope.launch {
-            joinGroupInProgress.update { true }
+            enterGroupInProgress.update { true }
             try {
                 matrixClient.api.room.joinRoom(roomId)
                     .onFailure {
@@ -167,7 +167,7 @@ class SearchGroupViewModelImpl(
                         error.value = null
                     }
             } finally {
-                joinGroupInProgress.update { false }
+                enterGroupInProgress.update { false }
             }
         }
     }
