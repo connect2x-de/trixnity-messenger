@@ -613,6 +613,33 @@ class RoomListElementViewModelTest {
                 any(),
             )
         }
+
+        should("knocking - should unknock successfully") {
+            var left = false
+            everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } calls {
+                left = true
+                Result.success(Unit)
+            }
+
+            val cut = roomListElementViewModel(roomId, coroutineContext)
+            delay(500.milliseconds)
+
+            cut.unknock()
+            delay(500.milliseconds)
+
+            left shouldBe true
+        }
+
+        should("knocking - should handle unknock failure") {
+            everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } returns Result.failure(Throwable(""))
+
+            val cut = roomListElementViewModel(roomId, coroutineContext)
+            delay(500.milliseconds)
+
+            cut.unknock()
+            delay(500.milliseconds)
+            cut.error.value.shouldNotBeNull()
+        }
     }
 
     @Test
