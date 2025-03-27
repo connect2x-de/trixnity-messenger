@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Correctly use test dispatcher
 - Fix tests on IOS
 - Fix wrong UriCaller encoding in web
+- Removed duplicate device verification dialog
 
 ### Security
 
