@@ -12,6 +12,9 @@ import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
+import de.connect2x.trixnity.messenger.util.GraphemeIterable
+import de.connect2x.trixnity.messenger.util.GraphemeIterableProvider
+import de.connect2x.trixnity.messenger.util.PlatformGraphemeIterableProvider
 import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
@@ -27,6 +30,7 @@ import de.connect2x.trixnity.messenger.util.platformMinimizeAppModule
 import de.connect2x.trixnity.messenger.util.platformPathsModule
 import de.connect2x.trixnity.messenger.util.platformProcessImageUploadModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
+import de.connect2x.trixnity.messenger.util.platformStringsModule
 import de.connect2x.trixnity.messenger.util.platformUriCallerModule
 import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
@@ -128,6 +132,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactionsImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReaders
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReadersImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.InitialsImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviterImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
@@ -221,7 +226,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             }
 
             single<TimelineEventContentToString> { TimelineEventContentToStringImpl(get()) }
-            single<Initials> { Initials }
+            single<Initials> { InitialsImpl(get()) }
             single<VerifyAccount> { VerifyAccountImpl() }
             single<RelevantTimelineEvents> { RelevantTimelineEvents }
 
@@ -276,6 +281,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
     // Platform-specific implementations:
     ::platformModule,
     ::platformPathsModule,
+    ::platformStringsModule,
     ::platformCreateRepositoriesModuleModule,
     ::platformCreateMediaStoreModule,
     ::platformGetSecretByteArrayKey,

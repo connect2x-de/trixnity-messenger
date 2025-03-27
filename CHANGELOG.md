@@ -12,14 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Reduce height of room list elements
+- Use kotlin.test for all tests
 
 ### Deprecated
 
 ### Removed
 
+- Kotest as test engine
+
 ### Fixed
 
 - Forgetting the room with invite after rejection of the invitation
+- Correctly use test dispatcher
+- Fix tests on IOS
 
 ### Security
 

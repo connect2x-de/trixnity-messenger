@@ -1,18 +1,17 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
+import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
-import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.TestScope
-import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomUser
@@ -29,9 +28,10 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RedactionEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalStdlibApi::class)
-class RedactedTimelineElementViewModelTest : ShouldSpec() {
+class RedactedTimelineElementViewModelTest {
 
     private val roomId = RoomId("room1", "localhost")
     private val someUserId = UserId("bob", "localhost")
@@ -43,67 +43,59 @@ class RedactedTimelineElementViewModelTest : ShouldSpec() {
     val userServiceMock = mock<UserService>()
 
     init {
-        coroutineTestScope = true
+        resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
+        every { matrixClientMock.di } returns koinApplication {
+            modules(
+                module {
+                    single { roomServiceMock }
+                    single { userServiceMock }
+                })
+        }.koin
 
-        beforeTest {
-            resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
-            every { matrixClientMock.di } returns koinApplication {
-                modules(
-                    module {
-                        single { roomServiceMock }
-                        single { userServiceMock }
-                    }
-                )
-            }.koin
+        every { matrixClientMock.userId } returns ourUserId
+        every { userServiceMock.getById(roomId, someUserId) } returns roomUserFlow(ourUserId)
+    }
 
-            every { matrixClientMock.userId } returns ourUserId
-            every { userServiceMock.getById(roomId, someUserId) } returns roomUserFlow(ourUserId)
-        }
+    @Test
+    fun `create generic message`() = runTest {
+        every {
+            roomServiceMock.getTimelineEvent(roomId, eventId)
+        } returns redactedTimelineEventFLow(sender = someUserId, redactedBy = null)
+        val cut = cut()
+        backgroundScope.launch { cut.message.collect {} }
 
-        should("create generic message") {
-            every {
-                roomServiceMock.getTimelineEvent(roomId, eventId)
-            } returns redactedTimelineEventFLow(sender = someUserId, redactedBy = null)
-            val cut = cut()
-            val subscriberJob = launch { cut.message.collect {} }
-            advanceUntilIdle()
-
+        eventually(100.milliseconds) {
             cut.message.value shouldBe "This message has been deleted"
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-        should("create message when deleted by us") {
-            every {
-                roomServiceMock.getTimelineEvent(roomId, eventId)
-            } returns redactedTimelineEventFLow(sender = someUserId, redactedBy = ourUserId)
-            val cut = cut()
-            val subscriberJob = launch { cut.message.collect {} }
-            advanceUntilIdle()
-
-            cut.message.value shouldBe "You deleted this message"
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
-        }
-        should("create message when deleted by other user") {
-            every {
-                roomServiceMock.getTimelineEvent(roomId, eventId)
-            } returns redactedTimelineEventFLow(sender = someUserId, redactedBy = someUserId)
-
-            val cut = cut()
-            val subscriberJob = launch { cut.message.collect {} }
-            advanceUntilIdle()
-
-            cut.message.value shouldBe "message has been deleted by Other User"
-
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
         }
     }
 
+    @Test
+    fun `create message when deleted by us`() = runTest {
+        every {
+            roomServiceMock.getTimelineEvent(roomId, eventId)
+        } returns redactedTimelineEventFLow(sender = someUserId, redactedBy = ourUserId)
+        val cut = cut()
+        backgroundScope.launch { cut.message.collect {} }
 
-    @OptIn(ExperimentalStdlibApi::class)
+        eventually(100.milliseconds) {
+            cut.message.value shouldBe "You deleted this message"
+        }
+    }
+
+    @Test
+    fun `create message when deleted by other user`() = runTest {
+        every {
+            roomServiceMock.getTimelineEvent(roomId, eventId)
+        } returns redactedTimelineEventFLow(sender = someUserId, redactedBy = someUserId)
+
+        val cut = cut()
+        backgroundScope.launch { cut.message.collect {} }
+
+        eventually(100.milliseconds) {
+            cut.message.value shouldBe "message has been deleted by Other User"
+        }
+    }
+
     private fun TestScope.cut(): RedactedTimelineElementViewModelImpl {
         val di = koinApplication {
             modules(
@@ -114,9 +106,7 @@ class RedactedTimelineElementViewModelTest : ShouldSpec() {
             viewModelContext = testMatrixClientViewModelContext(
                 di = di,
                 userId = ourUserId,
-            ),
-            roomId = roomId,
-            eventId = eventId
+            ), roomId = roomId, eventId = eventId
         )
     }
 
@@ -137,27 +127,16 @@ class RedactedTimelineElementViewModelTest : ShouldSpec() {
                             roomId = roomId,
                             originTimestamp = 24L,
                         )
-                    }
-                )
-            ),
+                    })),
             previousEventId = null,
             nextEventId = null,
             gap = null,
-        )
-    )
+        ))
 
     private fun roomUserFlow(userId: UserId) = flowOf(
         RoomUser(
-            roomId,
-            userId,
-            "Other User",
-            event = ClientEvent.RoomEvent.StateEvent(
-                MemberEventContent(membership = Membership.JOIN),
-                EventId(""),
-                UserId(""),
-                RoomId(""),
-                0L,
-                stateKey = ""
+            roomId, userId, "Other User", event = ClientEvent.RoomEvent.StateEvent(
+                MemberEventContent(membership = Membership.JOIN), EventId(""), UserId(""), RoomId(""), 0L, stateKey = ""
             )
         )
     )
