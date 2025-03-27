@@ -17,11 +17,9 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel.User
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
-import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
@@ -62,8 +60,6 @@ import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.core.component.get
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.ContinuationInterceptor
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -82,6 +78,7 @@ interface RoomListViewModelFactory {
         onSendLogs: () -> Unit,
         onOpenAccountsOverview: () -> Unit,
         onAccountSelected: () -> Unit,
+        onStartVerification: (UserId) -> Unit,
         onCloseRoom: () -> Unit
     ): RoomListViewModel {
         return RoomListViewModelImpl(
@@ -95,6 +92,7 @@ interface RoomListViewModelFactory {
             onSendLogs,
             onOpenAccountsOverview,
             onAccountSelected,
+            onStartVerification,
             onCloseRoom
         )
     }
@@ -164,6 +162,7 @@ class RoomListViewModelImpl(
     private val onSendLogs: () -> Unit,
     private val onOpenAccountsOverview: () -> Unit,
     private val onAccountSelected: () -> Unit, // TODO provide userId as argument?
+    private val onStartVerification: (userId: UserId) -> Unit,
     onCloseRoom: () -> Unit
 ) : ViewModelContext by viewModelContext, RoomListViewModel {
 
@@ -230,8 +229,6 @@ class RoomListViewModelImpl(
     )
 
     private val elementCache = mutableMapOf<RoomId, RoomListElementViewModelWrapper>()
-
-    private val selfVerificationTrigger = get<SelfVerificationTrigger>()
 
     private data class RoomWithMatrixClient(
         val room: Room,
@@ -525,9 +522,7 @@ class RoomListViewModelImpl(
     }
 
     override fun verifyAccount(userId: UserId) {
-        coroutineScope.launch {
-            selfVerificationTrigger.invoke(userId)
-        }
+        onStartVerification(userId)
     }
 }
 

@@ -13,10 +13,16 @@ import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.matrixClients
+import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.Serializable
+import net.folivo.trixnity.client.verification
+import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
@@ -26,9 +32,12 @@ class SelfVerificationRouter(
     private val viewModelContext: ViewModelContext,
     private val onCloseSelfVerification: (userId: UserId, completedVerification: Boolean) -> Unit
 ) : ViewModelContext by viewModelContext {
-    private val bootstrapStarted = MutableStateFlow(false)
     private val selfVerifications =
         MutableStateFlow(setOf<UserId>()) // in case of multiple self verifications, we need to do one after another
+
+    init {
+        listenForCrossSigning()
+    }
 
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
@@ -106,7 +115,7 @@ class SelfVerificationRouter(
         log.debug { "add account to self verification queue: $userId" }
         if (messengerSettings.value.base.accounts.any { !it.value.base.accountSetupFinished } && !isFromSetup) {
             log.debug { "At least one account isn't set up with the wizard, not showing self verification for $userId" }
-        } else if (bootstrapStarted.value) {
+        } else if (bootstrapMutex.isLocked) {
             log.debug { "bootstrapping has started, not showing self verification for: $userId" }
         } else {
             // do sequentially (for different accounts), so here just fill the list
@@ -123,21 +132,40 @@ class SelfVerificationRouter(
         selfVerifications.value -= userId
     }
 
+    private fun listenForCrossSigning() {
+        coroutineScope.launch {
+            matrixClients.scopedCollectLatest { namedMatrixClients ->
+                namedMatrixClients.forEach { (userId, client) ->
+                    launch {
+                        log.debug { "launch listen for self verification methods (account $userId)" }
+                        client.verification.getSelfVerificationMethods().distinctUntilChanged().collect {
+                            if (it is VerificationService.SelfVerificationMethods.NoCrossSigningEnabled) {
+                                log.debug { "found Cross Signing to be disabled for account $userId, starting bootstrap" }
+                                showCrossSigningBootstrap(userId)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private val bootstrapMutex = Mutex()
+
     suspend fun showCrossSigningBootstrap(userId: UserId) {
         // it can happen that the bootstrap is triggered twice (initial sync, then regular sync; to avoid any
         // complications, only allow one bootstrap to be shown at the time
-        if (bootstrapStarted.value.not()) { // Todo: use mutex
-            log.debug { "show cross signing bootstrap view" }
-            bootstrapStarted.value = true
+        if (bootstrapMutex.tryLock()) {
+            log.debug { "show cross signing bootstrap view for account $userId" }
             navigation.pushSuspending(Config.CrossSigningBootstrap(userId))
-        }
+        } else log.debug { "can't show cross signing bootstrap for account $userId, because bootstrap is already shown" }
     }
 
     private fun closeCrossSigningBootstrap(userId: UserId) = viewModelContext.coroutineScope.launch {
         log.debug { "close cross signing bootstrap view" }
-        bootstrapStarted.value = false
         onCloseSelfVerification(userId, true)
         navigation.popSuspending(onComplete = { log.debug { "close bootstrap completed: $it" } })
+        bootstrapMutex.unlock()
     }
 
     init {

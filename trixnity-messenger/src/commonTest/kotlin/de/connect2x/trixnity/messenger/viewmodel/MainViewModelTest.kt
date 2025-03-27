@@ -8,11 +8,14 @@ import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.continually
+import de.connect2x.trixnity.messenger.eventually
+import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
+import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
@@ -22,10 +25,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.NoOpTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModelImpl
-import de.connect2x.trixnity.messenger.continually
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
-import de.connect2x.trixnity.messenger.eventually
-import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
@@ -52,6 +52,7 @@ import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.instanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldBeTypeOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -278,6 +279,35 @@ class MainViewModelTest {
     }
 
     @Test
+    fun `show cross signing bootstrap when cross signing is not enabled yet`() = runTest {
+        selfVerificationMethods returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
+
+        val cut = mainViewModel()
+
+        eventually(2.seconds) {
+            cut.selfVerificationRouter.stack.value.active.configuration should beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
+        }
+    }
+
+    @Test
+    fun `not show new cross signing bootstrap when another is already shown`() = runTest {
+        selfVerificationMethods returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
+
+        val cut = mainViewModel()
+
+        val config = eventually(2.seconds) {
+            cut.selfVerificationRouter.stack.value.active.configuration should beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
+            cut.selfVerificationRouter.stack.value.active.configuration
+        }
+
+        every { verificationServiceMock2.getSelfVerificationMethods() } returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
+
+        continually(2.seconds) {
+            cut.selfVerificationRouter.stack.value.active.configuration shouldBeSameInstanceAs config
+        }
+    }
+
+    @Test
     fun `show self verification modal when self verification is needed`() = runTest {
         selfVerificationMethods returns MutableStateFlow(
             VerificationService.SelfVerificationMethods.CrossSigningEnabled(
@@ -422,7 +452,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun `perform initial sync whe not yet done`() = runTest {
+    fun `perform initial sync when not yet done`() = runTest {
         syncState returns MutableStateFlow(SyncState.STOPPED)
         networkAvailable returns true
         val initialSyncDoneFlow = MutableStateFlow(false)
@@ -603,6 +633,7 @@ class MainViewModelTest {
                                         onSendLogs: () -> Unit,
                                         onOpenAccountsOverview: () -> Unit,
                                         onAccountSelected: () -> Unit,
+                                        onStartVerification: (UserId) -> Unit,
                                         onCloseRoom: () -> Unit,
                                     ): RoomListViewModel = object : RoomListViewModel {
                                         override val selectedRoomId: StateFlow<RoomId?> = MutableStateFlow(null)
