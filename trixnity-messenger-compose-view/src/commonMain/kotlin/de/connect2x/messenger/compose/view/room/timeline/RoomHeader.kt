@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -30,8 +28,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,7 +38,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.AvatarWithPresence
@@ -52,7 +47,6 @@ import de.connect2x.messenger.compose.view.common.icons.PublicIcon
 import de.connect2x.messenger.compose.view.common.icons.UnencryptedIcon
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.messenger.compose.view.util.TextLabel
@@ -156,7 +150,6 @@ class RoomHeaderViewImpl : RoomHeaderView {
 
                     // If we have a multi-pane view, we will display an invisible text that has the function of
                     // forcing the three header elements to the same height.
-                    val density = LocalDensity.current
                     if (!IsSinglePane.current) {
                         Text(
                             text = " ",
@@ -232,52 +225,18 @@ fun RoomExtras(
     roomHeaderViewModel: RoomHeaderViewModel,
     showSettingsButton: Boolean,
 ) {
-    val contextMenuOpen = remember { mutableStateOf(false) }
-    val isMobile = Platform.current.isMobile
     val i18n = DI.get<I18nView>()
-    when {
-        isMobile -> {
-            if (showSettingsButton) IconButton(
-                onClick = { roomHeaderViewModel.openRoomSettings() },
-                Modifier.wrapContentSize()
-            ) {
-                Icon(Icons.Default.Settings, i18n.roomHeaderSettings())
-            }
-            Box {
-                IconButton(onClick = {
-                    contextMenuOpen.value = contextMenuOpen.value.not()
-                }) {
-                    Icon(Icons.Default.MoreVert, i18n.roomHeaderMore())
-                }
-                RoomContextMenu(contextMenuOpen, roomHeaderViewModel)
-            }
-        }
 
-        else -> {
-            if (showSettingsButton) IconButton(
-                onClick = { roomHeaderViewModel.openRoomSettings() },
-                Modifier.buttonPointerModifier().then(
-                    Modifier.wrapContentSize(unbounded = true)
-                )
-            ) {
-                Icon(Icons.Default.Settings, i18n.roomHeaderSettings())
-            }
-            Box {
-                IconButton(
-                    onClick = { contextMenuOpen.value = contextMenuOpen.value.not() },
-                    Modifier.buttonPointerModifier().then(
-                        Modifier.wrapContentSize(unbounded = true)
-                    )
-                ) {
-                    Icon(Icons.Default.KeyboardArrowDown, i18n.roomHeaderMore())
-                }
-                RoomContextMenu(contextMenuOpen, roomHeaderViewModel)
-            }
-        }
+    if (showSettingsButton) IconButton(
+        onClick = { roomHeaderViewModel.openRoomSettings() },
+        Modifier.wrapContentSize()
+    ) {
+        Icon(Icons.Default.Settings, i18n.roomHeaderSettings())
     }
 }
 
 @Composable
+@Deprecated("Made obsolete by options in User Profile")
 fun RoomContextMenu(
     contextMenuOpen: MutableState<Boolean>,
     roomHeaderViewModel: RoomHeaderViewModel,
