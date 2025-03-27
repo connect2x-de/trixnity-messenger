@@ -5,16 +5,20 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.runTestWithCoroutineScope
+import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.mb
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
-import io.ktor.http.*
+import io.ktor.http.ContentType
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.TestScope
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.store.ServerData
 import net.folivo.trixnity.clientserverapi.model.media.GetMediaConfig
@@ -25,7 +29,6 @@ import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -38,8 +41,7 @@ class SendAttachmentViewModelTest {
     private val matrixClientMock: MatrixClient = mock()
     private val serverData: MutableStateFlow<ServerData> = MutableStateFlow(
         ServerData(
-            versions = GetVersions.Response(listOf()),
-            mediaConfig = GetMediaConfig.Response(50.mb())
+            versions = GetVersions.Response(listOf()), mediaConfig = GetMediaConfig.Response(50.mb())
         )
     )
 
@@ -51,31 +53,33 @@ class SendAttachmentViewModelTest {
 
     @Test
     fun `should have no error when uploading file less than max file size`() = runTestWithCoroutineScope {
-        val cut = sendAttachmentViewModel(coroutineContext, 40.mb())
+        val cut = sendAttachmentViewModel(40.mb())
         delay(500.milliseconds)
         assertTrue { cut.error.value == null }
     }
 
     @Test
     fun `should have error when uploading file more than max file size`() = runTestWithCoroutineScope {
-        val cut = sendAttachmentViewModel(coroutineContext, 60.mb())
+        val cut = sendAttachmentViewModel(60.mb())
         delay(500.milliseconds)
         assertTrue { cut.error.value != null }
     }
 
-    private fun sendAttachmentViewModel(
-        coroutineContext: CoroutineContext,
+    private fun TestScope.sendAttachmentViewModel(
         fileSize: Long
     ): SendAttachmentViewModelImpl = SendAttachmentViewModelImpl(
         viewModelContext = MatrixClientViewModelContextImpl(
             componentContext = DefaultComponentContext(LifecycleRegistry()),
-            coroutineContext = coroutineContext,
+            coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
             userId = me,
             di = koinApplication {
-                modules(createTestDefaultTrixnityMessengerModules(mapOf(me to matrixClientMock)) + module {
-                    single<MatrixMessengerConfiguration> { MatrixMessengerConfiguration() }
-                    single<MatrixClient> { matrixClientMock }
-                })
+                modules(
+                    createTestDefaultTrixnityMessengerModules(
+                        mapOf(me to matrixClientMock)
+                    ) + module {
+                        single<MatrixMessengerConfiguration> { MatrixMessengerConfiguration() }
+                        single<MatrixClient> { matrixClientMock }
+                    })
             }.koin
         ),
         file = object : FileDescriptor {

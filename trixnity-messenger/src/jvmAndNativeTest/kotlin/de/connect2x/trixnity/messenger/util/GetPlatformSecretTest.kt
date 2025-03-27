@@ -1,12 +1,14 @@
 package de.connect2x.trixnity.messenger.util
 
-import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
+import kotlin.test.Ignore
+import kotlin.test.Test
 
-class GetPlatformSecretTest : ShouldSpec({
+class GetPlatformSecretTest {
     val cut = koinApplication {
         modules(platformGetPlatformSecret())
     }.koin.get<GetPlatformSecret>()
@@ -15,7 +17,9 @@ class GetPlatformSecretTest : ShouldSpec({
 
     // disabled, because iOSSimulator seems to have no working keychain for this test
     // enable for local testing
-    xshould("create and get secret") {
+    @Test
+    @Ignore
+    fun `create and get secret`() = runTest {
         val createdSecret = cut(id, 32).shouldNotBeNull()
         createdSecret.size shouldBe 32
 
@@ -23,4 +27,4 @@ class GetPlatformSecretTest : ShouldSpec({
 
         cut("$id-other", 32) shouldNotBe createdSecret
     }
-})
+}

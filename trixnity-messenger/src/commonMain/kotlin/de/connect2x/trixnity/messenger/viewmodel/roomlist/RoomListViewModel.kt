@@ -21,6 +21,7 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTr
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
@@ -61,6 +62,8 @@ import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.core.component.get
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.ContinuationInterceptor
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -319,7 +322,7 @@ class RoomListViewModelImpl(
                         val isSpace = room.createEventContent?.type == RoomType.Space
                         val includedInSearch = searchedRooms.contains(room.roomId)
                         val isDisplayed = !isSpace &&
-                                (room.membership == Membership.INVITE || room.membership == Membership.JOIN || room.membership == Membership.LEAVE) &&
+                                (room.membership == Membership.INVITE || room.membership == Membership.JOIN || room.membership == Membership.LEAVE || room.membership == Membership.KNOCK) &&
                                 includedInSearch
                         isDisplayed
                     }.onEach { log.trace { "filtered rooms: $it" } }
@@ -330,6 +333,8 @@ class RoomListViewModelImpl(
                         val sortTime =
                             when {
                                 room.membership == Membership.INVITE -> Instant.DISTANT_FUTURE
+                                room.membership == Membership.KNOCK -> Instant.DISTANT_FUTURE - 1.seconds
+                                room.membership == Membership.LEAVE -> Instant.fromEpochMilliseconds(0)
                                 lastRelevantEventTime == null -> roomWithMeta.matrixClient
                                     .room.getState<CreateEventContent>(room.roomId, "").first()
                                     ?.originTimestamp?.let { Instant.fromEpochMilliseconds(it) }
@@ -463,9 +468,11 @@ class RoomListViewModelImpl(
         coroutineScope.launch {
             val matrixClient = allRoomsFlow.first()[roomId]?.matrixClient
                 ?: return@launch log.error { "cannot find NamedMatrixClient for room $roomId" }
-            val isInvite =
-                matrixClient.room.getById(roomId).filterNotNull().map { it.membership == Membership.INVITE }.first()
-            log.debug { "switch to room $roomId (isInvite: $isInvite)" }
+            val (isInvite, isKnock) =
+                matrixClient.room.getById(roomId).filterNotNull().map {
+                    Pair(it.membership == Membership.INVITE, it.membership == Membership.KNOCK)
+                }.first()
+            log.debug { "switch to room $roomId (isInvite: $isInvite isKnock: $isKnock)" }
             when {
                 isInvite && _syncState.value[matrixClient.userId] == SyncState.ERROR -> {
                     log.debug { "try to join room while not connected" }
@@ -488,13 +495,14 @@ class RoomListViewModelImpl(
                     )
                 }
 
+                isKnock -> {}
+
                 else -> onRoomSelected(matrixClient.userId, roomId)
             }
         }
     }
 
-    override val closeProfileNeeded: Boolean = getOrNull<MatrixMultiMessengerConfiguration>()
-        ?.multiProfile ?: false
+    override val closeProfileNeeded: Boolean = getOrNull<MatrixMultiMessengerConfiguration>()?.multiProfile == true
 
     override fun closeProfile() {
         log.debug { "close profile" }

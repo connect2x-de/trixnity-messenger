@@ -1,13 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.MatrixClientFactory
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException.DatabaseLockedException
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
+import de.connect2x.trixnity.messenger.testViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -17,25 +15,25 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
-import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.*
-import io.ktor.util.network.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import io.ktor.http.HttpStatusCode
+import io.ktor.util.network.UnresolvedAddressException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class PasswordLoginViewModelTest : ShouldSpec() {
+class PasswordLoginViewModelTest {
     val matrixClientFactoryMock = mock<MatrixClientFactory>()
 
     val matrixClientMock = mock<MatrixClient>()
@@ -44,117 +42,127 @@ class PasswordLoginViewModelTest : ShouldSpec() {
     private val onLoginMock = mock<Function0<Unit>>()
 
     init {
-        beforeTest {
-            Dispatchers.setMain(Dispatchers.Unconfined)
+        resetMocks(matrixClientFactoryMock, matrixClientMock, onBackMock, onLoginMock)
+        every { onBackMock() } returns Unit
+        every { onLoginMock() } returns Unit
+        every { matrixClientMock.userId } returns UserId("test", "server")
+    }
 
-            resetMocks(matrixClientFactoryMock, matrixClientMock, onBackMock, onLoginMock)
-            every { onBackMock() } returns Unit
-            every { onLoginMock() } returns Unit
-            every { matrixClientMock.userId } returns UserId("test", "server")
+    @Test
+    fun `call login and start sync`() = runTest {
+        everySuspend {
+            matrixClientFactoryMock.loginWith(
+                any(),
+                any(),
+                any(),
+            )
+        } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
+        every { matrixClientMock.loginState } returns MutableStateFlow(null)
+
+        val cut = viewModel()
+        cut.canLogin.first { it }
+        cut.tryLogin()
+        delay(10)
+
+        verifySuspend {
+            matrixClientFactoryMock.loginWith(
+                any(),
+                any(),
+                any(),
+            )
+            onLoginMock.invoke()
         }
+        cut.addMatrixAccountState.value shouldBe AddMatrixAccountState.Success
+    }
 
-        should("call login and start sync") {
-            everySuspend {
-                matrixClientFactoryMock.loginWith(
-                    any(),
-                    any(),
-                    any(),
-                )
-            } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
-            val cut = viewModel()
-            cut.canLogin.first { it }
-            cut.tryLogin()
+    @Test
+    fun `set addMatrixAccountState when login fails because it was forbidden`() = runTest {
+        everySuspend {
+            matrixClientFactoryMock.loginWith(
+                any(),
+                any(),
+                any(),
+            )
+        } returns Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("403")))
+        val cut = viewModel()
+        cut.canLogin.first { it }
+        cut.tryLogin()
+        delay(10)
 
-            verifySuspend {
-                matrixClientFactoryMock.loginWith(
-                    any(),
-                    any(),
-                    any(),
-                )
-                onLoginMock.invoke()
-            }
-            cut.addMatrixAccountState.value shouldBe AddMatrixAccountState.Success
-        }
-
-        should("set addMatrixAccountState when login fails because it was forbidden") {
-            everySuspend {
-                matrixClientFactoryMock.loginWith(
-                    any(),
-                    any(),
-                    any(),
-                )
-            } returns Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("403")))
-            val cut = viewModel()
-            cut.canLogin.first { it }
-            cut.tryLogin()
-
-            cut.addMatrixAccountState.value.shouldBeInstanceOf<AddMatrixAccountState.Failure>().message shouldContain "not correct"
-        }
+        cut.addMatrixAccountState.value.shouldBeInstanceOf<AddMatrixAccountState.Failure>().message shouldContain "not correct"
+    }
 
 
-        should("show the correct error message when server is configured wrong") {
-            everySuspend {
-                matrixClientFactoryMock.loginWith(
-                    any(),
-                    any(),
-                    any(),
-                )
-            } returns Result.failure(UnresolvedAddressException())
-            val cut = viewModel()
-            cut.tryLogin()
+    @Test
+    fun `show the correct error message when server is configured wrong`() = runTest {
+        everySuspend {
+            matrixClientFactoryMock.loginWith(
+                any(),
+                any(),
+                any(),
+            )
+        } returns Result.failure(UnresolvedAddressException())
+        val cut = viewModel()
+        cut.canLogin.first { it }
+        cut.tryLogin()
+        delay(10)
 
-            cut.addMatrixAccountState.value.shouldBeInstanceOf<AddMatrixAccountState.Failure>().message shouldContain "address"
-        }
+        cut.addMatrixAccountState.value.shouldBeInstanceOf<AddMatrixAccountState.Failure>().message shouldContain "address"
+    }
 
-        should("show the correct error message when an unknown error occurs") {
-            everySuspend {
-                matrixClientFactoryMock.loginWith(
-                    any(),
-                    any(),
-                    any(),
-                )
-            } returns Result.failure(Exception("Something unexpected."))
-            val cut = viewModel()
-            cut.canLogin.first { it }
-            cut.tryLogin()
+    @Test
+    fun `show the correct error message when an unknown error occurs`() = runTest {
+        everySuspend {
+            matrixClientFactoryMock.loginWith(
+                any(),
+                any(),
+                any(),
+            )
+        } returns Result.failure(Exception("Something unexpected."))
+        val cut = viewModel()
+        cut.canLogin.first { it }
+        cut.tryLogin()
+        delay(10)
 
-            cut.addMatrixAccountState.value.shouldBeInstanceOf<AddMatrixAccountState.Failure>().message shouldContain "Matrix server"
-        }
+        cut.addMatrixAccountState.value.shouldBeInstanceOf<AddMatrixAccountState.Failure>().message shouldContain "Matrix server"
+    }
 
-        should("cancel login when user aborts the login") {
-            everySuspend {
-                matrixClientFactoryMock.loginWith(
-                    any(),
-                    any(),
-                    any(),
-                )
-            } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
-            val cut = viewModel()
-            cut.canLogin.first { it }
-            cut.back()
+    @Test
+    fun `cancel login when user aborts the login`() = runTest {
+        everySuspend {
+            matrixClientFactoryMock.loginWith(
+                any(),
+                any(),
+                any(),
+            )
+        } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
+        val cut = viewModel()
+        cut.canLogin.first { it }
+        cut.back()
 
-            verify {
-                onBackMock.invoke()
-            }
-        }
-
-        should("abort with correct Exception in callback when store is locked") {
-            everySuspend {
-                matrixClientFactoryMock.loginWith(
-                    any(),
-                    any(),
-                    any(),
-                )
-            } calls { throw DatabaseLockedException() }
-            val cut = viewModel()
-            cut.canLogin.first { it }
-            cut.tryLogin()
-
-            cut.addMatrixAccountState.value.shouldBeInstanceOf<AddMatrixAccountState.Failure>().message shouldContain "instance"
+        verify {
+            onBackMock.invoke()
         }
     }
 
-    private suspend fun viewModel(serverUrl: String = "http://localhost"): PasswordLoginViewModelImpl {
+    @Test
+    fun `abort with correct Exception in callback when store is locked`() = runTest {
+        everySuspend {
+            matrixClientFactoryMock.loginWith(
+                any(),
+                any(),
+                any(),
+            )
+        } calls { throw DatabaseLockedException() }
+        val cut = viewModel()
+        cut.canLogin.first { it }
+        cut.tryLogin()
+        delay(10)
+
+        cut.addMatrixAccountState.value.shouldBeInstanceOf<AddMatrixAccountState.Failure>().message shouldContain "instance"
+    }
+
+    private suspend fun TestScope.viewModel(serverUrl: String = "http://localhost"): PasswordLoginViewModelImpl {
         val di = koinApplication {
             modules(createTestDefaultTrixnityMessengerModules() + module {
                 single<MatrixClientFactory> { matrixClientFactoryMock }
@@ -162,11 +170,7 @@ class PasswordLoginViewModelTest : ShouldSpec() {
         }.koin
         di.get<I18n>().setCurrentLang(DefaultLanguages.EN)
         return PasswordLoginViewModelImpl(
-            viewModelContext = ViewModelContextImpl(
-                di,
-                DefaultComponentContext(LifecycleRegistry()),
-                coroutineContext = Dispatchers.Unconfined,
-            ),
+            viewModelContext = testViewModelContext(di),
             serverUrl = serverUrl,
             onLogin = onLoginMock,
             onBack = onBackMock,

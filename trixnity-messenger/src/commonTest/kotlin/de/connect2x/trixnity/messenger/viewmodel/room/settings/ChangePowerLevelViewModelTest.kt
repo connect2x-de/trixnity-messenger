@@ -5,6 +5,8 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.runTestWithCoroutineScope
+import de.connect2x.trixnity.messenger.testDispatcher
+import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
@@ -17,12 +19,12 @@ import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.TestScope
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomUser
@@ -39,7 +41,6 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
@@ -148,7 +149,7 @@ class ChangePowerLevelViewModelTest {
             } returns Result.success(EventId(""))
 
             val cut = changePowerLevelViewModel(
-                coroutineContext, alice, MutableStateFlow(100L)
+                backgroundScope, alice, MutableStateFlow(100L)
             )
             cut.setRoleToAdmin()
             delay(100.milliseconds)
@@ -177,7 +178,7 @@ class ChangePowerLevelViewModelTest {
             syncStateMocker returns MutableStateFlow(SyncState.ERROR)
 
             val cut = changePowerLevelViewModel(
-                coroutineContext, alice, MutableStateFlow(100L)
+                backgroundScope, alice, MutableStateFlow(100L)
             )
             cut.setRoleToAdmin()
             delay(100.milliseconds)
@@ -205,7 +206,7 @@ class ChangePowerLevelViewModelTest {
             } returns Result.failure(Throwable())
 
             val cut = changePowerLevelViewModel(
-                coroutineContext, alice, MutableStateFlow(100L)
+                backgroundScope, alice, MutableStateFlow(100L)
             )
             cut.setRoleToAdmin()
             delay(100.milliseconds)
@@ -230,7 +231,7 @@ class ChangePowerLevelViewModelTest {
             } returns Result.success(EventId(""))
 
             val cut = changePowerLevelViewModel(
-                coroutineContext, alice, MutableStateFlow(100L)
+                backgroundScope, alice, MutableStateFlow(100L)
             )
             cut.setPowerLevelTo(99L)
             delay(100.milliseconds)
@@ -256,7 +257,7 @@ class ChangePowerLevelViewModelTest {
             syncStateMocker returns MutableStateFlow(SyncState.ERROR)
 
             val cut = changePowerLevelViewModel(
-                coroutineContext, alice, MutableStateFlow(100L)
+                backgroundScope, alice, MutableStateFlow(100L)
             )
             cut.setPowerLevelTo(99L)
             delay(100.milliseconds)
@@ -281,7 +282,7 @@ class ChangePowerLevelViewModelTest {
             } returns Result.failure(Throwable())
 
             val cut = changePowerLevelViewModel(
-                coroutineContext, alice, MutableStateFlow(100L)
+                backgroundScope, alice, MutableStateFlow(100L)
             )
             cut.setPowerLevelTo(99L)
             delay(100.milliseconds)
@@ -297,7 +298,7 @@ class ChangePowerLevelViewModelTest {
             } returns MutableStateFlow(100L)
 
             val cut = changePowerLevelViewModel(
-                coroutineContext, alice, MutableStateFlow(100L)
+                backgroundScope, alice, MutableStateFlow(100L)
             )
 
             cut.changingPowerLevelDialogInput.update("")
@@ -317,7 +318,7 @@ class ChangePowerLevelViewModelTest {
             } returns MutableStateFlow(100L)
 
             val cut = changePowerLevelViewModel(
-                coroutineContext, alice, MutableStateFlow(100L)
+                backgroundScope, alice, MutableStateFlow(100L)
             )
 
             cut.changingPowerLevelDialogInput.update(".,")
@@ -336,7 +337,7 @@ class ChangePowerLevelViewModelTest {
             } returns MutableStateFlow(100)
 
             val cut = changePowerLevelViewModel(
-                coroutineContext, alice, MutableStateFlow(100L)
+                backgroundScope, alice, MutableStateFlow(100L)
             )
 
             cut.changingPowerLevelDialogInput.update("-56")
@@ -355,7 +356,7 @@ class ChangePowerLevelViewModelTest {
             } returns MutableStateFlow(56)
 
             val cut = changePowerLevelViewModel(
-                coroutineContext, alice, MutableStateFlow(56L)
+                backgroundScope, alice, MutableStateFlow(56L)
             )
 
             cut.changingPowerLevelDialogInput.update("57")
@@ -371,7 +372,7 @@ class ChangePowerLevelViewModelTest {
             } returns MutableStateFlow(null)
 
             val cut = changePowerLevelViewModel(
-                coroutineContext, alice, MutableStateFlow(100L)
+                backgroundScope, alice, MutableStateFlow(100L)
             )
 
             cut.changingPowerLevelDialogInput.update("57")
@@ -379,22 +380,22 @@ class ChangePowerLevelViewModelTest {
             cut.changingPowerLevelDialogError.value shouldNotBe null
         }
 
-    private fun changePowerLevelViewModel(
-        coroutineContext: CoroutineContext,
+    private fun TestScope.changePowerLevelViewModel(
+        backgroundScope: CoroutineScope,
         userId: UserId,
         powerLevel: StateFlow<Long>,
     ): ChangePowerLevelViewModelImpl {
-        Dispatchers.setMain(Dispatchers.Unconfined)
         return ChangePowerLevelViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
                     modules(
-                        createTestDefaultTrixnityMessengerModules(mapOf(userId to matrixClientMock)),
+                        createTestDefaultTrixnityMessengerModules(
+                            mapOf(userId to matrixClientMock)),
                     )
                 }.koin,
                 userId = userId,
-                coroutineContext = coroutineContext,
+                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
             ),
             targetUser = userId,
             error = MutableStateFlow(null),

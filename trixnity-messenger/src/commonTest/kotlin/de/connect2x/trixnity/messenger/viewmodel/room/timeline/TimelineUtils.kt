@@ -6,7 +6,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.withClue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -59,16 +58,6 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RedactionEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import kotlin.time.Duration.Companion.seconds
-
-private val log = KotlinLogging.logger {}
-
-fun roomUsers(
-    userService: UserService,
-    roomId: RoomId,
-    block: RoomUserBuilder.() -> Unit,
-) {
-    RoomUserBuilder(userService, roomId).apply(block)
-}
 
 class RoomUserBuilder(
     private val userService: UserService,

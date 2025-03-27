@@ -1,8 +1,8 @@
+import de.connect2x.conventions.c2xContributor
+import de.connect2x.conventions.c2xDeveloper
 import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.isCI
 import de.connect2x.conventions.withVersionSuffix
-import de.connect2x.conventions.c2xDeveloper
-import de.connect2x.conventions.c2xContributor
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform) apply false

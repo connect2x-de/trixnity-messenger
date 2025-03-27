@@ -96,7 +96,7 @@ class AddMembersViewModelImpl(
                     },
                         onFailure = {
                             log.error(it) { "Failed to invite user ${user.userId.full}" }
-                            log.error { it.stackTraceToString() }
+                            log.trace { it.stackTraceToString() }
                             failedInvitations.add(user to it)
                         })
 

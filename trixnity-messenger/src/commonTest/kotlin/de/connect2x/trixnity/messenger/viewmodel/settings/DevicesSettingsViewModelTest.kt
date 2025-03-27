@@ -1,15 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.firstNotNullWithClue
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.util.AuthorizeUiaMock
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
+import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaImpl
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import dev.mokkery.answering.BlockingAnsweringScope
@@ -23,20 +21,13 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.assertSoftly
-import io.kotest.assertions.nondeterministic.eventually
-import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -46,7 +37,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -82,13 +74,10 @@ import net.folivo.trixnity.crypto.olm.OlmDecrypter
 import net.folivo.trixnity.crypto.olm.OlmEncryptionService
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
+import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
-class DevicesSettingsViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 5_000
-
+class DevicesSettingsViewModelTest {
     private val ourDeviceId = "deviceId1"
     private val ourDeviceId2 = "deviceId21"
     private val ourUserId = UserId("userId1", "localhost")
@@ -156,405 +145,376 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
 
     val clock = mock<Clock>()
 
-    private lateinit var coroutineScope: CoroutineScope
-    private lateinit var authorizeUia: AuthorizeUiaMock
+    private var authorizeUia: AuthorizeUia = AuthorizeUiaImpl()
 
-    private lateinit var updateDeviceMocker: SuspendAnsweringScope<Result<Unit>>
-    private lateinit var deviceKeysMocker: BlockingAnsweringScope<Flow<List<DeviceKeys>?>>
+    private var updateDeviceMocker: SuspendAnsweringScope<Result<Unit>>
+    private var deviceKeysMocker: BlockingAnsweringScope<Flow<List<DeviceKeys>?>>
 
     init {
-        beforeTest {
-            coroutineScope = CoroutineScope(Dispatchers.Default)
-            authorizeUia = AuthorizeUiaMock(coroutineScope)
+        resetMocks(
+            matrixClientMock,
+            matrixClientMock2,
+            keyServiceMock,
+            keyServiceMock2,
+            verificationServiceMock,
+            matrixClientServerApiClientMock,
+            matrixClientServerApiClientMock2,
+            devicesApiClientMock,
+            devicesApiClientMock2,
+            olmDecrypterMock,
+            olmEncryptionServiceMock,
+            keyTrustServiceMock
+        )
 
-            resetMocks(
-                matrixClientMock,
-                matrixClientMock2,
-                keyServiceMock,
-                keyServiceMock2,
-                verificationServiceMock,
-                matrixClientServerApiClientMock,
-                matrixClientServerApiClientMock2,
-                devicesApiClientMock,
-                devicesApiClientMock2,
-                olmDecrypterMock,
-                olmEncryptionServiceMock,
-                keyTrustServiceMock
-            )
+        every { matrixClientMock.di } returns koinApplication {
+            modules(
+                module {
+                    single { keyServiceMock }
+                    single { verificationServiceMock }
+                })
+        }.koin
+        every { matrixClientMock.deviceId } returns ourDeviceId
+        every { matrixClientMock.userId } returns ourUserId
+        every { matrixClientMock.api } returns matrixClientServerApiClientMock
+        every { matrixClientServerApiClientMock.device } returns devicesApiClientMock
+        every { matrixClientServerApiClientMock.json } returns Json
 
-            every { matrixClientMock.di } returns koinApplication {
-                modules(
-                    module {
-                        single { keyServiceMock }
-                        single { verificationServiceMock }
-                    }
-                )
-            }.koin
-            every { matrixClientMock.deviceId } returns ourDeviceId
-            every { matrixClientMock.userId } returns ourUserId
-            every { matrixClientMock.api } returns matrixClientServerApiClientMock
-            every { matrixClientServerApiClientMock.device } returns devicesApiClientMock
-            every { matrixClientServerApiClientMock.json } returns Json
+        every { matrixClientMock2.di } returns koinApplication {
+            modules(
+                module {
+                    single { keyServiceMock2 }
+                    single { verificationServiceMock }
+                })
+        }.koin
+        every { matrixClientMock2.deviceId } returns ourDeviceId2
+        every { matrixClientMock2.userId } returns ourUserId2
+        every { matrixClientMock2.api } returns matrixClientServerApiClientMock2
+        every { matrixClientServerApiClientMock2.device } returns devicesApiClientMock2
+        every { matrixClientServerApiClientMock2.json } returns Json
 
-            every { matrixClientMock2.di } returns koinApplication {
-                modules(
-                    module {
-                        single { keyServiceMock2 }
-                        single { verificationServiceMock }
-                    }
-                )
-            }.koin
-            every { matrixClientMock2.deviceId } returns ourDeviceId2
-            every { matrixClientMock2.userId } returns ourUserId2
-            every { matrixClientMock2.api } returns matrixClientServerApiClientMock2
-            every { matrixClientServerApiClientMock2.device } returns devicesApiClientMock2
-            every { matrixClientServerApiClientMock2.json } returns Json
-
-            updateDeviceMocker = everySuspend {
-                devicesApiClientMock.updateDevice(any(), any(), eqNull())
-            }
-            updateDeviceMocker returns Result.success(Unit)
-
-            deviceKeysMocker = every { keyServiceMock.getDeviceKeys(eq(ourUserId)) }
-            deviceKeysMocker returns deviceKeys
-            every { keyServiceMock2.getDeviceKeys(eq(ourUserId2)) } returns deviceKeys2
-            // standard values for mock2, we do not need any config here
-            every {
-                keyServiceMock2.getTrustLevel(any<UserId>(), any())
-            } returns flowOf(DeviceTrustLevel.Valid(true))
-            everySuspend { devicesApiClientMock2.getDevices() } returns Result.success(
-                listOf(device21, device22)
-            )
-            everySuspend {
-                devicesApiClientMock.getDevice(any(), any())
-            } returns Result.success(device1)
+        updateDeviceMocker = everySuspend {
+            devicesApiClientMock.updateDevice(any(), any(), eqNull())
         }
-        afterTest {
-            coroutineScope.cancel()
-        }
+        updateDeviceMocker returns Result.success(Unit)
 
-        should("load devices initially") {
-            everySuspend { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
-            every {
-                keyServiceMock.getTrustLevel(eq(ourUserId), eq(ourDeviceId))
-            } returns flowOf(DeviceTrustLevel.Valid(true))
-            every {
-                keyServiceMock.getTrustLevel(eq(ourUserId), eq("deviceId2"))
-            } returns flowOf(DeviceTrustLevel.NotCrossSigned)
+        deviceKeysMocker = every { keyServiceMock.getDeviceKeys(eq(ourUserId)) }
+        deviceKeysMocker returns deviceKeys
+        every { keyServiceMock2.getDeviceKeys(eq(ourUserId2)) } returns deviceKeys2
+        // standard values for mock2, we do not need any config here
+        every {
+            keyServiceMock2.getTrustLevel(any<UserId>(), any())
+        } returns flowOf(DeviceTrustLevel.Valid(true))
+        everySuspend { devicesApiClientMock2.getDevices() } returns Result.success(
+            listOf(device21, device22)
+        )
+        everySuspend {
+            devicesApiClientMock.getDevice(any(), any())
+        } returns Result.success(device1)
+    }
 
-            val cut = devicesSettingsViewModel(coroutineContext)
-            val accountsWithDevices = cut.accountsWithDevices
-            accountsWithDevices.first { it.size == 2 }
+    @Test
+    fun `load devices initially`() = runTest {
+        everySuspend { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
+        every {
+            keyServiceMock.getTrustLevel(eq(ourUserId), eq(ourDeviceId))
+        } returns flowOf(DeviceTrustLevel.Valid(true))
+        every {
+            keyServiceMock.getTrustLevel(eq(ourUserId), eq("deviceId2"))
+        } returns flowOf(DeviceTrustLevel.NotCrossSigned)
 
-            eventually(2.seconds) {
-                assertSoftly(accountsWithDevices.value) {
-                    get(0).userId shouldBe UserId("test", "server")
-                    get(1).userId shouldBe UserId("test2", "server")
+        val cut = devicesSettingsViewModel()
+        val accountsWithDevices = cut.accountsWithDevices
+        accountsWithDevices.first { it.size == 2 }
 
-                    get(0).isLoading.first { it.not() }
-                    get(0).devicesInAccount.filterNotNull().first { it.thisDevice.deviceId == ourDeviceId }
-                    assertSoftly(get(0).devicesInAccount.value.shouldNotBeNull().thisDevice) {
-                        deviceId shouldBe ourDeviceId
-                        displayName.value shouldBe "device1"
-                        lastSeenAt shouldBe "last seen: 12/10/2021"
-                        isVerified.value shouldBe true
-                    }
-                    get(0).devicesInAccount.value.shouldNotBeNull().otherDevices shouldHaveSize 1
-                    assertSoftly(get(0).devicesInAccount.value.shouldNotBeNull().otherDevices[0]) {
-                        deviceId shouldBe "deviceId2"
-                        displayName.value shouldBe "device2"
-                        lastSeenAt shouldBe "last seen: 12/10/2021"
-                        isVerified.value shouldBe false
-                    }
+        eventually(2.seconds) {
+            assertSoftly(accountsWithDevices.value) {
+                get(0).userId shouldBe UserId("test", "server")
+                get(1).userId shouldBe UserId("test2", "server")
 
-                    get(1).devicesInAccount.filterNotNull().first { it.thisDevice.deviceId == ourDeviceId2 }
-                    get(1).devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId shouldBe ourDeviceId2
-                    get(1).devicesInAccount.value.shouldNotBeNull().otherDevices shouldHaveSize 1
+                get(0).isLoading.first { it.not() }
+                get(0).devicesInAccount.filterNotNull().first { it.thisDevice.deviceId == ourDeviceId }
+                assertSoftly(get(0).devicesInAccount.value.shouldNotBeNull().thisDevice) {
+                    deviceId shouldBe ourDeviceId
+                    displayName.value shouldBe "device1"
+                    lastSeenAt shouldBe "last seen: 12/10/2021"
+                    isVerified.value shouldBe true
                 }
-            }
-            cancelNeverEndingCoroutines()
-        }
-
-        should("react to changes in the trust level of devices") {
-            val trustLevel1 = MutableStateFlow<DeviceTrustLevel>(DeviceTrustLevel.CrossSigned(true))
-            val trustLevel2 = MutableStateFlow<DeviceTrustLevel>(DeviceTrustLevel.NotCrossSigned)
-            everySuspend { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
-            every {
-                keyServiceMock.getTrustLevel(eq(ourUserId), eq(ourDeviceId))
-            } returns trustLevel1
-            every {
-                keyServiceMock.getTrustLevel(eq(ourUserId), eq("deviceId2"))
-            } returns trustLevel2
-
-            val cut = devicesSettingsViewModel(coroutineContext)
-            val accountsWithDevices = cut.accountsWithDevices
-
-            trustLevel1.value = DeviceTrustLevel.CrossSigned(false)
-            trustLevel2.value = DeviceTrustLevel.CrossSigned(true)
-
-            accountsWithDevices.first { it.size == 2 }
-
-            eventually(2.seconds) {
-                assertSoftly(accountsWithDevices.value) {
-                    get(0).devicesInAccount.filterNotNull().first { it.thisDevice.deviceId == ourDeviceId }
-                    assertSoftly(get(0).devicesInAccount.value.shouldNotBeNull()) {
-                        thisDevice.isVerified.value shouldBe false
-                        otherDevices[0].isVerified.value shouldBe true
-                    }
-                }
-            }
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("react to changes in the devices list") {
-            val deviceKeysList = MutableStateFlow(
-                listOf(
-                    DeviceKeys(
-                        userId = ourUserId,
-                        deviceId = "deviceId",
-                        algorithms = setOf(),
-                        keys = Keys(setOf()),
-                    )
-                )
-            )
-            deviceKeysMocker returns deviceKeysList
-
-            val getDevicesMocker = everySuspend { devicesApiClientMock.getDevices() }
-            getDevicesMocker returns Result.success(listOf(device1, device2))
-            every {
-                keyServiceMock.getTrustLevel(eq(ourUserId), eq(ourDeviceId))
-            } returns flowOf(DeviceTrustLevel.Valid(true))
-            every {
-                keyServiceMock.getTrustLevel(eq(ourUserId), eq("deviceId2"))
-            } returns flowOf(DeviceTrustLevel.NotCrossSigned)
-
-            val cut = devicesSettingsViewModel(coroutineContext)
-            val accountsWithDevices = cut.accountsWithDevices
-
-            eventually(2.seconds) {
-                accountsWithDevices.value shouldNot beEmpty()
-                accountsWithDevices.value[0].devicesInAccount.value.shouldNotBeNull().otherDevices shouldNot beEmpty()
-                accountsWithDevices.value[0].devicesInAccount.value.shouldNotBeNull().otherDevices[0].displayName.value shouldBe "device2"
-            }
-
-            getDevicesMocker returns Result.success(
-                listOf(
-                    device1,
-                    device2.copy(displayName = "device2___new")
-                )
-            )
-
-            deviceKeysList.value += DeviceKeys(ourUserId, ourDeviceId, setOf(), Keys(setOf()))
-            eventually(2.seconds) {
-                accountsWithDevices.value shouldNot beEmpty()
-                accountsWithDevices.value[0].devicesInAccount.value.shouldNotBeNull().otherDevices shouldNot beEmpty()
-                accountsWithDevices.value[0].devicesInAccount.value.shouldNotBeNull().otherDevices[0].displayName.value shouldBe "device2___new"
-            }
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("show an error message if loading devices cannot be performed") {
-            everySuspend { devicesApiClientMock.getDevices() } returns Result.failure(RuntimeException("Oh no!"))
-
-            val cut = devicesSettingsViewModel(coroutineContext)
-            val accountsWithDevices = cut.accountsWithDevices
-
-            accountsWithDevices
-                .filter { it.isNotEmpty() }
-                .flatMapLatest { combine(it.map { it.loadingError }) { it } }
-                .first {
-                    it[0] != null
+                get(0).devicesInAccount.value.shouldNotBeNull().otherDevices shouldHaveSize 1
+                assertSoftly(get(0).devicesInAccount.value.shouldNotBeNull().otherDevices[0]) {
+                    deviceId shouldBe "deviceId2"
+                    displayName.value shouldBe "device2"
+                    lastSeenAt shouldBe "last seen: 12/10/2021"
+                    isVerified.value shouldBe false
                 }
 
-            cancelNeverEndingCoroutines()
-        }
-
-        should("set the display name for this device and update the device") {
-            val device = MutableStateFlow(device1)
-
-            everySuspend {
-                devicesApiClientMock.updateDevice(any(), any(), eqNull())
-            } calls {
-                val deviceId = it.args[0] as String
-                val deviceName = it.args[1] as String
-
-                if (deviceId == device.value.deviceId) {
-                    device.value = device.value.copy(displayName = deviceName)
-                }
-
-                Result.success(Unit)
+                get(1).devicesInAccount.filterNotNull().first { it.thisDevice.deviceId == ourDeviceId2 }
+                get(1).devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId shouldBe ourDeviceId2
+                get(1).devicesInAccount.value.shouldNotBeNull().otherDevices shouldHaveSize 1
             }
-            everySuspend { devicesApiClientMock.getDevices() } calls { Result.success(listOf(device.value, device2)) }
-
-            every {
-                keyServiceMock.getTrustLevel(any<UserId>(), any())
-            } returns flowOf(DeviceTrustLevel.Valid(true))
-
-            val cut = devicesSettingsViewModel(coroutineContext)
-            // wait until initial computation is done
-            val accountsWithDevices = cut.accountsWithDevices
-            eventually(1.seconds) {
-                accountsWithDevices
-                    .filter { it.isNotEmpty() }
-                    .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
-            }
-
-            cut.setDisplayName(UserId("test", "server"), ourDeviceId, "device1", "device1 updated")
-
-            eventually(1.seconds) {
-                accountsWithDevices
-                    .filter { it.isNotEmpty() }
-                    .first {
-                        it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.displayName.value == "device1 updated"
-                    }
-            }
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("display error message when device cannot be renamed") {
-            updateDeviceMocker returns Result.failure(RuntimeException("Oh no!"))
-            everySuspend { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
-            every {
-                keyServiceMock.getTrustLevel(any<UserId>(), any())
-            } returns flowOf(DeviceTrustLevel.Valid(true))
-
-            val cut = devicesSettingsViewModel(coroutineContext)
-            val accountsWithDevices = cut.accountsWithDevices
-            eventually(1.seconds) {
-                accountsWithDevices
-                    .filter { it.isNotEmpty() }
-                    .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
-            }
-
-            cut.error.value shouldBe null
-            cut.setDisplayName(UserId("test", "server"), ourDeviceId, "device1", "device1 updated")
-
-            eventually(1.seconds) {
-                cut.error.value shouldNotBe null
-            }
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("initiate a verification request") {
-            everySuspend {
-                verificationServiceMock.createDeviceVerificationRequest(eq(ourUserId), any())
-            } returns Result.success(activeDeviceVerification(coroutineScope))
-            everySuspend { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
-            every {
-                keyServiceMock.getTrustLevel(eq(ourUserId), eq(ourDeviceId))
-            } returns flowOf(DeviceTrustLevel.Valid(true))
-            every {
-                keyServiceMock.getTrustLevel(eq(ourUserId), eq("deviceId2"))
-            } returns flowOf(DeviceTrustLevel.NotCrossSigned)
-
-            val cut = devicesSettingsViewModel(coroutineContext)
-            val accountsWithDevices = cut.accountsWithDevices
-            eventually(1.seconds) {
-                accountsWithDevices
-                    .filter { it.isNotEmpty() }
-                    .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
-            }
-
-            cut.verify(UserId("test", "server"), "deviceId2")
-
-            eventually(1.seconds) {
-                verifySuspend {
-                    verificationServiceMock.createDeviceVerificationRequest(
-                        eq(ourUserId),
-                        eq(setOf("deviceId2")),
-                    )
-                }
-            }
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("show an error message when verification cannot be performed") {
-            everySuspend {
-                verificationServiceMock.createDeviceVerificationRequest(eq(ourUserId), any())
-            } calls { throw RuntimeException("Oh no!") }
-            everySuspend { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
-            every {
-                keyServiceMock.getTrustLevel(eq(ourUserId), eq(ourDeviceId))
-            } returns flowOf(DeviceTrustLevel.Valid(true))
-            every {
-                keyServiceMock.getTrustLevel(eq(ourUserId), eq("deviceId2"))
-            } returns flowOf(DeviceTrustLevel.NotCrossSigned)
-
-            val cut = devicesSettingsViewModel(coroutineContext)
-            val accountsWithDevices = cut.accountsWithDevices
-            eventually(1.seconds) {
-                accountsWithDevices
-                    .filter { it.isNotEmpty() }
-                    .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
-            }
-            cut.error.value shouldBe null
-            cut.verify(UserId("test", "server"), "deviceId2")
-
-            eventually(1.seconds) {
-                cut.error.value shouldNotBe null
-            }
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("show uia when trying to remove a device") {
-            everySuspend { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
-            every {
-                keyServiceMock.getTrustLevel(eq(ourUserId), eq(ourDeviceId))
-            } returns flowOf(DeviceTrustLevel.Valid(true))
-            every {
-                keyServiceMock.getTrustLevel(eq(ourUserId), eq("deviceId2"))
-            } returns flowOf(DeviceTrustLevel.NotCrossSigned)
-
-            val cut = devicesSettingsViewModel(coroutineContext)
-            val accountsWithDevices = cut.accountsWithDevices
-            eventually(1.seconds) {
-                accountsWithDevices
-                    .filter { it.isNotEmpty() }
-                    .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
-            }
-
-            cut.remove(UserId("test", "server"), "deviceId2")
-            val authorizeUiaParams = authorizeUia.onRequestFlowState.firstNotNullWithClue()
-            authorizeUiaParams.onResult(AuthorizeUiaResult.Success(UIA.Success(Unit)))
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("show an error message when the device could not be removed") {
-            everySuspend { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
-            every {
-                keyServiceMock.getTrustLevel(eq(ourUserId), eq(ourDeviceId))
-            } returns flowOf(DeviceTrustLevel.Valid(true))
-            every {
-                keyServiceMock.getTrustLevel(eq(ourUserId), eq("deviceId2"))
-            } returns flowOf(DeviceTrustLevel.NotCrossSigned)
-
-            val cut = devicesSettingsViewModel(coroutineContext)
-            val accountsWithDevices = cut.accountsWithDevices
-            eventually(1.seconds) {
-                accountsWithDevices
-                    .filter { it.isNotEmpty() }
-                    .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
-            }
-
-            cut.error.value shouldBe null
-            cut.remove(UserId("test", "server"), "deviceId2")
-            val authorizeUiaParams = authorizeUia.onRequestFlowState.firstNotNullWithClue()
-            authorizeUiaParams.onResult(AuthorizeUiaResult.CancelledByUser<Unit>("cancelled"))
-
-            cut.error.firstNotNullWithClue()
-
-            cancelNeverEndingCoroutines()
         }
     }
 
-    private fun activeDeviceVerification(scope: CoroutineScope) = ActiveDeviceVerificationImpl(
+    @Test
+    fun `react to changes in the trust level of devices`() = runTest {
+        val trustLevel1 = MutableStateFlow<DeviceTrustLevel>(DeviceTrustLevel.CrossSigned(true))
+        val trustLevel2 = MutableStateFlow<DeviceTrustLevel>(DeviceTrustLevel.NotCrossSigned)
+        everySuspend { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
+        every {
+            keyServiceMock.getTrustLevel(eq(ourUserId), eq(ourDeviceId))
+        } returns trustLevel1
+        every {
+            keyServiceMock.getTrustLevel(eq(ourUserId), eq("deviceId2"))
+        } returns trustLevel2
+
+        val cut = devicesSettingsViewModel()
+        val accountsWithDevices = cut.accountsWithDevices
+
+        trustLevel1.value = DeviceTrustLevel.CrossSigned(false)
+        trustLevel2.value = DeviceTrustLevel.CrossSigned(true)
+
+        accountsWithDevices.first { it.size == 2 }
+
+        eventually(2.seconds) {
+            assertSoftly(accountsWithDevices.value) {
+                get(0).devicesInAccount.filterNotNull().first { it.thisDevice.deviceId == ourDeviceId }
+                assertSoftly(get(0).devicesInAccount.value.shouldNotBeNull()) {
+                    thisDevice.isVerified.value shouldBe false
+                    otherDevices[0].isVerified.value shouldBe true
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `react to changes in the devices list`() = runTest {
+        val deviceKeysList = MutableStateFlow(
+            listOf(
+                DeviceKeys(
+                    userId = ourUserId,
+                    deviceId = "deviceId",
+                    algorithms = setOf(),
+                    keys = Keys(setOf()),
+                )
+            )
+        )
+        deviceKeysMocker returns deviceKeysList
+
+        val getDevicesMocker = everySuspend { devicesApiClientMock.getDevices() }
+        getDevicesMocker returns Result.success(listOf(device1, device2))
+        every {
+            keyServiceMock.getTrustLevel(eq(ourUserId), eq(ourDeviceId))
+        } returns flowOf(DeviceTrustLevel.Valid(true))
+        every {
+            keyServiceMock.getTrustLevel(eq(ourUserId), eq("deviceId2"))
+        } returns flowOf(DeviceTrustLevel.NotCrossSigned)
+
+        val cut = devicesSettingsViewModel()
+        val accountsWithDevices = cut.accountsWithDevices
+
+        eventually(2.seconds) {
+            accountsWithDevices.value shouldNot beEmpty()
+            accountsWithDevices.value[0].devicesInAccount.value.shouldNotBeNull().otherDevices shouldNot beEmpty()
+            accountsWithDevices.value[0].devicesInAccount.value.shouldNotBeNull().otherDevices[0].displayName.value shouldBe "device2"
+        }
+
+        getDevicesMocker returns Result.success(
+            listOf(
+                device1, device2.copy(displayName = "device2___new")
+            )
+        )
+
+        deviceKeysList.value += DeviceKeys(ourUserId, ourDeviceId, setOf(), Keys(setOf()))
+        eventually(2.seconds) {
+            accountsWithDevices.value shouldNot beEmpty()
+            accountsWithDevices.value[0].devicesInAccount.value.shouldNotBeNull().otherDevices shouldNot beEmpty()
+            accountsWithDevices.value[0].devicesInAccount.value.shouldNotBeNull().otherDevices[0].displayName.value shouldBe "device2___new"
+        }
+    }
+
+
+    @Test
+    fun `show an error message if loading devices cannot be performed`() = runTest {
+        everySuspend { devicesApiClientMock.getDevices() } returns Result.failure(RuntimeException("Oh no!"))
+
+        val cut = devicesSettingsViewModel()
+        val accountsWithDevices = cut.accountsWithDevices
+
+        @OptIn(ExperimentalCoroutinesApi::class)
+        accountsWithDevices.filter { it.isNotEmpty() }.flatMapLatest { combine(it.map { it.loadingError }) { it } }
+            .first {
+                it[0] != null
+            }
+    }
+
+    @Test
+    fun `set the display name for this device and update the device`() = runTest {
+        val device = MutableStateFlow(device1)
+
+        everySuspend {
+            devicesApiClientMock.updateDevice(any(), any(), eqNull())
+        } calls {
+            val deviceId = it.args[0] as String
+            val deviceName = it.args[1] as String
+
+            if (deviceId == device.value.deviceId) {
+                device.value = device.value.copy(displayName = deviceName)
+            }
+
+            Result.success(Unit)
+        }
+        everySuspend { devicesApiClientMock.getDevices() } calls { Result.success(listOf(device.value, device2)) }
+
+        every {
+            keyServiceMock.getTrustLevel(any<UserId>(), any())
+        } returns flowOf(DeviceTrustLevel.Valid(true))
+
+        val cut = devicesSettingsViewModel()
+        // wait until initial computation is done
+        val accountsWithDevices = cut.accountsWithDevices
+        eventually(1.seconds) {
+            accountsWithDevices.filter { it.isNotEmpty() }
+                .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
+        }
+
+        cut.setDisplayName(UserId("test", "server"), ourDeviceId, "device1", "device1 updated")
+
+        eventually(1.seconds) {
+            accountsWithDevices.filter { it.isNotEmpty() }.first {
+                    it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.displayName.value == "device1 updated"
+                }
+        }
+    }
+
+    @Test
+    fun `display error message when device cannot be renamed`() = runTest {
+        updateDeviceMocker returns Result.failure(RuntimeException("Oh no!"))
+        everySuspend { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
+        every {
+            keyServiceMock.getTrustLevel(any<UserId>(), any())
+        } returns flowOf(DeviceTrustLevel.Valid(true))
+
+        val cut = devicesSettingsViewModel()
+        val accountsWithDevices = cut.accountsWithDevices
+        eventually(1.seconds) {
+            accountsWithDevices.filter { it.isNotEmpty() }
+                .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
+        }
+
+        cut.error.value shouldBe null
+        cut.setDisplayName(UserId("test", "server"), ourDeviceId, "device1", "device1 updated")
+
+        eventually(1.seconds) {
+            cut.error.value shouldNotBe null
+        }
+    }
+
+    @Test
+    fun `initiate a verification request`() = runTest {
+        everySuspend {
+            verificationServiceMock.createDeviceVerificationRequest(eq(ourUserId), any())
+        } returns Result.success(activeDeviceVerification())
+        everySuspend { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
+        every {
+            keyServiceMock.getTrustLevel(eq(ourUserId), eq(ourDeviceId))
+        } returns flowOf(DeviceTrustLevel.Valid(true))
+        every {
+            keyServiceMock.getTrustLevel(eq(ourUserId), eq("deviceId2"))
+        } returns flowOf(DeviceTrustLevel.NotCrossSigned)
+
+        val cut = devicesSettingsViewModel()
+        val accountsWithDevices = cut.accountsWithDevices
+        eventually(1.seconds) {
+            accountsWithDevices.filter { it.isNotEmpty() }
+                .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
+        }
+
+        cut.verify(UserId("test", "server"), "deviceId2")
+
+        eventually(1.seconds) {
+            verifySuspend {
+                verificationServiceMock.createDeviceVerificationRequest(
+                    eq(ourUserId),
+                    eq(setOf("deviceId2")),
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `show an error message when verification cannot be performed`() = runTest {
+        everySuspend {
+            verificationServiceMock.createDeviceVerificationRequest(eq(ourUserId), any())
+        } calls { throw RuntimeException("Oh no!") }
+        everySuspend { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
+        every {
+            keyServiceMock.getTrustLevel(eq(ourUserId), eq(ourDeviceId))
+        } returns flowOf(DeviceTrustLevel.Valid(true))
+        every {
+            keyServiceMock.getTrustLevel(eq(ourUserId), eq("deviceId2"))
+        } returns flowOf(DeviceTrustLevel.NotCrossSigned)
+
+        val cut = devicesSettingsViewModel()
+        val accountsWithDevices = cut.accountsWithDevices
+        eventually(1.seconds) {
+            accountsWithDevices.filter { it.isNotEmpty() }
+                .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
+        }
+        cut.error.value shouldBe null
+        cut.verify(UserId("test", "server"), "deviceId2")
+
+        eventually(1.seconds) {
+            cut.error.value shouldNotBe null
+        }
+    }
+
+    @Test
+    fun `show uia when trying to remove a device`() = runTest {
+        everySuspend { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
+        every {
+            keyServiceMock.getTrustLevel(eq(ourUserId), eq(ourDeviceId))
+        } returns flowOf(DeviceTrustLevel.Valid(true))
+        every {
+            keyServiceMock.getTrustLevel(eq(ourUserId), eq("deviceId2"))
+        } returns flowOf(DeviceTrustLevel.NotCrossSigned)
+
+        val cut = devicesSettingsViewModel()
+        val accountsWithDevices = cut.accountsWithDevices
+        eventually(1.seconds) {
+            accountsWithDevices.filter { it.isNotEmpty() }
+                .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
+        }
+
+        cut.remove(UserId("test", "server"), "deviceId2")
+        val authorizeUiaParams = authorizeUia.onRequestFlow.firstNotNullWithClue()
+        authorizeUiaParams.onResult(AuthorizeUiaResult.Success(UIA.Success(Unit)))
+    }
+
+    @Test
+    fun `show an error message when the device could not be removed`() = runTest {
+        everySuspend { devicesApiClientMock.getDevices() } returns Result.success(listOf(device1, device2))
+        every {
+            keyServiceMock.getTrustLevel(eq(ourUserId), eq(ourDeviceId))
+        } returns flowOf(DeviceTrustLevel.Valid(true))
+        every {
+            keyServiceMock.getTrustLevel(eq(ourUserId), eq("deviceId2"))
+        } returns flowOf(DeviceTrustLevel.NotCrossSigned)
+
+        val cut = devicesSettingsViewModel()
+        val accountsWithDevices = cut.accountsWithDevices
+        eventually(1.seconds) {
+            accountsWithDevices.filter { it.isNotEmpty() }
+                .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
+        }
+
+        cut.error.value shouldBe null
+        cut.remove(UserId("test", "server"), "deviceId2")
+        val authorizeUiaParams = authorizeUia.onRequestFlow.firstNotNullWithClue()
+        authorizeUiaParams.onResult(AuthorizeUiaResult.CancelledByUser<Unit>("cancelled"))
+
+        cut.error.firstNotNullWithClue()
+    }
+
+    private fun TestScope.activeDeviceVerification() = ActiveDeviceVerificationImpl(
         request = VerificationRequestToDeviceEventContent("", emptySet(), 0L, ""),
         requestIsOurs = false,
         ownUserId = ourUserId,
@@ -579,32 +539,27 @@ class DevicesSettingsViewModelTest : ShouldSpec() {
             tm = NoOpRepositoryTransactionManager,
             config = MatrixClientConfiguration(),
             statisticCollector = ObservableCacheStatisticCollector(),
-            storeScope = scope,
+            storeScope = backgroundScope,
             clock = Clock.System,
         ),
         clock = clock,
     )
 
-    private suspend fun devicesSettingsViewModel(coroutineContext: CoroutineContext): DevicesSettingsViewModelImpl {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
+    private fun TestScope.devicesSettingsViewModel(): DevicesSettingsViewModelImpl {
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(
                     mapOf(
-                        UserId("test", "server") to matrixClientMock,
-                        UserId("test2", "server") to matrixClientMock2
+                        UserId("test", "server") to matrixClientMock, UserId("test2", "server") to matrixClientMock2
                     )
                 ) + module {
                     single<AuthorizeUia> { authorizeUia }
-                }
-            )
+                })
         }.koin
         return DevicesSettingsViewModelImpl(
-            viewModelContext = MatrixClientViewModelContextImpl(
-                componentContext = DefaultComponentContext(LifecycleRegistry()),
+            viewModelContext = testMatrixClientViewModelContext(
                 di = di,
                 userId = UserId("test", "server"),
-                coroutineContext = coroutineContext
             ),
             mock(),
         ).also {

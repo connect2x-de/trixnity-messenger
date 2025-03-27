@@ -1,148 +1,133 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.testViewModelContext
 import de.connect2x.trixnity.messenger.update
-import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
+import de.connect2x.trixnity.messenger.continually
+import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.mock
 import dev.mokkery.verify
-import io.kotest.assertions.nondeterministic.continually
-import io.kotest.assertions.nondeterministic.eventually
-import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
-class MatrixClientInitializationViewModelTest : ShouldSpec() {
+class MatrixClientInitializationViewModelTest {
     val matrixClientsMock = mock<MatrixClients>()
 
     private val onNoAccountsMock = mock<Function0<Unit>>()
     private lateinit var cut: MatrixClientInitializationViewModel
 
     init {
-        beforeTest {
-            resetMocks(matrixClientsMock, onNoAccountsMock)
-            every { onNoAccountsMock.invoke() } returns Unit
-            everySuspend { matrixClientsMock.initFromStore() } returns
-                    MatrixClients.InitFromStoreResult(
-                        success = emptySet(),
-                        failures = emptyMap(),
-                    )
-        }
+        resetMocks(matrixClientsMock, onNoAccountsMock)
+        every { onNoAccountsMock.invoke() } returns Unit
+        everySuspend { matrixClientsMock.initFromStore() } returns MatrixClients.InitFromStoreResult(
+            success = emptySet(),
+            failures = emptyMap(),
+        )
+    }
 
-        // still fails from time to time for no apparent reason, so deactivate
-        xshould("call `onNoAccounts` when no accounts are present") {
-            matrixClientInitializationViewModel(
-                accounts = emptyMap(),
-                selectedAccount = null
-            )
-            eventually(4.seconds) { // TODO: optimize timeout
-                verify { onNoAccountsMock.invoke() }
-            }
-        }
-
-        should("leave the currently active account if the account can be found") {
-            val settings = matrixClientInitializationViewModel(
-                accounts = mapOf(
-                    UserId(
-                        "user1",
-                        "local.local"
-                    ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
-                        databasePassword = null,
-                        config = MatrixMessengerConfiguration(),
-                        displayColor = null,
-                    ),
-                ),
-                selectedAccount = UserId(
-                    "user1",
-                    "local.local"
-                )
-            )
-            continually(2.seconds) {
-                settings.value.base.accounts.size shouldBe 1
-            }
-        }
-
-        should("select the only left account when the currently active account is not present anymore") {
-            val settings = matrixClientInitializationViewModel(
-                accounts = mapOf(
-                    UserId(
-                        "user1",
-                        "local.local"
-                    ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
-                        databasePassword = null,
-                        config = MatrixMessengerConfiguration(),
-                        displayColor = null,
-                    ),
-                ),
-                selectedAccount = UserId("user2", "local.local")
-            )
-            eventually(2.seconds) {
-                settings.value.base.selectedAccount shouldBe UserId("user1", "local.local")
-            }
-        }
-
-        should("select all accounts if the currently active account is not present anymore") {
-            val settings = matrixClientInitializationViewModel(
-                accounts = mapOf(
-                    UserId(
-                        "user1",
-                        "local.local"
-                    ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
-                        databasePassword = null,
-                        config = MatrixMessengerConfiguration(),
-                        displayColor = null,
-                    ),
-                    UserId(
-                        "user2",
-                        "local.local"
-                    ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
-                        databasePassword = null,
-                        config = MatrixMessengerConfiguration(),
-                        displayColor = null,
-                    ),
-                ),
-                selectedAccount = UserId("user666", "local.local")
-            )
-            eventually(2.seconds) {
-                settings.value.base.selectedAccount shouldBe null
-            }
+    @Test
+    fun `call onNoAccounts when no accounts are present`() = runTest {
+        matrixClientInitializationViewModel(
+            accounts = emptyMap(), selectedAccount = null
+        )
+        eventually(4.seconds) {
+            verify { onNoAccountsMock.invoke() }
         }
     }
 
-    private suspend fun matrixClientInitializationViewModel(
-        accounts: Map<UserId, MatrixMessengerAccountSettingsBase>,
-        selectedAccount: UserId?
+    @Test
+    fun `leave the currently active account if the account can be found`() = runTest {
+        val settings = matrixClientInitializationViewModel(
+            accounts = mapOf(
+                UserId(
+                    "user1", "local.local"
+                ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
+                    databasePassword = null,
+                    config = MatrixMessengerConfiguration(),
+                    displayColor = null,
+                ),
+            ), selectedAccount = UserId(
+                "user1", "local.local"
+            )
+        )
+        continually(2.seconds) {
+            settings.value.base.accounts.size shouldBe 1
+        }
+    }
+
+    @Test
+    fun `select the only left account when the currently active account is not present anymore`() = runTest {
+        val settings = matrixClientInitializationViewModel(
+            accounts = mapOf(
+                UserId(
+                    "user1", "local.local"
+                ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
+                    databasePassword = null,
+                    config = MatrixMessengerConfiguration(),
+                    displayColor = null,
+                ),
+            ), selectedAccount = UserId("user2", "local.local")
+        )
+        eventually(2.seconds) {
+            settings.value.base.selectedAccount shouldBe UserId("user1", "local.local")
+        }
+    }
+
+    @Test
+    fun `select all accounts if the currently active account is not present anymore`() = runTest {
+        val settings = matrixClientInitializationViewModel(
+            accounts = mapOf(
+                UserId(
+                    "user1", "local.local"
+                ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
+                    databasePassword = null,
+                    config = MatrixMessengerConfiguration(),
+                    displayColor = null,
+                ),
+                UserId(
+                    "user2", "local.local"
+                ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
+                    databasePassword = null,
+                    config = MatrixMessengerConfiguration(),
+                    displayColor = null,
+                ),
+            ), selectedAccount = UserId("user666", "local.local")
+        )
+        eventually(2.seconds) {
+            settings.value.base.selectedAccount shouldBe null
+        }
+    }
+
+    private suspend fun TestScope.matrixClientInitializationViewModel(
+        accounts: Map<UserId, MatrixMessengerAccountSettingsBase>, selectedAccount: UserId?
     ): MatrixMessengerSettingsHolder {
         val di = koinApplication {
             modules(
-                createTestDefaultTrixnityMessengerModules() +
-                        module {
-                            single<MatrixClients> { matrixClientsMock }
-                        }
-            )
+                createTestDefaultTrixnityMessengerModules() + module {
+                    single<MatrixClients> { matrixClientsMock }
+                })
         }.koin
         val settings = di.get<MatrixMessengerSettingsHolder>()
         accounts.forEach { (account, accountSettings) ->
             settings.update<MatrixMessengerAccountSettingsBase>(account) { accountSettings }
         }
         settings.update<MatrixMessengerSettingsBase>() { it.copy(selectedAccount = selectedAccount) }
-        val viewModelContext = ViewModelContextImpl(
-            di,
-            componentContext = DefaultComponentContext(LifecycleRegistry())
-        )
+        val viewModelContext = testViewModelContext(di)
         // prevent GC to clean up the viewmodel
         cut = MatrixClientInitializationViewModelImpl(
             viewModelContext = viewModelContext,

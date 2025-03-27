@@ -150,7 +150,6 @@ qrcode = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrCodeKotli
 aboutlibraries = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 
 [bundles]
-kotest = ["kotest-common", "kotest-engine-framework", "kotest-assertion-core"]
 jna = ["jna", "jna-platform"]
 testcontainers = ["testcontainers", "testcontainers-junit-jupiter"]
 android-common = ["androidx-appcompat", "androidx-work-runtime-ktx", "androidx-lifecycle-livedata-ktx", "androidx-activity-compose", "logback-android"]
@@ -172,6 +171,7 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 kotest = { id = "io.kotest.multiplatform", version.ref = "kotest" }
+
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 skie = { id = "co.touchlab.skie", version.ref = "skie" }
 kmmbridge = { id = "co.touchlab.kmmbridge.gitlab", version.ref = "kmmBridge" }

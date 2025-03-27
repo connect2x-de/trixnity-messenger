@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.util.testGraphemeIterableProvider
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -194,7 +195,7 @@ class GetEventReactionsTest {
             matrixClientMock,
             roomId,
             eventId,
-            Initials,
+            InitialsImpl(testGraphemeIterableProvider()),
             avatarSize().toLong(),
         ).first()
 

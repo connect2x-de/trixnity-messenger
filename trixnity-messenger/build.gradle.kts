@@ -40,9 +40,12 @@ kotlin {
     js {
         browser {
             testTask {
-                enabled = false // TODO
+                useKarma {
+                    useFirefoxHeadless()
+                }
             }
         }
+        nodejs()
         binaries.library()
         generateTypeScriptDefinitions()
     }
@@ -78,12 +81,12 @@ kotlin {
                 implementation(libs.skie.annotations)
             }
         }
-        commonTest {
+        val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(libs.okio.fakefilesystem)
                 implementation(libs.kotlinx.coroutines.test)
-                implementation(libs.bundles.kotest)
+                implementation(libs.kotest.assertion.core)
                 implementation(libs.ktor.client.mock)
                 implementation(libs.mokkery.coroutines)
             }
@@ -97,6 +100,7 @@ kotlin {
         }
         jvmMain {
             dependsOn(jvmAndNativeMain)
+            kotlin.srcDirs("src/icu4j/kotlin")
             dependencies {
                 implementation(libs.bundles.jna)
                 implementation(libs.androidx.sqlite3mc.bundled)
@@ -117,7 +121,8 @@ kotlin {
         }
         iosMain {
             dependencies {
-                implementation(libs.ktor.client.darwin) // since with iOS projects, we cannot include the engine, we select it here
+                // since with iOS projects, we cannot include the engine, we select it here
+                implementation(libs.ktor.client.darwin)
                 implementation(libs.androidx.sqlite3.bundled)
             }
         }
@@ -134,22 +139,33 @@ kotlin {
                 implementation(libs.ktor.client.js) // since there is only 1 engine in web, we select it here
             }
         }
+        val nonAndroidTest by creating {
+            dependsOn(commonTest)
+        }
         val jvmAndNativeTest by creating {
-            dependsOn(commonTest.get())
+            dependsOn(commonTest)
         }
         jvmTest {
             dependsOn(jvmAndNativeTest)
+            dependsOn(nonAndroidTest)
             dependencies {
-                implementation(libs.kotest.junit.runner)
-                implementation(libs.slf4j.api)
                 implementation(libs.logback.classic)
             }
         }
         nativeTest {
+            dependsOn(nonAndroidTest)
             dependsOn(jvmAndNativeTest)
         }
-        val androidUnitTest by getting {
+        jsTest {
+            dependsOn(nonAndroidTest)
+        }
+        androidUnitTest {
             dependsOn(jvmAndNativeTest)
+            kotlin.srcDirs("src/icu4j/kotlin")
+            dependencies {
+                implementation(libs.logback.classic)
+                implementation(libs.icu4j)
+            }
         }
     }
 }
@@ -191,7 +207,10 @@ skie {
             FlowInterop.Enabled(true)
             EnumInterop.Enabled(false)
             SealedInterop.Enabled(false)
-            DefaultArgumentInterop.Enabled(true) // is disabled by default (see https://skie.touchlab.co/features/default-arguments), so we have to use annotations where necessary
+
+            // is disabled by default (see https://skie.touchlab.co/features/default-arguments),
+            // so we have to use annotations where necessary
+            DefaultArgumentInterop.Enabled(true)
         }
         group("$group.trixnity.messenger.settings") {
             FlowInterop.Enabled(false)
