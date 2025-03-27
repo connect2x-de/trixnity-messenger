@@ -23,8 +23,8 @@ val buildFlavor = BuildFlavor.valueOf(System.getenv("MESSENGER_BUILD_FLAVOR") ?:
 val licensesDir = layout.buildDirectory.dir("generated").get().dir("aboutLibraries").asFile
 
 val licenses by tasks.registering(AboutLibrariesTask::class) {
-    resultDirectory = licensesDir
     dependsOn("collectDependencies")
+    resultDirectory = licensesDir
 }
 
 aboutLibraries {
@@ -34,6 +34,7 @@ aboutLibraries {
 }
 
 val buildConfigGenerator by tasks.registering {
+    dependsOn(licenses)
     val licencesFile = licensesDir.resolve("aboutlibraries.json")
     val generatedSrc = layout.buildDirectory.dir("generated-src/kotlin/")
     inputs.file(licencesFile)
@@ -67,7 +68,6 @@ val buildConfigGenerator by tasks.registering {
         }
     }
     outputs.dirs(generatedSrc)
-    dependsOn(licenses)
 }
 
 kotlin {

@@ -66,7 +66,7 @@ kotlin {
     }
     applyDefaultHierarchyTemplate()
     sourceSets {
-        commonMain {
+        val commonMain by getting {
             dependencies {
                 api(libs.trixnity.client)
                 implementation(libs.trixnity.crypto.core)
@@ -86,7 +86,7 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test"))
+                implementation(libs.kotlin.test)
                 implementation(libs.okio.fakefilesystem)
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.kotest.assertion.core)
@@ -95,7 +95,7 @@ kotlin {
             }
         }
         val jvmAndNativeMain by creating {
-            dependsOn(commonMain.get())
+            dependsOn(commonMain)
             dependencies {
                 implementation(libs.trixnity.client.repository.room)
                 api(libs.trixnity.client.media.okio)

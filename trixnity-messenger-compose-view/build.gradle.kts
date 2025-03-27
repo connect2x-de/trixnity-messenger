@@ -30,7 +30,7 @@ kotlin {
             maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
         }
     }
-    js("web", IR) {
+    js("web") {
         browser {
             // Run test in firefox for ci as trixnity/kmp-dockerfiles/base has only firefox
             testRuns.create("firefox").executionTask.configure {
@@ -97,8 +97,7 @@ kotlin {
 
         commonTest {
             dependencies {
-                implementation(kotlin("test"))
-
+                implementation(libs.kotlin.test)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.uiTest)
                 implementation(libs.okio.fakefilesystem)

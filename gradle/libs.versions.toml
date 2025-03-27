@@ -68,6 +68,7 @@ qrCodeKotlin = "4.1.1" # https://github.com/g0dkar/qrcode-kotlin/tags
 [libraries]
 kotlin-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version.ref = "kotlinWrappers" }
 kotlin-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
@@ -112,11 +113,6 @@ logback-android = { module = "com.github.tony19:logback-android", version.ref = 
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
 decompose-extensions = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
 
-kotest-common = { module = "io.kotest:kotest-common", version.ref = "kotest" }
-kotest-engine-framework = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
-kotest-assertion-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
-kotest-junit-runner = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
-
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 
@@ -148,6 +144,7 @@ slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 compose-richeditor = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richeditor" }
 qrcode = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrCodeKotlin" }
 aboutlibraries = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
+kotest-assertion-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 
 [bundles]
 jna = ["jna", "jna-platform"]
