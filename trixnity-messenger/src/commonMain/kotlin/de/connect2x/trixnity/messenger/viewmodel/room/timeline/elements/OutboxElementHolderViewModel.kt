@@ -216,7 +216,7 @@ class OutboxElementHolderViewModelImpl(
     override val isByMe: Boolean = true
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val previousSupportedTimelineEvent = matrixClient.room.getLastTimelineEvents(roomId)
+    private val previousSupportedTimelineEventFlow = matrixClient.room.getLastTimelineEvents(roomId)
         .filterNotNull()
         .flatMapLatest { lastTimelineEvents ->
             timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -227,33 +227,52 @@ class OutboxElementHolderViewModelImpl(
             ).filterNotNull()
         }.shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
 
+    private val firstOutboxEventFlow =
+        combine(
+            previousSupportedTimelineEventFlow,
+            matrixClient.room.getOutbox(roomId).flatten()
+        ) { previousSupportedTimelineEvent, outbox ->
+            val lastTimelineEventTransactionId = previousSupportedTimelineEvent.event.unsigned?.transactionId
+
+            outbox.firstOrNull { it.transactionId != lastTimelineEventTransactionId }
+                .also { firstOutboxEvent ->
+                    log.trace {
+                        "firstOutboxEvent: " +
+                                "transactionId=$transactionId, " +
+                                "lastTimelineEventTransactionId=$lastTimelineEventTransactionId, " +
+                                "firstOutboxEvent=${firstOutboxEvent?.transactionId}, " +
+                                "sender=${previousSupportedTimelineEvent.sender}"
+                    }
+                }
+        }.filterNotNull().shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+
     override val isFirstInUserSequence: StateFlow<Boolean?> =
         combine(
-            previousSupportedTimelineEvent,
-            matrixClient.room.getOutbox(roomId).flatten(),
-        ) { lastTimelineEvent, outbox ->
-            val lastTimelineEventTransactionId = lastTimelineEvent.event.unsigned?.transactionId
-            val firstOutboxTransactionId =
-                outbox.firstOrNull { it.transactionId != lastTimelineEventTransactionId }?.transactionId
-            log.trace { "transactionId=$transactionId, lastTimelineEventTransactionId=$lastTimelineEventTransactionId, firstOutboxTransactionId=$firstOutboxTransactionId, sender=${lastTimelineEvent.sender}" }
-            firstOutboxTransactionId == transactionId && lastTimelineEvent.sender != userId
+            previousSupportedTimelineEventFlow,
+            firstOutboxEventFlow,
+        ) { previousSupportedTimelineEvent, firstOutboxEvent ->
+            firstOutboxEvent.transactionId == transactionId && previousSupportedTimelineEvent.sender != userId
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showSender: StateFlow<Boolean?> = MutableStateFlow(false).asStateFlow()
 
     private val clock = get<Clock>()
     override val showBigGapBefore: StateFlow<Boolean?> =
-        previousSupportedTimelineEvent
-            .map { timelineEvent ->
-                when {
-                    timelineEvent.sender != matrixClient.userId -> true
-                    else -> {
-                        val previousTimestamp = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
-                        val thisTimestamp = clock.now()
-                        thisTimestamp - previousTimestamp > config.showBigGapBeforeThreshold
-                    }
+        combine(
+            previousSupportedTimelineEventFlow,
+            firstOutboxEventFlow,
+        ) { previousSupportedTimelineEvent, firstOutboxEvent ->
+            when {
+                firstOutboxEvent.transactionId != transactionId -> false
+                previousSupportedTimelineEvent.sender != matrixClient.userId -> true
+                else -> {
+                    val previousTimestamp =
+                        Instant.fromEpochMilliseconds(previousSupportedTimelineEvent.originTimestamp)
+                    val thisTimestamp = clock.now()
+                    thisTimestamp - previousTimestamp > config.showBigGapBeforeThreshold
                 }
-            }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+            }
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val uploadProgress: StateFlow<FileTransferProgressElement?> =
