@@ -145,7 +145,7 @@ android {
             isDefault = true
         }
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
         }
     }
 }

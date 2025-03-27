@@ -176,7 +176,7 @@ android {
         }
         release {
             signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = true
+            isMinifyEnabled = false
         }
     }
     packaging {
