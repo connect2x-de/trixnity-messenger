@@ -28,7 +28,6 @@ kotlin {
                 implementation(libs.trixnity.client.repository.exposed)
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(kotlin("test"))
-                implementation(libs.kotest.common)
                 implementation(libs.kotest.assertion.core)
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.uuid)

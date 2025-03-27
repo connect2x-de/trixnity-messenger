@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.platformNotifications
+import de.connect2x.trixnity.messenger.util.currentImmediateDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
@@ -61,7 +62,7 @@ fun Notifications(
             .collect { settings ->
                 val anyNotificationsEnabled =
                     settings.any { (_, settings) -> settings.base.notificationsEnabled }
-                withContext(Dispatchers.Main) {
+                withContext(currentImmediateDispatcher()) {
                     if (anyNotificationsEnabled) {
                         log.debug { "Notifications are enabled for active messenger, requesting permissions" }
                         notificationHandler.requestPermissions()
