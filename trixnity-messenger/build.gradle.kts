@@ -61,6 +61,7 @@ kotlin {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")
             languageSettings.optIn("kotlin.experimental.ExperimentalObjCName")
+            languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
         }
         val commonMain by getting {
             dependencies {
@@ -74,7 +75,6 @@ kotlin {
                 api(libs.kotlinx.serialization)
                 implementation(libs.okio)
                 implementation(libs.kotlinx.datetime)
-                implementation(libs.uuid)
                 implementation(libs.kim)
                 implementation(libs.markdown)
                 implementation(libs.skie.annotations)
