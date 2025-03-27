@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reduce height of room list elements
 - Use kotlin.test for all tests
+- Updated UI to use new styling system for icon buttons
 
 ### Deprecated
 
