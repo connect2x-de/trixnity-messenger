@@ -227,11 +227,15 @@ fun RoomExtras(
 ) {
     val i18n = DI.get<I18nView>()
 
-    if (showSettingsButton) IconButton(
-        onClick = { roomHeaderViewModel.openRoomSettings() },
-        Modifier.wrapContentSize()
-    ) {
-        Icon(Icons.Default.Settings, i18n.roomHeaderSettings())
+    if (showSettingsButton) {
+        Tooltip({ TooltipText(i18n.roomHeaderSettings()) }) {
+            IconButton(
+                onClick = { roomHeaderViewModel.openRoomSettings() },
+                Modifier.buttonPointerModifier().wrapContentSize()
+            ) {
+                Icon(Icons.Default.Settings, i18n.roomHeaderSettings())
+            }
+        }
     }
 }
 
