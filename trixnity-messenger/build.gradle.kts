@@ -22,6 +22,9 @@ plugins {
 registerCoverageTask()
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
     androidTarget {
         publishLibraryVariants("release")
     }
