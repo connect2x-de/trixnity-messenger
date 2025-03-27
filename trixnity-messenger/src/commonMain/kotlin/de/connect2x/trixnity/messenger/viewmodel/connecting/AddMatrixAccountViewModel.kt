@@ -135,7 +135,8 @@ open class AddMatrixAccountViewModelImpl(
                                 loginType.identityProviders.map { identityProvider ->
                                     val icon = identityProvider.icon?.let {
                                         var byteArray: ByteArray? = null
-                                        api.media.download(it) { media ->
+                                        @Suppress("DEPRECATION") // TODO: Matrix does not support non-legacy for identity provider icons
+                                        api.media.downloadLegacy(it) { media ->
                                             byteArray =
                                                 media.content.toByteArrayFlow()
                                                     .takeBytes(10 * 1024 * 1024) // max 10 MB
