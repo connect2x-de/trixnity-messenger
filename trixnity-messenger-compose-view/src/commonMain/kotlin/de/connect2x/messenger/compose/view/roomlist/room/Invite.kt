@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,13 +25,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 interface InviteRoomListElement {
@@ -64,11 +64,25 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                 }
             }
         ) {
-            IconButton({ roomListElementViewModel.acceptInvitation() }, Modifier.buttonPointerModifier()) {
-                Icon(Icons.Default.Check, i18n.invitationAccept())
+            Tooltip(
+                tooltip = { Text(i18n.invitationAccept())}
+            ) {
+                ThemedIconButton(
+                    style = MaterialTheme.components.commonIconButton,
+                    onClick = { roomListElementViewModel.acceptInvitation() },
+                ) {
+                    Icon(Icons.Default.Check, i18n.invitationAccept())
+                }
             }
-            IconButton({ showReject = true }, Modifier.buttonPointerModifier()) {
-                Icon(Icons.Default.Close, i18n.invitationReject())
+            Tooltip(
+                tooltip = { Text(i18n.invitationReject())}
+            ) {
+                ThemedIconButton(
+                    style = MaterialTheme.components.commonIconButton,
+                    onClick = { showReject = true },
+                ) {
+                    Icon(Icons.Default.Close, i18n.invitationReject())
+                }
             }
         }
 

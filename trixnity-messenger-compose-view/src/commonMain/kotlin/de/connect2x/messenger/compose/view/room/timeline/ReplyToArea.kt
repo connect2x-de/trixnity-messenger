@@ -11,7 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -19,11 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
-import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
 
 interface ReplyToAreaView {
@@ -58,11 +61,15 @@ class ReplyToAreaViewImpl : ReplyToAreaView {
                     element?.let {
                         timelineElementViewSelector.createReplyInSendMessage(repliedElementHolder, element)
                     }
-                    IconButton(
-                        onClick = { inputAreaViewModel.cancelReply() },
-                        modifier = Modifier.buttonPointerModifier()
+                    Tooltip(
+                        tooltip = { Text(i18n.replyToCancel()) }
                     ) {
-                        Icon(Icons.Outlined.Cancel, i18n.replyToCancel())
+                        ThemedIconButton(
+                            style = MaterialTheme.components.commonIconButton,
+                            onClick = { inputAreaViewModel.cancelReply() },
+                        ) {
+                            Icon(Icons.Outlined.Cancel, i18n.replyToCancel())
+                        }
                     }
                 }
             }
