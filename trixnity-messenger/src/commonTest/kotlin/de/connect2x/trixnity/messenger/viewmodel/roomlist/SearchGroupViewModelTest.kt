@@ -18,10 +18,10 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClient
@@ -172,14 +172,14 @@ class SearchGroupViewModelTest {
             )
         )
 
-    private fun CoroutineScope.searchGroupViewModel() =
+    private fun TestScope.searchGroupViewModel() =
         SearchGroupViewModelFactory.create(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 di = koinApplication {
                     modules(
                         createTestDefaultTrixnityMessengerModules(
-                            mapOf(UserId("test", "server") to matrixClientMock)
+                            matrixClientMock, UserId("test", "server")
                         )
                     )
                 }.koin,

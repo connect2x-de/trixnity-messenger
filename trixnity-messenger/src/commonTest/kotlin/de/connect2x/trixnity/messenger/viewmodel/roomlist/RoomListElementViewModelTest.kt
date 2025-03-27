@@ -18,16 +18,8 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
-import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -594,8 +586,8 @@ class RoomListElementViewModelTest {
 
         everySuspend {
             usersApiClientMock.setAccountData(
-                    content = any(), userId = any(), key = any(), asUserId = any()
-                )
+                content = any(), userId = any(), key = any(), asUserId = any()
+            )
         } returns Result.success(Unit)
 
         everySuspend { roomInviter.getInviter(any(), any()) } returns user2
@@ -613,34 +605,37 @@ class RoomListElementViewModelTest {
                 any(),
             )
         }
-
-        should("knocking - should unknock successfully") {
-            var left = false
-            everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } calls {
-                left = true
-                Result.success(Unit)
-            }
-
-            val cut = roomListElementViewModel(roomId, coroutineContext)
-            delay(500.milliseconds)
-
-            cut.unknock()
-            delay(500.milliseconds)
-
-            left shouldBe true
-        }
-
-        should("knocking - should handle unknock failure") {
-            everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } returns Result.failure(Throwable(""))
-
-            val cut = roomListElementViewModel(roomId, coroutineContext)
-            delay(500.milliseconds)
-
-            cut.unknock()
-            delay(500.milliseconds)
-            cut.error.value.shouldNotBeNull()
-        }
     }
+
+    @Test
+    fun `knocking - should unknock successfully`() = runTest {
+        var left = false
+        everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } calls {
+            left = true
+            Result.success(Unit)
+        }
+
+        val cut = roomListElementViewModel(roomId)
+        delay(500.milliseconds)
+
+        cut.unknock()
+        delay(500.milliseconds)
+
+        left shouldBe true
+    }
+
+    @Test
+    fun `knocking - should handle unknock failure`() = runTest {
+        everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } returns Result.failure(Throwable(""))
+
+        val cut = roomListElementViewModel(roomId)
+        delay(500.milliseconds)
+
+        cut.unknock()
+        delay(500.milliseconds)
+        cut.error.value.shouldNotBeNull()
+    }
+
 
     @Test
     fun `provide correct information on whether the room is public and whether it is encrypted or not`() = runTest {
@@ -651,35 +646,6 @@ class RoomListElementViewModelTest {
             cut.isEncrypted.value shouldBe true
         }
     }
-
-    @Test
-    fun `knocking - should unknock successfully`() {
-            var left = false
-            everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } calls {
-                left = true
-                Result.success(Unit)
-            }
-
-            val cut = roomListElementViewModel(roomId, coroutineContext)
-            delay(500.milliseconds)
-
-            cut.unknock()
-            delay(500.milliseconds)
-
-            left shouldBe true
-        }
-@Test
-fun `knocking - should handle unknock failure`() {
-            everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } returns Result.failure(Throwable(""))
-
-            val cut = roomListElementViewModel(roomId, coroutineContext)
-            delay(500.milliseconds)
-
-            cut.unknock()
-            delay(500.milliseconds)
-            cut.error.value.shouldNotBeNull()
-        }
-
 
     private fun TestScope.roomListElementViewModel(
         roomId: RoomId
