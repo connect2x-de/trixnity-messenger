@@ -181,8 +181,7 @@ class SecretByteArraysTest {
         }
     }
 
-    @Test
-    fun `getKey - should to integrity check`() = runTest {
+    private suspend fun `getKey - should do integrity check`(manipulate: (SecretByteArraySettings) -> SecretByteArraySettings) {
         secretByteArrayKeyProviders = listOf(provider1)
         val encryptedSecret = encryptAesHmacSha2("***".encodeToByteArray(), aesKey1.invoke(32), "secret")
         val secretByteArraysSettings = SecretByteArraySettings(
@@ -194,8 +193,8 @@ class SecretByteArraysTest {
                 )
             ),
             keyInfo = mapOf("provider-1" to SecretByteArrayKeyInfo()),
-            key = aesKey2.invoke(32)
-        )
+            mac = "abc".encodeToByteArray()
+        ).let { manipulate(it) }
         settings.update<MatrixMessengerSettingsBase> {
             MatrixMessengerSettingsBase(secretByteArrays = secretByteArraysSettings)
         }
@@ -206,6 +205,27 @@ class SecretByteArraysTest {
         shouldThrow<SecretByteArrayException> {
             cut.get("secret")
         }.message shouldBe "SecretByteArray integrity check failed"
+    }
+
+    @Test
+    fun `getKey - should do integrity check with null mac`() = runTest {
+        `getKey - should do integrity check` {
+            it.copy(mac = null)
+        }
+    }
+
+    @Test
+    fun `getKey - should do integrity check with wrong mac`() = runTest {
+        `getKey - should do integrity check` {
+            it.copy(mac = "wrong".encodeToByteArray())
+        }
+    }
+
+    @Test
+    fun `getKey - should do integrity check with wrong data`() = runTest {
+        `getKey - should do integrity check` {
+            it.copy(secrets = mapOf("secret" to SecretByteArray.Unencrypted("***".encodeToByteArray())))
+        }
     }
 
     @Test
@@ -268,31 +288,52 @@ class SecretByteArraysTest {
                 )
     }
 
-    @Test
-    fun `rotateKeys - should do integrity check`() = runTest {
-        val extra1 = JsonObject(mapOf("p1" to JsonPrimitive("v1")))
-        val extra2 = JsonObject(mapOf("p2" to JsonPrimitive("v2")))
-        secretByteArrayKeyProviders = listOf(provider1, provider2)
-        val secretByteArraysSettings = SecretByteArraySettings(
-            secrets = mapOf(),
-            keyInfo = mapOf("provider-1" to SecretByteArrayKeyInfo(extra = extra1)),
-            key = aesKey2.invoke(32) // wrong key!
-        )
-        settings.update<MatrixMessengerSettingsBase> {
-            MatrixMessengerSettingsBase(secretByteArrays = secretByteArraysSettings)
-        }
-        everySuspend { provider1.rotate(any(), any(), any()) } returns
-                SecretByteArrayKeyProvider.RotateResult(aesKey3, aesKey1, null)
-
-        shouldThrow<SecretByteArrayException> {
-            cut.rotateKeys(
-                "provider-2"
-            ) { oldExtra, getOldInputKey, getNewInputKey ->
-                oldExtra shouldBe null
-                getOldInputKey shouldBe aesKey3
-                getNewInputKey shouldBe aesKey1
-                SecretByteArrayKeyProvider.RotateResult(null, aesKey2, extra2)
+    private fun `rotateKeys - should do integrity check`(manipulate: (SecretByteArraySettings) -> SecretByteArraySettings) =
+        runTest {
+            val extra1 = JsonObject(mapOf("p1" to JsonPrimitive("v1")))
+            val extra2 = JsonObject(mapOf("p2" to JsonPrimitive("v2")))
+            secretByteArrayKeyProviders = listOf(provider1, provider2)
+            val secretByteArraysSettings = SecretByteArraySettings(
+                secrets = mapOf(),
+                keyInfo = mapOf("provider-1" to SecretByteArrayKeyInfo(extra = extra1)),
+                mac = "abc".encodeToByteArray()
+            ).also { manipulate(it) }
+            settings.update<MatrixMessengerSettingsBase> {
+                MatrixMessengerSettingsBase(secretByteArrays = secretByteArraysSettings)
             }
-        }.message shouldBe "SecretByteArray integrity check failed"
+            everySuspend { provider1.rotate(any(), any(), any()) } returns
+                    SecretByteArrayKeyProvider.RotateResult(aesKey3, aesKey1, null)
+
+            shouldThrow<SecretByteArrayException> {
+                cut.rotateKeys(
+                    "provider-2"
+                ) { oldExtra, getOldInputKey, getNewInputKey ->
+                    oldExtra shouldBe null
+                    getOldInputKey shouldBe aesKey3
+                    getNewInputKey shouldBe aesKey1
+                    SecretByteArrayKeyProvider.RotateResult(null, aesKey2, extra2)
+                }
+            }.message shouldBe "SecretByteArray integrity check failed"
+        }
+
+    @Test
+    fun `rotateKeys - should do integrity check with null mac`() = runTest {
+        `rotateKeys - should do integrity check` {
+            it.copy(mac = null)
+        }
+    }
+
+    @Test
+    fun `rotateKeys - should do integrity check with wrong mac`() = runTest {
+        `rotateKeys - should do integrity check` {
+            it.copy(mac = "wrong".encodeToByteArray())
+        }
+    }
+
+    @Test
+    fun `rotateKeys - should do integrity check with wrong data`() = runTest {
+        `rotateKeys - should do integrity check` {
+            it.copy(secrets = mapOf("secret" to SecretByteArray.Unencrypted("***".encodeToByteArray())))
+        }
     }
 }
