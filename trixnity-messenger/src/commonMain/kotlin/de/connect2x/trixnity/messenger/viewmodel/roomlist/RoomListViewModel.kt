@@ -322,7 +322,7 @@ class RoomListViewModelImpl(
                         val isSpace = room.createEventContent?.type == RoomType.Space
                         val includedInSearch = searchedRooms.contains(room.roomId)
                         val isDisplayed = !isSpace &&
-                                (room.membership == Membership.INVITE || room.membership == Membership.JOIN || room.membership == Membership.LEAVE) &&
+                                (room.membership == Membership.INVITE || room.membership == Membership.JOIN || room.membership == Membership.LEAVE || room.membership == Membership.KNOCK) &&
                                 includedInSearch
                         isDisplayed
                     }.onEach { log.trace { "filtered rooms: $it" } }
@@ -333,6 +333,8 @@ class RoomListViewModelImpl(
                         val sortTime =
                             when {
                                 room.membership == Membership.INVITE -> Instant.DISTANT_FUTURE
+                                room.membership == Membership.KNOCK -> Instant.DISTANT_FUTURE - 1.seconds
+                                room.membership == Membership.LEAVE -> Instant.fromEpochMilliseconds(0)
                                 lastRelevantEventTime == null -> roomWithMeta.matrixClient
                                     .room.getState<CreateEventContent>(room.roomId, "").first()
                                     ?.originTimestamp?.let { Instant.fromEpochMilliseconds(it) }
@@ -466,9 +468,11 @@ class RoomListViewModelImpl(
         coroutineScope.launch {
             val matrixClient = allRoomsFlow.first()[roomId]?.matrixClient
                 ?: return@launch log.error { "cannot find NamedMatrixClient for room $roomId" }
-            val isInvite =
-                matrixClient.room.getById(roomId).filterNotNull().map { it.membership == Membership.INVITE }.first()
-            log.debug { "switch to room $roomId (isInvite: $isInvite)" }
+            val (isInvite, isKnock) =
+                matrixClient.room.getById(roomId).filterNotNull().map {
+                    Pair(it.membership == Membership.INVITE, it.membership == Membership.KNOCK)
+                }.first()
+            log.debug { "switch to room $roomId (isInvite: $isInvite isKnock: $isKnock)" }
             when {
                 isInvite && _syncState.value[matrixClient.userId] == SyncState.ERROR -> {
                     log.debug { "try to join room while not connected" }
@@ -491,13 +495,14 @@ class RoomListViewModelImpl(
                     )
                 }
 
+                isKnock -> {}
+
                 else -> onRoomSelected(matrixClient.userId, roomId)
             }
         }
     }
 
-    override val closeProfileNeeded: Boolean = getOrNull<MatrixMultiMessengerConfiguration>()
-        ?.multiProfile ?: false
+    override val closeProfileNeeded: Boolean = getOrNull<MatrixMultiMessengerConfiguration>()?.multiProfile == true
 
     override fun closeProfile() {
         log.debug { "close profile" }

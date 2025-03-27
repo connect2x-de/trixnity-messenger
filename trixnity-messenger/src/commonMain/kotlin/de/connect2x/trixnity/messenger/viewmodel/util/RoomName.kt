@@ -83,6 +83,10 @@ open class RoomNameImpl(
             } else {
                 flowOf(i18n.roomNameInvitation())
             }
+        } else if (room.membership == Membership.KNOCK) {
+            if (room.name != null)
+                calculateRoomName(room.roomId, room.name, matrixClient)
+            else flowOf(i18n.roomNameKnockFor(room.roomId.full))
         } else {
             calculateRoomName(
                 room.roomId,
