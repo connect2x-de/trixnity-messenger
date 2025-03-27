@@ -11,6 +11,7 @@ import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
+import io.kotest.common.KotestInternal
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.core.test.TestScope
 import io.kotest.core.test.advanceUntilIdle
@@ -45,6 +46,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 
+@OptIn(KotestInternal::class)
 class OutboxElementHolderViewModelTest : ShouldSpec() {
 
     private val roomId = RoomId("room1", "localhost")
@@ -56,6 +58,13 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
     private val matrixClientMock = mock<MatrixClient>()
     private val roomServiceMock = mock<RoomService>()
     private val userServiceMock = mock<UserService>()
+
+    private val previousOutboxMessage = RoomOutboxMessage(
+        roomId = roomId,
+        transactionId = "t0",
+        content = TextBased.Text("uhhh..."),
+        createdAt = Instant.fromEpochMilliseconds(123456789L),
+    )
 
     private val outboxMessage = RoomOutboxMessage(
         roomId = roomId,
@@ -301,6 +310,27 @@ class OutboxElementHolderViewModelTest : ShouldSpec() {
                     text("Hi!")
                 }
             }
+            val cut = cut()
+
+            launch { cut.showBigGapBefore.collect() }
+
+            advanceUntilIdle()
+            cut.showBigGapBefore.value shouldBe true
+
+            cancelNeverEndingCoroutines()
+        }
+
+        should("showBigGapBefore: don't show if multiple elements in outbox") {
+            timeline(roomServiceMock, roomId) {
+                +messageEvent(
+                    sender = us,
+                    sentAt = clock.now() - config.showBigGapBeforeThreshold - 1.seconds
+                ) {
+                    text("Hi!")
+                }
+            }
+
+            outbox.value = listOf(outboxMessage, previousOutboxMessage)
             val cut = cut()
 
             launch { cut.showBigGapBefore.collect() }
