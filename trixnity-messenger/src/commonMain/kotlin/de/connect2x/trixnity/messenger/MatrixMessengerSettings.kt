@@ -14,6 +14,7 @@ import de.connect2x.trixnity.messenger.settings.SettingsView
 import de.connect2x.trixnity.messenger.settings.get
 import de.connect2x.trixnity.messenger.settings.set
 import de.connect2x.trixnity.messenger.settings.update
+import de.connect2x.trixnity.messenger.util.ByteArrayBase64Serializer
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOState
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
@@ -32,8 +33,7 @@ private val log = KotlinLogging.logger { }
 data class MatrixMessengerSettingsBase(
     @Deprecated("for backwards compatibility")
     val secretByteArrayKey: LegacySecretByteArrayKey? = null, // TODO can be removed in future
-    val secretByteArrayKeyInfos: Map<String, SecretByteArrayKeyInfo> = emptyMap(),
-    val secretByteArrays: Map<String, SecretByteArray> = emptyMap(),
+    val secretByteArrays: SecretByteArraySettings? = null,
     val accounts: Map<UserId, MatrixMessengerAccountSettings> = mapOf(),
     val preferredLang: String? = null,
     val selectedAccount: UserId? = null, // TODO should be saved via decompose state preservation
@@ -46,6 +46,33 @@ data class MatrixMessengerSettingsBase(
     val displaySize: Float? = null,
     val applySystemSizes: Boolean = true
 ) : SettingsView<MatrixMessengerSettings>
+
+@Serializable
+data class SecretByteArraySettings(
+    val secrets: Map<String, SecretByteArray>,
+    val keyInfo: Map<String, SecretByteArrayKeyInfo>,
+    val mac: @Serializable(with = ByteArrayBase64Serializer::class) ByteArray?,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as SecretByteArraySettings
+
+        if (secrets != other.secrets) return false
+        if (keyInfo != other.keyInfo) return false
+        if (!mac.contentEquals(other.mac)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = secrets.hashCode()
+        result = 31 * result + keyInfo.hashCode()
+        result = 31 * result + mac.contentHashCode()
+        return result
+    }
+}
 
 @Serializable
 data class MatrixMessengerAccountSettingsBase(
