@@ -135,13 +135,13 @@ open class AddMatrixAccountViewModelImpl(
                                 loginType.identityProviders.map { identityProvider ->
                                     val icon = identityProvider.icon?.let {
                                         var byteArray: ByteArray? = null
-                                        api.media.downloadLegacy(it) {
+                                        api.media.download(it) { media ->
                                             byteArray =
-                                                it.content.toByteArrayFlow()
+                                                media.content.toByteArrayFlow()
                                                     .takeBytes(10 * 1024 * 1024) // max 10 MB
                                                     .toByteArray()
-                                        }.onFailure {
-                                            log.warn { "could not download idp icon $it" }
+                                        }.onFailure { error ->
+                                            log.warn { "could not download idp icon $error" }
                                         }.getOrNull()
                                         byteArray
                                     }
