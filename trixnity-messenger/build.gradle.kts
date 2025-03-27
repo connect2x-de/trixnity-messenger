@@ -181,6 +181,7 @@ android {
     }
     sourceSets {
         named("main") {
+
             manifest.srcFile("src/androidMain/AndroidManifest.xml")
             assets.srcDir(File(layout.buildDirectory.asFile.get(), "generated/moko/androidMain/assets"))
             res.srcDir(File(layout.buildDirectory.asFile.get(), "generated/moko/androidMain/res"))
