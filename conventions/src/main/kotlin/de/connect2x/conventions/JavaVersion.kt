@@ -30,19 +30,19 @@ fun Project.configureJava(version: Int) {
             }
         }
         withPlugin("org.jetbrains.kotlin.jvm") {
-            logger.lifecycle("Found Kotlin JVM plugin, adjusting Java version")
+            logger.info("Found Kotlin JVM plugin, adjusting Java version")
             extensions.getByType(KotlinJvmExtension::class).apply {
                 jvmToolchain(version)
             }
         }
         withPlugin("org.jetbrains.kotlin.multiplatform") {
-            logger.lifecycle("Found Kotlin Multiplatform plugin, adjusting Java version")
+            logger.info("Found Kotlin Multiplatform plugin, adjusting Java version")
             extensions.getByType<KotlinMultiplatformExtension>().apply {
                 jvmToolchain(version)
             }
         }
         withPlugin("com.android.library") {
-            logger.lifecycle("Found Android Library plugin, adjusting Java version")
+            logger.info("Found Android Library plugin, adjusting Java version")
             extensions.getByType<LibraryExtension>().compileOptions {
                 val javaVersion = version.toJavaVersion()
                 sourceCompatibility = javaVersion
@@ -50,7 +50,7 @@ fun Project.configureJava(version: Int) {
             }
         }
         withPlugin("com.android.application") {
-            logger.lifecycle("Found Android Application plugin, adjusting Java version")
+            logger.info("Found Android Application plugin, adjusting Java version")
             extensions.getByType<ApplicationExtension>().compileOptions {
                 val javaVersion = version.toJavaVersion()
                 sourceCompatibility = javaVersion

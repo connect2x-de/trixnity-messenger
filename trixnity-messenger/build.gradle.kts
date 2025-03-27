@@ -31,8 +31,6 @@ kotlin {
     jvm {
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
-            // TODO: activate when detailed information in tests is required
-            // testLogging.showStandardStreams = true
         }
         tasks.withType<Test>().configureEach {
             if (isCI.not()) {

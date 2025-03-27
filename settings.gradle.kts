@@ -24,9 +24,10 @@ pluginManagement {
     }
 }
 
+// Suppress is okay because it is an incubating API, the suppression name just doesn't match
+@Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
-    // Suppress is okay because it is an incubating API, the suppression name just doesn't match
-    @Suppress("UnstableApiUsage") repositories {
+    repositories {
         mavenCentral()
         google()
         mavenLocal()
@@ -38,7 +39,7 @@ dependencyResolutionManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.9.0") // https://github.com/gradle/foojay-toolchains/tags
+    id("org.gradle.toolchains.foojay-resolver-convention") version ("0.9.0") // https://github.com/gradle/foojay-toolchains/tags
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
