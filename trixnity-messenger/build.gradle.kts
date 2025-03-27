@@ -64,6 +64,9 @@ kotlin {
     }
     applyDefaultHierarchyTemplate()
     sourceSets {
+        all {
+            languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
+        }
         val commonMain by getting {
             dependencies {
                 api(libs.trixnity.client)
@@ -76,7 +79,6 @@ kotlin {
                 api(libs.kotlinx.serialization)
                 implementation(libs.okio)
                 implementation(libs.kotlinx.datetime)
-                implementation(libs.uuid)
                 implementation(libs.kim)
                 implementation(libs.markdown)
                 implementation(libs.skie.annotations)

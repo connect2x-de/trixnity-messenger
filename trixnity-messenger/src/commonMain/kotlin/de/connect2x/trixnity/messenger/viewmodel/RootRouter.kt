@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
-import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -39,6 +38,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
+import kotlin.uuid.Uuid
 
 private val log = KotlinLogging.logger { }
 
@@ -55,7 +55,7 @@ class RootRouter(
         source = navigation,
         serializer = Config.serializer(),
         initialConfiguration = Config.None,
-        key = "RootRouter-${uuid4()}",
+        key = "RootRouter-${Uuid.random()}",
         childFactory = ::createChild,
     )
 

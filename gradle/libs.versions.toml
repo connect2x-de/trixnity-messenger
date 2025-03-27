@@ -42,7 +42,6 @@ mokkery = "2.7.1" # https://github.com/lupuuss/Mokkery/releases
 kotest = "6.0.0.M2" # https://github.com/kotest/kotest/releases
 jna = "5.16.0" # https://github.com/java-native-access/jna/tags
 okio = "3.10.2" # https://square.github.io/okio/changelog
-uuid = "0.8.4" # https://github.com/benasher44/uuid/releases
 dokka = "2.0.0" # https://github.com/Kotlin/dokka/releases"
 jsJoda = "2.21.1" # https://www.npmjs.com/package/@js-joda/timezone
 zipjs = "2.7.53" # https://www.npmjs.com/package/@zip.js/zip.js

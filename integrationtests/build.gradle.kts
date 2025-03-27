@@ -7,8 +7,6 @@ kotlin {
     jvm {
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
-            // TODO: activate when detailed information in tests is required
-            // testLogging.showStandardStreams = true
         }
     }
 
@@ -22,7 +20,6 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.kotest.assertion.core)
                 implementation(libs.kotlinx.datetime)
-                implementation(libs.uuid)
                 implementation(libs.ktor.client.java)
                 implementation(libs.bundles.testcontainers)
                 implementation(libs.logback.classic)
