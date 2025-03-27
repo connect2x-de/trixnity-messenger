@@ -2,28 +2,24 @@ package de.connect2x.messenger.compose.view.common
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.FilePickerType.ATTACHMENT_FILE
 import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_AND_VIDEO_FILE
 import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_FILE
@@ -31,6 +27,8 @@ import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
 import de.connect2x.messenger.compose.view.common.FilePickerType.VIDEO_CAPTURE
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 
 
@@ -84,65 +82,75 @@ class FilePickerTypeSelectionViewImpl : FilePickerTypeSelectionView {
                 ) {
                     availableTypes.forEach { pickerType ->
                         when (pickerType) {
-                            ATTACHMENT_FILE -> UploadButton(
-                                imageVector = MaterialTheme.messengerIcons.attachFile,
-                                contentDescription = i18nView.fileDialogLoadFileButton(),
-                                iconButtonClick = { onSelect(pickerType) },
-                            )
+                            ATTACHMENT_FILE -> {
+                                Tooltip({ Text(i18nView.fileDialogLoadFileButton()) }) {
+                                    ThemedIconButton(
+                                        style = MaterialTheme.components.commonIconButton,
+                                        onClick = { onSelect(pickerType) },
+                                    ) {
+                                        Icon(
+                                            MaterialTheme.messengerIcons.attachFile,
+                                            i18nView.fileDialogLoadFileButton()
+                                        )
+                                    }
+                                }
+                            }
 
-                            IMAGE_FILE -> UploadButton(
-                                imageVector = MaterialTheme.messengerIcons.attachImage,
-                                contentDescription = i18nView.fileDialogLoadImageButton(),
-                                iconButtonClick = { onSelect(pickerType) },
-                            )
+                            IMAGE_FILE ->
+                                Tooltip({ Text(i18nView.fileDialogLoadImageButton()) }) {
+                                    ThemedIconButton(
+                                        style = MaterialTheme.components.commonIconButton,
+                                        onClick = { onSelect(pickerType) },
+                                    ) {
+                                        Icon(
+                                            MaterialTheme.messengerIcons.attachImage,
+                                            i18nView.fileDialogLoadImageButton()
+                                        )
+                                    }
+                                }
 
-                            IMAGE_AND_VIDEO_FILE -> UploadButton(
-                                imageVector = MaterialTheme.messengerIcons.attachImage,
-                                contentDescription = i18nView.fileDialogLoadImageOrVideoButton(),
-                                iconButtonClick = { onSelect(pickerType) },
-                            )
+                            IMAGE_AND_VIDEO_FILE ->
+                                Tooltip({ Text(i18nView.fileDialogLoadImageOrVideoButton()) }) {
+                                    ThemedIconButton(
+                                        style = MaterialTheme.components.commonIconButton,
+                                        onClick = { onSelect(pickerType) },
+                                    ) {
+                                        Icon(
+                                            MaterialTheme.messengerIcons.attachImage,
+                                            i18nView.fileDialogLoadImageOrVideoButton()
+                                        )
+                                    }
+                                }
 
-                            PHOTO_CAPTURE -> UploadButton(
-                                imageVector = MaterialTheme.messengerIcons.recordPhoto,
-                                contentDescription = i18nView.fileDialogTakeImageButton(),
-                                iconButtonClick = { onSelect(pickerType) },
-                            )
+                            PHOTO_CAPTURE ->
+                                Tooltip({ Text(i18nView.fileDialogTakeImageButton()) }) {
+                                    ThemedIconButton(
+                                        style = MaterialTheme.components.commonIconButton,
+                                        onClick = { onSelect(pickerType) },
+                                    ) {
+                                        Icon(
+                                            MaterialTheme.messengerIcons.recordPhoto,
+                                            i18nView.fileDialogTakeImageButton()
+                                        )
+                                    }
+                                }
 
-                            VIDEO_CAPTURE -> UploadButton(
-                                imageVector = MaterialTheme.messengerIcons.recordVideo,
-                                contentDescription = i18nView.fileDialogTakeVideoButton(),
-                                iconButtonClick = { onSelect(pickerType) },
-                                iconScale = 1.33f,
-                            )
+                            VIDEO_CAPTURE ->
+                                Tooltip({ Text(i18nView.fileDialogTakeVideoButton()) }) {
+                                    ThemedIconButton(
+                                        style = MaterialTheme.components.commonIconButton,
+                                        onClick = { onSelect(pickerType) },
+                                    ) {
+                                        Icon(
+                                            MaterialTheme.messengerIcons.recordVideo,
+                                            i18nView.fileDialogTakeVideoButton()
+                                        )
+                                    }
+                                }
                         }
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun UploadButton(
-    imageVector: ImageVector,
-    contentDescription: String,
-    iconButtonClick: () -> Unit,
-    iconScale: Float = 1f,
-) {
-    IconButton(
-        onClick = iconButtonClick,
-        Modifier
-            .size(60.dp)
-            .clip(CircleShape)
-    ) {
-        Box(Modifier.fillMaxSize()) {
-            Icon(
-                imageVector,
-                contentDescription,
-                Modifier
-                    .align(Alignment.Center)
-                    .size((24 * iconScale).dp),
-            )
         }
     }
 }

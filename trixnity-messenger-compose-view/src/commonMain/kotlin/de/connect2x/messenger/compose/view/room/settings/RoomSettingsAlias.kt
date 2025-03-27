@@ -34,10 +34,11 @@ import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MoreOptions
-import de.connect2x.messenger.compose.view.common.TooltipIconButton
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.gesturesDisabled
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModel
 import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.RoomAliasId
@@ -80,13 +81,15 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                                 prefix = { Text("#") },
                                 suffix = { Text(":${viewModel.domain}") }
                             )
-                            TooltipIconButton(
-                                i18n.addAlias(),
-                                onClick = {
-                                    viewModel.addNewAlias(onlyLocalpart = true)
-                                },
-                            ) {
-                                Icon(Icons.Default.Add, i18n.addAlias())
+                            Tooltip({ Text(i18n.addAlias()) }) {
+                                ThemedIconButton(
+                                    style = MaterialTheme.components.commonIconButton,
+                                    onClick = {
+                                        viewModel.addNewAlias(onlyLocalpart = true)
+                                    },
+                                ) {
+                                    Icon(Icons.Default.Add, i18n.addAlias())
+                                }
                             }
                         }
                         Spacer(Modifier.size(10.dp))
@@ -100,21 +103,25 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                             Text(alias, modifier = Modifier.weight(1f, false))
                             Row {
                                 if (canChangeRoomAlias) {
-                                    TooltipIconButton(
-                                        i18n.unmakeMainAlias(),
-                                        onClick = {
-                                            viewModel.changeMainAlias(null)
-                                        },
-                                    ) {
-                                        Icon(Icons.Default.Star, i18n.unmakeMainAlias())
+                                    Tooltip({ Text(i18n.unmakeMainAlias()) }) {
+                                        ThemedIconButton(
+                                            style = MaterialTheme.components.commonIconButton,
+                                            onClick = {
+                                                viewModel.changeMainAlias(null)
+                                            },
+                                        ) {
+                                            Icon(Icons.Default.Star, i18n.unmakeMainAlias())
+                                        }
                                     }
-                                    TooltipIconButton(
-                                        i18n.deleteAlias(),
-                                        onClick = {
-                                            viewModel.removeMainAlias(RoomAliasId(alias))
-                                        },
-                                    ) {
-                                        Icon(Icons.Default.Delete, i18n.deleteAlias())
+                                    Tooltip({ Text(i18n.deleteAlias()) }) {
+                                        ThemedIconButton(
+                                            style = MaterialTheme.components.commonIconButton,
+                                            onClick = {
+                                                viewModel.removeMainAlias(RoomAliasId(alias))
+                                            },
+                                        ) {
+                                            Icon(Icons.Default.Delete, i18n.deleteAlias())
+                                        }
                                     }
                                 } else {
                                     Box(
@@ -124,7 +131,7 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Tooltip(
-                                            tooltip = { TooltipText(i18n.mainAlias()) }
+                                            tooltip = { Text(i18n.mainAlias()) }
                                         ) {
                                             Icon(Icons.Default.Star, i18n.mainAlias())
                                         }
@@ -145,21 +152,25 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                             Text(alias, modifier = Modifier.weight(1f, false))
                             Row {
                                 if (canChangeRoomAlias) {
-                                    TooltipIconButton(
-                                        i18n.makeMainAlias(),
-                                        onClick = {
-                                            viewModel.changeMainAlias(RoomAliasId(alias))
-                                        },
-                                    ) {
-                                        Icon(Icons.Default.StarOutline, i18n.makeMainAlias())
+                                    Tooltip({ Text(i18n.makeMainAlias()) }) {
+                                        ThemedIconButton(
+                                            style = MaterialTheme.components.commonIconButton,
+                                            onClick = {
+                                                viewModel.changeMainAlias(RoomAliasId(alias))
+                                            },
+                                        ) {
+                                            Icon(Icons.Default.StarOutline, i18n.makeMainAlias())
+                                        }
                                     }
-                                    TooltipIconButton(
-                                        i18n.deleteAlias(),
-                                        onClick = {
-                                            viewModel.removeAlias(RoomAliasId(alias))
-                                        },
-                                    ) {
-                                        Icon(Icons.Default.Delete, i18n.deleteAlias())
+                                    Tooltip({ Text(i18n.deleteAlias()) }) {
+                                        ThemedIconButton(
+                                            style = MaterialTheme.components.commonIconButton,
+                                            onClick = {
+                                                viewModel.removeAlias(RoomAliasId(alias))
+                                            },
+                                        ) {
+                                            Icon(Icons.Default.Delete, i18n.deleteAlias())
+                                        }
                                     }
                                 } else {
                                     Box(

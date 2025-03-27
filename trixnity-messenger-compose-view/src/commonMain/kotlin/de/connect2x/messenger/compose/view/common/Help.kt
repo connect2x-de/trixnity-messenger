@@ -28,16 +28,3 @@ fun TooltipText(text: suspend () -> String) {
         Text(cached.value)
     }
 }
-
-@Composable
-fun TooltipIconButton(
-    text: String,
-    onClick: () -> Unit,
-    content: @Composable () -> Unit,
-) {
-    Tooltip(tooltip = { TooltipText(text) }) {
-        IconButton(onClick) {
-            content()
-        }
-    }
-}

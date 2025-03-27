@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.PersonOff
 import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,11 +33,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContact
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModel
 
@@ -137,20 +138,22 @@ fun IgnoredUserListElement(
                         .align(Alignment.Center),
                 )
 
-                else -> IconButton(
-                    onClick = { viewModel.unblockContact(user.userId) },
-                    Modifier
-                        .align(Alignment.Center)
-                        .hoverable(buttonInteractionSource)
-                        .buttonPointerModifier()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.RemoveCircle,
-                        contentDescription = i18n.unblockContactDescription(),
-                        modifier = Modifier.align(Alignment.Center),
-                        tint = if (isButtonHovered) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.surfaceTint,
-                    )
+                else -> Tooltip({ Text(i18n.unblockContactDescription())}) {
+                    ThemedIconButton(
+                        style = MaterialTheme.components.commonIconButton,
+                        onClick = { viewModel.unblockContact(user.userId) },
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .hoverable(buttonInteractionSource)
+                    ) {
+                        Icon(
+                            Icons.Default.RemoveCircle,
+                            contentDescription = i18n.unblockContactDescription(),
+                            modifier = Modifier.align(Alignment.Center),
+                            tint = if (isButtonHovered) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.surfaceTint,
+                        )
+                    }
                 }
             }
         }
