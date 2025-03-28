@@ -75,8 +75,8 @@ import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet
+import net.folivo.trixnity.clientserverapi.client.SyncEvents
 import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.clientserverapi.model.sync.Sync
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -144,8 +144,8 @@ class MainViewModelTest {
         syncState = every { matrixClientMock.syncState }
         syncState returns MutableStateFlow(SyncState.RUNNING)
         everySuspend { matrixClientMock.startSync(any()) } calls { startSyncPresenceCapture.add(it.arg(0)) }
-        everySuspend { matrixClientMock.stopSync(any()) } returns Unit
-        everySuspend { matrixClientMock.cancelSync(any()) } returns Unit
+        everySuspend { matrixClientMock.stopSync() } returns Unit
+        everySuspend { matrixClientMock.cancelSync() } returns Unit
 
         every { roomServiceMock.getAll() } returns roomsFlow
         every {
@@ -202,7 +202,7 @@ class MainViewModelTest {
         every { matrixClientMock2.avatarUrl } returns MutableStateFlow(null)
         every { matrixClientMock2.syncState } returns MutableStateFlow(SyncState.RUNNING)
         everySuspend { matrixClientMock2.startSync() } returns Unit
-        everySuspend { matrixClientMock2.cancelSync(any()) } returns Unit
+        everySuspend { matrixClientMock2.cancelSync() } returns Unit
         every { matrixClientMock2.initialSyncDone } returns MutableStateFlow(true)
     }
 
@@ -214,7 +214,7 @@ class MainViewModelTest {
     @Test
     fun `select no room initially`() = runTest {
         everySuspend {
-            matrixClientMock.syncOnce(any(), any(), any<suspend (Sync.Response) -> Unit>())
+            matrixClientMock.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>())
         } returns Result.success(Unit)
 
         val cut = mainViewModel()
@@ -356,7 +356,7 @@ class MainViewModelTest {
             )
         )
         everySuspend {
-            matrixClientMock.syncOnce(any(), any(), any<suspend (Sync.Response) -> Unit>())
+            matrixClientMock.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>())
         } returns Result.success(Unit)
 
         val cut = mainViewModel()
@@ -402,10 +402,10 @@ class MainViewModelTest {
         )
 
         everySuspend {
-            matrixClientMock.syncOnce(any(), any(), any<suspend (Sync.Response) -> Unit>())
+            matrixClientMock.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>())
         } returns Result.success(Unit)
         everySuspend {
-            matrixClientMock2.syncOnce(any(), any(), any<suspend (Sync.Response) -> Unit>())
+            matrixClientMock2.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>())
         } returns Result.success(Unit)
 
         val user1 = UserId("test", "server")
@@ -453,7 +453,7 @@ class MainViewModelTest {
             )
         )
         everySuspend {
-            matrixClientMock.syncOnce(any(), any(), any<suspend (Sync.Response) -> Unit>())
+            matrixClientMock.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>())
         } returns Result.success(Unit)
 
         messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
@@ -543,7 +543,7 @@ class MainViewModelTest {
         lifecycle.stop()
         eventually(300.milliseconds) {
             verifySuspend {
-                matrixClientMock.cancelSync(any())
+                matrixClientMock.cancelSync()
             }
         }
 

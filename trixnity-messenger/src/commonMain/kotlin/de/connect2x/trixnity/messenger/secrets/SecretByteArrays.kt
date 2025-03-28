@@ -208,6 +208,7 @@ class SecretByteArraysImpl(
         return SecretByteArrays.GetInputKeyAndExtraResult(inputKey, extra)
     }
 
+    @Suppress("DEPRECATION")
     @Deprecated("for backwards compatibility")
     override suspend fun getLegacy(secretByteArray: SecretByteArray): ByteArray {
         log.debug { "getLegacy SecretByteArray" }
@@ -268,6 +269,7 @@ class SecretByteArraysImpl(
         }
     }
 
+    @Suppress("DEPRECATION")
     @Deprecated("for backwards compatibility")
     private suspend fun getLegacyKey(): ByteArray? {
         log.debug { "getLegacyKey" }

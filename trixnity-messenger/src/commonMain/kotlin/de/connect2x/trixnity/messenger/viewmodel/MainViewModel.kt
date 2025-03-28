@@ -257,7 +257,7 @@ open class MainViewModelImpl(
                     log.debug { "app is stopped: cancel sync" }
                     this@MainViewModelImpl.matrixClients.value.forEach { (userId, matrixClient) ->
                         log.debug { "stop sync for $userId" }
-                        matrixClient.cancelSync(wait = false)
+                        matrixClient.cancelSync()
                     }
                 }
             }

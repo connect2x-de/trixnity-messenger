@@ -8,8 +8,8 @@ import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.DownloadManager
-import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
+import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
@@ -131,7 +131,7 @@ class RoomViewModelTest {
         syncState = every { matrixClientMock.syncState }
         syncState returns MutableStateFlow(SyncState.RUNNING)
         everySuspend { matrixClientMock.startSync() } returns Unit
-        everySuspend { matrixClientMock.cancelSync(any()) } returns Unit
+        everySuspend { matrixClientMock.cancelSync() } returns Unit
         every { matrixClientServerApiClientMock.sync } returns syncApiClientMock
         every { roomServiceMock.getAll() } returns roomsFlow
         every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId))
