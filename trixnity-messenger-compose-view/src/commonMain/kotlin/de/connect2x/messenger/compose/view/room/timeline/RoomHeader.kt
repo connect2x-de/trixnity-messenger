@@ -1,12 +1,10 @@
 package de.connect2x.messenger.compose.view.room.timeline
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -18,15 +16,12 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -238,72 +233,3 @@ fun RoomExtras(
         }
     }
 }
-
-@Composable
-@Deprecated("Made obsolete by options in User Profile")
-fun RoomContextMenu(
-    contextMenuOpen: MutableState<Boolean>,
-    roomHeaderViewModel: RoomHeaderViewModel,
-) {
-    val i18n = DI.get<I18nView>()
-    val canVerifyUser = roomHeaderViewModel.canVerifyUser.collectAsState().value
-    val canBlockUser = roomHeaderViewModel.canBlockUser.collectAsState().value
-    val canUnblockUser = roomHeaderViewModel.canUnblockUser.collectAsState().value
-
-    DropdownMenu(
-        expanded = contextMenuOpen.value,
-        onDismissRequest = { contextMenuOpen.value = false },
-        modifier = Modifier.background(MaterialTheme.colorScheme.background),
-    ) {
-        DropdownMenuItem(
-            text = {
-                Text(
-                    i18n.roomHeaderStartUserVerification(),
-                    Modifier.buttonPointerModifier(canVerifyUser),
-                    color = textColor(canVerifyUser),
-                )
-            },
-            onClick = {
-                contextMenuOpen.value = false
-                roomHeaderViewModel.verifyUser()
-            },
-            contentPadding = PaddingValues(horizontal = 10.dp),
-            enabled = canVerifyUser,
-        )
-        if (canBlockUser) DropdownMenuItem(
-            text = {
-                Text(
-                    i18n.roomHeaderBlockUser(),
-                    Modifier.buttonPointerModifier(canBlockUser),
-                    color = textColor(canBlockUser),
-                )
-            },
-            onClick = {
-                contextMenuOpen.value = false
-                roomHeaderViewModel.blockUser()
-            },
-            contentPadding = PaddingValues(horizontal = 10.dp),
-            enabled = canBlockUser,
-        )
-        if (canUnblockUser) DropdownMenuItem(
-            text = {
-                Text(
-                    i18n.roomHeaderUnblockUser(),
-                    Modifier.buttonPointerModifier(canUnblockUser),
-                    color = textColor(canUnblockUser),
-                )
-            },
-            onClick = {
-                contextMenuOpen.value = false
-                roomHeaderViewModel.unblockUser()
-            },
-            contentPadding = PaddingValues(horizontal = 10.dp),
-            enabled = canUnblockUser,
-        )
-    }
-}
-
-@Composable
-private fun textColor(enabled: Boolean) =
-    if (enabled) MaterialTheme.colorScheme.onBackground
-    else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
