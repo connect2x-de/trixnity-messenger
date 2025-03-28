@@ -9,11 +9,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,11 +26,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.util.TextLabel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
@@ -60,8 +60,15 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
                 TextLabel(i18n.commonArchived())
             }
         ) {
-            IconButton({ showWarning = true }, Modifier.buttonPointerModifier()) {
-                Icon(Icons.Default.Delete, null)
+            Tooltip(
+                tooltip = { Text(i18n.commonDelete())}
+            ) {
+                ThemedIconButton(
+                    style = MaterialTheme.components.commonIconButton,
+                    onClick = { showWarning = true },
+                ) {
+                    Icon(Icons.Default.Delete, i18n.commonDelete())
+                }
             }
         }
 
@@ -89,20 +96,30 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
                             modifier = Modifier.height(IntrinsicSize.Min)
                         ) {
                             Box(Modifier.weight(1.0f, fill = true), contentAlignment = Alignment.Center) {
-                                Button(
-                                    onClick = { roomListElementViewModel.forgetRoom(); showWarning = false },
-                                    modifier = Modifier.buttonPointerModifier().width(250.dp),
+                                Tooltip(
+                                    tooltip = { Text(i18n.commonConfirm())}
                                 ) {
-                                    Text(i18n.commonConfirm().capitalize(Locale.current))
+                                    ThemedButton(
+                                        style = MaterialTheme.components.primaryButton,
+                                        onClick = { roomListElementViewModel.forgetRoom(); showWarning = false },
+                                        modifier = Modifier.width(250.dp),
+                                    ) {
+                                        Text(i18n.commonConfirm().capitalize(Locale.current), textAlign = TextAlign.Center)
+                                    }
                                 }
                             }
                             Spacer(Modifier.size(20.dp))
                             Box(Modifier.weight(1.0f, fill = true), contentAlignment = Alignment.Center) {
-                                OutlinedButton(
-                                    onClick = { showWarning = false },
-                                    modifier = Modifier.buttonPointerModifier().width(250.dp),
+                                Tooltip(
+                                    tooltip = { Text(i18n.commonBack())}
                                 ) {
-                                    Text(i18n.commonBack().capitalize(Locale.current), textAlign = TextAlign.Center)
+                                    ThemedButton(
+                                        style = MaterialTheme.components.commonButton,
+                                        onClick = { showWarning = false },
+                                        modifier = Modifier.width(250.dp),
+                                    ) {
+                                        Text(i18n.commonBack().capitalize(Locale.current), textAlign = TextAlign.Center)
+                                    }
                                 }
                             }
                         }

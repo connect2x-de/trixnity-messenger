@@ -7,6 +7,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -31,6 +32,7 @@ import net.folivo.trixnity.core.model.UserId
 
 private val log = KotlinLogging.logger { }
 
+@OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 interface MatrixClients : StateFlow<Map<UserId, MatrixClient>> {
     suspend fun login(
         baseUrl: Url,
@@ -65,7 +67,7 @@ interface MatrixClients : StateFlow<Map<UserId, MatrixClient>> {
 data class AccountAlreadyExistsException(val userId: UserId) :
     IllegalStateException("account $userId already exists locally")
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalForInheritanceCoroutinesApi::class)
 class MatrixClientsImpl(
     private val factory: MatrixClientFactory,
     private val deleteAccountData: DeleteAccountData,

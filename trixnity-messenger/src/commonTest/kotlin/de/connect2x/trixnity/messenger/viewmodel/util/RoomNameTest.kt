@@ -7,9 +7,11 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
@@ -102,6 +104,17 @@ class RoomNameTest {
         result.value shouldBe "Room name"
     }
 
+    @Test
+    fun `room name - should display fallback when room name is null on a knocking room`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
+            createBasicRoom(null, Membership.KNOCK)
+        )
+
+        val cut = RoomNameImpl(i18n, roomInviter)
+        val result = cut.getRoomName(roomId, matrixClientMock, true)
+        result.firstOrNull { it == i18n.roomNameKnockFor(roomId.full) }.shouldNotBeNull()
+    }
+
     private fun createRoomUser(
         i: Long, roomId: RoomId, userId: UserId, name: String, displayName: String = name, membership: Membership
     ): RoomUser {
@@ -114,13 +127,13 @@ class RoomNameTest {
         )
     }
 
-    private fun createBasicRoom(name: RoomDisplayName?): Room {
+    private fun createBasicRoom(name: RoomDisplayName?, membership: Membership = Membership.JOIN): Room {
         return Room(
             roomId = roomId,
             name = name,
             lastEventId = null,
             unreadMessageCount = 0,
-            membership = Membership.JOIN,
+            membership = membership,
             membersLoaded = false,
         )
     }

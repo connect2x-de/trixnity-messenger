@@ -11,8 +11,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,13 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 
 @Composable
@@ -51,8 +51,13 @@ fun BoxScope.DownloadProgress(
                     modifier = Modifier.padding(start = 10.dp),
                 )
                 if (cancel != null)
-                    IconButton(cancel, Modifier.buttonPointerModifier()) {
-                        Icon(Icons.Default.Cancel, i18n.commonCancel().capitalize(Locale.current), tint = Color.Gray)
+                    Tooltip({ Text(i18n.commonCancel()) }) {
+                        ThemedIconButton(
+                            style = MaterialTheme.components.commonIconButton,
+                            onClick = cancel
+                        ) {
+                            Icon(Icons.Default.Cancel, i18n.commonCancel(),)
+                        }
                     }
             }
         }

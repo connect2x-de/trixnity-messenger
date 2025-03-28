@@ -5,10 +5,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -27,17 +26,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.EditOff
 import androidx.compose.material.icons.filled.Mood
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconToggleButton
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -60,11 +55,11 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.Platform
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
@@ -87,6 +82,8 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconToggleButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -144,8 +141,9 @@ class InputAreaViewImpl : InputAreaView {
 
                 UserSelector(inputAreaViewModel, focusRequester)
                 Row(
-                    Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+                    Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     if (canSendMessages) {
                         EmojiButton(emojisOpen)
@@ -248,7 +246,6 @@ fun RowScope.InputAreaTextField(
     Box(
         Modifier
             .fillMaxWidth()
-            .padding(end = 8.dp, top = 8.dp, bottom = 8.dp)
             .weight(1.0f, fill = true)
     ) {
         if (showUploadError.value != null) {
@@ -332,23 +329,16 @@ fun RowScope.InputAreaTextField(
 @Composable
 fun EditButton(inputAreaViewModel: InputAreaViewModel) {
     val i18n = DI.get<I18nView>()
-    val isMobile = Platform.current.isMobile
-    Button(
-        onClick = {
-            inputAreaViewModel.cancelReplace()
-        },
-        modifier = Modifier // padding on desktop: 4.dp is 10.dp - 6.dp (border of text field)
-            .padding(start = if (isMobile) 2.dp else 4.dp, end = if (isMobile) 8.dp else 10.dp)
-            .size(if (isMobile) 40.dp else 34.dp)
-            .buttonPointerModifier(),
-        shape = CircleShape,
-        contentPadding = PaddingValues(start = 2.dp, top = 0.dp, end = 0.dp, bottom = 0.dp),
-    ) {
-        Icon(
-            imageVector = Icons.Default.EditOff,
-            contentDescription = i18n.inputAreaCancelEdit(),
-            modifier = if (isMobile) Modifier else Modifier.size(20.dp),
-        )
+    Tooltip({ Text(i18n.inputAreaSend()) }) {
+        ThemedIconButton(
+            style = MaterialTheme.components.primaryIconButton,
+            onClick = { inputAreaViewModel.cancelReplace() },
+        ) {
+            Icon(
+                Icons.Default.EditOff,
+                i18n.inputAreaCancelEdit(),
+            )
+        }
     }
 }
 
@@ -356,25 +346,17 @@ fun EditButton(inputAreaViewModel: InputAreaViewModel) {
 fun SendButton(inputAreaViewModel: InputAreaViewModel) {
     val i18n = DI.get<I18nView>()
     val enabled = inputAreaViewModel.isSendEnabled.collectAsState().value
-    val isMobile = Platform.current.isMobile
     AnimatedVisibility(enabled, enter = fadeIn(), exit = fadeOut()) {
-        Button(
-            onClick = {
-                inputAreaViewModel.sendMessage()
-            },
-            modifier = Modifier // padding on desktop: 4.dp is 10.dp - 6.dp (border of text field)
-                .padding(start = if (isMobile) 2.dp else 4.dp, end = if (isMobile) 8.dp else 10.dp)
-                .size(if (isMobile) 36.dp else 34.dp)
-                .buttonPointerModifier(enabled),
-            shape = CircleShape,
-            contentPadding = PaddingValues(start = 2.dp, top = 0.dp, end = 0.dp, bottom = 0.dp),
-            enabled = enabled
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.Send,
-                i18n.inputAreaSend(),
-                if (isMobile) Modifier else Modifier.size(20.dp)
-            )
+        Tooltip({ Text(i18n.inputAreaSend()) }) {
+            ThemedIconButton(
+                style = MaterialTheme.components.primaryIconButton,
+                onClick = { inputAreaViewModel.sendMessage() },
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.Send,
+                    i18n.inputAreaSend(),
+                )
+            }
         }
     }
 }
@@ -382,14 +364,12 @@ fun SendButton(inputAreaViewModel: InputAreaViewModel) {
 @Composable
 fun EmojiButton(emojisOpen: MutableState<Boolean>) {
     val i18n = DI.get<I18nView>()
-    val isMobile = Platform.current.isMobile
-    CompositionLocalProvider(
-        LocalMinimumInteractiveComponentSize provides Dp.Unspecified
-    ) {
-        IconToggleButton(
-            emojisOpen.value,
-            { emojisOpen.value = emojisOpen.value.not() },
-            Modifier.buttonPointerModifier().padding(horizontal = if (isMobile) 6.dp else 6.dp),
+
+    Tooltip({ Text(i18n.inputAreaEmojis()) }) {
+        ThemedIconToggleButton(
+            style = MaterialTheme.components.commonIconButton,
+            checked = emojisOpen.value,
+            onCheckedChange = { emojisOpen.value = emojisOpen.value.not() },
         ) {
             Icon(
                 Icons.Default.Mood,
@@ -402,7 +382,6 @@ fun EmojiButton(emojisOpen: MutableState<Boolean>) {
 @Composable
 fun AttachmentButton(inputAreaViewModel: InputAreaViewModel) {
     val i18n = DI.get<I18nView>()
-    val isMobile = Platform.current.isMobile
     val showAttachmentDialog = inputAreaViewModel.showAttachmentSelectDialog.collectAsState().value
     val isSendEnabled = inputAreaViewModel.isSendEnabled.collectAsState().value
     if (showAttachmentDialog) LoadFileDialog(
@@ -416,12 +395,11 @@ fun AttachmentButton(inputAreaViewModel: InputAreaViewModel) {
         inputAreaViewModel::closeAttachmentDialog,
     )
     AnimatedVisibility(isSendEnabled.not(), enter = fadeIn(), exit = fadeOut()) {
-        CompositionLocalProvider(
-            LocalMinimumInteractiveComponentSize provides Dp.Unspecified
-        ) {
-            IconToggleButton(
-                showAttachmentDialog,
-                {
+        Tooltip({ Text(i18n.inputAreaSelectAttachment()) }) {
+            ThemedIconToggleButton(
+                style = MaterialTheme.components.commonIconButton,
+                checked = showAttachmentDialog,
+                onCheckedChange = {
                     if (it) {
                         val hasShown = inputAreaViewModel.hasShownAttachmentSelectDialog.replayCache.getOrNull(0)
                         if (hasShown != null && hasShown) {
@@ -433,7 +411,6 @@ fun AttachmentButton(inputAreaViewModel: InputAreaViewModel) {
                         inputAreaViewModel.closeAttachmentDialog()
                     }
                 },
-                Modifier.buttonPointerModifier().padding(end = if (isMobile) 6.dp else 8.dp),
             ) {
                 Icon(
                     MaterialTheme.messengerIcons.attachFile,

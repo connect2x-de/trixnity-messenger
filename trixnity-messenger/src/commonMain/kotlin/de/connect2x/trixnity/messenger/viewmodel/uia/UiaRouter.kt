@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.uia
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
-import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -19,6 +18,7 @@ import net.folivo.trixnity.clientserverapi.client.UIA
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
 import net.folivo.trixnity.core.MatrixServerException
 import org.koin.core.component.get
+import kotlin.uuid.Uuid
 
 
 private val log = KotlinLogging.logger {}
@@ -34,7 +34,7 @@ class UiaRouter(
         serializer = null,
         handleBackButton = false,
         childFactory = ::createChild,
-        key = "UiaRouter-${uuid4()}"
+        key = "UiaRouter-${Uuid.random()}"
     )
 
     private fun createChild(
