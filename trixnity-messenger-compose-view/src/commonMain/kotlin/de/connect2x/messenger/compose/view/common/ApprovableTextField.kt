@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -25,11 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModel
 
 
@@ -59,11 +60,13 @@ fun ApprovableTextField(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (isEdit) {
-                        IconButton(
-                            onClick = viewModel::cancelEdit,
-                            modifier = Modifier.buttonPointerModifier(),
-                        ) {
-                            Icon(Icons.Outlined.Clear, i18n.commonCancel())
+                        Tooltip({ Text(i18n.commonCancel()) }) {
+                            ThemedIconButton(
+                                style = MaterialTheme.components.commonIconButton,
+                                onClick = viewModel::cancelEdit,
+                            ) {
+                                Icon(Icons.Outlined.Clear, i18n.commonCancel())
+                            }
                         }
                         Spacer(Modifier.size(10.dp))
                     }
@@ -85,11 +88,13 @@ fun ApprovableTextField(
                     )
                     if (isEdit) {
                         Spacer(Modifier.size(10.dp))
-                        IconButton(
-                            onClick = viewModel::approveEdit,
-                            modifier = Modifier.buttonPointerModifier(),
-                        ) {
-                            Icon(Icons.Default.Check, i18n.commonRename())
+                        Tooltip({ Text(i18n.commonRename()) }) {
+                            ThemedIconButton(
+                                style = MaterialTheme.components.commonIconButton,
+                                onClick = viewModel::approveEdit,
+                            ) {
+                                Icon(Icons.Default.Check, i18n.commonRename())
+                            }
                         }
                     }
                 }

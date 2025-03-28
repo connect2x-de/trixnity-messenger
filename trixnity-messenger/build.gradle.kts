@@ -4,32 +4,38 @@ import co.touchlab.skie.configuration.FlowInterop
 import co.touchlab.skie.configuration.FunctionInterop
 import co.touchlab.skie.configuration.SealedInterop
 import co.touchlab.skie.configuration.SuspendInterop
+import de.connect2x.conventions.isCI
+import de.connect2x.conventions.registerCoverageTask
 
 plugins {
-    id("com.android.library")
-    kotlin("multiplatform")
-    kotlin("plugin.serialization")
-    `maven-publish`
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotest)
     alias(libs.plugins.mokkery)
     alias(libs.plugins.skie)
     alias(libs.plugins.kmmbridge)
     alias(libs.plugins.dokka)
-    alias(libs.plugins.kotlinx.kover)
+    `maven-publish`
 }
 
-kotlin {
-    val kotlinJvm = libs.versions.kotlinJvmTarget.get()
+registerCoverageTask()
 
-    jvmToolchain(kotlinJvm.toInt())
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
     androidTarget {
-        compilations.configureEach {
-            kotlinOptions.jvmTarget = kotlinJvm
-        }
         publishLibraryVariants("release")
     }
     jvm {
-        compilations.configureEach {
-            kotlinOptions.jvmTarget = kotlinJvm
+        testRuns["test"].executionTask.configure {
+            useJUnitPlatform()
+        }
+        tasks.withType<Test>().configureEach {
+            if (isCI.not()) {
+                maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
+            }
         }
     }
     js {
@@ -59,8 +65,7 @@ kotlin {
     applyDefaultHierarchyTemplate()
     sourceSets {
         all {
-            languageSettings.optIn("kotlin.RequiresOptIn")
-            languageSettings.optIn("kotlin.experimental.ExperimentalObjCName")
+            languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
         }
         val commonMain by getting {
             dependencies {
@@ -74,7 +79,6 @@ kotlin {
                 api(libs.kotlinx.serialization)
                 implementation(libs.okio)
                 implementation(libs.kotlinx.datetime)
-                implementation(libs.uuid)
                 implementation(libs.kim)
                 implementation(libs.markdown)
                 implementation(libs.skie.annotations)
@@ -82,7 +86,7 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test"))
+                implementation(libs.kotlin.test)
                 implementation(libs.okio.fakefilesystem)
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.kotest.assertion.core)
@@ -169,49 +173,26 @@ kotlin {
     }
 }
 
-tasks.register("testCoverage") {
-    val reportTask = tasks.named("koverXmlReportJvm").get()
-    dependsOn(reportTask)
-    doLast {
-        val regex = """<counter type="INSTRUCTION" missed="(\d+)" covered="(\d+)"/>""".toRegex()
-        for (file in reportTask.outputs.files) {
-            file.useLines { lines ->
-                val coverage = lines.last(regex::containsMatchIn)
-                regex.find(coverage)?.let { coverageData ->
-                    val covered = coverageData.groupValues[2].toInt()
-                    val missed = coverageData.groupValues[1].toInt()
-                    println("Total test coverage: ${covered * 100 / (missed + covered)}%")
-                }
-            }
-        }
-    }
-}
-
 android {
-    namespace = "de.connect2x.trixnity.messenger"
+    namespace = "$group.trixnity.messenger"
     compileSdk = libs.versions.androidCompileSDK.get().toInt()
-
     defaultConfig {
         minSdk = libs.versions.androidMinimalSDK.get().toInt()
     }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.toVersion(libs.versions.kotlinJvmTarget.get())
-        targetCompatibility = JavaVersion.toVersion(libs.versions.kotlinJvmTarget.get())
-    }
-
     sourceSets {
         named("main") {
-            manifest.srcFile("src/androidMain/AndroidManifest.xml")
 
+            manifest.srcFile("src/androidMain/AndroidManifest.xml")
             assets.srcDir(File(layout.buildDirectory.asFile.get(), "generated/moko/androidMain/assets"))
             res.srcDir(File(layout.buildDirectory.asFile.get(), "generated/moko/androidMain/res"))
         }
     }
-
     buildTypes {
-        release {
+        debug {
             isDefault = true
+        }
+        release {
+            isMinifyEnabled = false
         }
     }
 }
@@ -222,7 +203,7 @@ skie {
     }
     build {
         produceDistributableFramework()
-        this.enableConcurrentSkieCompilation = true
+        enableConcurrentSkieCompilation = true
     }
     features {
         group {
@@ -235,7 +216,7 @@ skie {
             // so we have to use annotations where necessary
             DefaultArgumentInterop.Enabled(true)
         }
-        group("de.connect2x.trixnity.messenger.settings") {
+        group("$group.trixnity.messenger.settings") {
             FlowInterop.Enabled(false)
             EnumInterop.Enabled(false)
             SealedInterop.Enabled(false)

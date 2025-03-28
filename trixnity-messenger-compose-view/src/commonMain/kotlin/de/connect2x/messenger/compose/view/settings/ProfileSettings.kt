@@ -45,10 +45,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.coerceAtMost
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Avatar
-import de.connect2x.messenger.compose.view.common.EditButton
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_FILE
 import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
@@ -59,6 +59,8 @@ import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.filterFilePickerOptionsByAvailability
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModel
@@ -145,15 +147,14 @@ fun ProfileAvatar(profileSingleViewModel: ProfileSingleViewModel) {
         Box(Modifier.align(Alignment.Center)) {
             Avatar(avatar, initials, this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)) {
                 Box(Modifier.align(Alignment.BottomEnd).padding(10.dp)) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.clip(CircleShape)
-                    ) {
-                        EditButton(
-                            onClick = { profileSingleViewModel.openAvatarCutter.value = true },
+                    Tooltip({Text(i18n.profileAvatarChange())}) {
+                        ThemedIconButton(
                             enabled = canChangeAvatar,
-                        )
-                        { EditIcon(Icons.Default.PhotoCamera, i18n.profileAvatarChange()) }
+                            style = MaterialTheme.components.secondaryIconButton,
+                            onClick = { profileSingleViewModel.openAvatarCutter.value = true },
+                        ) {
+                            EditIcon(Icons.Default.PhotoCamera, i18n.profileAvatarChange())
+                        }
                     }
                 }
             }
@@ -173,13 +174,16 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (editMode.value) {
-            EditButton(
-                onClick = {
-                    profileViewModel.cancelEditDisplayName(profileSingleViewModel.userId)
-                    editMode.value = false
-                },
-            ) {
-                EditIcon(Icons.Default.Clear, i18n.commonCancel())
+            Tooltip({Text(i18n.commonCancel())}) {
+                ThemedIconButton(
+                    style = MaterialTheme.components.commonIconButton,
+                    onClick = {
+                        profileViewModel.cancelEditDisplayName(profileSingleViewModel.userId)
+                        editMode.value = false
+                    },
+                ) {
+                    EditIcon(Icons.Default.Clear, i18n.commonCancel())
+                }
             }
             Spacer(Modifier.size(10.dp))
             OutlinedTextField(
@@ -219,17 +223,26 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
             }
         }
         if (editMode.value) {
-            EditButton({ done(editMode, profileSingleViewModel, profileViewModel) })
-            { EditIcon(Icons.Default.Check, i18n.commonAcceptEdit()) }
+            Tooltip({Text(i18n.commonAcceptEdit())}) {
+                ThemedIconButton(
+                    style = MaterialTheme.components.commonIconButton,
+                    onClick = { done(editMode, profileSingleViewModel, profileViewModel) },
+                ) {
+                    EditIcon(Icons.Default.Check, i18n.commonAcceptEdit())
+                }
+            }
         } else {
-            EditButton(
-                onClick = { editMode.value = true },
-                enabled = canChangeDisplayName,
-            ) {
-                EditIcon(
-                    Icons.Default.Edit,
-                    i18n.commonEdit(),
-                )
+            Tooltip({Text(i18n.commonEdit())}) {
+                ThemedIconButton(
+                    enabled = canChangeDisplayName,
+                    style = MaterialTheme.components.commonIconButton,
+                    onClick = { editMode.value = true },
+                ) {
+                    EditIcon(
+                        Icons.Default.Edit,
+                        i18n.commonEdit(),
+                    )
+                }
             }
         }
     }

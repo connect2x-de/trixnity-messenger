@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,11 +38,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.compose.ui.window.Popup
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -173,11 +175,15 @@ fun AvatarCutterHeader(avatarCutterViewModel: AvatarCutterViewModel) {
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onPrimary,
         )
-        IconButton(
-            avatarCutterViewModel::cancel,
-            Modifier.buttonPointerModifier()
+        Tooltip(
+            tooltip = { Text(i18n.commonCancel())}
         ) {
-            Icon(Icons.Default.Close, i18n.commonCancel())
+            ThemedIconButton(
+                style = MaterialTheme.components.commonIconButton,
+                onClick = avatarCutterViewModel::cancel,
+            ) {
+                Icon(Icons.Default.Close, i18n.commonCancel())
+            }
         }
     }
 }

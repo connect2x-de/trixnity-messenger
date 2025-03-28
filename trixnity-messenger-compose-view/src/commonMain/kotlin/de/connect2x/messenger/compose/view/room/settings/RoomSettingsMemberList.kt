@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,11 +18,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 import net.folivo.trixnity.core.model.UserId
@@ -58,14 +59,18 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
                 modifier = Modifier.weight(1.0f, false).fillMaxWidth(),
             )
             if (hasPowerToInvite) {
-                IconButton(
-                    onClick = { roomSettingsViewModel.openAddMembersView() },
-                    modifier = Modifier.buttonPointerModifier()
+                Tooltip(
+                    tooltip = { Text(i18n.addMembers())}
                 ) {
-                    Icon(
-                        Icons.Default.PersonAdd,
-                        i18n.addMembers(),
-                    )
+                    ThemedIconButton(
+                        style = MaterialTheme.components.commonIconButton,
+                        onClick = { roomSettingsViewModel.openAddMembersView() },
+                    ) {
+                        Icon(
+                            Icons.Default.PersonAdd,
+                            i18n.addMembers(),
+                        )
+                    }
                 }
             }
         }
