@@ -1,5 +1,5 @@
-import de.connect2x.conventions.c2xContributor
-import de.connect2x.conventions.c2xDeveloper
+import de.connect2x.conventions.authenticatedPackageRegistry
+import de.connect2x.conventions.c2xOrganization
 import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.isCI
 import de.connect2x.conventions.withVersionSuffix
@@ -50,41 +50,19 @@ subprojects {
 
         publishing {
             repositories {
-                maven {
-                    url =
-                        uri("${System.getenv("CI_API_V4_URL")}/projects/${System.getenv("CI_PROJECT_ID")}/packages/maven")
-                    name = "GitLab"
-                    credentials(HttpHeaderCredentials::class) {
-                        name = "Job-Token"
-                        value = System.getenv("CI_JOB_TOKEN")
-                    }
-                    authentication {
-                        create("header", HttpHeaderAuthentication::class)
-                    }
-                }
+                authenticatedPackageRegistry()
             }
             publications.withType<MavenPublication>().configureEach {
                 pom {
                     name = project.name
                     description = "Multiplatform Kotlin SDK for Matrix messengers"
                     url = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
+                    c2xOrganization()
                     licenses {
                         license {
                             name = "GNU AFFERO GENERAL PUBLIC LICENSE version 3"
                             url = "https://www.gnu.org/licenses/agpl-3.0.html"
                         }
-                    }
-                    developers {
-                        c2xDeveloper("benkuly", "Benedict Benken")
-                        c2xDeveloper("michael.thiele", "Michael Thiele")
-                        c2xDeveloper("janne.koschinski", "Janne Koschinski")
-                        c2xDeveloper("KitsuneAlex", "Alexander Hinze")
-                        c2xDeveloper("cach30verfl0w", "Cedric Hammes")
-                    }
-                    contributors {
-                        c2xContributor("fhilgers", "Felix Hilgers")
-                        c2xContributor("adambrangenberg", "Adam Brangenberg")
-                        c2xContributor("jakob.deutschendorf", "Jakob Deutschendorf")
                     }
                     scm {
                         url = this@pom.url

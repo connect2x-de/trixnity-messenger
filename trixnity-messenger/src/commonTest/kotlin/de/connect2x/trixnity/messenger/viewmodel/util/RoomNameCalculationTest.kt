@@ -245,7 +245,7 @@ class RoomNameCalculationTest {
         }
 
     @Test
-    fun `return "Empty Chat" when isEmpty=true numHeroes=0 otherUserCount=0`() = runTest {
+    fun `return 'Empty Chat' when isEmpty=true numHeroes=0 otherUserCount=0`() = runTest {
         val cut = RoomNameImpl(i18n, roomInviterMock)
         cut.calculateRoomName(
             roomId,
