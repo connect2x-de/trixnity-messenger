@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix tests on IOS
 - Fix wrong UriCaller encoding in web
 - Removed duplicate device verification dialog
+- Fix iconbuttons not being visible in dark mode
 
 ### Security
 

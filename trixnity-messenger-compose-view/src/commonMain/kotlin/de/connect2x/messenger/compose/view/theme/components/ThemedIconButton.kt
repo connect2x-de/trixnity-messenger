@@ -56,7 +56,9 @@ sealed interface IconButtonStyle {
         @Composable
         fun default(
             size: Dp = 40.dp,
-            colors: IconToggleButtonColors = IconButtonDefaults.iconToggleButtonColors(),
+            colors: IconToggleButtonColors = IconButtonDefaults.iconToggleButtonColors(
+                contentColor = MaterialTheme.colorScheme.onSurface,
+            ),
         ) = Default(
             size = size,
             colors = colors,
@@ -88,7 +90,9 @@ sealed interface IconButtonStyle {
         fun outlined(
             size: Dp = 40.dp,
             shape: Shape = IconButtonDefaults.outlinedShape,
-            colors: IconToggleButtonColors = IconButtonDefaults.outlinedIconToggleButtonColors(),
+            colors: IconToggleButtonColors = IconButtonDefaults.outlinedIconToggleButtonColors(
+                contentColor = MaterialTheme.colorScheme.onSurface,
+            ),
             enabledBorder: BorderStroke? = IconButtonDefaults.outlinedIconButtonBorder(true),
             disabledBorder: BorderStroke? = IconButtonDefaults.outlinedIconButtonBorder(false),
         ) = Outlined(
