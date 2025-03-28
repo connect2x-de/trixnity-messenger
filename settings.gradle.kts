@@ -15,12 +15,13 @@ buildCache {
 }
 
 pluginManagement {
-    includeBuild("conventions")
+    //includeBuild("conventions")
     repositories {
         google()
         mavenCentral()
         mavenLocal()
         gradlePluginPortal()
+        maven("https://gitlab.com/api/v4/projects/68438621/packages/maven") // c2x Conventions
     }
 }
 
@@ -31,6 +32,7 @@ dependencyResolutionManagement {
         mavenCentral()
         google()
         mavenLocal()
+        maven("https://gitlab.com/api/v4/projects/68438621/packages/maven") // c2x Conventions
         maven("https://oss.sonatype.org/content/repositories/snapshots")
         maven("https://gitlab.com/api/v4/projects/26519650/packages/maven") // trixnity
         maven("https://gitlab.com/api/v4/projects/58749664/packages/maven") // sysnotify
