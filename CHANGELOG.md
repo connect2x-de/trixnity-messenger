@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.5.1
+
+### Added
+
 - Knocking public rooms
 
 ### Changed
@@ -20,8 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use kotlin.test for all tests
 - Updated UI to use new styling system for icon buttons, floating action buttons
 - Properly handle internal code deprecations
-
-### Deprecated
 
 ### Removed
 
@@ -37,8 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed duplicate device verification dialog
 - Fix iconbuttons not being visible in dark mode
 - Fix room header content being greyed out
-
-### Security
 
 ## 3.5.0
 
