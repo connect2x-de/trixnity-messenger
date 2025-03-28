@@ -49,7 +49,7 @@ class RegisterNewAccountViewModelTest {
         resetMocks(matrixClientFactoryMock, matrixClientMock, onLoginMock)
         everySuspend {
             matrixClientFactoryMock.loginWith(any(), any(), any())
-        } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
+        } returns Result.success(matrixClientMock)
 
         every { onLoginMock.invoke() } returns Unit
         every { matrixClientMock.userId } returns UserId("test", "server")

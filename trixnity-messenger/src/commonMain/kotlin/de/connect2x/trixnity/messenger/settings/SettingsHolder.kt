@@ -48,7 +48,7 @@ abstract class SettingsHolderImpl<S : Settings<S>>(
                 updater(currentSettings)
             }
             settings.value = settingsFactory(newSettings.toMap())
-            storage.write(settingsJson.encodeToString<Map<String, JsonElement>>(newSettings))
+            storage.write(SettingsJson.encodeToString<Map<String, JsonElement>>(newSettings))
         }
 
     private val initMutex = Mutex()
@@ -59,7 +59,7 @@ abstract class SettingsHolderImpl<S : Settings<S>>(
                 val settingsString = storage.read()
                 val settingsContent =
                     if (settingsString == null) emptyMap()
-                    else settingsJson.decodeFromString<Map<String, JsonElement>>(settingsString)
+                    else SettingsJson.decodeFromString<Map<String, JsonElement>>(settingsString)
                 settings.value = settingsFactory(settingsContent)
             } else {
                 log.debug { "init SettingsHolder skipped (already initialized)" }

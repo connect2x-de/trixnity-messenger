@@ -57,7 +57,6 @@ class MatrixClientInitializationViewModelTest {
                 UserId(
                     "user1", "local.local"
                 ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
-                    databasePassword = null,
                     config = MatrixMessengerConfiguration(),
                     displayColor = null,
                 ),
@@ -77,7 +76,6 @@ class MatrixClientInitializationViewModelTest {
                 UserId(
                     "user1", "local.local"
                 ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
-                    databasePassword = null,
                     config = MatrixMessengerConfiguration(),
                     displayColor = null,
                 ),
@@ -95,14 +93,12 @@ class MatrixClientInitializationViewModelTest {
                 UserId(
                     "user1", "local.local"
                 ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
-                    databasePassword = null,
                     config = MatrixMessengerConfiguration(),
                     displayColor = null,
                 ),
                 UserId(
                     "user2", "local.local"
                 ) to MatrixMessengerAccountSettingsBase.withConfigDefaults(
-                    databasePassword = null,
                     config = MatrixMessengerConfiguration(),
                     displayColor = null,
                 ),
