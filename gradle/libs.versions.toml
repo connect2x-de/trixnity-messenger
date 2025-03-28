@@ -2,7 +2,7 @@
 jvmTarget = "17"
 c2xConventions = "39087842"
 
-trixnityMessenger = "3.5.2"
+trixnityMessenger = "3.5.1"
 trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
@@ -33,7 +33,7 @@ androidxAutofill = "1.3.0-rc01" # https://developer.android.com/jetpack/androidx
 logback = "1.5.17" # https://github.com/qos-ch/logback/tags
 logbackAndroid = "3.0.0" # https://github.com/tony19/logback-android/releases
 
-trixnity = "4.14.0" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.14.1" # https://gitlab.com/trixnity/trixnity/-/releases
 kotlinLogging = "7.0.5" # https://github.com/MicroUtils/kotlin-logging/releases
 sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
 decompose = "3.2.2" # https://github.com/arkivanov/Decompose/releases
