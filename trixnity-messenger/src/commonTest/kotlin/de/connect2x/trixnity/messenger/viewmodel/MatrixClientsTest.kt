@@ -25,10 +25,8 @@ import dev.mokkery.verify
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respond
-import io.ktor.http.IllegalHeaderValueException
-import io.ktor.http.Url
+import io.ktor.client.engine.mock.*
+import io.ktor.http.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -64,7 +62,7 @@ class MatrixClientsTest {
     private var initFromStoreCalled = false
     private var initFromStoreCalledCount = 0
 
-    private val login: SuspendAnsweringScope<Result<MatrixClientFactory.LoginResult>> = everySuspend {
+    private val login: SuspendAnsweringScope<Result<MatrixClient>> = everySuspend {
         matrixClientFactory.loginWith(
             any(),
             any(),
@@ -82,17 +80,15 @@ class MatrixClientsTest {
                 @Suppress("UNCHECKED_CAST") (it.args[2] as? suspend (MatrixClient.LoginInfo) -> Unit)?.invoke(loginInfo)
                 loginCalled = true
                 val username = loginInfo.userId.localpart
-                MatrixClientFactory.LoginResult(
-                    when (username) {
-                        "test1" -> matrixClientMock1
-                        "test2" -> matrixClientMock2
-                        else -> fail("username $username not supported in login")
-                    }, null
-                )
+                when (username) {
+                    "test1" -> matrixClientMock1
+                    "test2" -> matrixClientMock2
+                    else -> fail("username $username not supported in login")
+                }
             }
         }
 
-        everySuspend { matrixClientFactory.initFromStore(any(), any()) } calls {
+        everySuspend { matrixClientFactory.initFromStore(any()) } calls {
             val username = checkNotNull((it.args[0] as? UserId)).localpart
             initFromStoreCalled = true
             initFromStoreCalledCount++
@@ -227,7 +223,7 @@ class MatrixClientsTest {
     fun `initFromStore » have failure when init from store is not possible`() = runTest {
         val cut = createCut()
         settings.update(UserId("test1", "server")) { it }
-        everySuspend { matrixClientFactory.initFromStore(any(), any()) } calls {
+        everySuspend { matrixClientFactory.initFromStore(any()) } calls {
             initFromStoreCalled = true
             Result.success(null)
         }
@@ -245,7 +241,7 @@ class MatrixClientsTest {
     fun `initFromStore » have failure on exception`() = runTest {
         val cut = createCut()
         settings.update(UserId("test1", "server")) { it }
-        everySuspend { matrixClientFactory.initFromStore(any(), any()) } calls {
+        everySuspend { matrixClientFactory.initFromStore(any()) } calls {
             Result.failure(DatabaseLockedException("The database is locked."))
         }
         cut.initFromStore() shouldBe MatrixClients.InitFromStoreResult(

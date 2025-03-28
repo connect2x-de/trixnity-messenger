@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.util.RootPath
-import de.connect2x.trixnity.messenger.util.SecretByteArray
 import net.folivo.trixnity.client.store.repository.indexeddb.createIndexedDBRepositoriesModule
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.module.Module
@@ -11,14 +10,9 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
     single<CreateRepositoriesModule> {
         val rootPath = get<RootPath>()
         object : CreateRepositoriesModule {
-            override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult =
-                CreateRepositoriesModule.CreateResult(
-                    module = createInternal(userId),
-                    databaseKey = null,
-                )
-
-            override suspend fun load(userId: UserId, databaseKey: SecretByteArray?): Module =
-                createInternal(userId)
+            override suspend fun generateDatabaseKey(): ByteArray? = null
+            override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module = createInternal(userId)
+            override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module = createInternal(userId)
 
             private suspend fun createInternal(userId: UserId): Module =
                 createIndexedDBRepositoriesModule(rootPath.forAccountDatabase(userId).toString())

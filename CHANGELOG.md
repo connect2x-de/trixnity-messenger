@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Completely new SecretByteArray architecture, that allows to have a keychain
 - Upgraded to Gradle 8.13
 - Reduce height of room list elements
 - Use kotlin.test for all tests
@@ -32,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix tests on IOS
 - Fix wrong UriCaller encoding in web
 - Removed duplicate device verification dialog
+- Fix iconbuttons not being visible in dark mode
+- Fix room header content being greyed out
 
 ### Security
 
@@ -56,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Set directory visibility of public rooms to public
 - Don't max out the dialog height
 - Styling inconsistencies
+- No more flickering in timeline when writing new messages
 
 ### Security
 
@@ -75,7 +79,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Bug in file attachment upload size
-- No more flickering in timeline when writing new messages
 - Unrecommended HTML tags are not being sent any more
 - Shared Plaintext is not interpreted as Markdown
 - CloseApp should not be injected when null

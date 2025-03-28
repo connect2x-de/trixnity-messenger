@@ -1,5 +1,8 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.messenger.secrets.LegacySecretByteArrayKey
+import de.connect2x.trixnity.messenger.secrets.SecretByteArray
+import de.connect2x.trixnity.messenger.secrets.SecretByteArrayKeyInfo
 import de.connect2x.trixnity.messenger.settings.JsonDelegateSerializer
 import de.connect2x.trixnity.messenger.settings.MutableSettings
 import de.connect2x.trixnity.messenger.settings.MutableSettingsImpl
@@ -11,8 +14,7 @@ import de.connect2x.trixnity.messenger.settings.SettingsView
 import de.connect2x.trixnity.messenger.settings.get
 import de.connect2x.trixnity.messenger.settings.set
 import de.connect2x.trixnity.messenger.settings.update
-import de.connect2x.trixnity.messenger.util.SecretByteArray
-import de.connect2x.trixnity.messenger.util.SecretByteArrayKey
+import de.connect2x.trixnity.messenger.util.ByteArrayBase64Serializer
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOState
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
@@ -25,11 +27,13 @@ import kotlinx.serialization.serializer
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.module.Module
 
-private val log = KotlinLogging.logger {  }
+private val log = KotlinLogging.logger { }
 
 @Serializable
 data class MatrixMessengerSettingsBase(
-    val secretByteArrayKey: SecretByteArrayKey? = null,
+    @Deprecated("for backwards compatibility")
+    val secretByteArrayKey: LegacySecretByteArrayKey? = null, // TODO can be removed in future
+    val secretByteArrays: SecretByteArraySettings? = null,
     val accounts: Map<UserId, MatrixMessengerAccountSettings> = mapOf(),
     val preferredLang: String? = null,
     val selectedAccount: UserId? = null, // TODO should be saved via decompose state preservation
@@ -44,23 +48,49 @@ data class MatrixMessengerSettingsBase(
 ) : SettingsView<MatrixMessengerSettings>
 
 @Serializable
+data class SecretByteArraySettings(
+    val secrets: Map<String, SecretByteArray>,
+    val keyInfo: Map<String, SecretByteArrayKeyInfo>,
+    val mac: @Serializable(with = ByteArrayBase64Serializer::class) ByteArray?,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as SecretByteArraySettings
+
+        if (secrets != other.secrets) return false
+        if (keyInfo != other.keyInfo) return false
+        if (!mac.contentEquals(other.mac)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = secrets.hashCode()
+        result = 31 * result + keyInfo.hashCode()
+        result = 31 * result + mac.contentHashCode()
+        return result
+    }
+}
+
+@Serializable
 data class MatrixMessengerAccountSettingsBase(
-    val databasePassword: SecretByteArray? = null,
+    @Deprecated("for backwards compatibility")
+    val databasePassword: SecretByteArray? = null, // TODO can be removed in future
     val displayName: String? = null,
     val displayColor: Long? = null,
     val notificationsEnabled: Boolean = false,
     val presenceIsPublic: Boolean = true,
     val readMarkerIsPublic: Boolean = true,
     val typingIsPublic: Boolean = true,
-    val accountSetupFinished : Boolean = false
+    val accountSetupFinished: Boolean = false
 ) : SettingsView<MatrixMessengerAccountSettings> {
     companion object {
         fun withConfigDefaults(
-            databasePassword: SecretByteArray?,
             displayColor: Long?,
             config: MatrixMessengerConfiguration,
         ) = MatrixMessengerAccountSettingsBase(
-            databasePassword = databasePassword,
             displayColor = displayColor,
             notificationsEnabled = config.notificationsEnabled,
             presenceIsPublic = config.defaultPresenceIsPublic,

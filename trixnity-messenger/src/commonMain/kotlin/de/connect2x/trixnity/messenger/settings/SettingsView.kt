@@ -14,14 +14,14 @@ fun <S : Settings<S>, T : SettingsView<S>> Settings<S>.get(serializer: KSerializ
     val key = serializer.descriptor.annotations.filterIsInstance<NestedSettingsView>().firstOrNull()?.key
     val content = if (key != null) get(key) ?: JsonObject(emptyMap())
     else JsonObject(this)
-    return settingsJson.decodeFromJsonElement(serializer, content)
+    return SettingsJson.decodeFromJsonElement(serializer, content)
 }
 
 inline fun <S : Settings<S>, reified T : SettingsView<S>> Settings<S>.get(): T = get(serializer())
 
 @OptIn(ExperimentalSerializationApi::class)
 fun <S : Settings<S>, T : SettingsView<S>> MutableSettings<S>.set(value: T, serializer: KSerializer<T>) {
-    val newValues = settingsJson.encodeToJsonElement(serializer, value) as? JsonObject
+    val newValues = SettingsJson.encodeToJsonElement(serializer, value) as? JsonObject
     val key = serializer.descriptor.annotations.filterIsInstance<NestedSettingsView>().firstOrNull()?.key
     if (newValues != null) {
         if (key != null) {
