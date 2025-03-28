@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
+import de.connect2x.messenger.compose.view.theme.components.FloatingActionButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.messenger.compose.view.theme.components.TooltipStyle
@@ -19,6 +20,8 @@ data class ComponentStyles(
     val secondaryIconButton: IconButtonStyle,
     val commonIconButton: IconButtonStyle,
     val destructiveIconButton: IconButtonStyle,
+    val floatingActionButton: FloatingActionButtonStyle,
+    val floatingActionButtonDisabled: FloatingActionButtonStyle,
     // surfaces
     val background: SurfaceStyle,
     val dialog: SurfaceStyle,

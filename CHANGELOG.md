@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrated build boilerplate to new conventions plugin
 - Reduce height of room list elements
 - Use kotlin.test for all tests
-- Updated UI to use new styling system for icon buttons
+- Updated UI to use new styling system for icon buttons, floating action buttons
 - Properly handle internal code deprecations
 
 ### Deprecated
