@@ -3,13 +3,13 @@ package de.connect2x.messenger.compose.view.roomlist.room
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 interface KnockRoomListElement {
@@ -32,7 +32,7 @@ class KnockRoomListElementImpl : KnockRoomListElement {
         SpecialRoomComponent(
             roomListElementViewModel = roomListElementViewModel,
         ) {
-            IconButton(
+            ThemedIconButton(
                 onClick = { roomListElementViewModel.unknock() },
                 modifier = Modifier.buttonPointerModifier(),
             ) {
