@@ -59,6 +59,7 @@ import org.koin.dsl.module
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
+@Suppress("NonAsciiCharacters")
 class UserProfileViewModelTest {
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
@@ -368,11 +369,15 @@ class UserProfileViewModelTest {
         cut.showRole.value shouldBe false
     }
 
-    @Test
-    fun `knocking » accept knock`() = runTest {
+    fun setupMembershipHandlingForKnockTest() {
         everySuspend { roomsApiClientMock.kickUser(eq(roomId), any(), any(), any()) } returns Result.success(Unit)
         everySuspend { roomsApiClientMock.inviteUser(eq(roomId), any(), any(), any()) } returns Result.success(Unit)
         every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(50)
+    }
+
+    @Test
+    fun `knocking » accept knock`() = runTest {
+        setupMembershipHandlingForKnockTest()
 
         val cut = userProfileViewModel(alice)
         cut.acceptKnock()
@@ -388,9 +393,7 @@ class UserProfileViewModelTest {
 
     @Test
     fun `knocking » reject knock`() = runTest {
-        everySuspend { roomsApiClientMock.kickUser(eq(roomId), any(), any(), any()) } returns Result.success(Unit)
-        everySuspend { roomsApiClientMock.inviteUser(eq(roomId), any(), any(), any()) } returns Result.success(Unit)
-        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(50)
+        setupMembershipHandlingForKnockTest()
 
         val cut = userProfileViewModel(alice)
         cut.rejectKnock()
