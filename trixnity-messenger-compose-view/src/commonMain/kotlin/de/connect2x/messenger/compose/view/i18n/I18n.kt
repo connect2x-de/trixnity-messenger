@@ -336,6 +336,11 @@ open class I18nView(
         DE - "Verkleinern"
     }
 
+    open fun commonSubmit() = translate {
+        EN - "submit"
+        DE - "absenden"
+    }
+
     open fun ban() = translate {
         EN - "ban"
         DE - "Bannen"
@@ -998,6 +1003,11 @@ open class I18nView(
     open fun timelineElementMetadataReadersAndReactionsNone() = translate {
         EN - "No message interactions yet."
         DE - "Bisher keine Nachrichtsinteraktionen"
+    }
+
+    open fun timelineJumpToEnd() = translate {
+        EN - "Jump to the end"
+        DE - "Ans Ende springen"
     }
 
     open fun roomSettings() = translate {
@@ -2156,6 +2166,11 @@ open class I18nView(
         DE - "Ablehnen und Nutzer blocken"
     }
 
+    open fun unknock() = translate {
+        EN - "Take back membership request"
+        DE - "Beitrittsanfrage zurücknehmen"
+    }
+
     open fun blockedContactsHeader() = translate {
         EN - "Blocked contacts"
         DE - "Blockierte Kontakte"
@@ -2776,6 +2791,21 @@ open class I18nView(
     open fun knockIcon() = translate {
         EN - "room membership request"
         DE - "Raumbeitrittsanfrage"
+    }
+
+    open fun knockRequest() = translate {
+        EN - "Request Membership"
+        DE - "Beitrittsanfrage"
+    }
+
+    open fun knockExplanation() = translate {
+        EN - "This room requires you to request to a membership"
+        DE - "Dieser Raum erfordert, dass Sie eine Mitgliedschaft anfordern"
+    }
+
+    open fun knockLabel() = translate {
+        EN - "Why do you wish to join? (Optional)"
+        DE - "Warum möchtest du beitreten? (Optional)"
     }
 }
 

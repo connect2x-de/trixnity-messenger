@@ -7,9 +7,9 @@ import de.connect2x.trixnity.messenger.resetMocks
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
-import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
@@ -25,10 +25,9 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.Test
 
-class TypingInfoTest : ShouldSpec() {
-    override fun timeout(): Long = 2_000
-
+class TypingInfoTest {
     val matrixClientMock = mock<MatrixClient>()
     val userServiceMock = mock<UserService>()
     val roomServiceMock = mock<RoomService>()
@@ -41,109 +40,89 @@ class TypingInfoTest : ShouldSpec() {
     val user5 = UserId("5", "localhost")
     val user6 = UserId("6", "localhost")
 
-    lateinit var i18n: I18n
+    val i18n: I18n
 
     init {
-        beforeTest {
-            resetMocks(matrixClientMock)
-            every { matrixClientMock.di } returns koinApplication {
-                modules(
-                    module {
-                        single { userServiceMock }
-                        single { roomServiceMock }
-                    }
-                )
-            }.koin
-            every { matrixClientMock.userId } returns user1
-            mockUser(user1, "1")
-            mockUser(user2, "2")
-            mockUser(user3, "3")
-            mockUser(user4, "4")
-            mockUser(user5, "5")
-            mockUser(user6, "6")
-            i18n = object : I18n(
-                DefaultLanguages,
-                createTestMatrixMessengerSettingsHolder(),
-                GetSystemLang { "en" },
-                TimeZone.of("CET"),
-            ) {}
-        }
+        resetMocks(matrixClientMock)
+        every { matrixClientMock.di } returns koinApplication {
+            modules(
+                module {
+                    single { userServiceMock }
+                    single { roomServiceMock }
+                })
+        }.koin
+        every { matrixClientMock.userId } returns user1
+        mockUser(user1, "1")
+        mockUser(user2, "2")
+        mockUser(user3, "3")
+        mockUser(user4, "4")
+        mockUser(user5, "5")
+        mockUser(user6, "6")
+        i18n = object : I18n(
+            DefaultLanguages,
+            createTestMatrixMessengerSettingsHolder(),
+            GetSystemLang { "en" },
+            TimeZone.of("CET"),
+        ) {}
+    }
 
-        should("return `null` when no user is typing anything") {
-            typingInfo(
-                matrixClientMock,
-                roomId,
-                i18n,
-                TypingEventContent(
-                    users = setOf()
-                )
-            ) shouldBe null
-        }
+    @Test
+    fun `return null when no user is typing anything`() = runTest {
+        typingInfo(
+            matrixClientMock, roomId, i18n, TypingEventContent(
+                users = setOf()
+            )
+        ) shouldBe null
+    }
 
-        should("return writing message when is direct room") {
-            every { roomServiceMock.getById(roomId) } returns
-                    MutableStateFlow(Room(roomId, isDirect = true))
-            typingInfo(
-                matrixClientMock,
-                roomId,
-                i18n,
-                TypingEventContent(
-                    users = setOf(user2)
-                )
-            ) shouldBe "is typing..."
-        }
+    @Test
+    fun `return writing message when is direct room`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId, isDirect = true))
+        typingInfo(
+            matrixClientMock, roomId, i18n, TypingEventContent(
+                users = setOf(user2)
+            )
+        ) shouldBe "is typing..."
+    }
 
-        should("return `<username> is typing...` when single user is writing in a group") {
-            every { roomServiceMock.getById(roomId) } returns
-                    MutableStateFlow(Room(roomId, isDirect = false))
-            typingInfo(
-                matrixClientMock,
-                roomId,
-                i18n,
-                TypingEventContent(
-                    users = setOf(user2)
-                )
-            ) shouldBe "2 is typing..."
-        }
+    @Test
+    fun `return username is typing when single user is writing in a group`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId, isDirect = false))
+        typingInfo(
+            matrixClientMock, roomId, i18n, TypingEventContent(
+                users = setOf(user2)
+            )
+        ) shouldBe "2 is typing..."
+    }
 
-        should("return all names when multiple users are writing in a group") {
-            every { roomServiceMock.getById(roomId) } returns
-                    MutableStateFlow(Room(roomId, isDirect = false))
-            typingInfo(
-                matrixClientMock,
-                roomId,
-                i18n,
-                TypingEventContent(
-                    users = setOf(user2, user3, user4)
-                )
-            ) shouldBe "2, 3 and 4 are typing..."
-        }
+    @Test
+    fun `return all names when multiple users are writing in a group`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId, isDirect = false))
+        typingInfo(
+            matrixClientMock, roomId, i18n, TypingEventContent(
+                users = setOf(user2, user3, user4)
+            )
+        ) shouldBe "2, 3 and 4 are typing..."
+    }
 
-        should("filter current user from the list") {
-            every { roomServiceMock.getById(roomId) } returns
-                    MutableStateFlow(Room(roomId, isDirect = false))
-            typingInfo(
-                matrixClientMock,
-                roomId,
-                i18n,
-                TypingEventContent(
-                    users = setOf(user1, user2)
-                )
-            ) shouldBe "2 is typing..."
-        }
+    @Test
+    fun `filter current user from the list`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId, isDirect = false))
+        typingInfo(
+            matrixClientMock, roomId, i18n, TypingEventContent(
+                users = setOf(user1, user2)
+            )
+        ) shouldBe "2 is typing..."
+    }
 
-        should("cut more than 4 users writing in parallel and return a shorter message") {
-            every { roomServiceMock.getById(roomId) } returns
-                    MutableStateFlow(Room(roomId, isDirect = false))
-            typingInfo(
-                matrixClientMock,
-                roomId,
-                i18n,
-                TypingEventContent(
-                    users = setOf(user2, user3, user4, user5, user6)
-                )
-            ) shouldBe "2, 3 and others are typing..."
-        }
+    @Test
+    fun `cut more than 4 users writing in parallel and return a shorter message`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId, isDirect = false))
+        typingInfo(
+            matrixClientMock, roomId, i18n, TypingEventContent(
+                users = setOf(user2, user3, user4, user5, user6)
+            )
+        ) shouldBe "2, 3 and others are typing..."
     }
 
     private fun mockUser(userId: UserId, name: String) {
@@ -152,13 +131,12 @@ class TypingInfoTest : ShouldSpec() {
         )
     }
 
-    private fun memberEvent(): ClientEvent.RoomEvent.StateEvent<MemberEventContent> =
-        ClientEvent.RoomEvent.StateEvent(
-            content = MemberEventContent(membership = Membership.JOIN),
-            id = EventId("1"),
-            sender = user1,
-            roomId = roomId,
-            originTimestamp = 0L,
-            stateKey = "",
-        )
+    private fun memberEvent(): ClientEvent.RoomEvent.StateEvent<MemberEventContent> = ClientEvent.RoomEvent.StateEvent(
+        content = MemberEventContent(membership = Membership.JOIN),
+        id = EventId("1"),
+        sender = user1,
+        roomId = roomId,
+        originTimestamp = 0L,
+        stateKey = "",
+    )
 }

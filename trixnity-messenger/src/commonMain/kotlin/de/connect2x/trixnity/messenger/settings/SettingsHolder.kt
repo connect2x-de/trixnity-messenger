@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.settings
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +14,7 @@ import kotlinx.serialization.serializer
 
 private val log = KotlinLogging.logger {}
 
+@OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 interface SettingsHolder<S : Settings<S>> : StateFlow<S> {
     suspend fun init()
     suspend fun waitForInit()
@@ -30,6 +32,7 @@ suspend inline fun <S : Settings<S>, reified T : SettingsView<S>> SettingsHolder
     noinline updater: (T) -> T,
 ) = update(serializer(), updater)
 
+@OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 abstract class SettingsHolderImpl<S : Settings<S>>(
     private val storage: SettingsStorage,
     private val settingsFactory: (Map<String, JsonElement>) -> S,
@@ -45,7 +48,7 @@ abstract class SettingsHolderImpl<S : Settings<S>>(
                 updater(currentSettings)
             }
             settings.value = settingsFactory(newSettings.toMap())
-            storage.write(settingsJson.encodeToString<Map<String, JsonElement>>(newSettings))
+            storage.write(SettingsJson.encodeToString<Map<String, JsonElement>>(newSettings))
         }
 
     private val initMutex = Mutex()
@@ -56,7 +59,7 @@ abstract class SettingsHolderImpl<S : Settings<S>>(
                 val settingsString = storage.read()
                 val settingsContent =
                     if (settingsString == null) emptyMap()
-                    else settingsJson.decodeFromString<Map<String, JsonElement>>(settingsString)
+                    else SettingsJson.decodeFromString<Map<String, JsonElement>>(settingsString)
                 settings.value = settingsFactory(settingsContent)
             } else {
                 log.debug { "init SettingsHolder skipped (already initialized)" }

@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SportsScore
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
@@ -34,12 +33,13 @@ import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.verification.AcceptSasStart
 import de.connect2x.messenger.compose.view.verification.CompareEmojisOrNumbers
 import de.connect2x.messenger.compose.view.verification.DeviceVerificationWaitForOther
@@ -123,15 +123,18 @@ private fun UserVerification(
                         modifier = Modifier.weight(1.0f, fill = true).padding(end = 10.dp)
                     )
                     if (isActive) {
-                        IconButton(
-                            onClick = element::cancel,
-                            modifier = Modifier.buttonPointerModifier()
+                        Tooltip(
+                            tooltip = { Text(i18n.commonCancel())}
                         ) {
-                            Icon(
-                                Icons.Default.Close,
-                                i18n.commonCancel(),
-                                tint = MaterialTheme.colorScheme.error,
-                            )
+                            ThemedIconButton(
+                                style = MaterialTheme.components.destructiveIconButton,
+                                onClick = element::cancel,
+                            ) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    i18n.commonCancel(),
+                                )
+                            }
                         }
                     } else {
                         Icon(Icons.Default.SportsScore, i18n.userVerificationDone())

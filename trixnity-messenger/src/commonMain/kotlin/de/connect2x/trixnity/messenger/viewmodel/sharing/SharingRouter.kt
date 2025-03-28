@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.sharing
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
-import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.util.SharedDataHandler
 import de.connect2x.trixnity.messenger.util.launchReplaceAll
@@ -11,6 +10,7 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.core.component.get
+import kotlin.uuid.Uuid
 
 class SharingRouter(
     private val viewModelContext: ViewModelContext,
@@ -23,7 +23,7 @@ class SharingRouter(
         serializer = null,
         handleBackButton = false,
         childFactory = ::createChild,
-        key = "SharingRouter-${uuid4()}"
+        key = "SharingRouter-${Uuid.random()}"
     )
 
     private fun createChild(

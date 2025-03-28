@@ -64,6 +64,9 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
         val roomName = roomListElementViewModel.roomName.collectAsState().value
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value
         val interactionSource = remember { MutableInteractionSource() }
+        val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
+        val hoverable = roomName != null && isInvite != true && !isKnock
+
         Box(
             Modifier.animateItem(
                 fadeInSpec = null,
@@ -89,7 +92,7 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                 //      }
                 //  }
                 .indication(interactionSource, LocalIndication.current)
-                .hoverable(interactionSource, enabled = roomName != null && isInvite != null && isInvite == false)
+                .hoverable(interactionSource, enabled = hoverable)
                 .pointerInput(roomName, roomId, isInvite) {
                     if (roomName == null || isInvite == null || isInvite == true) return@pointerInput
 
