@@ -1,30 +1,30 @@
-
 import com.mikepenz.aboutlibraries.plugin.AboutLibrariesTask
+import de.connect2x.conventions.isCI
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 
 plugins {
-    kotlin("multiplatform")
-    id("com.android.application")
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.application)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.aboutlibraries.plugin)
-    // TODO active when you want to use google-services for notifications (needs google-services.json)   id("com.google.gms.google-services")
+    // TODO active when you want to use google-services for notifications (needs google-services.json)
+    // alias(libs.plugins.google.services)
 }
 
-val version = libs.versions.messenger.get()
+val version = libs.versions.trixnityMessengerApp.get()
 val appName = libs.versions.appName.get()
 val appId = libs.versions.appId.get()
 
 enum class BuildFlavor { PROD, DEV }
 
 val buildFlavor = BuildFlavor.valueOf(System.getenv("MESSENGER_BUILD_FLAVOR") ?: if (isCI) "PROD" else "DEV")
-
 val licensesDir = layout.buildDirectory.dir("generated").get().dir("aboutLibraries").asFile
 
 val licenses by tasks.registering(AboutLibrariesTask::class) {
-    resultDirectory = licensesDir
     dependsOn("collectDependencies")
+    resultDirectory = licensesDir
 }
 
 aboutLibraries {
@@ -34,6 +34,7 @@ aboutLibraries {
 }
 
 val buildConfigGenerator by tasks.registering {
+    dependsOn(licenses)
     val licencesFile = licensesDir.resolve("aboutlibraries.json")
     val generatedSrc = layout.buildDirectory.dir("generated-src/kotlin/")
     inputs.file(licencesFile)
@@ -67,25 +68,11 @@ val buildConfigGenerator by tasks.registering {
         }
     }
     outputs.dirs(generatedSrc)
-    dependsOn(licenses)
-}
-
-tasks.named("prepareKotlinIdeaImport") {
-    val prepareKotlinIdeaImport = this
-    kotlin.sourceSets.all {
-        prepareKotlinIdeaImport.dependsOn(kotlin)
-    }
 }
 
 kotlin {
-    val kotlinJvmTarget = libs.versions.jvmTarget.get()
     androidTarget()
-    jvmToolchain(JavaLanguageVersion.of(kotlinJvmTarget).asInt())
-    jvm("desktop") {
-        compilations.all {
-            kotlinOptions.jvmTarget = kotlinJvmTarget
-        }
-    }
+    jvm("desktop")
     js("web", IR) {
         browser {
             runTask {
@@ -99,12 +86,9 @@ kotlin {
     }
 
     sourceSets {
-        all {
-            languageSettings.optIn("kotlin.RequiresOptIn")
-        }
         commonMain {
             dependencies {
-                implementation(project(":trixnity-messenger-compose-view"))
+                implementation(projects.trixnityMessengerComposeView)
                 implementation(compose.components.resources)
             }
             kotlin.srcDir(buildConfigGenerator.map { it.outputs })
@@ -146,21 +130,17 @@ compose {
     desktop {
         application {
             mainClass = "$appId.desktop.MainKt"
-            jvmArgs(
-//            "-Dapple.awt.application.appearance=system",
-                "-Xmx1G",
-                "-XX:+HeapDumpOnOutOfMemoryError",
-            )
-
+            jvmArgs("-Xmx1G", "-XX:+HeapDumpOnOutOfMemoryError")
             buildTypes.release.proguard {
                 isEnabled = false
             }
             nativeDistributions {
                 modules("java.net.http", "java.sql", "java.naming")
                 targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-                appResourcesRootDir.set(layout.buildDirectory) // @see https://github.com/JetBrains/compose-jb/tree/master/tutorials/Native_distributions_and_local_execution#jvm-resource-loading
+                // @see https://github.com/JetBrains/compose-jb/tree/master/tutorials/Native_distributions_and_local_execution#jvm-resource-loading
+                appResourcesRootDir = layout.buildDirectory
                 packageName = appId
-                packageVersion = libs.versions.messenger.get()
+                packageVersion = libs.versions.trixnityMessengerApp.get()
 
                 windows {
                     menu = true
@@ -180,26 +160,23 @@ compose {
 
 android {
     namespace = appId
+    compileSdk = libs.versions.androidCompileSDK.get().toInt()
     buildFeatures {
         compose = true
     }
-    compileSdk = libs.versions.androidCompileSDK.get().toInt()
-
     defaultConfig {
         minSdk = libs.versions.androidMinimalSDK.get().toInt()
         targetSdk = libs.versions.androidTargetSDK.get().toInt()
         resValue("string", "app_name", appName)
         resValue("string", "scheme", appId)
     }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.toVersion(libs.versions.jvmTarget.get())
-        targetCompatibility = JavaVersion.toVersion(libs.versions.jvmTarget.get())
-    }
     buildTypes {
-        release {
+        debug {
             isDefault = true
+        }
+        release {
             signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = false
         }
     }
     packaging {

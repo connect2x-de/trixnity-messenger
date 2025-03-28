@@ -1,11 +1,15 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
 import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMultiMessenger
+import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
+import kotlin.coroutines.ContinuationInterceptor
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
@@ -14,7 +18,9 @@ class MultiMessengerProfilesIT {
 
     @Test
     fun shouldHandleMultipleProfiles(): Unit = runTest {
-        val multiMessenger = createTestMatrixMultiMessenger(coroutineContext = backgroundScope.coroutineContext)
+        val multiMessenger = createTestMatrixMultiMessenger(
+            coroutineContext = backgroundScope.coroutineContext
+                    + ImmediateDispatcherElement(coroutineContext[ContinuationInterceptor] as CoroutineDispatcher))
         val profile1 = multiMessenger.createProfile()
         val profile2 = multiMessenger.createProfile()
 

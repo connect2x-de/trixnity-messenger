@@ -8,10 +8,12 @@ import de.connect2x.sysnotify.create
 import de.connect2x.trixnity.messenger.PushMode
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import net.folivo.trixnity.core.model.UserId
 
+@OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 interface NotificationHandlerProvider : StateFlow<Map<UserId, NotificationHandler>>, AutoCloseable {
     fun updateHandlers(
         context: Context,
@@ -20,6 +22,7 @@ interface NotificationHandlerProvider : StateFlow<Map<UserId, NotificationHandle
     )
 }
 
+@OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 internal class NotificationHandlerProviderImpl(
     private val handlerFlow: MutableStateFlow<Map<UserId, NotificationHandler>> = MutableStateFlow(emptyMap())
 ) : NotificationHandlerProvider, StateFlow<Map<UserId, NotificationHandler>> by handlerFlow {

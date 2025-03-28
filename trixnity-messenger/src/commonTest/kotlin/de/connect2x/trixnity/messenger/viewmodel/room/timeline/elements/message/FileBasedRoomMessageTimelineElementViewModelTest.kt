@@ -4,21 +4,19 @@ import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
+import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
-import io.kotest.assertions.nondeterministic.eventually
-import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.TestScope
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.core.model.UserId
@@ -27,13 +25,11 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.toByteArray
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 5_000
-
+class FileBasedRoomMessageTimelineElementViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
     val downloadManagerMock = mock<DownloadManager>()
     val mediaServiceMock = mock<MediaService>()
@@ -41,79 +37,75 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
     val file = "download".encodeToByteArray()
 
     init {
-        beforeTest {
-            resetMocks(matrixClientMock, downloadManagerMock, mediaServiceMock)
-            every { matrixClientMock.di } returns koinApplication {
-                modules(
-                    module {
-                        single { mediaServiceMock }
-                    }
-                )
-            }.koin
+        resetMocks(matrixClientMock, downloadManagerMock, mediaServiceMock)
+        every { matrixClientMock.di } returns koinApplication {
+            modules(
+                module {
+                    single { mediaServiceMock }
+                })
+        }.koin
+    }
+
+    @Test
+    fun `download a file and process result`() = runTest {
+        every {
+            downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any())
+        } returns async { Result.success(InMemoryPlatformMedia(file)) }
+
+        val cut = fileBasedMessageViewModel()
+        var downloadResult: ByteArray? = null
+        cut.downloadMedia { download ->
+            downloadResult = download.toByteArray()
         }
 
-        should("download a file and process result") {
-            every {
-                downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any())
-            } returns async { Result.success(InMemoryPlatformMedia(file)) }
-
-            val cut = fileBasedMessageViewModel()
-            var downloadResult: ByteArray? = null
-            cut.downloadMedia { download ->
-                downloadResult = download.toByteArray()
-            }
-
-            eventually(1.seconds) {
-                downloadResult shouldBe file
-                cut.downloadMediaError.value shouldBe null
-                cut.downloadMediaResult shouldNotBe null
-            }
-
-            cancelNeverEndingCoroutines()
+        eventually(1.seconds) {
+            downloadResult shouldBe file
+            cut.downloadMediaError.value shouldBe null
+            cut.downloadMediaResult shouldNotBe null
         }
-        should("download a file and set Result to 'failure' if not successful") {
-            every {
-                downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any())
-            } returns async { Result.failure(RuntimeException("Oh no!")) }
+    }
 
-            val cut = fileBasedMessageViewModel()
-            var downloadResult: ByteArray? = null
-            cut.downloadMedia { download ->
-                downloadResult = download.toByteArray()
-            }
+    @Test
+    fun `download a file and set Result to 'failure' if not successful`() = runTest {
+        every {
+            downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any())
+        } returns async { Result.failure(RuntimeException("Oh no!")) }
 
-            eventually(1.seconds) {
-                downloadResult shouldBe null
-                cut.downloadMediaError.value shouldBe "Download failed: Oh no!"
-                cut.downloadMediaResult.value shouldBe null
-            }
-
-            cancelNeverEndingCoroutines()
+        val cut = fileBasedMessageViewModel()
+        var downloadResult: ByteArray? = null
+        cut.downloadMedia { download ->
+            downloadResult = download.toByteArray()
         }
-        should("download a file and reset everything if the download is cancelled") {
-            every {
-                downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any())
-            } returns async {
-                delay(5.seconds)
-                Result.failure(RuntimeException("Oh no!"))
-            }
 
-            val cut = fileBasedMessageViewModel()
-            var downloadResult: ByteArray? = null
-            cut.downloadMedia { download ->
-                downloadResult = download.toByteArray()
-            }
+        eventually(1.seconds) {
+            downloadResult shouldBe null
+            cut.downloadMediaError.value shouldBe "Download failed: Oh no!"
+            cut.downloadMediaResult.value shouldBe null
+        }
+    }
 
-            delay(100.milliseconds)
-            cut.cancelDownloadMedia()
-            eventually(1.seconds) {
-                downloadResult shouldBe null
-                cut.downloadMediaError.value shouldBe null
-                cut.downloadMediaResult.value shouldBe null
-                cut.downloadMediaProgress.value shouldBe null
-            }
+    @Test
+    fun `download a file and reset everything if the download is cancelled`() = runTest {
+        every {
+            downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any())
+        } returns async {
+            delay(5.seconds)
+            Result.failure(RuntimeException("Oh no!"))
+        }
 
-            cancelNeverEndingCoroutines()
+        val cut = fileBasedMessageViewModel()
+        var downloadResult: ByteArray? = null
+        cut.downloadMedia { download ->
+            downloadResult = download.toByteArray()
+        }
+
+        delay(100.milliseconds)
+        cut.cancelDownloadMedia()
+        eventually(1.seconds) {
+            downloadResult shouldBe null
+            cut.downloadMediaError.value shouldBe null
+            cut.downloadMediaResult.value shouldBe null
+            cut.downloadMediaProgress.value shouldBe null
         }
     }
 
@@ -122,10 +114,11 @@ class FileBasedRoomMessageTimelineElementViewModelTest : ShouldSpec() {
             testMatrixClientViewModelContext(
                 di = koinApplication {
                     modules(
-                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)) +
-                                module {
-                                    single { downloadManagerMock }
-                                })
+                        createTestDefaultTrixnityMessengerModules(
+                            mapOf(UserId("test", "server") to matrixClientMock)
+                        ) + module {
+                            single { downloadManagerMock }
+                        })
                 }.koin,
                 userId = UserId("test", "server"),
             ),

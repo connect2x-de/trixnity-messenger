@@ -9,17 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Knocking public rooms
+
 ### Changed
 
+- Upgraded to Gradle 8.13
 - Reduce height of room list elements
+- Use kotlin.test for all tests
+- Updated UI to use new styling system for icon buttons
 
 ### Deprecated
 
 ### Removed
 
+- Kotest as test engine
+- benasher44 UUID as a UUID library
+
 ### Fixed
 
 - Forgetting the room with invite after rejection of the invitation
+- Correctly use test dispatcher
+- Fix tests on IOS
+- Fix wrong UriCaller encoding in web
+- Removed duplicate device verification dialog
 
 ### Security
 

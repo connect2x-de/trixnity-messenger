@@ -1,40 +1,35 @@
+import de.connect2x.conventions.registerCoverageTask
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 
 plugins {
-    id("com.android.library")
-    kotlin("multiplatform")
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.kotlinx.kover)
-    id("kotlin-parcelize")
+    alias(libs.plugins.kotlin.parcelize)
 }
 
+registerCoverageTask()
+
 kotlin {
-    val kotlinJvm = libs.versions.jvmTarget.get()
-    jvmToolchain(kotlinJvm.toInt())
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
     androidTarget {
         publishLibraryVariants("release")
-        compilations.configureEach {
-            kotlinOptions.jvmTarget = kotlinJvm
-        }
-
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         instrumentedTestVariant.sourceSetTree.set(KotlinSourceSetTree.test)
     }
     jvm("desktop") {
-        compilations.all {
-            kotlinOptions.jvmTarget = kotlinJvm
-        }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
-            // testLogging.showStandardStreams = true   // activate when detailed information in tests is required
         }
         tasks.withType<Test>().configureEach {
             maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
         }
     }
-    js("web", IR) {
+    js("web") {
         browser {
             // Run test in firefox for ci as trixnity/kmp-dockerfiles/base has only firefox
             testRuns.create("firefox").executionTask.configure {
@@ -47,12 +42,9 @@ kotlin {
     }
 
     sourceSets {
-        all {
-            languageSettings.optIn("kotlin.RequiresOptIn")
-        }
         commonMain {
             dependencies {
-                api(project(":trixnity-messenger"))
+                api(projects.trixnityMessenger)
                 api(compose.runtime)
                 api(compose.foundation)
                 api(compose.components.resources)
@@ -72,8 +64,6 @@ kotlin {
         }
         val desktopMain by getting {
             dependencies {
-                implementation(compose.desktop.common)
-                implementation(compose.uiTooling)
                 implementation(libs.qrcode)
                 implementation(libs.filekit.compose)
                 implementation(libs.ktor.client.okhttp)
@@ -106,8 +96,7 @@ kotlin {
 
         commonTest {
             dependencies {
-                implementation(kotlin("test"))
-
+                implementation(libs.kotlin.test)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.uiTest)
                 implementation(libs.okio.fakefilesystem)
@@ -119,7 +108,6 @@ kotlin {
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlinx.coroutines.swing)
-                implementation(libs.kotest.junit.runner)
             }
         }
     }
@@ -134,46 +122,28 @@ dependencies {
 }
 
 android {
-    namespace = "de.connect2x.messenger.compose.view"
+    namespace = "${libs.versions.appId.get()}.compose.view"
     compileSdk = libs.versions.androidCompileSDK.get().toInt()
-
     buildFeatures {
         compose = true
     }
-
     defaultConfig {
         minSdk = libs.versions.androidMinimalSDK.get().toInt()
         testOptions.targetSdk = libs.versions.androidTargetSDK.get().toInt()
         lint.targetSdk = libs.versions.androidTargetSDK.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.toVersion(libs.versions.jvmTarget.get())
-        targetCompatibility = JavaVersion.toVersion(libs.versions.jvmTarget.get())
-    }
-
     sourceSets {
         named("main") {
             manifest.srcFile("src/androidMain/AndroidManifest.xml")
         }
     }
-}
-
-tasks.register("testCoverage") {
-    val reportTask = tasks.named("koverXmlReportJvm").get()
-    dependsOn(reportTask)
-    doLast {
-        val regex = """<counter type="INSTRUCTION" missed="(\d+)" covered="(\d+)"/>""".toRegex()
-        for (file in reportTask.outputs.files) {
-            file.useLines { lines ->
-                val coverage = lines.last(regex::containsMatchIn)
-                regex.find(coverage)?.let { coverageData ->
-                    val covered = coverageData.groupValues[2].toInt()
-                    val missed = coverageData.groupValues[1].toInt()
-                    println("Total test coverage: ${covered * 100 / (missed + covered)}%")
-                }
-            }
+    buildTypes {
+        debug {
+            isDefault = true
+        }
+        release {
+            isMinifyEnabled = false
         }
     }
 }

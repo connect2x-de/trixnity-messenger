@@ -54,9 +54,9 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.EditButton
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
@@ -66,6 +66,8 @@ import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
 import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountWithDevices
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceInfo
 import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModel
@@ -154,23 +156,35 @@ fun ThisDevice(userId: UserId, device: DeviceInfo, devicesSettingsViewModel: Dev
             Row(Modifier.padding(vertical = 8.dp)) {
                 if (editDeviceDisplayName.value) {
                     Spacer(Modifier.size(10.dp))
-                    EditButton({
-                        editDeviceDisplayName.value = editDeviceDisplayName.value.not()
-                        devicesSettingsViewModel.setDisplayName(
-                            userId = userId,
-                            deviceId = device.deviceId,
-                            oldDisplayName = displayName,
-                            newDisplayName = editedDisplayName.value.text,
-                        )
-                    }, Modifier.alignByBaseline()) {
-                        EditIcon(Icons.Default.Done, i18n.commonDone())
+                    Tooltip({Text(i18n.commonDone())}) {
+                        ThemedIconButton(
+                            style = MaterialTheme.components.commonIconButton,
+                            onClick = {
+                                editDeviceDisplayName.value = editDeviceDisplayName.value.not()
+                                devicesSettingsViewModel.setDisplayName(
+                                    userId = userId,
+                                    deviceId = device.deviceId,
+                                    oldDisplayName = displayName,
+                                    newDisplayName = editedDisplayName.value.text,
+                                )
+                            },
+                            modifier = Modifier.alignByBaseline(),
+                        ) {
+                            EditIcon(Icons.Default.Done, i18n.commonDone())
+                        }
                     }
                 } else {
                     Spacer(Modifier.size(20.dp))
-                    EditButton({
-                        editDeviceDisplayName.value = editDeviceDisplayName.value.not()
-                    }, Modifier.alignByBaseline()) {
-                        EditIcon(Icons.Default.Edit, i18n.commonRename())
+                    Tooltip({Text(i18n.commonRename())}) {
+                        ThemedIconButton(
+                            style = MaterialTheme.components.commonIconButton,
+                            onClick = {
+                                editDeviceDisplayName.value = editDeviceDisplayName.value.not()
+                            },
+                            modifier = Modifier.alignByBaseline(),
+                        ) {
+                            EditIcon(Icons.Default.Edit, i18n.commonRename())
+                        }
                     }
                 }
             }
@@ -220,54 +234,64 @@ fun OtherDevice(userId: UserId, device: DeviceInfo, devicesSettingsViewModel: De
         Row(Modifier.padding(vertical = 8.dp)) {
             if (editDeviceDisplayName.value) {
                 Spacer(Modifier.size(10.dp))
-                EditButton({
-                    editDeviceDisplayName.value = editDeviceDisplayName.value.not()
-                    devicesSettingsViewModel.setDisplayName(
-                        userId,
-                        device.deviceId,
-                        displayName,
-                        editedDisplayName.value.text
-                    )
-                }) {
-                    EditIcon(Icons.Default.Done, i18n.commonDone())
+                Tooltip({Text(i18n.commonDone())}) {
+                    ThemedIconButton(
+                        style = MaterialTheme.components.commonIconButton,
+                        onClick = {
+                            editDeviceDisplayName.value = editDeviceDisplayName.value.not()
+                            devicesSettingsViewModel.setDisplayName(
+                                userId,
+                                device.deviceId,
+                                displayName,
+                                editedDisplayName.value.text
+                            )
+                        },
+                    ) {
+                        EditIcon(Icons.Default.Done, i18n.commonDone())
+                    }
                 }
             } else {
-                EditButton({ showOptions.value = showOptions.value.not() }) {
-                    Spacer(Modifier.size(20.dp))
-                    EditIcon(Icons.Default.MoreVert, i18n.commonMore())
-                    DropdownMenu(
-                        expanded = showOptions.value,
-                        modifier = Modifier.defaultMinSize(minWidth = 200.dp)
-                            .background(MaterialTheme.colorScheme.background),
-                        onDismissRequest = { showOptions.value = showOptions.value.not() },
+                Tooltip({Text(i18n.commonMore())}) {
+                    ThemedIconButton(
+                        style = MaterialTheme.components.commonIconButton,
+                        onClick = { showOptions.value = showOptions.value.not() },
                     ) {
-                        DeviceDropdownItem(
-                            i18n.commonRename().capitalize(Locale.current),
-                            onClick = {
-                                editDeviceDisplayName.value = editDeviceDisplayName.value.not()
-                                showOptions.value = false
-                            },
-                            icon = Icons.Default.Edit
-                        )
-                        if (isVerified.not()) {
+                        Spacer(Modifier.size(20.dp))
+                        EditIcon(Icons.Default.MoreVert, i18n.commonMore())
+                        DropdownMenu(
+                            expanded = showOptions.value,
+                            modifier = Modifier.defaultMinSize(minWidth = 200.dp)
+                                .background(MaterialTheme.colorScheme.background),
+                            onDismissRequest = { showOptions.value = showOptions.value.not() },
+                        ) {
                             DeviceDropdownItem(
-                                i18n.commonVerify().capitalize(Locale.current),
+                                i18n.commonRename().capitalize(Locale.current),
                                 onClick = {
-                                    devicesSettingsViewModel.verify(userId, device.deviceId)
+                                    editDeviceDisplayName.value = editDeviceDisplayName.value.not()
                                     showOptions.value = false
                                 },
-                                icon = Icons.Default.GppGood,
+                                icon = Icons.Default.Edit
+                            )
+                            if (isVerified.not()) {
+                                DeviceDropdownItem(
+                                    i18n.commonVerify().capitalize(Locale.current),
+                                    onClick = {
+                                        devicesSettingsViewModel.verify(userId, device.deviceId)
+                                        showOptions.value = false
+                                    },
+                                    icon = Icons.Default.GppGood,
+                                )
+                            }
+                            DeviceDropdownItem(
+                                i18n.commonRemove().capitalize(Locale.current),
+                                onClick = {
+                                    devicesSettingsViewModel.remove(userId, device.deviceId)
+                                    showOptions.value = false
+                                },
+                                icon = Icons.Default.DeleteForever,
+                                MaterialTheme.colorScheme.error
                             )
                         }
-                        DeviceDropdownItem(
-                            i18n.commonRemove().capitalize(Locale.current),
-                            onClick = {
-                                devicesSettingsViewModel.remove(userId, device.deviceId)
-                                showOptions.value = false
-                            },
-                            icon = Icons.Default.DeleteForever,
-                            MaterialTheme.colorScheme.error
-                        )
                     }
                 }
             }
@@ -290,14 +314,19 @@ fun DeviceRow(
     val focusRequester = remember { FocusRequester() }
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (editDeviceDisplayName.value) {
-            EditButton({
-                editDeviceDisplayName.value = editDeviceDisplayName.value.not()
-                editedDisplayName.value = TextFieldValue(
-                    text = displayName,
-                    selection = TextRange(index = displayName.length)
-                )
-            }) {
-                EditIcon(Icons.Default.Clear, i18n.commonCancel())
+            Tooltip({Text(i18n.commonCancel())}) {
+                ThemedIconButton(
+                    style = MaterialTheme.components.commonIconButton,
+                    onClick = {
+                        editDeviceDisplayName.value = editDeviceDisplayName.value.not()
+                        editedDisplayName.value = TextFieldValue(
+                            text = displayName,
+                            selection = TextRange(index = displayName.length)
+                        )
+                    },
+                ) {
+                    EditIcon(Icons.Default.Clear, i18n.commonCancel())
+                }
             }
             Spacer(Modifier.size(10.dp))
         } else {

@@ -31,6 +31,7 @@ import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
+import de.connect2x.trixnity.messenger.util.currentImmediateDispatcher
 import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.sysnotify.handlePermissionRequest
 import de.connect2x.sysnotify.withActivity
@@ -84,7 +85,7 @@ class MessengerActivity : AppCompatActivity() {
                         .collect { settings ->
                             val anyNotificationsEnabled =
                                 settings.any { (_, settings) -> settings.base.notificationsEnabled }
-                            withContext(Dispatchers.Main) {
+                            withContext(currentImmediateDispatcher()) {
                                 if (anyNotificationsEnabled) {
                                     log.debug { "Notifications are enabled for active messenger, requesting permissions" }
                                     matrixMultiMessenger.di.get<NotificationHandler>()
@@ -105,7 +106,7 @@ class MessengerActivity : AppCompatActivity() {
                 }
 
             }
-            withContext(Dispatchers.Main) {
+            withContext(currentImmediateDispatcher()) {
                 setContent {
                     WithProfileSelection(
                         matrixMultiMessenger = matrixMultiMessenger,
