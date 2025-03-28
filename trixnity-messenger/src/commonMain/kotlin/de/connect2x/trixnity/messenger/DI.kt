@@ -21,10 +21,6 @@ import de.connect2x.trixnity.messenger.util.SearchImpl
 import de.connect2x.trixnity.messenger.util.SharedDataHandler
 import de.connect2x.trixnity.messenger.util.SharedDataHandlerImpl
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
-import de.connect2x.trixnity.messenger.util.EnterRoom
-import de.connect2x.trixnity.messenger.util.EnterRoomImpl
-import de.connect2x.trixnity.messenger.util.convertSecretByteArrayModule
-import de.connect2x.trixnity.messenger.util.platformCloseAppModule
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
 import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule

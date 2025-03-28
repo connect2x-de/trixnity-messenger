@@ -46,6 +46,7 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
@@ -304,6 +305,39 @@ class MainViewModelTest {
 
         continually(2.seconds) {
             cut.selfVerificationRouter.stack.value.active.configuration shouldBeSameInstanceAs config
+        }
+    }
+
+    @Test
+    fun `show multiple cross signing bootstraps sequentially when needed`() = runTest {
+        selfVerificationMethods returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
+        every { verificationServiceMock2.getSelfVerificationMethods() } returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
+
+        val user1 = UserId("test", "server")
+        val user2 = UserId("test2", "server")
+
+        val cut = mainViewModel(
+            mapOf(
+                user1 to matrixClientMock, user2 to matrixClientMock2
+            )
+        )
+
+        val bootstrapParams = eventually(2.seconds) {
+            cut.selfVerificationRouter.stack.value.active.configuration should beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
+            val currentUser =
+                (cut.selfVerificationRouter.stack.value.active.configuration as SelfVerificationRouter.Config.CrossSigningBootstrap).userId shouldBeIn setOf<UserId>(
+                    user1,
+                    user2
+                )
+            currentUser to cut.selfVerificationRouter.stack.value.active.instance as SelfVerificationRouter.Wrapper.CrossSigningBootstrap
+        }
+
+        bootstrapParams.second.viewModel.close()
+        val otherUser = if (bootstrapParams.first == user1) user2 else user1
+
+        eventually(2.seconds) {
+            cut.selfVerificationRouter.stack.value.active.configuration should beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
+            (cut.selfVerificationRouter.stack.value.active.configuration as SelfVerificationRouter.Config.CrossSigningBootstrap).userId shouldBe otherUser
         }
     }
 

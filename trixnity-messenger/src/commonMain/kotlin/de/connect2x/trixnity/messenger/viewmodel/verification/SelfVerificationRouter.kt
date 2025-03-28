@@ -8,9 +8,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
-import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
-import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
@@ -19,7 +17,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.Serializable
 import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.client.verification.VerificationService
@@ -34,10 +31,8 @@ class SelfVerificationRouter(
 ) : ViewModelContext by viewModelContext {
     private val selfVerifications =
         MutableStateFlow(setOf<UserId>()) // in case of multiple self verifications, we need to do one after another
+    private val crossSigningBootstraps = MutableStateFlow(setOf<UserId>())
 
-    init {
-        listenForCrossSigning()
-    }
 
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
@@ -115,7 +110,7 @@ class SelfVerificationRouter(
         log.debug { "add account to self verification queue: $userId" }
         if (messengerSettings.value.base.accounts.any { !it.value.base.accountSetupFinished } && !isFromSetup) {
             log.debug { "At least one account isn't set up with the wizard, not showing self verification for $userId" }
-        } else if (bootstrapMutex.isLocked) {
+        } else if (!crossSigningBootstraps.value.isEmpty()) {
             log.debug { "bootstrapping has started, not showing self verification for: $userId" }
         } else {
             // do sequentially (for different accounts), so here just fill the list
@@ -132,7 +127,7 @@ class SelfVerificationRouter(
         selfVerifications.value -= userId
     }
 
-    private fun listenForCrossSigning() {
+    private fun listenForCrossSigningNotEnabled() {
         coroutineScope.launch {
             matrixClients.scopedCollectLatest { namedMatrixClients ->
                 namedMatrixClients.forEach { (userId, client) ->
@@ -150,29 +145,30 @@ class SelfVerificationRouter(
         }
     }
 
-    private val bootstrapMutex = Mutex()
 
-    suspend fun showCrossSigningBootstrap(userId: UserId) {
+    fun showCrossSigningBootstrap(userId: UserId) {
         // it can happen that the bootstrap is triggered twice (initial sync, then regular sync; to avoid any
         // complications, only allow one bootstrap to be shown at the time
-        if (bootstrapMutex.tryLock()) {
-            log.debug { "show cross signing bootstrap view for account $userId" }
-            navigation.pushSuspending(Config.CrossSigningBootstrap(userId))
-        } else log.debug { "can't show cross signing bootstrap for account $userId, because bootstrap is already shown" }
+        crossSigningBootstraps.value += userId
+        log.debug { "added $userId to crossSigningBootstrap queue" }
     }
 
     private fun closeCrossSigningBootstrap(userId: UserId) = viewModelContext.coroutineScope.launch {
         log.debug { "close cross signing bootstrap view" }
         onCloseSelfVerification(userId, true)
-        navigation.popSuspending(onComplete = { log.debug { "close bootstrap completed: $it" } })
-        bootstrapMutex.unlock()
-    }
-
-    init {
-        viewModelContext.coroutineScope.launch {
-            startSelfVerificationsQueue()
+        if (stack.backStack.any { it.configuration is Config.None }) {
+            navigation.popWhileSuspending(predicate = { it !is Config.None }, onComplete = {
+                log.debug { "close bootstrap completed: $it" }
+                crossSigningBootstraps.value -= userId
+            })
+        } else {
+            navigation.replaceCurrentSuspending(Config.None) {
+                log.debug { "close bootstrap completed" }
+                crossSigningBootstraps.value -= userId
+            }
         }
     }
+
 
     /** Continually checks for new self verifications in a queue and executes them sequentially. */
     // Changed to an unidirectional flow:
@@ -183,7 +179,8 @@ class SelfVerificationRouter(
     // To close a verification flow, remove the accountName from selfVerifications
     // If there are still pending verifications, this method will navigate to that flow,
     // otherwise it'll close the self verification flow entirely.
-    private suspend fun startSelfVerificationsQueue() {
+    private fun startSelfVerificationsQueue() = viewModelContext.coroutineScope.launch {
+        log.debug { "Starting self verification queue" }
         selfVerifications.collect { currentSelfVerifications ->
             log.trace { "current self verifications: $currentSelfVerifications" }
             val nextAccountToVerify = currentSelfVerifications.firstOrNull()
@@ -200,6 +197,27 @@ class SelfVerificationRouter(
                 }
             }
         }
+    }
+
+    private fun startCrossSigningQueue() {
+        log.debug { "Starting cross signing bootstrap queue" }
+        coroutineScope.launch {
+            crossSigningBootstraps.collect { currentBootstraps ->
+                log.trace { "current bootstraps: $currentBootstraps" }
+                val nextBootstrap = currentBootstraps.firstOrNull()
+                if (nextBootstrap != null) {
+                    navigation.replaceCurrentSuspending(
+                        Config.CrossSigningBootstrap(nextBootstrap)
+                    )
+                }
+            }
+        }
+    }
+
+    init {
+        listenForCrossSigningNotEnabled()
+        startSelfVerificationsQueue()
+        startCrossSigningQueue()
     }
 
     sealed class Wrapper {
