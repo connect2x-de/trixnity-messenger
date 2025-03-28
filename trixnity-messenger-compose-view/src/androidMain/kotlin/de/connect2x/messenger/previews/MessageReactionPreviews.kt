@@ -43,9 +43,11 @@ import de.connect2x.messenger.compose.view.theme.md_theme_light_surfaceVariant
 import de.connect2x.messenger.compose.view.theme.md_theme_light_tertiary
 import de.connect2x.messenger.compose.view.theme.md_theme_light_tertiaryContainer
 import de.connect2x.messenger.previews.util.InitMessengerPreview
+import de.connect2x.trixnity.messenger.util.PlatformGraphemeIterableProvider
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions.ByReactionInfo
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.InitialsImpl
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.UserId
 
@@ -109,7 +111,7 @@ private fun PreviewTheme(content: @Composable () -> Unit) {
 @Composable
 fun MessageReactionPreview() {
     InitMessengerPreview {
-        val initials = object : Initials {}
+        val initials = InitialsImpl(PlatformGraphemeIterableProvider)
         PreviewTheme {
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
@@ -167,7 +169,7 @@ fun MessageReactionPreview() {
 @Composable
 fun MessageReactionWrappingPreview() {
     InitMessengerPreview {
-        val initials = object : Initials {}
+        val initials = InitialsImpl(PlatformGraphemeIterableProvider)
         PreviewTheme {
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),

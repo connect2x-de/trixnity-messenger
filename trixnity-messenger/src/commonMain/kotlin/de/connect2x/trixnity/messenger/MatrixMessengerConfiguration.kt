@@ -18,6 +18,7 @@ private val colors =
         0xAA49C771,
     )
 
+@TrixnityMessengerDsl
 data class MatrixMessengerConfiguration(
     override var appName: String = "Trixnity Messenger",
     override var appId: String = "de.connect2x.messenger",

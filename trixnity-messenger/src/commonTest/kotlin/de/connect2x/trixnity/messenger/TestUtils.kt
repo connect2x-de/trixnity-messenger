@@ -2,51 +2,42 @@ package de.connect2x.trixnity.messenger
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.matcher.matching
 import dev.mokkery.resetAnswers
 import dev.mokkery.resetCalls
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.errorCollector
 import io.kotest.assertions.withClue
-import io.kotest.common.KotestInternal
-import io.kotest.core.names.TestNameBuilder
-import io.kotest.core.spec.Spec
-import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.spec.style.scopes.RootTestWithConfigBuilder
-import io.kotest.core.spec.style.scopes.ShouldSpecContainerScope
-import io.kotest.core.spec.style.scopes.TestWithConfigBuilder
-import io.kotest.core.spec.style.scopes.addTest
-import io.kotest.core.test.TestScope
-import io.kotest.core.test.TestType
-import io.kotest.core.test.config.TestConfig
 import io.kotest.matchers.nulls.shouldNotBeNull
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.timeout
+import kotlinx.coroutines.plus
+import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.Koin
+import kotlin.coroutines.ContinuationInterceptor
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-
-
-private val log = KotlinLogging.logger {}
 
 @OptIn(FlowPreview::class)
 suspend inline fun <T> Flow<T>.firstWithClue(duration: Duration = 1.seconds, crossinline expected: (T) -> T): T {
@@ -89,7 +80,7 @@ suspend inline fun <T> Flow<T?>.firstNotNullWithClue(duration: Duration = 1.seco
 }
 
 fun runTestWithCoroutineScope(
-    testBody: suspend kotlinx.coroutines.test.TestScope.(CoroutineScope) -> Unit
+    testBody: suspend TestScope.(CoroutineScope) -> Unit
 ): TestResult = runTest {
     val coroutineScope = CoroutineScope(coroutineContext + Job())
     try {
@@ -106,146 +97,89 @@ fun resetMocks(vararg mocks: Any) {
 
 inline fun <reified T : Any> ArgMatchersScope.eqNull(): T? = matching({ "eqNull" }) { it == null }
 
-fun ArgMatchersScope.isTimelineEvent(
-    thisTimelineEvent: TimelineEvent,
-): TimelineEvent =
-    matching({
-        "isTimelineEvent(${thisTimelineEvent.eventId}"
-    }) {
-        it.eventId == thisTimelineEvent.eventId
-    }
-
-fun ArgMatchersScope.isRoomOf(roomId: RoomId): Room =
-    matching({
-        "isRoomOf($roomId)"
-    }) {
-        it.roomId == roomId
-    }
+fun ArgMatchersScope.isRoomOf(roomId: RoomId): Room = matching({
+    "isRoomOf($roomId)"
+}) {
+    it.roomId == roomId
+}
 
 inline fun <reified T> ArgMatchersScope.isNot(
     others: List<T>,
-): T =
-    matching({
-        "isNot($others)"
-    }) {
-        others.contains(it).not()
-    }
-
-/**
- * Use this, when you want to use coroutine-test.
- */
-fun TestScope.testViewModelContext(di: Koin) = object :
-    ViewModelContext by ViewModelContextImpl(
-        di = di,
-        componentContext = DefaultComponentContext(LifecycleRegistry()),
-        coroutineContext = coroutineContext
-    ) {
-    override val coroutineScope = CoroutineScope(coroutineContext)
+): T = matching({
+    "isNot($others)"
+}) {
+    others.contains(it).not()
 }
 
-/**
- * Use this, when you want to use coroutine-test.
- */
-fun TestScope.testMatrixClientViewModelContext(di: Koin, userId: UserId) = object :
-    MatrixClientViewModelContext by MatrixClientViewModelContextImpl(
+fun TestScope.testViewModelContext(di: Koin) = object : ViewModelContext by ViewModelContextImpl(
+    di = di,
+    componentContext = DefaultComponentContext(LifecycleRegistry()),
+    coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
+) {
+    override val coroutineScope = backgroundScope + ImmediateDispatcherElement(testDispatcher)
+}
+
+
+fun TestScope.testMatrixClientViewModelContext(di: Koin, userId: UserId) =
+    object : MatrixClientViewModelContext by MatrixClientViewModelContextImpl(
         di = di,
         componentContext = DefaultComponentContext(LifecycleRegistry()),
         userId = userId,
-        coroutineContext = coroutineContext
+        coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
     ) {
-    override val coroutineScope = CoroutineScope(coroutineContext)
-}
-
-
-// Normally one could use the context("...") method, however
-// when setting the dispatcher in an outer beforeTest scope like here
-// (Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher])))
-// this seems to misbehave in inner contexts: https://github.com/kotest/kotest/issues/3577
-
-/**
- * Drop in replacement for [io.kotest.core.spec.style.scopes.ShouldSpecRootScope.context]
- * since it appears to have some issues that are causing timeouts.
- *
- * Potential considerations are to not nest this function and to check whether
- * setting `coroutineTestScope` is causing any issues or possibly
- * if multiple tests in the same file have an identical name.
- */
-@OptIn(KotestInternal::class)
-fun ShouldSpec.shouldGroup(contextName: String, test: suspend ShouldSpecContainerScope.() -> Unit) {
-    // TODO: Add optional config parameter to control test container behavior for our use cases.
-    //  this would allow us to set per-testcase configs
-    val config = testConfig(this)
-    addTest(TestNameBuilder.builder(contextName).build(), false, config) {
-        ShouldSpecContainerScope(this).test()
+        override val coroutineScope = backgroundScope + ImmediateDispatcherElement(testDispatcher)
     }
-}
 
-/**
- * Drop in replacement for [io.kotest.core.spec.style.scopes.ShouldSpecContainerScope.context]
- * since it appears to have some issues that are causing timeouts.
- *
- * Currently matches the implementation of ShouldSpecContainerScope.kt/context(name, test)
- */
-@OptIn(KotestInternal::class)
-suspend fun ShouldSpecContainerScope.shouldGroup(
-    contextName: String,
-    test: suspend ShouldSpecContainerScope.() -> Unit,
-) {
-    // TODO: Add optional config parameter to control test container behavior for our use cases.
-    //  this would allow us to set per-testcase configs
-    val config = testConfig(this.testScope.testCase.spec)
-    registerTest(TestNameBuilder.builder(contextName).build(), false, config, TestType.Test) {
-        ShouldSpecContainerScope(this).test()
+suspend fun <T> continually(
+    duration: Duration,
+    test: suspend () -> T,
+): T {
+    val iterations = (duration / 25.milliseconds).toInt()
+
+    var res: T = test()
+    delay(duration)
+
+    repeat(iterations) {
+        res = test()
     }
+
+    return res
 }
 
-@OptIn(KotestInternal::class)
-private fun testConfig(spec: Spec): TestConfig {
-    val config = TestConfig(
-        timeout = spec.timeout?.milliseconds ?: 15.seconds,
-//        invocationTimeout = spec.invocationTimeout?.milliseconds ?: 6.seconds,
-        failfast = spec.failfast == true,
-        coroutineTestScope = spec.coroutineTestScope, // ?: true,
-        coroutineDebugProbes = true,
-        blockingTest = true,
-//        assertionMode = ,
-//        assertSoftly = ,
-//        concurrency = concurrency ?: 1,
-    )
-    return config
+suspend fun <T> eventually(
+    duration: Duration,
+    test: suspend () -> T,
+): T {
+    delay(duration)
+    return test()
 }
 
-/**
- * Helper to make sure all coroutines are cancelled after the test and provide some additional logging.
- *
- * To use it with [io.kotest.core.spec.style.scopes.ShouldSpecRootScope.should], write:
- * ```
- * should("test something").withCleanup { ... }
- * ```
- */
-@OptIn(KotestInternal::class)
-fun RootTestWithConfigBuilder.withCleanup(test: suspend TestScope.() -> Unit): Unit =
-    config { runTest(test) }
 
-/**
- * Helper to make sure all coroutines are cancelled after the test and provide some additional logging.
- *
- * To use it with [io.kotest.core.spec.style.scopes.ShouldSpecContainerScope.should], write:
- * ```
- * context/shouldGroup("main tests"){
- *     should("test something").withCleanup { ... }
- * }
- * ```
- */
-@OptIn(KotestInternal::class)
-suspend fun TestWithConfigBuilder.withCleanup(test: suspend TestScope.() -> Unit): Unit =
-    config { runTest(test) }
+val CoroutineContext.coroutineDispatcher
+    get() = this[ContinuationInterceptor] as CoroutineDispatcher
 
-@OptIn(KotestInternal::class)
-private suspend fun TestScope.runTest(test: suspend TestScope.() -> Unit) {
-    val testName = "should " + testCase.name.name
-    log.debug { "- - starting test: <$testName>" }
-    test()
-    cancelNeverEndingCoroutines()
-    log.debug { "- cancel never ending coroutines for test: <$testName>" }
-}
+val CoroutineScope.coroutineDispatcher
+    get() = coroutineContext.coroutineDispatcher
+
+val TestScope.coroutineDispatcher
+    get() = coroutineContext.coroutineDispatcher as TestDispatcher
+
+val CoroutineContext.testDispatcher
+    get() = coroutineDispatcher as TestDispatcher
+
+val CoroutineScope.testDispatcher
+    get() = coroutineDispatcher as TestDispatcher
+
+val TestScope.testDispatcher
+    get() = coroutineDispatcher
+
+val CoroutineContext.testScheduler
+    get() = testDispatcher.scheduler
+
+val CoroutineScope.testScheduler
+    get() = testDispatcher.scheduler
+
+fun TestScope.settle() = testScheduler.runCurrent()
+fun CoroutineContext.settle() = testScheduler.runCurrent()
+fun CoroutineScope.settle() = testScheduler.settle()
+suspend fun settle() = coroutineContext.testScheduler.settle()

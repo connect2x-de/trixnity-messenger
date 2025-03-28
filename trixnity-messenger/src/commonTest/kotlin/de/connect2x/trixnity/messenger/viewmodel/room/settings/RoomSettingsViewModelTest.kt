@@ -1,12 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
@@ -15,20 +12,17 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
-import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.testCoroutineScheduler
+import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
@@ -48,32 +42,19 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
+import kotlin.test.Test
 
-
-@OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
-class RoomSettingsViewModelTest : ShouldSpec() {
-    override fun timeout(): Long = 4_000
-
+class RoomSettingsViewModelTest {
     private val roomId = RoomId("room", "localhost")
     private val me = UserId("user1", "localhost")
 
     private val roomUserMe = RoomUser(
-        roomId,
-        me,
-        "User1",
-        StateEvent(
-            MemberEventContent(membership = Membership.JOIN),
-            EventId(""),
-            me,
-            roomId,
-            0L,
-            stateKey = ""
+        roomId, me, "User1", StateEvent(
+            MemberEventContent(membership = Membership.JOIN), EventId(""), me, roomId, 0L, stateKey = ""
         )
     )
 
-    private val powerLevelsEventContent =
-        PowerLevelsEventContent(users = mapOf(me to 100))
+    private val powerLevelsEventContent = PowerLevelsEventContent(users = mapOf(me to 100))
     private val createEventContent = CreateEventContent(creator = me)
 
     private val powerLevelEvent = StateEvent(
@@ -103,147 +84,141 @@ class RoomSettingsViewModelTest : ShouldSpec() {
 
     val roomsApiClientMock = mock<RoomApiClient>()
 
-    private lateinit var syncStateMocker: BlockingAnsweringScope<StateFlow<SyncState>>
+    private val syncStateMocker: BlockingAnsweringScope<StateFlow<SyncState>>
 
     init {
-        coroutineTestScope = true
+        resetMocks(
+            matrixClientMock, roomServiceMock, userServiceMock, matrixClientServerApiMock, roomsApiClientMock
+        )
+        every { matrixClientMock.di } returns koinApplication {
+            modules(
+                module {
+                    single { roomServiceMock }
+                    single { userServiceMock }
+                })
+        }.koin
+        syncStateMocker = every { matrixClientMock.syncState }
+        syncStateMocker returns MutableStateFlow(SyncState.STARTED)
+        every { matrixClientMock.api } returns matrixClientServerApiMock
+        every { matrixClientMock.userId } returns me
 
-        beforeTest {
-            resetMocks(
-                matrixClientMock,
-                roomServiceMock,
-                userServiceMock,
-                matrixClientServerApiMock,
-                roomsApiClientMock
+        every { matrixClientServerApiMock.room } returns roomsApiClientMock
+
+        every { roomServiceMock.getById(any()) } returns flowOf(Room(roomId))
+        every {
+            roomServiceMock.getState(
+                roomId, PowerLevelsEventContent::class, ""
             )
-            every { matrixClientMock.di } returns koinApplication {
-                modules(
-                    module {
-                        single { roomServiceMock }
-                        single { userServiceMock }
-                    }
-                )
-            }.koin
-            syncStateMocker = every { matrixClientMock.syncState }
-            syncStateMocker returns MutableStateFlow(SyncState.STARTED)
-            every { matrixClientMock.api } returns matrixClientServerApiMock
-            every { matrixClientMock.userId } returns me
-
-            every { matrixClientServerApiMock.room } returns roomsApiClientMock
-
-            every { roomServiceMock.getById(any()) } returns flowOf(Room(roomId))
-            every {
-                roomServiceMock.getState(
-                    roomId,
-                    PowerLevelsEventContent::class,
-                    ""
-                )
-            } returns MutableStateFlow(powerLevelEvent)
-            every {
-                roomServiceMock.getState(
-                    roomId,
-                    CreateEventContent::class,
-                    ""
-                )
-            } returns MutableStateFlow(createEvent)
-
-            every {
-                userServiceMock.getAll(eq(roomId))
-            } returns MutableStateFlow(
-                mapOf(
-                    roomUserMe.userId to flowOf(roomUserMe),
-                )
+        } returns MutableStateFlow(powerLevelEvent)
+        every {
+            roomServiceMock.getState(
+                roomId, CreateEventContent::class, ""
             )
+        } returns MutableStateFlow(createEvent)
 
-            every { userServiceMock.canKickUser(eq(roomId), any()) } returns
-                    MutableStateFlow(true)
+        every {
+            userServiceMock.getAll(eq(roomId))
+        } returns MutableStateFlow(
+            mapOf(
+                roomUserMe.userId to flowOf(roomUserMe),
+            )
+        )
 
-            every { userServiceMock.canInvite(any()) } returns
-                    MutableStateFlow(true)
+        every { userServiceMock.canKickUser(eq(roomId), any()) } returns MutableStateFlow(true)
 
-            every { userServiceMock.canSetPowerLevelToMax(eq(roomId), any()) } returns MutableStateFlow(100)
-        }
+        every { userServiceMock.canInvite(any()) } returns MutableStateFlow(true)
 
-        should("show an error message when trying to leave a room and we are not connected") {
-            every {
-                userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
-            } returns MutableStateFlow(null)
-            syncStateMocker returns MutableStateFlow(SyncState.ERROR)
+        every { userServiceMock.canSetPowerLevelToMax(eq(roomId), any()) } returns MutableStateFlow(100)
+    }
 
-            val cut = roomSettingsViewModel(coroutineContext)
-            cut.leaveRoom()
-            testCoroutineScheduler.advanceUntilIdle()
+    @Test
+    fun `go back to the room list view when leaving the room successfully`() = runTest {
+        every {
+            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+        } returns MutableStateFlow(null)
+        everySuspend {
+            roomsApiClientMock.leaveRoom(
+                eq(roomId), any(), eqNull()
+            )
+        } returns Result.success(Unit)
 
-            cut.error.value shouldNotBe null
-            // we have not mocked roomsApiClientMock.leaveRoom() and onBackMock.invoke(), so if they would be called, an exception would be thrown
+        val cut = roomSettingsViewModel()
 
-            cancelNeverEndingCoroutines()
-        }
+        cut.leaveRoom()
+        yield()
 
-        should("show an error message when leaving the room fails") {
-            every {
-                userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
-            } returns MutableStateFlow(null)
-            everySuspend {
-                roomsApiClientMock.leaveRoom(
-                    eq(roomId),
-                    any(),
-                    eqNull()
-                )
-            } returns
-                    Result.failure(RuntimeException("Oh no!"))
-
-            val cut = roomSettingsViewModel(coroutineContext)
-            cut.leaveRoom()
-            testCoroutineScheduler.advanceUntilIdle()
-
-            // onBackMock is not mocked correctly, so if called, an exception would be thrown
-            cut.error.value shouldNotBe null
-
-            cancelNeverEndingCoroutines()
-        }
-
-        should("not allow to invite users") {
-            every {
-                userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
-            } returns MutableStateFlow(null)
-
-            every { userServiceMock.canInvite(roomId) } returns
-                    MutableStateFlow(false)
-            val cut = roomSettingsViewModel(coroutineContext)
-
-            delay(50)
-            cut.hasPowerToInvite.first() shouldBe false
-
-            cancelNeverEndingCoroutines()
-        }
-
-
-        should("allow to invite users") {
-            every {
-                userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
-            } returns MutableStateFlow(null)
-
-            every { userServiceMock.canInvite(roomId) } returns
-                    MutableStateFlow(true)
-            val cut = roomSettingsViewModel(coroutineContext)
-            cut.hasPowerToInvite.first { it } shouldBe true
-
-            cancelNeverEndingCoroutines()
+        verifySuspend {
+            roomsApiClientMock.leaveRoom(eq(roomId), any(), eqNull())
         }
     }
 
-    private suspend fun roomSettingsViewModel(
-        coroutineContext: CoroutineContext,
+    @Test
+    fun `show an error message when trying to leave a room and we are not connected`() = runTest {
+        every {
+            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+        } returns MutableStateFlow(null)
+        syncStateMocker returns MutableStateFlow(SyncState.ERROR)
+
+        val cut = roomSettingsViewModel()
+        cut.leaveRoom()
+        yield()
+
+        cut.error.value shouldNotBe null
+    }
+
+    @Test
+    fun `show an error message when leaving the room fails`() = runTest {
+        every {
+            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+        } returns MutableStateFlow(null)
+        everySuspend {
+            roomsApiClientMock.leaveRoom(
+                eq(roomId), any(), eqNull()
+            )
+        } returns Result.failure(RuntimeException("Oh no!"))
+
+        val cut = roomSettingsViewModel()
+        cut.leaveRoom()
+        yield()
+
+        cut.error.value shouldNotBe null
+    }
+
+    @Test
+    fun `not allow to invite users`() = runTest {
+        every {
+            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+        } returns MutableStateFlow(null)
+
+        every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(false)
+        val cut = roomSettingsViewModel()
+
+        delay(50)
+        cut.hasPowerToInvite.first() shouldBe false
+    }
+
+
+    @Test
+    fun `allow to invite users`() = runTest {
+        every {
+            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+        } returns MutableStateFlow(null)
+
+        every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(true)
+        val cut = roomSettingsViewModel()
+        cut.hasPowerToInvite.first { it } shouldBe true
+    }
+
+    private fun TestScope.roomSettingsViewModel(
         onBackMock: () -> Unit = mock<Function0<Unit>>(),
     ): RoomSettingsViewModelImpl {
-        Dispatchers.setMain(checkNotNull(currentCoroutineContext()[CoroutineDispatcher]))
         return RoomSettingsViewModelImpl(
-            viewModelContext = MatrixClientViewModelContextImpl(
-                componentContext = DefaultComponentContext(LifecycleRegistry()),
+            viewModelContext = testMatrixClientViewModelContext(
                 di = koinApplication {
                     modules(
-                        createTestDefaultTrixnityMessengerModules(mapOf(me to matrixClientMock)) + module {
+                        createTestDefaultTrixnityMessengerModules(
+                            mapOf(me to matrixClientMock)
+                        ) + module {
                             single<MemberListViewModelFactory> {
                                 object : MemberListViewModelFactory {
                                     override fun create(
@@ -265,7 +240,6 @@ class RoomSettingsViewModelTest : ShouldSpec() {
                     )
                 }.koin,
                 userId = me,
-                coroutineContext = coroutineContext,
             ),
             selectedRoomId = roomId,
             onCloseRoom = onBackMock,

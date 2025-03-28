@@ -1,31 +1,27 @@
 package de.connect2x.trixnity.messenger.util
 
 import io.kotest.assertions.assertSoftly
-import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ContentType
 import io.ktor.utils.io.core.toByteArray
+import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.utils.toByteArray
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
+import kotlin.test.Test
 
-class PathFileDescriptorTest : ShouldSpec({
-    lateinit var cut: FileDescriptor
-    lateinit var fakeFileSystem: FakeFileSystem
+class PathFileDescriptorTest {
+    var fakeFileSystem: FakeFileSystem = FakeFileSystem()
 
-
-    beforeTest {
-        fakeFileSystem = FakeFileSystem()
-    }
-
-    should("create from text") {
+    @Test
+    fun `create from text`() = runTest {
         val filePath = "/directory/text.txt".toPath()
         fakeFileSystem.createDirectories("/directory".toPath())
         fakeFileSystem.write(filePath) {
             writeUtf8("test")
         }
-        cut = PathFileDescriptor(filePath, fakeFileSystem)
+        val cut = PathFileDescriptor(filePath, fakeFileSystem)
         assertSoftly(cut.fileSize.shouldNotBeNull()) {
             cut.fileName shouldBe "text.txt"
             cut.fileSize shouldBe 4
@@ -34,13 +30,14 @@ class PathFileDescriptorTest : ShouldSpec({
         }
     }
 
-    should("create from image") {
+    @Test
+    fun `create from image`() = runTest {
         val filePath = "/directory/image.jpg".toPath()
         fakeFileSystem.createDirectories("/directory".toPath())
         fakeFileSystem.write(filePath) {
             writeUtf8("image")
         }
-        cut = PathFileDescriptor(filePath, fakeFileSystem)
+        val cut = PathFileDescriptor(filePath, fakeFileSystem)
         assertSoftly(cut.fileSize.shouldNotBeNull()) {
             cut.fileName shouldBe "image.jpg"
             cut.fileSize shouldBe 5
@@ -49,13 +46,14 @@ class PathFileDescriptorTest : ShouldSpec({
         }
     }
 
-    should("create from video") {
+    @Test
+    fun `create from video`() = runTest {
         val filePath = "/directory/video.mp4".toPath()
         fakeFileSystem.createDirectories("/directory".toPath())
         fakeFileSystem.write(filePath) {
             writeUtf8("video")
         }
-        cut = PathFileDescriptor(filePath, fakeFileSystem)
+        val cut = PathFileDescriptor(filePath, fakeFileSystem)
         assertSoftly(cut.fileSize.shouldNotBeNull()) {
             cut.fileName shouldBe "video.mp4"
             cut.fileSize shouldBe 5
@@ -63,4 +61,4 @@ class PathFileDescriptorTest : ShouldSpec({
             cut.content.toByteArray() shouldBe "video".toByteArray()
         }
     }
-})
+}

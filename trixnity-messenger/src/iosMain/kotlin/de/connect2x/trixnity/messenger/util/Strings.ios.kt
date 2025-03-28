@@ -1,36 +1,56 @@
 package de.connect2x.trixnity.messenger.util
 
-import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.set
-import platform.Foundation.NSMakeRange
+import platform.Foundation.NSMaxRange
 import platform.Foundation.NSString
-import platform.Foundation.NSStringEnumerationByComposedCharacterSequences
-import platform.Foundation.enumerateSubstringsInRange
+import platform.Foundation.rangeOfComposedCharacterSequenceAtIndex
+import platform.Foundation.substringWithRange
 
-@OptIn(ExperimentalForeignApi::class)
-actual val String.graphCount: Int
-    get() {
-        var count = 0
-        (this as NSString).enumerateSubstringsInRange(
-            range = NSMakeRange(0U, length.toULong()),
-            options = NSStringEnumerationByComposedCharacterSequences
-        ) { _, _, _, _ ->
-            ++count
+internal actual fun platformGraphemeIterableProvider(): GraphemeIterableProvider
+        = NsGraphemeIterableProvider
+
+internal object NsGraphemeIterableProvider : GraphemeIterableProvider {
+    override fun invoke(string: String): GraphemeIterable {
+        return NsGaphemeIterable(string)
+    }
+}
+
+private class NsGaphemeIterable(
+    inner: String
+) : GraphemeIterable {
+
+    @Suppress("CAST_NEVER_SUCCEEDS")
+    val nsString = requireNotNull(inner as NSString)
+
+    override val graphemeCount: Int
+        @OptIn(ExperimentalForeignApi::class)
+        get() {
+            var index = 0UL
+            var count = 0
+            while (index < nsString.length) {
+                val range = nsString.rangeOfComposedCharacterSequenceAtIndex(index)
+                index = NSMaxRange(range)
+                count++
+            }
+            return count
         }
-        return count
+
+    override fun iterator(): GraphemeIterator
+            = NsGaphemeIterator(nsString)
+}
+
+private class NsGaphemeIterator(val inner: NSString) : GraphemeIterator {
+
+    var index = 0UL
+
+    @OptIn(ExperimentalForeignApi::class)
+    override fun next(): String {
+        val range = inner.rangeOfComposedCharacterSequenceAtIndex(index)
+        val substring = inner.substringWithRange(range)
+        index = NSMaxRange(range)
+        return substring
     }
 
-@OptIn(ExperimentalForeignApi::class)
-actual inline fun String.forEachGraph(crossinline consumer: (graph: String, index: Int) -> Boolean) {
-    var index = 0
-    (this as NSString).enumerateSubstringsInRange(
-        range = NSMakeRange(0U, length.toULong()),
-        options = NSStringEnumerationByComposedCharacterSequences
-    ) { graph, _, _, stop ->
-        val result = consumer(requireNotNull(graph), index)
-        requireNotNull(stop).reinterpret<ByteVar>()[0] = if(result) 0 else 1
-        ++index
-    }
+    override fun hasNext(): Boolean = 
+        index < inner.length
 }

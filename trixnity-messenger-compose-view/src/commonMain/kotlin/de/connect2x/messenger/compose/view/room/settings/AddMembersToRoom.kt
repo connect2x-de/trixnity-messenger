@@ -36,6 +36,8 @@ import de.connect2x.messenger.compose.view.common.VerticalGrid
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModel
 
 
@@ -89,11 +91,11 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
                             .align(Alignment.BottomEnd)
                             .padding(bottom = 20.dp, end = 20.dp)
                     ) {
-                        ExtendedFloatingActionButton(
+                        ThemedFloatingActionButton(
+                            expanded = true,
+                            onClick = { addMembersViewModel.addMembers() },
                             text = { Text(i18n.addMembers()) },
                             icon = { Icon(Icons.Default.Check, i18n.addMembers()) },
-                            onClick = { addMembersViewModel.addMembers() },
-                            modifier = Modifier.buttonPointerModifier(),
                         )
                     }
                 }
