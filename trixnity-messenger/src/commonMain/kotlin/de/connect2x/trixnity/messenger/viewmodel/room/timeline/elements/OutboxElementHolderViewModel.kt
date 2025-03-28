@@ -217,9 +217,9 @@ class OutboxElementHolderViewModelImpl(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val previousSentTimelineEventFlow =
-        matrixClient.room.getOutbox(roomId).flatten().flatMapLatest { outbox ->
-            if (outbox.firstOrNull()?.transactionId != transactionId) flowOf(null)
-            else matrixClient.room.getLastTimelineEvents(roomId)
+        combine(
+            matrixClient.room.getOutbox(roomId).flatten(),
+            matrixClient.room.getLastTimelineEvents(roomId)
                 .filterNotNull()
                 .flatMapLatest { lastTimelineEvents ->
                     timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -229,6 +229,11 @@ class OutboxElementHolderViewModelImpl(
                         }
                     ).filterNotNull()
                 }
+        ) { outbox, nextSupportedTimelineEvent ->
+            val firstOutboxElement = outbox.firstOrNull { it.transactionId != nextSupportedTimelineEvent.event.unsigned?.transactionId }
+
+            if (firstOutboxElement?.transactionId == transactionId) nextSupportedTimelineEvent
+            else null
         }.shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
 
     override val isFirstInUserSequence: StateFlow<Boolean?> =

@@ -4,7 +4,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.settle
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -143,14 +142,7 @@ class OutboxElementHolderViewModelTest {
                     text("Hi!")
                 }
             }
-            outbox.value = listOf(
-                RoomOutboxMessage(
-                    roomId = roomId,
-                    transactionId = "t0",
-                    content = TextBased.Text("Hi!"),
-                    createdAt = Instant.fromEpochMilliseconds(123456799L),
-                ), outboxMessage
-            )
+            outbox.value = listOf(previousOutboxMessage, outboxMessage)
             val cut = cut()
             backgroundScope.launch { cut.isFirstInUserSequence.collect() }
             delay(500.milliseconds)
@@ -303,7 +295,8 @@ class OutboxElementHolderViewModelTest {
         cut.showBigGapBefore.value shouldBe true
     }
 
-    should("showBigGapBefore: don't show if multiple elements in outbox") {
+    @Test
+    fun `showBigGapBefore » don't show if multiple elements in outbox`() = runTest {
         timeline(roomServiceMock, roomId) {
             +messageEvent(
                 sender = us,
@@ -313,15 +306,13 @@ class OutboxElementHolderViewModelTest {
             }
         }
 
-        outbox.value = listOf(outboxMessage, previousOutboxMessage)
+        outbox.value = listOf(previousOutboxMessage, outboxMessage)
         val cut = cut()
 
-        launch { cut.showBigGapBefore.collect() }
+        backgroundScope.launch { cut.showBigGapBefore.collect() }
+        settle()
 
-        advanceUntilIdle()
-        cut.showBigGapBefore.value shouldBe true
-
-        cancelNeverEndingCoroutines()
+        cut.showBigGapBefore.value shouldBe false
     }
 
     private fun TestScope.cut(evId: EventId = eventId): OutboxElementHolderViewModel {
