@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Deprecated("for backwards compatibility") // TODO can be removed in future
 sealed interface LegacySecretByteArrayKey {
+    @Suppress("DEPRECATION")
     @Serializable
     @SerialName("aes-hmac-sha2")
     data class AesHmacSha2(
@@ -19,6 +20,7 @@ sealed interface LegacySecretByteArrayKey {
      * This is only needed when there is no secure way to store the key. This is not secure at all, but it allows us to
      * make it secure in future (for example when keyring support for linux is added).
      */
+    @Suppress("DEPRECATION")
     @Serializable
     @SerialName("unencrypted")
     data class Unencrypted(
