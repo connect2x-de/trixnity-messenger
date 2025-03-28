@@ -960,6 +960,11 @@ open class I18nView(
         DE - "Dieser Nutzer wird von Ihnen geblockt."
     }
 
+    open fun roomHeaderKnockingUsersCount(count: Int) = translate {
+        EN - "$count user${if (count > 1) "s" else ""} requesting membership"
+        DE - "$count Nutzer frag${if (count > 1) "en" else "t"} den Beitritt am"
+    }
+
     open fun timelineElementMetadataTitle() = translate {
         EN - "Message details"
         DE - "Nachrichtendetails"

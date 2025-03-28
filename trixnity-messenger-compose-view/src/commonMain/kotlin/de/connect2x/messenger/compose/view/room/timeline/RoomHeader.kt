@@ -17,9 +17,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.DoorFront
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -85,6 +88,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
         val roomHeaderElement = roomHeaderViewModel.roomHeaderInfo.collectAsState().value
         val usersTyping = roomHeaderViewModel.usersTyping.collectAsState().value
         val isDirectChat = roomHeaderViewModel.isDirectChat.collectAsState().value
+        val knockingMembersCount = roomHeaderViewModel.knockingMembersCount.collectAsState().value
         val headerHeightFlow = MaxHeaderHeight.current
         val headerHeight = headerHeightFlow.collectAsState().value
         val i18n = DI.get<I18nView>()
@@ -133,6 +137,27 @@ class RoomHeaderViewImpl : RoomHeaderView {
                             UserState(roomHeaderViewModel.userTrustLevel, roomHeaderViewModel.isUserBlocked)
                             if (roomHeaderElement.isEncrypted.not()) {
                                 UnencryptedIcon()
+                                Spacer(Modifier.size(5.dp))
+                            }
+
+                            if (knockingMembersCount > 0) {
+                                IconButton(
+                                    onClick = { roomHeaderViewModel.openRoomSettings() },
+                                    Modifier.buttonPointerModifier()
+                                ) {
+                                    BadgedBox(
+                                        badge = {
+                                            Badge {
+                                                Text("$knockingMembersCount")
+                                            }
+                                        }
+                                    ) {
+                                        Icon(
+                                            Icons.Default.DoorFront,
+                                            i18n.roomHeaderKnockingUsersCount(knockingMembersCount),
+                                        )
+                                    }
+                                }
                                 Spacer(Modifier.size(5.dp))
                             }
 
