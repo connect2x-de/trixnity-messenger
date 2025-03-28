@@ -107,6 +107,7 @@ class MatrixClientFactoryImpl(
         private const val ID = "de.connect2x.trixnity.messenger.secrets.database"
     }
 
+    @Suppress("DEPRECATION") // TODO: remove this in the future
     private suspend fun getDatabaseKey(userId: UserId): ByteArray? {
         val legacyKey = settings.value.base.accounts[userId]
             ?.base?.databasePassword

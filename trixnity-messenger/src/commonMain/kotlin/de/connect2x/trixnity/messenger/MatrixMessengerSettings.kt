@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION") // because of LegacySecretByteArrayKey TODO: remove this in the future
+
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.secrets.LegacySecretByteArrayKey
