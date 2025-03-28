@@ -60,8 +60,8 @@ class ThemeComponentsImpl : ThemeComponents {
         ),
         commonIconButton = IconButtonStyle.default(
             colors = IconButtonDefaults.iconToggleButtonColors(
-                // TODO: We shouldn't use tertiary but it's black in darkmode with the default. Theme might be broken?
-                contentColor = MaterialTheme.colorScheme.tertiary,
+                // TODO: We shouldn't use onSurface but it's black in darkmode with the default. Theme might be broken?
+                contentColor = MaterialTheme.colorScheme.onSurface,
             ),
         ),
         destructiveIconButton = IconButtonStyle.default(
