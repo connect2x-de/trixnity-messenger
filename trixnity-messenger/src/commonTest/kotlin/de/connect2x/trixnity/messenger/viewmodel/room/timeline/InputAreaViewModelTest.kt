@@ -652,7 +652,7 @@ class InputAreaViewModelTest {
     }
 
     @Test
-    fun `ignore a replacement where no at-symbol can be found`() = runTest {
+    fun `ignore a replacement where no 'at' can be found`() = runTest {
         val cut = inputAreaViewModel()
         subscribe(cut)
 
