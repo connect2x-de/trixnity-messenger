@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Padding of sticky date header didn't apply to wider screens, leading to misalignment
+
 ### Security
 
 ## 3.5.1
