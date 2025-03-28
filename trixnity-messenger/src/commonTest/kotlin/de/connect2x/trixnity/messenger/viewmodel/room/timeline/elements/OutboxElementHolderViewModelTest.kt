@@ -46,7 +46,6 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 
-@OptIn(KotestInternal::class)
 class OutboxElementHolderViewModelTest : ShouldSpec() {
 
     private val roomId = RoomId("room1", "localhost")
