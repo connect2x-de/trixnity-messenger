@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.util
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -14,10 +15,12 @@ sealed interface SharedData {
     data class Url(val url: String, val icon: FileDescriptor?) : SharedData
 }
 
+@OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 interface SharedDataHandler : StateFlow<SharedData?> {
     fun onShare(files: SharedData?)
 }
 
+@OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 open class SharedDataHandlerImpl(
     protected val flow: MutableStateFlow<SharedData?> = MutableStateFlow(null)
 ) : SharedDataHandler, StateFlow<SharedData?> by flow {

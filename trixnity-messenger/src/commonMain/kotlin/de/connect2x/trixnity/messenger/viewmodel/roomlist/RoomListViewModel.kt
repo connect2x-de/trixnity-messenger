@@ -181,7 +181,11 @@ class RoomListViewModelImpl(
     override val initialSyncFinished: StateFlow<Boolean>
     private val _syncState: StateFlow<Map<UserId, SyncState>>
     override val syncStates: StateFlow<UserSyncStates>
+
+    @Deprecated("Api cleanup", replaceWith = ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
     override val syncStateError: StateFlow<Map<UserId, Boolean>>
+
+    @Deprecated("Api cleanup", replaceWith = ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
     override val allSyncError: StateFlow<Boolean>
 
     override val showSearch = MutableStateFlow(false)
@@ -405,11 +409,13 @@ class RoomListViewModelImpl(
             }
             .stateIn(coroutineScope, WhileSubscribed(), UserSyncStates(setOf(), setOf()))
 
+        @Suppress("DEPRECATION") // TODO: remove this eventually
         syncStateError = syncStates
             .mapLatest {
                 it.failedFor.associateWith { true } + it.operationalFor.associateWith { false }
             }.stateIn(coroutineScope, WhileSubscribed(), mapOf())
 
+        @Suppress("DEPRECATION") // TODO: remove this eventually
         allSyncError = syncStates
             .mapLatest { it.failedForAll }
             .stateIn(coroutineScope, WhileSubscribed(), false)
@@ -543,8 +549,12 @@ class PreviewRoomListViewModel : RoomListViewModel {
                 PreviewRoomListElementViewModel3(),
             )
         )
+    @Deprecated("Api cleanup", replaceWith = ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
     override val syncStateError: MutableStateFlow<Map<UserId, Boolean>> = MutableStateFlow(mapOf())
+
+    @Deprecated("Api cleanup", replaceWith = ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
     override val allSyncError: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
     override val syncStates: StateFlow<UserSyncStates> = MutableStateFlow(UserSyncStates(setOf(), setOf()))
     override val initialSyncFinished: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)

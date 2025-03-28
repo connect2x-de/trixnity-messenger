@@ -107,6 +107,7 @@ class ThemeComponentsImpl : ThemeComponents {
             colors = ButtonDefaults.buttonColors(
                 contentColor = MaterialTheme.colorScheme.onSurface,
                 containerColor = Color.Transparent,
+                disabledContentColor = MaterialTheme.colorScheme.onSurface,
                 disabledContainerColor = Color.Transparent,
             ),
             elevation = null,

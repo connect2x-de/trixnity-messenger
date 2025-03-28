@@ -56,7 +56,7 @@ class PasswordLoginViewModelTest {
                 any(),
                 any(),
             )
-        } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
+        } returns Result.success(matrixClientMock)
         every { matrixClientMock.loginState } returns MutableStateFlow(null)
 
         val cut = viewModel()
@@ -135,7 +135,7 @@ class PasswordLoginViewModelTest {
                 any(),
                 any(),
             )
-        } returns Result.success(MatrixClientFactory.LoginResult(matrixClientMock, null))
+        } returns Result.success(matrixClientMock)
         val cut = viewModel()
         cut.canLogin.first { it }
         cut.back()

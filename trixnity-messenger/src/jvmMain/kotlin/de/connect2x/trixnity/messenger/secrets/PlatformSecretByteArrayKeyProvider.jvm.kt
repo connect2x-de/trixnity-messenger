@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.util
+package de.connect2x.trixnity.messenger.secrets
 
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
@@ -10,38 +10,74 @@ import com.sun.jna.platform.win32.Kernel32
 import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.ptr.PointerByReference
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.Credential
+import de.connect2x.trixnity.messenger.util.MacOsCoreFoundation
+import de.connect2x.trixnity.messenger.util.MacOsSecurity
+import de.connect2x.trixnity.messenger.util.OS
+import de.connect2x.trixnity.messenger.util.SecretNotFoundException
+import de.connect2x.trixnity.messenger.util.WinCredentials
+import de.connect2x.trixnity.messenger.util.getOs
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.crypto.core.SecureRandom
 import org.koin.core.module.Module
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
-private val log = KotlinLogging.logger { }
+private val log = KotlinLogging.logger {}
 
-actual fun platformGetPlatformSecret(): Module = module {
-    single<GetPlatformSecret> {
-        GetPlatformSecret { id, sizeOnCreate ->
-            val appId = get<MatrixMessengerConfiguration>().appId
-            when (getOs()) {
-                OS.MAC_OS, OS.WINDOWS -> {
-                    try {
-                        val existingKey = getSecret(appId, id)
-                        if (existingKey == null) {
-                            val newKey = SecureRandom.nextBytes(sizeOnCreate)
-                            setSecret(appId, id, newKey)
-                            newKey
-                        } else {
-                            existingKey
+actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
+    single<SecretByteArrayKeyProvider>(named(PLATFORM_SECRET_BYTE_ARRAY_KEY_PROVIDER_ID)) {
+        val config = get<MatrixMessengerConfiguration>()
+        object : SecretByteArrayKeyProvider {
+            override val id = PLATFORM_SECRET_BYTE_ARRAY_KEY_PROVIDER_ID
+            override val level: Int = 0
+
+            override suspend fun get(extra: JsonObject?, getInputKey: GetKey?): GetKey? {
+                val appId = config.appId
+                return when (getOs()) {
+                    OS.MAC_OS, OS.WINDOWS -> {
+                        GetKey { size ->
+                            try {
+                                val existingKey = getSecret(appId, id)
+                                when {
+                                    existingKey == null -> {
+                                        val newKey = SecureRandom.nextBytes(size)
+                                        setSecret(appId, id, newKey)
+                                        newKey
+                                    }
+
+                                    existingKey.size < size -> {
+                                        val newKey = existingKey + SecureRandom.nextBytes(size - existingKey.size)
+                                        setSecret(appId, id, newKey)
+                                        newKey
+                                    }
+
+                                    else -> existingKey.copyOf(size)
+                                }
+                            } catch (exc: Exception) {
+                                throw SecretByteArrayException("cannot read or set secret ('$id')", exc)
+                            }
                         }
-                    } catch (exc: Exception) {
-                        log.error(exc) { "Cannot read or set secret ('$id')." }
-                        null
                     }
-                }
 
-                OS.LINUX -> null
+                    OS.LINUX -> null
+                }
+            }
+
+            override suspend fun rotate(
+                extra: JsonObject?,
+                getOldInputKey: GetKey?,
+                getNewInputKey: GetKey?
+            ): SecretByteArrayKeyProvider.RotateResult =
+                get(extra, null).let { SecretByteArrayKeyProvider.RotateResult(it, it, null) }
+
+
+            @Deprecated("for backwards compatibility")
+            override suspend fun getLegacy(): ByteArray? {
+                return getSecret(config.appId, "secret_byte_array_key_key")
             }
         }
     }
@@ -217,4 +253,3 @@ private fun CFDataRef.toByteArray(): ByteArray {
     val byteLength = CoreFoundation.INSTANCE.CFDataGetLength(this).toInt()
     return bytePointer.getByteArray(0, byteLength)
 }
-

@@ -1,52 +1,38 @@
-buildscript {
-    repositories {
-        mavenLocal()
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath("com.android.tools.build:gradle:${libs.versions.androidGradle.get()}")
-        classpath(kotlin("gradle-plugin", version = libs.versions.kotlin.get()))
-        // ui
-        classpath(libs.gms.google.services)
-    }
-}
+import de.connect2x.conventions.authenticatedPackageRegistry
+import de.connect2x.conventions.c2xOrganization
+import de.connect2x.conventions.configureJava
+import de.connect2x.conventions.isCI
+import de.connect2x.conventions.withVersionSuffix
 
 plugins {
-    kotlin("plugin.serialization") version libs.versions.kotlin.get() apply false
-    alias(libs.plugins.mokkery).apply(false)
-    alias(libs.plugins.skie).apply(false)
-    alias(libs.plugins.kmmbridge).apply(false)
-    `maven-publish`
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.kotlin.parcelize) apply false
+    alias(libs.plugins.kotlinx.kover) apply false
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.kotest) apply false
+    alias(libs.plugins.mokkery) apply false
+    alias(libs.plugins.skie) apply false
+    alias(libs.plugins.kmmbridge) apply false
+    alias(libs.plugins.compose.multiplatform) apply false
+    alias(libs.plugins.google.services) apply false
     alias(libs.plugins.dokka)
-    alias(libs.plugins.kotlinx.kover)
-
-    // ui
-    alias(libs.plugins.compose.multiplatform).apply(false)
-    alias(libs.plugins.compose.compiler).apply(false)
+    `maven-publish`
+    alias(libs.plugins.c2xConventions)
 }
 
 allprojects {
     group = "de.connect2x"
-    version = withVersionSuffix("3.5.1")
-
-    repositories {
-        mavenCentral()
-        google()
-        mavenLocal()
-        maven("https://oss.sonatype.org/content/repositories/snapshots")
-        maven("https://gitlab.com/api/v4/projects/26519650/packages/maven") // trixnity
-        maven("https://gitlab.com/api/v4/projects/58749664/packages/maven") // sysnotify
-        maven("https://gitlab.com/api/v4/projects/65998892/packages/maven") // androidx
-    }
+    version = withVersionSuffix(rootProject.libs.versions.trixnityMessenger)
+    configureJava(rootProject.libs.versions.jvmTarget)
 
     if (System.getenv("WITH_LOCK")?.toBoolean() == true) {
         dependencyLocking {
             lockAllConfigurations()
         }
-
-        val dependenciesForAll by tasks.registering(DependencyReportTask::class) {}
+        val dependenciesForAll by tasks.registering(DependencyReportTask::class)
     }
 }
 
@@ -58,47 +44,31 @@ subprojects {
         val dokkaJar by tasks.registering(Jar::class) {
             dependsOn("dokkaGenerate")
             from(dokka.dokkaPublications.html.flatMap { it.outputDirectory })
-            archiveClassifier.set("javadoc")
+            archiveClassifier = "javadoc"
             onlyIf { isCI }
         }
+
         publishing {
             repositories {
-                maven {
-                    url = uri("${System.getenv("CI_API_V4_URL")}/projects/47538655/packages/maven")
-                    name = "GitLab"
-                    credentials(HttpHeaderCredentials::class) {
-                        name = "Job-Token"
-                        value = System.getenv("CI_JOB_TOKEN")
-                    }
-                    authentication {
-                        create("header", HttpHeaderAuthentication::class)
-                    }
-                }
+                authenticatedPackageRegistry()
             }
-            publications.configureEach {
-                if (this is MavenPublication) {
-                    pom {
-                        name.set(project.name)
-                        description.set("Multiplatform Kotlin SDK for Matrix messengers")
-                        url.set("https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger")
-                        licenses {
-                            license {
-                                name.set("GNU AFFERO GENERAL PUBLIC LICENSE version 3")
-                                url.set("https://www.gnu.org/licenses/agpl-3.0.html")
-                            }
-                        }
-                        developers {
-                            developer {
-                                id.set("michael.thiele")
-                                id.set("benkuly")
-                            }
-                        }
-                        scm {
-                            url.set("https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger")
+            publications.withType<MavenPublication>().configureEach {
+                pom {
+                    name = project.name
+                    description = "Multiplatform Kotlin SDK for Matrix messengers"
+                    url = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
+                    c2xOrganization()
+                    licenses {
+                        license {
+                            name = "GNU AFFERO GENERAL PUBLIC LICENSE version 3"
+                            url = "https://www.gnu.org/licenses/agpl-3.0.html"
                         }
                     }
-                    if (isCI) artifact(dokkaJar)
+                    scm {
+                        url = this@pom.url
+                    }
                 }
+                if (isCI) artifact(dokkaJar)
             }
         }
     }

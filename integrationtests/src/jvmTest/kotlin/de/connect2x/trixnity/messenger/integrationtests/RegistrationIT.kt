@@ -73,7 +73,7 @@ class RegistrationIT {
             val password = "4dm1n"
 
             val nonceBody = httpClient.get("$baseUrl/_synapse/admin/v1/register").bodyAsText()
-            log.info("nonceBody: $nonceBody")
+            log.info { "nonceBody: $nonceBody" }
             "\"nonce\":\\s*\"([^\"]*)\"".toRegex().find(nonceBody)?.groupValues?.getOrNull(1)?.let { nonce ->
                 val macAlgorithm = Mac.getInstance("HmacSHA1")
                 macAlgorithm.init(
@@ -88,7 +88,7 @@ class RegistrationIT {
                             password.encodeToByteArray() + ByteArray(1) { 0x00 } +
                             "admin".encodeToByteArray())
                         .toHex()
-                log.info("mac: $mac")
+                log.info { "mac: $mac" }
 
                 val registrationBody = httpClient.post("$baseUrl/_synapse/admin/v1/register") {
                     contentType(ContentType.Application.Json)

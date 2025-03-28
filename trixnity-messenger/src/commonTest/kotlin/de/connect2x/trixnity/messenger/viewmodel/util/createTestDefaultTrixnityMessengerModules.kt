@@ -15,12 +15,10 @@ import de.connect2x.trixnity.messenger.settings.SettingsStorage
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.GraphemeIterableProvider
-import de.connect2x.trixnity.messenger.util.RootPath
-import de.connect2x.trixnity.messenger.util.SecretByteArray
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
+import de.connect2x.trixnity.messenger.util.RootPath
 import de.connect2x.trixnity.messenger.util.testGraphemeIterableProvider
-import io.ktor.http.Url
-import kotlinx.coroutines.CoroutineExceptionHandler
+import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
@@ -108,10 +106,9 @@ fun TestScope.createTestDefaultTrixnityMessengerModules(
         object : CreateRepositoriesModule {
             val module by lazy { createInMemoryRepositoriesModule() }
 
-            override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult =
-                CreateRepositoriesModule.CreateResult(module, null)
-
-            override suspend fun load(userId: UserId, databaseKey: SecretByteArray?): Module = module
+            override suspend fun generateDatabaseKey(): ByteArray? = null
+            override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module = module
+            override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module = module
         }
     }
     single<CreateMediaStore> {
