@@ -15,7 +15,6 @@ buildCache {
 }
 
 pluginManagement {
-    //includeBuild("conventions")
     repositories {
         google()
         mavenCentral()
