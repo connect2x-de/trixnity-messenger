@@ -17,7 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed padding flickering in outbox in offline edge cases
+- Fix handling of special characters in urls
+- Fix padding flickering in outbox in offline edge cases
 
 ### Security
 
