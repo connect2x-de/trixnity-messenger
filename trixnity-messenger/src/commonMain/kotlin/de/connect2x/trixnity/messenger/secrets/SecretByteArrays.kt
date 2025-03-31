@@ -166,12 +166,13 @@ class SecretByteArraysImpl(
                     }
                 if (outputRotateResult.getNewKey == null) {
                     log.debug { "rotateKeys skip key provider $outputProviderId" }
-                    return@fold inputProviderId to inputRotateResult
+                    inputProviderId to inputRotateResult
+                } else {
+                    newSecretByteArrayKeyInfos[outputProviderId] =
+                        SecretByteArrayKeyInfo(inputProviderId, outputRotateResult.newExtra)
+                    log.debug { "rotateKeys next provider ($inputProviderId -> $outputProviderId)" }
+                    outputProviderId to outputRotateResult
                 }
-                newSecretByteArrayKeyInfos[outputProviderId] =
-                    SecretByteArrayKeyInfo(inputProviderId, outputRotateResult.newExtra)
-                log.debug { "rotateKeys next provider ($inputProviderId -> $outputProviderId)" }
-                outputProviderId to outputRotateResult
             }.second?.let { it.getNewKey?.invoke(keySize) }
 
         val newSecretByteArrays = secretByteArraySettings?.secrets.orEmpty()
