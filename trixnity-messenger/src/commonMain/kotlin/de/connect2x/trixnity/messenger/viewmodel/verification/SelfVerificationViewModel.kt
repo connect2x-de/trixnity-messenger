@@ -9,6 +9,7 @@ import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -105,16 +106,25 @@ open class SelfVerificationViewModelImpl(
                 SharingStarted.WhileSubscribed(), false
             )
 
+    @OptIn(FlowPreview::class)
     private val verificationMethods =
         matrixClient.verification.getSelfVerificationMethods()
             .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
 
+    private val loadingDone = MutableStateFlow(false)
     override val verificationMethodsLoaded: StateFlow<Boolean?> =
-        verificationMethods.map { it !is PreconditionsNotMet }.stateIn(
-            coroutineScope,
-            SharingStarted.WhileSubscribed(),
-            null
-        )
+        verificationMethods.map { verificationMethods ->
+            if (loadingDone.value) true
+            else if (verificationMethods !is PreconditionsNotMet) {
+                loadingDone.value = true
+                true
+            } else false
+        }
+            .stateIn(
+                coroutineScope,
+                SharingStarted.WhileSubscribed(),
+                null
+            )
 
     override fun waitForAvailableVerificationMethods() {
         coroutineScope.launch {
