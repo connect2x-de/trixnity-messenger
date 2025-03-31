@@ -3,11 +3,11 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.trixnity.messenger.MatrixClients.InitFromStoreResult
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.plugins.*
 import io.ktor.http.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -32,6 +32,7 @@ import net.folivo.trixnity.core.model.UserId
 
 private val log = KotlinLogging.logger { }
 
+@OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 interface MatrixClients : StateFlow<Map<UserId, MatrixClient>> {
     suspend fun login(
         baseUrl: Url,
@@ -66,7 +67,7 @@ interface MatrixClients : StateFlow<Map<UserId, MatrixClient>> {
 data class AccountAlreadyExistsException(val userId: UserId) :
     IllegalStateException("account $userId already exists locally")
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalForInheritanceCoroutinesApi::class)
 class MatrixClientsImpl(
     private val factory: MatrixClientFactory,
     private val deleteAccountData: DeleteAccountData,
@@ -127,7 +128,7 @@ class MatrixClientsImpl(
             checkExisting = { checkExisting(it, baseUrl) },
         ).map {
             applyLogin(it)
-            it.matrixClient
+            it
         }
 
     override suspend fun login(
@@ -155,7 +156,7 @@ class MatrixClientsImpl(
             checkExisting = { checkExisting(it, baseUrl) },
         ).map {
             applyLogin(it)
-            it.matrixClient
+            it
         }
 
     override suspend fun loginWith(
@@ -168,11 +169,10 @@ class MatrixClientsImpl(
             checkExisting = { checkExisting(it, baseUrl) },
         ).map {
             applyLogin(it)
-            it.matrixClient
+            it
         }
 
-    private suspend fun applyLogin(loginResult: MatrixClientFactory.LoginResult) {
-        val (matrixClient, databasePassword) = loginResult
+    private suspend fun applyLogin(matrixClient: MatrixClient) {
         val displayColor =
             config.generateInitialAccountColor?.let { generateInitialAccountColor ->
                 generateInitialAccountColor(
@@ -181,7 +181,6 @@ class MatrixClientsImpl(
             }
         settings.update<MatrixMessengerAccountSettingsBase>(matrixClient.userId) {
             MatrixMessengerAccountSettingsBase.withConfigDefaults(
-                databasePassword = databasePassword,
                 displayColor = displayColor,
                 config = config
             )
@@ -221,7 +220,7 @@ class MatrixClientsImpl(
         val newMatrixClients = settings.value.base.accounts.map { (userId, accountSettings) ->
             async {
                 if (matrixClients.value[userId] == null) {
-                    val newMatrixClient = factory.initFromStore(userId, accountSettings.base.databasePassword)
+                    val newMatrixClient = factory.initFromStore(userId)
                         .fold(
                             onSuccess = { newMatrixClient ->
                                 if (newMatrixClient != null) success.update { it + userId }

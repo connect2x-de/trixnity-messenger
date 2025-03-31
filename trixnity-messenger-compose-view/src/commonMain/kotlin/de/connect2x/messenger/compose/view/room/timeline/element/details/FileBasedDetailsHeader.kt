@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.details
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -13,16 +12,10 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,11 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
-import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.TooltipText
-import de.connect2x.messenger.compose.view.files.SaveFileDialog
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 
@@ -59,7 +51,6 @@ fun FileBasedDetailsHeader(
         Modifier
             .zIndex(99.0f)
             .fillMaxWidth()
-            .background(color = Color.Black)
             .padding(MaterialTheme.messengerDpConstants.small)
             .onKeyEvent {
                 if (it.type == KeyEventType.KeyDown && it.key == Key.Escape) {
@@ -79,7 +70,7 @@ fun FileBasedDetailsHeader(
             contentAlignment = Alignment.Center
         ) {
             Tooltip(tooltip = {
-                TooltipText(element.name)
+                Text(element.name)
             }) {
                 Text(
                     text = element.name,
@@ -113,13 +104,14 @@ fun FileBasedDetailsHeaderButton(
     actionDescription: String,
     onAction: () -> Unit,
 ) {
-    Tooltip(tooltip = { TooltipText(actionDescription) }) {
-        IconButton(
+    Tooltip(
+        tooltip = { Text(actionDescription) },
+    ) {
+        ThemedIconButton(
+            style = MaterialTheme.components.fileViewerIconButton,
             onClick = onAction,
-            colors = IconButtonDefaults.filledIconButtonColors(containerColor = Color.DarkGray),
-            modifier = Modifier.buttonPointerModifier(),
         ) {
-            Icon(icon, contentDescription = actionDescription, tint = Color.LightGray)
+            Icon(icon, contentDescription = actionDescription)
         }
     }
 }

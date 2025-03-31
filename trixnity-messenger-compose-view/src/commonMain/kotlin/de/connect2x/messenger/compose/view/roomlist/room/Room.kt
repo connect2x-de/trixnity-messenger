@@ -54,12 +54,13 @@ class RoomListElementViewImpl : RoomListElementView {
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value
         val isLeave = roomListElementViewModel.isLeave.collectAsState().value
         val isLoaded = roomListElementViewModel.isLoaded.collectAsState().value
+        val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
 
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
             MatrixClientColor(roomListElementViewModel)
             Row(
                 Modifier
-                    .height(90.dp)
+                    .height(72.dp)
                     .padding(top = 10.dp, bottom = 10.dp, end = 10.dp)
                     .placeholder(
                         visible = !isLoaded,
@@ -75,6 +76,7 @@ class RoomListElementViewImpl : RoomListElementView {
                 when {
                     isInvite == true -> Invite(roomListElementViewModel)
                     isLeave == true -> ArchivedRoom(roomListElementViewModel)
+                    isKnock == true -> Knock(roomListElementViewModel)
                     else -> Column(Modifier.align(Alignment.CenterVertically)) {
                         RoomNameAndTime(roomListElementViewModel)
                         LastMessageAndUnreadMessagesCounter(roomListElementViewModel)

@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -256,7 +255,7 @@ class TimelineViewImpl : TimelineView {
                                         }
                                 }
                             }
-                            Box(Modifier.padding(end = if (this@BoxWithConstraints.maxWidth.value > 1000) 0.dp else additionalEndPadding.dp)) {
+                            Box(Modifier.padding(end = additionalEndPadding.dp)) {
                                 listState.layoutInfo.visibleItemsInfo.lastOrNull { (it.key as? String)?.startsWith('!') == true }
                                     ?.let { layoutInfo ->
                                         timelineElementHolderViewModels.find { it.key == layoutInfo.key }?.let {

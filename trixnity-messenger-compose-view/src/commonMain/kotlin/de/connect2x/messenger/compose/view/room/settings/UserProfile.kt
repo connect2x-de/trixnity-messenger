@@ -28,7 +28,6 @@ import androidx.compose.material.icons.filled.PersonOff
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -50,7 +49,7 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.ErrorView
@@ -69,6 +68,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel
@@ -474,11 +474,15 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                         text = i18n.userProfileChangePowerLevel(),
                         style = MaterialTheme.typography.labelLarge
                     )
-                    IconButton(
-                        onClick = { if (showPowerLevelHelp) userProfileViewModel.changePowerLevelViewModel.closePowerLevelHelp() else userProfileViewModel.changePowerLevelViewModel.openPowerLevelHelp() },
-                        Modifier.buttonPointerModifier()
+                    Tooltip(
+                        tooltip = { Text(i18n.commonHelp())}
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.Help, i18n.commonHelp())
+                        ThemedIconButton(
+                            style = MaterialTheme.components.commonIconButton,
+                            onClick = { if (showPowerLevelHelp) userProfileViewModel.changePowerLevelViewModel.closePowerLevelHelp() else userProfileViewModel.changePowerLevelViewModel.openPowerLevelHelp() },
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.Help, i18n.commonHelp())
+                        }
                     }
                 }
                 Spacer(Modifier.size(10.dp))

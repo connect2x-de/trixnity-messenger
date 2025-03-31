@@ -10,6 +10,7 @@ import kotlin.reflect.KClass
 
 private val log = KotlinLogging.logger { }
 
+@Suppress("UNCHECKED_CAST")
 suspend fun <C : Any, W : Any, T : Any> Value<ChildStack<C, W>>.waitFor(clazz: KClass<T>): T {
     return this.toFlow().first { childStack ->
         log.debug { "wait for $clazz, active: ${childStack.active.instance}" }

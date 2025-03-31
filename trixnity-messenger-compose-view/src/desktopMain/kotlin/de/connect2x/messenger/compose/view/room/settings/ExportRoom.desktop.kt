@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,9 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.export.Destination
 import de.connect2x.trixnity.messenger.export.FileBasedExportRoomProperties
@@ -56,8 +57,15 @@ internal actual fun SelectExportDestination(
             modifier = Modifier.weight(1.0f, fill = true)
         )
         Spacer(Modifier.size(20.dp))
-        IconButton(onClick = { launcher.launch() }, modifier = Modifier.buttonPointerModifier()) {
-            Icon(Icons.Default.Folder, i18n.commonFile())
+        Tooltip(
+            tooltip = { Text(i18n.commonFile()) }
+        ) {
+            ThemedIconButton(
+                style = MaterialTheme.components.commonIconButton,
+                onClick = { launcher.launch() },
+            ) {
+                Icon(Icons.Default.Folder, i18n.commonFile())
+            }
         }
     }
 }

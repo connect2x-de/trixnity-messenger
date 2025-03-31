@@ -17,9 +17,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- `RoomContextMenu` from `RoomHeader`
+
 ### Fixed
 
+- Padding of sticky date header didn't apply to wider screens, leading to misalignment
+- Fix handling of special characters in urls
+- Fix padding flickering in outbox in offline edge cases
+
 ### Security
+
+## 3.5.1
+
+### Added
+
+- Knocking public rooms
+
+### Changed
+
+- Completely new SecretByteArray architecture, that allows to have a keychain
+- Upgraded to Gradle 8.13
+- Migrated build boilerplate to new conventions plugin
+- Reduce height of room list elements
+- Use kotlin.test for all tests
+- Updated UI to use new styling system for icon buttons, floating action buttons
+- Properly handle internal code deprecations
+
+### Removed
+
+- Kotest as test engine
+- benasher44 UUID as a UUID library
+
+### Fixed
+
+- Forgetting the room with invite after rejection of the invitation
+- Correctly use test dispatcher
+- Fix tests on IOS
+- Fix wrong UriCaller encoding in web
+- Removed duplicate device verification dialog
+- Fix iconbuttons not being visible in dark mode
+- Fix room header content being greyed out
 
 ## 3.5.0
 
@@ -42,6 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Set directory visibility of public rooms to public
 - Don't max out the dialog height
 - Styling inconsistencies
+- No more flickering in timeline when writing new messages
 
 ### Security
 
@@ -61,7 +99,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Bug in file attachment upload size
-- No more flickering in timeline when writing new messages
 - Unrecommended HTML tags are not being sent any more
 - Shared Plaintext is not interpreted as Markdown
 - CloseApp should not be injected when null

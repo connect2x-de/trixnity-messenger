@@ -6,9 +6,7 @@ import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.SQLiteDriver
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException.DatabaseAccessException
-import de.connect2x.trixnity.messenger.util.ConvertSecretByteArray
 import de.connect2x.trixnity.messenger.util.RootPath
-import de.connect2x.trixnity.messenger.util.SecretByteArray
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -24,24 +22,18 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
     single<CreateRepositoriesModule> {
         val rootPath = get<RootPath>()
         val fileSystem = get<FileSystem>()
-        val convertSecretByteArray = get<ConvertSecretByteArray>()
 
         object : CreateRepositoriesModule {
-            override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult {
+            override suspend fun generateDatabaseKey(): ByteArray =
+                SecureRandom.nextBytes(EncryptedSQLiteDriver.KEY_SIZE)
+
+            override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module {
                 fileSystem.createDirectories(rootPath.forAccountDatabase(userId), mustCreate = false)
-                val databaseKey = SecureRandom.nextBytes(EncryptedSQLiteDriver.KEY_SIZE)
-                return CreateRepositoriesModule.CreateResult(
-                    module = createRoomRepositoriesModule(db(userId, databaseKey)),
-                    databaseKey = convertSecretByteArray(databaseKey)
-                )
+                return createRoomRepositoriesModule(db(userId, databaseKey))
             }
 
-            override suspend fun load(
-                userId: UserId,
-                databaseKey: SecretByteArray?,
-            ): Module {
-                val existingKey = databaseKey?.let { convertSecretByteArray(it) }
-                return createRoomRepositoriesModule(db(userId, existingKey))
+            override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module {
+                return createRoomRepositoriesModule(db(userId, databaseKey))
             }
 
             private fun db(userId: UserId, databaseKey: ByteArray?): RoomDatabase.Builder<TrixnityRoomDatabase> =

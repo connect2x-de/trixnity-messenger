@@ -18,6 +18,7 @@ import net.folivo.trixnity.core.model.UserId
 private val log = KotlinLogging.logger { }
 
 // TODO this is not lazy -> use property delegation or one class for one language instead
+@Suppress("UNUSED")
 open class I18n(
     languages: Languages,
     settings: MatrixMessengerSettingsHolder,
@@ -79,6 +80,11 @@ open class I18n(
     open fun roomNameInvitationFrom(groupOrChat: String, roomName: String) = translate {
         EN - "Invitation into $groupOrChat '$roomName'"
         DE - "Einladung in $groupOrChat '$roomName'"
+    }
+
+    open fun roomNameKnockFor(roomId: String) = translate {
+        EN - "Mebership request for $roomId"
+        DE - "Beitrittsanfrage für $roomId"
     }
 
     open fun roomNamePeople(count: Int) = translate {
@@ -350,6 +356,16 @@ open class I18n(
     }
 
     open fun roomListInvitationError() = translate {
+        EN - "There has been an error. Please try again later."
+        DE - "Es gab einen Fehler. Bitte versuchen Sie es später."
+    }
+
+    open fun roomListKnockOffline() = translate {
+        EN - "You cannot take your membership request back while you are offline."
+        DE - "Sie können offline die Beitrittsanfrage nicht zurücknehmen."
+    }
+
+    open fun roomListKnockError() = translate {
         EN - "There has been an error. Please try again later."
         DE - "Es gab einen Fehler. Bitte versuchen Sie es später."
     }
@@ -1200,6 +1216,46 @@ open class I18n(
     open fun alreadyRunningError(appName: String) = translate {
         EN - "$appName is already running in another tab or window. Please close it first."
         DE - "$appName läuft bereits in einem anderen Tab oder Fenster. Bitte schließen Sie es zuerst."
+    }
+
+    open fun searchGroupFailedSearch() = translate {
+        EN - "Searching rooms failed"
+        DE - "Raumsuche ist fehlgeschlagen"
+    }
+
+    open fun searchGroupJoinFailedGeneric() = translate {
+        EN - "Joining the room failed"
+        DE - "Raumbeitritt ist fehlgeschlagen"
+    }
+
+    open fun enterRoomFailedGenericJoin() = translate {
+        EN - "Joining the room failed"
+        DE - "Raumbeitritt ist fehlgeschlagen"
+    }
+
+    open fun enterRoomFailedRestricted() = translate {
+        EN - "Unqualified to join this room"
+        DE - "Unqualifiziert diesen Raum beizutreten"
+    }
+
+    open fun enterRoomFailedInvite() = translate {
+        EN - "Joining room is invite-only"
+        DE - "Kann Raum nur auf Einladung betreten"
+    }
+
+    open fun enterRoomFailedGenericKnock() = translate {
+        EN - "Membership request failed"
+        DE - "Raummitgliedschaftssanfrage ist fehlgeschlagen"
+    }
+
+    open fun enterRoomFailedNoPermission() = translate {
+        EN - "No Permission to join this room"
+        DE - "Fehlende Berechtigung diesem Raum beizutreten"
+    }
+
+    open fun enterRoomFailedRoomDoesNotExist() = translate {
+        EN - "Room does not exist"
+        DE - "Raum existiert nicht"
     }
 }
 

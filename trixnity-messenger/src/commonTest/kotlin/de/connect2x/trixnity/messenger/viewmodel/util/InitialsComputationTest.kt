@@ -1,10 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.messenger.util.testGraphemeIterableProvider
 import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 
 class InitialsComputationTest {
-    val initials = Initials
+    val initials: Initials = InitialsImpl(testGraphemeIterableProvider())
 
     @Test
     fun resolveInitialsWith1Character() {

@@ -1,59 +1,62 @@
 package de.connect2x.trixnity.messenger.util
 
-import dev.mokkery.matcher.*
-
-import dev.mokkery.answering.*
-
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.http.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
+import io.ktor.http.URLBuilder
+import io.ktor.http.Url
+import io.ktor.http.origin
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
+import kotlin.test.Test
 
-class UrlHandlerBaseTest : ShouldSpec({
-    timeout = 5_000
+class UrlHandlerBaseTest {
 
-    lateinit var coroutineScope: CoroutineScope
-    beforeTest {
-        coroutineScope = CoroutineScope(Dispatchers.Unconfined)
-    }
-    afterTest {
-        coroutineScope.cancel()
-    }
-    fun createCut(urlHost: String = "dino", urlProtocol: String = "unicorn") =
-        object : UrlHandlerBase(
-            MatrixMessengerConfiguration(urlHost = urlHost, urlProtocol = urlProtocol)
-        ) {
-            val baseFlow = urlHandlerFlow
-        }
-
-    should("filter allowed host and protocol") {
-        val cut = createCut()
-        val cutState = cut.stateIn(coroutineScope, SharingStarted.Eagerly, null)
+    @Test
+    fun `filter allowed host and protocol`() = runTest {
+        val cut = Cut()
+        val cutState = cut.stateIn(backgroundScope, SharingStarted.Eagerly, null)
         cut.baseFlow.emit(Url("unicorn://dino?answer=42"))
+        yield()
         cutState.value?.toString() shouldBe "unicorn://dino?answer=42"
     }
-    should("not filter not allowed host") {
-        val cut = createCut()
-        val cutState = cut.stateIn(coroutineScope, SharingStarted.Eagerly, null)
+
+    @Test
+    fun `not filter not allowed host`() = runTest {
+        val cut = Cut()
+        val cutState = cut.stateIn(backgroundScope, SharingStarted.Eagerly, null)
         cut.baseFlow.emit(Url("unicorn://din?answer=42"))
+        yield()
         cutState.value?.toString() shouldBe null
     }
-    should("not filter not allowed protocol") {
-        val cut = createCut()
-        val cutState = cut.stateIn(coroutineScope, SharingStarted.Eagerly, null)
+
+    @Test
+    fun `not filter not allowed protocol`() = runTest {
+        val cut = Cut()
+        val cutState = cut.stateIn(backgroundScope, SharingStarted.Eagerly, null)
         cut.baseFlow.emit(Url("uni://dino?answer=42"))
+        yield()
         cutState.value?.toString() shouldBe null
     }
-    should("allow empty host") {
-        val cut = createCut("")
-        val cutState = cut.stateIn(coroutineScope, SharingStarted.Eagerly, null)
-        println(Url("unicorn://?answer=42").host)
+
+    @Test
+    fun `allow empty host`() = runTest {
+        val cut = Cut("")
+        val cutState = cut.stateIn(backgroundScope, SharingStarted.Eagerly, null)
         cut.baseFlow.emit(Url("unicorn://?answer=42"))
-        cutState.value?.toString() shouldBe "unicorn://localhost?answer=42" // ktor does not allow empty host and defaults to UrlBuilder.origin
+        yield()
+        val origin = Url(URLBuilder.origin)
+        val host = origin.host
+        val port = if (origin.port == 80) "" else ":${origin.port}"
+        cutState.value?.toString() shouldBe "unicorn://$host$port?answer=42"
     }
-})
+
+    class Cut(
+        urlHost: String = "dino", urlProtocol: String = "unicorn"
+    ) : UrlHandlerBase(
+        MatrixMessengerConfiguration(urlHost = urlHost, urlProtocol = urlProtocol)
+    ) {
+        val baseFlow = urlHandlerFlow
+    }
+}

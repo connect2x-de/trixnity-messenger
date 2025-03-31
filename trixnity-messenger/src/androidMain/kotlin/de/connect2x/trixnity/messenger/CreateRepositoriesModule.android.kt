@@ -5,14 +5,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import de.connect2x.trixnity.messenger.util.RootPath
-import de.connect2x.trixnity.messenger.util.SecretByteArray
+import de.connect2x.trixnity.messenger.secrets.SecretByteArray
 import net.folivo.trixnity.client.store.repository.room.TrixnityRoomDatabase
 import net.folivo.trixnity.client.store.repository.room.createRoomRepositoriesModule
 import net.folivo.trixnity.core.model.UserId
 import okio.FileSystem
 import org.koin.core.module.Module
 import org.koin.dsl.module
-
 
 actual fun platformCreateRepositoriesModuleModule(): Module = module {
     single<CreateRepositoriesModule> {
@@ -21,18 +20,13 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
         val context = get<Context>()
 
         object : CreateRepositoriesModule {
-            override suspend fun create(userId: UserId): CreateRepositoriesModule.CreateResult {
+            override suspend fun generateDatabaseKey(): ByteArray? = null
+            override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module {
                 fileSystem.createDirectories(rootPath.forAccountDatabase(userId), mustCreate = false)
-                return CreateRepositoriesModule.CreateResult(
-                    module = createRoomRepositoriesModule(db(userId)),
-                    databaseKey = null,
-                )
+                return createRoomRepositoriesModule(db(userId))
             }
 
-            override suspend fun load(
-                userId: UserId,
-                databaseKey: SecretByteArray?,
-            ): Module {
+            override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module {
                 return createRoomRepositoriesModule(db(userId))
             }
 

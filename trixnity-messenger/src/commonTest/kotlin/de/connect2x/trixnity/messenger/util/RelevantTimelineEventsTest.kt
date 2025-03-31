@@ -1,67 +1,57 @@
 package de.connect2x.trixnity.messenger.util
 
-import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.keys.Key
-import net.folivo.trixnity.core.model.keys.KeyAlgorithm
 import net.folivo.trixnity.core.model.keys.KeyValue
+import kotlin.test.Test
 
-class RelevantTimelineEventsTest : ShouldSpec() {
+class RelevantTimelineEventsTest {
+    val cut = object : RelevantTimelineEvents {}
 
-    private val roomId = RoomId("room1", "localhost")
-    private val eventId = EventId("eventId")
-    private val alice = UserId("alice", "localhost")
+    @Test
+    fun `consider text messages as relevant`() = runTest {
+        cut.isRelevantTimelineEvent(RoomMessageEventContent.TextBased.Text(body = "Hola")) shouldBe true
+    }
 
-    private val cut = object : RelevantTimelineEvents {}
+    @Test
+    fun `consider encrypted event as relevant`() = runTest {
+        cut.isRelevantTimelineEvent(
+            MegolmEncryptedMessageEventContent(
+                ciphertext = "cipherCipher", senderKey = KeyValue.Curve25519KeyValue(""), deviceId = "", sessionId = ""
+            )
+        ) shouldBe true
+    }
 
-    init {
-        should("consider text messages as relevant") {
-            cut.isRelevantTimelineEvent(RoomMessageEventContent.TextBased.Text(body = "Hola")) shouldBe true
-        }
+    @Test
+    fun `consider unknown message events as not relevant`() = runTest {
+        cut.isRelevantTimelineEvent(
+            UnknownEventContent(
+                raw = JsonObject(mapOf("dino" to JsonPrimitive("unicorn"))), "m.reaction"
+            )
+        ) shouldBe false
+    }
 
-        should("consider encrypted event as relevant") {
-            cut.isRelevantTimelineEvent(
-                MegolmEncryptedMessageEventContent(
-                    ciphertext = "cipherCipher",
-                    senderKey = KeyValue.Curve25519KeyValue(""),
-                    deviceId = "",
-                    sessionId = ""
+    @Test
+    fun `consider replies as not relevant`() = runTest {
+        cut.isRelevantTimelineEvent(
+            RoomMessageEventContent.TextBased.Text(
+                body = "Hola", relatesTo = RelatesTo.Reply(
+                    RelatesTo.ReplyTo(EventId(""))
                 )
-            ) shouldBe true
-        }
+            )
+        ) shouldBe true
+    }
 
-        should("consider unknown message events as not relevant") {
-            cut.isRelevantTimelineEvent(
-                UnknownEventContent(
-                    raw = JsonObject(mapOf("dino" to JsonPrimitive("unicorn"))),
-                    "m.reaction"
-                )
-            ) shouldBe false
-        }
-
-        should("consider replies as not relevant") {
-            cut.isRelevantTimelineEvent(
-                RoomMessageEventContent.TextBased.Text(
-                    body = "Hola", relatesTo = RelatesTo.Reply(
-                        RelatesTo.ReplyTo(EventId(""))
-                    )
-                )
-            ) shouldBe true
-        }
-
-
-        should("consider state events as not relevant") {
-            cut.isRelevantTimelineEvent(CanonicalAliasEventContent()) shouldBe false
-        }
+    @Test
+    fun `consider state events as not relevant`() = runTest {
+        cut.isRelevantTimelineEvent(CanonicalAliasEventContent()) shouldBe false
     }
 }

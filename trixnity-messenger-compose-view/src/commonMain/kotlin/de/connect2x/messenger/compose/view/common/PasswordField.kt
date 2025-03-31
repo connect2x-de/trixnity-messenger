@@ -1,14 +1,16 @@
+@file:Suppress("DEPRECATION") // TODO: Remove once the androidx.compose.ui.autofill.ContentType API is public
+
 package de.connect2x.messenger.compose.view.common
 
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -23,9 +25,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -59,12 +63,14 @@ fun PasswordField(
             imeAction = ImeAction.Done
         ),
         trailingIcon = {
-            IconButton(
-                onClick = { passwordVisible.value = !passwordVisible.value },
-                modifier = Modifier.buttonPointerModifier().focusable(false),
-            ) {
-                if (passwordVisible.value) Icon(Icons.Default.VisibilityOff, i18n.passwordVisibilityOff())
-                else Icon(Icons.Default.Visibility, i18n.passwordVisibility())
+            Tooltip({ Text(if (passwordVisible.value) i18n.passwordVisibilityOff() else i18n.passwordVisibility()) }) {
+                ThemedIconButton(
+                    style = MaterialTheme.components.commonIconButton,
+                    onClick = { passwordVisible.value = !passwordVisible.value },
+                ) {
+                    if (passwordVisible.value) Icon(Icons.Default.VisibilityOff, i18n.passwordVisibilityOff())
+                    else Icon(Icons.Default.Visibility, i18n.passwordVisibility())
+                }
             }
         }
     )

@@ -36,7 +36,6 @@ class MainViewImpl : MainView {
                 }
             }
         }
-        DeviceVerificationSwitch(mainViewModel)
         AvatarCutterSwitch(mainViewModel)
         AccountSetupSwitch(mainViewModel)
         SelfVerificationSwitch(mainViewModel)

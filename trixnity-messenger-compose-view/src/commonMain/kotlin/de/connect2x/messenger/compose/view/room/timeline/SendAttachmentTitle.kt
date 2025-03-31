@@ -9,7 +9,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,9 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentViewModel
 
 interface SendAttachmentTitleView {
@@ -49,14 +50,17 @@ class SendAttachmentTitleViewImpl : SendAttachmentTitleView {
                 style = MaterialTheme.typography.titleMedium,
             )
             Spacer(Modifier.fillMaxWidth().weight(1.0f, false))
-            IconButton(
-                { sendAttachmentViewModel.cancel() },
-                Modifier
-                    .padding(8.dp) // 24.dp Icon + 24.dp Button = 12.dp padding on each side; 20.dp - 12.dp = 8.dp
-                    .buttonPointerModifier(),
-                enabled = sendEnabled || errorHappened,
+            Tooltip(
+                tooltip = { Text(i18n.commonCancel())}
             ) {
-                Icon(Icons.Outlined.Cancel, i18n.commonCancel())
+                ThemedIconButton(
+                    style = MaterialTheme.components.commonIconButton,
+                    onClick = { sendAttachmentViewModel.cancel() },
+                    modifier = Modifier.padding(8.dp), // 24.dp Icon + 24.dp Button = 12.dp padding on each side; 20.dp - 12.dp = 8.dp
+                    enabled = sendEnabled || errorHappened,
+                ) {
+                    Icon(Icons.Outlined.Cancel, i18n.commonCancel())
+                }
             }
         }
         HorizontalDivider(Modifier.fillMaxWidth())

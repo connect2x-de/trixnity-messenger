@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -16,8 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.Avatar
-import de.connect2x.messenger.compose.view.common.EditButton
 import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_FILE
 import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
 import de.connect2x.messenger.compose.view.common.icons.EditIcon
@@ -25,6 +26,8 @@ import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.filterFilePickerOptionsByAvailability
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangeRoomAvatarViewModel
 
 interface ChangeRoomAvatarView {
@@ -53,11 +56,11 @@ class ChangeRoomAvatarViewImpl : ChangeRoomAvatarView {
                             .align(Alignment.BottomEnd)
                             .padding(10.dp)
                     ) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.clip(CircleShape),
-                        ) {
-                            EditButton(onClick = { changeRoomAvatarViewModel.openImageSelector.value = true }) {
+                        Tooltip({ Text(i18n.profileAvatarChange()) }) {
+                            ThemedIconButton(
+                                style = MaterialTheme.components.secondaryIconButton,
+                                onClick = { changeRoomAvatarViewModel.openImageSelector.value = true },
+                            ) {
                                 EditIcon(Icons.Default.PhotoCamera, i18n.profileAvatarChange())
                             }
                         }
