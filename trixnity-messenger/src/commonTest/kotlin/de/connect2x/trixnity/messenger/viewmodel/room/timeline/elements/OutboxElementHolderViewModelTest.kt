@@ -58,6 +58,13 @@ class OutboxElementHolderViewModelTest {
     private val roomServiceMock = mock<RoomService>()
     private val userServiceMock = mock<UserService>()
 
+    private val previousOutboxMessage = RoomOutboxMessage(
+        roomId = roomId,
+        transactionId = "t0",
+        content = TextBased.Text("uhhh..."),
+        createdAt = Instant.fromEpochMilliseconds(123456789L),
+    )
+
     private val outboxMessage = RoomOutboxMessage(
         roomId = roomId,
         transactionId = "t1",
@@ -135,14 +142,7 @@ class OutboxElementHolderViewModelTest {
                     text("Hi!")
                 }
             }
-            outbox.value = listOf(
-                RoomOutboxMessage(
-                    roomId = roomId,
-                    transactionId = "t0",
-                    content = TextBased.Text("Hi!"),
-                    createdAt = Instant.fromEpochMilliseconds(123456799L),
-                ), outboxMessage
-            )
+            outbox.value = listOf(previousOutboxMessage, outboxMessage)
             val cut = cut()
             backgroundScope.launch { cut.isFirstInUserSequence.collect() }
             delay(500.milliseconds)
@@ -293,6 +293,26 @@ class OutboxElementHolderViewModelTest {
         settle()
 
         cut.showBigGapBefore.value shouldBe true
+    }
+
+    @Test
+    fun `showBigGapBefore » don't show if multiple elements in outbox`() = runTest {
+        timeline(roomServiceMock, roomId) {
+            +messageEvent(
+                sender = us,
+                sentAt = clock.now() - config.showBigGapBeforeThreshold - 1.seconds
+            ) {
+                text("Hi!")
+            }
+        }
+
+        outbox.value = listOf(previousOutboxMessage, outboxMessage)
+        val cut = cut()
+
+        backgroundScope.launch { cut.showBigGapBefore.collect() }
+        settle()
+
+        cut.showBigGapBefore.value shouldBe false
     }
 
     private fun TestScope.cut(evId: EventId = eventId): OutboxElementHolderViewModel {

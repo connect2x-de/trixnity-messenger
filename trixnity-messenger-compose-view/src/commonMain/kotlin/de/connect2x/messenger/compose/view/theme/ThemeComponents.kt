@@ -60,7 +60,12 @@ class ThemeComponentsImpl : ThemeComponents {
                 contentColor = MaterialTheme.colorScheme.onSecondary,
             )
         ),
-        commonIconButton = IconButtonStyle.default(),
+        commonIconButton = IconButtonStyle.default(
+            colors = IconButtonDefaults.iconToggleButtonColors(
+                // TODO: We shouldn't use onSurface but it's black in darkmode with the default. Theme might be broken?
+                contentColor = MaterialTheme.colorScheme.onSurface,
+            ),
+        ),
         destructiveIconButton = IconButtonStyle.default(
             colors = IconButtonDefaults.iconToggleButtonColors(
                 contentColor = MaterialTheme.colorScheme.error,
