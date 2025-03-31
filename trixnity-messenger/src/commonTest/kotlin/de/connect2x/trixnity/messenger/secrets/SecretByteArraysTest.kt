@@ -55,6 +55,14 @@ class SecretByteArraysTest {
     }
 
     @Test
+    fun `set - should initialized`() = runTest {
+        cut.set("secret", null)
+        val settings = settings.value.base.secretByteArrays.shouldNotBeNull()
+        settings.secrets.shouldBeEmpty()
+        settings.keyInfo.shouldBeEmpty()
+    }
+
+    @Test
     fun `set - should remove secret on null`() = runTest {
         settings.update<MatrixMessengerSettingsBase> {
             MatrixMessengerSettingsBase(
@@ -99,6 +107,14 @@ class SecretByteArraysTest {
             key = aesKey1.invoke(32),
             name = "my.secret"
         ) shouldBe "***".encodeToByteArray()
+    }
+
+    @Test
+    fun `get - should initialized`() = runTest {
+        cut.get("secret")
+        val settings = settings.value.base.secretByteArrays.shouldNotBeNull()
+        settings.secrets.shouldBeEmpty()
+        settings.keyInfo.shouldBeEmpty()
     }
 
     @Test
