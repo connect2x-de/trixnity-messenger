@@ -5,6 +5,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.formatM
 import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
+import io.ktor.http.Url
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import kotlin.test.Test
@@ -155,6 +156,62 @@ class FormatMessageTest {
         assertEquals(
             "<a href=\"${link}\">${link}</a>",
             formattedLink,
+        )
+    }
+
+    @Test
+    fun shouldIgnoreExclamationMarkAtEndOfLink() {
+        assertEquals(
+            "I think you could really like https://graphemica.com/!".formatLinks(),
+            "I think you could really like <a href=\"https://graphemica.com/\">https://graphemica.com/</a>!"
+        )
+    }
+
+    @Test
+    fun shouldIgnoreParenthesis() {
+        assertEquals(
+            "The website Graphemica (https://graphemica.com/) can display any sort of symbol.".formatLinks(),
+            "The website Graphemica (<a href=\"https://graphemica.com/\">https://graphemica.com/</a>) can display any sort of symbol."
+        )
+    }
+
+    @Test
+    fun shouldIgnoreColonAtTheEndOfLink() {
+        assertEquals(
+            "The best thing about https://graphemica.com/: It has support for unicode characters.".formatLinks(),
+            "The best thing about <a href=\"https://graphemica.com/\">https://graphemica.com/</a>: It has support for unicode characters."
+        )
+    }
+
+    @Test
+    fun shouldIgnoreQuestionMarkAtTheEndOfLink() {
+        assertEquals(
+            "Do you know https://graphemica.com/?".formatLinks(),
+            "Do you know <a href=\"https://graphemica.com/\">https://graphemica.com/</a>?"
+        )
+    }
+
+    @Test
+    fun shouldIgnorePeriodAtTheEndOfLink() {
+        assertEquals(
+            "I thought about https://graphemica.com.".formatLinks(),
+            "I thought about <a href=\"https://graphemica.com\">https://graphemica.com</a>."
+        )
+    }
+
+    @Test
+    fun shouldAllowUnicodeSymbols() {
+        assertEquals(
+            "https://graphemica.com/»".formatLinks(),
+            "<a href=\"https://graphemica.com/»\">https://graphemica.com/»</a>"
+        )
+    }
+
+    @Test
+    fun shouldAllowSymbolsEvenWithPunctuationInsideUrl() {
+        assertEquals(
+            "https://duckduckgo.com/?q=!#$'()*+,-./:;=?@[]^_`{|}~".formatLinks(),
+            "<a href=\"https://duckduckgo.com/?q=!#$'()*+,-./:;=?@[]^_`{|}~\">https://duckduckgo.com/?q=!#$'()*+,-./:;=?@[]^_`{|}~</a>",
         )
     }
 }
