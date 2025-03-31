@@ -53,11 +53,7 @@ class SecretByteArraysImpl(
     private val setMutex = Mutex() // prevent concurrent settings update
     override suspend fun set(id: String, raw: ByteArray?) = setMutex.withLock {
         log.trace { "set SecretByteArray $id" }
-        val secretByteArraysSettings = settings.value.base.secretByteArrays
-        if (secretByteArraysSettings == null) {
-            log.warn { "don't set setting $id, because chain not initialized yet" }
-            return@withLock
-        }
+        val secretByteArraysSettings = getSettingsOrInitialize()
         val key = getKey(keySize)
         val newSettings =
             if (raw == null) {
@@ -101,8 +97,8 @@ class SecretByteArraysImpl(
 
     override suspend fun get(id: String): ByteArray? {
         log.trace { "get SecretByteArray $id" }
-        val secretByteArrays = settings.value.base.secretByteArrays ?: return null
-        val secretByteArray = secretByteArrays.secrets[id]
+        val secretByteArraySettings = getSettingsOrInitialize()
+        val secretByteArray = secretByteArraySettings.secrets[id]
         return if (secretByteArray == null) return null
         else {
             val secretByteArrayKey = getKey(keySize)
@@ -134,14 +130,19 @@ class SecretByteArraysImpl(
         changedProviderRotate: suspend (oldExtra: JsonObject?, getOldInputKey: GetKey?, getNewInputKey: GetKey?) -> SecretByteArrayKeyProvider.RotateResult
     ) {
         val oldKey = getKey(keySize)
-        return rotateKeys(oldKey, changedProviderId, changedProviderRotate)
+        rotateKeys(oldKey, changedProviderId, changedProviderRotate)
     }
 
-    private suspend fun rotateKeys( // TODO this helper function with nullable params is for backwards compatibility and can be moved into the other without nullable
+    private suspend fun getSettingsOrInitialize(): SecretByteArraySettings {
+        return settings.value.base.secretByteArrays ?: rotateKeys(null, null, null)
+    }
+
+    private val rotateKeysLock = Mutex()
+    private suspend fun rotateKeys(
         oldKey: ByteArray?,
         changedProviderId: String?,
         changedProviderRotate: (suspend (oldExtra: JsonObject?, getOldInputKey: GetKey?, getNewInputKey: GetKey?) -> SecretByteArrayKeyProvider.RotateResult)?
-    ) {
+    ): SecretByteArraySettings = rotateKeysLock.withLock {
         log.debug { "rotateKeys (changedProviderId=$changedProviderId)" }
         val secretByteArraySettings = settings.value.base.secretByteArrays
         val oldSecretByteArrayKeyInfos = secretByteArraySettings?.keyInfo.orEmpty()
@@ -187,11 +188,12 @@ class SecretByteArraysImpl(
         settings.update<MatrixMessengerSettingsBase> {
             it.copy(secretByteArrays = newSettings)
         }
+        newSettings
     }
 
     override suspend fun getInputKeyAndExtra(providerId: String): SecretByteArrays.GetInputKeyAndExtraResult {
-        val secretByteArraySettings = settings.value.base.secretByteArrays
-        val secretByteArrayKeyInfos = secretByteArraySettings?.keyInfo.orEmpty()
+        val secretByteArraySettings = getSettingsOrInitialize()
+        val secretByteArrayKeyInfos = secretByteArraySettings.keyInfo
         val extra = secretByteArrayKeyInfos[providerId]?.extra
         val orderedSecretByteArrayKeyProviders = getOrderedSecretByteArrayKeyProviders(secretByteArraySettings)
         val inputKey =
@@ -233,8 +235,8 @@ class SecretByteArraysImpl(
     }
 
     private suspend fun getKey(size: Int): ByteArray? {
-        val secretByteArraySettings = settings.value.base.secretByteArrays
-        val secretByteArrayKeyInfos = secretByteArraySettings?.keyInfo.orEmpty()
+        val secretByteArraySettings = getSettingsOrInitialize()
+        val secretByteArrayKeyInfos = secretByteArraySettings.keyInfo
         val orderedSecretByteArrayKeyProviders = getOrderedSecretByteArrayKeyProviders(secretByteArraySettings)
         log.debug { "getKey (size=$size, orderedSecretByteArrayKeyProviders=${orderedSecretByteArrayKeyProviders.map { it.id }})" }
         val key = orderedSecretByteArrayKeyProviders.fold(null as GetKey?) { getInputKey, secretByteArrayKeyProvider ->
@@ -243,7 +245,7 @@ class SecretByteArraysImpl(
                 getInputKey
             )
         }?.invoke(size)
-        secretByteArraySettings?.checkIntegrity(key)
+        secretByteArraySettings.checkIntegrity(key)
         return key
     }
 
