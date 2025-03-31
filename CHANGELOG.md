@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Padding of sticky date header didn't apply to wider screens, leading to misalignment
 - Fix handling of special characters in urls
 - Fix padding flickering in outbox in offline edge cases
+- Fixed initialization of SecretByteArrays on first start
 
 ### Security
 
