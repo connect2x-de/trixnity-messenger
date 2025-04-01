@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Upgrade Trixnity to 4.14.3
+- `PlatformSecretByteArrayKeyProvider` uses key derivation when not the first in the chain
 
 ### Deprecated
 
