@@ -53,7 +53,7 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
                     try {
                         val appId = config.appId
                         val existingKey = getSecret(appId, id)
-                        when {
+                        val key = when {
                             existingKey == null -> {
                                 val newKey = SecureRandom.nextBytes(size)
                                 context(appId, id, newKey.toNSData()) { (appIdRef, idRef, newKeyRef) ->
@@ -84,6 +84,8 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
 
                             else -> existingKey.copyOf(size)
                         }
+                        if (getInputKey == null) key
+                        else hkdfSha256(key = key, salt = getInputKey(32), keyBytesLength = size)
                     } catch (ex: Exception) {
                         throw SecretByteArrayException("cannot read or set secret ('$id')", ex)
                     }
@@ -95,7 +97,11 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
                 getOldInputKey: GetKey?,
                 getNewInputKey: GetKey?
             ): SecretByteArrayKeyProvider.RotateResult =
-                get(oldExtra, null).let { SecretByteArrayKeyProvider.RotateResult(it, it, null) }
+                SecretByteArrayKeyProvider.RotateResult(
+                    getOldKey = get(null, getOldInputKey),
+                    getNewKey = get(null, getNewInputKey),
+                    newExtra = null,
+                )
 
             @Deprecated("for backwards compatibility")
             override suspend fun getLegacy(): ByteArray? {

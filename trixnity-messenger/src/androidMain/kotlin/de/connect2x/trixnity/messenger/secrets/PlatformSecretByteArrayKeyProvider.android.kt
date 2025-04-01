@@ -26,7 +26,7 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
                     try {
                         val encryptedSharedPreferences = getEncryptedSharedPreferences(context)
                         val existingKey = encryptedSharedPreferences.getString(id, null)?.decodeBase64Bytes()
-                        when {
+                        val key = when {
                             existingKey == null -> {
                                 val newKey = SecureRandom.nextBytes(size)
                                 encryptedSharedPreferences.edit().apply {
@@ -45,6 +45,8 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
 
                             else -> existingKey.copyOf(size)
                         }
+                        if (getInputKey == null) key
+                        else hkdfSha256(key = key, salt = getInputKey(32), keyBytesLength = size)
                     } catch (ex: Exception) {
                         throw SecretByteArrayException("cannot read or set secret ('$id')", ex)
                     }
@@ -52,11 +54,15 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
             }
 
             override suspend fun rotate(
-                extra: JsonObject?,
+                oldExtra: JsonObject?,
                 getOldInputKey: GetKey?,
                 getNewInputKey: GetKey?
             ): SecretByteArrayKeyProvider.RotateResult =
-                get(extra, null).let { SecretByteArrayKeyProvider.RotateResult(it, it, null) }
+                SecretByteArrayKeyProvider.RotateResult(
+                    getOldKey = get(null, getOldInputKey),
+                    getNewKey = get(null, getNewInputKey),
+                    newExtra = null,
+                )
 
             @Deprecated("for backwards compatibility")
             override suspend fun getLegacy(): ByteArray? {
