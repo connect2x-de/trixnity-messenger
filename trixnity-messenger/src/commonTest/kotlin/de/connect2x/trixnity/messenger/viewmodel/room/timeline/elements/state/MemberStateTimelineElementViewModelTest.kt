@@ -211,7 +211,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob wants to join the group"
+            cut.changeMessage.value shouldBe "Bob requested to join the group. Check the room settings to manage the Request"
         }
     }
 

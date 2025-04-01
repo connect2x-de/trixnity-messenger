@@ -183,6 +183,7 @@ class RoomViewModelTest {
         every { userServiceMock.getAll(roomId) } returns MutableStateFlow(mapOf())
         every { userServiceMock.getAllReceipts(eq(roomId)) } returns MutableStateFlow(emptyMap())
         every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(false)
+        every { userServiceMock.canInviteUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canKickUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canBanUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canUnbanUser(roomId, any()) } returns MutableStateFlow(false)
@@ -313,6 +314,7 @@ class RoomViewModelTest {
         val cut = cutRoomViewModel()
         cut shouldShowExtras false
         cut.openUserProfile(UserId("user1"))
+        println(cut.extrasStack.value.active.instance)
         cut.extrasAs<UserProfile>().viewModel.back()
         cut shouldShowTimeline true
         cut shouldShowExtras false
