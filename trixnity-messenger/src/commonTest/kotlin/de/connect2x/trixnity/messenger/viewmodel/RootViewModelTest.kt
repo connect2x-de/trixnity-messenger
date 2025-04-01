@@ -109,6 +109,7 @@ class RootViewModelTest {
                                 onSendLogs: () -> Unit,
                                 onOpenAccounts: () -> Unit,
                                 onAccountSelected: () -> Unit,
+                                onStartVerification: (UserId) -> Unit,
                                 onCloseRoom: () -> Unit,
                             ): RoomListViewModel = roomListViewModelMock
                         }
