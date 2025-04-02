@@ -16,10 +16,21 @@ class ElementDetailsViewSelectorImpl(
             factories.firstOrNull {
                 it.supports.isInstance(element) && it.supportedMimeTypes.contains(mimeType)
             }
-        return if (foundFactory == null) null
-        else {
-            @Suppress("UNCHECKED_CAST")
-            foundFactory as TimelineElementDetailsView<TimelineElementViewModel<*>>
+        return when {
+            foundFactory != null -> {
+                @Suppress("UNCHECKED_CAST")
+                foundFactory as TimelineElementDetailsView<TimelineElementViewModel<*>>
+
+            }
+
+            element is RoomMessageTimelineElementViewModel.FileBased -> {
+                @Suppress("UNCHECKED_CAST")
+                PreviewNotSupportedTimelineElementDetailsView() as TimelineElementDetailsView<TimelineElementViewModel<*>>
+            }
+
+            else -> {
+                null
+            }
         }
     }
 }
