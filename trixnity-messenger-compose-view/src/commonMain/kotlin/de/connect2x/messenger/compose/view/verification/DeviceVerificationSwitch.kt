@@ -142,7 +142,7 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
                             onClick = child.viewModel::decline,
                             modifier = Modifier.weight(1.0f, fill = false),
                         ) {
-                            Text(i18n.verificationNotMatch(), color = Color.White)
+                            Text(i18n.verificationNotMatch())
                         }
 
                     else -> {}
