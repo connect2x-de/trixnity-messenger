@@ -120,7 +120,7 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                     steps = 359,
                     modifier = Modifier.weight(1F),
                     colors = SliderDefaults.colors(thumbColor = currentColor),
-                    track = { HueSliderTrack() }
+                    track = { HueSliderTrack(defaultAccentColor) },
                 )
                 Spacer(Modifier.width(10.dp))
                 Tooltip({Text(i18n.appearanceAccentColorDefault())}) {
@@ -143,7 +143,10 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
 }
 
 @Composable
-fun HueSliderTrack(modifier: Modifier = Modifier.height(4.dp)) {
+fun HueSliderTrack(
+    referenceColor: Color,
+    modifier: Modifier = Modifier.height(4.dp),
+) {
     var height by remember { mutableStateOf(0) }
     Canvas(modifier = modifier.fillMaxWidth()
         .onGloballyPositioned { height = it.size.height }) {
@@ -156,13 +159,13 @@ fun HueSliderTrack(modifier: Modifier = Modifier.height(4.dp)) {
         val sliderValueStart = Offset(sliderStart.x, center.y)
         drawLine(
             Brush.horizontalGradient(
-                0F to Color.hsv(0F, 1F, 1F),
-                1F / 6F to Color.hsv(60F, 1F, 1F),
-                2F / 6F to Color.hsv(120F, 1F, 1F),
-                3F / 6F to Color.hsv(180F, 1F, 1F),
-                4F / 6F to Color.hsv(240F, 1F, 1F),
-                5F / 6F to Color.hsv(300F, 1F, 1F),
-                1F to Color.hsv(359F, 1F, 1F)
+                0F to referenceColor.deriveFromHue(0F),
+                1F / 6F to referenceColor.deriveFromHue(60F),
+                2F / 6F to referenceColor.deriveFromHue(120F),
+                3F / 6F to referenceColor.deriveFromHue(180F),
+                4F / 6F to referenceColor.deriveFromHue(240F),
+                5F / 6F to referenceColor.deriveFromHue(300F),
+                1F to referenceColor.deriveFromHue(360F)
             ),
             sliderValueStart,
             sliderValueEnd,
