@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Setup wizard can no longer be skipped
+
 ### Deprecated
 
 ### Removed

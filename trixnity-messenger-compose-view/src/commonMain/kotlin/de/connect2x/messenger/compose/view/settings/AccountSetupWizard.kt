@@ -137,14 +137,6 @@ private fun wizardStepExplanation(
         id = step.stepId,
         title = { "${i18n.commonWelcome()} ${viewModel.userId.localpart}" },
         content = { Text(i18n.accountSetupWizardExplanationMessage()) },
-        additionalButton = {
-            ThemedButton(
-                style = MaterialTheme.components.primaryButton,
-                onClick = { viewModel.closeAccountSetup() },
-            ) {
-                Text(i18n.commonSkip())
-            }
-        },
     )
 }
 
