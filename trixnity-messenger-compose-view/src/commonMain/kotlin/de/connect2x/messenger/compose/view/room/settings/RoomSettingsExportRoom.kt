@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -41,12 +40,9 @@ class RoomSettingsExportRoomViewImpl : RoomSettingsExportRoomView {
                 style = MaterialTheme.components.primaryButton,
                 onClick = { roomSettingsViewModel.openExportRoomView() },
             ) {
-                Icon(Icons.Default.Archive, exportRoomText)
-                Spacer(Modifier.size(10.dp))
-                Text(
-                    text = exportRoomText,
-                    style = MaterialTheme.typography.labelLarge
-                )
+                Icon(Icons.Default.Archive, exportRoomText, modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize))
+                Spacer(Modifier.size(MaterialTheme.components.primaryButton.iconSpacing))
+                Text(exportRoomText)
             }
         }
     }

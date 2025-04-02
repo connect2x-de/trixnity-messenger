@@ -89,14 +89,16 @@ class RoomHeaderViewImpl : RoomHeaderView {
                     }
                 ) {
                     if (showBackButton) {
+                        Spacer(Modifier.size(8.dp))
                         RoomBackButton(roomHeaderViewModel)
                     }
                     Row(
                         Modifier
-                            .padding(vertical = 4.dp, horizontal = if (showBackButton) 0.dp else 10.dp)
+                            .padding(vertical = 4.dp)
                             .align(Alignment.CenterVertically),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
+                        Spacer(Modifier.size(8.dp))
                         ThemedButton(
                             style = MaterialTheme.components.accountSelector,
                             enabled = isDirectChat,
@@ -141,6 +143,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
                         }
                         Spacer(Modifier.weight(1.0f))
                         RoomExtras(roomHeaderViewModel, showSettingsButton)
+                        Spacer(Modifier.size(8.dp))
                     }
 
                     // If we have a multi-pane view, we will display an invisible text that has the function of

@@ -76,11 +76,9 @@ class RoomListViewImpl : RoomListView {
                                     style = MaterialTheme.components.commonButton,
                                     onClick = { roomListViewModel.createNewRoom() },
                                 ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.AutoMirrored.Filled.Chat, i18n.accountCreateNewRoom())
-                                        Spacer(Modifier.size(10.dp))
-                                        Text(i18n.roomListCreateRoom(), modifier = Modifier.weight(1.0f, fill = false))
-                                    }
+                                    Icon(Icons.AutoMirrored.Filled.Chat, i18n.accountCreateNewRoom(), modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize))
+                                    Spacer(Modifier.size(MaterialTheme.components.primaryButton.iconSpacing))
+                                    Text(i18n.roomListCreateRoom())
                                 }
                             }
                         }
