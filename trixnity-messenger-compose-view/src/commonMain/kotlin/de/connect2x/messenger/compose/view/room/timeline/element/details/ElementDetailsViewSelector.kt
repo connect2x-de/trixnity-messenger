@@ -13,24 +13,13 @@ class ElementDetailsViewSelectorImpl(
     override fun selectFactory(element: TimelineElementViewModel<*>): TimelineElementDetailsView<TimelineElementViewModel<*>>? {
         val mimeType = (element as? RoomMessageTimelineElementViewModel.FileBased<*>)?.mimeType
         val foundFactory =
-            factories.firstOrNull {
-                it.supports.isInstance(element) && it.supportedMimeTypes.contains(mimeType)
+            factories.sortedBy { it.supportsAllMimeTypes }.firstOrNull {
+                it.supports.isInstance(element) && (it.supportedMimeTypes.contains(mimeType) || it.supportsAllMimeTypes)
             }
-        return when {
-            foundFactory != null -> {
-                @Suppress("UNCHECKED_CAST")
-                foundFactory as TimelineElementDetailsView<TimelineElementViewModel<*>>
-
-            }
-
-            element is RoomMessageTimelineElementViewModel.FileBased -> {
-                @Suppress("UNCHECKED_CAST")
-                PreviewNotSupportedTimelineElementDetailsView() as TimelineElementDetailsView<TimelineElementViewModel<*>>
-            }
-
-            else -> {
-                null
-            }
+        return if (foundFactory == null) null
+        else {
+            @Suppress("UNCHECKED_CAST")
+            foundFactory as TimelineElementDetailsView<TimelineElementViewModel<*>>
         }
     }
 }

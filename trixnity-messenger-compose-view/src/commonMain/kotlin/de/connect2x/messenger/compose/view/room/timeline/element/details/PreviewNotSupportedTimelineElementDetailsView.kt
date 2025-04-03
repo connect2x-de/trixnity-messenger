@@ -23,6 +23,7 @@ class PreviewNotSupportedTimelineElementDetailsView() :
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased<*>> =
         RoomMessageTimelineElementViewModel.FileBased::class
     override val supportedMimeTypes: List<String> = listOf()
+    override val supportsAllMimeTypes: Boolean = true
 
     @Composable
     override fun create(

@@ -120,6 +120,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElement
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelectorImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ImageTimelineElementDetailsView
+import de.connect2x.messenger.compose.view.room.timeline.element.details.PreviewNotSupportedTimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.details.TimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementView
@@ -435,6 +436,7 @@ fun timelineViewModule() = module {
     timelineElementDetailsView<ImageTimelineElementDetailsView> { ImageTimelineElementDetailsView() }
     // TODO enable when fixed and all platforms supported
     // timelineElementDetailsView<PdfTimelineElementDetailsView> { PdfTimelineElementDetailsView() }
+    timelineElementDetailsView<PreviewNotSupportedTimelineElementDetailsView> { PreviewNotSupportedTimelineElementDetailsView() }
     single<TimelineElementViewSelector> { TimelineElementViewSelectorImpl(getAll()) }
     single<ElementDetailsViewSelector> { ElementDetailsViewSelectorImpl(getAll()) }
 
