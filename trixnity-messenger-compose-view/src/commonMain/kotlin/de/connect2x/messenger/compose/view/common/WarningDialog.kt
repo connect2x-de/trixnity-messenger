@@ -59,7 +59,7 @@ fun WarningDialog(
                     .focusable(true)
                     .focusRequester(focusRequester)
             ) {
-                Text(confirmButtonText, textAlign = TextAlign.Center)
+                Text(confirmButtonText)
             }
         },
         modifier = Modifier
@@ -69,7 +69,7 @@ fun WarningDialog(
                 style = MaterialTheme.components.commonButton,
                 onClick = { dismissAction() },
             ) {
-                Text(dismissButtonText, textAlign = TextAlign.Center)
+                Text(dismissButtonText)
             }
         },
         title = {

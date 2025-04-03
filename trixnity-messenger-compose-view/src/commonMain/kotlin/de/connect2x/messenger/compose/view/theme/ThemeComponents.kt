@@ -34,31 +34,36 @@ class ThemeComponentsImpl : ThemeComponents {
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ),
+            textStyle = MaterialTheme.typography.labelLarge,
         ),
         secondaryButton = ButtonStyle.filled(
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             ),
+            textStyle = MaterialTheme.typography.labelLarge,
         ),
-        commonButton = ButtonStyle.outlined(),
+        commonButton = ButtonStyle.outlined(
+            textStyle = MaterialTheme.typography.labelLarge,
+        ),
         destructiveButton = ButtonStyle.filled(
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.error,
                 contentColor = MaterialTheme.colorScheme.onError,
-            )
+            ),
+            textStyle = MaterialTheme.typography.labelLarge,
         ),
         primaryIconButton = IconButtonStyle.filled(
             colors = IconButtonDefaults.filledIconToggleButtonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-            )
+            ),
         ),
         secondaryIconButton = IconButtonStyle.filled(
             colors = IconButtonDefaults.filledIconToggleButtonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.onSecondary,
-            )
+            ),
         ),
         commonIconButton = IconButtonStyle.default(
             colors = IconButtonDefaults.iconToggleButtonColors(

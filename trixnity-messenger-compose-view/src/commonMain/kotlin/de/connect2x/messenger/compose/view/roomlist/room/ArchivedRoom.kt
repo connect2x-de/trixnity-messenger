@@ -96,30 +96,22 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
                             modifier = Modifier.height(IntrinsicSize.Min)
                         ) {
                             Box(Modifier.weight(1.0f, fill = true), contentAlignment = Alignment.Center) {
-                                Tooltip(
-                                    tooltip = { Text(i18n.commonConfirm())}
+                                ThemedButton(
+                                    style = MaterialTheme.components.primaryButton,
+                                    onClick = { roomListElementViewModel.forgetRoom(); showWarning = false },
+                                    modifier = Modifier.width(250.dp),
                                 ) {
-                                    ThemedButton(
-                                        style = MaterialTheme.components.primaryButton,
-                                        onClick = { roomListElementViewModel.forgetRoom(); showWarning = false },
-                                        modifier = Modifier.width(250.dp),
-                                    ) {
-                                        Text(i18n.commonConfirm().capitalize(Locale.current), textAlign = TextAlign.Center)
-                                    }
+                                    Text(i18n.commonConfirm().capitalize(Locale.current))
                                 }
                             }
                             Spacer(Modifier.size(20.dp))
                             Box(Modifier.weight(1.0f, fill = true), contentAlignment = Alignment.Center) {
-                                Tooltip(
-                                    tooltip = { Text(i18n.commonBack())}
+                                ThemedButton(
+                                    style = MaterialTheme.components.commonButton,
+                                    onClick = { showWarning = false },
+                                    modifier = Modifier.width(250.dp),
                                 ) {
-                                    ThemedButton(
-                                        style = MaterialTheme.components.commonButton,
-                                        onClick = { showWarning = false },
-                                        modifier = Modifier.width(250.dp),
-                                    ) {
-                                        Text(i18n.commonBack().capitalize(Locale.current), textAlign = TextAlign.Center)
-                                    }
+                                    Text(i18n.commonBack().capitalize(Locale.current))
                                 }
                             }
                         }
