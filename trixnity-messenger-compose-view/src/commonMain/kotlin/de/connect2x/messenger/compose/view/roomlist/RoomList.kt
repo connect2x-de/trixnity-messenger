@@ -37,6 +37,7 @@ import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContaine
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -60,50 +61,45 @@ class RoomListViewImpl : RoomListView {
         val allRooms = roomListViewModel.elements.collectAsState().value
         val canCreateNewRoomWithAccount = roomListViewModel.canCreateNewRoomWithAccount.collectAsState().value
         val i18n = DI.get<I18nView>()
-        Surface {
-            Box(
-                Modifier
-                    .fillMaxSize(),
-            ) {
-                log.debug { "rendering room list items" }
-                if (allRooms.isEmpty() && canCreateNewRoomWithAccount) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(Modifier.padding(horizontal = 20.dp)) {
-                            Text(i18n.roomListNoRoom())
-                            Spacer(Modifier.size(10.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                ThemedButton(
-                                    style = MaterialTheme.components.commonButton,
-                                    onClick = { roomListViewModel.createNewRoom() },
-                                ) {
-                                    Icon(Icons.AutoMirrored.Filled.Chat, i18n.accountCreateNewRoom(), modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize))
-                                    Spacer(Modifier.size(MaterialTheme.components.primaryButton.iconSpacing))
-                                    Text(i18n.roomListCreateRoom())
-                                }
+        Box(Modifier.fillMaxSize()) {
+            log.debug { "rendering room list items" }
+            if (allRooms.isEmpty() && canCreateNewRoomWithAccount) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(Modifier.padding(horizontal = 20.dp)) {
+                        Text(i18n.roomListNoRoom())
+                        Spacer(Modifier.size(10.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            ThemedButton(
+                                style = MaterialTheme.components.commonButton,
+                                onClick = { roomListViewModel.createNewRoom() },
+                            ) {
+                                Icon(Icons.AutoMirrored.Filled.Chat, i18n.accountCreateNewRoom(), modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize))
+                                Spacer(Modifier.size(MaterialTheme.components.primaryButton.iconSpacing))
+                                Text(i18n.roomListCreateRoom())
                             }
                         }
                     }
-                } else {
-                    LazyColumn(Modifier.fillMaxSize(), state) {
-                        items(
-                            allRooms,
-                            { it.roomId.full }
-                        ) { roomListElement ->
-                            RoomListElementContainer(
-                                roomListElement.roomId,
-                                roomListViewModel,
-                                roomListElement,
-                            )
-                        }
-                    }
-                    VerticalScrollbar(
-                        Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                        state,
-                        false,
-                    )
                 }
-                CreateRoomFloatingButton(roomListViewModel)
+            } else {
+                LazyColumn(Modifier.fillMaxSize(), state) {
+                    items(
+                        allRooms,
+                        { it.roomId.full }
+                    ) { roomListElement ->
+                        RoomListElementContainer(
+                            roomListElement.roomId,
+                            roomListViewModel,
+                            roomListElement,
+                        )
+                    }
+                }
+                VerticalScrollbar(
+                    Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                    state,
+                    false,
+                )
             }
+            CreateRoomFloatingButton(roomListViewModel)
         }
 
         LaunchedEffect(initialSyncFinished) {
