@@ -20,12 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.Tooltip
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
@@ -47,7 +44,6 @@ class ReplyToAreaViewImpl : ReplyToAreaView {
         inputAreaViewModel: InputAreaViewModel,
     ) {
         val i18n = DI.get<I18nView>()
-        val isMobile = Platform.current.isMobile
         val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
         val repliedElementHolder = inputAreaViewModel.repliedElement.collectAsState().value
         val element = repliedElementHolder?.element?.collectAsState()?.value
