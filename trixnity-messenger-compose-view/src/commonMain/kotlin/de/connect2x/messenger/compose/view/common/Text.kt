@@ -33,6 +33,7 @@ fun SelectableText(
     }
 }
 
+// TODO: Deprecate/Remove?
 /**
  * A Composable to display one string as two text-components
  * for the purpose of cutting it in the middle in case of an overflow.

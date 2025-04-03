@@ -31,6 +31,7 @@ fun SettingsAccountCard(userId: UserId, content: @Composable ColumnScope.() -> U
     }
 }
 
+// TODO: Deprecate/Remove?
 @Composable
 fun SettingsAccountCardWithAdditionalButtons(
     userId: UserId,
