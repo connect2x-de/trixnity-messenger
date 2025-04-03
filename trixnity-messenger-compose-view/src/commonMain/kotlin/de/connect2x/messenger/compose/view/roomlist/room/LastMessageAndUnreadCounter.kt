@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
@@ -56,7 +57,7 @@ fun LastMessage(lastMessage: String?, usersTyping: String?) {
             overflow = TextOverflow.Ellipsis,
         )
     } else {
-        Text(
+         SelectableText(
             lastMessage ?: " ",
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 1,

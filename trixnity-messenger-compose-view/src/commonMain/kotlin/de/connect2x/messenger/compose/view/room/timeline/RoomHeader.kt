@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,7 +31,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.AvatarWithPresence
+import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.UserState
 import de.connect2x.messenger.compose.view.common.icons.PublicIcon
@@ -40,7 +43,6 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.messenger.compose.view.theme.components
-import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.util.TextLabel
@@ -95,56 +97,57 @@ class RoomHeaderViewImpl : RoomHeaderView {
                     Row(
                         Modifier
                             .padding(vertical = 4.dp)
-                            .align(Alignment.CenterVertically),
+                            .align(Alignment.CenterVertically)
+                            .weight(1f, true),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Spacer(Modifier.size(8.dp))
-                        ThemedButton(
-                            style = MaterialTheme.components.accountSelector,
-                            enabled = isDirectChat,
-                            onClick = { roomHeaderViewModel.openRoomSettings() },
+                        Row(
+                            Modifier.let {
+                                if (isDirectChat)
+                                    it.clickable { roomHeaderViewModel.openRoomSettings() }.buttonPointerModifier()
+                                else it
+                            },
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Row(
-                                horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Box {
-                                    AvatarWithPresence(
-                                        roomHeaderElement.roomImage,
-                                        roomHeaderElement.roomImageInitials,
-                                        roomHeaderElement.presence,
-                                    )
-                                    if (roomHeaderElement.isPublic) {
-                                        PublicIcon()
-                                    }
+                            Box {
+                                AvatarWithPresence(
+                                    roomHeaderElement.roomImage,
+                                    roomHeaderElement.roomImageInitials,
+                                    roomHeaderElement.presence,
+                                )
+                                if (roomHeaderElement.isPublic) {
+                                    PublicIcon()
                                 }
+                            }
+                            Spacer(Modifier.size(5.dp))
+                            UserState(roomHeaderViewModel.userTrustLevel, roomHeaderViewModel.isUserBlocked)
+                            if (roomHeaderElement.isEncrypted.not()) {
+                                UnencryptedIcon()
                                 Spacer(Modifier.size(5.dp))
-                                UserState(roomHeaderViewModel.userTrustLevel, roomHeaderViewModel.isUserBlocked)
-                                if (roomHeaderElement.isEncrypted.not()) {
-                                    UnencryptedIcon()
-                                    Spacer(Modifier.size(5.dp))
-                                }
+                            }
 
-                                Column {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        RoomName(roomHeaderElement)
-                                        Spacer(Modifier.size(7.dp))
-                                        if (roomHeaderElement.isLeave) {
-                                            TextLabel(i18n.commonArchived())
-                                        }
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    RoomName(roomHeaderElement)
+                                    Spacer(Modifier.size(7.dp))
+                                    if (roomHeaderElement.isLeave) {
+                                        TextLabel(i18n.commonArchived())
                                     }
-                                    if (usersTyping != null) {
-                                        UsersTyping(usersTyping)
-                                    } else {
-                                        RoomTopic(roomHeaderElement)
-                                    }
+                                }
+                                if (usersTyping != null) {
+                                    UsersTyping(usersTyping)
+                                } else {
+                                    RoomTopic(roomHeaderElement)
                                 }
                             }
                         }
-                        Spacer(Modifier.weight(1.0f))
-                        RoomExtras(roomHeaderViewModel, showSettingsButton)
-                        Spacer(Modifier.size(8.dp))
                     }
+                    Spacer(Modifier.weight(1.0f))
+                    RoomExtras(roomHeaderViewModel, showSettingsButton)
+                    Spacer(Modifier.size(8.dp))
+
 
                     // If we have a multi-pane view, we will display an invisible text that has the function of
                     // forcing the three header elements to the same height.
@@ -157,6 +160,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
                         )
                     }
                 }
+
                 HorizontalDivider(Modifier.fillMaxWidth())
             }
         }
@@ -185,7 +189,7 @@ fun RoomName(
     Tooltip({
         TooltipText { roomHeaderElement.roomName }
     }) {
-        Text(
+        SelectableText(
             roomHeaderElement.roomName,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
@@ -209,15 +213,17 @@ fun UsersTyping(usersTyping: String) {
 @Composable
 fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
     val topic = roomHeaderElement.roomTopic
-    if (topic.isNotBlank()) Tooltip(tooltip = {
-        Text(topic)
-    }) {
-        Text(
-            topic,
-            style = MaterialTheme.typography.labelMedium,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-        )
+    if (topic.isNotBlank()) {
+        Tooltip(tooltip = {
+            Text(topic)
+        }) {
+            SelectableText(
+                topic,
+                style = MaterialTheme.typography.labelMedium,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+            )
+        }
     }
 }
 

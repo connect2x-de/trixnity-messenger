@@ -865,6 +865,11 @@ open class I18nView(
         DE - "Vertrauensprüfung starten"
     }
 
+    open fun userProfileCopyUserId() = translate {
+        EN - "copy MXID"
+        DE - "Kopiere MXID"
+    }
+
     open fun userProfileRemoveUser() = translate {
         EN - "remove user"
         DE - "Teilnehmer entfernen"

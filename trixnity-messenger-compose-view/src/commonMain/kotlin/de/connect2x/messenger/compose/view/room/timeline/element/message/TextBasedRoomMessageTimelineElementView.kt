@@ -30,9 +30,11 @@ import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.ui.BasicRichText
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
+import de.connect2x.messenger.compose.view.PlatformType
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isDesktop
+import de.connect2x.messenger.compose.view.isWeb
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.messenger.compose.view.room.timeline.element.util.mentionsUriHandler
@@ -54,14 +56,13 @@ fun TextBasedRoomMessageTimelineElementView(
         needsMaxWidth = false,
         isPreview = isPreview
     ) { showActionMenu ->
-        if (Platform.current.isDesktop) {
-            // on Desktop, it makes sense to select text and copy it;
-            // on Android, this will consume long tap events, which we use for the context menu
-            SelectionContainer {
+        // on Desktop and Web, it makes sense to select text and copy it;
+        // on Android, this will consume long tap events, which we use for the context menu
+        when (Platform.current) {
+            PlatformType.DESKTOP, PlatformType.WEB -> SelectionContainer {
                 MessageTextContent(holder, element, showActionMenu)
             }
-        } else {
-            MessageTextContent(holder, element, showActionMenu)
+            PlatformType.ANDROID -> MessageTextContent(holder, element, showActionMenu)
         }
     }
 }
