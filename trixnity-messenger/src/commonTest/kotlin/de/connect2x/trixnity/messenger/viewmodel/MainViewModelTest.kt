@@ -46,12 +46,14 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.instanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldBeTypeOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -278,6 +280,68 @@ class MainViewModelTest {
     }
 
     @Test
+    fun `show cross signing bootstrap when cross signing is not enabled yet`() = runTest {
+        selfVerificationMethods returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
+
+        val cut = mainViewModel()
+
+        eventually(2.seconds) {
+            cut.selfVerificationRouter.stack.value.active.configuration should beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
+        }
+    }
+
+    @Test
+    fun `not show new cross signing bootstrap when another is already shown`() = runTest {
+        selfVerificationMethods returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
+
+        val cut = mainViewModel()
+
+        val config = eventually(2.seconds) {
+            cut.selfVerificationRouter.stack.value.active.configuration should beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
+            cut.selfVerificationRouter.stack.value.active.configuration
+        }
+
+        every { verificationServiceMock2.getSelfVerificationMethods() } returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
+
+        continually(2.seconds) {
+            cut.selfVerificationRouter.stack.value.active.configuration shouldBeSameInstanceAs config
+        }
+    }
+
+    @Test
+    fun `show multiple cross signing bootstraps sequentially when needed`() = runTest {
+        selfVerificationMethods returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
+        every { verificationServiceMock2.getSelfVerificationMethods() } returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
+
+        val user1 = UserId("test", "server")
+        val user2 = UserId("test2", "server")
+
+        val cut = mainViewModel(
+            mapOf(
+                user1 to matrixClientMock, user2 to matrixClientMock2
+            )
+        )
+
+        val bootstrapParams = eventually(2.seconds) {
+            cut.selfVerificationRouter.stack.value.active.configuration should beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
+            val currentUser =
+                (cut.selfVerificationRouter.stack.value.active.configuration as SelfVerificationRouter.Config.CrossSigningBootstrap).userId shouldBeIn setOf<UserId>(
+                    user1,
+                    user2
+                )
+            currentUser to cut.selfVerificationRouter.stack.value.active.instance as SelfVerificationRouter.Wrapper.CrossSigningBootstrap
+        }
+
+        bootstrapParams.second.viewModel.close()
+        val otherUser = if (bootstrapParams.first == user1) user2 else user1
+
+        eventually(2.seconds) {
+            cut.selfVerificationRouter.stack.value.active.configuration should beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
+            (cut.selfVerificationRouter.stack.value.active.configuration as SelfVerificationRouter.Config.CrossSigningBootstrap).userId shouldBe otherUser
+        }
+    }
+
+    @Test
     fun `show self verification modal when self verification is needed`() = runTest {
         selfVerificationMethods returns MutableStateFlow(
             VerificationService.SelfVerificationMethods.CrossSigningEnabled(
@@ -422,7 +486,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun `perform initial sync whe not yet done`() = runTest {
+    fun `perform initial sync when not yet done`() = runTest {
         syncState returns MutableStateFlow(SyncState.STOPPED)
         networkAvailable returns true
         val initialSyncDoneFlow = MutableStateFlow(false)
@@ -603,6 +667,7 @@ class MainViewModelTest {
                                         onSendLogs: () -> Unit,
                                         onOpenAccountsOverview: () -> Unit,
                                         onAccountSelected: () -> Unit,
+                                        onStartVerification: (UserId) -> Unit,
                                         onCloseRoom: () -> Unit,
                                     ): RoomListViewModel = object : RoomListViewModel {
                                         override val selectedRoomId: StateFlow<RoomId?> = MutableStateFlow(null)

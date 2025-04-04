@@ -2631,6 +2631,11 @@ open class I18nView(
         DE - "Akzentfarbe"
     }
 
+    open fun appearanceAccentColorDefault() = translate {
+        EN - "Default"
+        DE - "Standard"
+    }
+
     open fun forgetRoomWarningHeader() = translate {
         EN - "Forget room?"
         DE - "Raum vergessen?"

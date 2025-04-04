@@ -77,6 +77,7 @@ class SharedDataViewModelImpl(
         onSendLogs = { },
         onOpenAccountsOverview = { },
         onAccountSelected = { },
+        onStartVerification = { },
         onCloseRoom = { }
     )
 

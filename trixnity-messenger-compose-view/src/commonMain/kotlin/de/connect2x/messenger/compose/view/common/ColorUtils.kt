@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.common
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import androidx.compose.ui.graphics.luminance
 import kotlin.math.absoluteValue
 import kotlin.math.round
@@ -69,11 +70,18 @@ fun Color.contrastByLuminance(brightColor: Color, darkColor: Color): Color {
 }
 
 /**
- * Sets the hue of the color while preserving the value, saturation and alpha.
+ * Sets the hue of the color while preserving luminance, saturation and alpha.
  */
-fun Color.deriveFromHue(hue: Float, saturation: Float? = null, lightness: Float? = null, alpha: Float? = null): Color =
-    // `hsl(..)` already normalizes the hue value.
-    Color.hsl(hue, saturation ?: this.saturation, lightness ?: this.lightness, alpha ?: this.alpha)
+fun Color.deriveFromHue(
+    hue: Float,
+    saturation: Float = this.saturation,
+    lightness: Float = this.lightness,
+    alpha: Float = this.alpha
+): Color {
+    val (luminance, _, _) = convert(ColorSpaces.CieLab)
+    val (_, a, b) = Color.hsl(hue, saturation, lightness).convert(ColorSpaces.CieLab)
+    return Color(luminance, a, b, alpha, ColorSpaces.CieLab).convert(ColorSpaces.Srgb)
+}
 
 @OptIn(ExperimentalStdlibApi::class)
 fun Color.toHex(): String =

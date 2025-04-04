@@ -20,7 +20,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Minor styling consistency fixes
+- Fix Recreating Profile in Web
+- iOS: problems with keychain access and missing key
+
 ### Security
+
+## 3.5.2
+
+### Changed
+
+- Upgrade Trixnity to 4.14.3
+- `PlatformSecretByteArrayKeyProvider` uses key derivation when not the first in the chain
+
+### Removed
+
+- Removed `RoomContextMenu` from `RoomHeader`
+
+### Fixed
+
+- Padding of sticky date header didn't apply to wider screens, leading to misalignment
+- Fix handling of special characters in urls
+- Fix padding flickering in outbox in offline edge cases
+- Fixed initialization of SecretByteArrays on first start
 
 ## 3.5.1
 

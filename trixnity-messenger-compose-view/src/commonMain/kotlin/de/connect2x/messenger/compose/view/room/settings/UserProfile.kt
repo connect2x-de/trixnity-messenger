@@ -609,7 +609,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                         },
                         modifier = Modifier.weight(0.4f)
                     ) {
-                        Text(text = i18n.userProfileChangePowerLevel(), textAlign = TextAlign.Center)
+                        Text(i18n.userProfileChangePowerLevel())
                     }
                 }
                 if (showPowerLevelHelp) {
