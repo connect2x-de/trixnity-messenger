@@ -31,6 +31,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModel
 
 
@@ -45,7 +46,7 @@ fun ApprovableTextField(
 ) {
     val i18n = DI.get<I18nView>()
     val isEdit by viewModel.isEdit.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsStateForLoadingIndicator()
     var value by viewModel.collectAsTextFieldValueState()
 
     Column {

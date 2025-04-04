@@ -52,9 +52,11 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger {}
@@ -82,6 +84,10 @@ class TimelineViewImpl : TimelineView {
 
         var timelineElementHolderViewModels by remember {
             mutableStateOf<List<BaseTimelineElementHolderViewModel>>(listOf())
+        }
+        val isTimelineEmpty = timelineElementHolderViewModels.isEmpty()
+        var showTimelineLoadingIndicator by remember {
+            mutableStateOf(false)
         }
         val timelineElementViewModelGrouped by derivedStateOf {
             val vms = timelineElementHolderViewModels
@@ -118,14 +124,25 @@ class TimelineViewImpl : TimelineView {
             }
         }
 
+        LaunchedEffect(isTimelineEmpty) {
+            if (isTimelineEmpty) {
+                delay(120.milliseconds)
+                showTimelineLoadingIndicator = true
+            } else {
+                showTimelineLoadingIndicator = false
+            }
+        }
+
         val error = timelineViewModel.error.collectAsState().value
         val draggedFile = timelineViewModel.draggedFile.collectAsState().value
 
         val focusManager = LocalFocusManager.current
 
         Box(modifier = Modifier.weight(1.0f, fill = true)) {
-            if (timelineElementHolderViewModels.isEmpty()) {
-                Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
+            if (showTimelineLoadingIndicator) {
+                Box(Modifier.fillMaxSize()) {
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
+                }
             } else {
                 val unreadMarkerOnFirstLoad = remember {
                     (timelineElementHolderViewModels.indexOfLast {

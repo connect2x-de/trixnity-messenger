@@ -26,6 +26,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepPasswordViewModel
 
 interface UiaPasswordInputView {
@@ -42,7 +43,7 @@ class UiaPasswordInputViewImpl : UiaPasswordInputView {
     @Composable
     override fun create(uiaStepPasswordViewModel: UiaStepPasswordViewModel) {
         val i18n = DI.get<I18nView>()
-        val isSubmitting = uiaStepPasswordViewModel.isSubmitting.collectAsState().value
+        val isSubmitting = uiaStepPasswordViewModel.isSubmitting.collectAsStateForLoadingIndicator().value
         val error = uiaStepPasswordViewModel.error.collectAsState().value
         val tabToNextAndEnterSend = TabInTextField(true, uiaStepPasswordViewModel::submit)
         UiaModalBox {

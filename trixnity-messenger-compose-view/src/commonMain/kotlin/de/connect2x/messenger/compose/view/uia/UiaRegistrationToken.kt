@@ -30,6 +30,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModel
 
 interface UiaRegistrationTokenView {
@@ -46,7 +47,7 @@ class UiaRegistrationTokenViewImpl : UiaRegistrationTokenView {
     @Composable
     override fun create(uiaStepRegistrationTokenViewModel: UiaStepRegistrationTokenViewModel) {
         val i18n = DI.get<I18nView>()
-        val isSubmitting = uiaStepRegistrationTokenViewModel.isSubmitting.collectAsState().value
+        val isSubmitting = uiaStepRegistrationTokenViewModel.isSubmitting.collectAsStateForLoadingIndicator().value
         val error = uiaStepRegistrationTokenViewModel.error.collectAsState().value
         val tabToNextAndEnterSend = TabInTextField(true, uiaStepRegistrationTokenViewModel::submit)
         UiaModalBox {

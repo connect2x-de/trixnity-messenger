@@ -68,6 +68,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountWithDevices
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceInfo
 import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModel
@@ -121,7 +122,7 @@ fun AccountWithDevicesList(
     accountWithDevices: AccountWithDevices,
     devicesSettingsViewModel: DevicesSettingsViewModel,
 ) {
-    val isLoading by accountWithDevices.isLoading.collectAsState()
+    val isLoading by accountWithDevices.isLoading.collectAsStateForLoadingIndicator()
     val error by accountWithDevices.loadingError.collectAsState()
     val devicesInAccount = accountWithDevices.devicesInAccount.collectAsState().value
     SettingsAccountCard(accountWithDevices.userId) {

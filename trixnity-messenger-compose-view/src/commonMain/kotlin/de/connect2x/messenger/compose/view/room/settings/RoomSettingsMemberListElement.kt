@@ -25,9 +25,11 @@ import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.UserState
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.*
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
+import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.core.model.UserId
 
 interface RoomSettingsMemberListElementView {
@@ -69,6 +71,8 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
             memberListViewModel.elements.collectAsState().value.lastOrNull()?.memberUserId == memberListElementViewModel.memberUserId
         val presence = memberListElementViewModel.presence.collectAsState().value
         val image = memberElement?.image
+        val isMemberElementLoading =
+            memberListElementViewModel.member.map { it == null }.collectAsStateForLoadingIndicator(false).value
 
         Box(
             Modifier
@@ -83,9 +87,8 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                     Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (memberElement == null) LoadingSpinner()
-                    else {
-                        AvatarWithPresence(image, memberElement.initials ?: "", presence)
+                    if (memberElement != null) {
+                        AvatarWithPresence(image, memberElement.initials, presence)
                         Spacer(Modifier.size(5.dp))
                         UserState(
                             memberListElementViewModel.userTrustLevel,
@@ -109,7 +112,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                                 maxLines = 1,
                             )
                         }
-                    }
+                    } else if (isMemberElementLoading) LoadingSpinner()
                 }
                 if (isLastMember.not()) {
                     HorizontalDivider(Modifier.fillMaxWidth().width(1.dp).padding(horizontal = 10.dp))

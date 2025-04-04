@@ -22,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,11 +46,10 @@ import de.connect2x.messenger.compose.view.common.TextFieldModal
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.util.isKnock
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel.SearchGroup
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 
 interface SearchGroupView {
     @Composable
@@ -123,23 +121,17 @@ fun SearchGroupSearchBar(searchGroupViewModel: SearchGroupViewModel) {
 @Composable
 fun SearchGroupResults(searchGroupViewModel: SearchGroupViewModel, knockGroupModalShownFor: MutableState<SearchGroup?>) {
     val foundGroups = searchGroupViewModel.foundGroups.collectAsState().value
-    val groupSearchInProgress = searchGroupViewModel.groupSearchInProgress.collectAsState().value
+    val groupSearchInProgress = searchGroupViewModel.groupSearchInProgress.collectAsStateForLoadingIndicator().value
     val error by searchGroupViewModel.error.collectAsState()
     val listState = rememberLazyListState()
-    var showLoadingBar by remember { mutableStateOf(false) }
 
     val i18n = DI.get<I18nView>()
-
-    LaunchedEffect(groupSearchInProgress) {
-        delay(120.milliseconds)
-        showLoadingBar = groupSearchInProgress
-    }
 
     Column(Modifier.fillMaxSize(), Arrangement.Top) {
         error?.let { ErrorView(it) }
 
         if (groupSearchInProgress) {
-            if (showLoadingBar) {
+            if (groupSearchInProgress) {
                 LinearProgressIndicator(Modifier.fillMaxWidth())
             }
         } else {

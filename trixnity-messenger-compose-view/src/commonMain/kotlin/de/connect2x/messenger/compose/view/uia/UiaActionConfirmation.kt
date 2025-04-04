@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
@@ -21,6 +20,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaActionConfirmationViewModel
 
 interface UiaActionConfirmationView {
@@ -38,7 +38,7 @@ class UiaActionConfirmationViewImpl : UiaActionConfirmationView {
     override fun create(uiaActionConfirmationViewModel: UiaActionConfirmationViewModel) {
         val i18n = DI.get<I18nView>()
         val message = uiaActionConfirmationViewModel.confirmationMessage ?: "" // TODO shouldn't be nullable
-        val isPerformingAction = uiaActionConfirmationViewModel.isPerformingAction.collectAsState().value
+        val isPerformingAction = uiaActionConfirmationViewModel.isPerformingAction.collectAsStateForLoadingIndicator().value
         UiaModalBox {
             Column(
                 Modifier

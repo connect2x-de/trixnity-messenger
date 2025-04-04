@@ -21,6 +21,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.i18n.getExplanation
 import de.connect2x.messenger.compose.view.i18n.getExplanationWhenEncrypted
 import de.connect2x.messenger.compose.view.i18n.getStateName
+import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
 interface RoomSettingsHistoryVisibilityView {
@@ -43,7 +44,7 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
         val canChangeRoomHistoryVisibility =
             roomSettingsHistoryVisibilityViewModel.canChangeRoomHistoryVisibility.collectAsState().value
         val isHistoryVisibilityChanging =
-            roomSettingsHistoryVisibilityViewModel.isHistoryVisibilityChanging.collectAsState().value
+            roomSettingsHistoryVisibilityViewModel.isHistoryVisibilityChanging.collectAsStateForLoadingIndicator().value
         val isEncrypted = roomSettingsViewModel.isEncrypted.collectAsState().value
         val visibilities =
             roomSettingsHistoryVisibilityViewModel.availableRoomHistoryVisibilities.collectAsState().value

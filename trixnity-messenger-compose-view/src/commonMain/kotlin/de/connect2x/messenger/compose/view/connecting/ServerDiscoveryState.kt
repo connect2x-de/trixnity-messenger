@@ -15,8 +15,12 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.files.toImageBitmap
@@ -25,6 +29,8 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 
 interface ServerDiscoveryStateView {
@@ -42,10 +48,27 @@ class ServerDiscoveryStateViewImpl : ServerDiscoveryStateView {
     override fun create(addMatrixAccountViewModel: AddMatrixAccountViewModel) {
         val i18n = DI.get<I18nView>()
         val serverDiscoveryState = addMatrixAccountViewModel.serverDiscoveryState.collectAsState().value
+        var showLoading by remember {
+            mutableStateOf(false)
+        }
+
+        LaunchedEffect(serverDiscoveryState) {
+            showLoading = when (serverDiscoveryState) {
+                is ServerDiscoveryState.Loading -> {
+                    delay(120.milliseconds)
+                    true
+                }
+                is ServerDiscoveryState.Success, is ServerDiscoveryState.None, is ServerDiscoveryState.Failure ->
+                    false
+            }
+        }
+
         when (serverDiscoveryState) {
             is ServerDiscoveryState.None -> {}
             is ServerDiscoveryState.Loading -> {
-                LinearProgressIndicator(Modifier.fillMaxWidth())
+                if (showLoading) {
+                    LinearProgressIndicator(Modifier.fillMaxWidth())
+                }
             }
 
             is ServerDiscoveryState.Success -> {

@@ -58,6 +58,7 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
+import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.SharedData
@@ -84,7 +85,7 @@ class ShareDataViewImpl : ShareDataView {
         val initialSyncFinished by viewModel.roomList.initialSyncFinished.collectAsState()
         val allRooms by viewModel.roomList.elements.collectAsState()
         val selectedRoomId by viewModel.selectedRoomId.collectAsState()
-        val sending by viewModel.sending.collectAsState()
+        val sending by viewModel.sending.collectAsStateForLoadingIndicator()
         val enabled = selectedRoomId != null && !sending
         val maxMediaSize = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 

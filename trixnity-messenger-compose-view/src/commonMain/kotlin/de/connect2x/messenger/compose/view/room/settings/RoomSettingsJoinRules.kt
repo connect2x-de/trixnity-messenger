@@ -20,6 +20,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.i18n.getExplanation
 import de.connect2x.messenger.compose.view.i18n.getStateName
+import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
 interface RoomSettingsJoinRulesView {
@@ -38,7 +39,7 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
         val canChangeJoinRule = roomSettingsViewModel.roomSettingsJoinRulesViewModel.canChangeJoinRule.collectAsState()
         val currentJoinRule = roomSettingsViewModel.roomSettingsJoinRulesViewModel.joinRule.collectAsState().value
         val joinRuleIsChanging =
-            roomSettingsViewModel.roomSettingsJoinRulesViewModel.isJoinRuleChanging.collectAsState().value
+            roomSettingsViewModel.roomSettingsJoinRulesViewModel.isJoinRuleChanging.collectAsStateForLoadingIndicator().value
         val joinRules =
             roomSettingsViewModel.roomSettingsJoinRulesViewModel.availableRoomJoinStates.collectAsState().value
         val i18n = DI.get<I18nView>()

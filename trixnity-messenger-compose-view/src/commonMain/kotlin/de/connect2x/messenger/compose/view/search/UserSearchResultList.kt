@@ -33,6 +33,7 @@ import de.connect2x.messenger.compose.view.common.AvatarWithPresence
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
 import kotlinx.coroutines.flow.map
@@ -64,7 +65,7 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
     ) {
         val i18n = DI.get<I18nView>()
         val users = userSearchHandler.foundUsers.collectAsState().value
-        val waitForResults = userSearchHandler.waitForUserResults.collectAsState().value
+        val waitForResults = userSearchHandler.waitForUserResults.collectAsStateForLoadingIndicator().value
         val searchWasApplied =
             remember { userSearchHandler.searchTerm.map { it.text.isNotBlank() } }.collectAsState(false).value
 

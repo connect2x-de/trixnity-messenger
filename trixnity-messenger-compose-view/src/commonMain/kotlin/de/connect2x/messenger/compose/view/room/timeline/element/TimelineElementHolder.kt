@@ -8,6 +8,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.room.timeline.UnreadMessagesIndicator
+import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -38,9 +39,9 @@ class TimelineElementHolderViewImpl : TimelineElementHolderView {
                 is TimelineElementHolderViewModel -> {
                     val showUnreadMarker = timelineElementHolderViewModel.showUnreadMarker.collectAsState().value
                     val showLoadingIndicatorBefore =
-                        timelineElementHolderViewModel.showLoadingIndicatorBefore.collectAsState().value
+                        timelineElementHolderViewModel.showLoadingIndicatorBefore.collectAsStateForLoadingIndicator().value
                     val showLoadingIndicatorAfter =
-                        timelineElementHolderViewModel.showLoadingIndicatorAfter.collectAsState().value
+                        timelineElementHolderViewModel.showLoadingIndicatorAfter.collectAsStateForLoadingIndicator().value
                     
                     AnimatedVisibility(showLoadingIndicatorBefore) { LoadingSpinner() }
                     TimelineElementHolderSwitch(timelineElementHolderViewModel)
