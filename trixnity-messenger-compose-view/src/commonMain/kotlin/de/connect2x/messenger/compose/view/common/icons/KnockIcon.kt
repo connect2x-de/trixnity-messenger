@@ -22,6 +22,6 @@ fun KnockIcon(size: Dp = 24.dp) {
     Tooltip(tooltip = {
         TooltipText(i18n.knockIcon())
     }) {
-        Icon(Icons.Outlined.DoorFront, i18n.knockIcon(), Modifier.size(size), MaterialTheme.colorScheme.secondary)
+        Icon(Icons.Outlined.DoorFront, i18n.knockIcon(), Modifier.size(size), MaterialTheme.colorScheme.tertiary)
     }
 }

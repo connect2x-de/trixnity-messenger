@@ -115,11 +115,11 @@ class MemberStateTimelineElementViewModelImpl(
             .map { user -> user?.name ?: thisUserId.full }
             .map { thisUsername ->
                 when (content.membership) {
-                    Membership.INVITE -> i18n.eventChangeInvite(thisUsername, username)
+                    Membership.INVITE -> i18n.eventChangeInvite(thisUsername, username, content.reason)
                     Membership.JOIN -> i18n.eventChangeJoin(thisUsername, groupOrChatDative)
                     Membership.LEAVE -> i18n.eventChangeLeave(thisUsername, groupOrChatAccusative)
-                    Membership.BAN -> i18n.eventChangeBan(thisUsername, username, groupOrChatDative)
-                    Membership.KNOCK -> i18n.eventChangeKnock(thisUsername, groupOrChatDative)
+                    Membership.BAN -> i18n.eventChangeBan(thisUsername, username, groupOrChatDative, content.reason)
+                    Membership.KNOCK -> i18n.eventChangeKnock(thisUsername, groupOrChatDative, content.reason)
                 }
             }
     }
