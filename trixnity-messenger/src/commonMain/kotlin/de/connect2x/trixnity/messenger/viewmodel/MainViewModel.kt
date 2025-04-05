@@ -29,13 +29,11 @@ import de.connect2x.trixnity.messenger.viewmodel.sharing.SharingRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
-import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -44,7 +42,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.client.verification.ActiveVerificationState
-import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
@@ -102,7 +99,7 @@ open class MainViewModelImpl(
 
     // In case of multiple active verifications,
     // these need to be processed in consecutive order one at a time!
-    private val activeVerifications = MutableStateFlow(setOf<UserId>())
+    private val activeDeviceVerifications = MutableStateFlow(setOf<UserId>())
     private val messengerSettings by inject<MatrixMessengerSettingsHolder>()
 
     override val selectedRoomId = MutableStateFlow<RoomId?>(null)
@@ -139,6 +136,7 @@ open class MainViewModelImpl(
             onRemoveAccount = ::onRemoveAccountInternal,
             onAccountSelected = ::onAccountSelected,
             onStartAccountSetup = ::startAccountSetup,
+            onStartVerification = selfVerificationRouter::showSelfVerification,
             onCloseRoom = ::closeDetailsAndShowList
         )
     override val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>> =
@@ -154,16 +152,10 @@ open class MainViewModelImpl(
         )
     override val roomRouterStack: Value<ChildStack<RoomRouter.Config, RoomRouter.Wrapper>> = roomRouter.stack
 
-    private val selfVerificationTrigger = get<SelfVerificationTrigger>()
-
     init {
         coroutineScope.launch {
             roomRouterStack.subscribe {
                 isRoomShown.value = it.active.instance !is RoomRouter.Wrapper.None
-            }
-            selfVerificationTrigger.onInvoke.collect {
-                log.debug { "triggered self verification for user: $it" }
-                onOpenSelfVerification(it)
             }
         }
     }
@@ -224,8 +216,7 @@ open class MainViewModelImpl(
             selectedRoomId.value = routerStack.active.configuration.getRoomId()
         }
         startSync()
-        possiblyStartSelfVerification()
-        startActiveVerificationsQueue()
+        startActiveDeviceVerificationsQueue()
         reactToActiveVerifications()
         reactToPresenceIsPublicChanges()
         possiblyStartAccountSetup()
@@ -285,56 +276,13 @@ open class MainViewModelImpl(
         }
     }
 
-    private fun possiblyStartSelfVerification() {
-        coroutineScope.launch {
-            matrixClients.scopedCollectLatest { namedMatrixClients ->
-                namedMatrixClients.forEach { (userId, matrixClient) ->
-                    log.debug { "launch listen for self verification methods (account $userId)" }
-                    launch {
-                        matrixClient.verification.getSelfVerificationMethods()
-                            .distinctUntilChanged()
-                            .collect { selfVerificationMethods ->
-                                log.debug { "self verification methods (account $userId): $selfVerificationMethods" }
-                                when (selfVerificationMethods) {
-                                    is VerificationService.SelfVerificationMethods.PreconditionsNotMet -> {
-                                        log.debug { "cannot determine yet if cross-signing is needed for $userId" }
-                                    }
-
-                                    is VerificationService.SelfVerificationMethods.NoCrossSigningEnabled -> {
-                                        log.debug { "start bootstrapping $userId" }
-                                        selfVerificationRouter.showCrossSigningBootstrap(userId)
-                                    }
-
-                                    is VerificationService.SelfVerificationMethods.AlreadyCrossSigned -> {
-                                        log.debug { "client for $userId is already cross-signed" }
-                                        selfVerificationRouter.closeSelfVerification(userId)
-                                    }
-
-                                    is VerificationService.SelfVerificationMethods.CrossSigningEnabled -> {
-                                        if (selfVerificationMethods.methods.isEmpty()) {
-                                            log.debug { "no self verification methods available for $userId" }
-                                            selfVerificationRouter.closeSelfVerification(userId)
-                                        }
-                                    }
-                                }
-                            }
-                    }
-                }
-            }
-        }
-    }
-
     override fun openSelfVerification(userId: UserId) {
         selfVerificationRouter.showSelfVerification(userId)
     }
 
-    private fun onOpenSelfVerification(userId: UserId) {
-        selfVerificationRouter.showSelfVerification(userId)
-    }
-
-    private fun startActiveVerificationsQueue() {
+    private fun startActiveDeviceVerificationsQueue() {
         coroutineScope.launch {
-            activeVerifications.collect { currentActiveVerifications ->
+            activeDeviceVerifications.collect { currentActiveVerifications ->
                 log.trace { "current active verifications: $currentActiveVerifications" }
                 currentActiveVerifications.firstOrNull()?.let { userId ->
                     log.debug { "active verification in account $userId" }
@@ -342,7 +290,7 @@ open class MainViewModelImpl(
                     deviceVerificationRouterStack.toFlow().first { childStack ->
                         childStack.active.configuration == VerificationRouter.Config.None
                     }.let {
-                        activeVerifications.value -= userId
+                        activeDeviceVerifications.value -= userId
                     }
                 }
             }
@@ -363,7 +311,7 @@ open class MainViewModelImpl(
                                         if (verificationState is ActiveVerificationState.TheirRequest ||
                                             verificationState is ActiveVerificationState.OwnRequest
                                         ) {
-                                            activeVerifications.value += userId
+                                            activeDeviceVerifications.value += userId
                                         }
                                     }
                                 }
