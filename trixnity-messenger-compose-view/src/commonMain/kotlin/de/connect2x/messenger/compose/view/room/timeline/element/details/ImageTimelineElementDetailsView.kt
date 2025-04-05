@@ -49,13 +49,15 @@ class ImageTimelineElementDetailsView :
         RoomMessageTimelineElementViewModel.FileBased.Image::class
 
     // JPEG, PNG, BMP, WEBP (based on decodeToImageBitmap())
-    override val supportedMimeTypes: List<String> = listOf(
-        "image/jpeg",
-        "image/png",
-        "image/bmp",
-        "image/webp",
-        "image/gif", // gifs can be rendered statically (first frame)
-    )
+    override fun supportsMimeType(mimeType: String): Boolean {
+        return mimeType in listOf(
+            "image/jpeg",
+            "image/png",
+            "image/bmp",
+            "image/webp",
+            "image/gif", // gifs can be rendered statically (first frame)
+        )
+    }
 
     @OptIn(ExperimentalResourceApi::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
     @Composable

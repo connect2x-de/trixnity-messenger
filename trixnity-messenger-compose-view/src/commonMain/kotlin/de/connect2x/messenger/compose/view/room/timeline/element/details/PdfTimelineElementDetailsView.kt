@@ -39,9 +39,9 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.File> =
         RoomMessageTimelineElementViewModel.FileBased.File::class
 
-    override val supportedMimeTypes: List<String> = listOf(
-        "application/pdf",
-    )
+    override fun supportsMimeType(mimeType: String): Boolean {
+        return mimeType == "application/pdf"
+    }
 
     @Composable
     override fun create(

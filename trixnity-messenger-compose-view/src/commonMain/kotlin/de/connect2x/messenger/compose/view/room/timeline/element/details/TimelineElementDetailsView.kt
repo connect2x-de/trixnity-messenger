@@ -7,9 +7,8 @@ import kotlin.reflect.KClass
 
 interface TimelineElementDetailsView<V : TimelineElementViewModel<*>> {
     val supports: KClass<V>
-    val supportedMimeTypes: List<String>
-    val supportsAllMimeTypes : Boolean
-        get() = false
+
+    fun supportsMimeType(mimeType: String): Boolean
 
     @Composable
     fun create(element: V, onSave: () -> Unit, onClose: () -> Unit)
