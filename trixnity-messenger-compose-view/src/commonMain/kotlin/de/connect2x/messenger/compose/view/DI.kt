@@ -436,7 +436,6 @@ fun timelineViewModule() = module {
     timelineElementDetailsView<ImageTimelineElementDetailsView> { ImageTimelineElementDetailsView() }
     // TODO enable when fixed and all platforms supported
     // timelineElementDetailsView<PdfTimelineElementDetailsView> { PdfTimelineElementDetailsView() }
-    timelineElementDetailsView<PreviewNotSupportedTimelineElementDetailsView> { PreviewNotSupportedTimelineElementDetailsView() }
     single<TimelineElementViewSelector> { TimelineElementViewSelectorImpl(getAll()) }
     single<ElementDetailsViewSelector> { ElementDetailsViewSelectorImpl(getAll()) }
 
