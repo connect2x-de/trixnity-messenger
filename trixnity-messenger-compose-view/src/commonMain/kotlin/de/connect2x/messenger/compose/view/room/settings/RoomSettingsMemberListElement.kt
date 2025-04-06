@@ -29,7 +29,6 @@ import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicato
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.*
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
-import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.core.model.UserId
 
 interface RoomSettingsMemberListElementView {
@@ -71,8 +70,8 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
             memberListViewModel.elements.collectAsState().value.lastOrNull()?.memberUserId == memberListElementViewModel.memberUserId
         val presence = memberListElementViewModel.presence.collectAsState().value
         val image = memberElement?.image
-        val isMemberElementLoading =
-            memberListElementViewModel.member.map { it == null }.collectAsStateForLoadingIndicator(false).value
+        val showMemberElementLoading =
+            memberListElementViewModel.isMemberLoading.collectAsStateForLoadingIndicator().value
 
         Box(
             Modifier
@@ -112,7 +111,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                                 maxLines = 1,
                             )
                         }
-                    } else if (isMemberElementLoading) LoadingSpinner()
+                    } else if (showMemberElementLoading) LoadingSpinner()
                 }
                 if (isLastMember.not()) {
                     HorizontalDivider(Modifier.fillMaxWidth().width(1.dp).padding(horizontal = 10.dp))

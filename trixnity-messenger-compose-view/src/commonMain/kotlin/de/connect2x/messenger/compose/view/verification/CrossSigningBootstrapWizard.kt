@@ -18,7 +18,6 @@ import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,6 +42,7 @@ import de.connect2x.messenger.compose.view.common.CloseMessengerButton
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.LargeSpacer
 import de.connect2x.messenger.compose.view.common.Paragraphs
+import de.connect2x.messenger.compose.view.common.SmallLoadingSpinner
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardImage
@@ -72,7 +72,7 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
             id = RECOVERY_KEY_EXPLANATION,
             title = { i18n.bootstrapRecoveryKeyExplanationTitle() },
             content = { boxWithConstraintsScope ->
-                val isBootstrapRunning = crossSigningBootstrapViewModel.isBootstrapRunning.collectAsStateForLoadingIndicator().value
+                val showBootstrapRunning = crossSigningBootstrapViewModel.isBootstrapRunning.collectAsStateForLoadingIndicator().value
                 val error = crossSigningBootstrapViewModel.error.collectAsState().value
                 Paragraphs {
                     Text(i18n.bootstrapRecoveryKeyExplanation1())
@@ -81,13 +81,13 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                     if (error != null) {
                         ErrorView(error)
                     }
-                    if (isBootstrapRunning) {
+                    if (showBootstrapRunning) {
                         Row {
                             Spacer(Modifier.weight(1.0f, fill = true))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(i18n.bootstrapRecoveryKeyVaultCreation())
                                 Spacer(Modifier.size(20.dp))
-                                CircularProgressIndicator(Modifier.size(20.dp))
+                                SmallLoadingSpinner()
                             }
                         }
                     }

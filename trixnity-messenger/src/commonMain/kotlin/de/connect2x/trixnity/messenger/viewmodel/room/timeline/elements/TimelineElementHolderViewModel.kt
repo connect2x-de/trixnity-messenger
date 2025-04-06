@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -394,6 +395,10 @@ class TimelineElementHolderViewModelImpl(
         matrixClient.user.getById(roomId, senderUserId).map { user ->
             user.toUserInfoElement(coroutineScope, matrixClient, initials, config.avatarMaxSize, senderUserId)
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+    override val isSenderLoading: StateFlow<Boolean> =
+        sender
+            .mapLatest { it == null }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, true)
 
     override val showSender: StateFlow<Boolean?> = when {
         senderUserId == userId -> flowOf(false)
@@ -588,6 +593,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val formattedDate: String = "21.11.2024"
     override val isByMe: Boolean = true
     override val sender: MutableStateFlow<UserInfoElement?> = MutableStateFlow(null)
+    override val isSenderLoading: StateFlow<Boolean> = MutableStateFlow(false)
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val showBigGapBefore: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isReply: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -637,6 +643,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val isByMe: Boolean = false
     override val sender: MutableStateFlow<UserInfoElement?> =
         MutableStateFlow(UserInfoElement(UserId("bob", "server"), "Bob", "B"))
+    override val isSenderLoading: StateFlow<Boolean> = MutableStateFlow(false)
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val showBigGapBefore: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val repliedElement: MutableStateFlow<TimelineElementHolderViewModel?> = MutableStateFlow(null)

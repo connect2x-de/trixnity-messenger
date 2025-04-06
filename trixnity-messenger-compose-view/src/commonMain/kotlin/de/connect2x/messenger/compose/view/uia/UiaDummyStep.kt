@@ -39,7 +39,9 @@ class UiaDummyStepViewImpl : UiaDummyStepView {
     @Composable
     override fun create(uiaStepDummyViewModel: UiaStepDummyViewModel) {
         val i18n = DI.get<I18nView>()
-        val isSubmitting = uiaStepDummyViewModel.isLoading.collectAsStateForLoadingIndicator().value
+        val isSubmitting = uiaStepDummyViewModel.isLoading.collectAsState().value
+        val showIsSubmitting = uiaStepDummyViewModel.isLoading.collectAsStateForLoadingIndicator().value && isSubmitting
+
         val error = uiaStepDummyViewModel.error.collectAsState().value
         UiaModalBox {
             Column(
@@ -51,7 +53,7 @@ class UiaDummyStepViewImpl : UiaDummyStepView {
                 if (error != null) {
                     ErrorView(error)
                 }
-                if (isSubmitting) LoadingSpinner()
+                if (showIsSubmitting) LoadingSpinner()
                 Spacer(Modifier.height(20.dp))
                 Row(
                     Modifier.fillMaxWidth(),

@@ -16,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,6 +38,7 @@ import androidx.compose.ui.window.Popup
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.ErrorView
+import de.connect2x.messenger.compose.view.common.SmallLoadingSpinner
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -143,7 +143,7 @@ class AvatarCutterViewImpl : AvatarCutterView {
                                     .align(Alignment.BottomEnd)
                                     .padding(bottom = 18.dp, end = 18.dp),
                                 text = { Text(i18n.commonOk()) },
-                                icon = { if (upload) CircularProgressIndicator() else Icon(Icons.Default.Check, i18n.commonOk()) },
+                                icon = { if (upload) SmallLoadingSpinner() else Icon(Icons.Default.Check, i18n.commonOk()) },
                             )
                         }
                     }

@@ -85,7 +85,8 @@ class ShareDataViewImpl : ShareDataView {
         val initialSyncFinished by viewModel.roomList.initialSyncFinished.collectAsState()
         val allRooms by viewModel.roomList.elements.collectAsState()
         val selectedRoomId by viewModel.selectedRoomId.collectAsState()
-        val sending by viewModel.sending.collectAsStateForLoadingIndicator()
+        val sending by viewModel.sending.collectAsState()
+        val showSending by viewModel.sending.collectAsStateForLoadingIndicator()
         val enabled = selectedRoomId != null && !sending
         val maxMediaSize = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
@@ -127,10 +128,12 @@ class ShareDataViewImpl : ShareDataView {
                             enabled = enabled,
                         ) {
                             if (sending) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(32.dp),
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
+                                if (showSending) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(32.dp),
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
                             } else {
                                 Icon(
                                     Icons.AutoMirrored.Default.Send,

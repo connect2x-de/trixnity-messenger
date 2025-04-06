@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,12 +14,12 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
+import de.connect2x.messenger.compose.view.common.SmallLoadingSpinner
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.i18n.getExplanation
 import de.connect2x.messenger.compose.view.i18n.getStateName
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
 interface RoomSettingsJoinRulesView {
@@ -39,7 +38,9 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
         val canChangeJoinRule = roomSettingsViewModel.roomSettingsJoinRulesViewModel.canChangeJoinRule.collectAsState()
         val currentJoinRule = roomSettingsViewModel.roomSettingsJoinRulesViewModel.joinRule.collectAsState().value
         val joinRuleIsChanging =
-            roomSettingsViewModel.roomSettingsJoinRulesViewModel.isJoinRuleChanging.collectAsStateForLoadingIndicator().value
+            roomSettingsViewModel.roomSettingsJoinRulesViewModel.isJoinRuleChanging.collectAsState().value
+        val showJoinRuleIsChanging =
+            roomSettingsViewModel.roomSettingsJoinRulesViewModel.isJoinRuleChanging.collectAsState().value
         val joinRules =
             roomSettingsViewModel.roomSettingsJoinRulesViewModel.availableRoomJoinStates.collectAsState().value
         val i18n = DI.get<I18nView>()
@@ -59,7 +60,9 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
                 RadioSetting(
                     title = {
                         if (joinRuleIsChanging) {
-                            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                            if (showJoinRuleIsChanging) {
+                                SmallLoadingSpinner()
+                            }
                         } else {
                             Tooltip(tooltip = { TooltipText { currentJoinRule.getExplanation(i18n) } }) {
                                 Text(currentJoinRule.getStateName(i18n))

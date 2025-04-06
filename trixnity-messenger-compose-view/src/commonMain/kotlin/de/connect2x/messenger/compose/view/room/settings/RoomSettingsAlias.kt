@@ -52,7 +52,8 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
     val mainAlias = viewModel.mainAlias.collectAsState().value
     val moreAliases = viewModel.moreAliases.collectAsState().value
     var newAlias by viewModel.newAlias.collectAsTextFieldValueState()
-    val isUpdating = viewModel.isUpdating.collectAsStateForLoadingIndicator().value
+    val isUpdating = viewModel.isUpdating.collectAsState().value
+    val showUpdating = viewModel.isUpdating.collectAsStateForLoadingIndicator().value
     val canChangeRoomAlias = viewModel.canChangeRoomAlias.collectAsState().value
 
     Column {
@@ -195,7 +196,9 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                 }
                 if (isUpdating) {
                     Box(Modifier.fillMaxSize().gesturesDisabled(), contentAlignment = Alignment.Center) {
-                        LoadingSpinner()
+                        if (showUpdating) {
+                            LoadingSpinner()
+                        }
                     }
                 }
             }

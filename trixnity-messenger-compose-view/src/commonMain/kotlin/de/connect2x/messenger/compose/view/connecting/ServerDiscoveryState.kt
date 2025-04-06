@@ -3,34 +3,28 @@ package de.connect2x.messenger.compose.view.connecting
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Web
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.common.LoadingBar
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 
 
 interface ServerDiscoveryStateView {
@@ -48,26 +42,13 @@ class ServerDiscoveryStateViewImpl : ServerDiscoveryStateView {
     override fun create(addMatrixAccountViewModel: AddMatrixAccountViewModel) {
         val i18n = DI.get<I18nView>()
         val serverDiscoveryState = addMatrixAccountViewModel.serverDiscoveryState.collectAsState().value
-        var showLoading by remember {
-            mutableStateOf(false)
-        }
-
-        LaunchedEffect(serverDiscoveryState) {
-            showLoading = when (serverDiscoveryState) {
-                is ServerDiscoveryState.Loading -> {
-                    delay(120.milliseconds)
-                    true
-                }
-                is ServerDiscoveryState.Success, is ServerDiscoveryState.None, is ServerDiscoveryState.Failure ->
-                    false
-            }
-        }
+        val showServerDiscoveryStateLoading = addMatrixAccountViewModel.isServerDiscoveryLoading.collectAsStateForLoadingIndicator().value
 
         when (serverDiscoveryState) {
             is ServerDiscoveryState.None -> {}
             is ServerDiscoveryState.Loading -> {
-                if (showLoading) {
-                    LinearProgressIndicator(Modifier.fillMaxWidth())
+                if (showServerDiscoveryStateLoading) {
+                    LoadingBar()
                 }
             }
 

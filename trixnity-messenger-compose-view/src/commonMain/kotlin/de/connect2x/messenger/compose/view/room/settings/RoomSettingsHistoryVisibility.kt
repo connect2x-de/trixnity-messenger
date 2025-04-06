@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,6 +14,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
+import de.connect2x.messenger.compose.view.common.SmallLoadingSpinner
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -44,6 +44,8 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
         val canChangeRoomHistoryVisibility =
             roomSettingsHistoryVisibilityViewModel.canChangeRoomHistoryVisibility.collectAsState().value
         val isHistoryVisibilityChanging =
+            roomSettingsHistoryVisibilityViewModel.isHistoryVisibilityChanging.collectAsState().value
+        val showHistoryVisibilityChanging =
             roomSettingsHistoryVisibilityViewModel.isHistoryVisibilityChanging.collectAsStateForLoadingIndicator().value
         val isEncrypted = roomSettingsViewModel.isEncrypted.collectAsState().value
         val visibilities =
@@ -71,7 +73,9 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
                     RadioSetting(
                         title = {
                             if (isHistoryVisibilityChanging) {
-                                CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                                if (showHistoryVisibilityChanging) {
+                                    SmallLoadingSpinner()
+                                }
                             } else {
                                 Tooltip(tooltip = {
                                     TooltipText {
@@ -87,7 +91,9 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
                         options = visibilities?.associate {
                             it to RadioSettingOption(
                                 text = it.getStateName(i18n),
-                                explanation = (if (isEncrypted) it.getExplanationWhenEncrypted(i18n) else it.getExplanation(i18n)),
+                                explanation = (if (isEncrypted) it.getExplanationWhenEncrypted(i18n) else it.getExplanation(
+                                    i18n
+                                )),
                                 enabled = roomSettingsHistoryVisibilityViewModel.historyVisibilityCanBeChangedTo(it) && isHistoryVisibilityChanging.not()
                             )
                         } ?: mapOf(),

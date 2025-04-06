@@ -9,7 +9,6 @@ import androidx.compose.material.icons.filled.NotificationImportant
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.NotificationsOff
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +22,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
+import de.connect2x.messenger.compose.view.common.SmallLoadingSpinner
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -44,7 +44,9 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
     @Composable
     override fun create(roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel) {
         val i18n = DI.get<I18nView>()
-        val isLoading = roomSettingsNotificationsViewModel.isNotificationsLevelLoading.collectAsStateForLoadingIndicator().value
+        val isLoading = roomSettingsNotificationsViewModel.isNotificationsLevelLoading.collectAsState().value
+        val showLoading =
+            roomSettingsNotificationsViewModel.isNotificationsLevelLoading.collectAsStateForLoadingIndicator().value
         val selectedLevel = roomSettingsNotificationsViewModel.selectedRoomNotificationsLevel.collectAsState().value
         val selectedLevelName = selectedLevel.name.collectAsState().value
         val selectedLevelExplanation = selectedLevel.explanation.collectAsState().value
@@ -65,7 +67,9 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
             RadioSetting(
                 title = {
                     if (isLoading) {
-                        CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                        if (showLoading) {
+                            SmallLoadingSpinner()
+                        }
                     } else {
                         Tooltip(tooltip = { TooltipText { selectedLevelExplanation } }) {
                             Text(selectedLevelName)

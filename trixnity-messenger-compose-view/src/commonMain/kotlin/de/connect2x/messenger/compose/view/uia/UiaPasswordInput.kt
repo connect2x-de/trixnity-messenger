@@ -44,6 +44,7 @@ class UiaPasswordInputViewImpl : UiaPasswordInputView {
     override fun create(uiaStepPasswordViewModel: UiaStepPasswordViewModel) {
         val i18n = DI.get<I18nView>()
         val isSubmitting = uiaStepPasswordViewModel.isSubmitting.collectAsStateForLoadingIndicator().value
+        val showIsSubmitting = uiaStepPasswordViewModel.isSubmitting.collectAsStateForLoadingIndicator().value && isSubmitting
         val error = uiaStepPasswordViewModel.error.collectAsState().value
         val tabToNextAndEnterSend = TabInTextField(true, uiaStepPasswordViewModel::submit)
         UiaModalBox {
@@ -56,7 +57,7 @@ class UiaPasswordInputViewImpl : UiaPasswordInputView {
                 if (error != null) {
                     ErrorView(error)
                 }
-                if (isSubmitting) LoadingSpinner()
+                if (showIsSubmitting) LoadingSpinner()
                 Spacer(Modifier.height(20.dp))
                 MatrixUsername(
                     username = uiaStepPasswordViewModel.username.collectAsTextFieldValueState(),

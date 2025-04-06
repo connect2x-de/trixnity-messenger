@@ -52,6 +52,11 @@ sealed interface BaseTimelineElementHolderViewModel {
     val sender: StateFlow<UserInfoElement?>
 
     /**
+     * Whether the senders information has been calculated yet
+     */
+    val isSenderLoading: StateFlow<Boolean>
+
+    /**
      * Whether this element should display the sender.
      */
     val showSender: StateFlow<Boolean?>

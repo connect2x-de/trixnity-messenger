@@ -65,7 +65,8 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
     ) {
         val i18n = DI.get<I18nView>()
         val users = userSearchHandler.foundUsers.collectAsState().value
-        val waitForResults = userSearchHandler.waitForUserResults.collectAsStateForLoadingIndicator().value
+        val waitForResults = userSearchHandler.waitForUserResults.collectAsState().value
+        val showWaitForResults = userSearchHandler.waitForUserResults.collectAsStateForLoadingIndicator().value
         val searchWasApplied =
             remember { userSearchHandler.searchTerm.map { it.text.isNotBlank() } }.collectAsState(false).value
 
@@ -80,7 +81,9 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
 
 
         if (waitForResults) {
-            LoadingSpinner()
+            if (showWaitForResults) {
+                LoadingSpinner()
+            }
         } else {
             Box {
                 Column(modifier) {

@@ -56,7 +56,7 @@ fun LastMessage(lastMessage: String?, usersTyping: String?) {
             overflow = TextOverflow.Ellipsis,
         )
     } else {
-         Text(
+        Text(
             lastMessage ?: " ",
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 1,

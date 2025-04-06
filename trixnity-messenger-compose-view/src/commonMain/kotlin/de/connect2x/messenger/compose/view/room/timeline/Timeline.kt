@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,11 +38,13 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.ErrorDialog
+import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.theme.messengerIcons
+import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -52,7 +53,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -85,10 +85,8 @@ class TimelineViewImpl : TimelineView {
         var timelineElementHolderViewModels by remember {
             mutableStateOf<List<BaseTimelineElementHolderViewModel>>(listOf())
         }
-        val isTimelineEmpty = timelineElementHolderViewModels.isEmpty()
-        var showTimelineLoadingIndicator by remember {
-            mutableStateOf(false)
-        }
+        val showTimelineLoadingIndicator =
+            timelineViewModel.didTimelineElementsArrive.collectAsStateForLoadingIndicator(timeout = 400.milliseconds).value.not()
         val timelineElementViewModelGrouped by derivedStateOf {
             val vms = timelineElementHolderViewModels
             buildList(vms.size) {
@@ -124,26 +122,13 @@ class TimelineViewImpl : TimelineView {
             }
         }
 
-        LaunchedEffect(isTimelineEmpty) {
-            if (isTimelineEmpty) {
-                delay(120.milliseconds)
-                showTimelineLoadingIndicator = true
-            } else {
-                showTimelineLoadingIndicator = false
-            }
-        }
-
         val error = timelineViewModel.error.collectAsState().value
         val draggedFile = timelineViewModel.draggedFile.collectAsState().value
 
         val focusManager = LocalFocusManager.current
 
         Box(modifier = Modifier.weight(1.0f, fill = true)) {
-            if (showTimelineLoadingIndicator) {
-                Box(Modifier.fillMaxSize()) {
-                    CircularProgressIndicator(Modifier.align(Alignment.Center))
-                }
-            } else {
+            if (timelineElementHolderViewModels.isNotEmpty()) {
                 val unreadMarkerOnFirstLoad = remember {
                     (timelineElementHolderViewModels.indexOfLast {
                         it is TimelineElementHolderViewModel && it.showUnreadMarker.value
@@ -317,6 +302,10 @@ class TimelineViewImpl : TimelineView {
                             reverseLayout = true,
                         )
                     }
+                }
+            } else if (showTimelineLoadingIndicator) {
+                Box(Modifier.fillMaxSize()) {
+                    LoadingSpinner(Modifier.align(Alignment.Center))
                 }
             }
         }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
@@ -38,7 +39,9 @@ class UiaActionConfirmationViewImpl : UiaActionConfirmationView {
     override fun create(uiaActionConfirmationViewModel: UiaActionConfirmationViewModel) {
         val i18n = DI.get<I18nView>()
         val message = uiaActionConfirmationViewModel.confirmationMessage ?: "" // TODO shouldn't be nullable
-        val isPerformingAction = uiaActionConfirmationViewModel.isPerformingAction.collectAsStateForLoadingIndicator().value
+        val isPerformingAction = uiaActionConfirmationViewModel.isPerformingAction.collectAsState().value
+        val showIsPerformingAction = uiaActionConfirmationViewModel.isPerformingAction.collectAsStateForLoadingIndicator().value && isPerformingAction
+
         UiaModalBox {
             Column(
                 Modifier
@@ -46,7 +49,7 @@ class UiaActionConfirmationViewImpl : UiaActionConfirmationView {
                     .padding(20.dp)
             ) {
                 UiaHeading(message)
-                if (isPerformingAction) LoadingSpinner()
+                if (showIsPerformingAction) LoadingSpinner()
                 Spacer(Modifier.height(40.dp))
                 Row(
                     Modifier.fillMaxWidth(),

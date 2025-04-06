@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -28,6 +27,7 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.AvatarWithImage
 import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.LoadingBar
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
@@ -60,7 +60,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
                 Column {
                     Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
                     if (isCreating) {
-                        LinearProgressIndicator(Modifier.fillMaxWidth())
+                        LoadingBar()
                     }
                     AddOrSearchGroup(createNewChatViewModel)
                     HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))

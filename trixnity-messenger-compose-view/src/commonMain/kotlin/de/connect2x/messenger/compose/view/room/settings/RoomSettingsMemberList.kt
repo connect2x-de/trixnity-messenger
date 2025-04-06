@@ -104,8 +104,10 @@ fun MemberList(
                     )
                 }
             }
-            if (showLoadingSpinner) item(key = "loadingSpinner") {
-                LoadingSpinner()
+            if (showLoadingSpinner) {
+                item(key = "loadingSpinner") {
+                    LoadingSpinner()
+                }
             }
         }
 

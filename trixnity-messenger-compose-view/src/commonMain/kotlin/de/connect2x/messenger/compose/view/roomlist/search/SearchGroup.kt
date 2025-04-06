@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -42,6 +41,7 @@ import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.LoadingBar
 import de.connect2x.messenger.compose.view.common.TextFieldModal
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
@@ -121,7 +121,8 @@ fun SearchGroupSearchBar(searchGroupViewModel: SearchGroupViewModel) {
 @Composable
 fun SearchGroupResults(searchGroupViewModel: SearchGroupViewModel, knockGroupModalShownFor: MutableState<SearchGroup?>) {
     val foundGroups = searchGroupViewModel.foundGroups.collectAsState().value
-    val groupSearchInProgress = searchGroupViewModel.groupSearchInProgress.collectAsStateForLoadingIndicator().value
+    val groupSearchInProgress = searchGroupViewModel.groupSearchInProgress.collectAsState().value
+    val showGroupSearchInProgress = searchGroupViewModel.groupSearchInProgress.collectAsStateForLoadingIndicator().value
     val error by searchGroupViewModel.error.collectAsState()
     val listState = rememberLazyListState()
 
@@ -131,8 +132,8 @@ fun SearchGroupResults(searchGroupViewModel: SearchGroupViewModel, knockGroupMod
         error?.let { ErrorView(it) }
 
         if (groupSearchInProgress) {
-            if (groupSearchInProgress) {
-                LinearProgressIndicator(Modifier.fillMaxWidth())
+            if (showGroupSearchInProgress) {
+                LoadingBar()
             }
         } else {
             Box(

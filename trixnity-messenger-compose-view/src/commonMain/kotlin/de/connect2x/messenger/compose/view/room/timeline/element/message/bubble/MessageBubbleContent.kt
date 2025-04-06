@@ -7,11 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,6 +27,7 @@ import androidx.compose.ui.layout.MeasureScope
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.common.SmallLoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarker
@@ -37,7 +36,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimeline
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import kotlinx.coroutines.flow.map
 
 @Composable
 fun MessageBubbleContent(
@@ -76,7 +74,7 @@ fun MessageBubbleContent(
                         .padding(start = 10.dp, end = 10.dp, top = 5.dp)
                 ) {
                     val sender = holder.sender.collectAsState().value
-                    val showLoadingSender = holder.sender.map { it == null }.collectAsStateForLoadingIndicator().value
+                    val showLoadingSender = holder.isSenderLoading.collectAsStateForLoadingIndicator().value
                     if (sender != null) {
                         Text(
                             text = sender.name,
@@ -88,7 +86,7 @@ fun MessageBubbleContent(
                         )
                     } else if (showLoadingSender) {
                         // TODO placeholder instead
-                        CircularProgressIndicator(Modifier.size(20.dp))
+                        SmallLoadingSpinner()
                     }
                 }
             }

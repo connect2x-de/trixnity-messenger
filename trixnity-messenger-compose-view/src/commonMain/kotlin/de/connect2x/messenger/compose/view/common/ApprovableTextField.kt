@@ -46,14 +46,17 @@ fun ApprovableTextField(
 ) {
     val i18n = DI.get<I18nView>()
     val isEdit by viewModel.isEdit.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsStateForLoadingIndicator()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val showLoading by viewModel.isLoading.collectAsStateForLoadingIndicator()
     var value by viewModel.collectAsTextFieldValueState()
 
     Column {
         Text(text = textCaption, style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.size(10.dp))
         when {
-            isLoading -> LoadingSpinner()
+            isLoading -> if(showLoading) {
+                LoadingSpinner()
+            }
 
             isEditable -> {
                 Row(

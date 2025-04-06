@@ -12,10 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,8 +28,8 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.LoadingBar
 import de.connect2x.messenger.compose.view.common.RunningText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -107,7 +105,7 @@ class ExportRoomViewImpl : ExportRoomView {
                         val progress by state.progress.collectAsState()
                         val progressString by state.progressString.collectAsState()
                         val (processed, total) = progress
-                        if (processed == null || total == null) LinearProgressIndicator(Modifier.fillMaxWidth())
+                        if (processed == null || total == null) LoadingBar()
                         else LinearProgressIndicator(
                             progress = { processed.toFloat() / total },
                             modifier = Modifier.fillMaxWidth(),

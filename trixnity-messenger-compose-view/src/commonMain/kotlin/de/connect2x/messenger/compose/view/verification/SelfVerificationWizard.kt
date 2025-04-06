@@ -240,7 +240,8 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             content = {
                 Column {
                     val selfVerificationMethods = selfVerificationViewModel.selfVerificationMethods.collectAsState()
-                    val methodsLoaded = methodsLoaded.collectAsStateForLoadingIndicator().value
+                    val showMethodsLoading = methodsLoaded.collectAsStateForLoadingIndicator().value.not()
+                    val methodsLoaded = methodsLoaded.collectAsState().value != false
 
                     if (methodsLoaded) {
                         Text(i18n.selfVerificationMethodsTitle())
@@ -347,7 +348,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                             },
                             selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
                         )
-                    } else {
+                    } else if (showMethodsLoading) {
                         Text(i18n.selfVerificationWaitingForMethods())
                         LoadingSpinner()
                         Spacer(Modifier.size(10.dp))

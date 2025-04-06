@@ -122,13 +122,16 @@ fun AccountWithDevicesList(
     accountWithDevices: AccountWithDevices,
     devicesSettingsViewModel: DevicesSettingsViewModel,
 ) {
-    val isLoading by accountWithDevices.isLoading.collectAsStateForLoadingIndicator()
+    val isLoading by accountWithDevices.isLoading.collectAsState()
+    val showLoading by accountWithDevices.isLoading.collectAsStateForLoadingIndicator()
     val error by accountWithDevices.loadingError.collectAsState()
     val devicesInAccount = accountWithDevices.devicesInAccount.collectAsState().value
     SettingsAccountCard(accountWithDevices.userId) {
         error?.let { ErrorView(it) }
         if (isLoading) {
-            LoadingSpinner()
+            if (showLoading) {
+                LoadingSpinner()
+            }
         } else if (devicesInAccount != null) {
             ThisDevice(accountWithDevices.userId, devicesInAccount.thisDevice, devicesSettingsViewModel)
             Spacer(Modifier.size(20.dp))

@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
+import de.connect2x.messenger.compose.view.common.LoadingBar
 import de.connect2x.messenger.compose.view.common.MatrixUsername
 import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.TabInTextField
@@ -68,7 +67,7 @@ fun PasswordLoginState(state: AddMatrixAccountState) {
     Box(Modifier.defaultMinSize(minHeight = 20.dp)) {
         when (state) {
             AddMatrixAccountState.None -> {}
-            AddMatrixAccountState.Connecting -> LinearProgressIndicator(Modifier.fillMaxWidth())
+            AddMatrixAccountState.Connecting -> LoadingBar()
             is AddMatrixAccountState.Failure ->
                 Text(state.message, color = MaterialTheme.colorScheme.error)
 
