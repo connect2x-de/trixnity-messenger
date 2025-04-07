@@ -34,6 +34,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -328,6 +329,7 @@ open class MainViewModelImpl(
                 namedMatrixClients.forEach { (userId, matrixClient) ->
                     launch {
                         messengerSettings[userId].filterNotNull().map { it.base.presenceIsPublic }
+                            .distinctUntilChanged()
                             .collect { presenceIsPublic ->
                                 if (presenceIsPublic && lifecycle.state >= Lifecycle.State.STARTED) {
                                     log.info { "the settings for `presenceIsPublic` have changed -> restart sync with ONLINE" }
