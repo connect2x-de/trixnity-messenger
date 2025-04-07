@@ -657,6 +657,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Export is not working, when size of exported events did not match a multiple of buffer size
 - Fix wrong filename in export
+- Fix `forgetting rooms while not leaved` error
 
 ## 2.0.3
 
