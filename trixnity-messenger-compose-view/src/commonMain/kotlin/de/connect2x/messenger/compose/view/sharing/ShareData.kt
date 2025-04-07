@@ -58,7 +58,6 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.SharedData
@@ -86,7 +85,6 @@ class ShareDataViewImpl : ShareDataView {
         val allRooms by viewModel.roomList.elements.collectAsState()
         val selectedRoomId by viewModel.selectedRoomId.collectAsState()
         val sending by viewModel.sending.collectAsState()
-        val showSending by viewModel.sending.collectAsStateForLoadingIndicator()
         val enabled = selectedRoomId != null && !sending
         val maxMediaSize = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
@@ -107,7 +105,7 @@ class ShareDataViewImpl : ShareDataView {
                     )
                 }, navigationIcon = {
                     Tooltip(
-                        tooltip = { Text(i18n.shareFilesCancel())}
+                        tooltip = { Text(i18n.shareFilesCancel()) }
                     ) {
                         ThemedIconButton(
                             style = MaterialTheme.components.commonIconButton,
@@ -120,7 +118,7 @@ class ShareDataViewImpl : ShareDataView {
                     }
                 }, actions = {
                     Tooltip(
-                        tooltip = { Text(i18n.inputAreaSend())}
+                        tooltip = { Text(i18n.inputAreaSend()) }
                     ) {
                         ThemedIconButton(
                             style = MaterialTheme.components.commonIconButton,
@@ -128,12 +126,10 @@ class ShareDataViewImpl : ShareDataView {
                             enabled = enabled,
                         ) {
                             if (sending) {
-                                if (showSending) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(32.dp),
-                                        color = MaterialTheme.colorScheme.primary,
-                                    )
-                                }
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(32.dp),
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
                             } else {
                                 Icon(
                                     Icons.AutoMirrored.Default.Send,
@@ -253,7 +249,10 @@ private fun ShareUrlRow(text: String, icon: FileDescriptor?, maxMediaSize: Long)
                     )
                 ) {
                     Text(
-                        text, style = MaterialTheme.typography.bodyLarge, softWrap = false, overflow = TextOverflow.Ellipsis
+                        text,
+                        style = MaterialTheme.typography.bodyLarge,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

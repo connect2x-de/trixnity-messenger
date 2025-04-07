@@ -34,7 +34,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarker
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
 import de.connect2x.messenger.compose.view.theme.messengerColors
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 
 @Composable
@@ -74,8 +73,12 @@ fun MessageBubbleContent(
                         .padding(start = 10.dp, end = 10.dp, top = 5.dp)
                 ) {
                     val sender = holder.sender.collectAsState().value
-                    val showLoadingSender = holder.isSenderLoading.collectAsStateForLoadingIndicator().value
-                    if (sender != null) {
+                    val isSenderLoading = sender == null
+
+                    if (isSenderLoading) {
+                        // TODO placeholder instead
+                        SmallLoadingSpinner()
+                    } else {
                         Text(
                             text = sender.name,
                             style = MaterialTheme.typography.labelLarge.copy(
@@ -84,9 +87,6 @@ fun MessageBubbleContent(
                                 )
                             ),
                         )
-                    } else if (showLoadingSender) {
-                        // TODO placeholder instead
-                        SmallLoadingSpinner()
                     }
                 }
             }

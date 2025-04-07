@@ -12,14 +12,12 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.crypto.core.SecureRandom
@@ -71,12 +69,6 @@ interface SSOLoginViewModel {
      */
     val isResumingLogin: StateFlow<Boolean>
 
-
-    /**
-     * Whether we are connecting in at the moment
-     */
-    val isConnecting: StateFlow<Boolean>
-
     /**
      * Opens SSO provider login page, waits to receive the token and logs in with this token.
      */
@@ -91,7 +83,6 @@ interface SSOLoginViewModel {
     fun back()
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 open class SSOLoginViewModelImpl(
     viewModelContext: ViewModelContext,
     override val serverUrl: String,
@@ -131,13 +122,6 @@ open class SSOLoginViewModelImpl(
 
     override val waitForRedirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isResumingLogin: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val isConnecting: StateFlow<Boolean> =
-        addMatrixAccountState.mapLatest {
-            when (it) {
-                AddMatrixAccountState.Connecting -> true
-                AddMatrixAccountState.Success, is AddMatrixAccountState.Failure, None -> false
-            }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     private var loginJob: Job? = null
 
@@ -219,7 +203,6 @@ class PreviewSSOLoginViewModel : SSOLoginViewModel {
         MutableStateFlow(AddMatrixAccountState.Failure("dino"))
     override val waitForRedirect: StateFlow<Boolean> = MutableStateFlow(true)
     override val isResumingLogin: StateFlow<Boolean> = MutableStateFlow(false)
-    override val isConnecting: StateFlow<Boolean> = MutableStateFlow(false)
 
     override fun resumeLogin(redirectUrl: Url) {}
     override fun tryLogin() {}

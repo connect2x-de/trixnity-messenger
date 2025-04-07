@@ -26,7 +26,6 @@ import de.connect2x.messenger.compose.view.common.SmallLoadingSpinner
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.NotificationLevels
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNotificationsViewModel
 
@@ -45,8 +44,6 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
     override fun create(roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel) {
         val i18n = DI.get<I18nView>()
         val isLoading = roomSettingsNotificationsViewModel.isNotificationsLevelLoading.collectAsState().value
-        val showLoading =
-            roomSettingsNotificationsViewModel.isNotificationsLevelLoading.collectAsStateForLoadingIndicator().value
         val selectedLevel = roomSettingsNotificationsViewModel.selectedRoomNotificationsLevel.collectAsState().value
         val selectedLevelName = selectedLevel.name.collectAsState().value
         val selectedLevelExplanation = selectedLevel.explanation.collectAsState().value
@@ -67,9 +64,7 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
             RadioSetting(
                 title = {
                     if (isLoading) {
-                        if (showLoading) {
-                            SmallLoadingSpinner()
-                        }
+                        SmallLoadingSpinner()
                     } else {
                         Tooltip(tooltip = { TooltipText { selectedLevelExplanation } }) {
                             Text(selectedLevelName)

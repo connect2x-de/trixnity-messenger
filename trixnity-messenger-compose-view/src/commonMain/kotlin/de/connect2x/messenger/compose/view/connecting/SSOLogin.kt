@@ -14,7 +14,6 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.LoadingBar
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
 
@@ -34,7 +33,6 @@ class SSOLoginViewImpl : SSOLoginView {
         val state = ssoLoginViewModel.addMatrixAccountState.collectAsState().value
         val waitForRedirect = ssoLoginViewModel.waitForRedirect.collectAsState().value
         val i18n = DI.get<I18nView>()
-        val showLoadingIndicator = ssoLoginViewModel.isConnecting.collectAsStateForLoadingIndicator().value
 
         if (waitForRedirect) {
             Text(i18n.externalLogin(ssoLoginViewModel.providerName ?: "SSO"))
@@ -44,9 +42,7 @@ class SSOLoginViewImpl : SSOLoginView {
         Box(Modifier.defaultMinSize(minHeight = 20.dp)) {
             when (state) {
                 AddMatrixAccountState.None -> {}
-                AddMatrixAccountState.Connecting -> if (showLoadingIndicator) {
-                    LoadingBar()
-                }
+                AddMatrixAccountState.Connecting -> LoadingBar()
 
                 is AddMatrixAccountState.Failure ->
                     Text(state.message, color = MaterialTheme.colorScheme.error)

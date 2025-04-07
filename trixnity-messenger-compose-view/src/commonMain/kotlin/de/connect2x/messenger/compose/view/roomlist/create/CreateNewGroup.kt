@@ -35,7 +35,6 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 
 interface CreateNewGroupView {
@@ -56,7 +55,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
         val error = createNewGroupViewModel.error.collectAsState()
         val isPrivate by createNewGroupViewModel.isPrivate.collectAsState()
         val isEncrypted by createNewGroupViewModel.isEncrypted.collectAsState()
-        val isCreating by createNewGroupViewModel.isCreating.collectAsStateForLoadingIndicator()
+        val isCreating by createNewGroupViewModel.isCreating.collectAsState()
         val optionalRoomName = createNewGroupViewModel.optionalRoomName.collectAsTextFieldValueState()
         val optionalRoomTopic = createNewGroupViewModel.optionalGroupTopic.collectAsTextFieldValueState()
 

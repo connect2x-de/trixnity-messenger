@@ -76,7 +76,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.shareIn
@@ -147,7 +146,6 @@ interface TimelineViewModelFactory {
  */
 interface TimelineViewModel {
     val elements: StateFlow<List<BaseTimelineElementHolderViewModel>>
-    val didTimelineElementsArrive: StateFlow<Boolean>
 
     /**
      * Use this to set the state of the current UI.
@@ -327,8 +325,6 @@ class TimelineViewModelImpl(
             log.debug { "finished compute timeline elements" }
             timelineElements
         }.stateIn(coroutineScope, WhileSubscribed(), listOf())
-    override val didTimelineElementsArrive: StateFlow<Boolean> =
-        elements.mapLatest { it.isNotEmpty() }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val scrollTo: MutableSharedFlow<String> =
         MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -1073,7 +1069,6 @@ class PreviewTimelineViewModel : TimelineViewModel {
                 PreviewTimelineElementViewModel2(),
             )
         )
-    override val didTimelineElementsArrive: StateFlow<Boolean> = MutableStateFlow(false)
     override val viewState: MutableStateFlow<TimelineViewModel.ViewState?> = MutableStateFlow(null)
     override val scrollTo: Flow<String> = MutableSharedFlow()
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)

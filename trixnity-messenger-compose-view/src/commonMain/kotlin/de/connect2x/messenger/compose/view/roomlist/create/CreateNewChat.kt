@@ -31,7 +31,6 @@ import de.connect2x.messenger.compose.view.common.LoadingBar
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 
 interface CreateNewChatView {
@@ -48,7 +47,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
     @Composable
     override fun create(createNewChatViewModel: CreateNewChatViewModel) {
         val i18n = DI.get<I18nView>()
-        val isCreating by createNewChatViewModel.isCreating.collectAsStateForLoadingIndicator()
+        val isCreating by createNewChatViewModel.isCreating.collectAsState()
         val error = createNewChatViewModel.error.collectAsState()
 
         Box(Modifier.fillMaxSize()) {

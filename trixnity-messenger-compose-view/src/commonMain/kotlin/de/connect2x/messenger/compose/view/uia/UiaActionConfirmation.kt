@@ -21,7 +21,6 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaActionConfirmationViewModel
 
 interface UiaActionConfirmationView {
@@ -40,7 +39,6 @@ class UiaActionConfirmationViewImpl : UiaActionConfirmationView {
         val i18n = DI.get<I18nView>()
         val message = uiaActionConfirmationViewModel.confirmationMessage ?: "" // TODO shouldn't be nullable
         val isPerformingAction = uiaActionConfirmationViewModel.isPerformingAction.collectAsState().value
-        val showIsPerformingAction = uiaActionConfirmationViewModel.isPerformingAction.collectAsStateForLoadingIndicator().value && isPerformingAction
 
         UiaModalBox {
             Column(
@@ -49,7 +47,7 @@ class UiaActionConfirmationViewImpl : UiaActionConfirmationView {
                     .padding(20.dp)
             ) {
                 UiaHeading(message)
-                if (showIsPerformingAction) LoadingSpinner()
+                if (isPerformingAction) LoadingSpinner()
                 Spacer(Modifier.height(40.dp))
                 Row(
                     Modifier.fillMaxWidth(),

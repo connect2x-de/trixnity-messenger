@@ -46,7 +46,6 @@ import de.connect2x.messenger.compose.view.common.TextFieldModal
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.util.isKnock
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel.SearchGroup
@@ -119,10 +118,12 @@ fun SearchGroupSearchBar(searchGroupViewModel: SearchGroupViewModel) {
 }
 
 @Composable
-fun SearchGroupResults(searchGroupViewModel: SearchGroupViewModel, knockGroupModalShownFor: MutableState<SearchGroup?>) {
+fun SearchGroupResults(
+    searchGroupViewModel: SearchGroupViewModel,
+    knockGroupModalShownFor: MutableState<SearchGroup?>
+) {
     val foundGroups = searchGroupViewModel.foundGroups.collectAsState().value
     val groupSearchInProgress = searchGroupViewModel.groupSearchInProgress.collectAsState().value
-    val showGroupSearchInProgress = searchGroupViewModel.groupSearchInProgress.collectAsStateForLoadingIndicator().value
     val error by searchGroupViewModel.error.collectAsState()
     val listState = rememberLazyListState()
 
@@ -132,9 +133,7 @@ fun SearchGroupResults(searchGroupViewModel: SearchGroupViewModel, knockGroupMod
         error?.let { ErrorView(it) }
 
         if (groupSearchInProgress) {
-            if (showGroupSearchInProgress) {
-                LoadingBar()
-            }
+            LoadingBar()
         } else {
             Box(
                 Modifier
@@ -158,7 +157,11 @@ fun SearchGroupResults(searchGroupViewModel: SearchGroupViewModel, knockGroupMod
 }
 
 @Composable
-fun SearchGroupResult(group: SearchGroup, searchGroupViewModel: SearchGroupViewModel, knockGroupModalShownFor: MutableState<SearchGroup?>) {
+fun SearchGroupResult(
+    group: SearchGroup,
+    searchGroupViewModel: SearchGroupViewModel,
+    knockGroupModalShownFor: MutableState<SearchGroup?>
+) {
     val image = group.image.collectAsState().value
 
     Tooltip({ TooltipText(group.groupName) }) {

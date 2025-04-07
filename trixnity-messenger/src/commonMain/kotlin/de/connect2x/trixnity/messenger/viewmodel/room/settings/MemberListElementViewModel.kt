@@ -56,7 +56,6 @@ interface MemberListElementViewModelFactory {
 interface MemberListElementViewModel {
     val memberUserId: UserId
     val member: StateFlow<MemberElement?>
-    val isMemberLoading: StateFlow<Boolean>
     val userTrustLevel: StateFlow<UserTrustLevel?>
     val membership: StateFlow<Membership?>
     val iHavePowerToUnbanUser: StateFlow<Boolean>
@@ -112,7 +111,6 @@ class MemberListElementViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, MemberListElementViewModel {
     override val memberUserId = roomUser.userId
     override val member: StateFlow<MemberListElementViewModel.MemberElement?>
-    override val isMemberLoading: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val membership: StateFlow<Membership?> = matrixClient.user.getById(selectedRoomId, memberUserId)
         .mapLatest { it?.membership }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -164,7 +162,6 @@ class MemberListElementViewModelImpl(
                     initials.compute(roomUser.name),
                 )
             )
-            isMemberLoading.value = false
         }.buffer(0).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     }
 

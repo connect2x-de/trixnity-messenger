@@ -68,7 +68,6 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountWithDevices
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceInfo
 import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModel
@@ -123,15 +122,12 @@ fun AccountWithDevicesList(
     devicesSettingsViewModel: DevicesSettingsViewModel,
 ) {
     val isLoading by accountWithDevices.isLoading.collectAsState()
-    val showLoading by accountWithDevices.isLoading.collectAsStateForLoadingIndicator()
     val error by accountWithDevices.loadingError.collectAsState()
     val devicesInAccount = accountWithDevices.devicesInAccount.collectAsState().value
     SettingsAccountCard(accountWithDevices.userId) {
         error?.let { ErrorView(it) }
         if (isLoading) {
-            if (showLoading) {
-                LoadingSpinner()
-            }
+            LoadingSpinner()
         } else if (devicesInAccount != null) {
             ThisDevice(accountWithDevices.userId, devicesInAccount.thisDevice, devicesSettingsViewModel)
             Spacer(Modifier.size(20.dp))
@@ -160,7 +156,7 @@ fun ThisDevice(userId: UserId, device: DeviceInfo, devicesSettingsViewModel: Dev
             Row(Modifier.padding(vertical = 8.dp)) {
                 if (editDeviceDisplayName.value) {
                     Spacer(Modifier.size(10.dp))
-                    Tooltip({Text(i18n.commonDone())}) {
+                    Tooltip({ Text(i18n.commonDone()) }) {
                         ThemedIconButton(
                             style = MaterialTheme.components.commonIconButton,
                             onClick = {
@@ -179,7 +175,7 @@ fun ThisDevice(userId: UserId, device: DeviceInfo, devicesSettingsViewModel: Dev
                     }
                 } else {
                     Spacer(Modifier.size(20.dp))
-                    Tooltip({Text(i18n.commonRename())}) {
+                    Tooltip({ Text(i18n.commonRename()) }) {
                         ThemedIconButton(
                             style = MaterialTheme.components.commonIconButton,
                             onClick = {
@@ -238,7 +234,7 @@ fun OtherDevice(userId: UserId, device: DeviceInfo, devicesSettingsViewModel: De
         Row(Modifier.padding(vertical = 8.dp)) {
             if (editDeviceDisplayName.value) {
                 Spacer(Modifier.size(10.dp))
-                Tooltip({Text(i18n.commonDone())}) {
+                Tooltip({ Text(i18n.commonDone()) }) {
                     ThemedIconButton(
                         style = MaterialTheme.components.commonIconButton,
                         onClick = {
@@ -255,7 +251,7 @@ fun OtherDevice(userId: UserId, device: DeviceInfo, devicesSettingsViewModel: De
                     }
                 }
             } else {
-                Tooltip({Text(i18n.commonMore())}) {
+                Tooltip({ Text(i18n.commonMore()) }) {
                     ThemedIconButton(
                         style = MaterialTheme.components.commonIconButton,
                         onClick = { showOptions.value = showOptions.value.not() },
@@ -318,7 +314,7 @@ fun DeviceRow(
     val focusRequester = remember { FocusRequester() }
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (editDeviceDisplayName.value) {
-            Tooltip({Text(i18n.commonCancel())}) {
+            Tooltip({ Text(i18n.commonCancel()) }) {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = {

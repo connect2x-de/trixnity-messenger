@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -91,7 +90,6 @@ interface OutboxElementHolderViewModel : BaseTimelineElementHolderViewModel {
     fun abortSend()
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class OutboxElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val key: String,
@@ -214,10 +212,6 @@ class OutboxElementHolderViewModelImpl(
         matrixClient.user.getById(roomId, userId).map { user ->
             user.toUserInfoElement(coroutineScope, matrixClient, initials, config.avatarMaxSize, userId)
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
-    override val isSenderLoading: StateFlow<Boolean> =
-        sender
-            .mapLatest { it == null }
-            .stateIn(coroutineScope, whileSubscribedWithTimeout, true)
 
     override val isByMe: Boolean = true
 

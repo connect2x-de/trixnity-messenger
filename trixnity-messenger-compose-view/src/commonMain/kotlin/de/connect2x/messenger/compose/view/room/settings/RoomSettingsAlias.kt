@@ -40,7 +40,6 @@ import de.connect2x.messenger.compose.view.common.gesturesDisabled
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModel
 import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.RoomAliasId
@@ -53,7 +52,6 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
     val moreAliases = viewModel.moreAliases.collectAsState().value
     var newAlias by viewModel.newAlias.collectAsTextFieldValueState()
     val isUpdating = viewModel.isUpdating.collectAsState().value
-    val showUpdating = viewModel.isUpdating.collectAsStateForLoadingIndicator().value
     val canChangeRoomAlias = viewModel.canChangeRoomAlias.collectAsState().value
 
     Column {
@@ -196,9 +194,7 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                 }
                 if (isUpdating) {
                     Box(Modifier.fillMaxSize().gesturesDisabled(), contentAlignment = Alignment.Center) {
-                        if (showUpdating) {
-                            LoadingSpinner()
-                        }
+                        LoadingSpinner()
                     }
                 }
             }

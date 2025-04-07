@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import net.folivo.trixnity.client.serverDiscovery
@@ -54,7 +53,6 @@ interface AddMatrixAccountViewModel {
 
     val serverUrl: TextFieldViewModel
     val serverDiscoveryState: StateFlow<ServerDiscoveryState>
-    val isServerDiscoveryLoading: StateFlow<Boolean>
 
     sealed interface ServerDiscoveryState {
         data object None : ServerDiscoveryState
@@ -101,14 +99,6 @@ open class AddMatrixAccountViewModelImpl(
                 }
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), ServerDiscoveryState.None)
-
-    final override val isServerDiscoveryLoading: StateFlow<Boolean> =
-        serverDiscoveryState.mapLatest { serverDiscoveryState ->
-            when (serverDiscoveryState) {
-                is ServerDiscoveryState.Loading -> true
-                is ServerDiscoveryState.Success, is ServerDiscoveryState.None, is ServerDiscoveryState.Failure -> false
-            }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override fun selectAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
         onAddMatrixAccountMethod(addMatrixAccountMethod)
@@ -198,7 +188,6 @@ class PreviewAddMatrixAccountViewModel : AddMatrixAccountViewModel {
     override val serverUrl = TextFieldViewModelImpl("matrix.org")
     override val serverDiscoveryState: MutableStateFlow<ServerDiscoveryState> =
         MutableStateFlow(ServerDiscoveryState.None)
-    override val isServerDiscoveryLoading: StateFlow<Boolean> = MutableStateFlow(false)
 
     override fun selectAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
     }

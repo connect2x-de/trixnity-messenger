@@ -44,7 +44,6 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.theme.messengerIcons
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -56,7 +55,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger {}
@@ -85,8 +83,7 @@ class TimelineViewImpl : TimelineView {
         var timelineElementHolderViewModels by remember {
             mutableStateOf<List<BaseTimelineElementHolderViewModel>>(listOf())
         }
-        val showTimelineLoadingIndicator =
-            timelineViewModel.didTimelineElementsArrive.collectAsStateForLoadingIndicator(timeout = 400.milliseconds).value.not()
+        val isTimelineLoading = timelineElementHolderViewModels.isEmpty()
         val timelineElementViewModelGrouped by derivedStateOf {
             val vms = timelineElementHolderViewModels
             buildList(vms.size) {
@@ -128,7 +125,11 @@ class TimelineViewImpl : TimelineView {
         val focusManager = LocalFocusManager.current
 
         Box(modifier = Modifier.weight(1.0f, fill = true)) {
-            if (timelineElementHolderViewModels.isNotEmpty()) {
+            if (isTimelineLoading) {
+                Box(Modifier.fillMaxSize()) {
+                    LoadingSpinner(Modifier.align(Alignment.Center))
+                }
+            } else {
                 val unreadMarkerOnFirstLoad = remember {
                     (timelineElementHolderViewModels.indexOfLast {
                         it is TimelineElementHolderViewModel && it.showUnreadMarker.value
@@ -302,10 +303,6 @@ class TimelineViewImpl : TimelineView {
                             reverseLayout = true,
                         )
                     }
-                }
-            } else if (showTimelineLoadingIndicator) {
-                Box(Modifier.fillMaxSize()) {
-                    LoadingSpinner(Modifier.align(Alignment.Center))
                 }
             }
         }

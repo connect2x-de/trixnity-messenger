@@ -25,7 +25,6 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 import net.folivo.trixnity.core.model.UserId
@@ -86,7 +85,7 @@ fun MemberList(
 ) {
     val members = memberListViewModel.elements.collectAsState().value
     val state = rememberLazyListState()
-    val showLoadingSpinner = memberListViewModel.showLoadingSpinner.collectAsStateForLoadingIndicator().value
+    val showLoadingSpinner = memberListViewModel.showLoadingSpinner.collectAsState().value
 
     Box(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
         LazyColumn(Modifier.fillMaxWidth(), state) {

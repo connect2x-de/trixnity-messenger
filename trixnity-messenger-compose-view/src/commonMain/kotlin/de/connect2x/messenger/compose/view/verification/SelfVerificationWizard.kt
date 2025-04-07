@@ -56,7 +56,6 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.messenger.compose.view.verification.SelfVerificationMethodsListEntries.SelectSelfVerificationMethod
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
@@ -240,8 +239,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             content = {
                 Column {
                     val selfVerificationMethods = selfVerificationViewModel.selfVerificationMethods.collectAsState()
-                    val showMethodsLoading = methodsLoaded.collectAsStateForLoadingIndicator().value.not()
-                    val methodsLoaded = methodsLoaded.collectAsState().value != false
+                    val methodsLoaded = methodsLoaded.collectAsState().value == true
 
                     if (methodsLoaded) {
                         Text(i18n.selfVerificationMethodsTitle())
@@ -348,7 +346,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                             },
                             selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
                         )
-                    } else if (showMethodsLoading) {
+                    } else {
                         Text(i18n.selfVerificationWaitingForMethods())
                         LoadingSpinner()
                         Spacer(Modifier.size(10.dp))

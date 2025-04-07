@@ -21,7 +21,6 @@ import de.connect2x.messenger.compose.view.common.LoadingBar
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
@@ -42,15 +41,10 @@ class ServerDiscoveryStateViewImpl : ServerDiscoveryStateView {
     override fun create(addMatrixAccountViewModel: AddMatrixAccountViewModel) {
         val i18n = DI.get<I18nView>()
         val serverDiscoveryState = addMatrixAccountViewModel.serverDiscoveryState.collectAsState().value
-        val showServerDiscoveryStateLoading = addMatrixAccountViewModel.isServerDiscoveryLoading.collectAsStateForLoadingIndicator().value
 
         when (serverDiscoveryState) {
             is ServerDiscoveryState.None -> {}
-            is ServerDiscoveryState.Loading -> {
-                if (showServerDiscoveryStateLoading) {
-                    LoadingBar()
-                }
-            }
+            is ServerDiscoveryState.Loading -> LoadingBar()
 
             is ServerDiscoveryState.Success -> {
                 val addMatrixAccountMethods = remember {

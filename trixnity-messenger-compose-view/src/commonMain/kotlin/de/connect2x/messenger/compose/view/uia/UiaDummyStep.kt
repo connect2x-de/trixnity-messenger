@@ -22,7 +22,6 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
-import de.connect2x.messenger.compose.view.util.collectAsStateForLoadingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepDummyViewModel
 
 interface UiaDummyStepView {
@@ -40,7 +39,6 @@ class UiaDummyStepViewImpl : UiaDummyStepView {
     override fun create(uiaStepDummyViewModel: UiaStepDummyViewModel) {
         val i18n = DI.get<I18nView>()
         val isSubmitting = uiaStepDummyViewModel.isLoading.collectAsState().value
-        val showIsSubmitting = uiaStepDummyViewModel.isLoading.collectAsStateForLoadingIndicator().value && isSubmitting
 
         val error = uiaStepDummyViewModel.error.collectAsState().value
         UiaModalBox {
@@ -53,7 +51,7 @@ class UiaDummyStepViewImpl : UiaDummyStepView {
                 if (error != null) {
                     ErrorView(error)
                 }
-                if (showIsSubmitting) LoadingSpinner()
+                if (isSubmitting) LoadingSpinner()
                 Spacer(Modifier.height(20.dp))
                 Row(
                     Modifier.fillMaxWidth(),
