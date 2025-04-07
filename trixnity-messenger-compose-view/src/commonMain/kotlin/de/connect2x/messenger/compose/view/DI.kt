@@ -233,6 +233,8 @@ import de.connect2x.messenger.compose.view.theme.DefaultAccentColor
 import de.connect2x.messenger.compose.view.theme.DefaultAccentColorImpl
 import de.connect2x.messenger.compose.view.theme.DefaultSizes
 import de.connect2x.messenger.compose.view.theme.DefaultSizesImpl
+import de.connect2x.messenger.compose.view.theme.MessengerColorScheme
+import de.connect2x.messenger.compose.view.theme.MessengerColorSchemeImpl
 import de.connect2x.messenger.compose.view.theme.Theme
 import de.connect2x.messenger.compose.view.theme.ThemeComponents
 import de.connect2x.messenger.compose.view.theme.ThemeComponentsImpl
@@ -305,10 +307,11 @@ fun themeViewModule(): Module = module {
     single<ThemeComponents> { ThemeComponentsImpl() }
     single<DefaultAccentColor> { DefaultAccentColorImpl() }
     single<DefaultSizes> { DefaultSizesImpl() }
+    single<MessengerColorScheme> { MessengerColorSchemeImpl(get(), get(), get(), get()) }
     single<ThemeLightColorScheme> { ThemeLightColorSchemeImpl() }
     single<ThemeDarkColorScheme> { ThemeDarkColorSchemeImpl() }
-    single<ThemeHighContrastLightColorScheme> { ThemeHighContrastLightColorSchemeImpl() }
-    single<ThemeHighContrastDarkColorScheme> { ThemeHighContrastDarkColorSchemeImpl() }
+    single<ThemeHighContrastLightColorScheme> { ThemeHighContrastLightColorSchemeImpl(get()) }
+    single<ThemeHighContrastDarkColorScheme> { ThemeHighContrastDarkColorSchemeImpl(get()) }
 }
 
 fun commonViewModule() = module {

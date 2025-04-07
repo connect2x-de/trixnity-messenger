@@ -1,8 +1,11 @@
 package de.connect2x.messenger.compose.view.theme
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import de.connect2x.messenger.compose.view.common.deriveFromHue
+import de.connect2x.messenger.compose.view.common.hue
 
 // Light theme template (mostly used for lightness/saturation)
 internal val md_theme_light_onPrimary = Color(0xFF040404)
@@ -65,8 +68,12 @@ internal val md_theme_dark_surfaceTint = Color(0xFF5BD5F9)       // TODO
 internal val md_theme_dark_outlineVariant = Color(0xFF40484B)    // TODO
 internal val md_theme_dark_scrim = Color(0xFF101010)
 
+@Immutable
 class DefaultMessengerLightColors internal constructor(accentHue: Float) : MessengerColors {
     companion object {
+        @Stable
+        internal fun create(accentColor: Color) = DefaultMessengerLightColors(accentColor.hue)
+
         private val userColors: List<Color> by lazy {
             listOf(
                 Color(0xFFA41515),
@@ -99,8 +106,12 @@ class DefaultMessengerLightColors internal constructor(accentHue: Float) : Messe
     override val userColors: List<Color> = Companion.userColors
 }
 
+@Immutable
 class DefaultMessengerDarkColors internal constructor(accentHue: Float) : MessengerColors {
     companion object {
+        @Stable
+        internal fun create(accentColor: Color) = DefaultMessengerDarkColors(accentColor.hue)
+
         private val userColors: List<Color> by lazy {
             listOf(
                 Color(0xFFe61c1c),
