@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Recreating Profile in Web
 - iOS: problems with keychain access and missing key
 - Avoid re-render when unrelated settings change 
+- Fix `forgetting rooms while not leaved` error
+- Fix low contrast in dark mode
 - Fix Room list is not loading on initial sync
 
 ### Security
