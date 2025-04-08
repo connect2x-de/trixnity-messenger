@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.util.ForgetRoom
+import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -40,7 +40,6 @@ import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
@@ -114,7 +113,7 @@ open class RoomListElementViewModelImpl(
     private val clock = get<Clock>()
     private val timeZone = get<TimeZone>()
     private val userBlocking = get<UserBlocking>()
-    private val forgetRoom = get<ForgetRoom>()
+    private val leaveRoom = get<LeaveRoom>()
 
     private val roomFlow = matrixClient.room.getById(roomId).filterNotNull()
         .shareIn(coroutineScope, WhileSubscribed(), 1)
@@ -286,15 +285,15 @@ open class RoomListElementViewModelImpl(
             if (matrixClient.syncState.value != SyncState.RUNNING) {
                 log.debug { "try to reject room invitation while not connected" }
                 error.value = i18n.roomListKnockOffline()
-            } else {
-                matrixClient.api.room.leaveRoom(roomId).fold(
-                    onSuccess = { log.info { "successfully rejected invitation" } },
-                    onFailure = {
-                        log.error(it) { "Cannot reject invitation" }
-                        error.value = i18n.roomListKnockError()
-                    }
-                )
+                return@launch
             }
+
+            leaveRoom(matrixClient, roomId, forget = false)
+                .onSuccess { log.info { "successfully rejected invitation" } }
+                .onFailure {
+                    log.error(it) { "Cannot reject invitation" }
+                    error.value = i18n.roomListKnockError()
+                }
         }
     }
 
@@ -347,7 +346,7 @@ open class RoomListElementViewModelImpl(
                 return@launch
             }
 
-            forgetRoom(matrixClient, roomId, leaveRoom = false)
+            leaveRoom(matrixClient, roomId)
                 .onSuccess { log.info { "successfully forgot room" } }
                 .onFailure { log.error(it) { "failed to forget room" } }
             onRoomClose()
@@ -365,7 +364,7 @@ open class RoomListElementViewModelImpl(
             return
         }
 
-        forgetRoom(matrixClient, roomId, leaveRoom = true)
+        leaveRoom(matrixClient, roomId)
             .onSuccess { log.info { "successfully rejected invitation" } }
             .onFailure { log.error(it) { "failed to reject invitation" } }
     }
