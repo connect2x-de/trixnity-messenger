@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
-import de.connect2x.trixnity.messenger.util.ForgetRoom
+import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -89,7 +89,7 @@ class RoomSettingsViewModelImpl(
     private val onOpenAvatarCutter: OpenAvatarCutterCallback,
     private val onOpenUserProfile: (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
-    private val forgetRoom: ForgetRoom = get()
+    private val leaveRoom: LeaveRoom = get()
 
     private val backCallback = BackCallback {
         close()
@@ -202,22 +202,21 @@ class RoomSettingsViewModelImpl(
         coroutineScope.launch {
             if (matrixClient.syncState.value == SyncState.ERROR) {
                 error.value = i18n.settingsRoomLeaveRoomErrorOffline()
-            } else {
-                matrixClient.api.room.leaveRoom(selectedRoomId).fold(
-                    onSuccess = { },
-                    onFailure = {
-                        if (it is CancellationException) {
-                            return@launch
-                        }
-                        log.error(it) { "cannot leave room $selectedRoomId" }
-                        val groupOrChat =
-                            if (isDirect.value) i18n.eventChangeChatGenitive()
-                            else i18n.eventChangeGroupGenitive()
-                        error.value =
-                            i18n.settingsRoomLeaveRoomError(groupOrChat)
-                    }
-                )
+                return@launch
             }
+
+            leaveRoom(matrixClient, selectedRoomId, forget = false)
+                .onSuccess { log.info { "successfully left room" } }
+                .onFailure {
+                    if (it is CancellationException) {
+                        return@launch
+                    }
+                    log.error(it) { "cannot leave room $selectedRoomId" }
+                    val groupOrChat =
+                        if (isDirect.value) i18n.eventChangeChatGenitive()
+                        else i18n.eventChangeGroupGenitive()
+                    error.value = i18n.settingsRoomLeaveRoomError(groupOrChat)
+                }
         }
     }
 
@@ -228,7 +227,7 @@ class RoomSettingsViewModelImpl(
                 return@launch
             }
 
-            forgetRoom(matrixClient, selectedRoomId, leaveRoom = false)
+            leaveRoom(matrixClient, selectedRoomId)
                 .onSuccess { log.info { "successfully forgot room" } }
                 .onFailure { log.error(it) { "failed to forget room" } }
             onCloseRoom()
