@@ -17,6 +17,7 @@ import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
 import io.github.vinceglb.filekit.core.PickerType.Image
 import io.github.vinceglb.filekit.core.PickerType.ImageAndVideo
+import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.utils.ByteArrayFlow
 import web.dom.document
 import web.file.File
@@ -98,7 +99,7 @@ actual fun SaveFileDialog(
     fileName: String,
     mimeType: String?,
     error: String?,
-    downloadFile: (suspend (ByteArrayFlow) -> Unit) -> Unit,
+    downloadFile: (suspend (PlatformMedia) -> Unit) -> Unit,
     onCloseSaveFileDialog: () -> Unit,
 ) {
     val hasError = error?.isNotBlank() == true
