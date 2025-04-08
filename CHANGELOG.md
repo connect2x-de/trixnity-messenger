@@ -20,8 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor styling consistency fixes
 - Fix Recreating Profile in Web
 - iOS: problems with keychain access and missing key
-- Avoid re-render when unrelated settings change 
+- Avoid re-render when unrelated settings change
 - Enforce general upload limit on all mime types
+- Fix `forgetting rooms while not leaved` error
+- Fix low contrast in dark mode
+- Fix Room list is not loading on initial sync
 
 ### Security
 
@@ -659,7 +662,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Export is not working, when size of exported events did not match a multiple of buffer size
 - Fix wrong filename in export
-- Fix `forgetting rooms while not leaved` error
 
 ## 2.0.3
 
