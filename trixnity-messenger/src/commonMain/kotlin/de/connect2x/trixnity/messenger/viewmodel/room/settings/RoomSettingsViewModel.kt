@@ -207,7 +207,16 @@ class RoomSettingsViewModelImpl(
 
             leaveRoom(matrixClient, selectedRoomId, forget = false)
                 .onSuccess { log.info { "successfully left room" } }
-                .onFailure { log.error(it) { "failed to leave room" } }
+                .onFailure {
+                    if (it is CancellationException) {
+                        return@launch
+                    }
+                    log.error(it) { "cannot leave room $selectedRoomId" }
+                    val groupOrChat =
+                        if (isDirect.value) i18n.eventChangeChatGenitive()
+                        else i18n.eventChangeGroupGenitive()
+                    error.value = i18n.settingsRoomLeaveRoomError(groupOrChat)
+                }
         }
     }
 
