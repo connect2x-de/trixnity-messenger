@@ -39,8 +39,6 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
         val currentJoinRule = roomSettingsViewModel.roomSettingsJoinRulesViewModel.joinRule.collectAsState().value
         val joinRuleIsChanging =
             roomSettingsViewModel.roomSettingsJoinRulesViewModel.isJoinRuleChanging.collectAsState().value
-        val showJoinRuleIsChanging =
-            roomSettingsViewModel.roomSettingsJoinRulesViewModel.isJoinRuleChanging.collectAsState().value
         val joinRules =
             roomSettingsViewModel.roomSettingsJoinRulesViewModel.availableRoomJoinStates.collectAsState().value
         val i18n = DI.get<I18nView>()
@@ -60,9 +58,7 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
                 RadioSetting(
                     title = {
                         if (joinRuleIsChanging) {
-                            if (showJoinRuleIsChanging) {
-                                SmallLoadingSpinner()
-                            }
+                            SmallLoadingSpinner()
                         } else {
                             Tooltip(tooltip = { TooltipText { currentJoinRule.getExplanation(i18n) } }) {
                                 Text(currentJoinRule.getStateName(i18n))
