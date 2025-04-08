@@ -15,6 +15,8 @@ import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
 import de.connect2x.trixnity.messenger.util.EnterRoom
 import de.connect2x.trixnity.messenger.util.EnterRoomImpl
+import de.connect2x.trixnity.messenger.util.ForgetRoom
+import de.connect2x.trixnity.messenger.util.ForgetRoomImpl
 import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
@@ -233,6 +235,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<RoomInviter> { RoomInviterImpl() }
             single<UserBlocking> { UserBlockingImpl() }
             single<EnterRoom> { EnterRoomImpl() }
+            single<ForgetRoom> { ForgetRoomImpl() }
 
             single<DownloadManager> { DownloadManagerImpl() }
             single<Thumbnails> { ThumbnailsImpl() }

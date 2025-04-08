@@ -38,7 +38,7 @@ interface EnterRoom {
     }
 }
 
-class EnterRoomImpl() : EnterRoom {
+class EnterRoomImpl : EnterRoom {
     override suspend operator fun invoke(
         i18n: I18n,
         matrixClient: MatrixClient,

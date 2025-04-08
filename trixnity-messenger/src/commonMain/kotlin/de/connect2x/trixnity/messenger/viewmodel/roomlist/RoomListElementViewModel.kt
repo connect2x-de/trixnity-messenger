@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.util.ForgetRoom
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -113,6 +114,7 @@ open class RoomListElementViewModelImpl(
     private val clock = get<Clock>()
     private val timeZone = get<TimeZone>()
     private val userBlocking = get<UserBlocking>()
+    private val forgetRoom = get<ForgetRoom>()
 
     private val roomFlow = matrixClient.room.getById(roomId).filterNotNull()
         .shareIn(coroutineScope, WhileSubscribed(), 1)
@@ -345,21 +347,9 @@ open class RoomListElementViewModelImpl(
                 return@launch
             }
 
-            matrixClient.api.room.forgetRoom(roomId).fold(
-                onSuccess = {},
-                onFailure = {
-                    if (it !is MatrixServerException) {
-                        return@launch
-                    }
-
-                    log.error(it) { "cannot forget room $roomId" }
-                    error.value = i18n.forgetRoomError(
-                        if (isDirect.value == true) i18n.eventChangeChatGenitive()
-                        else i18n.eventChangeGroupGenitive()
-                    )
-                }
-            )
-            matrixClient.room.forgetRoom(roomId)
+            forgetRoom(matrixClient, roomId, leaveRoom = false)
+                .onSuccess { log.info { "successfully forgot room" } }
+                .onFailure { log.error(it) { "failed to forget room" } }
             onRoomClose()
         }
     }
@@ -372,17 +362,12 @@ open class RoomListElementViewModelImpl(
         if (matrixClient.syncState.value == SyncState.ERROR) {
             log.debug { "try to reject room invitation while not connected" }
             error.value = i18n.roomListInvitationOffline()
-        } else {
-            matrixClient.api.room.leaveRoom(roomId).fold(
-                onSuccess = { log.info { "successfully rejected invitation" } },
-                onFailure = {
-                    log.error(it) { "Cannot reject invitation" }
-                    error.value = i18n.roomListInvitationError()
-                }
-            )
-
-            forgetRoom()
+            return
         }
+
+        forgetRoom(matrixClient, roomId, leaveRoom = true)
+            .onSuccess { log.info { "successfully rejected invitation" } }
+            .onFailure { log.error(it) { "failed to reject invitation" } }
     }
 
     private fun timelineEventTypeDescription(event: TimelineEvent): String =

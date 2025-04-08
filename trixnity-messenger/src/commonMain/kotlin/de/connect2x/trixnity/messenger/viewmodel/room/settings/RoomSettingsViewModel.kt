@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.util.ForgetRoom
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -13,7 +14,6 @@ import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -89,6 +89,7 @@ class RoomSettingsViewModelImpl(
     private val onOpenAvatarCutter: OpenAvatarCutterCallback,
     private val onOpenUserProfile: (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
+    private val forgetRoom: ForgetRoom = get()
 
     private val backCallback = BackCallback {
         close()
@@ -227,21 +228,9 @@ class RoomSettingsViewModelImpl(
                 return@launch
             }
 
-            matrixClient.api.room.forgetRoom(selectedRoomId).fold(
-                onSuccess = {},
-                onFailure = {
-                    if (it !is MatrixServerException) {
-                        return@launch
-                    }
-
-                    log.error(it) { "cannot forget room $selectedRoomId" }
-                    error.value = i18n.forgetRoomError(
-                        if (isDirect.value) i18n.eventChangeChatGenitive()
-                        else i18n.eventChangeGroupGenitive()
-                    )
-                }
-            )
-            matrixClient.room.forgetRoom(selectedRoomId)
+            forgetRoom(matrixClient, selectedRoomId, leaveRoom = false)
+                .onSuccess { log.info { "successfully forgot room" } }
+                .onFailure { log.error(it) { "failed to forget room" } }
             onCloseRoom()
         }
     }
