@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add forget room API
-
 ### Changed
 
 ### Deprecated
@@ -19,18 +17,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 3.5.3
+
+### Fixed
+
 - Minor styling consistency fixes
 - Fix Recreating Profile in Web
 - iOS: problems with keychain access and missing key
-- Avoid re-render when unrelated settings change 
-- Web: File downloads not working in private browser tabs
-- Web: Slow file downloads
-- Don't use wrong upload limit for images
-- Fix `forgetting rooms while not leaved` error
+- Avoid re-render when unrelated settings change
 - Fix low contrast in dark mode
-- Fix Room list is not loading on initial sync
-
-### Security
 
 ## 3.5.2
 
@@ -666,6 +663,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Export is not working, when size of exported events did not match a multiple of buffer size
 - Fix wrong filename in export
+- Fix `forgetting rooms while not leaved` error
 
 ## 2.0.3
 
