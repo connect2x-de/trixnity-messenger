@@ -29,12 +29,6 @@ class LeaveRoomImpl : LeaveRoom {
             }
 
             if (forget) {
-                if (roomFlow.first() == null) {
-                    client.room.forgetRoom(roomId)
-                    return@withTimeout
-                }
-
-                // Server-side and client-side forget
                 roomFlow.filter { it?.membership == Membership.LEAVE }.first()
                 val forgetResult = client.api.room.forgetRoom(roomId)
                 if (forgetResult.isFailure && forgetResult.exceptionOrNull() is MatrixServerException) {
