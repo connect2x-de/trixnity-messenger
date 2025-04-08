@@ -17,14 +17,13 @@ import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
 import io.github.vinceglb.filekit.core.PickerType.Image
 import io.github.vinceglb.filekit.core.PickerType.ImageAndVideo
+import io.ktor.util.*
 import net.folivo.trixnity.client.media.PlatformMedia
-import net.folivo.trixnity.utils.ByteArrayFlow
+import net.folivo.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
+import net.folivo.trixnity.client.media.opfs.OpfsPlatformMedia
 import web.dom.document
 import web.file.File
-import web.fs.FileSystemFileHandle
-import web.fs.FileSystemGetFileOptions
 import web.html.HTML
-import web.navigator.navigator
 import web.timers.setTimeout
 import web.url.URL
 import web.window.WindowTarget
@@ -106,60 +105,27 @@ actual fun SaveFileDialog(
     if (hasError) DownloadErrorAlertDialog(error ?: "", onCloseSaveFileDialog)
     LaunchedEffect(hasError) {
         if (!hasError) downloadFile {
-            try {
-                log.debug { "save file as fallback $fileName" }
-                val fileHandle = navigator.storage.getDirectory()
-                    .getFileHandle(
-                        fileName,
-                        FileSystemGetFileOptions.invoke(true),
-                    )
-                saveStreamToFile(fileName, fileHandle, it).onSuccess {
-                    val file = fileHandle.getFile()
-                    val fileUri = URL.createObjectURL(file)
-                    log.debug { "completed saving: $fileName" }
+            log.debug { "save file as fallback $fileName" }
+            val file = when (it) {
+                is OpfsPlatformMedia -> it.getTemporaryFile().getOrNull()?.file
+                is IndexeddbPlatformMedia -> it.getTemporaryFile().getOrNull()?.file
+                else -> null
+            } ?: throw Exception("Unable to create temporary file")
+            val fileUri = URL.createObjectURL(file)
+            log.debug { "completed saving: $fileName" }
 
-                    // Invoke the download method that FileKit for web uses internally.
-                    val a = document.createElement(HTML.a)
-                    a.href = fileUri
-                    a.download = fileName
-                    a.target = WindowTarget._self
-                    a.click() // Trigger the download.
+            // Invoke the download method that FileKit for web uses internally.
+            val a = document.createElement(HTML.a)
+            a.href = fileUri
+            a.download = fileName
+            a.target = WindowTarget._self
+            a.click() // Trigger the download.
 
-                    setTimeout(15.seconds, {
-                        URL.revokeObjectURL(fileUri)
-                        log.debug { "file uri revoked for: $fileName" }
-                    })
-                }
-            } catch (e: Exception) {
-                // TODO: ignore abort error
-                log.error(e) { "on catch" }
+            setTimeout(15.seconds) {
+                URL.revokeObjectURL(fileUri)
+                log.debug { "file uri revoked for: $fileName" }
             }
             onCloseSaveFileDialog()
         }
-    }
-}
-
-private suspend fun saveStreamToFile(
-    fileName: String,
-    fileHandle: FileSystemFileHandle,
-    bytes: ByteArrayFlow,
-): Result<Unit> {
-    // TODO: use web worker where available
-    log.debug { "begin download file stream: $fileName" }
-    // TODO: resolve the writable as WritableStream<Uint8Array> instead to use existing write util
-    val writable = fileHandle.createWritable()
-    try {
-        bytes.collect {
-            log.debug { "write ${it.size} bytes for: $fileName" }
-            writable.write(it)
-        }
-        log.debug { "completed download file stream: $fileName" }
-        writable.close()
-        return Result.success(Unit)
-
-    } catch (e: Exception) {
-        log.error(e) { "error downloading file stream: $fileName" }
-        writable.close()
-        return Result.failure(e)
     }
 }
