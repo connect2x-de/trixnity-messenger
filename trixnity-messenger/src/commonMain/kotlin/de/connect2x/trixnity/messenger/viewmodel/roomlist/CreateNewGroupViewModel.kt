@@ -18,7 +18,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PRIVATE
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PUBLIC
+import net.folivo.trixnity.clientserverapi.model.rooms.DirectoryVisibility
 import net.folivo.trixnity.core.model.events.InitialStateEvent
+import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 
@@ -126,6 +128,7 @@ open class CreateNewGroupViewModelImpl(
         } ?: emptyList()
         val optionalName = optionalRoomName.value.text.ifBlank { null }
         val optionalTopic = optionalGroupTopic.value.text.ifBlank { null }
+        val directoryVisibility = if (isPrivate.value) DirectoryVisibility.PRIVATE else DirectoryVisibility.PUBLIC
         coroutineScope.launch {
             matrixClient.api.room.createRoom(
                 name = optionalName,
@@ -134,6 +137,7 @@ open class CreateNewGroupViewModelImpl(
                 isDirect = false,
                 invite = groupUsers.value.map { it.userId }.toSet(),
                 initialState = encryption + historyVisibility,
+                visibility = directoryVisibility
             ).fold(
                 onSuccess = { roomId ->
                     log.debug { "created room ${roomId.full}" }

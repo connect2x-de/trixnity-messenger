@@ -77,6 +77,8 @@ class SharedDataViewModelImpl(
         onSendLogs = { },
         onOpenAccountsOverview = { },
         onAccountSelected = { },
+        onStartVerification = { },
+        onCloseRoom = { }
     )
 
     private val maxMediaSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory

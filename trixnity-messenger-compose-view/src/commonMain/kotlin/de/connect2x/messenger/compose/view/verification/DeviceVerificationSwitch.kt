@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,12 +23,13 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelectVerificationMethodViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCompareViewModel
@@ -72,14 +71,18 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
             Custom {
                 when (child) {
                     is Wrapper.Request ->
-                        Button(child.viewModel::next, Modifier.buttonPointerModifier()) {
+                        ThemedButton(
+                            style = MaterialTheme.components.primaryButton,
+                            onClick = child.viewModel::next,
+                        ) {
                             Text(i18n.commonNext().capitalize(Locale.current))
                         }
 
                     is Wrapper.CompareEmojisOrNumbers ->
-                        Button(
-                            child.viewModel::accept,
-                            Modifier.buttonPointerModifier().weight(1.0f, fill = false)
+                        ThemedButton(
+                            style = MaterialTheme.components.primaryButton,
+                            onClick = child.viewModel::accept,
+                            modifier = Modifier.weight(1.0f, fill = false)
                         ) {
                             Text(i18n.verificationMatch())
                         }
@@ -91,7 +94,10 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
         additionalButton = {
             when (child) {
                 is Wrapper.Wait ->
-                    Button(onClick = { viewModel.cancel() }, Modifier.buttonPointerModifier()) {
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
+                        onClick = { viewModel.cancel() },
+                    ) {
                         Text(i18n.commonCancel())
                     }
 
@@ -131,12 +137,12 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
             Custom {
                 when (child) {
                     is Wrapper.CompareEmojisOrNumbers ->
-                        Button(
-                            child.viewModel::decline,
-                            Modifier.buttonPointerModifier().weight(1.0f, fill = false),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ThemedButton(
+                            style = MaterialTheme.components.destructiveButton,
+                            onClick = child.viewModel::decline,
+                            modifier = Modifier.weight(1.0f, fill = false),
                         ) {
-                            Text(i18n.verificationNotMatch(), color = Color.White)
+                            Text(i18n.verificationNotMatch())
                         }
 
                     else -> {}
@@ -232,7 +238,10 @@ private fun OkButton(onClick: () -> Unit) {
     val i18n = DI.get<I18nView>()
     Row(Modifier.fillMaxWidth()) {
         Spacer(Modifier.weight(1.0f, fill = true))
-        Button(onClick, Modifier.buttonPointerModifier()) {
+        ThemedButton(
+            style = MaterialTheme.components.primaryButton,
+            onClick = onClick,
+        ) {
             Text(i18n.commonOk())
         }
     }

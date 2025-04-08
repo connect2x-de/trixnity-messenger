@@ -11,19 +11,114 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Change imprint and privacy information formatting to Markdown to support them in app instead of via link
-- Documentation for `AccountSetupWizard`
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
-- Unrecommended HTML tags are not being sent any more
-- Shared Plaintext is not interpreted as Markdown
+- Minor styling consistency fixes
+- Fix Recreating Profile in Web
+- iOS: problems with keychain access and missing key
+- Avoid re-render when unrelated settings change 
 
 ### Security
+
+## 3.5.2
+
+### Changed
+
+- Upgrade Trixnity to 4.14.3
+- `PlatformSecretByteArrayKeyProvider` uses key derivation when not the first in the chain
+
+### Removed
+
+- Removed `RoomContextMenu` from `RoomHeader`
+
+### Fixed
+
+- Padding of sticky date header didn't apply to wider screens, leading to misalignment
+- Fix handling of special characters in urls
+- Fix padding flickering in outbox in offline edge cases
+- Fixed initialization of SecretByteArrays on first start
+
+## 3.5.1
+
+### Added
+
+- Knocking public rooms
+
+### Changed
+
+- Completely new SecretByteArray architecture, that allows to have a keychain
+- Upgraded to Gradle 8.13
+- Migrated build boilerplate to new conventions plugin
+- Reduce height of room list elements
+- Use kotlin.test for all tests
+- Updated UI to use new styling system for icon buttons, floating action buttons
+- Properly handle internal code deprecations
+
+### Removed
+
+- Kotest as test engine
+- benasher44 UUID as a UUID library
+
+### Fixed
+
+- Forgetting the room with invite after rejection of the invitation
+- Correctly use test dispatcher
+- Fix tests on IOS
+- Fix wrong UriCaller encoding in web
+- Removed duplicate device verification dialog
+- Fix iconbuttons not being visible in dark mode
+- Fix room header content being greyed out
+
+## 3.5.0
+
+### Added
+
+- Archived rooms support
+- Add settings to forget rooms in room list and settings view
+- AddMembersViewModel now has indicator when users are currently added
+- New system for customizing styles of each component
+
+### Changed
+
+- Layout of message metadata info
+- Updated UI to use new styling system for buttons, surfaces, inputarea, tooltips
+
+### Fixed
+
+- Fix timeline rendering bug caused by "fix-file-onsave-handling"
+- Display rooms correctly the first time on join
+- Set directory visibility of public rooms to public
+- Don't max out the dialog height
+- Styling inconsistencies
+- No more flickering in timeline when writing new messages
+
+### Security
+
+- Sanitize Uri in Web
+
+## 3.4.4
+
+### Added
+
+- Check to ensure a single running instance of the messenger in the browser
+
+### Changed
+
+- Change imprint and privacy information formatting to Markdown to support them in app instead of via link
+- Documentation for `AccountSetupWizard`
+
+### Fixed
+
+- Bug in file attachment upload size
+- Unrecommended HTML tags are not being sent any more
+- Shared Plaintext is not interpreted as Markdown
+- CloseApp should not be injected when null
+- Fixed file save dialog repeatedly opening
+- Fixed missing favicon in web version
 
 ## 3.4.3
 
@@ -36,16 +131,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change imprint and privacy information formatting to Markdown to support them in app instead of via link
 - Upgrade to Trixnity 4.13.3 to fix rollback issues in IndexedDB
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Removed useless suspense in addmembers viewmodel
 - Fix Back Button for image preview
-
-### Security
 
 ## 3.4.2
 
@@ -459,8 +548,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hide multi profile mode in trixnity messenger
 - not shown redaction messages now also include not supported events in unencrypted rooms
 
-### Deprecated
-
 ### Removed
 
 - `app_name` from compose-view
@@ -513,14 +600,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgraded Trixnity
 - Upgraded dependencies
 
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
-
 ## 2.1.2
 
 ### Added
@@ -548,14 +627,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - upgrade trixnity version
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
 
 ## 2.1.0
 
@@ -587,6 +658,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Export is not working, when size of exported events did not match a multiple of buffer size
 - Fix wrong filename in export
+- Fix `forgetting rooms while not leaved` error
 
 ## 2.0.3
 

@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.common
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,31 +17,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 
 @Composable
@@ -56,15 +51,10 @@ fun MessengerModal(
         Modifier
             .fillMaxSize()
             .blockPointerInput()
-            .background(Color.Black.copy(alpha = 0.4f))
     ) {
-        Surface(
-            tonalElevation = 1.dp,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .clip(RoundedCornerShape(8.dp))
-                .width(width)
-                .border(Dp.Hairline, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+        ThemedSurface(
+            style = MaterialTheme.components.dialog,
+            modifier = Modifier.align(Alignment.Center).width(width)
         ) {
             Column {
                 MessengerModalHeader(onDismiss, title)
@@ -79,7 +69,7 @@ fun MessengerModal(
 @Composable
 fun ColumnScope.MessengerModalContent(content: @Composable ColumnScope.() -> Unit) {
     val scrollState = rememberScrollState()
-    Column(Modifier.verticalScroll(scrollState).weight(1.0f, fill = true)) {
+    Column(Modifier.verticalScroll(scrollState).weight(1.0f, fill = false)) {
         content()
     }
     // do not display scroll bar as it sets the height to max and is not used on mobile (where scrolling might be needed)
@@ -112,55 +102,13 @@ fun ColumnScope.MessengerModalButtonRow(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-        /**
-         * This composable with layout buttons at the end of the modal (to the right).
-         * The miscellaneous action is separated from the others and the next and back action
-         * are grouped, so that they always appear on the same row:
-         * | _______ misc __ back _ next | or on smaller devices
-         * | _________ misc |
-         * | __ back _ next |
-         * @param next a button to go to the next action
-         * @param back a button to go to the previous action
-         * @param misc a miscellaneous third action which does not fit into the typical next or back action
-         */
-fun ColumnScope.MessengerModalThreeButtonRow(
-    next: @Composable RowScope.() -> Unit,
-    back: (@Composable RowScope.() -> Unit)? = null,
-    misc: (@Composable RowScope.() -> Unit)? = null,
-) {
-    MiddleSpacer()
-    Column(
-        Modifier.fillMaxWidth().weight(1.0f, fill = false),
-        horizontalAlignment = Alignment.End,
-        verticalArrangement = Arrangement.Bottom,
-    ) {
-        FlowRow(horizontalArrangement = Arrangement.End) {
-            if (misc != null) {
-                misc()
-            }
-            Row {
-                if (misc != null) {
-                    SmallSpacer()
-                }
-                if (back != null) {
-                    back()
-                    SmallSpacer()
-                }
-                next()
-            }
-        }
-    }
-}
-
 @Composable
 fun RowScope.NextButton(enabled: Boolean = true, text: String? = null, nextAction: () -> Unit) {
     val i18n = DI.get<I18nView>()
-    Button(
+    ThemedButton(
+        style = MaterialTheme.components.primaryButton,
         onClick = nextAction,
-        modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false)
-            .width(IntrinsicSize.Max), // avoid wrapping button text if possibles
+        modifier = Modifier.weight(1.0f, fill = false).width(IntrinsicSize.Max), // avoid wrapping button text if possibles
         enabled = enabled,
     ) {
         Text(text ?: i18n.commonNext().capitalize(Locale.current))
@@ -170,14 +118,10 @@ fun RowScope.NextButton(enabled: Boolean = true, text: String? = null, nextActio
 @Composable
 fun RowScope.CloseModalButton(closeModalAction: () -> Unit, caption: String? = null) {
     val i18n = DI.get<I18nView>()
-    Button(
+    ThemedButton(
+        style = MaterialTheme.components.destructiveButton,
         onClick = { closeModalAction() },
-        modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false)
-            .width(IntrinsicSize.Max), // avoid wrapping button text if possible
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.error,
-            contentColor = Color.White
-        )
+        modifier = Modifier.weight(1.0f, fill = false).width(IntrinsicSize.Max), // avoid wrapping button text if possible
     ) {
         Text(caption ?: i18n.commonClose())
     }
@@ -187,13 +131,10 @@ fun RowScope.CloseModalButton(closeModalAction: () -> Unit, caption: String? = n
 fun RowScope.CloseMessengerButton(closeMessengerAction: () -> Unit) {
     val i18n = DI.get<I18nView>()
     val appName = DI.get<MatrixMessengerConfiguration>().appName
-    Button(
+    ThemedButton(
+        style = MaterialTheme.components.destructiveButton,
         onClick = { closeMessengerAction() },
-        modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.error,
-            contentColor = Color.White
-        )
+        modifier = Modifier.weight(1.0f, fill = false),
     ) {
         Text(i18n.closeApp(appName))
     }
@@ -202,9 +143,10 @@ fun RowScope.CloseMessengerButton(closeMessengerAction: () -> Unit) {
 @Composable
 fun RowScope.BackButton(onBack: () -> Unit) {
     val i18n = DI.get<I18nView>()
-    Button(
+    ThemedButton(
+        style = MaterialTheme.components.primaryButton,
         onClick = onBack,
-        modifier = Modifier.buttonPointerModifier().weight(1.0f, fill = false),
+        modifier = Modifier.weight(1.0f, fill = false),
     ) {
         Text(i18n.commonBack())
     }
@@ -229,11 +171,13 @@ private fun MessengerModalHeader(onDismiss: (() -> Unit)?, title: String) {
             color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
         if (onDismiss != null)
-            IconButton(
-                onDismiss,
-                Modifier.buttonPointerModifier()
-            ) {
-                Icon(Icons.Default.Close, i18n.commonCancel().capitalize(Locale.current))
+            Tooltip({ Text(i18n.commonCancel())}) {
+                ThemedIconButton(
+                    style = MaterialTheme.components.commonIconButton,
+                    onClick = onDismiss,
+                ) {
+                    Icon(Icons.Default.Close, i18n.commonCancel().capitalize(Locale.current))
+                }
             }
     }
 }

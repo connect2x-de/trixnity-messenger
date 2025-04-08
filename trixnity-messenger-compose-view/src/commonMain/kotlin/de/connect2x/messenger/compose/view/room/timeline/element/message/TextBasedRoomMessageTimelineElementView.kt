@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +41,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import io.ktor.http.Url
 
 @Composable
 fun TextBasedRoomMessageTimelineElementView(
@@ -117,14 +119,12 @@ private fun MessageTextContent(
             MessageRichText(
                 uriHandler,
                 richTextState,
-                holder.isByMe,
                 showActionMenu,
             )
         } else {
             MessageRichText(
                 LocalUriHandler.current,
                 richTextState,
-                holder.isByMe,
                 showActionMenu,
             )
         }
@@ -135,7 +135,6 @@ private fun MessageTextContent(
 private fun MessageRichText(
     uriHandler: UriHandler,
     state: RichTextState,
-    isByMe: Boolean,
     showActionMenu: () -> Unit
 ) {
     CompositionLocalProvider(
@@ -148,16 +147,10 @@ private fun MessageRichText(
                     onLongPress = { showActionMenu() }
                 )
             },
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = if (isByMe) MaterialTheme.colorScheme.onPrimary
-                else MaterialTheme.colorScheme.onSecondary
-            )
+            style = MaterialTheme.typography.bodyMedium.copy(color = LocalContentColor.current)
         )
     }
 }
-
-private val urlRegex =
-    Regex("https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&/=;,]*)")
 
 @Composable
 private fun formatMessage(
@@ -196,20 +189,59 @@ internal fun String.formatMentions(
         }
     }
 
-internal fun String.formatLinks(): String =
-    this.replace(urlRegex) {
-        val href = "href=\""
-        if (
-            it.range.first > href.length &&
-            this.subSequence(it.range.first - href.length, it.range.first) == href &&
-            it.range.last != this.length &&
-            this[it.range.last + 1] == '"'
-        ) {
+
+// For normal text we could only use <space> as ending delimiter,
+// however as our text might include html `<a href="..."></a>` which
+// ends with a quote we need to use that as well.
+// A better way would be to use a proper html parser and then
+// only run the regex on normal text element with only the space.
+//
+// Instead of having a complicated url regex which lead to multiple problems
+// https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger/-/issues/440
+// https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger/-/issues/350
+// https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger/-/issues/296
+// we use the most basic regex to find potential links and then use ktor's url parser
+// to validate if it really was a proper Url.
+private val maybeUrlRegex =
+    Regex("""https?://[^ "<]*""")
+
+private val commonPunctuation =
+    setOf('.', '!', '?', ':', ')')
+
+private val hrefPrefix =
+    "href=\""
+
+private fun String.isValidUrl() =
+    runCatching { Url(this) }.isSuccess
+
+internal fun String.formatLinks(): String {
+    fun MatchResult.isInsideHref(): Boolean {
+        val fullString = this@formatLinks
+
+        return range.first > hrefPrefix.length
+            && range.last != fullString.length
+            && fullString.substring(range.first - hrefPrefix.length, range.first) == hrefPrefix
+            && fullString[range.last + 1] == '"'
+    }
+
+    fun MatchResult.formatLinkAsHref(): String {
+        val end = if (value.last() in commonPunctuation) value.length - 1
+                  else value.length
+
+        val withoutPunct = value.substring(0..<end)
+        val punct = value.substring(end..<value.length)
+
+        return "<a href=\"$withoutPunct\">$withoutPunct</a>$punct"
+    }
+
+    return replace(maybeUrlRegex) {
+        if (it.isInsideHref() || !it.value.isValidUrl()) {
             it.value
         } else {
-            "<a href=\"${it.value}\">${it.value}</a>"
+            it.formatLinkAsHref()
         }
     }
+}
 
 @Composable
 fun TextReplyInTimeline(

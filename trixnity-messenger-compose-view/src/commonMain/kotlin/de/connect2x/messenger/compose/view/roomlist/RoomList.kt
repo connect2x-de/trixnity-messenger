@@ -1,7 +1,5 @@
 package de.connect2x.messenger.compose.view.roomlist
 
-import androidx.compose.foundation.indication
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -17,11 +15,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,15 +28,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
-import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.header.AccountMenuItem
 import de.connect2x.messenger.compose.view.roomlist.header.SelectAccountHeader
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainer
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -77,15 +72,13 @@ class RoomListViewImpl : RoomListView {
                             Text(i18n.roomListNoRoom())
                             Spacer(Modifier.size(10.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                OutlinedButton(
+                                ThemedButton(
+                                    style = MaterialTheme.components.commonButton,
                                     onClick = { roomListViewModel.createNewRoom() },
-                                    Modifier.buttonPointerModifier(),
                                 ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.AutoMirrored.Filled.Chat, i18n.accountCreateNewRoom())
-                                        Spacer(Modifier.size(10.dp))
-                                        Text(i18n.roomListCreateRoom(), modifier = Modifier.weight(1.0f, fill = false))
-                                    }
+                                    Icon(Icons.AutoMirrored.Filled.Chat, i18n.accountCreateNewRoom(), modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize))
+                                    Spacer(Modifier.size(MaterialTheme.components.primaryButton.iconSpacing))
+                                    Text(i18n.roomListCreateRoom())
                                 }
                             }
                         }
@@ -134,26 +127,17 @@ fun BoxScope.CreateRoomFloatingButton(roomListViewModel: RoomListViewModel) {
     val selectActiveAccount = remember { mutableStateOf(false) }
 
     Box(Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp)) {
-        Tooltip(
-            tooltip = { TooltipText(i18n.accountCreateNewRoom()) },
-        ) {
-            FloatingActionButton(
-                onClick = {
-                    if (canCreateNewRoomWithAccount) {
-                        roomListViewModel.createNewRoom()
-                    } else {
-                        selectActiveAccount.value = true
-                    }
-                },
-                modifier = Modifier
-                    .buttonPointerModifier()
-                    .indication(indication = null, interactionSource = MutableInteractionSource()),
-                elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
-            ) {
-                Icon(Icons.AutoMirrored.Filled.Chat, i18n.accountCreateNewRoom())
-            }
-        }
+        ThemedFloatingActionButton(
+            onClick = {
+                if (canCreateNewRoomWithAccount) {
+                    roomListViewModel.createNewRoom()
+                } else {
+                    selectActiveAccount.value = true
+                }
+            },
+            text = { Text(i18n.accountCreateNewRoom()) },
+            icon = { Icon(Icons.AutoMirrored.Filled.Chat, i18n.accountCreateNewRoom()) },
+        )
 
         DropdownMenu(
             expanded = selectActiveAccount.value,

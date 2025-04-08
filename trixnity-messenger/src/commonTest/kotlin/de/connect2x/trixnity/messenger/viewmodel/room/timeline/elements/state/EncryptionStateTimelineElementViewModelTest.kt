@@ -1,21 +1,19 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.util.cancelNeverEndingCoroutines
+import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
-import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.core.test.TestScope
-import io.kotest.core.test.advanceUntilIdle
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
@@ -31,9 +29,10 @@ import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
-class EncryptionStateTimelineElementViewModelTest : ShouldSpec() {
+class EncryptionStateTimelineElementViewModelTest {
 
     val roomId = RoomId("room", "server")
     val sender = UserId("user", "server")
@@ -46,71 +45,71 @@ class EncryptionStateTimelineElementViewModelTest : ShouldSpec() {
     val senderName = MutableStateFlow("Sender")
 
     init {
-        coroutineTestScope = true
-        beforeTest {
-            resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
-            every { matrixClientMock.di } returns koinApplication {
-                modules(
-                    module {
-                        single { roomServiceMock }
-                        single { userServiceMock }
-                    }
-                )
-            }.koin
-            senderName.value = "Bob"
-            every { userServiceMock.getById(roomId, sender) } returns senderName.map {
-                RoomUser(
-                    roomId, sender, it, StateEvent(
-                        content = MemberEventContent(membership = Membership.JOIN),
-                        id = eventId,
-                        sender = sender,
-                        roomId = roomId,
-                        originTimestamp = 0L,
-                        stateKey = "",
-                    )
-                )
-            }
-            isDirect.value = false
-            every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it) }
-
-            every { roomServiceMock.getTimelineEvent(roomId, eventId) } returns flowOf(
-                TimelineEvent(
-                    event = StateEvent(
-                        EncryptionEventContent(),
-                        id = eventId,
-                        sender = sender,
-                        roomId = roomId,
-                        originTimestamp = 0L,
-                        stateKey = ""
-                    ),
-                    previousEventId = null,
-                    nextEventId = null,
-                    gap = null,
+        resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
+        every { matrixClientMock.di } returns koinApplication {
+            modules(
+                module {
+                    single { roomServiceMock }
+                    single { userServiceMock }
+                })
+        }.koin
+        senderName.value = "Bob"
+        every { userServiceMock.getById(roomId, sender) } returns senderName.map {
+            RoomUser(
+                roomId, sender, it, StateEvent(
+                    content = MemberEventContent(membership = Membership.JOIN),
+                    id = eventId,
+                    sender = sender,
+                    roomId = roomId,
+                    originTimestamp = 0L,
+                    stateKey = "",
                 )
             )
         }
+        isDirect.value = false
+        every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it) }
 
-        should("display who enabled to end-to-end encryption") {
-            val cut = roomEncryptionEnabledViewModel()
-            val subscriberJob = launch { cut.changeMessage.collect {} }
-            advanceUntilIdle()
+        every { roomServiceMock.getTimelineEvent(roomId, eventId) } returns flowOf(
+            TimelineEvent(
+                event = StateEvent(
+                    EncryptionEventContent(),
+                    id = eventId,
+                    sender = sender,
+                    roomId = roomId,
+                    originTimestamp = 0L,
+                    stateKey = ""
+                ),
+                previousEventId = null,
+                nextEventId = null,
+                gap = null,
+            )
+        )
+    }
+
+    @Test
+    fun `display who enabled to end-to-end encryption`() = runTest {
+        val cut = roomEncryptionEnabledViewModel()
+        backgroundScope.launch { cut.changeMessage.collect {} }
+
+        eventually(100.milliseconds) {
             cut.changeMessage.value shouldBe "Bob enabled end-to-end encryption"
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
+        }
+    }
+
+    @Test
+    fun `react to username changes`() = runTest {
+        val cut = roomEncryptionEnabledViewModel()
+        backgroundScope.launch { cut.changeMessage.collect {} }
+
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe "Bob enabled end-to-end encryption"
         }
 
-        should("react to username changes") {
-            val cut = roomEncryptionEnabledViewModel()
-            val subscriberJob = launch { cut.changeMessage.collect {} }
-            advanceUntilIdle()
-            cut.changeMessage.value shouldBe "Bob enabled end-to-end encryption"
+        senderName.value = "Bobby"
 
-            senderName.value = "Bobby"
-            advanceUntilIdle()
+        eventually(100.milliseconds) {
             cut.changeMessage.value shouldBe "Bobby enabled end-to-end encryption"
 
-            subscriberJob.cancel()
-            cancelNeverEndingCoroutines()
         }
     }
 
@@ -119,7 +118,9 @@ class EncryptionStateTimelineElementViewModelTest : ShouldSpec() {
             viewModelContext = testMatrixClientViewModelContext(
                 di = koinApplication {
                     modules(
-                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("user1", "server") to matrixClientMock))
+                        createTestDefaultTrixnityMessengerModules(
+                            mapOf(UserId("user1", "server") to matrixClientMock)
+                        )
                     )
                 }.koin,
                 userId = UserId("user1", "server"),

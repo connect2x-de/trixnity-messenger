@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
-import com.benasher44.uuid.uuid4
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -75,8 +74,8 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.core.component.get
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
+import kotlin.uuid.Uuid
 
 
 private val log = KotlinLogging.logger {}
@@ -417,7 +416,7 @@ class TimelineElementHolderViewModelImpl(
                     val previousTimestamp =
                         Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
                     val thisTimestamp = Instant.fromEpochMilliseconds(timelineEventFlow.first().originTimestamp)
-                    thisTimestamp - previousTimestamp > 1.hours
+                    thisTimestamp - previousTimestamp > config.showBigGapBeforeThreshold
                 }
             }
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
@@ -508,7 +507,7 @@ class TimelineElementHolderViewModelImpl(
                         matrixClient.api.room.redactEvent(
                             roomId,
                             timelineEvent.eventId,
-                            txnId = uuid4().toString()
+                            txnId = Uuid.random().toString()
                         ).onSuccess {
                             log.debug { "successfully redacted event ${timelineEvent.eventId}" }
                         }.onFailure {
@@ -559,7 +558,7 @@ class TimelineElementHolderViewModelImpl(
                 matrixClient.api.room.redactEvent(
                     roomId,
                     eventId,
-                    txnId = uuid4().toString(),
+                    txnId = Uuid.random().toString(),
                 )
             } else {
                 log.warn { "could not remove reaction, because not present in loaded reactions" }

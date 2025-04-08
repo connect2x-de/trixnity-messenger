@@ -8,25 +8,29 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
 import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
+import de.connect2x.trixnity.messenger.secrets.secretsModule
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
+import de.connect2x.trixnity.messenger.util.EnterRoom
+import de.connect2x.trixnity.messenger.util.EnterRoomImpl
+import de.connect2x.trixnity.messenger.util.ForgetRoom
+import de.connect2x.trixnity.messenger.util.ForgetRoomImpl
 import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
 import de.connect2x.trixnity.messenger.util.SharedDataHandler
 import de.connect2x.trixnity.messenger.util.SharedDataHandlerImpl
-import de.connect2x.trixnity.messenger.util.convertSecretByteArrayModule
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
-import de.connect2x.trixnity.messenger.util.platformGetSecretByteArrayKey
 import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule
 import de.connect2x.trixnity.messenger.util.platformMinimizeAppModule
 import de.connect2x.trixnity.messenger.util.platformPathsModule
 import de.connect2x.trixnity.messenger.util.platformProcessImageUploadModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
+import de.connect2x.trixnity.messenger.util.platformStringsModule
 import de.connect2x.trixnity.messenger.util.platformUriCallerModule
 import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
@@ -128,6 +132,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactionsImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReaders
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReadersImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.InitialsImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviterImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
@@ -144,8 +149,6 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerification
 import de.connect2x.trixnity.messenger.viewmodel.verification.CrossSigningBootstrapViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.RedoSelfVerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelectVerificationMethodViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
-import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTriggerImpl
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCancelledViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCompareViewModelFactory
@@ -194,6 +197,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                     markOwnMessageAsRead = true
                     httpClientEngine = config.httpClientEngine
                     httpClientConfig = config.httpClientConfig
+                    deleteRoomsOnLeave = false
                     lastRelevantEventFilter =
                         { relevantTimelineEvents.isRelevantTimelineEvent(it.content) }
                     if (eventContentSerializerMappings.isNotEmpty()) {
@@ -213,14 +217,14 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             }
 
             single<MatrixClientFactory> {
-                MatrixClientFactoryImpl(get(), get(), getAll())
+                MatrixClientFactoryImpl(get(), get(), get(), get(), getAll())
             }
             single<MatrixClients> {
                 MatrixClientsImpl(get(), get(), get(), get(), get())
             }
 
             single<TimelineEventContentToString> { TimelineEventContentToStringImpl(get()) }
-            single<Initials> { Initials }
+            single<Initials> { InitialsImpl(get()) }
             single<VerifyAccount> { VerifyAccountImpl() }
             single<RelevantTimelineEvents> { RelevantTimelineEvents }
 
@@ -230,6 +234,8 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<RoomTopic> { RoomTopicImpl() }
             single<RoomInviter> { RoomInviterImpl() }
             single<UserBlocking> { UserBlockingImpl() }
+            single<EnterRoom> { EnterRoomImpl() }
+            single<ForgetRoom> { ForgetRoomImpl() }
 
             single<DownloadManager> { DownloadManagerImpl() }
             single<Thumbnails> { ThumbnailsImpl() }
@@ -243,7 +249,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
 
             single<RootViewModelFactory> { RootViewModelFactory }
             single<MainViewModelFactory> { MainViewModelFactory }
-            single<SelfVerificationTrigger> { SelfVerificationTriggerImpl() }
 
             single<AuthorizeUia> { AuthorizeUiaImpl() }
             single<UiaActionConfirmationViewModelFactory> { UiaActionConfirmationViewModelFactory }
@@ -275,10 +280,10 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
     // Platform-specific implementations:
     ::platformModule,
     ::platformPathsModule,
+    ::platformStringsModule,
     ::platformCreateRepositoriesModuleModule,
     ::platformCreateMediaStoreModule,
-    ::platformGetSecretByteArrayKey,
-    ::convertSecretByteArrayModule,
+    ::secretsModule,
     ::platformGetSystemLangModule,
     ::platformDeleteAccountDataModule,
     ::platformMatrixMessengerSettingsHolderModule,

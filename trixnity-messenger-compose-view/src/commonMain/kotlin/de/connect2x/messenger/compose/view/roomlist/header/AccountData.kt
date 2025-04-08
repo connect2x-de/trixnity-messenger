@@ -20,6 +20,8 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 
 interface AccountDataView {
@@ -40,10 +42,9 @@ class AccountDataViewImpl : AccountDataView {
         val headerHeight = headerHeightFlow.collectAsState().value
         val density = LocalDensity.current
 
-        Surface(
+        ThemedSurface(
+            style = MaterialTheme.components.header,
             modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 8.dp
         ) {
             Row(
                 Modifier.onGloballyPositioned { coordinates ->

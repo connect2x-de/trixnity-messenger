@@ -52,6 +52,8 @@ class RoomListRouter(
     private val onRemoveAccount: (userId: UserId) -> Unit,
     private val onAccountSelected: () -> Unit,
     private val onStartAccountSetup: (userId: UserId) -> Unit,
+    private val onStartVerification: (userId: UserId) -> Unit,
+    private val onCloseRoom: () -> Unit
 ) {
 
     private val navigation = StackNavigation<Config>()
@@ -95,6 +97,8 @@ class RoomListRouter(
                     onSendLogs = onSendLogs,
                     onOpenAccountsOverview = ::onOpenAccountsOverview,
                     onAccountSelected = onAccountSelected,
+                    onStartVerification = onStartVerification,
+                    onCloseRoom = onCloseRoom
                 )
             )
 
@@ -146,6 +150,7 @@ class RoomListRouter(
                     ),
                     onBack = ::onCancelSearchGroup,
                     onGroupJoined = ::onGroupJoined,
+                    onGroupKnocked = ::onGroupKnocked
                 )
             )
 
@@ -270,6 +275,11 @@ class RoomListRouter(
         navigation.popWhileSuspending { it !is Config.RoomList }
         selectedRoomId.value = roomId
         onRoomSelected(userId, roomId)
+    }
+
+    private fun onGroupKnocked(roomId: RoomId) = viewModelContext.coroutineScope.launch {
+        log.debug { "on group knocked ($roomId)" }
+        navigation.popWhileSuspending { it !is Config.RoomList }
     }
 
     private fun onOpenUserSettings() {

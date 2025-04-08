@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +35,8 @@ import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.RunningText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.export.CSVFileBasedExportRoomProperties
 import de.connect2x.trixnity.messenger.export.Destination
 import de.connect2x.trixnity.messenger.export.FileBasedExportRoomProperties
@@ -136,32 +137,23 @@ class ExportRoomViewImpl : ExportRoomView {
                 Row(Modifier.fillMaxWidth()) {
                     val abortText = i18n.exportRoomAbort()
                     Column(Modifier.weight(0.5f), horizontalAlignment = Alignment.Start) {
-                        OutlinedButton(
+                        ThemedButton(
+                            style = MaterialTheme.components.destructiveButton,
                             onClick = { exportRoomViewModel.abort() },
                             enabled = isExporting,
-                            modifier = Modifier.buttonPointerModifier(),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.error
-                            )
                         ) {
-                            Text(
-                                text = abortText,
-                                style = MaterialTheme.typography.labelLarge
-                            )
+                            Text(abortText)
                         }
                     }
 
                     val exportRoomText = i18n.exportRoomButton()
                     Column(Modifier.weight(0.5f), horizontalAlignment = Alignment.End) {
-                        Button(
+                        ThemedButton(
+                            style = MaterialTheme.components.primaryButton,
                             onClick = { exportRoomViewModel.start() },
                             enabled = canExport && !isExporting,
-                            modifier = Modifier.buttonPointerModifier(),
                         ) {
-                            Text(
-                                text = exportRoomText,
-                                style = MaterialTheme.typography.labelLarge
-                            )
+                            Text(exportRoomText)
                         }
                     }
                 }

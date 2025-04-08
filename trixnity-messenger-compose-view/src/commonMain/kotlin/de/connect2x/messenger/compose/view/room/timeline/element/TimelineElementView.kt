@@ -7,7 +7,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import kotlin.reflect.KClass
 
 interface TimelineElementView<V : TimelineElementViewModel<*>> {
-    val supports: KClass<V>
+    val supports: KClass<out V>
 
     suspend fun waitFor(element: V)
 
@@ -36,38 +36,38 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
     )
 }
 
-object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel.Empty> {
+object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*>> {
     override val supports: KClass<TimelineElementViewModel.Empty>
         get() = TimelineElementViewModel.Empty::class
 
 
-    override suspend fun waitFor(element: TimelineElementViewModel.Empty) {}
+    override suspend fun waitFor(element: TimelineElementViewModel<*>) {}
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: TimelineElementViewModel.Empty,
+        element: TimelineElementViewModel<*>,
     ) {
     }
 
     @Composable
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
-        element: TimelineElementViewModel.Empty,
+        element: TimelineElementViewModel<*>,
     ) {
     }
 
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
-        element: TimelineElementViewModel.Empty
+        element: TimelineElementViewModel<*>
     ) {
     }
 
     @Composable
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
-        element: TimelineElementViewModel.Empty
+        element: TimelineElementViewModel<*>
     ) {
     }
 }

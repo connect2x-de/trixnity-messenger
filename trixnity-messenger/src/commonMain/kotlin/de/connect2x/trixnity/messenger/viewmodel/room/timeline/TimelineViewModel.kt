@@ -414,6 +414,7 @@ class TimelineViewModelImpl(
         markLastVisibleEventAsReadWhenItChanges()
 
         coroutineScope.launch {
+            timelineStartFrom.first() // wait for room to be fetched first
             matrixClient.user.loadMembers(roomId, wait = false)
         }
 

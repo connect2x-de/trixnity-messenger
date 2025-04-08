@@ -1,29 +1,38 @@
 package de.connect2x.messenger.compose.view
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.CanvasBasedWindow
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessenger
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.createRoot
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.create
-import de.connect2x.trixnity.messenger.multi.singleMode
+import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
+import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.oshai.kotlinlogging.KotlinLoggingConfiguration.logLevel
+import io.github.oshai.kotlinlogging.KotlinLoggingConfiguration
 import io.github.oshai.kotlinlogging.Level
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.updateAndGet
 import org.jetbrains.skiko.wasm.onWasmReady
 import web.dom.DocumentVisibilityState
 import web.dom.document
 import web.events.Event
 import web.events.addEventListener
+import web.prompts.alert
 import web.uievents.FocusEvent
 import web.window.window
 
@@ -34,9 +43,19 @@ suspend fun startMessenger(
     configuration: MatrixMultiMessengerConfiguration.() -> Unit,
 ) {
     log.info { "Starting client" }
-    logLevel = Level.DEBUG
+    KotlinLoggingConfiguration.logLevel = Level.DEBUG
 
     val matrixMultiMessenger = MatrixMultiMessenger.create(configuration = configuration)
+    val config = matrixMultiMessenger.di.get<MatrixMessengerBaseConfiguration>()
+    val i18n = matrixMultiMessenger.di.get<I18n>()
+
+    if (!isPrimaryInstance(config)) {
+        log.info { "${config.appName} is already running, skipping initialization" }
+        alert(i18n.alreadyRunningError(config.appName))
+        window.location.href = "about:blank" // Redirect to empty tab
+        return
+    }
+
     val lifecycleRegistry = LifecycleRegistry(Lifecycle.State.STARTED)
     val windowIsFocused = MutableStateFlow(false)
 
@@ -72,10 +91,12 @@ suspend fun startMessenger(
         }
     )
 
-    matrixMultiMessenger.singleMode { matrixMessenger ->
+    coroutineScope {
+        val matrixMessengerFlow = matrixMultiMessenger
+            .singleModeMatrixMessenger()
+            .stateIn(this)
+
         try {
-            val rootViewModel = matrixMessenger.createRoot(DefaultComponentContext(lifecycleRegistry))
-            val config = matrixMessenger.di.get<MatrixMessengerConfiguration>()
             onWasmReady {
                 CanvasBasedWindow(config.appName) {
                     // As this is hopefully only temporary until FontFallback works automatically on Web with
@@ -87,19 +108,26 @@ suspend fun startMessenger(
                     CompositionLocalProvider(
                         Platform provides PlatformType.WEB,
                         IsFocused provides windowIsFocused.collectAsState(false).value,
-                        DI provides matrixMessenger.di,
                     ) {
-                        MessengerTheme {
-                            Client(rootViewModel)
+                        val matrixMessenger by matrixMessengerFlow.collectAsState()
+                        val rootViewModel = rememberRootViewModel(matrixMessenger, lifecycleRegistry)
+
+                        CompositionLocalProvider(
+                            DI provides matrixMessenger.di,
+                        ) {
+                            MessengerTheme {
+                                Client(rootViewModel)
+                            }
+                            Notifications(
+                                matrixMessenger,
+                            )
                         }
-                        Notifications(
-                            matrixMessenger,
-                        )
                     }
                 }
             }
         } catch (e: Throwable) {
-            // in JS sometimes the original stacktrace gets scrambled by coroutines, so this method at least should give a better clou on where to look
+            // in JS sometimes the original stacktrace gets scrambled by coroutines
+            // so this method at least should give a better clue on where to look
             println(e.message)
             println("-------")
             println(e.stackTraceToString())
@@ -107,6 +135,15 @@ suspend fun startMessenger(
         }
     }
 }
+
+@Composable
+private fun rememberRootViewModel(
+    matrixMessenger: MatrixMessenger,
+    lifecycleRegistry: LifecycleRegistry
+): RootViewModel =
+    remember(matrixMessenger) {
+        matrixMessenger.createRoot(DefaultComponentContext(lifecycleRegistry))
+    }
 
 private fun LifecycleRegistry.updateState(visible: Boolean, focused: Boolean) {
     val target = when {

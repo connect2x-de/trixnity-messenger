@@ -30,6 +30,7 @@ private fun ElementDetailsHeaderPreview() {
                 content = FileBased.Image(body = "image.png")
             ),
             {},
+            {},
         ) {
             FileBasedDetailsHeaderButton(
                 Icons.Outlined.ZoomIn,

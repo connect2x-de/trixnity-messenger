@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.MatrixMessenger
-import de.connect2x.trixnity.messenger.settings.settingsJson
+import de.connect2x.trixnity.messenger.settings.SettingsJson
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
@@ -68,7 +68,7 @@ class ProfileManagerImpl(
     override suspend fun createProfile(settings: MatrixMultiMessengerProfileSettingsBase): String {
         log.debug { "create profile" }
         val profileSettings = MatrixMultiMessengerProfileSettings(
-            checkNotNull(settingsJson.encodeToJsonElement(settings) as? JsonObject)
+            checkNotNull(SettingsJson.encodeToJsonElement(settings) as? JsonObject)
         )
         var nextId: String? = null
         settingsHolder.update<MatrixMultiMessengerSettingsBase> { oldSettings ->

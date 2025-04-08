@@ -4,16 +4,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
-import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 
 interface ShowSearchView {
@@ -33,20 +33,18 @@ class ShowSearchViewImpl : ShowSearchView {
         val showSearch = roomListViewModel.showSearch.collectAsState()
 
         if (showSearch.value) {
-            Tooltip(
-                tooltip = { TooltipText(i18n.accountDeactivateSearch()) }) {
-                IconButton(
-                    modifier = Modifier.buttonPointerModifier(),
+            Tooltip({ Text(i18n.accountDeactivateSearch()) }) {
+                ThemedIconButton(
+                    style = MaterialTheme.components.commonIconButton,
                     onClick = { roomListViewModel.showSearch.value = false },
                 ) {
-                    Icon(Icons.Default.SearchOff, i18n.accountActivateSearch())
+                    Icon(Icons.Default.SearchOff, i18n.accountDeactivateSearch())
                 }
             }
         } else {
-            Tooltip(
-                tooltip = { TooltipText(i18n.accountActivateSearch()) }) {
-                IconButton(
-                    modifier = Modifier.buttonPointerModifier(),
+            Tooltip({ Text(i18n.accountActivateSearch()) }) {
+                ThemedIconButton(
+                    style = MaterialTheme.components.commonIconButton,
                     onClick = { roomListViewModel.showSearch.value = true },
                 ) {
                     Icon(Icons.Default.Search, i18n.accountActivateSearch())

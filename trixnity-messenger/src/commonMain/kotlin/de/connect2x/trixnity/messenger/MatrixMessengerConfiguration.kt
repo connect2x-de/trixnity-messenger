@@ -4,6 +4,8 @@ import de.connect2x.trixnity.messenger.util.mb
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import net.folivo.trixnity.client.ModuleFactory
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 
 private val colors =
     listOf(
@@ -16,6 +18,7 @@ private val colors =
         0xAA49C771,
     )
 
+@TrixnityMessengerDsl
 data class MatrixMessengerConfiguration(
     override var appName: String = "Trixnity Messenger",
     override var appId: String = "de.connect2x.messenger",
@@ -54,6 +57,11 @@ data class MatrixMessengerConfiguration(
      * The maximum number of elements that should be kept in the timeline list (plus 2 * [timelineBuffer])
      */
     var timelineMaxSize: Int = 160,
+
+    /**
+     * The maximum amount of time until message are seperated by extra space
+     */
+    var showBigGapBeforeThreshold: Duration = 1.hours,
 
     /**
      * The maximum size of image attachments that are processed to change their rotation before upload in *Bytes*.

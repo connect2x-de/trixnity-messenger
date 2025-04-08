@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MapsUgc
 import androidx.compose.material3.Icon
@@ -24,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.AvatarWithImage
 import de.connect2x.messenger.compose.view.common.AvatarWithPresence
+import de.connect2x.messenger.compose.view.common.PlaceholderHighlight
+import de.connect2x.messenger.compose.view.common.fade
 import de.connect2x.messenger.compose.view.common.icons.PublicIcon
 import de.connect2x.messenger.compose.view.common.placeholder
 import de.connect2x.messenger.compose.view.get
@@ -49,24 +52,34 @@ class RoomListElementViewImpl : RoomListElementView {
     @Composable
     override fun create(roomListViewModel: RoomListViewModel, roomListElementViewModel: RoomListElementViewModel) {
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value
+        val isLeave = roomListElementViewModel.isLeave.collectAsState().value
+        val isLoaded = roomListElementViewModel.isLoaded.collectAsState().value
+        val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
+
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
             MatrixClientColor(roomListElementViewModel)
-            Box(
-                Modifier.padding(top = 20.dp, bottom = 20.dp, end = 10.dp),
+            Row(
+                Modifier
+                    .height(72.dp)
+                    .padding(top = 10.dp, bottom = 10.dp, end = 10.dp)
+                    .placeholder(
+                        visible = !isLoaded,
+                        color = Color.LightGray,
+                        shape = RoundedCornerShape(8.dp),
+                        highlight = PlaceholderHighlight.fade(highlightColor = Color(0xFFDDDDDD))
+                    ),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row {
-                    Column(Modifier.align(Alignment.CenterVertically)) {
-                        RoomImage(roomListElementViewModel)
-                    }
-                    Spacer(Modifier.size(10.dp))
+                RoomImage(roomListElementViewModel)
+                Spacer(Modifier.size(10.dp))
 
-                    if (isInvite == true) {
-                        Invite(roomListElementViewModel)
-                    } else {
-                        Column(Modifier.align(Alignment.CenterVertically)) {
-                            RoomNameAndTime(roomListElementViewModel)
-                            LastMessageAndUnreadMessagesCounter(roomListElementViewModel)
-                        }
+                when {
+                    isInvite == true -> Invite(roomListElementViewModel)
+                    isLeave == true -> ArchivedRoom(roomListElementViewModel)
+                    isKnock == true -> Knock(roomListElementViewModel)
+                    else -> Column(Modifier.align(Alignment.CenterVertically)) {
+                        RoomNameAndTime(roomListElementViewModel)
+                        LastMessageAndUnreadMessagesCounter(roomListElementViewModel)
                     }
                 }
             }

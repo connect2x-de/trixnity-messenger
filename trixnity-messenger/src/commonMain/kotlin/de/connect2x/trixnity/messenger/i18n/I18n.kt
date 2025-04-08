@@ -18,6 +18,7 @@ import net.folivo.trixnity.core.model.UserId
 private val log = KotlinLogging.logger { }
 
 // TODO this is not lazy -> use property delegation or one class for one language instead
+@Suppress("UNUSED")
 open class I18n(
     languages: Languages,
     settings: MatrixMessengerSettingsHolder,
@@ -79,6 +80,11 @@ open class I18n(
     open fun roomNameInvitationFrom(groupOrChat: String, roomName: String) = translate {
         EN - "Invitation into $groupOrChat '$roomName'"
         DE - "Einladung in $groupOrChat '$roomName'"
+    }
+
+    open fun roomNameKnockFor(roomId: String) = translate {
+        EN - "Mebership request for $roomId"
+        DE - "Beitrittsanfrage für $roomId"
     }
 
     open fun roomNamePeople(count: Int) = translate {
@@ -354,6 +360,16 @@ open class I18n(
         DE - "Es gab einen Fehler. Bitte versuchen Sie es später."
     }
 
+    open fun roomListKnockOffline() = translate {
+        EN - "You cannot take your membership request back while you are offline."
+        DE - "Sie können offline die Beitrittsanfrage nicht zurücknehmen."
+    }
+
+    open fun roomListKnockError() = translate {
+        EN - "There has been an error. Please try again later."
+        DE - "Es gab einen Fehler. Bitte versuchen Sie es später."
+    }
+
     open fun roomListContentImage() = translate {
         EN - "Image"
         DE - "Bild"
@@ -577,14 +593,54 @@ open class I18n(
         DE - "Sie können niemanden einladen, wenn Sie offline sind."
     }
 
-    open fun settingsRoomLeaveRoomError(groupOrChat: String) = translate {
-        EN - "There has been an error leaving $groupOrChat."
-        DE - "Fehler beim Verlassen $groupOrChat."
+    open fun forgetRoomError(groupOrChat: String) = translate {
+        EN - "There has been an error forgetting $groupOrChat."
+        DE - "Fehler beim Vergessen $groupOrChat."
+    }
+
+    open fun forgetRoomErrorOffline() = translate {
+        EN - "You cannot leave a chat or group when you are offline."
+        DE - "Sie können offline keine Chats oder Gruppen verlassen."
     }
 
     open fun settingsRoomLeaveRoomErrorOffline() = translate {
-        EN - "You cannot leave a chat or group when you are offline."
-        DE - "Sie können offline keine Chats oder Gruppen verlassen."
+        EN - "You cannot forget a chat or group when you are offline."
+        DE - "Sie können offline keine Chats oder Gruppen vergessen."
+    }
+
+    open fun settingsRoomForgetRoomMessageChat() = translate {
+        EN - "Forget chat"
+        DE - "Chat vergessen"
+    }
+
+    open fun settingsRoomForgetRoomMessageGroup() = translate {
+        EN - "Forget group"
+        DE - "Gruppe vergessen"
+    }
+
+    open fun settingsRoomForgetRoomWarningConfirmButtonChat() = translate {
+        EN - "Yes, forget chat"
+        DE - "Ja, Chat vergessen"
+    }
+
+    open fun settingsRoomForgetRoomWarningConfirmButtonGroup() = translate {
+        EN - "Yes, forget group"
+        DE - "Ja, Gruppe vergessen"
+    }
+
+    open fun settingsRoomForgetRoomWarningTitleChat() = translate {
+        EN - "Forget chat?"
+        DE - "Den Chat vergessen?"
+    }
+
+    open fun settingsRoomForgetRoomWarningTitleGroup() = translate {
+        EN - "Forget room?"
+        DE - "Die Gruppe vergessen?"
+    }
+
+    open fun settingsRoomLeaveRoomError(groupOrChat: String) = translate {
+        EN - "There has been an error leaving $groupOrChat."
+        DE - "Fehler beim Verlassen $groupOrChat."
     }
 
     open fun settingsRoomLeaveRoomMessageChat() = translate {
@@ -1155,6 +1211,51 @@ open class I18n(
     open fun downloadFailed(error: String?) = translate {
         EN - "Download failed: ${error ?: commonUnknown()}"
         DE - "Herunterladen fehlgeschlagen: ${error ?: commonUnknown()}"
+    }
+
+    open fun alreadyRunningError(appName: String) = translate {
+        EN - "$appName is already running in another tab or window. Please close it first."
+        DE - "$appName läuft bereits in einem anderen Tab oder Fenster. Bitte schließen Sie es zuerst."
+    }
+
+    open fun searchGroupFailedSearch() = translate {
+        EN - "Searching rooms failed"
+        DE - "Raumsuche ist fehlgeschlagen"
+    }
+
+    open fun searchGroupJoinFailedGeneric() = translate {
+        EN - "Joining the room failed"
+        DE - "Raumbeitritt ist fehlgeschlagen"
+    }
+
+    open fun enterRoomFailedGenericJoin() = translate {
+        EN - "Joining the room failed"
+        DE - "Raumbeitritt ist fehlgeschlagen"
+    }
+
+    open fun enterRoomFailedRestricted() = translate {
+        EN - "Unqualified to join this room"
+        DE - "Unqualifiziert diesen Raum beizutreten"
+    }
+
+    open fun enterRoomFailedInvite() = translate {
+        EN - "Joining room is invite-only"
+        DE - "Kann Raum nur auf Einladung betreten"
+    }
+
+    open fun enterRoomFailedGenericKnock() = translate {
+        EN - "Membership request failed"
+        DE - "Raummitgliedschaftssanfrage ist fehlgeschlagen"
+    }
+
+    open fun enterRoomFailedNoPermission() = translate {
+        EN - "No Permission to join this room"
+        DE - "Fehlende Berechtigung diesem Raum beizutreten"
+    }
+
+    open fun enterRoomFailedRoomDoesNotExist() = translate {
+        EN - "Room does not exist"
+        DE - "Raum existiert nicht"
     }
 }
 

@@ -21,9 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -48,6 +45,9 @@ import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
 
@@ -108,16 +108,13 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                         }
                     }
                     Spacer(Modifier.size(20.dp))
-                    FloatingActionButton(
+                    ThemedFloatingActionButton(
+                        expanded = true,
                         onClick = accountsOverviewViewModel::createNewAccount,
                         modifier = Modifier.buttonPointerModifier().align(Alignment.End).padding(all = 10.dp),
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(all = 10.dp)) {
-                            Icon(Icons.Default.AddCircle, i18n.commonCreate())
-                            Spacer(Modifier.size(10.dp))
-                            Text(i18n.accountsOverviewCreateNewAccount())
-                        }
-                    }
+                        text = { Text(i18n.accountsOverviewCreateNewAccount()) },
+                        icon = { Icon(Icons.Default.AddCircle, i18n.accountsOverviewCreateNewAccount()) },
+                    )
                 }
             }
         }
@@ -135,18 +132,19 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                 }
                 MessengerModalButtonRow(
                     button1 = {
-                        OutlinedButton(
+                        ThemedButton(
+                            style = MaterialTheme.components.destructiveButton,
                             onClick = {
                                 showLogoutWarning?.userId?.let { accountsOverviewViewModel.removeAccount(it) }
                                 showLogoutWarning = null
                             },
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
                         ) {
                             Text(i18n.accountsOverviewLogout())
                         }
                     },
                     button2 = {
-                        Button(
+                        ThemedButton(
+                            style = MaterialTheme.components.primaryButton,
                             onClick = { showLogoutWarning = null },
                         ) {
                             Text(i18n.commonCancel().capitalize(Locale.current))

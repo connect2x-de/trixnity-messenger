@@ -17,7 +17,6 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel.User
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
-import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -79,6 +78,8 @@ interface RoomListViewModelFactory {
         onSendLogs: () -> Unit,
         onOpenAccountsOverview: () -> Unit,
         onAccountSelected: () -> Unit,
+        onStartVerification: (UserId) -> Unit,
+        onCloseRoom: () -> Unit
     ): RoomListViewModel {
         return RoomListViewModelImpl(
             viewModelContext,
@@ -91,6 +92,8 @@ interface RoomListViewModelFactory {
             onSendLogs,
             onOpenAccountsOverview,
             onAccountSelected,
+            onStartVerification,
+            onCloseRoom
         )
     }
 
@@ -159,6 +162,8 @@ class RoomListViewModelImpl(
     private val onSendLogs: () -> Unit,
     private val onOpenAccountsOverview: () -> Unit,
     private val onAccountSelected: () -> Unit, // TODO provide userId as argument?
+    private val onStartVerification: (userId: UserId) -> Unit,
+    onCloseRoom: () -> Unit
 ) : ViewModelContext by viewModelContext, RoomListViewModel {
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
@@ -175,7 +180,11 @@ class RoomListViewModelImpl(
     override val initialSyncFinished: StateFlow<Boolean>
     private val _syncState: StateFlow<Map<UserId, SyncState>>
     override val syncStates: StateFlow<UserSyncStates>
+
+    @Deprecated("Api cleanup", replaceWith = ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
     override val syncStateError: StateFlow<Map<UserId, Boolean>>
+
+    @Deprecated("Api cleanup", replaceWith = ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
     override val allSyncError: StateFlow<Boolean>
 
     override val showSearch = MutableStateFlow(false)
@@ -224,8 +233,6 @@ class RoomListViewModelImpl(
     )
 
     private val elementCache = mutableMapOf<RoomId, RoomListElementViewModelWrapper>()
-
-    private val selfVerificationTrigger = get<SelfVerificationTrigger>()
 
     private data class RoomWithMatrixClient(
         val room: Room,
@@ -305,7 +312,7 @@ class RoomListViewModelImpl(
                 allRoomsFlow,
                 directRoomsFlow,
                 searchedRoomsFlow,
-            ) { roomsWithMeta, directRooms, searchedRooms ->
+            ) { roomsWithMeta, _, searchedRooms ->
                 data class SortableRoom(
                     val roomWithMatrixClient: RoomWithMatrixClient,
                     val sortTime: Instant?,
@@ -316,17 +323,19 @@ class RoomListViewModelImpl(
                         val isSpace = room.createEventContent?.type == RoomType.Space
                         val includedInSearch = searchedRooms.contains(room.roomId)
                         val isDisplayed = !isSpace &&
-                                (room.membership == Membership.INVITE || room.membership == Membership.JOIN) &&
+                                (room.membership == Membership.INVITE || room.membership == Membership.JOIN || room.membership == Membership.LEAVE || room.membership == Membership.KNOCK) &&
                                 includedInSearch
                         isDisplayed
                     }.onEach { log.trace { "filtered rooms: $it" } }
-                    .map<RoomWithMatrixClient, SortableRoom> { roomWithMeta ->
+                    .map { roomWithMeta ->
                         // Use `map` to get the creation time here since `sortedByDescending` won't support suspended function calls.
                         val room = roomWithMeta.room
                         val lastRelevantEventTime = room.lastRelevantEventTimestamp
                         val sortTime =
                             when {
                                 room.membership == Membership.INVITE -> Instant.DISTANT_FUTURE
+                                room.membership == Membership.KNOCK -> Instant.DISTANT_FUTURE - 1.seconds
+                                room.membership == Membership.LEAVE -> Instant.fromEpochMilliseconds(0)
                                 lastRelevantEventTime == null -> roomWithMeta.matrixClient
                                     .room.getState<CreateEventContent>(room.roomId, "").first()
                                     ?.originTimestamp?.let { Instant.fromEpochMilliseconds(it) }
@@ -334,10 +343,10 @@ class RoomListViewModelImpl(
                                 else -> lastRelevantEventTime
                             }
                         SortableRoom(roomWithMeta, sortTime)
-                    }.toList<SortableRoom>()
-                    .sortedByDescending<SortableRoom, Instant> { (_, sortTime) -> sortTime }
-                    .asFlow<SortableRoom>()
-                    .map<SortableRoom, RoomWithMatrixClient> { it.roomWithMatrixClient }
+                    }.toList()
+                    .sortedByDescending { (_, sortTime) -> sortTime }
+                    .asFlow()
+                    .map { it.roomWithMatrixClient }
                     .toList()
                     .associate { it.room.roomId to it.matrixClient.userId }
 
@@ -360,6 +369,7 @@ class RoomListViewModelImpl(
                                 ),
                                 roomId,
                                 onRoomSelected = { onRoomSelected(userId, roomId) },
+                                onCloseRoom = { onCloseRoom() }
                             ).also {
                                 elementCache[roomId] = RoomListElementViewModelWrapper(it, lifecycleRegistry)
                             }
@@ -396,11 +406,13 @@ class RoomListViewModelImpl(
             }
             .stateIn(coroutineScope, WhileSubscribed(), UserSyncStates(setOf(), setOf()))
 
+        @Suppress("DEPRECATION") // TODO: remove this eventually
         syncStateError = syncStates
             .mapLatest {
                 it.failedFor.associateWith { true } + it.operationalFor.associateWith { false }
             }.stateIn(coroutineScope, WhileSubscribed(), mapOf())
 
+        @Suppress("DEPRECATION") // TODO: remove this eventually
         allSyncError = syncStates
             .mapLatest { it.failedForAll }
             .stateIn(coroutineScope, WhileSubscribed(), false)
@@ -459,9 +471,11 @@ class RoomListViewModelImpl(
         coroutineScope.launch {
             val matrixClient = allRoomsFlow.first()[roomId]?.matrixClient
                 ?: return@launch log.error { "cannot find NamedMatrixClient for room $roomId" }
-            val isInvite =
-                matrixClient.room.getById(roomId).filterNotNull().map { it.membership == Membership.INVITE }.first()
-            log.debug { "switch to room $roomId (isInvite: $isInvite)" }
+            val (isInvite, isKnock) =
+                matrixClient.room.getById(roomId).filterNotNull().map {
+                    Pair(it.membership == Membership.INVITE, it.membership == Membership.KNOCK)
+                }.first()
+            log.debug { "switch to room $roomId (isInvite: $isInvite isKnock: $isKnock)" }
             when {
                 isInvite && _syncState.value[matrixClient.userId] == SyncState.ERROR -> {
                     log.debug { "try to join room while not connected" }
@@ -484,13 +498,14 @@ class RoomListViewModelImpl(
                     )
                 }
 
+                isKnock -> {}
+
                 else -> onRoomSelected(matrixClient.userId, roomId)
             }
         }
     }
 
-    override val closeProfileNeeded: Boolean = getOrNull<MatrixMultiMessengerConfiguration>()
-        ?.multiProfile ?: false
+    override val closeProfileNeeded: Boolean = getOrNull<MatrixMultiMessengerConfiguration>()?.multiProfile == true
 
     override fun closeProfile() {
         log.debug { "close profile" }
@@ -513,9 +528,7 @@ class RoomListViewModelImpl(
     }
 
     override fun verifyAccount(userId: UserId) {
-        coroutineScope.launch {
-            selfVerificationTrigger.invoke(userId)
-        }
+        onStartVerification(userId)
     }
 }
 
@@ -531,8 +544,12 @@ class PreviewRoomListViewModel : RoomListViewModel {
                 PreviewRoomListElementViewModel3(),
             )
         )
+    @Deprecated("Api cleanup", replaceWith = ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
     override val syncStateError: MutableStateFlow<Map<UserId, Boolean>> = MutableStateFlow(mapOf())
+
+    @Deprecated("Api cleanup", replaceWith = ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
     override val allSyncError: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
     override val syncStates: StateFlow<UserSyncStates> = MutableStateFlow(UserSyncStates(setOf(), setOf()))
     override val initialSyncFinished: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)

@@ -21,6 +21,10 @@ open class I18nView(
     getSystemLang: GetSystemLang,
     timeZone: TimeZone,
 ) : I18nBase(lang, messengerSettings, getSystemLang, timeZone) {
+    open fun commonArchived() = translate {
+        EN - "Archived"
+        DE - "Archiviert"
+    }
 
     open fun commonContextMenu() = translate {
         EN - "context menu"
@@ -330,6 +334,11 @@ open class I18nView(
     open fun commonZoomOut() = translate {
         EN - "zoom out"
         DE - "Verkleinern"
+    }
+
+    open fun commonSubmit() = translate {
+        EN - "submit"
+        DE - "absenden"
     }
 
     open fun ban() = translate {
@@ -964,6 +973,11 @@ open class I18nView(
     open fun timelineElementMetadataReadersAndReactionsNone() = translate {
         EN - "No message interactions yet."
         DE - "Bisher keine Nachrichtsinteraktionen"
+    }
+
+    open fun timelineJumpToEnd() = translate {
+        EN - "Jump to the end"
+        DE - "Ans Ende springen"
     }
 
     open fun roomSettings() = translate {
@@ -2122,6 +2136,11 @@ open class I18nView(
         DE - "Ablehnen und Nutzer blocken"
     }
 
+    open fun unknock() = translate {
+        EN - "Take back membership request"
+        DE - "Beitrittsanfrage zurücknehmen"
+    }
+
     open fun blockedContactsHeader() = translate {
         EN - "Blocked contacts"
         DE - "Blockierte Kontakte"
@@ -2582,6 +2601,21 @@ open class I18nView(
         DE - "Akzentfarbe"
     }
 
+    open fun appearanceAccentColorDefault() = translate {
+        EN - "Default"
+        DE - "Standard"
+    }
+
+    open fun forgetRoomWarningHeader() = translate {
+        EN - "Forget room?"
+        DE - "Raum vergessen?"
+    }
+
+    open fun formattedForgetRoomWarningBody(roomName: String?, isDirect: Boolean) = translate {
+        EN - "Do you really want to forget ${if (isDirect) "chat" else "group"} ${if (roomName != null) "'$roomName'" else ""}? If you continue, you can't access the room and it's content anymore."
+        DE - "Wollen Sie ${if (isDirect) "den Chat" else "die Gruppe"} ${if (roomName != null) "'$roomName'" else ""} wirklich vergessen? Wenn sie fortfahren, können Sie auf den Raum und dessen Inhalte nicht mehr zugreifen."
+    }
+
     open fun formattedInvitationBody(inviterName: String, roomName: String?) = translate {
         EN - "Invitation from $inviterName${if (roomName != null) " to '$roomName'" else ""}"
         DE - "Einladung von $inviterName${if (roomName != null) " zu '$roomName'" else ""}"
@@ -2727,6 +2761,21 @@ open class I18nView(
     open fun settingsRoomMemberListKickUserWarningTitleGroup(username: String) = translate {
         EN - "Remove user $username from group?"
         DE - "Nutzer $username aus der Gruppe entfernen?"
+    }
+
+    open fun knockRequest() = translate {
+        EN - "Request Membership"
+        DE - "Beitrittsanfrage"
+    }
+
+    open fun knockExplanation() = translate {
+        EN - "This room requires you to request to a membership"
+        DE - "Dieser Raum erfordert, dass Sie eine Mitgliedschaft anfordern"
+    }
+
+    open fun knockLabel() = translate {
+        EN - "Why do you wish to join? (Optional)"
+        DE - "Warum möchtest du beitreten? (Optional)"
     }
 }
 

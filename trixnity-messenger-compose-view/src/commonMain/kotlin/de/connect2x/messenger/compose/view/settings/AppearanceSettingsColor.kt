@@ -8,15 +8,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,11 +33,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.MoreOptions
-import de.connect2x.messenger.compose.view.common.contrastByLuminance
 import de.connect2x.messenger.compose.view.common.deriveFromHue
 import de.connect2x.messenger.compose.view.common.hue
 import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.DefaultAccentColor
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 
 interface AppearanceSettingsColorView {
     @Composable
@@ -64,6 +68,8 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun ColumnScope.create(text: String, defaultColor: Color, color: Color, set: (Color) -> Unit) {
+        val i18n = DI.get<I18nView>()
+        val defaultAccentColor = DI.get<DefaultAccentColor>().value
         // This allows locally holding the color until the user lets go of the slider;
         // This prevents clogging the coroutine scheduler with redundant settings updates
         var newHue by remember { mutableStateOf(-1F) }
@@ -72,6 +78,23 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
         // adjusting the hue slider, since the preview/slider gets recomposed anyways.
         fun getCurrentHue() = if (newHue != -1F && newHue != color.hue) newHue else color.hue
 
+        val currentColor = defaultAccentColor.deriveFromHue(getCurrentHue())
+        val primaryIconButtonStyle = MaterialTheme.components.primaryIconButton
+        val accentIconButtonStyle = when (primaryIconButtonStyle) {
+            is IconButtonStyle.Default -> primaryIconButtonStyle.copy(
+                colors = primaryIconButtonStyle.colors.copy(contentColor = currentColor)
+            )
+            is IconButtonStyle.Filled -> primaryIconButtonStyle.copy(
+                colors = primaryIconButtonStyle.colors.copy(containerColor = currentColor)
+            )
+            is IconButtonStyle.FilledTonal -> primaryIconButtonStyle.copy(
+                colors = primaryIconButtonStyle.colors.copy(containerColor = currentColor)
+            )
+            is IconButtonStyle.Outlined -> primaryIconButtonStyle.copy(
+                colors = primaryIconButtonStyle.colors.copy(contentColor = currentColor)
+            )
+        }
+
         MoreOptions({
             Text(
                 text = "${text}: ",
@@ -79,7 +102,7 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                 style = MaterialTheme.typography.titleSmall,
             )
             Spacer(Modifier.width(5.dp))
-            AppearanceSettingsColorPreview(color.deriveFromHue(getCurrentHue(), 1F, 0.5F, 1F))
+            AppearanceSettingsColorPreview(currentColor)
         }) {
             Row(
                 modifier = Modifier.padding(16.dp).fillMaxSize(),
@@ -91,24 +114,28 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                         newHue = it
                     },
                     onValueChangeFinished = {
-                        set(color.deriveFromHue(newHue, 1F, 0.5F, 1F))
+                        set(defaultAccentColor.deriveFromHue(newHue))
                     },
                     valueRange = 0F..359F,
                     steps = 359,
                     modifier = Modifier.weight(1F),
-                    track = { HueSliderTrack() }
+                    colors = SliderDefaults.colors(thumbColor = currentColor),
+                    track = { HueSliderTrack(defaultAccentColor) },
                 )
                 Spacer(Modifier.width(10.dp))
-                Button({
-                    newHue = defaultColor.hue
-                    set(defaultColor)
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.Refresh,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                        tint = color.contrastByLuminance(Color.White, Color.Black),
-                    )
+                Tooltip({Text(i18n.appearanceAccentColorDefault())}) {
+                    ThemedIconButton(
+                        style = accentIconButtonStyle,
+                        onClick = {
+                            newHue = defaultColor.hue
+                            set(defaultColor)
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Refresh,
+                            contentDescription = i18n.appearanceAccentColorDefault(),
+                        )
+                    }
                 }
             }
         }
@@ -116,7 +143,10 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
 }
 
 @Composable
-fun HueSliderTrack(modifier: Modifier = Modifier.height(4.dp)) {
+fun HueSliderTrack(
+    referenceColor: Color,
+    modifier: Modifier = Modifier.height(4.dp),
+) {
     var height by remember { mutableStateOf(0) }
     Canvas(modifier = modifier.fillMaxWidth()
         .onGloballyPositioned { height = it.size.height }) {
@@ -129,13 +159,13 @@ fun HueSliderTrack(modifier: Modifier = Modifier.height(4.dp)) {
         val sliderValueStart = Offset(sliderStart.x, center.y)
         drawLine(
             Brush.horizontalGradient(
-                0F to Color.hsv(0F, 1F, 1F),
-                1F / 6F to Color.hsv(60F, 1F, 1F),
-                2F / 6F to Color.hsv(120F, 1F, 1F),
-                3F / 6F to Color.hsv(180F, 1F, 1F),
-                4F / 6F to Color.hsv(240F, 1F, 1F),
-                5F / 6F to Color.hsv(300F, 1F, 1F),
-                1F to Color.hsv(359F, 1F, 1F)
+                0F to referenceColor.deriveFromHue(0F),
+                1F / 6F to referenceColor.deriveFromHue(60F),
+                2F / 6F to referenceColor.deriveFromHue(120F),
+                3F / 6F to referenceColor.deriveFromHue(180F),
+                4F / 6F to referenceColor.deriveFromHue(240F),
+                5F / 6F to referenceColor.deriveFromHue(300F),
+                1F to referenceColor.deriveFromHue(360F)
             ),
             sliderValueStart,
             sliderValueEnd,

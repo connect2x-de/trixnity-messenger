@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.common
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,28 +13,28 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 
 
 @Composable
@@ -65,9 +64,8 @@ fun Header(
     val headerHeight = headerHeightFlow.collectAsState().value
     val density = LocalDensity.current
 
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp,
+    ThemedSurface(
+        style = MaterialTheme.components.header,
     ) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -79,21 +77,26 @@ fun Header(
                         Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        IconButton(
-                            onClick = onBack,
-                            modifier = Modifier.buttonPointerModifier(),
-                        ) {
-                            when (backButtonType) {
-                                BACK -> Icon(
-                                    Icons.AutoMirrored.Default.ArrowBack,
-                                    i18n.commonBack(),
-                                )
+                        when (backButtonType) {
+                            BACK ->
+                                Tooltip({ Text(i18n.commonBack()) },) {
+                                    ThemedIconButton(
+                                        style = MaterialTheme.components.commonIconButton,
+                                        onClick = onBack,
+                                    ) {
+                                        Icon(Icons.AutoMirrored.Default.ArrowBack, i18n.commonBack())
+                                    }
+                                }
 
-                                CLOSE -> Icon(
-                                    Icons.Default.Close,
-                                    i18n.commonClose(),
-                                )
-                            }
+                            CLOSE ->
+                                Tooltip({ Text(i18n.commonClose()) },) {
+                                    ThemedIconButton(
+                                        style = MaterialTheme.components.commonIconButton,
+                                        onClick = onBack,
+                                    ) {
+                                        Icon(Icons.Default.Close, i18n.commonClose())
+                                    }
+                                }
                         }
                         Spacer(Modifier.size(10.dp))
                         title()
