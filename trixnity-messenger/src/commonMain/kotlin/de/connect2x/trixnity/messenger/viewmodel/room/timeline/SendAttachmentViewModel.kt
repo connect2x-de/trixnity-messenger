@@ -107,11 +107,7 @@ class SendAttachmentViewModelImpl(
             }
 
             _sendEnabled.value = _error.value == null
-            _fileContent.value = if (isImage == true && !checkFileSizeExceedsLimit(
-                    file.fileSize,
-                    messengerConfiguration.imageAttachmentMaxProcessingSize
-                )
-            ) {
+            _fileContent.value = if (isImage == true) {
                 val imageByteArray = file.content.limitedByteArrayOrNull(messengerConfiguration.maxMediaSizeInMemory) {
                     log.debug { "Uploaded image ${file.fileName} couldn't be processed because it exceeds file size limits, it will be sent without processing" }
                 }
@@ -123,13 +119,6 @@ class SendAttachmentViewModelImpl(
                 } else {
                     file.content
                 }
-            } else if (isImage == true) {
-                log.debug {
-                    "Uploaded image ${file.fileName} couldn't be processed" +
-                            " because it exceeds file size limits," +
-                            " it will be sent without processing"
-                }
-                file.content
             } else {
                 file.content
             }
