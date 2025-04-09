@@ -54,6 +54,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
@@ -142,7 +143,7 @@ class UserProfileViewImpl : UserProfileView {
                 }
 
                 Column(
-                    Modifier.fillMaxWidth().weight(1f),
+                    Modifier.fillMaxWidth().weight(1f).padding(horizontal = 10.dp),
                     Arrangement.Center,
                     Alignment.CenterHorizontally
                 ) {
@@ -150,10 +151,10 @@ class UserProfileViewImpl : UserProfileView {
                         Avatar(
                             image,
                             userInfoElement.initials,
-                            150.dp
+                            size = 150.dp
                         )
                         Spacer(Modifier.height(20.dp))
-                            SelectableText(userInfoElement.name, style = MaterialTheme.typography.titleLarge)
+                        SelectableText(userInfoElement.name, style = MaterialTheme.typography.titleLarge)
 
                         if (userInfoElement.name != userId.full) {
                             CopyableUserId(userId, MaterialTheme.typography.bodyLarge)
@@ -256,9 +257,13 @@ fun CopyableUserId(userId: UserId, textStyle: TextStyle) {
     val clipboard = LocalClipboardManager.current
 
     Row(verticalAlignment = Alignment.CenterVertically) {
-        SelectableText(userId.full, style = textStyle)
+        SelectableText(userId.full, style = textStyle, overflow = TextOverflow.Visible)
+        Spacer(Modifier.size(5.dp))
         Tooltip({ TooltipText(i18n.userProfileCopyUserId()) }) {
-            IconButton(onClick = { clipboard.setText(AnnotatedString(userId.full)) }) {
+            ThemedIconButton(
+                style = MaterialTheme.components.commonIconButton,
+                onClick = { clipboard.setText(AnnotatedString(userId.full)) }
+            ) {
                 Icon(Icons.Default.CopyAll, i18n.userProfileCopyUserId())
             }
         }
