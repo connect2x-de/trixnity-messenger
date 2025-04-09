@@ -321,11 +321,6 @@ open class I18nView(
         DE - "einklappen"
     }
 
-    open fun commonSkip() = translate {
-        EN - "skip"
-        DE - "überspringen"
-    }
-
     open fun commonZoomIn() = translate {
         EN - "zoom in"
         DE - "Vergrößern"
