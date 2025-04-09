@@ -2,7 +2,7 @@
 jvmTarget = "17"
 c2xConventions = "39087842"
 
-trixnityMessenger = "3.5.3"
+trixnityMessenger = "3.5.4"
 trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"

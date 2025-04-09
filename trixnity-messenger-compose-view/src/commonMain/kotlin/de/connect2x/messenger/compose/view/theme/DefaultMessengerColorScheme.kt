@@ -1,50 +1,45 @@
 package de.connect2x.messenger.compose.view.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Stable
+import androidx.compose.ui.graphics.Color
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
-import de.connect2x.messenger.compose.view.getOrNull
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.ThemeMode
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val log = KotlinLogging.logger {}
 
+internal interface MessengerColorScheme {
+    @Stable
+    fun create(isDarkMode: Boolean, isHighContrast: Boolean, accentColor: Color): ColorScheme
+}
+
+internal class MessengerColorSchemeImpl(
+    private val themeLight: ThemeLightColorScheme,
+    private val themeLightContrast: ThemeHighContrastLightColorScheme,
+    private val themeDark: ThemeDarkColorScheme,
+    private val themeDarkContrast: ThemeHighContrastDarkColorScheme,
+): MessengerColorScheme {
+    @Stable
+    override fun create(isDarkMode: Boolean, isHighContrast: Boolean, accentColor: Color): ColorScheme =
+        if (isDarkMode) {
+            if (isHighContrast) themeDarkContrast.create(accentColor)
+            else themeDark.create(accentColor)
+        } else {
+            if (isHighContrast) themeLightContrast.create(accentColor)
+            else themeLight.create(accentColor)
+        }
+}
+
 internal val DefaultMessengerColorScheme: ColorScheme
     @Composable
     get() {
-        val settings = DI.getOrNull<MatrixMessengerSettingsHolder>()?.collectAsState()?.value
-        log.debug { "theme: ${settings?.base?.themeMode}, high contrast mode: ${settings?.base?.isHighContrast}" }
-        return when (settings?.base?.themeMode) {
-            ThemeMode.LIGHT -> if (settings.base.isHighContrast) {
-                DI.get<ThemeHighContrastLightColorScheme>().create()
-            } else {
-                DI.get<ThemeLightColorScheme>().create()
-            }
-
-            ThemeMode.DARK -> if (settings.base.isHighContrast) {
-                DI.get<ThemeHighContrastDarkColorScheme>().create()
-            } else {
-                DI.get<ThemeDarkColorScheme>().create()
-            }
-
-            null -> DI.get<ThemeLightColorScheme>().create()
-
-            else -> if (isSystemInDarkTheme()) {
-                if (settings.base.isHighContrast) {
-                    DI.get<ThemeHighContrastDarkColorScheme>().create()
-                } else {
-                    DI.get<ThemeDarkColorScheme>().create()
-                }
-            } else {
-                if (settings.base.isHighContrast) {
-                    DI.get<ThemeHighContrastLightColorScheme>().create()
-                } else {
-                    DI.get<ThemeLightColorScheme>().create()
-                }
-            }
-        }
+        val settings = CurrentThemeSettings
+        log.debug { "theme: $settings" }
+        return DI.get<MessengerColorScheme>().create(
+            isDarkMode = settings.isDarkMode(),
+            isHighContrast = settings.isHighContrast,
+            accentColor = settings.accentColor ?: DI.get<DefaultAccentColor>().value
+        )
     }
