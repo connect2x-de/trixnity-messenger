@@ -102,7 +102,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                     LimitedSizeStickyHeaderColumn(
                         modifier = Modifier.fillMaxSize(),
                         header = {
-                            MoreOptions(roomOptionsString, modifier = Modifier.padding(horizontal=10.dp)) {
+                            MoreOptions(roomOptionsString, modifier = Modifier.padding(horizontal = 10.dp)) {
                                 CreateGroupOptions(createNewGroupViewModel)
                             }
                             Spacer(Modifier.height(15.dp))
@@ -128,7 +128,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
             ) {
                 ThemedFloatingActionButton(
                     expanded = true,
-                    enabled = canCreateNewGroup.value,
+                    enabled = !isCreating && canCreateNewGroup.value,
                     onClick = { createNewGroupViewModel.createNewGroup() },
                     text = { Text(i18n.createNewGroupCreate()) },
                     icon = { Icon(Icons.Default.Check, i18n.createNewGroupCreate()) },

@@ -29,6 +29,8 @@ interface ThemeComponents {
 class ThemeComponentsImpl : ThemeComponents {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
+    // This configuration tries to be as faithful as possible to our old design.
+    // Even in places where our old design has low contrast or uneven spacing.
     override fun create(): ComponentStyles = ComponentStyles(
         // buttons
         primaryButton = ButtonStyle.filled(
@@ -69,7 +71,6 @@ class ThemeComponentsImpl : ThemeComponents {
         ),
         commonIconButton = IconButtonStyle.default(
             colors = IconButtonDefaults.iconToggleButtonColors(
-                // TODO: We shouldn't use onSurface but it's black in darkmode with the default. Theme might be broken?
                 contentColor = MaterialTheme.colorScheme.onSurface,
             ),
         ),
@@ -81,6 +82,7 @@ class ThemeComponentsImpl : ThemeComponents {
         floatingActionButton = FloatingActionButtonStyle.default(
             size = 40.dp,
             containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp)
         ),
         floatingActionButtonDisabled = FloatingActionButtonStyle.default(

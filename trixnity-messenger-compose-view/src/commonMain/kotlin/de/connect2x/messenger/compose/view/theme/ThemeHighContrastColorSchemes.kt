@@ -1,35 +1,31 @@
 package de.connect2x.messenger.compose.view.theme
 
 import androidx.compose.material3.ColorScheme
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.times
-import de.connect2x.messenger.compose.view.get
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val log = KotlinLogging.logger {}
 
 interface ThemeHighContrastLightColorScheme {
-    @Composable
-    fun create(): ColorScheme
+    fun create(accentColor: Color): ColorScheme
 }
 
-class ThemeHighContrastLightColorSchemeImpl : ThemeHighContrastLightColorScheme {
-    @Composable
-    override fun create(): ColorScheme = makeHighContrastColorScheme(DI.get<ThemeLightColorScheme>().create())
+class ThemeHighContrastLightColorSchemeImpl(
+    private val wrapped: ThemeLightColorScheme,
+) : ThemeHighContrastLightColorScheme {
+    override fun create(accentColor: Color): ColorScheme = makeHighContrastColorScheme(wrapped.create(accentColor))
         .also { log.debug { "create default high contrast color scheme from light" } }
 }
 
 interface ThemeHighContrastDarkColorScheme {
-    @Composable
-    fun create(): ColorScheme
+    fun create(accentColor: Color): ColorScheme
 }
 
-class ThemeHighContrastDarkColorSchemeImpl : ThemeHighContrastDarkColorScheme {
-    @Composable
-    override fun create(): ColorScheme =
-        makeHighContrastColorScheme(DI.get<ThemeDarkColorScheme>().create(), true)
+class ThemeHighContrastDarkColorSchemeImpl(
+    private val wrapped: ThemeDarkColorScheme,
+) : ThemeHighContrastDarkColorScheme {
+    override fun create(accentColor: Color): ColorScheme = makeHighContrastColorScheme(wrapped.create(accentColor), true)
             .also { log.debug { "create default high contrast color scheme from dark" } }
 }
 

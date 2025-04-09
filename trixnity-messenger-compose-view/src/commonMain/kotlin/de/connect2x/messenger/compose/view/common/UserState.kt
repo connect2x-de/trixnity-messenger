@@ -16,6 +16,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.icons.BanIcon
 import de.connect2x.messenger.compose.view.common.icons.BanIconType
+import de.connect2x.messenger.compose.view.common.icons.KnockIcon
 import de.connect2x.messenger.compose.view.common.icons.NeutralVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
@@ -37,7 +38,7 @@ fun RowScope.UserState(
     val userTrustLevel = userTrustLevelFlow.collectAsState().value
     val isUserBlocked = isUserBlockedFlow.collectAsState().value
     val membership = membershipFlow?.collectAsState()?.value
-    val unbannable = unbannableFlow?.collectAsState()?.value ?: false
+    val unbannable = unbannableFlow?.collectAsState()?.value == true
     val i18n = DI.get<I18nView>()
 
     if (isUserBlocked) {
@@ -52,6 +53,8 @@ fun RowScope.UserState(
         Spacer(Modifier.size(5.dp))
     } else if (membership == Membership.BAN) {
         BanIcon(if (unbannable) BanIconType.Unbannable else BanIconType.NotUnbannable, 16.dp)
+    } else if (membership == Membership.KNOCK) {
+        KnockIcon(16.dp)
     } else {
         when (userTrustLevel) {
             is UserTrustLevel.CrossSigned ->

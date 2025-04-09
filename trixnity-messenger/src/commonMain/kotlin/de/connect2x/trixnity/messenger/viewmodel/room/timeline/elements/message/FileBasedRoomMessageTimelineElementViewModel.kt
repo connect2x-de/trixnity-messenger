@@ -93,7 +93,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                         _loadMediaError.value = i18n.mediaCouldNotBeRead()
                     }
             } catch (exc: CancellationException) {
-                log.error(exc) { "failed to load media" }
+                log.error(exc) { "loading media has been cancelled" }
             }
         }.invokeOnCompletion {
             activeLoadMedia.value = null

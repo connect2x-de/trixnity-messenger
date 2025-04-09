@@ -25,6 +25,8 @@ import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.filled.Wysiwyg
 import androidx.compose.material.icons.filled.CopyAll
+import androidx.compose.material.icons.filled.DoorFront
+import androidx.compose.material.icons.filled.DoorSliding
 import androidx.compose.material.icons.filled.PersonOff
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.HorizontalDivider
@@ -265,21 +267,21 @@ fun CopyableUserId(userId: UserId, textStyle: TextStyle) {
 
 @Composable
 private fun RoomOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
-    val iHavePowerToBanUser = userProfileViewModel.iHavePowerToBanUser.collectAsState().value
-    val iHavePowerToUnbanUser = userProfileViewModel.iHavePowerToUnbanUser.collectAsState().value
-    val iHavePowerToKickUser = userProfileViewModel.iHavePowerToKickUser.collectAsState().value
-    val maxPowerLevel = userProfileViewModel.changePowerLevelViewModel.canSetPowerLevelToMax.collectAsState().value
-    val canSetRoleToAdmin =
-        userProfileViewModel.changePowerLevelViewModel.canSetRoleToAdmin.collectAsState().value
-    val canSetRoleToModerator =
-        userProfileViewModel.changePowerLevelViewModel.canSetRoleToModerator.collectAsState().value
-    val canSetRoleToUser =
-        userProfileViewModel.changePowerLevelViewModel.canSetRoleToUser.collectAsState().value
-    val membership = userProfileViewModel.membership.collectAsState().value
+    val iHavePowerToAcceptKnock by userProfileViewModel.iHavePowerToAcceptKnock.collectAsState()
+    val iHavePowerToRejectKnock by userProfileViewModel.iHavePowerToRejectKnock.collectAsState()
+    val iHavePowerToKickUser by userProfileViewModel.iHavePowerToKickUser.collectAsState()
+    val iHavePowerToBanUser by userProfileViewModel.iHavePowerToBanUser.collectAsState()
+    val iHavePowerToUnbanUser by userProfileViewModel.iHavePowerToUnbanUser.collectAsState()
+    val maxPowerLevel by userProfileViewModel.changePowerLevelViewModel.canSetPowerLevelToMax.collectAsState()
+    val canSetRoleToAdmin by userProfileViewModel.changePowerLevelViewModel.canSetRoleToAdmin.collectAsState()
+    val canSetRoleToModerator by userProfileViewModel.changePowerLevelViewModel.canSetRoleToModerator.collectAsState()
+    val canSetRoleToUser by userProfileViewModel.changePowerLevelViewModel.canSetRoleToUser.collectAsState()
+    val membership by userProfileViewModel.membership.collectAsState()
 
     val shouldShowChangePowerLevel = canSetRoleToUser || canSetRoleToModerator || canSetRoleToAdmin ||
             (maxPowerLevel != null && maxPowerLevel != 0L)
     val shouldShowBan = iHavePowerToBanUser || (iHavePowerToUnbanUser && membership == Membership.BAN)
+    val shouldShowKnockOptions = membership == Membership.KNOCK
 
     if (shouldShowChangePowerLevel || shouldShowBan || iHavePowerToKickUser) {
         HorizontalDivider(Modifier.fillMaxWidth())
@@ -297,11 +299,22 @@ private fun RoomOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
         if (shouldShowChangePowerLevel) {
             ChangePowerLevelSection(userProfileViewModel, i18n)
         }
+
+        if (shouldShowKnockOptions) {
+            if (iHavePowerToAcceptKnock) {
+                AcceptKnockSection(userProfileViewModel, i18n)
+            }
+            if (iHavePowerToRejectKnock) {
+                RejectKnockSection(userProfileViewModel, i18n)
+            }
+        } else {
+            if (iHavePowerToKickUser) {
+                KickUserSection(userProfileViewModel, i18n)
+            }
+        }
+
         if (shouldShowBan) {
             BanUserSection(userProfileViewModel, i18n)
-        }
-        if (iHavePowerToKickUser) {
-            KickUserSection(userProfileViewModel, i18n)
         }
     }
 }
@@ -358,6 +371,36 @@ private fun KickUserSection(userProfileViewModel: UserProfileViewModel, i18n: I1
         )
         Spacer(Modifier.size(10.dp))
         Text(i18n.userProfileRemoveUser())
+    }
+}
+
+@Composable
+private fun AcceptKnockSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
+    MenuElement(Modifier.clickable {
+        userProfileViewModel.acceptKnock()
+    }) {
+        Icon(
+            Icons.Filled.DoorSliding,
+            i18n.userProfileAcceptKnock(),
+            Modifier.size(24.dp)
+        )
+        Spacer(Modifier.size(10.dp))
+        Text(i18n.userProfileAcceptKnock())
+    }
+}
+
+@Composable
+private fun RejectKnockSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
+    MenuElement(Modifier.clickable {
+        userProfileViewModel.rejectKnock()
+    }) {
+        Icon(
+            Icons.Filled.DoorFront,
+            i18n.userProfileRejectKnock(),
+            Modifier.size(24.dp)
+        )
+        Spacer(Modifier.size(10.dp))
+        Text(i18n.userProfileRejectKnock())
     }
 }
 

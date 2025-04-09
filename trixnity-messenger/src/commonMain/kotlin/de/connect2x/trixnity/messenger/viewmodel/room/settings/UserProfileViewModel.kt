@@ -16,6 +16,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -93,6 +94,8 @@ interface UserProfileViewModel {
     val unbanUserWarningOpen: StateFlow<Boolean>
     val iHavePowerToUnbanUser: StateFlow<Boolean>
     val unbanUserReason: TextFieldViewModel
+    val iHavePowerToAcceptKnock: StateFlow<Boolean>
+    val iHavePowerToRejectKnock: StateFlow<Boolean>
     val role: StateFlow<Role>
     val powerLevel: StateFlow<Long>
     val showRole: StateFlow<Boolean>
@@ -116,6 +119,8 @@ interface UserProfileViewModel {
     fun unbanUser()
     fun blockUser()
     fun unblockUser()
+    fun acceptKnock()
+    fun rejectKnock()
 
     fun back()
     fun errorDismiss()
@@ -165,9 +170,9 @@ class UserProfileViewModelImpl(
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val roomUserOriginalName = MutableStateFlow<String?>(null)
 
-    val isUserInRoom = matrixClient.user.getById(selectedRoomId, userId)
+    private val isUserInRoom = matrixClient.user.getById(selectedRoomId, userId)
         .map { it != null }
-        .shareIn(coroutineScope, SharingStarted.WhileSubscribed())
+        .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
     override val userTrustLevel: StateFlow<UserTrustLevel?> = matrixClient.key.getTrustLevel(userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -207,6 +212,20 @@ class UserProfileViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val unbanUserReason = TextFieldViewModelImpl()
+
+    private val isKnocking: SharedFlow<Boolean> =
+        membership.map { it == Membership.KNOCK }.shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
+
+    override val iHavePowerToAcceptKnock: StateFlow<Boolean> =
+        combine(
+            isKnocking,
+            matrixClient.user.canInviteUser(selectedRoomId, userId)
+        ) { it.all { it == true } }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+
+    override val iHavePowerToRejectKnock: StateFlow<Boolean> =
+        combine(isKnocking, iHavePowerToKickUser) { it.all { it == true } }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, userId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
@@ -451,6 +470,35 @@ class UserProfileViewModelImpl(
                 blockingInProgress.value = false
             }
         }
+    }
+
+    override fun acceptKnock() {
+        if (_membershipChanging.getAndUpdate { true }) {
+            error.value = i18n.userProfileMembershipChanging()
+            return
+        }
+
+        coroutineScope.launch {
+            matrixClient.api.room.inviteUser(
+                selectedRoomId,
+                userId
+            ).fold(
+                onSuccess = {
+                    log.debug { "user ${userId.full} was invited" }
+                    error.value = null
+                },
+                onFailure = {
+                    log.error(it) { "Failed to invite user ${userId.full}" }
+                    log.error { it.stackTraceToString() }
+                    error.value = i18n.acceptKnockFailed()
+                }
+            )
+        }.invokeOnCompletion { _membershipChanging.value = false }
+    }
+
+
+    override fun rejectKnock() {
+        kickUser()
     }
 
     private fun getPowerRole(powerLevel: Long): Role {

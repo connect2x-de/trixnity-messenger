@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger
 
-import de.connect2x.trixnity.messenger.util.kb
 import de.connect2x.trixnity.messenger.util.mb
 import io.ktor.client.*
 import io.ktor.client.engine.*
@@ -67,12 +66,13 @@ data class MatrixMessengerConfiguration(
     /**
      * The maximum size of image attachments that are processed to change their rotation before upload in *Bytes*.
      */
-    var imageAttachmentMaxProcessingSize: Long = 1.kb(),
+    @Deprecated("for backwards compatibility. This is being removed in future versions")
+    var imageAttachmentMaxProcessingSize: Long = 50.mb(),
 
     /**
      * The maximum size of files that can be loaded into memory in *Bytes*
      */
-    var maxMediaSizeInMemory: Long = 1.kb(),
+    var maxMediaSizeInMemory: Long = 50.mb(),
 
     /**
      * The maximum size of avatars that can be uploaded/displayed in *Bytes*
