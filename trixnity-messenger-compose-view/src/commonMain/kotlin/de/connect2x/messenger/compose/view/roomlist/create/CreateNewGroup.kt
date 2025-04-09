@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,12 +30,13 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.LoadingBar
 import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
+import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 
 interface CreateNewGroupView {
@@ -90,7 +92,10 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                     })
 
                     if (isCreating) {
-                        LoadingBar()
+                        ThemedProgressIndicator(
+                            Modifier.fillMaxWidth(),
+                            MaterialTheme.components.linearProgressIndicator
+                        )
                     }
 
                     Spacer(Modifier.height(15.dp))

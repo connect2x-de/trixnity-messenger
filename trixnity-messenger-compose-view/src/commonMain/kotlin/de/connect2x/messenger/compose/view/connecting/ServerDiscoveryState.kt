@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.connecting
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.PersonAdd
@@ -17,10 +18,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.LoadingBar
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
@@ -44,7 +46,10 @@ class ServerDiscoveryStateViewImpl : ServerDiscoveryStateView {
 
         when (serverDiscoveryState) {
             is ServerDiscoveryState.None -> {}
-            is ServerDiscoveryState.Loading -> LoadingBar()
+            is ServerDiscoveryState.Loading -> ThemedProgressIndicator(
+                Modifier.fillMaxWidth(),
+                MaterialTheme.components.linearProgressIndicator
+            )
 
             is ServerDiscoveryState.Success -> {
                 val addMatrixAccountMethods = remember {

@@ -7,6 +7,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.dp
 
 @Composable
@@ -18,8 +20,9 @@ fun TooltipText(text: suspend () -> String) {
         value = text()
     }
     if (cached.value.isBlank()) {
-        SmallLoadingSpinner(
-            Modifier.size(MaterialTheme.typography.bodySmall.dp).padding(MaterialTheme.typography.bodySmall.dp / 2)
+        ThemedProgressIndicator(
+            Modifier.size(MaterialTheme.typography.bodySmall.dp).padding(MaterialTheme.typography.bodySmall.dp / 2),
+            MaterialTheme.components.extraSmallCircularProgressIndicator
         )
     } else {
         Text(cached.value)

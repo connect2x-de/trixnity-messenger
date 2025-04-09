@@ -20,7 +20,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonOff
 import androidx.compose.material.icons.filled.RemoveCircle
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,6 +39,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContact
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModel
 
@@ -132,10 +132,9 @@ fun IgnoredUserListElement(
                 .wrapContentSize(unbounded = true)
         ) {
             when (user.isUnblocking) {
-                true -> CircularProgressIndicator(
-                    Modifier
-                        .size(24.dp)
-                        .align(Alignment.Center),
+                true -> ThemedProgressIndicator(
+                    Modifier.align(Alignment.Center),
+                    MaterialTheme.components.extraSmallCircularProgressIndicator
                 )
 
                 else -> Tooltip({ Text(i18n.unblockContactDescription())}) {

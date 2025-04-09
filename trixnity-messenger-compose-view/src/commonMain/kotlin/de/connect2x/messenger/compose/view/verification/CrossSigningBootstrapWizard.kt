@@ -42,7 +42,6 @@ import de.connect2x.messenger.compose.view.common.CloseMessengerButton
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.LargeSpacer
 import de.connect2x.messenger.compose.view.common.Paragraphs
-import de.connect2x.messenger.compose.view.common.SmallLoadingSpinner
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardImage
@@ -53,6 +52,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.verification.CrossSigningBootstrapViewModel
 import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
 import de.connect2x.trixnity_messenger_compose_view.generated.resources.recoverykey
@@ -86,7 +86,7 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(i18n.bootstrapRecoveryKeyVaultCreation())
                                 Spacer(Modifier.size(20.dp))
-                                SmallLoadingSpinner()
+                                ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
                             }
                         }
                     }

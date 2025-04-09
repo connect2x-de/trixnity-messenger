@@ -38,13 +38,13 @@ import androidx.compose.ui.window.Popup
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.ErrorView
-import de.connect2x.messenger.compose.view.common.SmallLoadingSpinner
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -143,7 +143,12 @@ class AvatarCutterViewImpl : AvatarCutterView {
                                     .align(Alignment.BottomEnd)
                                     .padding(bottom = 18.dp, end = 18.dp),
                                 text = { Text(i18n.commonOk()) },
-                                icon = { if (upload) SmallLoadingSpinner() else Icon(Icons.Default.Check, i18n.commonOk()) },
+                                icon = {
+                                    if (upload)
+                                        ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
+                                    else
+                                        Icon(Icons.Default.Check, i18n.commonOk())
+                                },
                             )
                         }
                     }
@@ -173,7 +178,7 @@ fun AvatarCutterHeader(avatarCutterViewModel: AvatarCutterViewModel) {
             color = MaterialTheme.colorScheme.onPrimary,
         )
         Tooltip(
-            tooltip = { Text(i18n.commonCancel())}
+            tooltip = { Text(i18n.commonCancel()) }
         ) {
             ThemedIconButton(
                 style = MaterialTheme.components.commonIconButton,

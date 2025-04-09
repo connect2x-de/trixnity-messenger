@@ -16,6 +16,8 @@ import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.FloatingActionButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
+import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.CircularProgressIndicatorStyle
+import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.messenger.compose.view.theme.components.TooltipStyle
 
@@ -194,6 +196,16 @@ class ThemeComponentsImpl : ThemeComponents {
                 containerColor = MaterialTheme.colorScheme.tertiary,
             ),
             textStyle = MaterialTheme.typography.bodySmall,
-        )
+        ),
+        // loading spinner
+        circularProgressIndicator = CircularProgressIndicatorStyle.default(),
+        smallCircularProgressIndicator = CircularProgressIndicatorStyle.default(
+            size = 32.dp,
+        ),
+        extraSmallCircularProgressIndicator = CircularProgressIndicatorStyle.default(
+            size = 24.dp,
+            strokeWidth = 2.dp,
+        ),
+        linearProgressIndicator = LinearProgressIndicatorStyle.default(),
     )
 }

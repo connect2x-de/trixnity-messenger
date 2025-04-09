@@ -41,11 +41,12 @@ import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.LoadingBar
 import de.connect2x.messenger.compose.view.common.TextFieldModal
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.util.isKnock
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel.SearchGroup
@@ -133,7 +134,10 @@ fun SearchGroupResults(
         error?.let { ErrorView(it) }
 
         if (groupSearchInProgress) {
-            LoadingBar()
+            ThemedProgressIndicator(
+                Modifier.fillMaxWidth(),
+                MaterialTheme.components.linearProgressIndicator
+            )
         } else {
             Box(
                 Modifier

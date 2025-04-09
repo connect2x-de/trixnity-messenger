@@ -27,12 +27,13 @@ import androidx.compose.ui.layout.MeasureScope
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.SmallLoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarker
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 
@@ -77,7 +78,7 @@ fun MessageBubbleContent(
 
                     if (isSenderLoading) {
                         // TODO placeholder instead
-                        SmallLoadingSpinner()
+                        ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
                     } else {
                         Text(
                             text = sender.name,

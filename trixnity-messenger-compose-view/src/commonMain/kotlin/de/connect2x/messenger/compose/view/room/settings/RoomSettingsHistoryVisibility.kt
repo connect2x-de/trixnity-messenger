@@ -14,13 +14,14 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
-import de.connect2x.messenger.compose.view.common.SmallLoadingSpinner
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.i18n.getExplanation
 import de.connect2x.messenger.compose.view.i18n.getExplanationWhenEncrypted
 import de.connect2x.messenger.compose.view.i18n.getStateName
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
 interface RoomSettingsHistoryVisibilityView {
@@ -70,7 +71,7 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
                     RadioSetting(
                         title = {
                             if (isHistoryVisibilityChanging) {
-                                SmallLoadingSpinner()
+                                ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
                             } else {
                                 Tooltip(tooltip = {
                                     TooltipText {

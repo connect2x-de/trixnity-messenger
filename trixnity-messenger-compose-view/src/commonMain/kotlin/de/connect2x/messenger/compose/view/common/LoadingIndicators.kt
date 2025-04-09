@@ -2,29 +2,19 @@ package de.connect2x.messenger.compose.view.common
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 
 @Composable
 fun LoadingSpinner(modifier: Modifier = Modifier) {
-    Box(Modifier.fillMaxWidth().padding(top = 10.dp).then(modifier)) {
-        CircularProgressIndicator(Modifier.align(Alignment.Center))
+    Box(Modifier.fillMaxWidth().then(modifier)) {
+        ThemedProgressIndicator(
+            Modifier.align(Alignment.Center),
+            MaterialTheme.components.circularProgressIndicator
+        )
     }
 }
-
-@Composable
-fun SmallLoadingSpinner(modifier: Modifier = Modifier) {
-    CircularProgressIndicator(Modifier.size(20.dp).then(modifier), strokeWidth = 2.dp)
-}
-
-@Composable
-fun LoadingBar(modifier: Modifier = Modifier) {
-    LinearProgressIndicator(Modifier.fillMaxWidth().then(modifier))
-}
-

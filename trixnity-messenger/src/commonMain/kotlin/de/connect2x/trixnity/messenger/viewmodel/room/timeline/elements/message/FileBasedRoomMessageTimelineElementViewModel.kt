@@ -93,6 +93,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                         _loadMediaError.value = i18n.mediaCouldNotBeRead()
                     }
             } catch (exc: CancellationException) {
+                log.error(exc) { "failed to load media" }
             }
         }.invokeOnCompletion {
             activeLoadMedia.value = null
@@ -139,6 +140,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                         _downloadMediaError.value = i18n.downloadFailed(it.message)
                     }
             } catch (exc: CancellationException) {
+                log.error(exc) { "media download was cancelled" }
             }
         }.invokeOnCompletion {
             activeDownloadMedia.value = null
