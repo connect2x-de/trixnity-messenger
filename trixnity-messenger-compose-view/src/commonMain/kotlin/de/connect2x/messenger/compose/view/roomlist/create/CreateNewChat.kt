@@ -89,12 +89,13 @@ class CreateNewChatViewImpl : CreateNewChatView {
 @Composable
 fun AddOrSearchGroup(createNewChatViewModel: CreateNewChatViewModel) {
     val i18n = DI.get<I18nView>()
+    val isCreating by createNewChatViewModel.isCreating.collectAsState()
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             Modifier.weight(1.0f, fill = true)
-            .clickable { createNewChatViewModel.createGroup() }
+            .clickable(enabled = !isCreating) { createNewChatViewModel.createGroup() }
             .buttonPointerModifier()
         ) {
             Row(
@@ -109,8 +110,8 @@ fun AddOrSearchGroup(createNewChatViewModel: CreateNewChatViewModel) {
         Spacer(Modifier.size(20.dp))
         Box(
             Modifier.weight(1.0f, fill = true)
-            .clickable { createNewChatViewModel.searchGroup() }
-            .buttonPointerModifier()
+                .clickable { createNewChatViewModel.searchGroup() }
+                .buttonPointerModifier()
         ) {
             Row(
                 Modifier.padding(horizontal = 10.dp, vertical = 20.dp),
