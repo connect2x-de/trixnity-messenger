@@ -63,7 +63,7 @@ internal suspend fun setPush(
 
 private fun setPushersRequest(fcmToken: String, userId: UserId, deviceId: String, di: Koin): SetPushers.Request {
     val config = di.get<MatrixMultiMessengerConfiguration>()
-    return SetPushers.Request.Set(
+    return SetPushers.Request(
         appDisplayName = "${config.appName} (Android)",
         appId = "${config.appId}.android",
         data = PusherData(
