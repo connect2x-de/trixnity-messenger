@@ -49,6 +49,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.util.TextLabel
@@ -105,77 +106,79 @@ class RoomHeaderViewImpl : RoomHeaderView {
                         Modifier
                             .padding(vertical = 4.dp)
                             .align(Alignment.CenterVertically)
+                            .fillMaxWidth()
                             .weight(1f, true),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Spacer(Modifier.size(8.dp))
-                        Row(
-                            Modifier.let {
-                                if (isDirectChat)
-                                    it.clickable { roomHeaderViewModel.openRoomSettings() }.buttonPointerModifier()
-                                else it
-                            },
-                            horizontalArrangement = Arrangement.Start,
-                            verticalAlignment = Alignment.CenterVertically,
+
+                        ThemedButton(
+                            style = MaterialTheme.components.accountSelector,
+                            enabled = isDirectChat,
+                            onClick = { roomHeaderViewModel.openRoomSettings() },
                         ) {
-                            Box {
-                                AvatarWithPresence(
-                                    roomHeaderElement.roomImage,
-                                    roomHeaderElement.roomImageInitials,
-                                    roomHeaderElement.presence,
-                                )
-                                if (roomHeaderElement.isPublic) {
-                                    PublicIcon()
+                            Row(
+                                horizontalArrangement = Arrangement.Start,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Box {
+                                    AvatarWithPresence(
+                                        roomHeaderElement.roomImage,
+                                        roomHeaderElement.roomImageInitials,
+                                        roomHeaderElement.presence,
+                                    )
+                                    if (roomHeaderElement.isPublic) {
+                                        PublicIcon()
+                                    }
                                 }
-                            }
-                            Spacer(Modifier.size(5.dp))
-                            UserState(roomHeaderViewModel.userTrustLevel, roomHeaderViewModel.isUserBlocked)
-                            if (roomHeaderElement.isEncrypted.not()) {
-                                UnencryptedIcon()
                                 Spacer(Modifier.size(5.dp))
-                            }
+                                UserState(roomHeaderViewModel.userTrustLevel, roomHeaderViewModel.isUserBlocked)
+                                if (roomHeaderElement.isEncrypted.not()) {
+                                    UnencryptedIcon()
+                                    Spacer(Modifier.size(5.dp))
+                                }
 
-                            if (knockingMembersCount > 0) {
-                                ThemedIconButton(
-                                    style = MaterialTheme.components.commonIconButton,
-                                    onClick = { roomHeaderViewModel.openRoomSettings() }
-                                ) {
-                                    BadgedBox(
-                                        badge = {
-                                            Badge {
-                                                Text("$knockingMembersCount")
-                                            }
-                                        }
+                                if (knockingMembersCount > 0) {
+                                    ThemedIconButton(
+                                        style = MaterialTheme.components.commonIconButton,
+                                        onClick = { roomHeaderViewModel.openRoomSettings() }
                                     ) {
-                                        Icon(
-                                            Icons.Default.DoorFront,
-                                            i18n.roomHeaderKnockingUsersCount(knockingMembersCount),
-                                        )
+                                        BadgedBox(
+                                            badge = {
+                                                Badge {
+                                                    Text("$knockingMembersCount")
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                Icons.Default.DoorFront,
+                                                i18n.roomHeaderKnockingUsersCount(knockingMembersCount),
+                                            )
+                                        }
                                     }
+                                    Spacer(Modifier.size(5.dp))
                                 }
-                                Spacer(Modifier.size(5.dp))
-                            }
 
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    RoomName(roomHeaderElement)
-                                    Spacer(Modifier.size(7.dp))
-                                    if (roomHeaderElement.isLeave) {
-                                        TextLabel(i18n.commonArchived())
+                                Column {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        RoomName(roomHeaderElement)
+                                        Spacer(Modifier.size(7.dp))
+                                        if (roomHeaderElement.isLeave) {
+                                            TextLabel(i18n.commonArchived())
+                                        }
                                     }
-                                }
-                                if (usersTyping != null) {
-                                    UsersTyping(usersTyping)
-                                } else {
-                                    RoomTopic(roomHeaderElement)
+                                    if (usersTyping != null) {
+                                        UsersTyping(usersTyping)
+                                    } else {
+                                        RoomTopic(roomHeaderElement)
+                                    }
                                 }
                             }
                         }
                     }
-                    Spacer(Modifier.weight(1.0f))
+
                     RoomExtras(roomHeaderViewModel, showSettingsButton)
                     Spacer(Modifier.size(8.dp))
-
 
                     // If we have a multi-pane view, we will display an invisible text that has the function of
                     // forcing the three header elements to the same height.
