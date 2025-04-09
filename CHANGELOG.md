@@ -29,7 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Setup wizard can no longer be skipped
-- Fix possible duplicate room creation for groups and chats
 
 ### Fixed
 
@@ -38,6 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - iOS: problems with keychain access and missing key
 - Avoid re-render when unrelated settings change
 - Fix low contrast in dark mode
+- Fix `forgetting rooms while not leaved` error
+- Fix possible duplicate room creation for groups and chats
 
 ## 3.5.2
 
@@ -673,7 +674,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Export is not working, when size of exported events did not match a multiple of buffer size
 - Fix wrong filename in export
-- Fix `forgetting rooms while not leaved` error
 
 ## 2.0.3
 
