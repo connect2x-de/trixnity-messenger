@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- See and accept knocks via Roomsettings and Timeline
+- Show reason for ban and invite in Timeline
+
 ### Changed
 
 - Fix possible duplicate room creation for groups and chats
@@ -126,6 +129,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CloseApp should not be injected when null
 - Fixed file save dialog repeatedly opening
 - Fixed missing favicon in web version
+
 
 ## 3.4.3
 

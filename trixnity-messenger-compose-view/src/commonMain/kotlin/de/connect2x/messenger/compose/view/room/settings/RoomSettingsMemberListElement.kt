@@ -85,7 +85,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                 ) {
                     if (memberElement == null) LoadingSpinner()
                     else {
-                        AvatarWithPresence(image, memberElement.initials ?: "", presence)
+                        AvatarWithPresence(image, memberElement.initials, presence)
                         Spacer(Modifier.size(5.dp))
                         UserState(
                             memberListElementViewModel.userTrustLevel,

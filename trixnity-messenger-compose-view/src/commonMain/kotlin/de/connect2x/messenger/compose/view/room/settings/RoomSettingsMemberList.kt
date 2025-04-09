@@ -1,9 +1,14 @@
 package de.connect2x.messenger.compose.view.room.settings
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -21,6 +26,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.common.ToggleableFilterChip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -36,11 +42,12 @@ interface RoomSettingsMemberListView {
 }
 
 @Composable
-fun RoomSettingsMemberList(roomSettingsViewModel: RoomSettingsViewModel) {
+fun ColumnScope.RoomSettingsMemberList(roomSettingsViewModel: RoomSettingsViewModel) {
     DI.get<RoomSettingsMemberListView>().create(roomSettingsViewModel)
 }
 
 class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun create(roomSettingsViewModel: RoomSettingsViewModel) {
         val i18n = DI.get<I18nView>()
@@ -49,8 +56,6 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
         val memberListElementViewModels =
             memberListViewModel.elements.collectAsState().value
         val joinedMemberCount = memberListViewModel.membershipCounts.collectAsState().value[Membership.JOIN]
-
-        if (memberListElementViewModels.isEmpty()) return
 
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -74,7 +79,33 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
                 }
             }
         }
-        MemberList(memberListViewModel, onClickUser = { roomSettingsViewModel.openUserProfile(it) })
+
+        FlowRow(Modifier.fillMaxWidth()) {
+            ToggleableFilterChip(
+                memberListViewModel.filterByMemberships,
+                setOf(Membership.JOIN)
+            ) {
+                Text(i18n.settingsRoomMemberListCurrent())
+            }
+            Spacer(Modifier.size(5.dp))
+            ToggleableFilterChip(
+                memberListViewModel.filterByMemberships,
+                setOf(Membership.KNOCK, Membership.INVITE)
+            ) {
+                Text(i18n.settingsRoomMemberListPending())
+            }
+            Spacer(Modifier.size(5.dp))
+            ToggleableFilterChip(
+                memberListViewModel.filterByMemberships,
+                setOf(Membership.BAN)
+            ) {
+                Text(i18n.settingsRoomMemberListFormer())
+            }
+        }
+
+        if (memberListElementViewModels.isNotEmpty()) {
+            MemberList(memberListViewModel, onClickUser = { roomSettingsViewModel.openUserProfile(it) })
+        }
     }
 }
 
@@ -89,7 +120,6 @@ fun MemberList(
 
     Box(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
         LazyColumn(Modifier.fillMaxWidth(), state) {
-            // TODO: Consider showing banned users at the bottom of the list.
             members.forEach { memberListElementViewModel ->
                 val userId = memberListElementViewModel.memberUserId
                 item(key = userId.full) {
@@ -112,7 +142,7 @@ fun MemberList(
         // TODO: Consider using the approach used in UnifiedTimelineElementMetadata.kt for the user interactions list.
         if (members.count() > 4) {
             VerticalScrollbar(
-                Modifier.align(Alignment.CenterEnd),
+                Modifier,
                 state,
                 false,
             )

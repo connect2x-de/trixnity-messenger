@@ -162,9 +162,9 @@ open class I18n(
         DE - "die Gruppe"
     }
 
-    open fun eventChangeInvite(invitee: String, inviter: String) = translate {
-        EN - "$invitee has been invited by $inviter"
-        DE - "$invitee wurde von $inviter eingeladen"
+    open fun eventChangeInvite(invitee: String, inviter: String, reason: String? = null) = translate {
+        EN - "$invitee has been invited by $inviter${if (reason == null) "" else " because \"$reason\""}"
+        DE - "$invitee wurde von $inviter eingeladen${if (reason == null) "" else ", da \"$reason\""}"
     }
 
     open fun eventChangeJoin(username: String, groupOrChat: String) = translate {
@@ -177,14 +177,14 @@ open class I18n(
         DE - "$username hat $groupOrChat verlassen"
     }
 
-    open fun eventChangeBan(username: String, banner: String, groupOrChat: String) = translate {
-        EN - "$username has been removed by $banner from $groupOrChat"
-        DE - "$username wurde von $banner aus $groupOrChat ausgeschlossen"
+    open fun eventChangeBan(username: String, banner: String, groupOrChat: String, reason: String? = null) = translate {
+        EN - "$username has been removed by $banner from $groupOrChat${if (reason == null) "" else " because \"$reason\""}"
+        DE - "$username wurde von $banner aus $groupOrChat ausgeschlossen${if (reason == null) "" else ", da \"$reason\""}"
     }
 
-    open fun eventChangeKnock(username: String, groupOrChat: String) = translate {
-        EN - "$username wants to join $groupOrChat"
-        DE - "$username möchte $groupOrChat beitreten"
+    open fun eventChangeKnock(username: String, groupOrChat: String, reason: String? = null) = translate {
+        EN - "$username requested to join $groupOrChat${if (reason == null) "" else " because \"$reason\""}. Check the room settings to manage the Request"
+        DE - "$username möchte $groupOrChat beitreten${if (reason == null) "" else ", da \"$reason\""}. Du kannst die Anfrage in den Raumeinstellungen verwalten"
     }
 
     open fun eventMessageRedacted(username: String) = translate {
@@ -1256,6 +1256,21 @@ open class I18n(
     open fun enterRoomFailedRoomDoesNotExist() = translate {
         EN - "Room does not exist"
         DE - "Raum existiert nicht"
+    }
+
+    open fun acceptKnockFailed() = translate {
+        EN - "Failed to accept the membership request"
+        DE - "Beitrittanfrage annehmen ist fehlgeschlagen"
+    }
+
+    open fun rejectKnockFailed() = translate {
+        EN - "Failed to reject the membership request"
+        DE - "Beitrittanfrage ablehnen ist fehlgeschlagen"
+    }
+
+    open fun banningFailed() = translate {
+        EN - "Failed to ban user"
+        DE - "Bannen dieses Teilnehmers ist fehlgeschlagen"
     }
 }
 
