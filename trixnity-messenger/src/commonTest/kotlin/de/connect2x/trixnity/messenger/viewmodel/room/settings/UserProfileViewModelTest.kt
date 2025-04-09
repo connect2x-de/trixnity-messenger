@@ -57,7 +57,9 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 
+@Suppress("NonAsciiCharacters")
 class UserProfileViewModelTest {
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
@@ -146,6 +148,7 @@ class UserProfileViewModelTest {
         every { userServiceMock.getById(eq(roomId), eq(alice)) } returns roomUserAliceFlow
         every { userServiceMock.getById(eq(roomId), eq(bob)) } returns roomUserBobFlow
         every { userServiceMock.getById(eq(roomId), eq(carol)) } returns flowOf(null)
+        every { userServiceMock.canInviteUser(eq(roomId), any()) } returns MutableStateFlow(true)
         every { userServiceMock.canKickUser(eq(roomId), any()) } returns MutableStateFlow(true)
         every { userServiceMock.canBanUser(eq(roomId), any()) } returns MutableStateFlow(true)
         every { userServiceMock.canUnbanUser(eq(roomId), any()) } returns MutableStateFlow(true)
@@ -365,6 +368,44 @@ class UserProfileViewModelTest {
         val cut = userProfileViewModel(bob)
         cut.showRole.value shouldBe false
     }
+
+    fun setupMembershipHandlingForKnockTest() {
+        everySuspend { roomsApiClientMock.kickUser(eq(roomId), any(), any(), any()) } returns Result.success(Unit)
+        everySuspend { roomsApiClientMock.inviteUser(eq(roomId), any(), any(), any()) } returns Result.success(Unit)
+        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(50)
+    }
+
+    @Test
+    fun `knocking » accept knock`() = runTest {
+        setupMembershipHandlingForKnockTest()
+
+        val cut = userProfileViewModel(alice)
+        cut.acceptKnock()
+        delay(500.milliseconds)
+
+        cut.error.value shouldBe null
+        verifySuspend {
+            roomsApiClientMock.inviteUser(eq(roomId), eq(alice), any(), any())
+        }
+
+        cut.membershipChanging.value shouldBe false
+    }
+
+    @Test
+    fun `knocking » reject knock`() = runTest {
+        setupMembershipHandlingForKnockTest()
+
+        val cut = userProfileViewModel(alice)
+        cut.rejectKnock()
+        delay(500.milliseconds)
+
+        cut.error.value shouldBe null
+        verifySuspend {
+            roomsApiClientMock.kickUser(eq(roomId), eq(alice), any(), any())
+        }
+        cut.membershipChanging.value shouldBe false
+    }
+
 
     private fun setMemberEventContentOf(roomUser: MutableStateFlow<RoomUser?>, eventContent: MemberEventContent) {
         roomUser.value = requireNotNull(roomUser.value).copy(

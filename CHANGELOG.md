@@ -9,9 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- See and accept knocks via Roomsettings and Timeline
+- Show reason for ban and invite in Timeline
 - Copy button for MXID in UserProfile 
 
 ### Changed
+
+- Setup wizard can no longer be skipped
+- Fix possible duplicate room creation for groups and chats
 
 ### Deprecated
 

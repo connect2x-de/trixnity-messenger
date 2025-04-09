@@ -26,11 +26,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.client.flattenValues
 import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
+import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.core.model.RoomId
@@ -112,6 +114,7 @@ interface RoomHeaderViewModel {
     val usersTyping: StateFlow<String?>
     val userTrustLevel: StateFlow<UserTrustLevel?>
     val canVerifyUser: StateFlow<Boolean>
+    val knockingMembersCount: StateFlow<Int>
 
     /**
      * Is true if this is a direct room and only 2 users are present and not already blocked.
@@ -159,7 +162,7 @@ open class RoomHeaderViewModelImpl(
             roomName.getRoomName(selectedRoomId, matrixClient),
             roomTopic.getRoomTopic(selectedRoomId, matrixClient),
             userPresence.presentEventContentFlow(matrixClient, selectedRoomId),
-            matrixClient.room.getState<JoinRulesEventContent>(selectedRoomId)
+            matrixClient.room.getState<JoinRulesEventContent>(selectedRoomId),
         ) { room, roomNameElement, roomTopicElement, userPresence, joinRules ->
             val roomImage = room?.avatarUrl?.let { avatarUrl ->
                 matrixClient.media.getThumbnail(
@@ -188,7 +191,7 @@ open class RoomHeaderViewModelImpl(
                 presence = userPresence?.presence,
                 isEncrypted = room?.encrypted == true,
                 isPublic = joinRules?.content?.joinRule == JoinRulesEventContent.JoinRule.Public,
-                isLeave = room?.membership?.let { it == Membership.LEAVE }?: false
+                isLeave = room?.membership?.let { it == Membership.LEAVE } == true
             )
         }.stateIn(
             coroutineScope,
@@ -221,6 +224,10 @@ open class RoomHeaderViewModelImpl(
                 userTrustLevel is UserTrustLevel.CrossSigned && userTrustLevel.verified
             otherUsers.size == 1 && otherUserVerified.not()
         }.stateIn(coroutineScope, WhileSubscribed(), false)
+    override val knockingMembersCount: StateFlow<Int> =
+        matrixClient.user.getAll(selectedRoomId).flattenValues().flatMapLatest {
+            flowOf(it.count { it.membership == Membership.KNOCK })
+        }.stateIn(coroutineScope, WhileSubscribed(), 0)
 
     override val usersTyping = matrixClient.room.usersTyping.map { map ->
         map[selectedRoomId]?.let { typingInfo(matrixClient, selectedRoomId, i18n, it) }
@@ -315,6 +322,7 @@ class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
     override val usersTyping: MutableStateFlow<String?> = MutableStateFlow("is typing...")
     override val userTrustLevel: MutableStateFlow<UserTrustLevel?> = MutableStateFlow(null)
     override val canVerifyUser: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override val knockingMembersCount: StateFlow<Int> = MutableStateFlow(0)
     override val canBlockUser: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canUnblockUser: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val isUserBlocked: MutableStateFlow<Boolean> = MutableStateFlow(false)
