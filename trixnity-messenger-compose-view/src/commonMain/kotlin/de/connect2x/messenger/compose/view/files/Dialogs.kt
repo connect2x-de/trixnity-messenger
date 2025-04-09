@@ -15,7 +15,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import net.folivo.trixnity.utils.ByteArrayFlow
+import net.folivo.trixnity.client.media.PlatformMedia
 
 
 @Composable
@@ -23,7 +23,7 @@ expect fun SaveFileDialog(
     fileName: String,
     mimeType: String?,
     error: String?,
-    downloadFile: (suspend (ByteArrayFlow) -> Unit) -> Unit,
+    downloadFile: (suspend (PlatformMedia) -> Unit) -> Unit,
     onCloseSaveFileDialog: () -> Unit,
 )
 

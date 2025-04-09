@@ -5,23 +5,21 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.isNot
 import de.connect2x.trixnity.messenger.isRoomOf
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
-import de.connect2x.trixnity.messenger.eventually
-import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
-import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTriggerImpl
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -987,20 +985,12 @@ class RoomListViewModelTest {
         }
     }
 
-
     @Test
     fun `trigger account verification`() = runTest {
         val verificationTriggers = MutableStateFlow<List<UserId>>(listOf())
-        val trigger = SelfVerificationTriggerImpl()
-        val cut = roomListViewModel(
-            selfVerificationTrigger = trigger,
-        )
+        val cut = roomListViewModel(onVerificationStarted = { userId -> verificationTriggers.value += userId })
         subscribe(cut)
-        backgroundScope.launch {
-            trigger.onInvoke.collect {
-                verificationTriggers.value += it
-            }
-        }
+
         verificationTriggers.first().size shouldBe 0
 
         cut.verifyAccount(UserId("Timmy"))
@@ -1066,14 +1056,13 @@ class RoomListViewModelTest {
 
     private fun TestScope.roomListViewModel(
         matrixClients: Map<UserId, MatrixClient> = mapOf(user1 to matrixClientMock),
-        selfVerificationTrigger: SelfVerificationTrigger? = null,
+        onVerificationStarted: ((UserId) -> Unit)? = null
     ): RoomListViewModelImpl {
         val koin = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(matrixClients) + module {
                     single { roomNameMock }
                     single { profileManagerMock }
-                    if (selfVerificationTrigger != null) single { selfVerificationTrigger }
                     single<AccountViewModelFactory> {
                         object : AccountViewModelFactory {
                             override fun create(
@@ -1123,6 +1112,7 @@ class RoomListViewModelTest {
             onOpenAccountsOverview = mock(),
             onSendLogs = mock(),
             onAccountSelected = onAccountSelected,
+            onStartVerification = onVerificationStarted ?: mock(),
             onCloseRoom = mock()
         )
     }

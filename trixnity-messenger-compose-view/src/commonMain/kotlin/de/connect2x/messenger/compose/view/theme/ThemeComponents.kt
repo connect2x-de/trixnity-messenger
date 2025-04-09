@@ -27,6 +27,8 @@ interface ThemeComponents {
 class ThemeComponentsImpl : ThemeComponents {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
+    // This configuration tries to be as faithful as possible to our old design.
+    // Even in places where our old design has low contrast or uneven spacing.
     override fun create(): ComponentStyles = ComponentStyles(
         // buttons
         primaryButton = ButtonStyle.filled(
@@ -34,35 +36,39 @@ class ThemeComponentsImpl : ThemeComponents {
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ),
+            textStyle = MaterialTheme.typography.labelLarge,
         ),
         secondaryButton = ButtonStyle.filled(
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             ),
+            textStyle = MaterialTheme.typography.labelLarge,
         ),
-        commonButton = ButtonStyle.outlined(),
+        commonButton = ButtonStyle.outlined(
+            textStyle = MaterialTheme.typography.labelLarge,
+        ),
         destructiveButton = ButtonStyle.filled(
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.error,
                 contentColor = MaterialTheme.colorScheme.onError,
-            )
+            ),
+            textStyle = MaterialTheme.typography.labelLarge,
         ),
         primaryIconButton = IconButtonStyle.filled(
             colors = IconButtonDefaults.filledIconToggleButtonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-            )
+            ),
         ),
         secondaryIconButton = IconButtonStyle.filled(
             colors = IconButtonDefaults.filledIconToggleButtonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.onSecondary,
-            )
+            ),
         ),
         commonIconButton = IconButtonStyle.default(
             colors = IconButtonDefaults.iconToggleButtonColors(
-                // TODO: We shouldn't use onSurface but it's black in darkmode with the default. Theme might be broken?
                 contentColor = MaterialTheme.colorScheme.onSurface,
             ),
         ),
@@ -74,6 +80,7 @@ class ThemeComponentsImpl : ThemeComponents {
         floatingActionButton = FloatingActionButtonStyle.default(
             size = 40.dp,
             containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp)
         ),
         floatingActionButtonDisabled = FloatingActionButtonStyle.default(

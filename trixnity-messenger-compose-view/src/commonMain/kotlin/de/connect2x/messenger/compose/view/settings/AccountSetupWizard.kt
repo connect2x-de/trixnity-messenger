@@ -231,8 +231,8 @@ private fun wizardStepVerification(
             Custom {
                 val completedVerification = completedVerification.collectAsState().value
                 if (completedVerification == true) {
-                    nextStep?.let { currentStepId.value = it }
                     viewModel.completedVerification.value = null
+                    nextStep?.let { currentStepId.value = it }
                 }
             }
         },

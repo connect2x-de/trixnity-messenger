@@ -2,7 +2,7 @@
 jvmTarget = "17"
 c2xConventions = "39087842"
 
-trixnityMessenger = "3.5.2"
+trixnityMessenger = "3.5.4"
 trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
@@ -15,26 +15,7 @@ kotlinxSerialization = "1.8.0" # https://github.com/Kotlin/kotlinx.serialization
 kotlinxDatetime = "0.6.2" # https://github.com/Kotlin/kotlinx-datetime/releases
 kotlinxKover = "0.9.1" # https://github.com/Kotlin/kotlinx-kover/releases
 
-androidGradle = "8.7.3" # https://developer.android.com/reference/tools/gradle-api
-androidCompileSDK = "35"
-androidMinimalSDK = "28"
-androidTargetSDK = "34"
-
-androidxBrowser = "1.8.0" # https://developer.android.com/jetpack/androidx/releases/browser
-androidxCrypto = "1.1.0-alpha06" # https://developer.android.com/jetpack/androidx/releases/security
-androidxActivity = "1.10.1" # https://developer.android.com/jetpack/androidx/releases/activity
-androidxSqlite3 = "2.5.0-rc03" # https://developer.android.com/jetpack/androidx/releases/sqlite
-androidxSqlite3mc = "2.5.0-rc03-1" # https://gitlab.com/connect2x/androidx/-/releases
-androidxWorkManager = "2.10.0" # https://developer.android.com/jetpack/androidx/releases/work
-androidxLiveData = "2.8.7" # https://developer.android.com/jetpack/androidx/releases/lifecycle
-androidxAppCompat = "1.7.0" # https://developer.android.com/jetpack/androidx/releases/appcompat
-androidxAutofill = "1.3.0-rc01" # https://developer.android.com/jetpack/androidx/releases/autofill
-
-logback = "1.5.18" # https://github.com/qos-ch/logback/tags
-logbackAndroid = "3.0.0" # https://github.com/tony19/logback-android/releases
-
-trixnity = "4.14.2" # https://gitlab.com/trixnity/trixnity/-/releases
-kotlinLogging = "7.0.5" # https://github.com/MicroUtils/kotlin-logging/releases
+trixnity = "4.14.3" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
 decompose = "3.3.0" # https://github.com/arkivanov/Decompose/releases
 koin = "4.0.3" # https://github.com/InsertKoinIO/koin/tags
@@ -60,9 +41,28 @@ aboutLibraries = "12.0.0-a04" # https://github.com/mikepenz/AboutLibraries/relea
 copyWebpackPlugin = "12.0.2" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
 composeUiTest = "1.8.0-rc02" # https://androidx.tech/artifacts/compose.ui/ui-test-junit4/
 filekit = "0.8.8" # https://github.com/vinceglb/FileKit/releases
-slf4j = "2.0.17" # https://github.com/qos-ch/slf4j/tags
 firebase = "33.11.0" # https://firebase.google.com/support/release-notes/android
 googleServices = "4.4.2" # https://developers.google.com/android/guides/google-services-plugin
+
+androidGradle = "8.7.3" # https://developer.android.com/reference/tools/gradle-api
+androidCompileSDK = "35"
+androidMinimalSDK = "28"
+androidTargetSDK = "34"
+
+androidxBrowser = "1.8.0" # https://developer.android.com/jetpack/androidx/releases/browser
+androidxCrypto = "1.1.0-alpha06" # https://developer.android.com/jetpack/androidx/releases/security
+androidxActivity = "1.10.1" # https://developer.android.com/jetpack/androidx/releases/activity
+androidxSqlite3 = "2.5.0-rc03" # https://developer.android.com/jetpack/androidx/releases/sqlite
+androidxSqlite3mc = "2.5.0-rc03-1" # https://gitlab.com/connect2x/androidx/-/releases
+androidxWorkManager = "2.10.0" # https://developer.android.com/jetpack/androidx/releases/work
+androidxLiveData = "2.8.7" # https://developer.android.com/jetpack/androidx/releases/lifecycle
+androidxAppCompat = "1.7.0" # https://developer.android.com/jetpack/androidx/releases/appcompat
+androidxAutofill = "1.3.0-rc01" # https://developer.android.com/jetpack/androidx/releases/autofill
+
+kotlinLogging = "7.0.5" # https://github.com/MicroUtils/kotlin-logging/releases
+slf4j = "2.0.17" # https://github.com/qos-ch/slf4j/tags
+logback = "1.5.18" # https://github.com/qos-ch/logback/tags
+logbackAndroid = "3.0.0" # https://github.com/tony19/logback-android/releases
 
 [libraries]
 kotlin-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version.ref = "kotlinWrappers" }

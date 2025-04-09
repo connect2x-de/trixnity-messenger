@@ -121,7 +121,7 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                                     style = MaterialTheme.components.commonButton,
                                     onClick = { roomListElementViewModel.rejectInvitationAndBlockInviter() },
                                 ) {
-                                    Text(i18n.invitationBlock(), textAlign = TextAlign.Center)
+                                    Text(i18n.invitationBlock())
                                 }
                             }
                         }

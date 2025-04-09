@@ -13,17 +13,16 @@ import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
-import de.connect2x.trixnity.messenger.util.GraphemeIterable
-import de.connect2x.trixnity.messenger.util.GraphemeIterableProvider
-import de.connect2x.trixnity.messenger.util.PlatformGraphemeIterableProvider
+import de.connect2x.trixnity.messenger.util.EnterRoom
+import de.connect2x.trixnity.messenger.util.EnterRoomImpl
+import de.connect2x.trixnity.messenger.util.LeaveRoom
+import de.connect2x.trixnity.messenger.util.LeaveRoomImpl
 import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
 import de.connect2x.trixnity.messenger.util.SharedDataHandler
 import de.connect2x.trixnity.messenger.util.SharedDataHandlerImpl
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
-import de.connect2x.trixnity.messenger.util.EnterRoom
-import de.connect2x.trixnity.messenger.util.EnterRoomImpl
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
 import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule
@@ -150,8 +149,6 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerification
 import de.connect2x.trixnity.messenger.viewmodel.verification.CrossSigningBootstrapViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.RedoSelfVerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelectVerificationMethodViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTrigger
-import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationTriggerImpl
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCancelledViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCompareViewModelFactory
@@ -238,6 +235,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<RoomInviter> { RoomInviterImpl() }
             single<UserBlocking> { UserBlockingImpl() }
             single<EnterRoom> { EnterRoomImpl() }
+            single<LeaveRoom> { LeaveRoomImpl() }
 
             single<DownloadManager> { DownloadManagerImpl() }
             single<Thumbnails> { ThumbnailsImpl() }
@@ -251,7 +249,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
 
             single<RootViewModelFactory> { RootViewModelFactory }
             single<MainViewModelFactory> { MainViewModelFactory }
-            single<SelfVerificationTrigger> { SelfVerificationTriggerImpl() }
 
             single<AuthorizeUia> { AuthorizeUiaImpl() }
             single<UiaActionConfirmationViewModelFactory> { UiaActionConfirmationViewModelFactory }

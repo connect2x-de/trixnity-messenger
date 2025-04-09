@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.WarningDialog
 import de.connect2x.messenger.compose.view.get
@@ -42,8 +41,8 @@ class RoomSettingsLeaveRoomViewImpl : RoomSettingsLeaveRoomView {
                 style = MaterialTheme.components.destructiveButton,
                 onClick = { roomSettingsViewModel.openLeaveRoomWarningDialog() },
             ) {
-                Icon(Icons.AutoMirrored.Filled.Logout, leaveRoomSettingEntryText)
-                Spacer(Modifier.size(10.dp))
+                Icon(Icons.AutoMirrored.Filled.Logout, leaveRoomSettingEntryText, modifier = Modifier.size(MaterialTheme.components.destructiveButton.iconSize))
+                Spacer(Modifier.size(MaterialTheme.components.destructiveButton.iconSpacing))
                 Text(
                     text = leaveRoomSettingEntryText,
                     style = MaterialTheme.typography.labelLarge

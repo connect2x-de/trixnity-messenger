@@ -53,7 +53,7 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
                     try {
                         val appId = config.appId
                         val existingKey = getSecret(appId, id)
-                        when {
+                        val key = when {
                             existingKey == null -> {
                                 val newKey = SecureRandom.nextBytes(size)
                                 context(appId, id, newKey.toNSData()) { (appIdRef, idRef, newKeyRef) ->
@@ -84,6 +84,8 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
 
                             else -> existingKey.copyOf(size)
                         }
+                        if (getInputKey == null) key
+                        else hkdfSha256(key = key, salt = getInputKey(32), keyBytesLength = size)
                     } catch (ex: Exception) {
                         throw SecretByteArrayException("cannot read or set secret ('$id')", ex)
                     }
@@ -95,7 +97,11 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
                 getOldInputKey: GetKey?,
                 getNewInputKey: GetKey?
             ): SecretByteArrayKeyProvider.RotateResult =
-                get(oldExtra, null).let { SecretByteArrayKeyProvider.RotateResult(it, it, null) }
+                SecretByteArrayKeyProvider.RotateResult(
+                    getOldKey = get(null, getOldInputKey),
+                    getNewKey = get(null, getNewInputKey),
+                    newExtra = null,
+                )
 
             @Deprecated("for backwards compatibility")
             override suspend fun getLegacy(): ByteArray? {
@@ -145,22 +151,29 @@ private fun <T> context(vararg values: Any?, block: Context.(List<CFTypeRef?>) -
 }
 
 private fun OSStatus.checkState() {
-    check(toUInt() == platform.darwin.noErr) {
-        "Keychain access failed: errorCode=$this " + when (this) {
-            platform.Security.errSecInteractionNotAllowed -> "errSecInteractionNotAllowed"
-            platform.Security.errSecUnimplemented -> "errSecUnimplemented"
-            platform.Security.errSecNotAvailable -> "errSecNotAvailable"
-            platform.Security.errSecItemNotFound -> "errSecItemNotFound"
-            platform.Security.errSecAuthFailed -> "errSecAuthFailed"
-            platform.Security.errSecAllocate -> "errSecAllocate"
-            platform.Security.errSecDecode -> "errSecDecode"
-            platform.Security.errSecBadReq -> "errSecBadReq"
-            platform.Security.errSecParam -> "errSecParam"
-            platform.Security.errSecFileTooBig -> "errSecFileTooBig"
-            platform.Security.errSecInvalidKeyLabel -> "errSecInvalidKeyLabel"
-            platform.Security.errSecInvalidAttributeKey -> "errSecInvalidAttributeKey"
-            platform.Security.errSecInvalidKeychain -> "errSecInvalidKeychain"
-            else -> ""
+    when {
+        toUInt() == platform.darwin.noErr -> return
+        this == platform.Security.errSecItemNotFound -> {
+            log.warn { "SecItem not found: $this" }
+            return
         }
+
+        else -> throw IllegalStateException(
+            "Keychain access failed: errorCode=$this " + when (this) {
+                platform.Security.errSecInteractionNotAllowed -> "errSecInteractionNotAllowed"
+                platform.Security.errSecUnimplemented -> "errSecUnimplemented"
+                platform.Security.errSecNotAvailable -> "errSecNotAvailable"
+                platform.Security.errSecAuthFailed -> "errSecAuthFailed"
+                platform.Security.errSecAllocate -> "errSecAllocate"
+                platform.Security.errSecDecode -> "errSecDecode"
+                platform.Security.errSecBadReq -> "errSecBadReq"
+                platform.Security.errSecParam -> "errSecParam"
+                platform.Security.errSecFileTooBig -> "errSecFileTooBig"
+                platform.Security.errSecInvalidKeyLabel -> "errSecInvalidKeyLabel"
+                platform.Security.errSecInvalidAttributeKey -> "errSecInvalidAttributeKey"
+                platform.Security.errSecInvalidKeychain -> "errSecInvalidKeychain"
+                else -> ""
+            }
+        )
     }
 }

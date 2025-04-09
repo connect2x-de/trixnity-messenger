@@ -142,10 +142,7 @@ class ExportRoomViewImpl : ExportRoomView {
                             onClick = { exportRoomViewModel.abort() },
                             enabled = isExporting,
                         ) {
-                            Text(
-                                text = abortText,
-                                style = MaterialTheme.typography.labelLarge
-                            )
+                            Text(abortText)
                         }
                     }
 
@@ -156,10 +153,7 @@ class ExportRoomViewImpl : ExportRoomView {
                             onClick = { exportRoomViewModel.start() },
                             enabled = canExport && !isExporting,
                         ) {
-                            Text(
-                                text = exportRoomText,
-                                style = MaterialTheme.typography.labelLarge
-                            )
+                            Text(exportRoomText)
                         }
                     }
                 }
