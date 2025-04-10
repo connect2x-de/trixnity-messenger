@@ -7,10 +7,10 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
+import de.connect2x.messenger.compose.view.PlatformType
 import de.connect2x.messenger.compose.view.common.ClickableText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.isDesktop
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
@@ -69,14 +69,13 @@ fun LocationMessageElement(
         needsMaxWidth = false,
         isPreview = isPreview,
     ) { showMenuAction ->
-        if (Platform.current.isDesktop) {
-            // on Desktop it makes sense to select text and copy it;
-            // on Android, this will consume long tap events, which we use for the context menu
-            SelectionContainer {
+        // on Desktop and Web, it makes sense to select text and copy it;
+        // on Android, this will consume long tap events, which we use for the context menu
+        when (Platform.current) {
+            PlatformType.DESKTOP, PlatformType.WEB -> SelectionContainer {
                 LocationMessageContent(element, showMenuAction)
             }
-        } else {
-            LocationMessageContent(element, showMenuAction)
+            PlatformType.ANDROID -> LocationMessageContent(element, showMenuAction)
         }
     }
 }

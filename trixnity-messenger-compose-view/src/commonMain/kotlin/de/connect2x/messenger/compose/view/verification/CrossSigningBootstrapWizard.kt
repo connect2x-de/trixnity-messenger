@@ -18,7 +18,6 @@ import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -53,6 +52,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.verification.CrossSigningBootstrapViewModel
 import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
 import de.connect2x.trixnity_messenger_compose_view.generated.resources.recoverykey
@@ -86,7 +86,7 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(i18n.bootstrapRecoveryKeyVaultCreation())
                                 Spacer(Modifier.size(20.dp))
-                                CircularProgressIndicator(Modifier.size(20.dp))
+                                ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
                             }
                         }
                     }
@@ -174,10 +174,10 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                                 val scope = rememberCoroutineScope()
                                 val di = DI.current
                                 Button({
-                                        scope.launch {
-                                            copyToClipboard(recoveryKey ?: "", di)
-                                            copiedToClipBoard.value = true
-                                        }
+                                    scope.launch {
+                                        copyToClipboard(recoveryKey ?: "", di)
+                                        copiedToClipBoard.value = true
+                                    }
                                 }, Modifier.buttonPointerModifier()) {
                                     Icon(
                                         Icons.AutoMirrored.Filled.Assignment,

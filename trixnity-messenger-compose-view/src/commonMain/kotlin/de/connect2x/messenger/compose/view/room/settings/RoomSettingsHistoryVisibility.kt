@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +20,8 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.i18n.getExplanation
 import de.connect2x.messenger.compose.view.i18n.getExplanationWhenEncrypted
 import de.connect2x.messenger.compose.view.i18n.getStateName
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
 interface RoomSettingsHistoryVisibilityView {
@@ -70,7 +71,7 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
                     RadioSetting(
                         title = {
                             if (isHistoryVisibilityChanging) {
-                                CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                                ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
                             } else {
                                 Tooltip(tooltip = {
                                     TooltipText {
@@ -86,7 +87,9 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
                         options = visibilities?.associate {
                             it to RadioSettingOption(
                                 text = it.getStateName(i18n),
-                                explanation = (if (isEncrypted) it.getExplanationWhenEncrypted(i18n) else it.getExplanation(i18n)),
+                                explanation = (if (isEncrypted) it.getExplanationWhenEncrypted(i18n) else it.getExplanation(
+                                    i18n
+                                )),
                                 enabled = roomSettingsHistoryVisibilityViewModel.historyVisibilityCanBeChangedTo(it) && isHistoryVisibilityChanging.not()
                             )
                         } ?: mapOf(),

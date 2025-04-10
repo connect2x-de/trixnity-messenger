@@ -182,6 +182,7 @@ class MemberListElementViewModelImpl(
             )
         }
     }
+
     private fun getPowerRole(powerLevel: Long): Role {
         return when {
             powerLevel >= Role.ADMIN.getMinPowerLevel() -> Role.ADMIN

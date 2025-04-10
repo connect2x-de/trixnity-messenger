@@ -1052,7 +1052,7 @@ class TimelineViewModelImpl(
     private fun onVerifyUser() {
         coroutineScope.launch {
             log.debug { "try to create new user verification" }
-            val isDirectRoom = matrixClient.room.getById(roomId).first()?.isDirect ?: false
+            val isDirectRoom = matrixClient.room.getById(roomId).first()?.isDirect == true
             log.debug { "is direct room: $isDirectRoom" }
             directRoom.getUsers(matrixClient, roomId).first().firstOrNull()
                 ?.let { otherUserId ->

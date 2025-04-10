@@ -39,6 +39,7 @@ class UiaActionConfirmationViewImpl : UiaActionConfirmationView {
         val i18n = DI.get<I18nView>()
         val message = uiaActionConfirmationViewModel.confirmationMessage ?: "" // TODO shouldn't be nullable
         val isPerformingAction = uiaActionConfirmationViewModel.isPerformingAction.collectAsState().value
+
         UiaModalBox {
             Column(
                 Modifier

@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.AvatarWithPresence
+import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.UserState
 import de.connect2x.messenger.compose.view.common.icons.PublicIcon
@@ -99,10 +100,13 @@ class RoomHeaderViewImpl : RoomHeaderView {
                     Row(
                         Modifier
                             .padding(vertical = 4.dp)
-                            .align(Alignment.CenterVertically),
+                            .align(Alignment.CenterVertically)
+                            .fillMaxWidth()
+                            .weight(1f, true),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Spacer(Modifier.size(8.dp))
+
                         ThemedButton(
                             style = MaterialTheme.components.accountSelector,
                             enabled = isDirectChat,
@@ -166,10 +170,10 @@ class RoomHeaderViewImpl : RoomHeaderView {
                                 }
                             }
                         }
-                        Spacer(Modifier.weight(1.0f))
-                        RoomExtras(roomHeaderViewModel, showSettingsButton)
-                        Spacer(Modifier.size(8.dp))
                     }
+
+                    RoomExtras(roomHeaderViewModel, showSettingsButton)
+                    Spacer(Modifier.size(8.dp))
 
                     // If we have a multi-pane view, we will display an invisible text that has the function of
                     // forcing the three header elements to the same height.
@@ -182,6 +186,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
                         )
                     }
                 }
+
                 HorizontalDivider(Modifier.fillMaxWidth())
             }
         }
@@ -210,7 +215,7 @@ fun RoomName(
     Tooltip({
         TooltipText { roomHeaderElement.roomName }
     }) {
-        Text(
+        SelectableText(
             roomHeaderElement.roomName,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
@@ -234,15 +239,17 @@ fun UsersTyping(usersTyping: String) {
 @Composable
 fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
     val topic = roomHeaderElement.roomTopic
-    if (topic.isNotBlank()) Tooltip(tooltip = {
-        Text(topic)
-    }) {
-        Text(
-            topic,
-            style = MaterialTheme.typography.labelMedium,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-        )
+    if (topic.isNotBlank()) {
+        Tooltip(tooltip = {
+            Text(topic)
+        }) {
+            SelectableText(
+                topic,
+                style = MaterialTheme.typography.labelMedium,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+            )
+        }
     }
 }
 

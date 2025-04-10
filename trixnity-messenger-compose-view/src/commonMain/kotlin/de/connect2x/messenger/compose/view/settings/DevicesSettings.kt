@@ -156,7 +156,7 @@ fun ThisDevice(userId: UserId, device: DeviceInfo, devicesSettingsViewModel: Dev
             Row(Modifier.padding(vertical = 8.dp)) {
                 if (editDeviceDisplayName.value) {
                     Spacer(Modifier.size(10.dp))
-                    Tooltip({Text(i18n.commonDone())}) {
+                    Tooltip({ Text(i18n.commonDone()) }) {
                         ThemedIconButton(
                             style = MaterialTheme.components.commonIconButton,
                             onClick = {
@@ -175,7 +175,7 @@ fun ThisDevice(userId: UserId, device: DeviceInfo, devicesSettingsViewModel: Dev
                     }
                 } else {
                     Spacer(Modifier.size(20.dp))
-                    Tooltip({Text(i18n.commonRename())}) {
+                    Tooltip({ Text(i18n.commonRename()) }) {
                         ThemedIconButton(
                             style = MaterialTheme.components.commonIconButton,
                             onClick = {
@@ -234,7 +234,7 @@ fun OtherDevice(userId: UserId, device: DeviceInfo, devicesSettingsViewModel: De
         Row(Modifier.padding(vertical = 8.dp)) {
             if (editDeviceDisplayName.value) {
                 Spacer(Modifier.size(10.dp))
-                Tooltip({Text(i18n.commonDone())}) {
+                Tooltip({ Text(i18n.commonDone()) }) {
                     ThemedIconButton(
                         style = MaterialTheme.components.commonIconButton,
                         onClick = {
@@ -251,7 +251,7 @@ fun OtherDevice(userId: UserId, device: DeviceInfo, devicesSettingsViewModel: De
                     }
                 }
             } else {
-                Tooltip({Text(i18n.commonMore())}) {
+                Tooltip({ Text(i18n.commonMore()) }) {
                     ThemedIconButton(
                         style = MaterialTheme.components.commonIconButton,
                         onClick = { showOptions.value = showOptions.value.not() },
@@ -314,7 +314,7 @@ fun DeviceRow(
     val focusRequester = remember { FocusRequester() }
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (editDeviceDisplayName.value) {
-            Tooltip({Text(i18n.commonCancel())}) {
+            Tooltip({ Text(i18n.commonCancel()) }) {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = {

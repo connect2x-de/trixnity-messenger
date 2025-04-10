@@ -69,6 +69,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
             memberListViewModel.elements.collectAsState().value.lastOrNull()?.memberUserId == memberListElementViewModel.memberUserId
         val presence = memberListElementViewModel.presence.collectAsState().value
         val image = memberElement?.image
+        val isMemberElementLoading = memberElement == null
 
         Box(
             Modifier
@@ -83,8 +84,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                     Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (memberElement == null) LoadingSpinner()
-                    else {
+                    if (isMemberElementLoading) LoadingSpinner() else {
                         AvatarWithPresence(image, memberElement.initials, presence)
                         Spacer(Modifier.size(5.dp))
                         UserState(
