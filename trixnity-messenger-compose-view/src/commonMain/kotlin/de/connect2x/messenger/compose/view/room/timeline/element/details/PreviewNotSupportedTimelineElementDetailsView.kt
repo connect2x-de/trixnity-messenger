@@ -16,6 +16,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import io.ktor.http.*
 import kotlin.reflect.KClass
 
 class PreviewNotSupportedTimelineElementDetailsView() :
@@ -23,7 +24,7 @@ class PreviewNotSupportedTimelineElementDetailsView() :
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased<*>> =
         RoomMessageTimelineElementViewModel.FileBased::class
 
-    override fun supportsMimeType(mimeType: String): Boolean {
+    override fun supportsMimeType(mimeType: ContentType): Boolean {
         return true
     }
 
