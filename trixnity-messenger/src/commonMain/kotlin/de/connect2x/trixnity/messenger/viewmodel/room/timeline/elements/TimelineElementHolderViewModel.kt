@@ -136,6 +136,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val showLoadingIndicatorAfter: StateFlow<Boolean>
 
     val isRead: StateFlow<Boolean?>
+    val isSent: StateFlow<Boolean>
     val readers: StateFlow<List<UserInfoElement>?>
 
     val reactions: StateFlow<EventReactions?>
@@ -200,6 +201,7 @@ class TimelineElementHolderViewModelImpl(
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isRead: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isSent: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -484,6 +486,13 @@ class TimelineElementHolderViewModelImpl(
                 isRead.value = it
             }
         }
+        coroutineScope.launch {
+            matrixClient.room.getOutbox(roomId)
+                .flatten()
+                .filter { !isRead.value }
+                .filter { outbox -> outbox.any { it.content.relatesTo?.eventId == eventId && it.sentAt != null } }
+                .collect { isSent.value = true }
+        }
     }
 
     override fun replace() {
@@ -494,7 +503,10 @@ class TimelineElementHolderViewModelImpl(
     }
 
     override fun endReplace() {
-        isRead.value = false
+        if (editInProgress.value) {
+            isSent.value = false
+            isRead.value = false
+        }
         editInProgress.value = false
     }
 
@@ -579,6 +591,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val roomId: RoomId = RoomId("!room")
     override val eventId: EventId = EventId("\$1:localhost")
     override val key: String = eventId.full
+    override val isSent: StateFlow<Boolean> = MutableStateFlow(false)
     override val element: MutableStateFlow<TimelineElementViewModel<*>?> =
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
             override val body: String = "Hello everyone!"
@@ -627,6 +640,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val roomId: RoomId = RoomId("!room")
     override val eventId: EventId = EventId("\$2:localhost")
     override val key: String = eventId.full
+    override val isSent: StateFlow<Boolean> = MutableStateFlow(false)
     override val element: MutableStateFlow<TimelineElementViewModel<*>?> =
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
             override val body: String = "Hello!"

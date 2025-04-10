@@ -180,6 +180,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override val roomId: RoomId = RoomId("!room")
     override val eventId: EventId = EventId("\$1:localhost")
     override val key: String = eventId.full
+    override val isSent: StateFlow<Boolean> = MutableStateFlow(false)
     override val element: MutableStateFlow<TimelineElementViewModel<*>?> =
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
             override val body: String = "Hello everyone!"
@@ -227,6 +228,7 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override val roomId: RoomId = RoomId("!room")
     override val eventId: EventId = EventId("\$2:localhost")
     override val key: String = eventId.full
+    override val isSent: StateFlow<Boolean> = MutableStateFlow(false)
     override val element: MutableStateFlow<TimelineElementViewModel<*>?> =
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
             override val body: String = "Hello!"

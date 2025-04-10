@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor styling consistency fixes
 - Fix Recreating Profile in Web
 - iOS: problems with keychain access and missing key
+- Reset read and send marker when editing messages while being offline
 
 ### Security
 
