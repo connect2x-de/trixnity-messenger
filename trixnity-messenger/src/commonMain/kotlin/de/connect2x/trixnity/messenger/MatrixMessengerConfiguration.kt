@@ -66,6 +66,7 @@ data class MatrixMessengerConfiguration(
     /**
      * The maximum size of image attachments that are processed to change their rotation before upload in *Bytes*.
      */
+    @Deprecated("for backwards compatibility. This is being removed in future versions")
     var imageAttachmentMaxProcessingSize: Long = 50.mb(),
 
     /**

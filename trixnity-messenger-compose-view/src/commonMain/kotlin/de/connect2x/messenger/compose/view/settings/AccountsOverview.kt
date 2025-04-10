@@ -43,6 +43,7 @@ import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
+import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -91,16 +92,20 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                                         .background(if (displayColor != null) Color(displayColor) else Color.Transparent)
                                         .padding(end = 5.dp)
                                 )
-                                Text(
-                                    accountInfo.displayName,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.padding(10.dp).weight(1.0f, fill = true),
-                                )
-                                Text(
-                                    accountInfo.userId.full,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    modifier = Modifier.padding(10.dp).weight(1.0f, fill = true),
-                                )
+                                Row(Modifier.weight(1.0f, fill = true)) {
+                                    SelectableText(
+                                        accountInfo.displayName,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier.padding(10.dp).weight(1.0f, fill = true),
+                                    )
+
+                                    SelectableText(
+                                        accountInfo.userId.full,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        modifier = Modifier.padding(10.dp).weight(1.0f, fill = true),
+                                    )
+                                }
+
                                 OutlinedButton(onClick = { showLogoutWarning = accountInfo }) {
                                     Icon(Icons.Default.DeleteForever, i18n.commonDelete())
                                 }

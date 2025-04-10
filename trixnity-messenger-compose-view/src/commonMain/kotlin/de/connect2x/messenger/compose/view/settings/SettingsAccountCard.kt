@@ -9,18 +9,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.common.SelectableText
 import net.folivo.trixnity.core.model.UserId
 
 @Composable
 fun SettingsAccountCard(userId: UserId, content: @Composable ColumnScope.() -> Unit) {
     ElevatedCard(Modifier.padding(bottom = 10.dp)) {
         Column(Modifier.padding(10.dp)) {
-            Text(
+            SelectableText(
                 text = userId.full,
                 style = MaterialTheme.typography.titleMedium,
             )
@@ -42,7 +42,7 @@ fun SettingsAccountCardWithAdditionalButtons(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(Modifier.weight(1f, true).fillMaxWidth()) {
-                    Text(
+                    SelectableText(
                         text = userId.full,
                         style = MaterialTheme.typography.titleMedium,
                     )

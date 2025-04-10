@@ -41,7 +41,7 @@ class TimelineElementHolderViewImpl : TimelineElementHolderView {
                         timelineElementHolderViewModel.showLoadingIndicatorBefore.collectAsState().value
                     val showLoadingIndicatorAfter =
                         timelineElementHolderViewModel.showLoadingIndicatorAfter.collectAsState().value
-                    
+
                     AnimatedVisibility(showLoadingIndicatorBefore) { LoadingSpinner() }
                     TimelineElementHolderSwitch(timelineElementHolderViewModel)
                     AnimatedVisibility(showUnreadMarker) { UnreadMessagesIndicator() }

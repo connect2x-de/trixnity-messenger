@@ -22,13 +22,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
+import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -83,7 +83,7 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
                     title = i18n.forgetRoomWarningHeader()
                 ) {
                     MessengerModalContent {
-                        Text(
+                        SelectableText(
                             text = i18n.formattedForgetRoomWarningBody(
                                 isDirect = isDirect == true,
                                 roomName = roomName

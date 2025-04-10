@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Copy button for MXID in UserProfile
+- Theming for ProgressIndicators
+
 ### Changed
 
 ### Deprecated
@@ -17,12 +20,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Minor styling consistency fixes
-- Fix Recreating Profile in Web
-- iOS: problems with keychain access and missing key
+- Overflows in RoomHeader
 - Reset read and send marker when editing messages while being offline
 
 ### Security
+
+## 3.5.3
+
+### Added
+
+- See and accept knocks via Roomsettings and Timeline
+- Show reason for ban and invite in Timeline
+
+### Changed
+
+- Setup wizard can no longer be skipped
+
+### Fixed
+
+- Minor styling consistency fixes
+- Fix Recreating Profile in Web
+- iOS: problems with keychain access and missing key
+- Avoid re-render when unrelated settings change
+- Fix low contrast in dark mode
+- Fix `forgetting rooms while not leaved` error
+- Fix possible duplicate room creation for groups and chats
 
 ## 3.5.2
 

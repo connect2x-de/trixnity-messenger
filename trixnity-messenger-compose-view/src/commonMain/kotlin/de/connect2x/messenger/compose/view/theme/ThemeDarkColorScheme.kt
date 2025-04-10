@@ -2,30 +2,19 @@ package de.connect2x.messenger.compose.view.theme
 
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.Color
-import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.deriveFromHue
 import de.connect2x.messenger.compose.view.common.hue
-import de.connect2x.messenger.compose.view.get
-import de.connect2x.messenger.compose.view.getOrNull
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val log = KotlinLogging.logger { }
 
 interface ThemeDarkColorScheme {
-    @Composable
-    fun create(): ColorScheme
+    fun create(accentColor: Color): ColorScheme
 }
 
 class ThemeDarkColorSchemeImpl : ThemeDarkColorScheme {
-    @Composable
-    override fun create(): ColorScheme {
-        val settings = DI.getOrNull<MatrixMessengerSettingsHolder>()?.collectAsState()?.value
-        val accentColor =
-            settings?.base?.accentColor?.let { Color(it.toULong()) } ?: DI.get<DefaultAccentColor>().value
+    override fun create(accentColor: Color): ColorScheme {
         val accentHue = accentColor.hue
         return darkColorScheme(
             primary = accentColor,

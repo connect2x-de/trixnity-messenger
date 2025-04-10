@@ -7,11 +7,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,6 +32,8 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarker
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 
@@ -74,7 +74,12 @@ fun MessageBubbleContent(
                         .padding(start = 10.dp, end = 10.dp, top = 5.dp)
                 ) {
                     val sender = holder.sender.collectAsState().value
-                    if (sender != null) {
+                    val isSenderLoading = sender == null
+
+                    if (isSenderLoading) {
+                        // TODO placeholder instead
+                        ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
+                    } else {
                         Text(
                             text = sender.name,
                             style = MaterialTheme.typography.labelLarge.copy(
@@ -83,9 +88,6 @@ fun MessageBubbleContent(
                                 )
                             ),
                         )
-                    } else {
-                        // TODO placeholder instead
-                        CircularProgressIndicator(Modifier.size(20.dp))
                     }
                 }
             }
