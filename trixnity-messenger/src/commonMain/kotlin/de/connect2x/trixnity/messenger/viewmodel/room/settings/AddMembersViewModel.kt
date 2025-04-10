@@ -91,15 +91,16 @@ class AddMembersViewModelImpl(
             val failedInvitations = mutableListOf<Pair<Search.SearchUserElement, Throwable>>()
             for (user in groupUsers.value) {
                 matrixClient.api.room.inviteUser(roomId, user.userId)
-                    .fold(onSuccess = {
-                        log.debug { "user ${user.userId.full} was invited" }
-                    },
+                    .fold(
+                        onSuccess = {
+                            log.debug { "user ${user.userId.full} was invited" }
+                        },
                         onFailure = {
                             log.error(it) { "Failed to invite user ${user.userId.full}" }
                             log.trace { it.stackTraceToString() }
                             failedInvitations.add(user to it)
-                        })
-
+                        }
+                    )
             }
             when (failedInvitations.count()) {
                 0 -> {

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +19,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModel
 
 interface RemoveMatrixAccountView {
@@ -50,7 +50,10 @@ class RemoveMatrixAccountViewImpl : RemoveMatrixAccountView {
                         Text(i18n.commonCancel().capitalize(Locale.current))
                     }
                 } else {
-                    CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+                    ThemedProgressIndicator(
+                        Modifier.align(Alignment.CenterHorizontally),
+                        MaterialTheme.components.circularProgressIndicator
+                    )
                     Text(i18n.matrixClientLogout(removeMatrixAccountViewModel.userId.full))
                 }
             }

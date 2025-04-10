@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.icons.UnencryptedIcon
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
@@ -26,7 +27,7 @@ fun RoomName(roomName: String?, modifier: Modifier = Modifier) {
         delayMillis = 1_000,
     ) {
         Row {
-            Text(
+            SelectableText(
                 text = roomName ?: " ",
                 style = MaterialTheme.typography.labelLarge,
                 maxLines = 1,

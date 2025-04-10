@@ -12,10 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,13 +27,13 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.RunningText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.export.CSVFileBasedExportRoomProperties
 import de.connect2x.trixnity.messenger.export.Destination
 import de.connect2x.trixnity.messenger.export.FileBasedExportRoomProperties
@@ -107,10 +104,14 @@ class ExportRoomViewImpl : ExportRoomView {
                         val progress by state.progress.collectAsState()
                         val progressString by state.progressString.collectAsState()
                         val (processed, total) = progress
-                        if (processed == null || total == null) LinearProgressIndicator(Modifier.fillMaxWidth())
-                        else LinearProgressIndicator(
+                        if (processed == null || total == null) ThemedProgressIndicator(
+                            Modifier.fillMaxWidth(),
+                            MaterialTheme.components.linearProgressIndicator
+                        )
+                        else ThemedProgressIndicator(
                             progress = { processed.toFloat() / total },
                             modifier = Modifier.fillMaxWidth(),
+                            style = MaterialTheme.components.linearProgressIndicator
                         )
                         Spacer(Modifier.size(10.dp))
                         Text(progressString)
@@ -118,9 +119,10 @@ class ExportRoomViewImpl : ExportRoomView {
                     }
 
                     is ExportRoomViewModel.State.Success -> {
-                        LinearProgressIndicator(
+                        ThemedProgressIndicator(
                             progress = { 1f },
                             modifier = Modifier.fillMaxWidth(),
+                            style = MaterialTheme.components.linearProgressIndicator
                         )
                         Spacer(Modifier.size(10.dp))
                         Text(state.progressString)

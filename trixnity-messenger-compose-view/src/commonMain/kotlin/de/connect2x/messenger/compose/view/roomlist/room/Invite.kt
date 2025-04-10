@@ -21,13 +21,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.MessengerModal
 import de.connect2x.messenger.compose.view.common.MessengerModalContent
+import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -94,7 +94,7 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                     title = i18n.invitationRejectHeader(),
                 ) {
                     MessengerModalContent {
-                        Text(
+                        SelectableText(
                             text = i18n.formattedInvitationBody(
                                 inviterName = inviterUserInfo?.name ?: i18n.commonUnknown(),
                                 roomName = roomName,

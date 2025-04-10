@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -21,7 +20,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.Key
@@ -53,6 +50,7 @@ import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_FILE
 import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.icons.EditIcon
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
 import de.connect2x.messenger.compose.view.files.LoadFileDialog
@@ -219,7 +217,7 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
                     HelpIcon(i18n.profileYourNameInfo())
                 }
                 Spacer(Modifier.size(5.dp))
-                Text(displayName)
+                SelectableText(displayName)
             }
         }
         if (editMode.value) {
@@ -272,6 +270,6 @@ fun ProfileUserId(profileSingleViewModel: ProfileSingleViewModel) {
             HelpIcon(i18n.profileUserNameInfo())
         }
         Spacer(Modifier.size(5.dp))
-        Text(profileSingleViewModel.userId.full)
+        SelectableText(profileSingleViewModel.userId.full)
     }
 }

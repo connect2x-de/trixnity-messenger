@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +19,8 @@ import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.TabInTextField
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModel
 
@@ -68,7 +69,10 @@ fun PasswordLoginState(state: AddMatrixAccountState) {
     Box(Modifier.defaultMinSize(minHeight = 20.dp)) {
         when (state) {
             AddMatrixAccountState.None -> {}
-            AddMatrixAccountState.Connecting -> LinearProgressIndicator(Modifier.fillMaxWidth())
+            AddMatrixAccountState.Connecting -> ThemedProgressIndicator(
+                Modifier.fillMaxWidth(),
+                MaterialTheme.components.linearProgressIndicator
+            )
             is AddMatrixAccountState.Failure ->
                 Text(state.message, color = MaterialTheme.colorScheme.error)
 

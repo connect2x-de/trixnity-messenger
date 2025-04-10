@@ -13,7 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.DoorFront
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.AvatarWithPresence
+import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.UserState
 import de.connect2x.messenger.compose.view.common.icons.PublicIcon
@@ -71,6 +75,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
         val roomHeaderElement = roomHeaderViewModel.roomHeaderInfo.collectAsState().value
         val usersTyping = roomHeaderViewModel.usersTyping.collectAsState().value
         val isDirectChat = roomHeaderViewModel.isDirectChat.collectAsState().value
+        val knockingMembersCount = roomHeaderViewModel.knockingMembersCount.collectAsState().value
         val headerHeightFlow = MaxHeaderHeight.current
         val headerHeight = headerHeightFlow.collectAsState().value
         val i18n = DI.get<I18nView>()
@@ -95,10 +100,13 @@ class RoomHeaderViewImpl : RoomHeaderView {
                     Row(
                         Modifier
                             .padding(vertical = 4.dp)
-                            .align(Alignment.CenterVertically),
+                            .align(Alignment.CenterVertically)
+                            .fillMaxWidth()
+                            .weight(1f, true),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Spacer(Modifier.size(8.dp))
+
                         ThemedButton(
                             style = MaterialTheme.components.accountSelector,
                             enabled = isDirectChat,
@@ -125,6 +133,27 @@ class RoomHeaderViewImpl : RoomHeaderView {
                                     Spacer(Modifier.size(5.dp))
                                 }
 
+                                if (knockingMembersCount > 0) {
+                                    ThemedIconButton(
+                                        style = MaterialTheme.components.commonIconButton,
+                                        onClick = { roomHeaderViewModel.openRoomSettings() }
+                                    ) {
+                                        BadgedBox(
+                                            badge = {
+                                                Badge {
+                                                    Text("$knockingMembersCount")
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                Icons.Default.DoorFront,
+                                                i18n.roomHeaderKnockingUsersCount(knockingMembersCount),
+                                            )
+                                        }
+                                    }
+                                    Spacer(Modifier.size(5.dp))
+                                }
+
                                 Column {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         RoomName(roomHeaderElement)
@@ -141,10 +170,10 @@ class RoomHeaderViewImpl : RoomHeaderView {
                                 }
                             }
                         }
-                        Spacer(Modifier.weight(1.0f))
-                        RoomExtras(roomHeaderViewModel, showSettingsButton)
-                        Spacer(Modifier.size(8.dp))
                     }
+
+                    RoomExtras(roomHeaderViewModel, showSettingsButton)
+                    Spacer(Modifier.size(8.dp))
 
                     // If we have a multi-pane view, we will display an invisible text that has the function of
                     // forcing the three header elements to the same height.
@@ -157,6 +186,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
                         )
                     }
                 }
+
                 HorizontalDivider(Modifier.fillMaxWidth())
             }
         }
@@ -185,7 +215,7 @@ fun RoomName(
     Tooltip({
         TooltipText { roomHeaderElement.roomName }
     }) {
-        Text(
+        SelectableText(
             roomHeaderElement.roomName,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
@@ -209,15 +239,17 @@ fun UsersTyping(usersTyping: String) {
 @Composable
 fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
     val topic = roomHeaderElement.roomTopic
-    if (topic.isNotBlank()) Tooltip(tooltip = {
-        Text(topic)
-    }) {
-        Text(
-            topic,
-            style = MaterialTheme.typography.labelMedium,
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-        )
+    if (topic.isNotBlank()) {
+        Tooltip(tooltip = {
+            Text(topic)
+        }) {
+            SelectableText(
+                topic,
+                style = MaterialTheme.typography.labelMedium,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+            )
+        }
     }
 }
 
