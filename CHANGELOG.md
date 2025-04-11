@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Copy button for MXID in UserProfile
 - Theming for ProgressIndicators
+- Leave and forget upgraded rooms too
 
 ### Changed
 
