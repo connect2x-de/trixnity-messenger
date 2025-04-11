@@ -248,7 +248,7 @@ class TimelineElementHolderViewModelImpl(
             MutableStateFlow(null)
         } else {
             matrixClient.room.getOutbox(roomId).flatten()
-                .map { outbox -> outbox.reversed().firstOrNull { isEventRelated(it) } }
+                .map { outbox -> outbox.reversed().firstOrNull { isEventReplaced(it) } }
                 .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
         }
 

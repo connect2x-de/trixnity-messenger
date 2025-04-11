@@ -299,6 +299,29 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
+    fun `isSent » should be true when outbox element is sent`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf(flowOf(RoomOutboxMessage(
+            roomId = roomId,
+            transactionId = "",
+            createdAt = Instant.DISTANT_PAST,
+            sentAt = Instant.DISTANT_PAST,
+            content = object : MessageEventContent {
+                override val relatesTo: RelatesTo = RelatesTo.Replace(eventId = eventId)
+                override val externalUrl: String? = null
+                override val mentions: Mentions? = null
+            }
+        ))))
+        val timeline = timeline(roomServiceMock, roomId) {
+            +timelineEvent
+        }
+
+        val cut = cut()
+        backgroundScope.launch { cut.isSent.collect() }
+        delay(100.milliseconds)
+        cut.isSent.value shouldBe true
+    }
+
+    @Test
     fun `isSent » should be true when outbox is empty`() = runTest {
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         val timeline = timeline(roomServiceMock, roomId) {
