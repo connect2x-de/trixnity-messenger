@@ -16,6 +16,7 @@ import dev.mokkery.resetCalls
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeSameInstanceAs
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
@@ -263,6 +264,17 @@ class TimelineElementHolderViewModelTest {
         eventually(100.milliseconds) {
             cut.showSender.value shouldBe false
         }
+    }
+
+    @Test
+    fun `isSent » should be true when outbox is empty`() = runTest {
+        val timeline = timeline(roomServiceMock, roomId) {
+            +timelineEvent
+        }
+
+        val cut = cut()
+        delay(100.milliseconds)
+        cut.isSent.value shouldBe true
     }
 
     @Test

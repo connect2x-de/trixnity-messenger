@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -200,8 +201,6 @@ class TimelineElementHolderViewModelImpl(
     private val replyToInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
-    override val isRead: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val isSent: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -472,28 +471,19 @@ class TimelineElementHolderViewModelImpl(
             .collectLatest { send(it) }
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
-    init {
-        coroutineScope.launch {
-            lastReplacement.flatMapLatest {
-                getEventReaders.isRead(
-                    matrixClient = matrixClient,
-                    roomId = roomId,
-                    eventId = it ?: eventId,
-                    sender = senderUserId,
-                    getReceipts = getReceipts,
-                )
-            }.collectLatest {
-                isRead.value = it
-            }
-        }
-        coroutineScope.launch {
-            matrixClient.room.getOutbox(roomId)
-                .flatten()
-                .filter { !isRead.value }
-                .filter { outbox -> outbox.any { it.content.relatesTo?.eventId == eventId && it.sentAt != null } }
-                .collect { isSent.value = true }
-        }
-    }
+    override val isRead: StateFlow<Boolean> = lastReplacement.flatMapLatest {
+        getEventReaders.isRead(
+            matrixClient = matrixClient,
+            roomId = roomId,
+            eventId = it ?: eventId,
+            sender = senderUserId,
+            getReceipts = getReceipts,
+        )
+    }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+
+    override val isSent: StateFlow<Boolean> = matrixClient.room.getOutbox(roomId).flatten()
+        .mapLatest { outbox -> outbox.count { (it.content.relatesTo as? RelatesTo.Replace)?.eventId == eventId } == 0 }
+        .stateIn(coroutineScope, whileSubscribedWithTimeout, true)
 
     override fun replace() {
         editInProgress.value = true
@@ -503,10 +493,6 @@ class TimelineElementHolderViewModelImpl(
     }
 
     override fun endReplace() {
-        if (editInProgress.value) {
-            isSent.value = false
-            isRead.value = false
-        }
         editInProgress.value = false
     }
 
