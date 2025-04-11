@@ -355,8 +355,8 @@ class TimelineElementHolderViewModelImpl(
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
             timelineElementHolderViewModelFactory.create(
-                viewModelContext = childContext("replied-element-${uuid4()}"),
-                key = "replied-element-${uuid4()}",
+                viewModelContext = childContext("replied-element-${Uuid.random()}"),
+                key = "replied-element-${Uuid.random()}",
                 timelineEventFlow = repliedTimelineEventFlow,
                 roomId = repliedTimelineEvent.roomId,
                 eventId = repliedTimelineEvent.eventId,
