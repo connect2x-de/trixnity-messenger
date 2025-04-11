@@ -32,6 +32,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
+import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.TimelineEventRelation
@@ -44,8 +45,11 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
+import net.folivo.trixnity.core.model.events.m.Mentions
+import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.RelationType
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -119,7 +123,6 @@ class TimelineElementHolderViewModelTest {
                 )
             )
         }
-        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns emptyFlow()
 
         receipts.value = mapOf()
@@ -127,6 +130,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `isFirstInUserSequence » be true when first in a user sequence`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         timeline(roomServiceMock, roomId) {
             (1..4).forEach {
                 +messageEvent(sender = bob) {
@@ -153,6 +157,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `isFirstInUserSequence » false when not first in a user sequence`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         timeline(roomServiceMock, roomId) {
             (1..4).forEach {
                 +messageEvent(sender = alice) {
@@ -179,6 +184,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `showSender » be true when first in a user sequence`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = bob) {
                 text("Hi!")
@@ -195,6 +201,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `showSender » be true when state event before`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -214,6 +221,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `showSender » false when not first in a user sequence`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -230,6 +238,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `showSender » be false when we are the sender`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         val ourTimelineEvent = timelineEvent.copy(event = (timelineEvent.event as MessageEvent).copy(sender = us))
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = bob) {
@@ -247,6 +256,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `showSender » be false when room is direct`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = bob) {
                 text("Hi!")
@@ -267,18 +277,43 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `isSent » should be true when outbox is empty`() = runTest {
+    fun `isSent » should be false when outbox contains related element`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf(flowOf(RoomOutboxMessage(
+            roomId = roomId,
+            transactionId = "",
+            createdAt = Instant.DISTANT_PAST,
+            content = object : MessageEventContent {
+                override val relatesTo: RelatesTo = RelatesTo.Replace(eventId = eventId)
+                override val externalUrl: String? = null
+                override val mentions: Mentions? = null
+            }
+        ))))
         val timeline = timeline(roomServiceMock, roomId) {
             +timelineEvent
         }
 
         val cut = cut()
+        backgroundScope.launch { cut.isSent.collect() }
+        delay(100.milliseconds)
+        cut.isSent.value shouldBe false
+    }
+
+    @Test
+    fun `isSent » should be true when outbox is empty`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        val timeline = timeline(roomServiceMock, roomId) {
+            +timelineEvent
+        }
+
+        val cut = cut()
+        backgroundScope.launch { cut.isSent.collect() }
         delay(100.milliseconds)
         cut.isSent.value shouldBe true
     }
 
     @Test
     fun `isRead » should use latest replacement`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         val replaceEventId = EventId("replace")
         val replacement = MutableStateFlow<Map<EventId, Flow<TimelineEventRelation?>>?>(null)
         every {
@@ -319,6 +354,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `showBigGapBefore » be true when first in a user sequence`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         timeline(roomServiceMock, roomId) {
             +messageEvent(
                 sender = bob, sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
@@ -337,6 +373,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `showBigGapBefore » false when not first in a user sequence`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         timeline(roomServiceMock, roomId) {
             +messageEvent(
                 sender = alice, sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
@@ -355,6 +392,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `showBigGapBefore » be true when time gap is large enough`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         timeline(roomServiceMock, roomId) {
             +messageEvent(
                 sender = alice,
@@ -375,6 +413,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `showBigGapBefore » be false when time gap is not large enough`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         timeline(roomServiceMock, roomId) {
             +messageEvent(
                 sender = alice, sentAt = Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
@@ -394,6 +433,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `showUnreadMarker » show the unread marker when event is set`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -417,6 +457,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `showUnreadMarker » show the unread marker when subsequent event is added`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -442,6 +483,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `showUnreadMarker » not show the unread marker when subsequent event is added but by us`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -467,6 +509,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `showUnreadMarker » remove the unread marker when marker removed`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -491,6 +534,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `showUnreadMarker » not show the unread marker when no subsequent event`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -507,6 +551,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `showUnreadMarker » not show the unread marker when none of the next events is supported`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Hi!")
@@ -537,6 +582,7 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `element » not create a new viewModel when a new message is sent afterwards`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         val timeline = timeline(roomServiceMock, roomId) {
             +messageEvent(sender = alice) {
                 text("Don't change my viewModel!")

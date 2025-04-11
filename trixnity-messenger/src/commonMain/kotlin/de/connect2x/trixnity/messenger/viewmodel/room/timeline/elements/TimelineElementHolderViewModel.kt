@@ -22,11 +22,13 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -237,18 +239,22 @@ class TimelineElementHolderViewModelImpl(
         showLoadingIndicatorAfter
             .debounce { if (it) 1.seconds else Duration.ZERO } // prevent indicator on fast loading
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+    
+    private fun isEventRelated(message: RoomOutboxMessage<*>?): Boolean =
+        (message?.content?.relatesTo as? RelatesTo.Replace)?.eventId == eventId
 
-    private fun getNewContentIfAvailable(msg: RoomOutboxMessage<*>?) =
-        (msg?.content?.relatesTo as? RelatesTo.Replace)?.takeIf { it.eventId == eventId }?.newContent
-
-    private val newContentIfReplaced =
+    private val outboxElementIfReplaced: SharedFlow<RoomOutboxMessage<*>?> =
         if (showOriginal) {
             MutableStateFlow(null)
         } else {
             matrixClient.room.getOutbox(roomId).flatten()
-                .map { it.reversed().firstNotNullOfOrNull(::getNewContentIfAvailable) }
+                .map { outbox -> outbox.reversed().firstOrNull { isEventRelated(it) } }
                 .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
         }
+
+    private val newContentIfReplaced: SharedFlow<MessageEventContent?> =
+        outboxElementIfReplaced.map { (it?.content?.relatesTo as? RelatesTo.Replace)?.newContent }
+            .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
     override val isReplaced: StateFlow<Boolean> =
         combine(
@@ -471,19 +477,20 @@ class TimelineElementHolderViewModelImpl(
             .collectLatest { send(it) }
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
-    override val isRead: StateFlow<Boolean> = lastReplacement.flatMapLatest {
-        getEventReaders.isRead(
-            matrixClient = matrixClient,
-            roomId = roomId,
-            eventId = it ?: eventId,
-            sender = senderUserId,
-            getReceipts = getReceipts,
-        )
-    }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+    override val isRead: StateFlow<Boolean> =
+        lastReplacement.flatMapLatest {
+            getEventReaders.isRead(
+                matrixClient = matrixClient,
+                roomId = roomId,
+                eventId = it ?: eventId,
+                sender = senderUserId,
+                getReceipts = getReceipts,
+            )
+        }.stateIn(coroutineScope, Lazily, false) // Lazily to not unnecessary recompute
 
-    override val isSent: StateFlow<Boolean> = matrixClient.room.getOutbox(roomId).flatten()
-        .mapLatest { outbox -> outbox.count { (it.content.relatesTo as? RelatesTo.Replace)?.eventId == eventId } == 0 }
-        .stateIn(coroutineScope, whileSubscribedWithTimeout, true)
+    override val isSent: StateFlow<Boolean> = outboxElementIfReplaced
+        .map { it == null || it.sentAt != null }
+        .stateIn(coroutineScope, WhileSubscribed(), true)
 
     override fun replace() {
         editInProgress.value = true
