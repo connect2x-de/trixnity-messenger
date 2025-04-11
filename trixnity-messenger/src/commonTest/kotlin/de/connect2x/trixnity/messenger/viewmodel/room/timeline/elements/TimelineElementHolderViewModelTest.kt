@@ -277,7 +277,7 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `isSent » should be false when outbox contains related element`() = runTest {
+    fun `isSent » should be false when outbox contains replaced element`() = runTest {
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf(flowOf(RoomOutboxMessage(
             roomId = roomId,
             transactionId = "",

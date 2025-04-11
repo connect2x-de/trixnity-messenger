@@ -240,7 +240,7 @@ class TimelineElementHolderViewModelImpl(
             .debounce { if (it) 1.seconds else Duration.ZERO } // prevent indicator on fast loading
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
     
-    private fun isEventRelated(message: RoomOutboxMessage<*>?): Boolean =
+    private fun isEventReplaced(message: RoomOutboxMessage<*>?): Boolean =
         (message?.content?.relatesTo as? RelatesTo.Replace)?.eventId == eventId
 
     private val outboxElementIfReplaced: SharedFlow<RoomOutboxMessage<*>?> =
