@@ -213,7 +213,7 @@ fun RoomName(
     Tooltip({
         TooltipText { roomHeaderElement.roomName }
     }) {
-        SelectableText(
+        Text(
             roomHeaderElement.roomName,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
