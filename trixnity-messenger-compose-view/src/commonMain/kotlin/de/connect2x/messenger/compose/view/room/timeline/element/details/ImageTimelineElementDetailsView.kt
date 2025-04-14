@@ -37,7 +37,10 @@ import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerIcons
+import de.connect2x.trixnity.messenger.util.BMP
+import de.connect2x.trixnity.messenger.util.Webp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import io.ktor.http.*
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
@@ -49,13 +52,16 @@ class ImageTimelineElementDetailsView :
         RoomMessageTimelineElementViewModel.FileBased.Image::class
 
     // JPEG, PNG, BMP, WEBP (based on decodeToImageBitmap())
-    override val supportedMimeTypes: List<String> = listOf(
-        "image/jpeg",
-        "image/png",
-        "image/bmp",
-        "image/webp",
-        "image/gif", // gifs can be rendered statically (first frame)
-    )
+    override fun supportsMimeType(mimeType: ContentType): Boolean {
+        return listOf<ContentType>(
+            ContentType.Image.JPEG,
+            ContentType.Image.PNG,
+            ContentType.Image.BMP,
+            ContentType.Image.Webp,
+            ContentType.Image.GIF // gifs can be rendered statically (first frame)
+        ).any { it.match(mimeType) }
+        true
+    }
 
     @OptIn(ExperimentalResourceApi::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
     @Composable
