@@ -9,11 +9,11 @@ import de.connect2x.trixnity.messenger.MatrixClientsImpl
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
 import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns

@@ -1,19 +1,6 @@
-package de.connect2x.trixnity.messenger.viewmodel.util
+package de.connect2x.trixnity.messenger
 
-import de.connect2x.trixnity.messenger.CreateMediaStore
-import de.connect2x.trixnity.messenger.CreateRepositoriesModule
-import de.connect2x.trixnity.messenger.MatrixClients
-import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
-import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
-import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerSettings
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl
-import de.connect2x.trixnity.messenger.createTrixnityMessengerDefaultModuleFactories
 import de.connect2x.trixnity.messenger.settings.SettingsStorage
-import de.connect2x.trixnity.messenger.testDispatcher
-import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.GraphemeIterableProvider
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.RootPath
@@ -142,5 +129,29 @@ fun createTestMatrixMessengerSettingsHolder(): MatrixMessengerSettingsHolder {
             if (hasNoEntry) delegate.update<MatrixMessengerAccountSettingsBase>(userId) { it }
             emitAll(delegate[userId])
         }
+    }
+}
+
+fun createTestMatrixMessengerModule(debugName: String = "client") = module {
+    single<DebugName> {
+        DebugName { debugName }
+    }
+    single<CreateRepositoriesModule> {
+        object : CreateRepositoriesModule {
+            val modules: MutableMap<UserId, Module> = HashMap()
+            override suspend fun generateDatabaseKey(): ByteArray? = null
+
+            override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module {
+                val module = createInMemoryRepositoriesModule()
+                modules += (userId to module)
+                return module
+            }
+
+            override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module =
+                modules[userId] ?: throw IllegalStateException("Repositories module for $userId not instantiated")
+        }
+    }
+    single<FileSystem> {
+        FakeFileSystem()
     }
 }

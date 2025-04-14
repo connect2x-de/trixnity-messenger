@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -325,7 +326,8 @@ class SearchTest {
                 InMemoryPlatformMedia(
                     flow {
                         bytes.forEach { emit(byteArrayOf(it)) }
-                    }))
+                    })
+            )
         }
     }
 }
