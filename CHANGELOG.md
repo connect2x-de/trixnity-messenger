@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Clicking on files without preview opens a "Not supported" message instead of starting a download
+
 ### Deprecated
 
 ### Removed
