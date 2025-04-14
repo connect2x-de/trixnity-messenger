@@ -47,7 +47,7 @@ class LeaveRoomImpl : LeaveRoom {
                     val leaveException = leaveResult.exceptionOrNull()
 
                     if (leaveException != null && leaveException !is MatrixServerException) {
-                        log.warn { "skip forget room $roomId, because something went wrong (e. g. network error)" }
+                        log.warn(leaveException) { "skip forget room $roomId, because something went wrong (e. g. network error)" }
                         throw leaveException
                     }
                 }
@@ -60,7 +60,7 @@ class LeaveRoomImpl : LeaveRoom {
                     val forgetException = forgetResult.exceptionOrNull()
 
                     if (forgetException != null && forgetException !is MatrixServerException) {
-                        log.warn { "skip removing local copy of room $roomId, because something went wrong (e. g. network error)" }
+                        log.warn(forgetException) { "skip removing local copy of room $roomId, because something went wrong (e. g. network error)" }
                         throw forgetException
                     }
 
