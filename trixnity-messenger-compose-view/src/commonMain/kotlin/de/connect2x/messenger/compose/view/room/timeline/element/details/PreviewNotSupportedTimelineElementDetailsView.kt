@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.details
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,7 +37,10 @@ class PreviewNotSupportedTimelineElementDetailsView() :
     ) {
         FileBasedDetailsDialog(element, onSave, onClose) {
             val i18n = DI.get<I18nView>()
-            Box(Modifier.fillMaxSize()) {
+            Box(
+                Modifier.fillMaxSize()
+                    .background(color = MaterialTheme.colorScheme.background)
+            ) {
                 Box(modifier = Modifier.align(Alignment.Center)) {
                     Column {
                         Icon(
