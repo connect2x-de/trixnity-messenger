@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Overflows in RoomHeader
+- Open room settings when clicking on header in group room
 
 ### Security
 

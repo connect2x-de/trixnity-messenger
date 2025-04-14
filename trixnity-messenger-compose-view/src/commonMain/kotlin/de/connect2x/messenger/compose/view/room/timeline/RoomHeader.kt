@@ -74,7 +74,6 @@ class RoomHeaderViewImpl : RoomHeaderView {
     ) {
         val roomHeaderElement = roomHeaderViewModel.roomHeaderInfo.collectAsState().value
         val usersTyping = roomHeaderViewModel.usersTyping.collectAsState().value
-        val isDirectChat = roomHeaderViewModel.isDirectChat.collectAsState().value
         val knockingMembersCount = roomHeaderViewModel.knockingMembersCount.collectAsState().value
         val headerHeightFlow = MaxHeaderHeight.current
         val headerHeight = headerHeightFlow.collectAsState().value
@@ -109,7 +108,6 @@ class RoomHeaderViewImpl : RoomHeaderView {
 
                         ThemedButton(
                             style = MaterialTheme.components.accountSelector,
-                            enabled = isDirectChat,
                             onClick = { roomHeaderViewModel.openRoomSettings() },
                         ) {
                             Row(
