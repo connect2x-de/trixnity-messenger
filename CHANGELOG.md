@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Clicking on files without preview opens a "Not supported" message instead of starting a download
+- Show error popups when problems occur during room avatar update and align confirm update button to lower right
 
 ### Deprecated
 

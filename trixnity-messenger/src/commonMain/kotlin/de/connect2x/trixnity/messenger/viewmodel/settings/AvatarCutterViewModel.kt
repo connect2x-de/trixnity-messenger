@@ -70,7 +70,6 @@ open class AvatarCutterViewModelImpl(
     private val _avatarImage: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
 
     init {
-        println("Started Avatar cutter viewModel")
         backHandler.register(backCallback)
         coroutineScope.launch {
             val fileSize = file.fileSize
@@ -118,6 +117,7 @@ open class AvatarCutterViewModelImpl(
         matrixClient.setAvatarUrl(url).fold(
             onSuccess = {
                 upload.value = false
+                log.debug { "Successfully set user avatar" }
                 onClose()
             },
             onFailure = {
@@ -135,6 +135,7 @@ open class AvatarCutterViewModelImpl(
         ).fold(
             onSuccess = {
                 upload.value = false
+                log.debug { "Successfully set room avatar" }
                 onClose()
             },
             onFailure = {
