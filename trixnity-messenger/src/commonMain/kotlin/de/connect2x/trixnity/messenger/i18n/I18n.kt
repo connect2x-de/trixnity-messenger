@@ -884,8 +884,8 @@ open class I18n(
     }
 
     open fun profileAvatarError() = translate {
-        EN - "The avatar image could not be changed."
-        DE - "Das Nutzerbild konnte nicht geändert werden."
+        EN - "The avatar image could not be changed. Bitte versuchen Sie es später erneut."
+        DE - "Das Nutzerbild konnte nicht geändert werden. Please try again later."
     }
 
     open fun profileNameError() = translate {

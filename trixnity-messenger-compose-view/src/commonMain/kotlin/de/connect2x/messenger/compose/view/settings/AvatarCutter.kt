@@ -1,6 +1,8 @@
 package de.connect2x.messenger.compose.view.settings
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -44,7 +46,6 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
-import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -96,6 +97,7 @@ class AvatarCutterViewImpl : AvatarCutterView {
                                 .align(Alignment.Center)
                                 .clip(RoundedCornerShape(8.dp))
                                 .width(maxWidth)
+                                .border(3.dp, MaterialTheme.colorScheme.primary)
                         ) {
                             Box(Modifier.background(Color.Black)) {
                                 Column {
@@ -136,28 +138,36 @@ class AvatarCutterViewImpl : AvatarCutterView {
                                     }
                                 }
                             }
-
-                            ThemedFloatingActionButton(
-                                onClick = avatarCutterViewModel::accept,
-                                modifier = Modifier
+                            Box(
+                                Modifier
                                     .align(Alignment.BottomEnd)
-                                    .padding(bottom = 18.dp, end = 18.dp),
-                                text = { Text(i18n.commonOk()) },
-                                icon = {
-                                    if (upload)
-                                        ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
-                                    else
-                                        Icon(Icons.Default.Check, i18n.commonOk())
-                                },
-                            )
+                                    .padding(bottom = 18.dp, end = 18.dp)
+                            ) {
+                                ThemedFloatingActionButton(
+                                    onClick = avatarCutterViewModel::accept,
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .padding(bottom = 18.dp, end = 18.dp),
+                                    text = { Text(i18n.commonOk()) },
+                                    icon = {
+                                        if (upload)
+                                            ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
+                                        else
+                                            Icon(Icons.Default.Check, i18n.commonOk())
+                                    },
+                                )
+                            }
                         }
                     }
                 }
             } ?: run {
                 log.error { "failed to create bitmap image " }
             }
+        } ?: error?.let {
+            Popup(onDismissRequest = { avatarCutterViewModel.cancel() }) {
+                ErrorView(error)
+            }
         }
-        // TODO: show error dialog
     }
 }
 
