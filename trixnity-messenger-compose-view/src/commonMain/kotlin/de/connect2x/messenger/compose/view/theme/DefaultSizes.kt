@@ -1,5 +1,8 @@
 package de.connect2x.messenger.compose.view.theme
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 interface DefaultSizes {
     val minFontSize: Float
     val maxFontSize: Float
@@ -10,6 +13,7 @@ interface DefaultSizes {
     val displaySize: Float
 }
 
+@Immutable
 class DefaultSizesImpl : DefaultSizes {
     // 50% 75% 100% 125% 150% 175% 200%
     override val minFontSize: Float = 0.50f

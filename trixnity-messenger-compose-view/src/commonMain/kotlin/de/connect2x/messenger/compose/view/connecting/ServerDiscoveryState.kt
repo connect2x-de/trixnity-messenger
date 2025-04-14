@@ -10,7 +10,6 @@ import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Web
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,6 +21,8 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
@@ -42,11 +43,13 @@ class ServerDiscoveryStateViewImpl : ServerDiscoveryStateView {
     override fun create(addMatrixAccountViewModel: AddMatrixAccountViewModel) {
         val i18n = DI.get<I18nView>()
         val serverDiscoveryState = addMatrixAccountViewModel.serverDiscoveryState.collectAsState().value
+
         when (serverDiscoveryState) {
             is ServerDiscoveryState.None -> {}
-            is ServerDiscoveryState.Loading -> {
-                LinearProgressIndicator(Modifier.fillMaxWidth())
-            }
+            is ServerDiscoveryState.Loading -> ThemedProgressIndicator(
+                Modifier.fillMaxWidth(),
+                MaterialTheme.components.linearProgressIndicator
+            )
 
             is ServerDiscoveryState.Success -> {
                 val addMatrixAccountMethods = remember {

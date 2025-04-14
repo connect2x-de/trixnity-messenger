@@ -16,6 +16,8 @@ import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.FloatingActionButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
+import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.CircularProgressIndicatorStyle
+import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.messenger.compose.view.theme.components.TooltipStyle
 
@@ -27,6 +29,8 @@ interface ThemeComponents {
 class ThemeComponentsImpl : ThemeComponents {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
+    // This configuration tries to be as faithful as possible to our old design.
+    // Even in places where our old design has low contrast or uneven spacing.
     override fun create(): ComponentStyles = ComponentStyles(
         // buttons
         primaryButton = ButtonStyle.filled(
@@ -67,7 +71,6 @@ class ThemeComponentsImpl : ThemeComponents {
         ),
         commonIconButton = IconButtonStyle.default(
             colors = IconButtonDefaults.iconToggleButtonColors(
-                // TODO: We shouldn't use onSurface but it's black in darkmode with the default. Theme might be broken?
                 contentColor = MaterialTheme.colorScheme.onSurface,
             ),
         ),
@@ -79,6 +82,7 @@ class ThemeComponentsImpl : ThemeComponents {
         floatingActionButton = FloatingActionButtonStyle.default(
             size = 40.dp,
             containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp)
         ),
         floatingActionButtonDisabled = FloatingActionButtonStyle.default(
@@ -194,6 +198,16 @@ class ThemeComponentsImpl : ThemeComponents {
                 containerColor = MaterialTheme.colorScheme.tertiary,
             ),
             textStyle = MaterialTheme.typography.bodySmall,
-        )
+        ),
+        // loading spinner
+        circularProgressIndicator = CircularProgressIndicatorStyle.default(),
+        smallCircularProgressIndicator = CircularProgressIndicatorStyle.default(
+            size = 32.dp,
+        ),
+        extraSmallCircularProgressIndicator = CircularProgressIndicatorStyle.default(
+            size = 24.dp,
+            strokeWidth = 2.dp,
+        ),
+        linearProgressIndicator = LinearProgressIndicatorStyle.default(),
     )
 }

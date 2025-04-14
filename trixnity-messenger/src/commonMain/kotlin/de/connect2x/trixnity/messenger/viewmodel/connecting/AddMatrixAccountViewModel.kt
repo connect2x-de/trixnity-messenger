@@ -98,11 +98,7 @@ open class AddMatrixAccountViewModelImpl(
                     }
                 }
             }
-        }.stateIn(
-            coroutineScope,
-            SharingStarted.WhileSubscribed(),
-            ServerDiscoveryState.None
-        )
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), ServerDiscoveryState.None)
 
     override fun selectAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
         onAddMatrixAccountMethod(addMatrixAccountMethod)

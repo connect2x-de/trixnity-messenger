@@ -227,6 +227,15 @@ class RoomSettingsViewModelTest {
                                         error: MutableStateFlow<String?>,
                                         onOpenUserProfile: (UserId) -> Unit,
                                     ): MemberListViewModel = object : MemberListViewModel {
+                                        override val filterByMemberships =
+                                            MutableStateFlow(
+                                                setOf(
+                                                    Membership.JOIN,
+                                                    Membership.BAN,
+                                                    Membership.KNOCK,
+                                                    Membership.INVITE
+                                                )
+                                            )
                                         override val elements: StateFlow<List<MemberListElementViewModel>> =
                                             MutableStateFlow(listOf())
                                         override val membershipCounts: StateFlow<Map<Membership, Int>> =

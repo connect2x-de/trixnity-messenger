@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -27,6 +26,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 
 @Composable
@@ -46,9 +46,10 @@ fun BoxScope.DownloadProgress(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                LinearProgressIndicator(
+                ThemedProgressIndicator(
                     progress = { progressElement.percent },
                     modifier = Modifier.padding(start = 10.dp),
+                    style = MaterialTheme.components.linearProgressIndicator
                 )
                 if (cancel != null)
                     Tooltip({ Text(i18n.commonCancel()) }) {

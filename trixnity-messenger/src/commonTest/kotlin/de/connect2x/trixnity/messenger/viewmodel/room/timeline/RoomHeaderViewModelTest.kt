@@ -33,24 +33,63 @@ import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
+import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
+import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.PresenceEventContent
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
+import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
+import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 
+@Suppress("NonAsciiCharacters")
 class RoomHeaderViewModelTest {
     private val roomId = RoomId("room1", "localhost")
+
     private val me = UserId("bob", "localhost")
+    private val meRoomUser = RoomUser(
+        roomId, me, me.full, StateEvent(
+            MemberEventContent(membership = Membership.JOIN),
+            EventId(""),
+            me,
+            roomId,
+            originTimestamp = 0L,
+            stateKey = ""
+        )
+    )
+
     private val otherUser = UserId("cob", "localhost")
+    private val otherRoomUser = RoomUser(
+        roomId, otherUser, otherUser.full, StateEvent(
+            MemberEventContent(membership = Membership.JOIN),
+            EventId(""),
+            otherUser,
+            roomId,
+            originTimestamp = 0L,
+            stateKey = ""
+        )
+    )
+
+    private val knockingUser = UserId("maria", "localhost")
+    private val knockingRoomUser = RoomUser(
+        roomId, otherUser, otherUser.full, StateEvent(
+            MemberEventContent(membership = Membership.KNOCK),
+            EventId(""),
+            otherUser,
+            roomId,
+            originTimestamp = 0L,
+            stateKey = ""
+        )
+    )
 
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
@@ -104,6 +143,13 @@ class RoomHeaderViewModelTest {
         roomTopicElement returns MutableStateFlow("My Topic")
         every { roomServiceMock.usersTyping } returns MutableStateFlow(emptyMap())
 
+        every { userServiceMock.getAll(eq(roomId)) } returns flowOf(
+            mapOf(
+                me to flowOf(meRoomUser),
+                otherUser to flowOf(otherRoomUser),
+                knockingUser to flowOf(knockingRoomUser),
+            )
+        )
         ignoredUsers = every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) }
         ignoredUsers returns flowOf(
             IgnoredUserListEventContent(emptyMap())
@@ -120,7 +166,7 @@ class RoomHeaderViewModelTest {
                 any()
             )
         } returns MutableStateFlow(
-            ClientEvent.RoomEvent.StateEvent(
+            StateEvent(
                 content = JoinRulesEventContent(
                     joinRule = JoinRulesEventContent.JoinRule.Public
                 ),
@@ -299,6 +345,15 @@ class RoomHeaderViewModelTest {
         cut.canUnblockUser.value shouldBe false
     }
 
+    @Test
+    fun `knocking » should calculate amount of knocking users`() = runTest {
+        every { directRoomMock.getUsers(any(), eq(roomId)) } returns flowOf(emptyList())
+
+        val cut = roomHeaderViewModel()
+        delay(500.milliseconds)
+        cut.knockingMembersCount.value shouldBe 1
+    }
+
     private fun TestScope.roomHeaderViewModel(): RoomHeaderViewModelImpl {
         return RoomHeaderViewModelImpl(
             viewModelContext = testMatrixClientViewModelContext(
@@ -337,5 +392,6 @@ class RoomHeaderViewModelTest {
         backgroundScope.launch { roomHeaderViewModel.isUserBlocked.collect() }
         backgroundScope.launch { roomHeaderViewModel.canBlockUser.collect() }
         backgroundScope.launch { roomHeaderViewModel.canUnblockUser.collect() }
+        backgroundScope.launch { roomHeaderViewModel.knockingMembersCount.collect() }
     }
 }

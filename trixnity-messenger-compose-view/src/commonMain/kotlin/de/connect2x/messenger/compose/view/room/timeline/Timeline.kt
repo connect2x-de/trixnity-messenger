@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,6 +38,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.ErrorDialog
+import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolder
@@ -83,6 +83,7 @@ class TimelineViewImpl : TimelineView {
         var timelineElementHolderViewModels by remember {
             mutableStateOf<List<BaseTimelineElementHolderViewModel>>(listOf())
         }
+        val isTimelineLoading = timelineElementHolderViewModels.isEmpty()
         val timelineElementViewModelGrouped by derivedStateOf {
             val vms = timelineElementHolderViewModels
             buildList(vms.size) {
@@ -124,8 +125,10 @@ class TimelineViewImpl : TimelineView {
         val focusManager = LocalFocusManager.current
 
         Box(modifier = Modifier.weight(1.0f, fill = true)) {
-            if (timelineElementHolderViewModels.isEmpty()) {
-                Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
+            if (isTimelineLoading) {
+                Box(Modifier.fillMaxSize()) {
+                    LoadingSpinner(Modifier.align(Alignment.Center))
+                }
             } else {
                 val unreadMarkerOnFirstLoad = remember {
                     (timelineElementHolderViewModels.indexOfLast {

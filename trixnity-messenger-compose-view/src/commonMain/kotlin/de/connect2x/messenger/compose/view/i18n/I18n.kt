@@ -321,11 +321,6 @@ open class I18nView(
         DE - "einklappen"
     }
 
-    open fun commonSkip() = translate {
-        EN - "skip"
-        DE - "überspringen"
-    }
-
     open fun commonZoomIn() = translate {
         EN - "zoom in"
         DE - "Vergrößern"
@@ -865,6 +860,11 @@ open class I18nView(
         DE - "Vertrauensprüfung starten"
     }
 
+    open fun userProfileCopyUserId() = translate {
+        EN - "copy MXID"
+        DE - "Kopiere MXID"
+    }
+
     open fun userProfileRemoveUser() = translate {
         EN - "remove user"
         DE - "Teilnehmer entfernen"
@@ -873,6 +873,16 @@ open class I18nView(
     open fun userProfileBanUser() = translate {
         EN - "ban user"
         DE - "Teilnehmer bannen"
+    }
+
+    open fun userProfileAcceptKnock() = translate {
+        EN - "Accept membership request"
+        DE - "Beitrittsanfrage annehmen"
+    }
+
+    open fun userProfileRejectKnock() = translate {
+        EN - "Reject membership request"
+        DE - "Beitrittsanfrage ablehnen"
     }
 
     open fun userProfileBlockUser() = translate {
@@ -910,6 +920,21 @@ open class I18nView(
         DE - "Benutzeroptionen"
     }
 
+    open fun settingsRoomMemberListCurrent() = translate {
+        EN - "Current"
+        DE - "Aktuelle"
+    }
+
+    open fun settingsRoomMemberListPending() = translate {
+        EN - "Requesting"
+        DE - "Anfragend"
+    }
+
+    open fun settingsRoomMemberListFormer() = translate {
+        EN - "Former"
+        DE - "Ehemalige"
+    }
+
     open fun unbannable() = translate {
         EN - "unbanable"
         DE - "entbannbar"
@@ -938,6 +963,11 @@ open class I18nView(
     open fun roomHeaderUserIsBlocked() = translate {
         EN - "This user is blocked by you."
         DE - "Dieser Nutzer wird von Ihnen geblockt."
+    }
+
+    open fun roomHeaderKnockingUsersCount(count: Int) = translate {
+        EN - "$count user${if (count > 1) "s" else ""} requesting membership"
+        DE - "$count Nutzer frag${if (count > 1) "en" else "t"} den Beitritt am"
     }
 
     open fun timelineElementMetadataTitle() = translate {
@@ -2761,6 +2791,11 @@ open class I18nView(
     open fun settingsRoomMemberListKickUserWarningTitleGroup(username: String) = translate {
         EN - "Remove user $username from group?"
         DE - "Nutzer $username aus der Gruppe entfernen?"
+    }
+
+    open fun knockIcon() = translate {
+        EN - "room membership request"
+        DE - "Raumbeitrittsanfrage"
     }
 
     open fun knockRequest() = translate {

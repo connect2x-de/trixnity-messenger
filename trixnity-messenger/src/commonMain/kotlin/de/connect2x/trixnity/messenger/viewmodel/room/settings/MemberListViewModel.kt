@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.client.flattenNotNull
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
+import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.RoomId
@@ -42,6 +43,7 @@ interface MemberListViewModelFactory {
 }
 
 interface MemberListViewModel {
+    val filterByMemberships: MutableStateFlow<Set<Membership>>
     val elements: StateFlow<List<MemberListElementViewModel>>
     val membershipCounts: StateFlow<Map<Membership, Int>>
     val showLoadingSpinner: StateFlow<Boolean>
@@ -69,23 +71,39 @@ open class MemberListViewModelImpl(
     private val allUsers = matrixClient.user.getAll(selectedRoomId).flattenNotNull().map { it.values }
         .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
 
+    override val filterByMemberships: MutableStateFlow<Set<Membership>> =
+        MutableStateFlow(setOf(Membership.JOIN, Membership.KNOCK, Membership.INVITE, Membership.BAN))
+
     override val elements: StateFlow<List<MemberListElementViewModel>> =
         combine(
             matrixClient.room.getState<PowerLevelsEventContent>(selectedRoomId).map { it?.content },
             matrixClient.room.getState<CreateEventContent>(selectedRoomId).filterNotNull(),
-            allUsers
-        ) { powerLevels, createEvent, roomUsers ->
-            val relevantRoomUsers = roomUsers.filter { roomUser ->
-                roomUser.membership == Membership.JOIN ||
-                        roomUser.membership == Membership.INVITE ||
-                        roomUser.membership == Membership.BAN
-            }.sortedByDescending { roomUser ->
-                matrixClient.user.getPowerLevel(
-                    roomUser.userId,
-                    createEvent.sender,
-                    powerLevels
-                )
-            }.associateBy { it.userId }
+            allUsers,
+            filterByMemberships
+        ) { powerLevels, createEvent, roomUsers, filterByMemberships ->
+            val relevantRoomUsers =
+                roomUsers
+                    .filter { roomUser ->
+                        filterByMemberships.contains(roomUser.membership)
+                    }
+                    .sortedWith(
+                        compareBy<RoomUser> { roomUser ->
+                            when (roomUser.membership) {
+                                Membership.JOIN -> 1
+                                Membership.KNOCK -> 2
+                                Membership.INVITE -> 3
+                                Membership.BAN -> 4
+                                Membership.LEAVE -> 5
+                            }
+                        }.thenByDescending { roomUser ->
+                            matrixClient.user.getPowerLevel(
+                                roomUser.userId,
+                                createEvent.sender,
+                                powerLevels
+                            )
+                        }
+                    )
+                    .associateBy { it.userId }
 
             elementCache.mapNotNull { (userId, wrapper) ->
                 if (relevantRoomUsers[userId] == null) {
@@ -124,6 +142,8 @@ open class MemberListViewModelImpl(
 
 
 class PreviewMemberListViewModel : MemberListViewModel {
+    override val filterByMemberships: MutableStateFlow<Set<Membership>> =
+        MutableStateFlow(emptySet())
     override val elements: MutableStateFlow<List<MemberListElementViewModel>> =
         MutableStateFlow(emptyList())
     override val membershipCounts: StateFlow<Map<Membership, Int>> = MutableStateFlow(emptyMap())
