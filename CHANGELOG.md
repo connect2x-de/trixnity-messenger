@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Overflows in RoomHeader
+- Preview in accessibility settings
 - Copy recovery key not available on small screens
 
 ### Security
