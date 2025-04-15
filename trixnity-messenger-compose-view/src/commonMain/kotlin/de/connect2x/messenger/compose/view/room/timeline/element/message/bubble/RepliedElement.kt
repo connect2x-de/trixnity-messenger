@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message.bubble
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -24,7 +25,7 @@ fun RepliedElement(holder: BaseTimelineElementHolderViewModel) {
                 .padding(start = 10.dp, end = 10.dp, top = 10.dp)
                 .let {
                     if (repliedElementHolder.canScrollTo) {
-                        it.clickable {
+                        it.clickable(interactionSource = MutableInteractionSource(), indication = null) {
                             repliedElementHolder.scrollToElement()
                         }
                     } else it
