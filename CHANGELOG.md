@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Scroll to replied element in timeline when element is present
 - Copy button for MXID in UserProfile
 - Theming for ProgressIndicators
+- Leave and forget upgraded rooms too
 
 ### Changed
 
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Overflows in RoomHeader
+- Preview in accessibility settings
 - Copy recovery key not available on small screens
 
 ### Security
