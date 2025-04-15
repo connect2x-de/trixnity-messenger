@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message.bubble
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -12,6 +11,9 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+private val log = KotlinLogging.logger {}
 
 @Composable
 fun RepliedElement(holder: BaseTimelineElementHolderViewModel) {
@@ -25,7 +27,8 @@ fun RepliedElement(holder: BaseTimelineElementHolderViewModel) {
                 .padding(start = 10.dp, end = 10.dp, top = 10.dp)
                 .let {
                     if (repliedElementHolder.canScrollTo) {
-                        it.clickable(interactionSource = MutableInteractionSource(), indication = null) {
+                        it.clickable(interactionSource = null, indication = null) {
+                            log.debug { "Scrolling to element '${repliedElementHolder.key}' in timeline" }
                             repliedElementHolder.scrollToElement()
                         }
                     } else it

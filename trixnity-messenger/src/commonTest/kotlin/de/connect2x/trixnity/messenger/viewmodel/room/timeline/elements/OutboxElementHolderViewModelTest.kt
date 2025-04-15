@@ -327,7 +327,8 @@ class OutboxElementHolderViewModelTest {
             outboxMessageFlow = flowOf(outboxMessage),
             formattedDate = "01.01.2000",
             formattedTime = "07:24",
-            onOpenMention = mock()
+            onOpenMention = mock(),
+            onScrollTo = null
         )
     }
 }
