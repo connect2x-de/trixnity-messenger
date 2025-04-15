@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reset read and send marker when editing messages while being offline
 - Preview in accessibility settings
 - Copy recovery key not available on small screens
+- Wrong tooltip text of 'cancel edit' button
 
 ### Security
 
