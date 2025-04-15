@@ -11,8 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Copy button for MXID in UserProfile
 - Theming for ProgressIndicators
+- Leave and forget upgraded rooms too
 
 ### Changed
+
+- Clicking on files without preview opens a "Not supported" message instead of starting a download
 
 ### Deprecated
 
@@ -22,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Overflows in RoomHeader
 - Preview in accessibility settings
+- Copy recovery key not available on small screens
 
 ### Security
 
