@@ -52,9 +52,11 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
@@ -329,7 +331,7 @@ fun RowScope.InputAreaTextField(
 @Composable
 fun EditButton(inputAreaViewModel: InputAreaViewModel) {
     val i18n = DI.get<I18nView>()
-    Tooltip({ Text(i18n.inputAreaSend()) }) {
+    Tooltip({ Text(i18n.inputAreaCancelEdit()) }) {
         ThemedIconButton(
             style = MaterialTheme.components.primaryIconButton,
             onClick = { inputAreaViewModel.cancelReplace() },
