@@ -63,6 +63,7 @@ interface OutboxElementHolderViewModelFactory {
         formattedDate: String,
         formattedTime: String,
         onOpenMention: OpenMentionCallback,
+        onScrollTo: ((key: String) -> Unit)?
     ): OutboxElementHolderViewModel = OutboxElementHolderViewModelImpl(
         viewModelContext = viewModelContext,
         key = key,
@@ -72,6 +73,7 @@ interface OutboxElementHolderViewModelFactory {
         formattedDate = formattedDate,
         formattedTime = formattedTime,
         onOpenMention = onOpenMention,
+        onScrollTo = onScrollTo
     )
 
     companion object : OutboxElementHolderViewModelFactory
@@ -99,6 +101,7 @@ class OutboxElementHolderViewModelImpl(
     override val formattedDate: String,
     override val formattedTime: String,
     onOpenMention: OpenMentionCallback,
+    private val onScrollTo: ((key: String) -> Unit)?
 ) : MatrixClientViewModelContext by viewModelContext, OutboxElementHolderViewModel {
 
     private val timeZone = get<TimeZone>()
@@ -106,7 +109,7 @@ class OutboxElementHolderViewModelImpl(
     private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
     private val repliedTimelineElementHolderViewModelFactory = get<TimelineElementHolderViewModelFactory>()
     private val config = get<MatrixMessengerConfiguration>()
-    override val canScrollTo: Boolean = false
+    override val canScrollTo: Boolean = onScrollTo != null
 
     private data class TimelineElementViewModelWrapper(
         val viewModel: TimelineElementViewModel<*>,
@@ -180,7 +183,7 @@ class OutboxElementHolderViewModelImpl(
             lifecycle.start()
             timelineElementHolderViewModelFactory.create(
                 viewModelContext = childContextWithOwnLifecycle(lifecycle),
-                key = "element",
+                key = "$roomId-$repliedEventId",
                 timelineEventFlow = timelineEventFlow,
                 roomId = roomId,
                 eventId = repliedEventId,
@@ -203,7 +206,7 @@ class OutboxElementHolderViewModelImpl(
                 onMessageReport = { _, _ -> },
                 onOpenMention = { _, _ -> },
                 onOpenMetadata = {},
-                onScrollTo = null // TODO: Brauche ich hier nicht auch onScrollTo?
+                onScrollTo = onScrollTo
             ).also {
                 repliedElementCache.value = TimelineElementHolderViewModelWrapper(repliedEventId, it, lifecycle)
             }
@@ -314,5 +317,7 @@ class OutboxElementHolderViewModelImpl(
         }
     }
 
-    override fun scrollToElement() {}
+    override fun scrollToElement() {
+        onScrollTo?.invoke(key)
+    }
 }

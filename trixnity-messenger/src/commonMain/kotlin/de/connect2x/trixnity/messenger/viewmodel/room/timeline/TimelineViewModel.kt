@@ -698,6 +698,7 @@ class TimelineViewModelImpl(
                         formattedDate = formattedDate,
                         formattedTime = formattedTime,
                         onOpenMention = onOpenMention,
+                        onScrollTo = ::jumpToElement
                     ).also {
                         outboxElementCache[transactionId] = OutboxElementWrapper(
                             transactionId,
