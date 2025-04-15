@@ -471,6 +471,7 @@ open class InputAreaViewModelImpl(
                 onMessageReport = { _, _ -> },
                 onOpenMention = { _, _ -> },
                 onOpenMetadata = {},
+                onScrollTo = null,
                 ignoreReplacedEvents = true,
             ).also {
                 repliedElementCache.value = TimelineElementHolderViewModelWrapper(roomId, eventId, it, lifecycle)

@@ -106,6 +106,7 @@ class OutboxElementHolderViewModelImpl(
     private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
     private val repliedTimelineElementHolderViewModelFactory = get<TimelineElementHolderViewModelFactory>()
     private val config = get<MatrixMessengerConfiguration>()
+    override val canScrollTo: Boolean = false
 
     private data class TimelineElementViewModelWrapper(
         val viewModel: TimelineElementViewModel<*>,
@@ -202,6 +203,7 @@ class OutboxElementHolderViewModelImpl(
                 onMessageReport = { _, _ -> },
                 onOpenMention = { _, _ -> },
                 onOpenMetadata = {},
+                onScrollTo = null // TODO: Brauche ich hier nicht auch onScrollTo?
             ).also {
                 repliedElementCache.value = TimelineElementHolderViewModelWrapper(repliedEventId, it, lifecycle)
             }
@@ -311,4 +313,6 @@ class OutboxElementHolderViewModelImpl(
             matrixClient.room.retrySendMessage(roomId = roomId, transactionId = transactionId)
         }
     }
+
+    override fun scrollToElement() {}
 }

@@ -175,7 +175,7 @@ interface TimelineViewModel {
 
     fun errorDismiss()
     fun leaveRoom()
-
+    fun jumpToElement(key: String)
     fun jumpToEndOfTimeline()
 
     /**
@@ -637,6 +637,7 @@ class TimelineViewModelImpl(
             onMessageReport = ::onShowReportMessageModal,
             onOpenMention = onOpenMention,
             onOpenMetadata = onOpenMetadata,
+            onScrollTo = ::jumpToElement
         )
         return TimelineElementWrapper(
             key = key,
@@ -946,6 +947,12 @@ class TimelineViewModelImpl(
         }
     }
 
+    override fun jumpToElement(key: String) {
+        coroutineScope.launch {
+            scrollTo.emit(key)
+        }
+    }
+
     override suspend fun markAsRead(key: String) {
         val (alreadyReadUntilRoomId, alreadyReadUntil) = readEvent.value ?: (null to null)
         val elements = elements.value
@@ -1119,4 +1126,5 @@ class PreviewTimelineViewModel : TimelineViewModel {
     override suspend fun dropBefore(key: String) {}
     override suspend fun dropAfter(key: String) {}
     override suspend fun markAsRead(key: String) {}
+    override fun jumpToElement(key: String) {}
 }
