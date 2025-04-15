@@ -1,12 +1,13 @@
 package de.connect2x.trixnity.messenger.multi
 
-import de.connect2x.trixnity.messenger.createTestMatrixMessengerModule
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import okio.FileSystem
@@ -45,13 +46,12 @@ class MultiMessengerProfilesIT {
     }
 }
 
-suspend fun createTestMatrixMultiMessenger(
-    debugName: String = "client",
+suspend fun TestScope.createTestMatrixMultiMessenger(
     coroutineContext: CoroutineContext = Dispatchers.Default
 ) =
     MatrixMultiMessengerImpl(coroutineContext) {
         messenger = {
-            modulesFactories += { createTestMatrixMessengerModule(debugName) }
+            modulesFactories += createTestDefaultTrixnityMessengerModules().map { { it } }
         }
         modulesFactories += {
             module {

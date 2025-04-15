@@ -9,12 +9,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.test.TestScope
 import kotlinx.datetime.Clock
@@ -129,29 +124,5 @@ fun createTestMatrixMessengerSettingsHolder(): MatrixMessengerSettingsHolder {
             if (hasNoEntry) delegate.update<MatrixMessengerAccountSettingsBase>(userId) { it }
             emitAll(delegate[userId])
         }
-    }
-}
-
-fun createTestMatrixMessengerModule(debugName: String = "client") = module {
-    single<DebugName> {
-        DebugName { debugName }
-    }
-    single<CreateRepositoriesModule> {
-        object : CreateRepositoriesModule {
-            val modules: MutableMap<UserId, Module> = HashMap()
-            override suspend fun generateDatabaseKey(): ByteArray? = null
-
-            override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module {
-                val module = createInMemoryRepositoriesModule()
-                modules += (userId to module)
-                return module
-            }
-
-            override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module =
-                modules[userId] ?: throw IllegalStateException("Repositories module for $userId not instantiated")
-        }
-    }
-    single<FileSystem> {
-        FakeFileSystem()
     }
 }
