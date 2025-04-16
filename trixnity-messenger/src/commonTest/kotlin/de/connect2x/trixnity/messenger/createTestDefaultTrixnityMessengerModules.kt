@@ -1,5 +1,8 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettings
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolderImpl
 import de.connect2x.trixnity.messenger.settings.SettingsStorage
 import de.connect2x.trixnity.messenger.util.GraphemeIterableProvider
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
@@ -126,3 +129,14 @@ fun createTestMatrixMessengerSettingsHolder(): MatrixMessengerSettingsHolder {
         }
     }
 }
+
+fun createTestMatrixMultiMessengerSettingsHolder(): MatrixMultiMessengerSettingsHolder {
+    val settingsHolder: MutableStateFlow<MatrixMultiMessengerSettings?> =
+        MutableStateFlow(MatrixMultiMessengerSettings(mapOf()))
+    val dummyStorage = object : SettingsStorage {
+        override suspend fun read(): String? = null
+        override suspend fun write(settings: String) {}
+    }
+    return MatrixMultiMessengerSettingsHolderImpl(dummyStorage, settingsHolder)
+}
+

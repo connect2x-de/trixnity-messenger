@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.createTestMatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldNotBe
@@ -10,8 +11,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
-import okio.FileSystem
-import okio.fakefilesystem.FakeFileSystem
 import org.koin.dsl.module
 import kotlin.coroutines.ContinuationInterceptor
 import kotlin.coroutines.CoroutineContext
@@ -50,14 +49,12 @@ suspend fun TestScope.createTestMatrixMultiMessenger(
     coroutineContext: CoroutineContext = Dispatchers.Default
 ) =
     MatrixMultiMessengerImpl(coroutineContext) {
-        messenger = {
+        messengerConfiguration {
             modulesFactories += createTestDefaultTrixnityMessengerModules().map { { it } }
         }
         modulesFactories += {
             module {
-                single<FileSystem> {
-                    FakeFileSystem()
-                }
+                single<MatrixMultiMessengerSettingsHolder> { createTestMatrixMultiMessengerSettingsHolder() }
             }
         }
     }
