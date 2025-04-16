@@ -101,7 +101,7 @@ interface TimelineElementHolderViewModelFactory {
         onMessageReport: (RoomId, EventId) -> Unit,
         onOpenMention: OpenMentionCallback,
         onOpenMetadata: (eventId: EventId) -> Unit,
-        onScrollTo: ((key: String) -> Unit)?,
+        jumpTo: (roomId: RoomId, eventId: EventId) -> Unit,
         showOriginal: Boolean = false,
     ): TimelineElementHolderViewModel =
         TimelineElementHolderViewModelImpl(
@@ -124,7 +124,7 @@ interface TimelineElementHolderViewModelFactory {
             onMessageReport = onMessageReport,
             onOpenMention = onOpenMention,
             onOpenMetadata = onOpenMetadata,
-            onScrollTo = onScrollTo
+            jumpTo = jumpTo
         )
 
     companion object : TimelineElementHolderViewModelFactory
@@ -188,7 +188,7 @@ class TimelineElementHolderViewModelImpl(
     private val onMessageReport: (RoomId, EventId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
     private val onOpenMetadata: (eventId: EventId) -> Unit,
-    private val onScrollTo: ((key: String) -> Unit)?
+    private val jumpTo: (roomId: RoomId, eventId: EventId) -> Unit
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timelineEventFlow = timelineEventFlow.shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
     private val config = get<MatrixMessengerConfiguration>()
@@ -197,7 +197,6 @@ class TimelineElementHolderViewModelImpl(
     private val initials = get<Initials>()
     private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
     private val timelineElementHolderViewModelFactory = get<TimelineElementHolderViewModelFactory>()
-    override val canScrollTo: Boolean = onScrollTo != null
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -361,11 +360,11 @@ class TimelineElementHolderViewModelImpl(
             lifecycle.start()
 
             timelineElementHolderViewModelFactory.create(
-                viewModelContext = childContext("replied-element"),
-                key = "${repliedTimelineEvent.roomId}-${repliedTimelineEvent.eventId}",
+                viewModelContext = childContext("replied-element-${Uuid.random()}"),
+                key = "replied-element",
                 timelineEventFlow = repliedTimelineEventFlow,
                 roomId = repliedTimelineEvent.roomId,
-                eventId = repliedTimelineEvent.eventId,
+                eventId = repliedEventId,
                 sender = repliedTimelineEvent.sender,
                 formattedDate = formatDate(
                     Instant.fromEpochMilliseconds(repliedTimelineEvent.originTimestamp)
@@ -385,7 +384,7 @@ class TimelineElementHolderViewModelImpl(
                 onMessageReport = { _, _ -> },
                 onOpenMention = { _, _ -> },
                 onOpenMetadata = {},
-                onScrollTo = onScrollTo
+                jumpTo = jumpTo
             ).also {
                 repliedElementCache.value = RepliedTimelineElementViewModelWrapper(it, lifecycle)
             }
@@ -577,8 +576,8 @@ class TimelineElementHolderViewModelImpl(
         onOpenMetadata(this.eventId)
     }
 
-    override fun scrollToElement() {
-        onScrollTo?.invoke(key)
+    override fun jumpTo() {
+        jumpTo(roomId, eventId)
     }
 }
 
@@ -598,7 +597,6 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val formattedTime: String = "12:12"
     override val formattedDate: String = "21.11.2024"
     override val isByMe: Boolean = true
-    override val canScrollTo: Boolean = false
     override val sender: MutableStateFlow<UserInfoElement?> = MutableStateFlow(null)
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
     override val showBigGapBefore: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -629,7 +627,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
-    override fun scrollToElement() {}
+    override fun jumpTo() {}
 }
 
 class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -648,7 +646,6 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val formattedTime: String = "12:24"
     override val formattedDate: String = "21.11.2024"
     override val isByMe: Boolean = false
-    override val canScrollTo: Boolean = false
     override val sender: MutableStateFlow<UserInfoElement?> =
         MutableStateFlow(UserInfoElement(UserId("bob", "server"), "Bob", "B"))
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
@@ -679,5 +676,5 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
-    override fun scrollToElement() {}
+    override fun jumpTo() {}
 }

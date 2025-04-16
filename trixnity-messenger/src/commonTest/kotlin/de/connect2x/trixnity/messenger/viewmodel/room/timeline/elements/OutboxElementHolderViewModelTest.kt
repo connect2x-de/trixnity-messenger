@@ -328,7 +328,7 @@ class OutboxElementHolderViewModelTest {
             formattedDate = "01.01.2000",
             formattedTime = "07:24",
             onOpenMention = mock(),
-            onScrollTo = null
+            jumpTo = { _, _ -> }
         )
     }
 }

@@ -51,6 +51,7 @@ import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptEventContent
 import net.folivo.trixnity.core.model.events.m.ReceiptType
+import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
@@ -122,6 +123,7 @@ fun timeline(
     roomServiceMock: RoomService,
     roomId: RoomId,
     pageSize: Int = 20,
+    initCallback: TimelineMock.(startFrom: EventId) -> Unit = {},
     block: TimelineBuilder.() -> Unit,
 ): TimelineMock {
     val fullyReadMock = every {
@@ -133,7 +135,7 @@ fun timeline(
     val room = MutableStateFlow(Room(roomId))
     every { roomServiceMock.getById(roomId) } returns room
 
-    val timelineMock = TimelineMock(room, fullyReadEventIndex, roomServiceMock).apply { addEvents(block) }
+    val timelineMock = TimelineMock(room, fullyReadEventIndex, roomServiceMock, initCallback).apply { addEvents(block) }
     every { roomServiceMock.getLastTimelineEvent(roomId, any()) } returns
             timelineMock.eventsInStore.map { it.lastOrNull() }
     every { roomServiceMock.getLastTimelineEvents(roomId, any()) } returns
@@ -160,6 +162,7 @@ class TimelineMock(
     val room: MutableStateFlow<Room>,
     val fullyReadEventIndex: MutableStateFlow<Int?>,
     roomServiceMock: RoomService,
+    val initializationCallback: TimelineMock.(startFrom: EventId) -> Unit
 ) {
     private val timelineBuilder = TimelineBuilder(room, roomServiceMock)
     val eventsInStore: MutableStateFlow<List<StateFlow<TimelineEvent>>> = MutableStateFlow(listOf())
@@ -193,6 +196,7 @@ internal class MockedTimeline(
         configBefore: GetTimelineEventsConfig.() -> Unit,
         configAfter: GetTimelineEventsConfig.() -> Unit
     ): List<Flow<TimelineEvent>> {
+        timelineMock.initializationCallback.invoke(timelineMock, startFrom)
         val events = eventsInStore.value
         val startEvent = events.firstOrNull { it.value.eventId == startFrom }
             ?: throw IllegalArgumentException("startFrom=$startFrom could not be found in ${eventsInStore.value.map { it.value.eventId }}")
@@ -321,10 +325,10 @@ class TimelineBuilder(
     fun messageEvent(
         sender: UserId,
         sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
+        eventId: EventId = EventId("${idCounter++}"),
         transactionId: String? = null,
         block: MessageEventBuilder.() -> Unit
-    ): MessageEvent<*> =
-        messageEvent(sender, EventId("${idCounter++}"), roomId, sentAt, transactionId, block)
+    ): MessageEvent<*> = messageEvent(sender, eventId, roomId, sentAt, transactionId, block)
 
     fun stateEvent(
         sender: UserId,
@@ -364,6 +368,15 @@ class MessageEventBuilder {
     var content: MessageEventContent? = null
     fun text(message: String): RoomMessageEventContent.TextBased.Text {
         val result = RoomMessageEventContent.TextBased.Text(message)
+        content = result
+        return result
+    }
+
+    fun answerTo(message: String, eventId: EventId): RoomMessageEventContent.TextBased.Text {
+        val result = RoomMessageEventContent.TextBased.Text(
+            body = message,
+            relatesTo = RelatesTo.Reply(replyTo = RelatesTo.ReplyTo(eventId))
+        )
         content = result
         return result
     }

@@ -175,7 +175,6 @@ interface TimelineViewModel {
 
     fun errorDismiss()
     fun leaveRoom()
-    fun jumpToElement(key: String)
     fun jumpToEndOfTimeline()
 
     /**
@@ -637,7 +636,7 @@ class TimelineViewModelImpl(
             onMessageReport = ::onShowReportMessageModal,
             onOpenMention = onOpenMention,
             onOpenMetadata = onOpenMetadata,
-            onScrollTo = ::jumpToElement
+            jumpTo = ::jumpTo
         )
         return TimelineElementWrapper(
             key = key,
@@ -698,7 +697,7 @@ class TimelineViewModelImpl(
                         formattedDate = formattedDate,
                         formattedTime = formattedTime,
                         onOpenMention = onOpenMention,
-                        onScrollTo = ::jumpToElement
+                        jumpTo = ::jumpTo
                     ).also {
                         outboxElementCache[transactionId] = OutboxElementWrapper(
                             transactionId,
@@ -942,15 +941,22 @@ class TimelineViewModelImpl(
         scrollTo.emit(scrollToKey)
     }
 
-    override fun jumpToEndOfTimeline() {
+    private fun jumpTo(roomId: RoomId, eventId: EventId) {
         coroutineScope.launch {
-            jumpToEndOfTimelineSuspending()
+            if (timelineElements.value.none { it.eventId == eventId && it.roomId == roomId }) {
+                log.debug { "Element $roomId-$eventId is not loaded, re-initialize timeline" }
+                timelineStartFrom.emit(eventId)
+                timeline.state.first()
+            }
+
+            log.debug { "Jump to element $roomId-$eventId in timeline" }
+            scrollTo.emit(eventId.asKey(roomId))
         }
     }
 
-    override fun jumpToElement(key: String) {
+    override fun jumpToEndOfTimeline() {
         coroutineScope.launch {
-            scrollTo.emit(key)
+            jumpToEndOfTimelineSuspending()
         }
     }
 
@@ -1127,5 +1133,4 @@ class PreviewTimelineViewModel : TimelineViewModel {
     override suspend fun dropBefore(key: String) {}
     override suspend fun dropAfter(key: String) {}
     override suspend fun markAsRead(key: String) {}
-    override fun jumpToElement(key: String) {}
 }

@@ -25,14 +25,10 @@ fun RepliedElement(holder: BaseTimelineElementHolderViewModel) {
         Box(
             Modifier
                 .padding(start = 10.dp, end = 10.dp, top = 10.dp)
-                .let {
-                    if (repliedElementHolder.canScrollTo) {
-                        it.clickable(interactionSource = null, indication = null) {
-                            log.debug { "Scrolling to element '${repliedElementHolder.key}' in timeline" }
-                            repliedElementHolder.scrollToElement()
-                        }
-                    } else it
+                .clickable(interactionSource = null, indication = null) {
+                    repliedElementHolder.jumpTo()
                 }
+
         ) {
             timelineElementViewSelector.createReplyInTimeline(repliedElementHolder, element)
         }

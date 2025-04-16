@@ -203,7 +203,6 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override val formattedTime: String = "12:12"
     override val formattedDate: String = "21.11.2024"
     override val isByMe: Boolean = true
-    override val canScrollTo: Boolean = false
     override val sender: MutableStateFlow<UserInfoElement?> =
         MutableStateFlow(UserInfoElement(UserId("alice", "server"), "Alice", "A"))
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -234,7 +233,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
-    override fun scrollToElement() {}
+    override fun jumpTo() {}
 }
 
 private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -253,7 +252,6 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override val formattedTime: String = "12:24"
     override val formattedDate: String = "21.11.2024"
     override val isByMe: Boolean = false
-    override val canScrollTo: Boolean = false
     override val sender: MutableStateFlow<UserInfoElement?> =
         MutableStateFlow(UserInfoElement(UserId("bob", "server"), "Bob", "B"))
     override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
@@ -284,5 +282,5 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
-    override fun scrollToElement() {}
+    override fun jumpTo() {}
 }

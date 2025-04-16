@@ -577,7 +577,7 @@ class TimelineElementHolderViewModelTest {
             onMessageReport = mock(),
             onOpenMention = mock(),
             onOpenMetadata = mock(),
-            onScrollTo = {}
+            jumpTo = { _, _ -> }
         )
     }
 }
