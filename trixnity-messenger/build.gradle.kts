@@ -46,7 +46,6 @@ kotlin {
                 }
             }
         }
-        nodejs()
         binaries.library()
         generateTypeScriptDefinitions()
     }

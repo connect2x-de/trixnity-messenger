@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
-import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
@@ -127,11 +127,13 @@ class RedactedTimelineElementViewModelTest {
                             roomId = roomId,
                             originTimestamp = 24L,
                         )
-                    })),
+                    })
+            ),
             previousEventId = null,
             nextEventId = null,
             gap = null,
-        ))
+        )
+    )
 
     private fun roomUserFlow(userId: UserId) = flowOf(
         RoomUser(

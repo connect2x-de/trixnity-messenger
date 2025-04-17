@@ -3,9 +3,9 @@ package de.connect2x.trixnity.messenger.secrets
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.SecretByteArraySettings
+import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.update
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
