@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Preview in accessibility settings
 - Copy recovery key not available on small screens
 - Wrong tooltip text of 'cancel edit' button
+- Open room settings when clicking on header in group room
 
 ### Security
 
