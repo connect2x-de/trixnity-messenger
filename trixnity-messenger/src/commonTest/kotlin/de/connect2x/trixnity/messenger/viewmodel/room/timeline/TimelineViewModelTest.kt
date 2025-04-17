@@ -270,7 +270,6 @@ class TimelineViewModelTest {
             }
         }
         val cut = timelineViewModel()
-
         cut.elements waitForSize 2  // 1 message + 1 outbox message
     }
 
@@ -798,14 +797,10 @@ class TimelineViewModelTest {
     @Test
     fun `jumpTo » should re-init timeline with event when event to be jumped to is not loaded`() = runTest {
         var count = 0
-        timeline(roomServiceMock, roomId, initCallback = {
+        timeline(roomServiceMock, roomId) { startFrom ->
             count += 1
-            if (it.full == "test0a") {
-                addEvents {
-                    +messageEvent(alice, EventId("test0a"), roomId) { text("Hello, world!") }
-                }
-            }
-        }) {
+            if (startFrom.full == "test0a")
+                +messageEvent(alice, EventId("test0a"), roomId) { text("Hello, world!") }
             +messageEvent(sender = bob, eventId = EventId("dummy")) { text("Hello, world!") }
             +messageEvent(sender = alice) { answerTo("Hello", EventId("test0a")) }
         }
@@ -814,13 +809,14 @@ class TimelineViewModelTest {
         everySuspend { roomServiceMock.getTimelineEvents(any(), any(), any()) } returns flowOf(flowOf())
         cut.elements.value[1].repliedElement.filterNotNull().first().jumpTo()
         delay(100.milliseconds)
-        count shouldBe 2
+        count shouldBe 3
     }
 
     @Test
     fun `jumpTo » should not re-init timeline with event when event to be jumped to is loaded`() = runTest {
         var count = 0
-        timeline(roomServiceMock, roomId, initCallback = { _ -> count += 1 }) {
+        timeline(roomServiceMock, roomId) {
+            count += 1
             +messageEvent(alice, EventId("test0a"), roomId) { text("Hello, world!") }
             +messageEvent(sender = bob, eventId = EventId("dummy")) { text("Hello, world!") }
             +messageEvent(sender = alice) { answerTo("Hello", EventId("test0a")) }
@@ -830,13 +826,14 @@ class TimelineViewModelTest {
         everySuspend { roomServiceMock.getTimelineEvents(any(), any(), any()) } returns flowOf(flowOf())
         cut.elements.value[2].repliedElement.filterNotNull().first().jumpTo()
         delay(100.milliseconds)
-        count shouldBe 1
+        count shouldBe 2
     }
 
     @Test
     fun `jumpTo » should scroll to the element being jumped to`() = runTest {
         var count = 0
-        timeline(roomServiceMock, roomId, initCallback = { _ -> count += 1 }) {
+        timeline(roomServiceMock, roomId) {
+            count += 1
             +messageEvent(alice, EventId("test0a"), roomId) { text("Hello, world!") }
             +messageEvent(sender = bob, eventId = EventId("dummy")) { text("Hello, world!") }
             +messageEvent(sender = alice) { answerTo("Hello", EventId("test0a")) }

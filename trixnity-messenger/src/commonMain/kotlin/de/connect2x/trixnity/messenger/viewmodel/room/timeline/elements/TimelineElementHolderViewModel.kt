@@ -360,7 +360,7 @@ class TimelineElementHolderViewModelImpl(
             lifecycle.start()
 
             timelineElementHolderViewModelFactory.create(
-                viewModelContext = childContext("replied-element-${Uuid.random()}"),
+                viewModelContext = childContext("replied-element"),
                 key = "replied-element",
                 timelineEventFlow = repliedTimelineEventFlow,
                 roomId = repliedTimelineEvent.roomId,
