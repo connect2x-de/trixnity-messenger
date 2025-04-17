@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.5.4
+
+### Added
+
 - Copy button for MXID in UserProfile
 - Theming for ProgressIndicators
 - Leave and forget upgraded rooms too
@@ -20,10 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Destroy lifecycle on profile change
 - Fix crash on startup because of mismatched Compose UI Test version
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Overflows in RoomHeader
@@ -32,8 +42,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Copy recovery key not available on small screens
 - Wrong tooltip text of 'cancel edit' button
 - Open room settings when clicking on header in group room
-
-### Security
 
 ## 3.5.3
 
