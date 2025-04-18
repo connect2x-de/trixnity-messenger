@@ -17,13 +17,14 @@ import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.core.component.get
 
 interface PotentialMembersViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        roomId: RoomId
+        roomId: RoomId,
     ): PotentialMembersViewModel {
         return PotentialMembersViewModelImpl(viewModelContext, roomId)
     }
@@ -32,6 +33,7 @@ interface PotentialMembersViewModelFactory {
 }
 
 interface PotentialMembersViewModel {
+    val selectedUsers: MutableStateFlow<Set<UserId>>
     val searchHandler: UserSearchHandler
     val offline: StateFlow<Boolean>
     val error: MutableStateFlow<String?>
@@ -42,22 +44,24 @@ open class PotentialMembersViewModelImpl(
     roomId: RoomId,
 ) : PotentialMembersViewModel, MatrixClientViewModelContext by viewModelContext {
     private val maxAvatarSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    override val selectedUsers: MutableStateFlow<Set<UserId>> = MutableStateFlow(setOf())
     override val searchHandler: UserSearchHandler =
         DefaultUserSearchHandler(
             coroutineScope,
             get<Search>(),
             matrixClient,
-            maxAvatarSize = maxAvatarSize
-        ) { userId ->
-            currentMembers.value.contains(userId)
-        }
+            maxAvatarSize = maxAvatarSize,
+            filterNot = { userId ->
+                selectedUsers.value.contains(userId) || currentMembers.value.contains(userId)
+            }
+        )
     override val offline: StateFlow<Boolean> = matrixClient.syncState.transform { emit(it == SyncState.ERROR) }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
     private val currentMembers =
         matrixClient.user.getAll(roomId).flatten()
-            .mapNotNull { it?.values?.filterNotNull().orEmpty() }
+            .mapNotNull { it.values.filterNotNull() }
             .map { roomUsers ->
                 roomUsers.filterNot { it.membership == Membership.LEAVE }.map { it.userId }
             }

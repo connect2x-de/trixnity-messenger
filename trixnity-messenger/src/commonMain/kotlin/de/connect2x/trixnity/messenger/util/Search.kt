@@ -38,7 +38,7 @@ interface Search {
         maxPreviewSize: Long,
     ): List<SearchUserElement>
 
-    interface SearchUserElement {
+    interface SearchUserElement : Comparable<SearchUserElement> {
         val displayName: String
         val initials: String
         val image: ByteArray?
@@ -67,6 +67,9 @@ interface Search {
         override fun hashCode(): Int {
             return userId.hashCode()
         }
+
+        override fun compareTo(other: SearchUserElement): Int =
+            this.displayName.compareTo(other.displayName)
     }
 }
 
@@ -84,7 +87,7 @@ class SearchImpl(
         maxAvatarSize: Long,
     ): List<SearchUserElement> = coroutineScope {
         val userId = UserId(searchTerm)
-        if (userId.isValid()) {
+        if (userId.isValid() && !filterNot(userId)) {
             val profile = matrixClient.api.user.getProfile(userId)
                 .onFailure { exc ->
                     log.error(exc) { "Cannot access user profile for $userId." }
@@ -116,7 +119,7 @@ class SearchImpl(
                     presence
                 )
             )
-        } else {
+        } else if (userId.isValid()) emptyList() else {
             // TODO this does not search for matrix IDs, see https://github.com/matrix-org/synapse/issues/7588
             matrixClient.api.user.searchUsers(searchTerm, i18n.currentLang.code, limit)
                 .fold( // TODO get correct language

@@ -37,12 +37,6 @@ class DefaultUserSearchHandler(
     private val maxAvatarSize: Long,
     private val filterNot: (UserId) -> Boolean = { false },
 ) : UserSearchHandler {
-    companion object {
-        // Pattern that matches MXIDs without case sensitivity
-        private val mxidPattern: Regex =
-            Regex("""${UserId.sigilCharacter}([a-zA-Z\d.\-_=/]+):(${MatrixRegex.domain.pattern})""")
-    }
-
     override val searchTerm = TextFieldViewModelImpl()
     override val initialUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val foundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
@@ -60,7 +54,7 @@ class DefaultUserSearchHandler(
             .debounce(debounceDuration)
             .filter { it.isNotBlank() }
             .map {
-                if (mxidPattern.matches(it)) it.lowercase()
+                if (MatrixRegex.userId.matches(it.lowercase())) it.lowercase()
                 else it
             }
             .scopedCollectLatest {

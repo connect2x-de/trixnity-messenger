@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.util.Search
+import de.connect2x.trixnity.messenger.util.plusSorted
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -13,6 +14,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.RoomId
+import kotlin.collections.minus
+import kotlin.collections.plus
 
 private val log = KotlinLogging.logger {}
 
@@ -161,6 +164,8 @@ class AddMembersViewModelImpl(
     override fun removeUserFromList(user: Search.SearchUserElement) {
         coroutineScope.launch {
             delay(50)
+
+            potentialMembersViewModel.selectedUsers.value += user.userId
             potentialMembersViewModel.searchHandler.foundUsers.value -= user
         }
     }
@@ -173,7 +178,16 @@ class AddMembersViewModelImpl(
     override fun addUserToList(user: Search.SearchUserElement) {
         coroutineScope.launch {
             delay(50)
-            potentialMembersViewModel.searchHandler.foundUsers.value += user
+
+            potentialMembersViewModel.selectedUsers.value -= user.userId
+
+            val searchTerm = potentialMembersViewModel.searchHandler.searchTerm.textValue
+            if (
+                user.displayName.contains(searchTerm) ||
+                user.userId.full.contains(searchTerm.lowercase())
+            ) {
+                potentialMembersViewModel.searchHandler.foundUsers.plusSorted(user)
+            }
         }
     }
 
