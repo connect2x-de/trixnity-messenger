@@ -61,6 +61,7 @@ import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.roomId
 import net.folivo.trixnity.client.store.sender
+import net.folivo.trixnity.client.store.unsigned
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction
@@ -103,6 +104,7 @@ interface TimelineElementHolderViewModelFactory {
         onMessageReport: (RoomId, EventId) -> Unit,
         onOpenMention: OpenMentionCallback,
         onOpenMetadata: (eventId: EventId) -> Unit,
+        jumpTo: (roomId: RoomId, eventId: EventId) -> Unit,
         showOriginal: Boolean = false,
     ): TimelineElementHolderViewModel =
         TimelineElementHolderViewModelImpl(
@@ -125,6 +127,7 @@ interface TimelineElementHolderViewModelFactory {
             onMessageReport = onMessageReport,
             onOpenMention = onOpenMention,
             onOpenMetadata = onOpenMetadata,
+            jumpTo = jumpTo
         )
 
     companion object : TimelineElementHolderViewModelFactory
@@ -189,6 +192,7 @@ class TimelineElementHolderViewModelImpl(
     private val onMessageReport: (RoomId, EventId) -> Unit,
     private val onOpenMention: OpenMentionCallback,
     private val onOpenMetadata: (eventId: EventId) -> Unit,
+    private val jumpTo: (roomId: RoomId, eventId: EventId) -> Unit
 ) : TimelineElementHolderViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timelineEventFlow = timelineEventFlow.shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
     private val timelineElementViewModelFactorySelector: TimelineElementViewModelFactorySelector = get()
@@ -358,12 +362,13 @@ class TimelineElementHolderViewModelImpl(
 
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
+
             timelineElementHolderViewModelFactory.create(
                 viewModelContext = childContext("replied-element"),
                 key = "replied-element",
                 timelineEventFlow = repliedTimelineEventFlow,
                 roomId = repliedTimelineEvent.roomId,
-                eventId = repliedTimelineEvent.eventId,
+                eventId = repliedEventId,
                 sender = repliedTimelineEvent.sender,
                 formattedDate = formatDate(
                     Instant.fromEpochMilliseconds(repliedTimelineEvent.originTimestamp)
@@ -383,6 +388,7 @@ class TimelineElementHolderViewModelImpl(
                 onMessageReport = { _, _ -> },
                 onOpenMention = { _, _ -> },
                 onOpenMetadata = {},
+                jumpTo = jumpTo
             ).also {
                 repliedElementCache.value = RepliedTimelineElementViewModelWrapper(it, lifecycle)
             }
@@ -578,6 +584,10 @@ class TimelineElementHolderViewModelImpl(
     override fun openTimelineElementMetadata() {
         onOpenMetadata(this.eventId)
     }
+
+    override fun jumpTo() {
+        jumpTo(roomId, eventId)
+    }
 }
 
 class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
@@ -627,6 +637,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
+    override fun jumpTo() {}
 }
 
 class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -676,4 +687,5 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
+    override fun jumpTo() {}
 }

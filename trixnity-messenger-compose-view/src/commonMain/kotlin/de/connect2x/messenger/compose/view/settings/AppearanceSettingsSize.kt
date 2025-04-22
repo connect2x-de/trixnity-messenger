@@ -234,6 +234,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
+    override fun jumpTo() {}
 }
 
 private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -283,4 +284,5 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
+    override fun jumpTo() {}
 }
