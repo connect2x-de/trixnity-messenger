@@ -943,14 +943,17 @@ class TimelineViewModelImpl(
 
     private fun jumpTo(roomId: RoomId, eventId: EventId) {
         coroutineScope.launch {
-            if (timelineElements.value.none { it.eventId == eventId && it.roomId == roomId }) {
+            var element = timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }
+            if (element == null) {
                 log.debug { "Element $roomId-$eventId is not loaded, re-initialize timeline" }
                 timelineStartFrom.emit(eventId)
                 timeline.state.first()
+                element = timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }
             }
 
-            log.debug { "Jump to element $roomId-$eventId in timeline" }
-            scrollTo.emit(eventId.asKey(roomId))
+            val elementKey = requireNotNull(element).key
+            log.debug { "Jump to element $elementKey in timeline" }
+            scrollTo.emit(elementKey)
         }
     }
 
