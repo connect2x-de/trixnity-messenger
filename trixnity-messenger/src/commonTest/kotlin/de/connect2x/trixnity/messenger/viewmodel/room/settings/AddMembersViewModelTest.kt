@@ -52,6 +52,7 @@ class AddMembersViewModelTest {
     private val userId1 = UserId("user1", "localhost")
     private val userId2 = UserId("user2", "localhost")
     private val userId3 = UserId("user3", "localhost")
+    private val userDisplayName3 = "Peter Hase"
 
     val matrixClientMock = mock<MatrixClient>()
 
@@ -89,7 +90,7 @@ class AddMembersViewModelTest {
     }
 
     @Test
-    fun `add user to group list when selected and remove from list when deselected`() = runTest {
+    fun `remove user - should add user to group list when selected and remove from list when deselected`() = runTest {
         everySuspend {
             usersApiClientMock.searchUsers(
                 eq("u"), any(), any(), eqNull()
@@ -104,7 +105,7 @@ class AddMembersViewModelTest {
             )
         )
         val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
-        val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
+        val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userDisplayName3, initials = "U")
 
         val cut = createNewAddMembersViewmodel()
         val subscriberJob = launch { cut.canAddMembers.collect {} }
@@ -133,7 +134,7 @@ class AddMembersViewModelTest {
     }
 
     @Test
-    fun `add Members with all selected users and go back to room settings`() = runTest {
+    fun `select user - should add Members with all selected users and go back to room settings`() = runTest {
         every { onBackMock.invoke() } returns Unit
 
         everySuspend {
@@ -160,7 +161,7 @@ class AddMembersViewModelTest {
             )
         )
         val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
-        val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
+        val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userDisplayName3, initials = "U")
 
         val cut = createNewAddMembersViewmodel()
         val searchHandler = cut.potentialMembersViewModel.searchHandler
@@ -180,7 +181,7 @@ class AddMembersViewModelTest {
     }
 
     @Test
-    fun `show error message when a user cannot be added`() = runTest {
+    fun `select user - should show error message when a user cannot be added`() = runTest {
         var onBackWasCalled = false
         every { onBackMock.invoke() } calls {
             onBackWasCalled = true
@@ -218,7 +219,7 @@ class AddMembersViewModelTest {
             )
         )
         val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
-        val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
+        val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userDisplayName3, initials = "U")
 
         val cut = createNewAddMembersViewmodel()
 
