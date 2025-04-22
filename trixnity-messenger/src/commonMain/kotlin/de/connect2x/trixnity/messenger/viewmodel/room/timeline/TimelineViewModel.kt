@@ -951,7 +951,12 @@ class TimelineViewModelImpl(
                 element = timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }
             }
 
-            val elementKey = requireNotNull(element).key
+            if (element == null) {
+                log.error { "Element could not be found even though timeline is initialized" }
+                return@launch
+            }
+
+            val elementKey = element.key
             log.debug { "Jump to element $elementKey in timeline" }
             scrollTo.emit(elementKey)
         }
