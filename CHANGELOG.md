@@ -9,14 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Scroll to replied element in timeline when element is present
-- Copy button for MXID in UserProfile
-- Theming for ProgressIndicators
-- Leave and forget upgraded rooms too
+- Scroll to replied element in timeline when clicking
 
 ### Changed
-
-- Clicking on files without preview opens a "Not supported" message instead of starting a download
 
 ### Deprecated
 
@@ -24,11 +19,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 3.5.4
+
+### Added
+
+- Copy button for MXID in UserProfile
+- Theming for ProgressIndicators
+- Leave and forget upgraded rooms too
+
+### Changed
+
+- Clicking on files without preview opens a "Not supported" message instead of starting a download
+- Close di on close
+- Destroy lifecycle on profile change
+- Fix crash on startup because of mismatched Compose UI Test version
+
+### Fixed
+
 - Overflows in RoomHeader
+- Reset read and send marker when editing messages while being offline
 - Preview in accessibility settings
 - Copy recovery key not available on small screens
-
-### Security
+- Wrong tooltip text of 'cancel edit' button
+- Open room settings when clicking on header in group room
 
 ## 3.5.3
 

@@ -1,19 +1,9 @@
-package de.connect2x.trixnity.messenger.viewmodel.util
+package de.connect2x.trixnity.messenger
 
-import de.connect2x.trixnity.messenger.CreateMediaStore
-import de.connect2x.trixnity.messenger.CreateRepositoriesModule
-import de.connect2x.trixnity.messenger.MatrixClients
-import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
-import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
-import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerSettings
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl
-import de.connect2x.trixnity.messenger.createTrixnityMessengerDefaultModuleFactories
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettings
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolderImpl
 import de.connect2x.trixnity.messenger.settings.SettingsStorage
-import de.connect2x.trixnity.messenger.testDispatcher
-import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.GraphemeIterableProvider
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.RootPath
@@ -22,12 +12,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.test.TestScope
 import kotlinx.datetime.Clock
@@ -144,3 +129,14 @@ fun createTestMatrixMessengerSettingsHolder(): MatrixMessengerSettingsHolder {
         }
     }
 }
+
+fun createTestMatrixMultiMessengerSettingsHolder(): MatrixMultiMessengerSettingsHolder {
+    val settingsHolder: MutableStateFlow<MatrixMultiMessengerSettings?> =
+        MutableStateFlow(MatrixMultiMessengerSettings(mapOf()))
+    val dummyStorage = object : SettingsStorage {
+        override suspend fun read(): String? = null
+        override suspend fun write(settings: String) {}
+    }
+    return MatrixMultiMessengerSettingsHolderImpl(dummyStorage, settingsHolder)
+}
+

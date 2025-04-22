@@ -98,6 +98,7 @@ class MatrixMessengerImpl private constructor(
         di.get<MatrixClients>().value.values.forEach { it.close() }
         if (di.getOrNull<MatrixMultiMessengerConfiguration>() == null)
             di.get<MatrixMessengerConfiguration>().httpClientEngine?.close()
+        di.close()
     }
 }
 
