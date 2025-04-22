@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.calls
@@ -24,6 +23,7 @@ import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -44,7 +44,7 @@ import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
 
 class AddMembersViewModelTest {
     private val roomId = RoomId("room", "localhost")
@@ -117,19 +117,18 @@ class AddMembersViewModelTest {
         cut.canAddMembers.value shouldBe false
         cut.onUserClick(user2)
 
-        eventually(3.seconds) {
-            cut.canAddMembers.value shouldBe true
-            cut.groupUsers.value shouldContainExactly listOf(user2)
-            searchHandler.foundUsers.value shouldNotContain user2
-        }
+        delay(300.milliseconds)
+        cut.canAddMembers.value shouldBe true
+        cut.groupUsers.value shouldContainExactly listOf(user2)
+        searchHandler.foundUsers.value shouldNotContain user2
 
         cut.removeUserFromGroup(user2)
 
-        eventually(3.seconds) {
-            cut.canAddMembers.value shouldBe false
-            cut.groupUsers.value shouldBe emptyList()
-            searchHandler.foundUsers.value shouldContain user2
-        }
+        delay(300.milliseconds)
+        cut.canAddMembers.value shouldBe false
+        cut.groupUsers.value shouldBe emptyList()
+        searchHandler.foundUsers.value shouldContain user2
+
         subscriberJob.cancel()
     }
 
@@ -174,10 +173,9 @@ class AddMembersViewModelTest {
 
         cut.addMembers()
 
-        eventually(3.seconds) {
-            verify { onBackMock.invoke() }
-            cut.error.value shouldBe null
-        }
+        delay(300.milliseconds)
+        verify { onBackMock.invoke() }
+        cut.error.value shouldBe null
     }
 
     @Test
