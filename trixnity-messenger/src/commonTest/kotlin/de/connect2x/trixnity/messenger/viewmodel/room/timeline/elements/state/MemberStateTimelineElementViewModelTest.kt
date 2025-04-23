@@ -39,6 +39,7 @@ class MemberStateTimelineElementViewModelTest {
 
     val roomId = RoomId("room", "server")
     val sender = UserId("user", "server")
+    val bob = UserId("bob", "localhost")
     val eventId = EventId("event")
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
@@ -234,6 +235,39 @@ class MemberStateTimelineElementViewModelTest {
     }
 
     @Test
+    fun `invited user » should show an appropriate indicator when the invitation was rejected`() = runTest {
+        val cut = memberStatusViewModel(
+            mockTimelineEvent(
+                membership = Membership.LEAVE,
+                previousMemberEventContent = memberEventContent(membership = Membership.INVITE),
+                stateKey = "@bob:localhost",
+                reason = "I don't want to play Stardew Valley with you",
+                senderId = bob
+            )
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe "Bob has rejected the invitation because \"I don't want to play Stardew Valley with you\""
+        }
+    }
+
+    @Test
+    fun `invited user » should show an appropriate indicator when the invitation was revoked`() = runTest {
+        val cut = memberStatusViewModel(
+            mockTimelineEvent(
+                membership = Membership.LEAVE,
+                previousMemberEventContent = memberEventContent(membership = Membership.INVITE),
+                stateKey = bob.full,
+                reason = "I don't want him to play Stardew Valley with us",
+            )
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe "Sender has revoked the invitation to Bob because \"I don't want him to play Stardew Valley with us\""
+        }
+    }
+
+    @Test
     fun `knocking user » should show an indicator for a user knocking at the room`() = runTest {
         val cut = memberStatusViewModel(
             mockTimelineEvent(
@@ -344,7 +378,8 @@ class MemberStateTimelineElementViewModelTest {
         isDirect: Boolean = false,
         stateKey: String = "",
         previousMemberEventContent: MemberEventContent? = null,
-        reason: String? = null
+        reason: String? = null,
+        senderId: UserId? = null
     ): TimelineEvent {
         val timelineEvent = TimelineEvent(
             event = ClientEvent.RoomEvent.StateEvent(
@@ -356,7 +391,7 @@ class MemberStateTimelineElementViewModelTest {
                     reason = reason,
                 ),
                 id = eventId,
-                sender = sender,
+                sender = senderId ?: sender,
                 roomId = roomId,
                 originTimestamp = 0L,
                 unsigned = UnsignedRoomEventData.UnsignedStateEventData(
