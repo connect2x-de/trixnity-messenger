@@ -5,29 +5,38 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModel
@@ -74,6 +83,8 @@ fun PrivacySettingsSingleAccount(privacySettingViewModel: PrivacySettingsSingleA
     val presenceIsPublic = privacySettingViewModel.presenceIsPublic.collectAsState().value
     val readMarkerIsPublic = privacySettingViewModel.readMarkerIsPublic.collectAsState().value
     val typingIsPublic = privacySettingViewModel.typingIsPublic.collectAsState().value
+    val deactivateAccountLoading by privacySettingViewModel.deactiveAccountLoading.collectAsState()
+    val deactivateAccountError by privacySettingViewModel.deactiveAccountError.collectAsState()
     val i18n = DI.get<I18nView>()
 
     SettingsAccountCard(privacySettingViewModel.account) {
@@ -96,6 +107,24 @@ fun PrivacySettingsSingleAccount(privacySettingViewModel: PrivacySettingsSingleA
             explanation = i18n.privacyTypingIsPublicExplanation(),
             value = typingIsPublic
         ) { privacySettingViewModel.toggleTypingIsPublic() }
+
+        ThemedButton(
+            style = MaterialTheme.components.destructiveButton,
+            onClick = { privacySettingViewModel.deactiveAccount(erase = true) },
+            enabled = !deactivateAccountLoading,
+            modifier = Modifier.buttonPointerModifier()
+        ) {
+            if (deactivateAccountLoading) {
+                ThemedProgressIndicator(
+                    style = MaterialTheme.components.circularProgressIndicator.copy(
+                        size = MaterialTheme.components.destructiveButton.iconSize,
+                    )
+                )
+                Spacer(Modifier.size(MaterialTheme.components.destructiveButton.iconSpacing))
+            }
+            Text(i18n.deactivateAccount())
+        }
+        deactivateAccountError?.let { ErrorView(it) }
 
         val blockedCount = privacySettingViewModel.blockedContactsCount.collectAsState().value
         ElevatedCard(Modifier
