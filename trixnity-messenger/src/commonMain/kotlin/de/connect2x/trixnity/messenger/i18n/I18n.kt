@@ -187,6 +187,16 @@ open class I18n(
         DE - "$username möchte $groupOrChat beitreten${if (reason == null) "" else ", da \"$reason\""}. Du kannst die Anfrage in den Raumeinstellungen verwalten"
     }
 
+    open fun eventChangeRejected(invitee: String, reason: String? = null) = translate {
+        EN - "$invitee has rejected the invitation${if (reason == null) "" else " because \"$reason\""}"
+        DE - "$invitee hat die Einladung abgelehnt${if (reason == null) "" else ", da \"$reason\""}"
+    }
+
+    open fun eventChangeRevoked(invitee: String, inviter: String, reason: String? = null) = translate {
+        EN - "$inviter has revoked the invitation to $invitee${if (reason == null) "" else " because \"$reason\""}"
+        DE - "$inviter hat die Einladung an $invitee zurückgezogen${if (reason == null) "" else ", da \"$reason\""}"
+    }
+
     open fun eventMessageRedacted(username: String) = translate {
         EN - "message has been deleted by $username"
         DE - "Nachricht wurde von $username gelöscht"

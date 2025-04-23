@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Show correct indicator message when an invitation is rejected or revoked
+
 ### Security
 
 ## 3.5.4
