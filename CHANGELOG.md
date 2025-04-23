@@ -9,9 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Scroll to replied element in timeline when clicking
-- Add "deactivate account" functionality
-
 ### Changed
 
 ### Deprecated
@@ -20,10 +17,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Show correct indicator message when an invitation is rejected or revoked
-- Don't show user presence for direct rooms when other user left
+- Don't show user presence in direct chat when user left room
 
 ### Security
+
+## 3.5.5
+
+### Added
+
+- Scroll to replied element in timeline when clicking
+- Add "deactivate account" functionality
+
+### Fixed
+
+- Show correct indicator message when an invitation is rejected or revoked
 
 ## 3.5.4
 
