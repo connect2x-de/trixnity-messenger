@@ -2812,11 +2812,6 @@ open class I18nView(
         EN - "Why do you wish to join? (Optional)"
         DE - "Warum möchtest du beitreten? (Optional)"
     }
-
-    open fun deactivateAccount() = translate {
-        EN - "Deactivate Account"
-        DE - "Account deaktivieren"
-    }
 }
 
 fun i18nViewModule() = module {
