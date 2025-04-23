@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Show correct indicator message when an invitation is rejected or revoked
+- Don't show user presence for direct rooms when other user left
 
 ### Security
 

@@ -1,16 +1,21 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
+import net.folivo.trixnity.core.model.events.m.room.Membership
 
 interface DirectRoom {
     fun getUsers(matrixClient: MatrixClient, directRoom: RoomId): Flow<List<UserId>>
+    fun getUsersWithMembership(matrixClient: MatrixClient, directRoom: RoomId): Flow<Map<UserId, Membership?>>
 }
 
 class DirectRoomImpl : DirectRoom {
@@ -21,7 +26,16 @@ class DirectRoomImpl : DirectRoom {
                 directMappings.entries.filter { (_, rooms) ->
                     rooms?.contains(directRoom) ?: false
                 }.map { it.key }
-            }?: emptyList()
+            } ?: emptyList()
         }
     }
+
+    override fun getUsersWithMembership(
+        matrixClient: MatrixClient,
+        directRoom: RoomId
+    ): Flow<Map<UserId, Membership?>> =
+        combine(getUsers(matrixClient, directRoom), matrixClient.user.getAll(directRoom)) { userIds, users ->
+            userIds.associateWith { users[it]?.first()?.membership }
+        }
+
 }
