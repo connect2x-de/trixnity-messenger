@@ -10,6 +10,7 @@ import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -65,6 +66,7 @@ open class PrivacySettingsSingleAccountViewModelImpl(
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val userBlocking = get<UserBlocking>()
     private val authorizeUia = get<AuthorizeUia>()
+    private val deactivateAccountScope = get<CoroutineScope>()
 
     final override val account = userId
 
@@ -117,8 +119,7 @@ open class PrivacySettingsSingleAccountViewModelImpl(
     override fun deactiveAccount(erase: Boolean) {
         log.info { "trying to deactivate account" }
         if (deactiveAccountLoading.compareAndSet(expect = false, update = true)) {
-            // Must be GlobalScope as our coroutineScope will be cancelled when deactivateAccount succeeds
-            GlobalScope.launch {
+            deactivateAccountScope.launch {
                 val result = authorizeUia(
                     i18n.deactivateAccountConfirmationMessage(matrixClient.userId.full)
                 ) {
