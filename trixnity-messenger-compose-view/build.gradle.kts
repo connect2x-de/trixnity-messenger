@@ -1,6 +1,8 @@
 import de.connect2x.conventions.registerCoverageTask
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -30,7 +32,14 @@ kotlin {
         }
     }
     js("web") {
+        compilerOptions {
+            sourceMap.set(true)
+            sourceMapEmbedSources.set(JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS)
+        }
         browser {
+            commonWebpackConfig {
+                showProgress = true
+            }
             // Run test in firefox for ci as trixnity/kmp-dockerfiles/base has only firefox
             testRuns.create("firefox").executionTask.configure {
                 useKarma {
@@ -39,6 +48,7 @@ kotlin {
             }
         }
         binaries.library()
+        generateTypeScriptDefinitions()
     }
 
     sourceSets {
