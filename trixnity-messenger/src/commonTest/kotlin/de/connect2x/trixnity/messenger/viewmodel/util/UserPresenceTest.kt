@@ -3,9 +3,9 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectIndexed
@@ -24,6 +24,7 @@ import net.folivo.trixnity.core.model.events.m.PresenceEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class UserPresenceTest {
@@ -32,14 +33,17 @@ class UserPresenceTest {
     private val bob = UserId("bob", "localhost")
 
     val matrixClientMock = mock<MatrixClient>()
-
     val userServiceMock = mock<UserService>()
-
     val matrixClientServerApiClient = mock<MatrixClientServerApiClient>()
-
     val usersApiClientMock = mock<UserApiClient>()
-
     val directRoomMock = mock<DirectRoom>()
+
+    val members: MutableStateFlow<Map<UserId, MutableStateFlow<Membership?>>> = MutableStateFlow(
+        mapOf(
+            alice to MutableStateFlow(Membership.JOIN),
+            bob to MutableStateFlow(Membership.JOIN)
+        )
+    )
 
     init {
         every { matrixClientMock.di } returns koinApplication {
@@ -49,7 +53,9 @@ class UserPresenceTest {
                 })
         }.koin
         every { matrixClientMock.api } returns matrixClientServerApiClient
+        every { matrixClientMock.userId } returns bob
         every { matrixClientServerApiClient.user } returns usersApiClientMock
+        every { directRoomMock.getUsersWithMembership(matrixClientMock, room) } returns members
     }
 
     @Test
@@ -61,13 +67,11 @@ class UserPresenceTest {
             )
         )
         every { userServiceMock.userPresence } returns userPresenceFlow
-        every { directRoomMock.getUsersWithMembership(eq(matrixClientMock), eq(room)) } returns MutableStateFlow(
-            emptyMap()
-        )
 
+        members.value = emptyMap()
         val cut = userPresence()
         val result = cut.presentEventContentFlow(matrixClientMock, room).stateIn(backgroundScope)
-        delay(100)
+        delay(300)
         result.value shouldBe null
     }
 
@@ -80,9 +84,6 @@ class UserPresenceTest {
             )
         )
         every { userServiceMock.userPresence } returns userPresenceFlow
-        every { directRoomMock.getUsersWithMembership(eq(matrixClientMock), eq(room)) } returns MutableStateFlow(
-            mapOf(alice to Membership.JOIN)
-        )
 
         val cut = userPresence()
         val result = cut.presentEventContentFlow(matrixClientMock, room).stateIn(backgroundScope)
@@ -94,9 +95,6 @@ class UserPresenceTest {
     fun `return 'offline' initially when no presence status found`() = runTest {
         val userPresenceFlow = MutableStateFlow(mapOf<UserId, PresenceEventContent>())
         every { userServiceMock.userPresence } returns userPresenceFlow
-        every { directRoomMock.getUsersWithMembership(eq(matrixClientMock), eq(room)) } returns MutableStateFlow(
-            mapOf(alice to Membership.JOIN)
-        )
         everySuspend { usersApiClientMock.getPresence(alice) } returns Result.failure(RuntimeException("Oh no!"))
 
         val cut = userPresence()
@@ -111,9 +109,6 @@ class UserPresenceTest {
         runTest {
             val userPresenceFlow = MutableStateFlow(mapOf<UserId, PresenceEventContent>())
             every { userServiceMock.userPresence } returns userPresenceFlow
-            every { directRoomMock.getUsersWithMembership(eq(matrixClientMock), eq(room)) } returns MutableStateFlow(
-                mapOf(alice to Membership.JOIN)
-            )
             everySuspend { usersApiClientMock.getPresence(alice) } returns Result.success(PresenceEventContent(presence = Presence.ONLINE))
 
             val cut = userPresence()
@@ -127,17 +122,18 @@ class UserPresenceTest {
         }
 
     @Test
-    fun `should be null presence when user has left the room`() = runTest {
+    fun `should be null presence when user remains in room alone`() = runTest {
         val userPresenceFlow = MutableStateFlow(mapOf<UserId, PresenceEventContent>())
         every { userServiceMock.userPresence } returns userPresenceFlow
         everySuspend { usersApiClientMock.getPresence(alice) } returns Result.success(PresenceEventContent(presence = Presence.ONLINE))
-        every { directRoomMock.getUsersWithMembership(eq(matrixClientMock), eq(room)) } returns MutableStateFlow(
-            emptyMap()
-        )
-
+        
         val cut = userPresence()
+        cut.presentEventContentFlow(matrixClientMock, room).first() shouldNotBe null
+
+        requireNotNull(members.value[alice]).value = Membership.LEAVE
         cut.presentEventContentFlow(matrixClientMock, room).first() shouldBe null
     }
 
     private fun userPresence() = UserPresenceImpl(directRoomMock)
+
 }
