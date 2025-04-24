@@ -36,6 +36,7 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import io.ktor.http.ContentType
 import net.folivo.trixnity.client.media.PlatformMedia
 import kotlin.reflect.KClass
 
@@ -44,9 +45,9 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.File> =
         RoomMessageTimelineElementViewModel.FileBased.File::class
 
-    override val supportedMimeTypes: List<String> = listOf(
-        "application/pdf",
-    )
+    override fun supportsMimeType(mimeType: ContentType): Boolean {
+        return ContentType.Application.Pdf.match(mimeType)
+    }
 
     @Composable
     override fun create(

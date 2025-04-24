@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Copy button for MXID in UserProfile
-- Theming for ProgressIndicators
 - PDF readers for Desktop, Android and Web
 
 ### Changed
@@ -21,9 +19,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Overflows in RoomHeader
+- Wait for database being closed before trying to delete user folder
+- Update selected account when deleting account
+- Improved web build performance
 
 ### Security
+
+## 3.5.5
+
+### Added
+
+- Scroll to replied element in timeline when clicking
+- Add "deactivate account" functionality
+
+### Fixed
+
+- Show correct indicator message when an invitation is rejected or revoked
+
+## 3.5.4
+
+### Added
+
+- Copy button for MXID in UserProfile
+- Theming for ProgressIndicators
+- Leave and forget upgraded rooms too
+
+### Changed
+
+- Clicking on files without preview opens a "Not supported" message instead of starting a download
+- Close di on close
+- Destroy lifecycle on profile change
+- Fix crash on startup because of mismatched Compose UI Test version
+
+### Fixed
+
+- Overflows in RoomHeader
+- Reset read and send marker when editing messages while being offline
+- Preview in accessibility settings
+- Copy recovery key not available on small screens
+- Wrong tooltip text of 'cancel edit' button
+- Open room settings when clicking on header in group room
 
 ## 3.5.3
 

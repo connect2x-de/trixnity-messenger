@@ -144,6 +144,7 @@ class TimelineElementMetadataViewModelImpl(
                     onMessageReport = { _, _ -> },
                     onOpenMention = { _, _ -> },
                     onOpenMetadata = {},
+                    jumpTo = { _, _ -> }
                 )
             )
         }.stateIn(coroutineScope, Lazily, null) // only calculate once!
@@ -198,6 +199,7 @@ class TimelineElementMetadataViewModelImpl(
                         onMessageReport = { _, _ -> },
                         onOpenMention = { _, _ -> },
                         onOpenMetadata = {},
+                        jumpTo = { _, _ -> }
                     ).also { viewModel ->
                         elementHistoryCache.update {
                             it + (historyEventId to TimelineElementHolderViewModelWrapper(viewModel, lifecycle))

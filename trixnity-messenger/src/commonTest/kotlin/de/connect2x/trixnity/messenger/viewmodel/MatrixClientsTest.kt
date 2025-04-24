@@ -9,11 +9,11 @@ import de.connect2x.trixnity.messenger.MatrixClientsImpl
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
 import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -28,9 +28,12 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -40,7 +43,10 @@ import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType.User
 import net.folivo.trixnity.clientserverapi.model.authentication.Login
 import net.folivo.trixnity.core.model.UserId
+import org.koin.dsl.koinApplication
+import org.koin.dsl.module
 import kotlin.coroutines.ContinuationInterceptor
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.Test
 
 
@@ -87,6 +93,15 @@ class MatrixClientsTest {
                 }
             }
         }
+
+        val state = koinApplication {
+            modules(module {
+                single<CoroutineScope> {
+                    CoroutineScope(EmptyCoroutineContext).also { it.coroutineContext.job.cancel() }
+                }
+            })
+        }.koin
+        every { matrixClientMock1.di } returns state
 
         everySuspend { matrixClientFactory.initFromStore(any()) } calls {
             val username = checkNotNull((it.args[0] as? UserId)).localpart

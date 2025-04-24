@@ -6,6 +6,7 @@ import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.continually
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.firstWithClue
@@ -18,7 +19,6 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.TextBasedRoomMessageTimelineElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -26,11 +26,14 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
+import dev.mokkery.verify
+import dev.mokkery.verify.VerifyMode
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -57,8 +60,10 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -265,7 +270,6 @@ class TimelineViewModelTest {
             }
         }
         val cut = timelineViewModel()
-
         cut.elements waitForSize 2  // 1 message + 1 outbox message
     }
 
@@ -788,6 +792,59 @@ class TimelineViewModelTest {
         eventually(3.seconds) {
             cut.unreadCount.first() shouldBe "99+"
         }
+    }
+
+    @Test
+    fun `jumpTo » should re-init timeline with event when event to be jumped to is not loaded`() = runTest {
+        var count = 0
+        timeline(roomServiceMock, roomId) { startFrom ->
+            count += 1
+            if (startFrom.full == "test0a")
+                +messageEvent(alice, EventId("test0a"), roomId) { text("Hello, world!") }
+            +messageEvent(sender = bob, eventId = EventId("dummy")) { text("Hello, world!") }
+            +messageEvent(sender = alice) { answerTo("Hello", EventId("test0a")) }
+        }
+        val cut = timelineViewModel()
+        cut.elements.waitForSize(2)
+        everySuspend { roomServiceMock.getTimelineEvents(any(), any(), any()) } returns flowOf(flowOf())
+        cut.elements.value[1].repliedElement.filterNotNull().first().jumpTo()
+        delay(100.milliseconds)
+        count shouldBe 3
+    }
+
+    @Test
+    fun `jumpTo » should not re-init timeline with event when event to be jumped to is loaded`() = runTest {
+        var count = 0
+        timeline(roomServiceMock, roomId) {
+            count += 1
+            +messageEvent(alice, EventId("test0a"), roomId) { text("Hello, world!") }
+            +messageEvent(sender = bob, eventId = EventId("dummy")) { text("Hello, world!") }
+            +messageEvent(sender = alice) { answerTo("Hello", EventId("test0a")) }
+        }
+        val cut = timelineViewModel()
+        cut.elements.waitForSize(3)
+        everySuspend { roomServiceMock.getTimelineEvents(any(), any(), any()) } returns flowOf(flowOf())
+        cut.elements.value[2].repliedElement.filterNotNull().first().jumpTo()
+        delay(100.milliseconds)
+        count shouldBe 2
+    }
+
+    @Test
+    fun `jumpTo » should scroll to the element being jumped to`() = runTest {
+        var count = 0
+        timeline(roomServiceMock, roomId) {
+            count += 1
+            +messageEvent(alice, EventId("test0a"), roomId) { text("Hello, world!") }
+            +messageEvent(sender = bob, eventId = EventId("dummy")) { text("Hello, world!") }
+            +messageEvent(sender = alice) { answerTo("Hello", EventId("test0a")) }
+        }
+        val cut = timelineViewModel()
+        cut.elements.waitForSize(3)
+        everySuspend { roomServiceMock.getTimelineEvents(any(), any(), any()) } returns flowOf(flowOf())
+        val state = cut.scrollTo.stateIn(backgroundScope, SharingStarted.Eagerly, "")
+        cut.elements.value[0].jumpTo()
+        delay(100.milliseconds)
+        state.value shouldBe "$roomId-test0a"
     }
 
     @Test

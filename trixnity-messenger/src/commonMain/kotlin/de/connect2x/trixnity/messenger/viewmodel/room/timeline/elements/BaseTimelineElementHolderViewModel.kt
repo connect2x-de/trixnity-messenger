@@ -61,4 +61,9 @@ sealed interface BaseTimelineElementHolderViewModel {
      * which is preceding this element in the timeline.
      */
     val showBigGapBefore: StateFlow<Boolean?>
+
+    /**
+     * Scroll to this element in the timeline.
+     */
+    fun jumpTo()
 }

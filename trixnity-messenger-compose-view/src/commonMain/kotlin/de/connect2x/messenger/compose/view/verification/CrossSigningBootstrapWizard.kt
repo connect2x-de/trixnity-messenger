@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -63,6 +65,7 @@ const val RECOVERY_KEY_EXPLANATION = "RECOVERY_KEY_EXPLANATION"
 const val RECOVERY_KEY = "RECOVERY_KEY"
 const val FINISHED = "FINISHED"
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBootstrapViewModel) {
     val i18n = DI.get<I18nView>()
@@ -146,10 +149,10 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                         text = i18n.bootstrapRecoveryKeyOnlyOnce(),
                         fontWeight = FontWeight.Bold,
                     )
-                    Row(
+                    FlowRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalArrangement = Arrangement.Center
                     ) {
                         WizardImage(Res.drawable.recoverykey, i18n.bootstrapRecoveryKey(), 60.dp)
                         LargeSpacer()

@@ -74,9 +74,7 @@ fun MessageBubbleContent(
                         .padding(start = 10.dp, end = 10.dp, top = 5.dp)
                 ) {
                     val sender = holder.sender.collectAsState().value
-                    val isSenderLoading = sender == null
-
-                    if (isSenderLoading) {
+                    if (sender == null) {
                         // TODO placeholder instead
                         ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
                     } else {

@@ -6,6 +6,8 @@ import co.touchlab.skie.configuration.SealedInterop
 import co.touchlab.skie.configuration.SuspendInterop
 import de.connect2x.conventions.isCI
 import de.connect2x.conventions.registerCoverageTask
+import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackRule
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -39,14 +41,20 @@ kotlin {
         }
     }
     js {
+        compilerOptions {
+            sourceMap.set(true)
+            sourceMapEmbedSources.set(JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS)
+        }
         browser {
+            commonWebpackConfig {
+                showProgress = true
+            }
             testTask {
                 useKarma {
                     useFirefoxHeadless()
                 }
             }
         }
-        nodejs()
         binaries.library()
         generateTypeScriptDefinitions()
     }
