@@ -326,6 +326,30 @@ publish:linux:
       publish{KotlinMultiplatform,Jvm,Js,AndroidRelease,Desktop,Web}PublicationToGitlabRepository
       --stacktrace
 
+staging:web:
+  stage: publish
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  cache:
+    - *pull-cache-linux
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  needs: [ "build:linux" ]
+  artifacts:
+    name: web
+    when: always
+    paths:
+      - public
+    expire_in: 7d
+  script:
+    - ./gradlew
+      :trixnity-messenger-compose-app:webBrowserDistribution
+      --stacktrace
+    - mv trixnity-messenger-compose-app/build/dist/web/productionExecutable public
+  environment:
+    name: review/${CI_MERGE_REQUEST_IID}
+    url: https://connect2x.gitlab.io/-/trixnity-messenger/trixnity-messenger/-/jobs/${CI_JOB_ID}/artifacts/public/index.html
+
 kmmPublish:mac:
   stage: kmmPublish
   tags: [ "connect2x-mac" ]
