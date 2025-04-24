@@ -87,7 +87,7 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
             dependsOn(licenseTask)
             group = "build config"
             val generatedSrc =
-                layout.buildDirectory.dir("generatedSrc${targetName.capitalized()}${variant?.capitalized() ?: ""}/kotlin")
+                layout.buildDirectory.dir("generatedSrc/$targetName${variant?.capitalized() ?: ""}Main/kotlin")
             doLast {
                 val outputFile = generatedSrc.get()
                     .dir(appId.replace(".", "/"))
