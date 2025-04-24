@@ -9,6 +9,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.test.runTest
@@ -117,12 +118,26 @@ class UserPresenceTest {
 
             val cut = userPresence()
             cut.presentEventContentFlow(matrixClientMock, room).take(2).collectIndexed { index, value ->
-                    when (index) {
-                        0 -> value shouldBe PresenceEventContent(presence = Presence.OFFLINE)
-                        1 -> value shouldBe PresenceEventContent(presence = Presence.ONLINE)
-                    }
+                when (index) {
+                    0 -> value shouldBe PresenceEventContent(presence = Presence.OFFLINE)
+                    1 -> value shouldBe PresenceEventContent(presence = Presence.ONLINE)
                 }
+
+            }
         }
+
+    @Test
+    fun `should be null presence when user has left the room`() = runTest {
+        val userPresenceFlow = MutableStateFlow(mapOf<UserId, PresenceEventContent>())
+        every { userServiceMock.userPresence } returns userPresenceFlow
+        everySuspend { usersApiClientMock.getPresence(alice) } returns Result.success(PresenceEventContent(presence = Presence.ONLINE))
+        every { directRoomMock.getUsersWithMembership(eq(matrixClientMock), eq(room)) } returns MutableStateFlow(
+            emptyMap()
+        )
+
+        val cut = userPresence()
+        cut.presentEventContentFlow(matrixClientMock, room).first() shouldBe null
+    }
 
     private fun userPresence() = UserPresenceImpl(directRoomMock)
 }
