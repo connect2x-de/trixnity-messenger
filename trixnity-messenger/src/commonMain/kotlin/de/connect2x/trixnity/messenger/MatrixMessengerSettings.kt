@@ -154,7 +154,14 @@ class MatrixMessengerSettingsHolderImpl(
     }
 
     override suspend fun delete(userId: UserId) = update<MatrixMessengerSettingsBase> {
-        it.copy(accounts = it.accounts - userId)
+        val accounts = it.accounts - userId
+        val selectedAccount =
+            if (it.selectedAccount == userId) accounts.keys.firstOrNull()
+            else it.selectedAccount
+        it.copy(
+            accounts = accounts,
+            selectedAccount = selectedAccount,
+        )
     }
 }
 
