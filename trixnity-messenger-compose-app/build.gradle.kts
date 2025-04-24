@@ -1,5 +1,5 @@
-import com.mikepenz.aboutlibraries.plugin.AboutLibrariesTask
 import de.connect2x.conventions.isCI
+import de.connect2x.conventions.registerLicensesTask
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 
@@ -20,30 +20,18 @@ val appId = libs.versions.appId.get()
 enum class BuildFlavor { PROD, DEV }
 
 val buildFlavor = BuildFlavor.valueOf(System.getenv("MESSENGER_BUILD_FLAVOR") ?: if (isCI) "PROD" else "DEV")
-val licensesDir = layout.buildDirectory.dir("generated").get().dir("aboutLibraries").asFile
 
-val licenses by tasks.registering(AboutLibrariesTask::class) {
-    dependsOn("collectDependencies")
-    resultDirectory = licensesDir
-}
-
-aboutLibraries {
-    configPath = "trixnity-messenger-compose-app/license-config"
-    // Disable this as it causes issues with a custom AboutLibrariesTask
-    registerAndroidTasks = false
-}
+val licenses = registerLicensesTask()
 
 val buildConfigGenerator by tasks.registering {
     dependsOn(licenses)
-    val licencesFile = licensesDir.resolve("aboutlibraries.json")
     val generatedSrc = layout.buildDirectory.dir("generated-src/kotlin/")
-    inputs.file(licencesFile)
     doLast {
         val outputFile = generatedSrc.get()
             .dir(appId.replace(".", "/"))
             .file("BuildConfig.kt")
         val quotes = "\"\"\""
-        val licencesString = licencesFile.readText()
+        val licencesString = licenses.get().outputFile.get().asFile.readText()
             .replace("$", "\${'$'}")
             .replace(quotes, "")
 
@@ -73,7 +61,7 @@ val buildConfigGenerator by tasks.registering {
 kotlin {
     androidTarget()
     jvm("desktop")
-    js("web", IR) {
+    js("web") {
         browser {
             runTask {
                 mainOutputFileName = "$appId.js"
