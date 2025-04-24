@@ -1,6 +1,6 @@
 [versions]
 jvmTarget = "17"
-c2xConventions = "41408944"
+c2xConventions = "41423579" # https://gitlab.com/connect2x/c2x-conventions/-/packages
 
 trixnityMessenger = "3.5.6"
 trixnityMessengerApp = "1.0.0"
