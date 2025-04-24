@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Wait for database being closed before trying to delete user folder
+- Update selected account when deleting account
 
 ### Security
 
