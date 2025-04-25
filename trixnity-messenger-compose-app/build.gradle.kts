@@ -2,6 +2,7 @@ import de.connect2x.conventions.isCI
 import de.connect2x.conventions.registerMultiplatformLicensesTasks
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 
 plugins {
@@ -26,7 +27,14 @@ kotlin {
     androidTarget()
     jvm("desktop")
     js("web") {
+        compilerOptions {
+            sourceMap.set(true)
+            sourceMapEmbedSources.set(JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS)
+        }
         browser {
+            commonWebpackConfig {
+                showProgress = true
+            }
             runTask {
                 mainOutputFileName = "$appId.js"
             }
