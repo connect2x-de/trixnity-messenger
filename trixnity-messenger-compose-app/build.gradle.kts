@@ -51,8 +51,6 @@ kotlin {
                 implementation(projects.trixnityMessengerComposeView)
                 implementation(compose.components.resources)
             }
-            // TODO: migrate this
-            //kotlin.srcDir(buildConfigGenerator.map { it.outputs })
         }
         val desktopMain by getting {
             dependencies {
