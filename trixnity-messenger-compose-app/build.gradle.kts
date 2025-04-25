@@ -79,15 +79,15 @@ kotlin {
     }
 }
 
-registerMultiplatformLicensesTasks { licenseTask, target, variant ->
+registerMultiplatformLicensesTasks { licenseTask, target, _ ->
     // TODO: move this into c2x-conventions eventually
     val targetName = target.targetName
     val buildConfigTask =
-        tasks.register("generateBuildConfig${targetName.capitalized()}${variant?.capitalized() ?: ""}") {
+        tasks.register("generateBuildConfig${targetName.capitalized()}") {
             dependsOn(licenseTask)
             group = "build config"
             val generatedSrc =
-                layout.buildDirectory.dir("generatedSrc/$targetName${variant?.capitalized() ?: ""}Main/kotlin")
+                layout.buildDirectory.dir("generatedSrc/${targetName}Main/kotlin")
             doLast {
                 val outputFile = generatedSrc.get()
                     .dir(appId.replace(".", "/"))
@@ -102,11 +102,11 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
             package $appId
 
             actual val BuildConfig: CommonBuildConfig = object : CommonBuildConfig {
-                override val version = "$version"
-                override val flavor = Flavor.valueOf("$buildFlavor")
-                override val appName = "$appName"
-                override val appId = "$appId"
-                override val licenses = $quotes$licencesString$quotes
+                override val version: String = "$version"
+                override val flavor: Flavor = Flavor.valueOf("$buildFlavor")
+                override val appName: String = "$appName"
+                override val appId: String = "$appId"
+                override val licenses: String = $quotes$licencesString$quotes
             }
         """.trimIndent()
                 outputFile.asFile.apply {
