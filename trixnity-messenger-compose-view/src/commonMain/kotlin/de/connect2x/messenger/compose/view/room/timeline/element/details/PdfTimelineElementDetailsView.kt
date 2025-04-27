@@ -58,7 +58,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         val media = element.downloadMediaResult.collectAsState().value
         val progress = element.downloadMediaProgress.collectAsState().value
         val (error, setError) = remember { mutableStateOf<String?>(null) }
-        var zoom = remember { mutableStateOf(1.0f) }
+        val zoom = remember { mutableStateOf(1.0f) }
         val offset = remember { mutableStateOf(Offset.Zero) }
         val state = rememberTransformableState { zoomChange, offsetChange, _ ->
             zoom.value = (zoom.value * zoomChange).coerceIn(0.8f, 4f)
@@ -110,7 +110,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                             }
                         }
 
-                        progress != null -> {
+                        progress != null && media == null -> {
                             DownloadProgress(progress, element::cancelDownloadMedia)
                         }
 
