@@ -36,7 +36,7 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import io.ktor.http.ContentType
+import io.ktor.http.*
 import net.folivo.trixnity.client.media.PlatformMedia
 import kotlin.reflect.KClass
 
@@ -66,14 +66,12 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         }
         val canZoom = remember { mutableStateOf(false) }
         val i18n = DI.current.get<I18nView>()
-
         LaunchedEffect(Unit) {
             element.downloadMedia()
         }
         LaunchedEffect(Unit) {
             element.downloadMediaError.collect { setError(it) }
         }
-
         FileBasedDetailsDialog(
             element,
             onSave,
@@ -94,6 +92,14 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                         .zoomModifier(focusRequester, canZoom, zoom, 0.8f, 4f),
                 ) {
                     when {
+                        progress != null && media == null -> {
+                            DownloadProgress(progress, element::cancelDownloadMedia)
+                        }
+
+                        media != null -> PDFReader(media, zoom.value, canZoom.value, offset, state) {
+                            setError(it ?: i18n.fileCouldNotBeLoaded())
+                        }
+
                         error != null -> {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -108,14 +114,6 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                                 )
                                 Text(error, color = MaterialTheme.colorScheme.onBackground)
                             }
-                        }
-
-                        progress != null && media == null -> {
-                            DownloadProgress(progress, element::cancelDownloadMedia)
-                        }
-
-                        media != null -> PDFReader(media, zoom.value, canZoom.value, offset, state) {
-                            setError(it ?: i18n.fileCouldNotBeLoaded())
                         }
 
                         else -> {

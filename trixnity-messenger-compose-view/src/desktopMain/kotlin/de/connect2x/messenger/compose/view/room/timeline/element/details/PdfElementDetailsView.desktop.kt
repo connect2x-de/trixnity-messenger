@@ -174,7 +174,7 @@ actual fun PDFReader(
             )
         } else CenteredElement {
             ThemedProgressIndicator(
-                style = MaterialTheme.components.smallCircularProgressIndicator
+                style = MaterialTheme.components.circularProgressIndicator
             )
         }
         HorizontalScrollbar(
