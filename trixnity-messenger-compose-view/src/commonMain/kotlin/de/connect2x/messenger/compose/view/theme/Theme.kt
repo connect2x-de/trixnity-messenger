@@ -78,16 +78,17 @@ class ThemeImpl : Theme {
             shapes = shapes,
             typography = typography
         ) {
-            CompositionLocalProvider(
-                MessengerColorsProvider provides messengerColors,
-                MessengerDpConstantsProvider provides messengerDpConstants,
-                MessengerIconsProvider provides messengerIcons,
-                LocalDensity provides density,
-                SystemDensity provides LocalDensity.current,
-                MaxHeaderHeight provides maxHeaderHeight,
-                LocalComponentStyles provides componentStyles.create(),
-            ) {
-                content()
+            MaterialThemeComponents(componentStyles) {
+                CompositionLocalProvider(
+                    MessengerColorsProvider provides messengerColors,
+                    MessengerDpConstantsProvider provides messengerDpConstants,
+                    MessengerIconsProvider provides messengerIcons,
+                    LocalDensity provides density,
+                    SystemDensity provides LocalDensity.current,
+                    MaxHeaderHeight provides maxHeaderHeight,
+                ) {
+                    content()
+                }
             }
         }
     }
