@@ -33,7 +33,8 @@ data class ComponentStyles(
     val header: SurfaceStyle,
     val timeline: SurfaceStyle,
     // dividers
-    val divider: DividerStyle?,
+    val horizontalDivider: DividerStyle?,
+    val verticalDivider: DividerStyle?,
     // room list
     val roomListSelection: SurfaceStyle,
     val roomListElement: SurfaceStyle,
