@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Styling: Define default colors for different surface levels
+- Styling: support local content color for most components
 
 ### Deprecated
 

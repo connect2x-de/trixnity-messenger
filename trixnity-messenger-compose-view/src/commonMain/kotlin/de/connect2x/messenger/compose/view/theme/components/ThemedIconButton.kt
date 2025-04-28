@@ -105,6 +105,25 @@ sealed interface IconButtonStyle {
     }
 }
 
+private fun IconToggleButtonColors.iconButtonColors() =  IconButtonColors(
+    containerColor = containerColor,
+    contentColor = contentColor,
+    disabledContainerColor = disabledContainerColor,
+    disabledContentColor = disabledContentColor,
+)
+
+@Composable
+private fun IconButtonColors.withContentColors() = copy(
+    contentColor = contentColor.withContentColor(),
+    disabledContentColor = disabledContentColor.withContentColor(enabled = false),
+)
+
+@Composable
+private fun IconToggleButtonColors.withContentColors() = copy(
+    contentColor = contentColor.withContentColor(),
+    disabledContentColor = disabledContentColor.withContentColor(enabled = false),
+)
+
 @Composable
 fun ThemedIconButton(
     onClick: () -> Unit,
@@ -120,27 +139,18 @@ fun ThemedIconButton(
                 onClick = onClick,
                 modifier = modifier.requiredSize(style.size).buttonPointerModifier(enabled),
                 enabled = enabled,
-                colors = IconButtonColors(
-                    containerColor = style.colors.containerColor,
-                    contentColor = style.colors.contentColor,
-                    disabledContainerColor = style.colors.disabledContainerColor,
-                    disabledContentColor = style.colors.disabledContentColor,
-                ),
+                colors = style.colors.iconButtonColors().withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )
+
         is IconButtonStyle.Filled ->
             FilledIconButton(
                 onClick = onClick,
                 modifier = modifier.requiredSize(style.size).buttonPointerModifier(enabled),
                 enabled = enabled,
                 shape = style.shape,
-                colors = IconButtonColors(
-                    containerColor = style.colors.containerColor,
-                    contentColor = style.colors.contentColor,
-                    disabledContainerColor = style.colors.disabledContainerColor,
-                    disabledContentColor = style.colors.disabledContentColor,
-                ),
+                colors = style.colors.iconButtonColors().withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )
@@ -150,12 +160,7 @@ fun ThemedIconButton(
                 modifier = modifier.requiredSize(style.size).buttonPointerModifier(enabled),
                 enabled = enabled,
                 shape = style.shape,
-                colors = IconButtonColors(
-                    containerColor = style.colors.containerColor,
-                    contentColor = style.colors.contentColor,
-                    disabledContainerColor = style.colors.disabledContainerColor,
-                    disabledContentColor = style.colors.disabledContentColor,
-                ),
+                colors = style.colors.iconButtonColors().withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )
@@ -165,12 +170,7 @@ fun ThemedIconButton(
                 modifier = modifier.requiredSize(style.size).buttonPointerModifier(enabled),
                 enabled = enabled,
                 shape = style.shape,
-                colors = IconButtonColors(
-                    containerColor = style.colors.containerColor,
-                    contentColor = style.colors.contentColor,
-                    disabledContainerColor = style.colors.disabledContainerColor,
-                    disabledContentColor = style.colors.disabledContentColor,
-                ),
+                colors = style.colors.iconButtonColors().withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )
@@ -194,7 +194,7 @@ fun ThemedIconToggleButton(
                 onCheckedChange = onCheckedChange,
                 modifier = modifier.size(style.size).buttonPointerModifier(enabled),
                 enabled = enabled,
-                colors = style.colors,
+                colors = style.colors.withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )
@@ -204,7 +204,7 @@ fun ThemedIconToggleButton(
                 onCheckedChange = onCheckedChange,
                 modifier = modifier.size(style.size).buttonPointerModifier(enabled),
                 enabled = enabled,
-                colors = style.colors,
+                colors = style.colors.withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )
@@ -214,7 +214,7 @@ fun ThemedIconToggleButton(
                 onCheckedChange = onCheckedChange,
                 modifier = modifier.size(style.size).buttonPointerModifier(enabled),
                 enabled = enabled,
-                colors = style.colors,
+                colors = style.colors.withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )
@@ -224,7 +224,7 @@ fun ThemedIconToggleButton(
                 onCheckedChange = onCheckedChange,
                 modifier = modifier.size(style.size).buttonPointerModifier(enabled),
                 enabled = enabled,
-                colors = style.colors,
+                colors = style.colors.withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )
