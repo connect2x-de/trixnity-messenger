@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.details
 
-import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.graphics.pdf.PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY
 import android.os.ParcelFileDescriptor
@@ -22,7 +21,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +40,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.createBitmap
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.VerticalScrollbar
@@ -142,11 +141,7 @@ actual fun PDFReader(
                             pdfReader.openPage(pageId).use { page ->
                                 val width = (page.width * dpi).toInt()
                                 val height = (page.height * dpi).toInt()
-                                val bitmap = Bitmap.createBitmap(
-                                    width,
-                                    height,
-                                    Bitmap.Config.ARGB_8888
-                                )
+                                val bitmap = createBitmap(width, height)
                                 log.debug {
                                     "render pdf page $pageId " +
                                             "to viewport (${width}x${height}) " +
@@ -187,16 +182,10 @@ actual fun PDFReader(
             )
 
         } //No Renderer yet -> Display a loading indicator
-        else if (pdfReader == null) CenteredElement {
+        else CenteredElement {
             ThemedProgressIndicator(
                 style = MaterialTheme.components.smallCircularProgressIndicator
             )
-        }
-        else if (pdfReader.pageCount > 0) {
-            CenteredElement {
-                Text(i18nView.fileOverlayPreviewNotSupported())
-            }
-
         }
     }
 }
