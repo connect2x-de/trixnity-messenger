@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Styling: Use stylable components for roomlist
 - Styling: Define default colors for different surface levels
 - Styling: support local content color for most components
+- Styling: Allow overriding MessengerColors
 
 ### Deprecated
 
