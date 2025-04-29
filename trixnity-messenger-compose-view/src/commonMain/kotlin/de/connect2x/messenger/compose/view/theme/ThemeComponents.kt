@@ -6,13 +6,16 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
+import de.connect2x.messenger.compose.view.theme.components.LocalContent
 import de.connect2x.messenger.compose.view.theme.components.DividerStyle
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.FloatingActionButtonStyle
@@ -21,6 +24,26 @@ import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorSty
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.messenger.compose.view.theme.components.TooltipStyle
+
+@Composable
+fun MaterialThemeComponents(
+    componentStyles: ThemeComponents,
+    content: @Composable () -> Unit
+) {
+    // We need this double nesting to set a specific LocalContent color
+    val contentColor = LocalContentColor.current
+    CompositionLocalProvider(
+        LocalContentColor provides Color.LocalContent
+    ) {
+        val components = componentStyles.create()
+        CompositionLocalProvider(
+            LocalComponentStyles provides components,
+            LocalContentColor provides contentColor,
+        ) {
+            content()
+        }
+    }
+}
 
 interface ThemeComponents {
     @Composable
@@ -72,7 +95,7 @@ class ThemeComponentsImpl : ThemeComponents {
         ),
         commonIconButton = IconButtonStyle.default(
             colors = IconButtonDefaults.iconToggleButtonColors(
-                contentColor = MaterialTheme.colorScheme.onSurface,
+                contentColor = Color.LocalContent,
             ),
         ),
         destructiveIconButton = IconButtonStyle.default(
