@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.theme.components
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -16,14 +17,14 @@ import de.connect2x.messenger.compose.view.theme.components
 data class DividerStyle(
     val thickness: Dp,
     val color: Color,
-    val padding: Dp,
+    val padding: PaddingValues,
 ) {
     companion object {
         @Composable
         fun default(
             thickness: Dp = DividerDefaults.Thickness,
             color: Color = DividerDefaults.color,
-            padding: Dp = Dp.Unspecified,
+            padding: PaddingValues = PaddingValues(),
         ) = DividerStyle(
             thickness = thickness,
             color = color,
@@ -35,11 +36,11 @@ data class DividerStyle(
 @Composable
 fun ThemedHorizontalDivider(
     modifier: Modifier = Modifier,
-    style: DividerStyle? = MaterialTheme.components.divider,
+    style: DividerStyle? = MaterialTheme.components.horizontalDivider,
 ) {
     if (style != null) {
         HorizontalDivider(
-            modifier = modifier.padding(vertical = style.padding),
+            modifier = modifier.padding(style.padding),
             thickness = DividerDefaults.Thickness,
             color = DividerDefaults.color,
         )
@@ -49,11 +50,11 @@ fun ThemedHorizontalDivider(
 @Composable
 fun ThemedVerticalDivider(
     modifier: Modifier = Modifier,
-    style: DividerStyle? = MaterialTheme.components.divider,
+    style: DividerStyle? = MaterialTheme.components.verticalDivider,
 ) {
     if (style != null) {
         VerticalDivider(
-            modifier = modifier.padding(horizontal = style.padding),
+            modifier = modifier.padding(style.padding),
             thickness = DividerDefaults.Thickness,
             color = DividerDefaults.color,
         )

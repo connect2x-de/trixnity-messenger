@@ -113,9 +113,8 @@ class ThemeComponentsImpl : ThemeComponents {
         ),
         timeline = SurfaceStyle.default(),
         // dividers
-        divider = DividerStyle.default(
-            padding = 10.dp,
-        ),
+        horizontalDivider = DividerStyle.default(),
+        verticalDivider = DividerStyle.default(),
         // room list
         roomListElement = SurfaceStyle.default(
             color = Color.Unspecified,
@@ -125,7 +124,7 @@ class ThemeComponentsImpl : ThemeComponents {
             contentColor = MaterialTheme.colorScheme.onBackground,
         ),
         roomListDivider = DividerStyle.default(
-            padding = 10.dp,
+            padding = PaddingValues(horizontal = 10.dp),
         ),
         accountSelector = ButtonStyle.filled(
             contentPadding = PaddingValues(0.dp),
