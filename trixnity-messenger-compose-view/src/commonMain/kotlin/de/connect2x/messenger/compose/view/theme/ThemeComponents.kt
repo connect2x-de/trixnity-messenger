@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.LocalContent
+import de.connect2x.messenger.compose.view.theme.components.DividerStyle
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.FloatingActionButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
@@ -134,10 +135,19 @@ class ThemeComponentsImpl : ThemeComponents {
             tonalElevation = 8.dp,
         ),
         timeline = SurfaceStyle.default(),
+        // dividers
+        horizontalDivider = DividerStyle.default(),
+        verticalDivider = DividerStyle.default(),
         // room list
+        roomListElement = SurfaceStyle.default(
+            color = Color.Unspecified,
+        ),
         roomListSelection = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onBackground,
+        ),
+        roomListDivider = DividerStyle.default(
+            padding = PaddingValues(horizontal = 10.dp),
         ),
         accountSelector = ButtonStyle.filled(
             contentPadding = PaddingValues(0.dp),
