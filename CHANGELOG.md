@@ -11,14 +11,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.5.6
+
+### Changed
+
 - Styling: Use stylable components for roomlist
 - Styling: Define default colors for different surface levels
 - Styling: support local content color for most components
 - Styling: Allow overriding MessengerColors
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -26,8 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Wait for database being closed before trying to delete user folder
 - Update selected account when deleting account
 - Improved web build performance
-
-### Security
 
 ## 3.5.5
 
