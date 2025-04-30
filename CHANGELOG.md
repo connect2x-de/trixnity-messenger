@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Add delay for appearance of tooltips when hovering element
+
 ### Security
 
 ## 3.5.6
