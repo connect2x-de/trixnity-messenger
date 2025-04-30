@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ## 3.5.6
-
+ 
 ### Changed
 
 - Styling: Use stylable components for roomlist
