@@ -16,6 +16,11 @@ sealed interface BaseTimelineElementHolderViewModel {
     val element: StateFlow<TimelineElementViewModel<*>?>
 
     /**
+     * Whether you can copy the elements content
+     */
+    val canBeCopied: StateFlow<Boolean>
+
+    /**
      * Whether this has a [repliedElement].
      */
     val isReply: StateFlow<Boolean?>
@@ -66,4 +71,9 @@ sealed interface BaseTimelineElementHolderViewModel {
      * Scroll to this element in the timeline.
      */
     fun jumpTo()
+
+    /**
+     * If possible, copy the elements content
+     */
+    fun copy(saveToClipboard: (String) -> Unit): () -> Unit
 }

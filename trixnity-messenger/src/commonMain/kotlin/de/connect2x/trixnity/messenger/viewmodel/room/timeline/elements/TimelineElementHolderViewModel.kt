@@ -28,14 +28,12 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -43,7 +41,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -61,7 +58,6 @@ import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.roomId
 import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.store.unsigned
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction
@@ -69,8 +65,11 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.EmptyEventContent
 import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
+import net.folivo.trixnity.core.model.events.StateEventContent
+import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -243,7 +242,7 @@ class TimelineElementHolderViewModelImpl(
         showLoadingIndicatorAfter
             .debounce { if (it) 1.seconds else Duration.ZERO } // prevent indicator on fast loading
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
-    
+
     private fun isEventReplaced(message: RoomOutboxMessage<*>?): Boolean =
         (message?.content?.relatesTo as? RelatesTo.Replace)?.eventId == eventId
 
@@ -331,6 +330,14 @@ class TimelineElementHolderViewModelImpl(
                 elementCache.value = TimelineElementViewModelWrapper(it, lifecycle)
             }
         }.stateIn(coroutineScope, Eagerly, null)
+
+
+    override val canBeCopied: StateFlow<Boolean> = timelineEventFlow.map { timelineEvent ->
+        when (timelineEvent.content?.getOrNull()) {
+            is UnknownEventContent, is StateEventContent, is RedactedEventContent, EmptyEventContent, null -> false
+            is MessageEventContent -> true
+        }
+    }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override val isReply: StateFlow<Boolean?> = flow {
         val eventContent = timelineEventFlow.first().event.content
@@ -588,6 +595,17 @@ class TimelineElementHolderViewModelImpl(
     override fun jumpTo() {
         jumpTo(roomId, eventId)
     }
+
+    override fun copy(saveToClipboard: (String) -> Unit): () -> Unit {
+        return {
+            coroutineScope.launch {
+                val element = timelineEventFlow.first().content?.getOrNull()
+                if (element is RoomMessageEventContent) {
+                    saveToClipboard(element.body)
+                }
+            }
+        }
+    }
 }
 
 class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
@@ -603,6 +621,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val mentionsInFormattedBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
             override fun openMention(mention: TimelineElementMention) {}
         })
+    override val canBeCopied: StateFlow<Boolean> = MutableStateFlow(true)
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val formattedTime: String = "12:12"
     override val formattedDate: String = "21.11.2024"
@@ -638,6 +657,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
     override fun jumpTo() {}
+    override fun copy(saveToClipboard: (String) -> Unit): () -> Unit = {}
 }
 
 class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -653,6 +673,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
             override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
             override fun openMention(mention: TimelineElementMention) {}
         })
+    override val canBeCopied: StateFlow<Boolean> = MutableStateFlow(true)
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val formattedTime: String = "12:24"
     override val formattedDate: String = "21.11.2024"
@@ -688,4 +709,5 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
     override fun jumpTo() {}
+    override fun copy(saveToClipboard: (String) -> Unit): () -> Unit = {}
 }

@@ -10,6 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -32,8 +34,12 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
     val canBeEdited = asTimelineElementHolder()?.canBeEdited?.collectAsState()?.value == true
     val canBeRedacted = asTimelineElementHolder()?.canBeRedacted?.collectAsState()?.value == true
     val canBeReported = asTimelineElementHolder()?.canBeReported?.collectAsState()?.value == true
+    val canBeCopied = this.canBeCopied.collectAsState().value
     val canRetrySend = asOutboxElementHolder()?.canRetrySend?.collectAsState()?.value == true
     val canAbortSend = asOutboxElementHolder()?.canAbortSend?.collectAsState()?.value == true
+
+    val clipboardManager = LocalClipboardManager.current
+
     return buildList {
         if (this@contextMenuActions is TimelineElementHolderViewModel) {
             add(
@@ -87,6 +93,14 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
                 )
             )
         }
+        if (canBeCopied) add(
+            BaseTimelineElementHolderContextMenuAction(
+                label = i18n.commonCopy(),
+                action = copy { text ->
+                    clipboardManager.setText(AnnotatedString(text))
+                },
+            )
+        )
     }
 }
 

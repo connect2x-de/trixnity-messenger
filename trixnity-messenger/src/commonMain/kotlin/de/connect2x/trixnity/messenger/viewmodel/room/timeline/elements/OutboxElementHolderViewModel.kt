@@ -20,6 +20,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -48,6 +50,8 @@ import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.MessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
 
@@ -103,6 +107,8 @@ class OutboxElementHolderViewModelImpl(
     onOpenMention: OpenMentionCallback,
     private val jumpTo: (roomId: RoomId, eventId: EventId) -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, OutboxElementHolderViewModel {
+    private val outboxMessageFlow: SharedFlow<RoomOutboxMessage<*>?> =
+        outboxMessageFlow.shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
     private val timeZone = get<TimeZone>()
     private val i18n = get<I18n>()
@@ -135,6 +141,13 @@ class OutboxElementHolderViewModelImpl(
                 elementCache.value = TimelineElementViewModelWrapper(it, lifecycle)
             }
         }.stateIn(coroutineScope, Eagerly, null)
+
+    override val canBeCopied: StateFlow<Boolean> = outboxMessageFlow.map { outboxMessage ->
+        when (outboxMessage?.content) {
+            null -> false
+            is MessageEventContent -> true
+        }
+    }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override val isReply: StateFlow<Boolean?> =
         outboxMessageFlow.map { outboxMessage ->
@@ -233,7 +246,8 @@ class OutboxElementHolderViewModelImpl(
                     ).filterNotNull()
                 }
         ) { outbox, nextSupportedTimelineEvent ->
-            val firstOutboxElement = outbox.firstOrNull { it.transactionId != nextSupportedTimelineEvent.event.unsigned?.transactionId }
+            val firstOutboxElement =
+                outbox.firstOrNull { it.transactionId != nextSupportedTimelineEvent.event.unsigned?.transactionId }
 
             if (firstOutboxElement?.transactionId == transactionId) nextSupportedTimelineEvent
             else null
@@ -315,5 +329,18 @@ class OutboxElementHolderViewModelImpl(
         }
     }
 
-    override fun jumpTo() {}
+    override fun jumpTo() {
+        log.trace { "Tried to jump to unsent outbox Message ($transactionId)" }
+    }
+
+    override fun copy(saveToClipboard: (String) -> Unit): () -> Unit {
+        return {
+            coroutineScope.launch {
+                val element = outboxMessageFlow.firstOrNull()?.content
+                if (element is RoomMessageEventContent) {
+                    saveToClipboard(element.body)
+                }
+            }
+        }
+    }
 }
