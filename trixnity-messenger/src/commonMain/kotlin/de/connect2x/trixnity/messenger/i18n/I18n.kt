@@ -162,9 +162,9 @@ open class I18n(
         DE - "die Gruppe"
     }
 
-    open fun eventChangeInvite(invitee: String, inviter: String) = translate {
-        EN - "$invitee has been invited by $inviter"
-        DE - "$invitee wurde von $inviter eingeladen"
+    open fun eventChangeInvite(invitee: String, inviter: String, reason: String? = null) = translate {
+        EN - "$invitee has been invited by $inviter${if (reason == null) "" else " because \"$reason\""}"
+        DE - "$invitee wurde von $inviter eingeladen${if (reason == null) "" else ", da \"$reason\""}"
     }
 
     open fun eventChangeJoin(username: String, groupOrChat: String) = translate {
@@ -177,14 +177,24 @@ open class I18n(
         DE - "$username hat $groupOrChat verlassen"
     }
 
-    open fun eventChangeBan(username: String, banner: String, groupOrChat: String) = translate {
-        EN - "$username has been removed by $banner from $groupOrChat"
-        DE - "$username wurde von $banner aus $groupOrChat ausgeschlossen"
+    open fun eventChangeBan(username: String, banner: String, groupOrChat: String, reason: String? = null) = translate {
+        EN - "$username has been removed by $banner from $groupOrChat${if (reason == null) "" else " because \"$reason\""}"
+        DE - "$username wurde von $banner aus $groupOrChat ausgeschlossen${if (reason == null) "" else ", da \"$reason\""}"
     }
 
-    open fun eventChangeKnock(username: String, groupOrChat: String) = translate {
-        EN - "$username wants to join $groupOrChat"
-        DE - "$username möchte $groupOrChat beitreten"
+    open fun eventChangeKnock(username: String, groupOrChat: String, reason: String? = null) = translate {
+        EN - "$username requested to join $groupOrChat${if (reason == null) "" else " because \"$reason\""}. Check the room settings to manage the Request"
+        DE - "$username möchte $groupOrChat beitreten${if (reason == null) "" else ", da \"$reason\""}. Du kannst die Anfrage in den Raumeinstellungen verwalten"
+    }
+
+    open fun eventChangeRejected(invitee: String, reason: String? = null) = translate {
+        EN - "$invitee has rejected the invitation${if (reason == null) "" else " because \"$reason\""}"
+        DE - "$invitee hat die Einladung abgelehnt${if (reason == null) "" else ", da \"$reason\""}"
+    }
+
+    open fun eventChangeRevoked(invitee: String, inviter: String, reason: String? = null) = translate {
+        EN - "$inviter has revoked the invitation to $invitee${if (reason == null) "" else " because \"$reason\""}"
+        DE - "$inviter hat die Einladung an $invitee zurückgezogen${if (reason == null) "" else ", da \"$reason\""}"
     }
 
     open fun eventMessageRedacted(username: String) = translate {
@@ -1256,6 +1266,31 @@ open class I18n(
     open fun enterRoomFailedRoomDoesNotExist() = translate {
         EN - "Room does not exist"
         DE - "Raum existiert nicht"
+    }
+
+    open fun acceptKnockFailed() = translate {
+        EN - "Failed to accept the membership request"
+        DE - "Beitrittanfrage annehmen ist fehlgeschlagen"
+    }
+
+    open fun rejectKnockFailed() = translate {
+        EN - "Failed to reject the membership request"
+        DE - "Beitrittanfrage ablehnen ist fehlgeschlagen"
+    }
+
+    open fun banningFailed() = translate {
+        EN - "Failed to ban user"
+        DE - "Bannen dieses Teilnehmers ist fehlgeschlagen"
+    }
+
+    open fun deactivateAccountConfirmationMessage(userId: String) = translate {
+        EN - "Attention, if you continue, your entire account ($userId) will be deleted. You will lose access to all data (chats, message content, recovery key, etc.) and will no longer be able to log in with this account. There is no way to restore this data afterwards."
+        DE - "Achtung, wenn sie Fortfahren wird ihr gesamter Account ($userId) gelöscht. Sie verlieren somit den Zugriff auf alle Daten (Chats, Nachrichteninhalte, Widerherstellungsschlüssel, etc.) und können sich nicht mehr mit diesem Account anmelden. Es gibt keine Möglichkeit, diese Daten im Nachhinein wieder herzustellen."
+    }
+
+    open fun deactivateAccountError(message: String) = translate {
+        EN - "Account could not be deactivated: $message"
+        DE - "Der Account konnte nicht deaktiviert werden: $message"
     }
 }
 

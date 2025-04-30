@@ -81,7 +81,7 @@ class MemberStateTimelineElementViewModelImpl(
                     val previousContent = event.unsigned?.previousContent
                     if (previousContent is MemberEventContent) {
                         if (content.membership != previousContent.membership) {
-                            membershipChanged(event, content, name, isDirect)
+                            membershipChanged(event, content, name, isDirect, previousContent)
                         } else if (content.avatarUrl != previousContent.avatarUrl) {
                             flowOf(i18n.eventChangeAvatar(name))
                         } else if (content.displayName != previousContent.displayName) {
@@ -89,7 +89,7 @@ class MemberStateTimelineElementViewModelImpl(
                         } else {
                             // This message is not very precise because it is also triggered when there is no change at all.
                             // Emitting null would lead to the UI waiting for a value.
-                            membershipChanged(event, content, name, isDirect)
+                            membershipChanged(event, content, name, isDirect, previousContent)
                         }
                     } else {
                         membershipChanged(event, content, name, isDirect)
@@ -102,8 +102,15 @@ class MemberStateTimelineElementViewModelImpl(
         event: StateEvent<*>,
         content: MemberEventContent,
         username: String,
-        isDirect: Boolean
+        isDirect: Boolean,
+        previousContent: MemberEventContent? = null,
     ): Flow<String> {
+        val senderIsStateKey = event.stateKey == event.sender.full
+        //Sender = stateKey -> Invitation was rejected, else it was revoked
+        val rejectedInvitation =
+            previousContent?.membership == Membership.INVITE && content.membership == Membership.LEAVE && senderIsStateKey
+        val revokedInvitation =
+            previousContent?.membership == Membership.INVITE && content.membership == Membership.LEAVE && !senderIsStateKey
         val groupOrChatDative =
             if (isDirect) i18n.eventChangeChatDative()
             else i18n.eventChangeGroupDative()
@@ -114,12 +121,18 @@ class MemberStateTimelineElementViewModelImpl(
         return matrixClient.user.getById(event.roomId, thisUserId)
             .map { user -> user?.name ?: thisUserId.full }
             .map { thisUsername ->
-                when (content.membership) {
-                    Membership.INVITE -> i18n.eventChangeInvite(thisUsername, username)
-                    Membership.JOIN -> i18n.eventChangeJoin(thisUsername, groupOrChatDative)
-                    Membership.LEAVE -> i18n.eventChangeLeave(thisUsername, groupOrChatAccusative)
-                    Membership.BAN -> i18n.eventChangeBan(thisUsername, username, groupOrChatDative)
-                    Membership.KNOCK -> i18n.eventChangeKnock(thisUsername, groupOrChatDative)
+                if (rejectedInvitation) {
+                    i18n.eventChangeRejected(thisUsername, content.reason)
+                } else if (revokedInvitation) {
+                    i18n.eventChangeRevoked(thisUsername, username, content.reason)
+                } else {
+                    when (content.membership) {
+                        Membership.INVITE -> i18n.eventChangeInvite(thisUsername, username, content.reason)
+                        Membership.JOIN -> i18n.eventChangeJoin(thisUsername, groupOrChatDative)
+                        Membership.LEAVE -> i18n.eventChangeLeave(thisUsername, groupOrChatAccusative)
+                        Membership.BAN -> i18n.eventChangeBan(thisUsername, username, groupOrChatDative, content.reason)
+                        Membership.KNOCK -> i18n.eventChangeKnock(thisUsername, groupOrChatDative, content.reason)
+                    }
                 }
             }
     }

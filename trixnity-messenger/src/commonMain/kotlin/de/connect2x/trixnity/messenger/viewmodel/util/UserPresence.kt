@@ -3,10 +3,12 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.flatten
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.PresenceEventContent
+import net.folivo.trixnity.core.model.events.m.room.Membership
 
 interface UserPresence {
     fun presentEventContentFlow(
@@ -26,7 +28,9 @@ class UserPresenceImpl(
     ): Flow<PresenceEventContent?> {
         return combine(
             matrixClient.user.userPresence,
-            directRoom.getUsers(matrixClient, roomId)
+            directRoom.getUsersWithMembership(matrixClient, roomId).flatten().map {
+                it.filter { (id, membership) -> membership == Membership.JOIN && id != matrixClient.userId }.keys
+            }
         ) { userPresence, otherUsers ->
             otherUsers.firstOrNull()?.let { userId ->
                 userPresence[userId]?.let { presence ->

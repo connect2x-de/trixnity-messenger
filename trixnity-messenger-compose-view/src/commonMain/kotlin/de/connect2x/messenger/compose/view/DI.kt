@@ -120,6 +120,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElement
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelectorImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ImageTimelineElementDetailsView
+import de.connect2x.messenger.compose.view.room.timeline.element.details.PreviewNotSupportedTimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.details.TimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementView
@@ -240,6 +241,8 @@ import de.connect2x.messenger.compose.view.theme.ThemeComponents
 import de.connect2x.messenger.compose.view.theme.ThemeComponentsImpl
 import de.connect2x.messenger.compose.view.theme.ThemeDarkColorScheme
 import de.connect2x.messenger.compose.view.theme.ThemeDarkColorSchemeImpl
+import de.connect2x.messenger.compose.view.theme.ThemeDarkMessengerColors
+import de.connect2x.messenger.compose.view.theme.ThemeDarkMessengerColorsImpl
 import de.connect2x.messenger.compose.view.theme.ThemeHighContrastDarkColorScheme
 import de.connect2x.messenger.compose.view.theme.ThemeHighContrastDarkColorSchemeImpl
 import de.connect2x.messenger.compose.view.theme.ThemeHighContrastLightColorScheme
@@ -247,6 +250,8 @@ import de.connect2x.messenger.compose.view.theme.ThemeHighContrastLightColorSche
 import de.connect2x.messenger.compose.view.theme.ThemeImpl
 import de.connect2x.messenger.compose.view.theme.ThemeLightColorScheme
 import de.connect2x.messenger.compose.view.theme.ThemeLightColorSchemeImpl
+import de.connect2x.messenger.compose.view.theme.ThemeLightMessengerColors
+import de.connect2x.messenger.compose.view.theme.ThemeLightMessengerColorsImpl
 import de.connect2x.messenger.compose.view.theme.ThemeTypography
 import de.connect2x.messenger.compose.view.theme.ThemeTypographyImpl
 import de.connect2x.messenger.compose.view.uia.UiaActionConfirmationView
@@ -312,6 +317,8 @@ fun themeViewModule(): Module = module {
     single<ThemeDarkColorScheme> { ThemeDarkColorSchemeImpl() }
     single<ThemeHighContrastLightColorScheme> { ThemeHighContrastLightColorSchemeImpl(get()) }
     single<ThemeHighContrastDarkColorScheme> { ThemeHighContrastDarkColorSchemeImpl(get()) }
+    single<ThemeLightMessengerColors> { ThemeLightMessengerColorsImpl() }
+    single<ThemeDarkMessengerColors> { ThemeDarkMessengerColorsImpl() }
 }
 
 fun commonViewModule() = module {

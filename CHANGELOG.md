@@ -17,12 +17,79 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 3.5.6
+ 
+### Changed
+
+- Styling: Use stylable components for roomlist
+- Styling: Define default colors for different surface levels
+- Styling: support local content color for most components
+- Styling: Allow overriding MessengerColors
+
+### Fixed
+
+- Duplicated libraries in the About > Licenses are now differentiable
+- Wait for database being closed before trying to delete user folder
+- Update selected account when deleting account
+- Improved web build performance
+
+## 3.5.5
+
+### Added
+
+- Scroll to replied element in timeline when clicking
+- Add "deactivate account" functionality
+
+### Fixed
+
+- Show correct indicator message when an invitation is rejected or revoked
+
+## 3.5.4
+
+### Added
+
+- Copy button for MXID in UserProfile
+- Theming for ProgressIndicators
+- Leave and forget upgraded rooms too
+
+### Changed
+
+- Clicking on files without preview opens a "Not supported" message instead of starting a download
+- Close di on close
+- Destroy lifecycle on profile change
+- Fix crash on startup because of mismatched Compose UI Test version
+
+### Fixed
+
+- Overflows in RoomHeader
+- Reset read and send marker when editing messages while being offline
+- Preview in accessibility settings
+- Copy recovery key not available on small screens
+- Wrong tooltip text of 'cancel edit' button
+- Open room settings when clicking on header in group room
+
+## 3.5.3
+
+### Added
+
+- See and accept knocks via Roomsettings and Timeline
+- Show reason for ban and invite in Timeline
+
+### Changed
+
+- Setup wizard can no longer be skipped
+
+### Fixed
+
 - Minor styling consistency fixes
 - Fix Recreating Profile in Web
 - iOS: problems with keychain access and missing key
-- Avoid re-render when unrelated settings change 
-
-### Security
+- Avoid re-render when unrelated settings change
+- Fix low contrast in dark mode
+- Fix `forgetting rooms while not leaved` error
+- Fix possible duplicate room creation for groups and chats
 
 ## 3.5.2
 
@@ -658,7 +725,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Export is not working, when size of exported events did not match a multiple of buffer size
 - Fix wrong filename in export
-- Fix `forgetting rooms while not leaved` error
 
 ## 2.0.3
 
@@ -669,6 +735,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - image dimensions should be null, when not determined
+- Don't show user presence in direct chat when user left room
 
 ## 2.0.2
 

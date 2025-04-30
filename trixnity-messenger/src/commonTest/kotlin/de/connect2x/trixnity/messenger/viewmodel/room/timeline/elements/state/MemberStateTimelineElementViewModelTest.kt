@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 
-import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
@@ -34,10 +34,12 @@ import org.koin.dsl.module
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
+@Suppress("NonAsciiCharacters")
 class MemberStateTimelineElementViewModelTest {
 
     val roomId = RoomId("room", "server")
     val sender = UserId("user", "server")
+    val bob = UserId("bob", "localhost")
     val eventId = EventId("event")
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
@@ -108,7 +110,7 @@ class MemberStateTimelineElementViewModelTest {
     }
 
     @Test
-    fun `show an indicator for name changes`() = runTest {
+    fun `name change » should show an indicator for name changes`() = runTest {
         val cut = memberStatusViewModel(
             mockTimelineEvent(
                 displayName = "I have changed!",
@@ -124,7 +126,7 @@ class MemberStateTimelineElementViewModelTest {
     }
 
     @Test
-    fun `show an indicator for avatar image changes`() = runTest {
+    fun `avatar change » should show an indicator for avatar image changes`() = runTest {
         val cut = memberStatusViewModel(
             mockTimelineEvent(
                 avatarUrl = "mxc://localhost/new_url",
@@ -140,7 +142,7 @@ class MemberStateTimelineElementViewModelTest {
     }
 
     @Test
-    fun `show an indicator for user joining a room`() = runTest {
+    fun `joining user » should show an indicator for user joining a room`() = runTest {
 
         val cut = memberStatusViewModel(
             mockTimelineEvent(
@@ -156,7 +158,7 @@ class MemberStateTimelineElementViewModelTest {
     }
 
     @Test
-    fun `show an indicator for user leaving a room`() = runTest {
+    fun `leaving user » should show an indicator for user leaving a room`() = runTest {
         val cut = memberStatusViewModel(
             mockTimelineEvent(
                 membership = Membership.LEAVE,
@@ -171,7 +173,7 @@ class MemberStateTimelineElementViewModelTest {
     }
 
     @Test
-    fun `show an indicator for user being banned from a room`() = runTest {
+    fun `banned user » should show an indicator for user being banned from a room`() = runTest {
         val cut = memberStatusViewModel(
             mockTimelineEvent(
                 membership = Membership.BAN,
@@ -186,7 +188,23 @@ class MemberStateTimelineElementViewModelTest {
     }
 
     @Test
-    fun `show an indicator for an invitation of a user to the room`() = runTest {
+    fun `banned user » should show an indicator with reason for user being banned from a room`() = runTest {
+        val cut = memberStatusViewModel(
+            mockTimelineEvent(
+                membership = Membership.BAN,
+                previousMemberEventContent = memberEventContent(membership = Membership.JOIN),
+                stateKey = "@mallory:localhost",
+                reason = "he spammed our chat :("
+            ),
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe "Mallory has been removed by Sender from the group because \"he spammed our chat :(\""
+        }
+    }
+
+    @Test
+    fun `invited user » should show an indicator for an invitation of a user to the room`() = runTest {
         val cut = memberStatusViewModel(
             mockTimelineEvent(
                 membership = Membership.INVITE,
@@ -201,7 +219,56 @@ class MemberStateTimelineElementViewModelTest {
     }
 
     @Test
-    fun `show an indicator for a user knocking at the room`() = runTest {
+    fun `invited user » should show an indicator with reason for an invitation of a user to the room`() = runTest {
+        val cut = memberStatusViewModel(
+            mockTimelineEvent(
+                membership = Membership.INVITE,
+                previousMemberEventContent = null,
+                stateKey = "@bob:localhost",
+                reason = "I want him to play Stardew Valley with us"
+            ),
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe "Bob has been invited by Sender because \"I want him to play Stardew Valley with us\""
+        }
+    }
+
+    @Test
+    fun `invited user » should show an appropriate indicator when the invitation was rejected`() = runTest {
+        val cut = memberStatusViewModel(
+            mockTimelineEvent(
+                membership = Membership.LEAVE,
+                previousMemberEventContent = memberEventContent(membership = Membership.INVITE),
+                stateKey = "@bob:localhost",
+                reason = "I don't want to play Stardew Valley with you",
+                senderId = bob
+            )
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe "Bob has rejected the invitation because \"I don't want to play Stardew Valley with you\""
+        }
+    }
+
+    @Test
+    fun `invited user » should show an appropriate indicator when the invitation was revoked`() = runTest {
+        val cut = memberStatusViewModel(
+            mockTimelineEvent(
+                membership = Membership.LEAVE,
+                previousMemberEventContent = memberEventContent(membership = Membership.INVITE),
+                stateKey = bob.full,
+                reason = "I don't want him to play Stardew Valley with us",
+            )
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe "Sender has revoked the invitation to Bob because \"I don't want him to play Stardew Valley with us\""
+        }
+    }
+
+    @Test
+    fun `knocking user » should show an indicator for a user knocking at the room`() = runTest {
         val cut = memberStatusViewModel(
             mockTimelineEvent(
                 membership = Membership.KNOCK,
@@ -211,12 +278,28 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob wants to join the group"
+            cut.changeMessage.value shouldBe "Bob requested to join the group. Check the room settings to manage the Request"
         }
     }
 
     @Test
-    fun `update indicator on username changes`() = runTest {
+    fun `knocking user » should show an indicator with the reason for a user knocking at the room`() = runTest {
+        val cut = memberStatusViewModel(
+            mockTimelineEvent(
+                membership = Membership.KNOCK,
+                previousMemberEventContent = null,
+                stateKey = "@bob:localhost",
+                reason = "he also likes treecake"
+            ),
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe "Bob requested to join the group because \"he also likes treecake\". Check the room settings to manage the Request"
+        }
+    }
+
+    @Test
+    fun `changed name » should update indicator on username changes`() = runTest {
         val cut = memberStatusViewModel(
             mockTimelineEvent(
                 membership = Membership.INVITE,
@@ -236,7 +319,7 @@ class MemberStateTimelineElementViewModelTest {
     }
 
     @Test
-    fun `update indicator on room changing 'direct' state`() = runTest {
+    fun `changed room » update indicator on room changing 'direct' state`() = runTest {
         val cut = memberStatusViewModel(
             mockTimelineEvent(
                 membership = Membership.JOIN,
@@ -295,6 +378,8 @@ class MemberStateTimelineElementViewModelTest {
         isDirect: Boolean = false,
         stateKey: String = "",
         previousMemberEventContent: MemberEventContent? = null,
+        reason: String? = null,
+        senderId: UserId? = null
     ): TimelineEvent {
         val timelineEvent = TimelineEvent(
             event = ClientEvent.RoomEvent.StateEvent(
@@ -303,9 +388,10 @@ class MemberStateTimelineElementViewModelTest {
                     displayName = displayName,
                     membership = membership,
                     isDirect = isDirect,
+                    reason = reason,
                 ),
                 id = eventId,
-                sender = sender,
+                sender = senderId ?: sender,
                 roomId = roomId,
                 originTimestamp = 0L,
                 unsigned = UnsignedRoomEventData.UnsignedStateEventData(

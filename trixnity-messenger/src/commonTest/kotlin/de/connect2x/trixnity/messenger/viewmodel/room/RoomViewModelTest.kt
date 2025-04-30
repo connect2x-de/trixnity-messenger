@@ -5,6 +5,7 @@ import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.DownloadManager
@@ -26,7 +27,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewMod
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Wrapper.View
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModelImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -183,6 +183,7 @@ class RoomViewModelTest {
         every { userServiceMock.getAll(roomId) } returns MutableStateFlow(mapOf())
         every { userServiceMock.getAllReceipts(eq(roomId)) } returns MutableStateFlow(emptyMap())
         every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(false)
+        every { userServiceMock.canInviteUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canKickUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canBanUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canUnbanUser(roomId, any()) } returns MutableStateFlow(false)
@@ -313,6 +314,7 @@ class RoomViewModelTest {
         val cut = cutRoomViewModel()
         cut shouldShowExtras false
         cut.openUserProfile(UserId("user1"))
+        println(cut.extrasStack.value.active.instance)
         cut.extrasAs<UserProfile>().viewModel.back()
         cut shouldShowTimeline true
         cut shouldShowExtras false
@@ -381,6 +383,7 @@ class RoomViewModelTest {
                                         override val usersTyping: StateFlow<String?> = MutableStateFlow(null)
                                         override val userTrustLevel: StateFlow<UserTrustLevel?> = MutableStateFlow(null)
                                         override val canVerifyUser: StateFlow<Boolean> = MutableStateFlow(false)
+                                        override val knockingMembersCount: StateFlow<Int> = MutableStateFlow(0)
                                         override val canBlockUser: StateFlow<Boolean> = MutableStateFlow(false)
                                         override val canUnblockUser: StateFlow<Boolean> = MutableStateFlow(false)
                                         override val isUserBlocked: StateFlow<Boolean> = MutableStateFlow(false)

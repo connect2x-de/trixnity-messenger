@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,7 +20,6 @@ import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -53,6 +54,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.verification.CrossSigningBootstrapViewModel
 import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
 import de.connect2x.trixnity_messenger_compose_view.generated.resources.recoverykey
@@ -63,6 +65,7 @@ const val RECOVERY_KEY_EXPLANATION = "RECOVERY_KEY_EXPLANATION"
 const val RECOVERY_KEY = "RECOVERY_KEY"
 const val FINISHED = "FINISHED"
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBootstrapViewModel) {
     val i18n = DI.get<I18nView>()
@@ -86,7 +89,7 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(i18n.bootstrapRecoveryKeyVaultCreation())
                                 Spacer(Modifier.size(20.dp))
-                                CircularProgressIndicator(Modifier.size(20.dp))
+                                ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
                             }
                         }
                     }
@@ -146,10 +149,10 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                         text = i18n.bootstrapRecoveryKeyOnlyOnce(),
                         fontWeight = FontWeight.Bold,
                     )
-                    Row(
+                    FlowRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalArrangement = Arrangement.Center
                     ) {
                         WizardImage(Res.drawable.recoverykey, i18n.bootstrapRecoveryKey(), 60.dp)
                         LargeSpacer()
@@ -174,10 +177,10 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                                 val scope = rememberCoroutineScope()
                                 val di = DI.current
                                 Button({
-                                        scope.launch {
-                                            copyToClipboard(recoveryKey ?: "", di)
-                                            copiedToClipBoard.value = true
-                                        }
+                                    scope.launch {
+                                        copyToClipboard(recoveryKey ?: "", di)
+                                        copiedToClipBoard.value = true
+                                    }
                                 }, Modifier.buttonPointerModifier()) {
                                     Icon(
                                         Icons.AutoMirrored.Filled.Assignment,

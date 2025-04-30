@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
@@ -10,7 +11,6 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import dev.mokkery.answering.returns
 import dev.mokkery.every

@@ -9,7 +9,6 @@ import androidx.compose.material.icons.filled.NotificationImportant
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.NotificationsOff
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +25,8 @@ import de.connect2x.messenger.compose.view.common.RadioSettingOption
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.NotificationLevels
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNotificationsViewModel
 
@@ -64,7 +65,7 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
             RadioSetting(
                 title = {
                     if (isLoading) {
-                        CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                        ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
                     } else {
                         Tooltip(tooltip = { TooltipText { selectedLevelExplanation } }) {
                             Text(selectedLevelName)

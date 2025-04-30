@@ -147,10 +147,7 @@ internal fun FileBasedView(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        if (elementDetailsFactory == null) {
-                            log.warn { "no overlay found for ${element::class.simpleName} -> directly save" }
-                            onSave()
-                        } else openElementDetails = true
+                        openElementDetails = true
                     },
                     onLongPress = { showActionMenu() },
                 )
@@ -159,10 +156,7 @@ internal fun FileBasedView(
     ) {
         // content based on the actual file
         content(showActionMenu) {
-            if (elementDetailsFactory == null) {
-                log.warn { "no overlay found for ${element::class.simpleName} -> directly save" }
-                onSave()
-            } else openElementDetails = true
+            openElementDetails = true
         }
     }
 

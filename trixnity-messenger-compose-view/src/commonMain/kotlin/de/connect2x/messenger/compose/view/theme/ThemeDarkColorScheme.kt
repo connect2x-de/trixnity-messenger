@@ -46,6 +46,13 @@ class ThemeDarkColorSchemeImpl : ThemeDarkColorScheme {
             surfaceTint = md_theme_dark_surfaceTint.deriveFromHue(accentHue),
             outlineVariant = md_theme_dark_outlineVariant,
             scrim = md_theme_dark_scrim,
+            surfaceDim = md_theme_dark_surfaceDim.deriveFromHue(accentHue),
+            surfaceBright = md_theme_dark_surfaceBright.deriveFromHue(accentHue),
+            surfaceContainerLowest = md_theme_dark_surfaceContainerLowest.deriveFromHue(accentHue),
+            surfaceContainerLow = md_theme_dark_surfaceContainerLow.deriveFromHue(accentHue),
+            surfaceContainer = md_theme_dark_surfaceContainer.deriveFromHue(accentHue),
+            surfaceContainerHigh = md_theme_dark_surfaceContainerHigh.deriveFromHue(accentHue),
+            surfaceContainerHighest = md_theme_dark_surfaceContainerHighest.deriveFromHue(accentHue),
         )
             .also { log.debug { "create default dark color scheme" } }
     }

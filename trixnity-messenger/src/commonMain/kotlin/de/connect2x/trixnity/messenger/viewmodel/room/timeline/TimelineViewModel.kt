@@ -14,6 +14,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.util.launchPopWhile
 import de.connect2x.trixnity.messenger.util.launchPush
@@ -174,7 +175,6 @@ interface TimelineViewModel {
 
     fun errorDismiss()
     fun leaveRoom()
-
     fun jumpToEndOfTimeline()
 
     /**
@@ -235,6 +235,8 @@ class TimelineViewModelImpl(
     private val onOpenMention: OpenMentionCallback,
     private val onOpenMetadata: (eventId: EventId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, TimelineViewModel {
+    private val leaveRoom: LeaveRoom = get()
+
     init {
         log.debug { "::: init timelineViewModel: $viewModelContext" }
     }
@@ -634,6 +636,7 @@ class TimelineViewModelImpl(
             onMessageReport = ::onShowReportMessageModal,
             onOpenMention = onOpenMention,
             onOpenMetadata = onOpenMetadata,
+            jumpTo = ::jumpTo
         )
         return TimelineElementWrapper(
             key = key,
@@ -694,6 +697,7 @@ class TimelineViewModelImpl(
                         formattedDate = formattedDate,
                         formattedTime = formattedTime,
                         onOpenMention = onOpenMention,
+                        jumpTo = ::jumpTo
                     ).also {
                         outboxElementCache[transactionId] = OutboxElementWrapper(
                             transactionId,
@@ -754,20 +758,22 @@ class TimelineViewModelImpl(
         coroutineScope.launch {
             if (matrixClient.syncState.value == SyncState.ERROR) {
                 error.value = i18n.timelineLeaveRoomErrorOffline()
-            } else {
-                matrixClient.api.room.leaveRoom(roomId).fold(onSuccess = {
-                    onBack()
-                }, onFailure = {
+                return@launch
+            }
+
+            leaveRoom(matrixClient, roomId, forget = false)
+                .onSuccess { onBack() }
+                .onFailure {
                     if (it is CancellationException) {
                         return@launch
                     }
+
                     log.error(it) { "cannot leave room $roomId" }
                     val groupOrChat =
                         if (isDirect.value) i18n.eventChangeChatGenitive()
                         else i18n.eventChangeGroupGenitive()
                     error.value = i18n.timelineLeaveRoomError(groupOrChat)
-                })
-            }
+                }
         }
     }
 
@@ -935,6 +941,27 @@ class TimelineViewModelImpl(
         scrollTo.emit(scrollToKey)
     }
 
+    private fun jumpTo(roomId: RoomId, eventId: EventId) {
+        coroutineScope.launch {
+            var element = timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }
+            if (element == null) {
+                log.debug { "Element $roomId-$eventId is not loaded, re-initialize timeline" }
+                timelineStartFrom.emit(eventId)
+                timeline.state.first()
+                element = timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }
+            }
+
+            if (element == null) {
+                log.error { "Element could not be found even though timeline is initialized" }
+                return@launch
+            }
+
+            val elementKey = element.key
+            log.debug { "Jump to element $elementKey in timeline" }
+            scrollTo.emit(elementKey)
+        }
+    }
+
     override fun jumpToEndOfTimeline() {
         coroutineScope.launch {
             jumpToEndOfTimelineSuspending()
@@ -1047,7 +1074,7 @@ class TimelineViewModelImpl(
     private fun onVerifyUser() {
         coroutineScope.launch {
             log.debug { "try to create new user verification" }
-            val isDirectRoom = matrixClient.room.getById(roomId).first()?.isDirect ?: false
+            val isDirectRoom = matrixClient.room.getById(roomId).first()?.isDirect == true
             log.debug { "is direct room: $isDirectRoom" }
             directRoom.getUsers(matrixClient, roomId).first().firstOrNull()
                 ?.let { otherUserId ->

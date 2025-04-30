@@ -49,7 +49,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import net.folivo.trixnity.utils.ByteArrayFlow
+import net.folivo.trixnity.client.media.PlatformMedia
 import java.io.File
 import java.io.IOException
 
@@ -61,7 +61,7 @@ actual fun SaveFileDialog(
     fileName: String,
     mimeType: String?,
     error: String?,
-    downloadFile: (suspend (ByteArrayFlow) -> Unit) -> Unit,
+    downloadFile: (suspend (PlatformMedia) -> Unit) -> Unit,
     onCloseSaveFileDialog: () -> Unit,
 ) {
     val context = LocalContext.current

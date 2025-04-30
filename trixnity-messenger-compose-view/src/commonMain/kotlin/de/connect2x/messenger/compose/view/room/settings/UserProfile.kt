@@ -24,6 +24,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.filled.Wysiwyg
+import androidx.compose.material.icons.filled.CopyAll
+import androidx.compose.material.icons.filled.DoorFront
+import androidx.compose.material.icons.filled.DoorSliding
 import androidx.compose.material.icons.filled.PersonOff
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.HorizontalDivider
@@ -42,11 +45,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
@@ -55,7 +62,9 @@ import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MessengerDialog
+import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.SmallSpacer
+import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.messenger.compose.view.common.WarningDialog
 import de.connect2x.messenger.compose.view.common.blockPointerInput
@@ -73,6 +82,7 @@ import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel
 import net.folivo.trixnity.client.key.UserTrustLevel
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.Membership
 
 
@@ -132,7 +142,7 @@ class UserProfileViewImpl : UserProfileView {
                 }
 
                 Column(
-                    Modifier.fillMaxWidth().weight(1f),
+                    Modifier.fillMaxWidth().weight(1f).padding(horizontal = 10.dp),
                     Arrangement.Center,
                     Alignment.CenterHorizontally
                 ) {
@@ -140,16 +150,18 @@ class UserProfileViewImpl : UserProfileView {
                         Avatar(
                             image,
                             userInfoElement.initials,
-                            150.dp
+                            size = 150.dp
                         )
                         Spacer(Modifier.height(20.dp))
-                        Text(userInfoElement.name, style = MaterialTheme.typography.titleLarge)
+                        SelectableText(userInfoElement.name, style = MaterialTheme.typography.titleLarge)
+
                         if (userInfoElement.name != userId.full) {
-                            Text(userId.full, style = MaterialTheme.typography.bodyLarge)
+                            CopyableUserId(userId, MaterialTheme.typography.bodyLarge)
                         }
                     } else {
-                        Text(userId.full, style = MaterialTheme.typography.titleLarge)
+                        CopyableUserId(userId, MaterialTheme.typography.titleLarge)
                     }
+
                     Spacer(Modifier.height(5.dp))
                     when (userTrustLevel) {
                         is UserTrustLevel.CrossSigned ->
@@ -239,22 +251,41 @@ class UserProfileViewImpl : UserProfileView {
 }
 
 @Composable
+fun CopyableUserId(userId: UserId, textStyle: TextStyle) {
+    val i18n = DI.get<I18nView>()
+    val clipboard = LocalClipboardManager.current
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        SelectableText(userId.full, style = textStyle, overflow = TextOverflow.Visible)
+        Spacer(Modifier.size(5.dp))
+        Tooltip({ TooltipText(i18n.userProfileCopyUserId()) }) {
+            ThemedIconButton(
+                style = MaterialTheme.components.commonIconButton,
+                onClick = { clipboard.setText(AnnotatedString(userId.full)) }
+            ) {
+                Icon(Icons.Default.CopyAll, i18n.userProfileCopyUserId())
+            }
+        }
+    }
+}
+
+@Composable
 private fun RoomOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
-    val iHavePowerToBanUser = userProfileViewModel.iHavePowerToBanUser.collectAsState().value
-    val iHavePowerToUnbanUser = userProfileViewModel.iHavePowerToUnbanUser.collectAsState().value
-    val iHavePowerToKickUser = userProfileViewModel.iHavePowerToKickUser.collectAsState().value
-    val maxPowerLevel = userProfileViewModel.changePowerLevelViewModel.canSetPowerLevelToMax.collectAsState().value
-    val canSetRoleToAdmin =
-        userProfileViewModel.changePowerLevelViewModel.canSetRoleToAdmin.collectAsState().value
-    val canSetRoleToModerator =
-        userProfileViewModel.changePowerLevelViewModel.canSetRoleToModerator.collectAsState().value
-    val canSetRoleToUser =
-        userProfileViewModel.changePowerLevelViewModel.canSetRoleToUser.collectAsState().value
-    val membership = userProfileViewModel.membership.collectAsState().value
+    val iHavePowerToAcceptKnock by userProfileViewModel.iHavePowerToAcceptKnock.collectAsState()
+    val iHavePowerToRejectKnock by userProfileViewModel.iHavePowerToRejectKnock.collectAsState()
+    val iHavePowerToKickUser by userProfileViewModel.iHavePowerToKickUser.collectAsState()
+    val iHavePowerToBanUser by userProfileViewModel.iHavePowerToBanUser.collectAsState()
+    val iHavePowerToUnbanUser by userProfileViewModel.iHavePowerToUnbanUser.collectAsState()
+    val maxPowerLevel by userProfileViewModel.changePowerLevelViewModel.canSetPowerLevelToMax.collectAsState()
+    val canSetRoleToAdmin by userProfileViewModel.changePowerLevelViewModel.canSetRoleToAdmin.collectAsState()
+    val canSetRoleToModerator by userProfileViewModel.changePowerLevelViewModel.canSetRoleToModerator.collectAsState()
+    val canSetRoleToUser by userProfileViewModel.changePowerLevelViewModel.canSetRoleToUser.collectAsState()
+    val membership by userProfileViewModel.membership.collectAsState()
 
     val shouldShowChangePowerLevel = canSetRoleToUser || canSetRoleToModerator || canSetRoleToAdmin ||
             (maxPowerLevel != null && maxPowerLevel != 0L)
     val shouldShowBan = iHavePowerToBanUser || (iHavePowerToUnbanUser && membership == Membership.BAN)
+    val shouldShowKnockOptions = membership == Membership.KNOCK
 
     if (shouldShowChangePowerLevel || shouldShowBan || iHavePowerToKickUser) {
         HorizontalDivider(Modifier.fillMaxWidth())
@@ -272,11 +303,22 @@ private fun RoomOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
         if (shouldShowChangePowerLevel) {
             ChangePowerLevelSection(userProfileViewModel, i18n)
         }
+
+        if (shouldShowKnockOptions) {
+            if (iHavePowerToAcceptKnock) {
+                AcceptKnockSection(userProfileViewModel, i18n)
+            }
+            if (iHavePowerToRejectKnock) {
+                RejectKnockSection(userProfileViewModel, i18n)
+            }
+        } else {
+            if (iHavePowerToKickUser) {
+                KickUserSection(userProfileViewModel, i18n)
+            }
+        }
+
         if (shouldShowBan) {
             BanUserSection(userProfileViewModel, i18n)
-        }
-        if (iHavePowerToKickUser) {
-            KickUserSection(userProfileViewModel, i18n)
         }
     }
 }
@@ -333,6 +375,36 @@ private fun KickUserSection(userProfileViewModel: UserProfileViewModel, i18n: I1
         )
         Spacer(Modifier.size(10.dp))
         Text(i18n.userProfileRemoveUser())
+    }
+}
+
+@Composable
+private fun AcceptKnockSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
+    MenuElement(Modifier.clickable {
+        userProfileViewModel.acceptKnock()
+    }) {
+        Icon(
+            Icons.Filled.DoorSliding,
+            i18n.userProfileAcceptKnock(),
+            Modifier.size(24.dp)
+        )
+        Spacer(Modifier.size(10.dp))
+        Text(i18n.userProfileAcceptKnock())
+    }
+}
+
+@Composable
+private fun RejectKnockSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
+    MenuElement(Modifier.clickable {
+        userProfileViewModel.rejectKnock()
+    }) {
+        Icon(
+            Icons.Filled.DoorFront,
+            i18n.userProfileRejectKnock(),
+            Modifier.size(24.dp)
+        )
+        Spacer(Modifier.size(10.dp))
+        Text(i18n.userProfileRejectKnock())
     }
 }
 
@@ -475,7 +547,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                         style = MaterialTheme.typography.labelLarge
                     )
                     Tooltip(
-                        tooltip = { Text(i18n.commonHelp())}
+                        tooltip = { Text(i18n.commonHelp()) }
                     ) {
                         ThemedIconButton(
                             style = MaterialTheme.components.commonIconButton,

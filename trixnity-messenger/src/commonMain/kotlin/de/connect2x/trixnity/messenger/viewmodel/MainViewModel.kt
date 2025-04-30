@@ -333,11 +333,9 @@ open class MainViewModelImpl(
                             .collect { presenceIsPublic ->
                                 if (presenceIsPublic && lifecycle.state >= Lifecycle.State.STARTED) {
                                     log.info { "the settings for `presenceIsPublic` have changed -> restart sync with ONLINE" }
-                                    matrixClient.stopSync()
                                     matrixClient.startSync(presence = Presence.ONLINE)
                                 } else if (presenceIsPublic.not() && lifecycle.state >= Lifecycle.State.STARTED) {
                                     log.info { "the settings for `presenceIsPublic` have changed -> restart sync with OFFLINE" }
-                                    matrixClient.stopSync()
                                     matrixClient.startSync(presence = Presence.OFFLINE)
                                 }
                             }

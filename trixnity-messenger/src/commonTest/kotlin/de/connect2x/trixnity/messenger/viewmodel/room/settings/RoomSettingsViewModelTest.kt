@@ -1,10 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -227,6 +227,15 @@ class RoomSettingsViewModelTest {
                                         error: MutableStateFlow<String?>,
                                         onOpenUserProfile: (UserId) -> Unit,
                                     ): MemberListViewModel = object : MemberListViewModel {
+                                        override val filterByMemberships =
+                                            MutableStateFlow(
+                                                setOf(
+                                                    Membership.JOIN,
+                                                    Membership.BAN,
+                                                    Membership.KNOCK,
+                                                    Membership.INVITE
+                                                )
+                                            )
                                         override val elements: StateFlow<List<MemberListElementViewModel>> =
                                             MutableStateFlow(listOf())
                                         override val membershipCounts: StateFlow<Map<Membership, Int>> =

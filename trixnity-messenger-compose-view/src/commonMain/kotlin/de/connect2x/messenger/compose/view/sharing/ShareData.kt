@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -25,7 +24,6 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -45,7 +43,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
@@ -56,6 +53,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainer
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -105,7 +103,7 @@ class ShareDataViewImpl : ShareDataView {
                     )
                 }, navigationIcon = {
                     Tooltip(
-                        tooltip = { Text(i18n.shareFilesCancel())}
+                        tooltip = { Text(i18n.shareFilesCancel()) }
                     ) {
                         ThemedIconButton(
                             style = MaterialTheme.components.commonIconButton,
@@ -118,7 +116,7 @@ class ShareDataViewImpl : ShareDataView {
                     }
                 }, actions = {
                     Tooltip(
-                        tooltip = { Text(i18n.inputAreaSend())}
+                        tooltip = { Text(i18n.inputAreaSend()) }
                     ) {
                         ThemedIconButton(
                             style = MaterialTheme.components.commonIconButton,
@@ -126,9 +124,8 @@ class ShareDataViewImpl : ShareDataView {
                             enabled = enabled,
                         ) {
                             if (sending) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(32.dp),
-                                    color = MaterialTheme.colorScheme.primary,
+                                ThemedProgressIndicator(
+                                    style = MaterialTheme.components.smallCircularProgressIndicator
                                 )
                             } else {
                                 Icon(
@@ -249,7 +246,10 @@ private fun ShareUrlRow(text: String, icon: FileDescriptor?, maxMediaSize: Long)
                     )
                 ) {
                     Text(
-                        text, style = MaterialTheme.typography.bodyLarge, softWrap = false, overflow = TextOverflow.Ellipsis
+                        text,
+                        style = MaterialTheme.typography.bodyLarge,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

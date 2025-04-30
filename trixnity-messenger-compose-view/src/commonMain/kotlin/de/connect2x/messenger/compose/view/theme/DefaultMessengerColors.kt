@@ -11,8 +11,8 @@ internal val DefaultMessengerColors: MessengerColors
         val accentColor = settings.accentColor ?: DI.get<DefaultAccentColor>().value
 
         return if (settings.isDarkMode()) {
-            DefaultMessengerDarkColors.create(accentColor)
+            DI.get<ThemeDarkMessengerColors>().create(accentColor)
         } else {
-            DefaultMessengerLightColors.create(accentColor)
+            DI.get<ThemeLightMessengerColors>().create(accentColor)
         }
     }

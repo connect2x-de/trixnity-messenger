@@ -3,13 +3,13 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.MockMode.autoUnit
 import dev.mokkery.mock
 import dev.mokkery.verify
@@ -20,18 +20,12 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
 import org.koin.dsl.koinApplication
-import kotlin.coroutines.ContinuationInterceptor
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 import kotlin.test.Test
 import kotlin.test.fail
 
@@ -156,7 +150,7 @@ class AddMatrixAccountViewModelTest {
             onCancel = onCancelMock,
         )
     }
-    
+
     object Responses {
         const val WELL_KNOWN = """{ "m.homeserver": { "base_url": "https://matrix.server.host" } }"""
         const val VERSIONS = """{ "versions": [], "unstable_features": {} }"""

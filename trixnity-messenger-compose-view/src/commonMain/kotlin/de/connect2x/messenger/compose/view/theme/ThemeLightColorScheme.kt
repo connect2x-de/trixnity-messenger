@@ -46,6 +46,13 @@ class ThemeLightColorSchemeImpl : ThemeLightColorScheme {
             surfaceTint = md_theme_light_surfaceTint,
             outlineVariant = md_theme_light_outlineVariant,
             scrim = md_theme_light_scrim,
+            surfaceDim = md_theme_light_surfaceDim.deriveFromHue(accentHue),
+            surfaceBright = md_theme_light_surfaceBright.deriveFromHue(accentHue),
+            surfaceContainerLowest = md_theme_light_surfaceContainerLowest.deriveFromHue(accentHue),
+            surfaceContainerLow = md_theme_light_surfaceContainerLow.deriveFromHue(accentHue),
+            surfaceContainer = md_theme_light_surfaceContainer.deriveFromHue(accentHue),
+            surfaceContainerHigh = md_theme_light_surfaceContainerHigh.deriveFromHue(accentHue),
+            surfaceContainerHighest = md_theme_light_surfaceContainerHighest.deriveFromHue(accentHue),
         )
             .also { log.debug { "create default light color scheme" } }
     }

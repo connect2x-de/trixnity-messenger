@@ -1,14 +1,14 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eqNull
+import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.firstNotNullWithClue
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaImpl
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.SuspendAnsweringScope
@@ -380,8 +380,8 @@ class DevicesSettingsViewModelTest {
 
         eventually(1.seconds) {
             accountsWithDevices.filter { it.isNotEmpty() }.first {
-                    it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.displayName.value == "device1 updated"
-                }
+                it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.displayName.value == "device1 updated"
+            }
         }
     }
 

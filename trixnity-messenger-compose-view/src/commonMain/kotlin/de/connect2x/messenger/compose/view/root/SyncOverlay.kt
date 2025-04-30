@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.AccountSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModel
@@ -87,9 +88,9 @@ class SyncOverlayViewImpl : SyncOverlayView {
                                                 )
                                             }
                                             Spacer(Modifier.size(20.dp))
-                                            CircularProgressIndicator(
-                                                color = MaterialTheme.colorScheme.onPrimary,
-                                                modifier = Modifier.padding(horizontal = 20.dp),
+                                            ThemedProgressIndicator(
+                                                Modifier.padding(horizontal = 20.dp),
+                                                MaterialTheme.components.circularProgressIndicator
                                             )
                                         }
                                     }

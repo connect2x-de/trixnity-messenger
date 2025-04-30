@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -17,6 +18,8 @@ import de.connect2x.messenger.compose.view.roomlist.header.AccountData
 import de.connect2x.messenger.compose.view.roomlist.header.NotVerifiedBanner
 import de.connect2x.messenger.compose.view.roomlist.header.SearchRoomsBanner
 import de.connect2x.messenger.compose.view.roomlist.header.SyncErrorBanner
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 
@@ -36,7 +39,9 @@ class RoomListContainerViewImpl : RoomListContainerView {
     override fun create(roomListViewModel: RoomListViewModel) {
         val i18n = DI.get<I18nView>()
         val error = roomListViewModel.error.collectAsState().value
-        Box {
+        ThemedSurface(
+            style = MaterialTheme.components.sidebar,
+        ) {
             if (error != null) {
                 ErrorDialog(
                     error,

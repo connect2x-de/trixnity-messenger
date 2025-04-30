@@ -1,8 +1,8 @@
 [versions]
 jvmTarget = "17"
-c2xConventions = "39087842"
+c2xConventions = "41503362" # https://gitlab.com/connect2x/c2x-conventions/-/packages
 
-trixnityMessenger = "3.5.3"
+trixnityMessenger = "3.5.7"
 trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
@@ -15,7 +15,7 @@ kotlinxSerialization = "1.8.0" # https://github.com/Kotlin/kotlinx.serialization
 kotlinxDatetime = "0.6.2" # https://github.com/Kotlin/kotlinx-datetime/releases
 kotlinxKover = "0.9.1" # https://github.com/Kotlin/kotlinx-kover/releases
 
-trixnity = "4.14.3" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.15.1" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
 decompose = "3.3.0" # https://github.com/arkivanov/Decompose/releases
 koin = "4.0.3" # https://github.com/InsertKoinIO/koin/tags
@@ -37,9 +37,9 @@ icu4j = "77.1" # https://github.com/unicode-org/icu/releases
 testContainers = "1.20.6" # https://github.com/testcontainers/testcontainers-java/releases
 composeMultiplatform = "1.7.3" # https://github.com/JetBrains/compose-multiplatform/releases
 richeditor = "1.0.0-rc11" # https://github.com/MohamedRejeb/compose-rich-editor/releases
-aboutLibraries = "12.0.0-a04" # https://github.com/mikepenz/AboutLibraries/releases
+aboutLibraries = "12.0.0" # https://github.com/mikepenz/AboutLibraries/releases
 copyWebpackPlugin = "12.0.2" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
-composeUiTest = "1.8.0-rc02" # https://androidx.tech/artifacts/compose.ui/ui-test-junit4/
+composeUiTest = "1.7.8" # https://androidx.tech/artifacts/compose.ui/ui-test-junit4/
 filekit = "0.8.8" # https://github.com/vinceglb/FileKit/releases
 firebase = "33.11.0" # https://firebase.google.com/support/release-notes/android
 googleServices = "4.4.2" # https://developers.google.com/android/guides/google-services-plugin

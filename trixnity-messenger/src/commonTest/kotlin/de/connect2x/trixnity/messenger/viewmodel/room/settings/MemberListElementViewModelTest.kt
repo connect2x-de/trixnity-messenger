@@ -1,13 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.Role
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestMatrixMessengerSettingsHolder
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any

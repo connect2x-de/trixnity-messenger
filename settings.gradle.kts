@@ -32,15 +32,15 @@ dependencyResolutionManagement {
         google()
         mavenLocal()
         maven("https://gitlab.com/api/v4/projects/68438621/packages/maven") // c2x Conventions
-        maven("https://oss.sonatype.org/content/repositories/snapshots")
         maven("https://gitlab.com/api/v4/projects/26519650/packages/maven") // trixnity
         maven("https://gitlab.com/api/v4/projects/58749664/packages/maven") // sysnotify
         maven("https://gitlab.com/api/v4/projects/65998892/packages/maven") // androidx
+        maven("https://oss.sonatype.org/content/repositories/snapshots")
     }
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version ("0.9.0") // https://github.com/gradle/foojay-toolchains/tags
+    id("org.gradle.toolchains.foojay-resolver-convention") version ("0.10.0") // https://github.com/gradle/foojay-toolchains/tags
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

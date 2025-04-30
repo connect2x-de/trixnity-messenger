@@ -34,6 +34,7 @@ import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MoreOptions
+import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.gesturesDisabled
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -100,7 +101,8 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                             Arrangement.SpaceBetween,
                             Alignment.CenterVertically
                         ) {
-                            Text(alias, modifier = Modifier.weight(1f, false))
+                            SelectableText(alias, modifier = Modifier.weight(1f, false))
+
                             Row {
                                 if (canChangeRoomAlias) {
                                     Tooltip({ Text(i18n.unmakeMainAlias()) }) {
@@ -149,7 +151,7 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                             Arrangement.SpaceBetween,
                             Alignment.CenterVertically
                         ) {
-                            Text(alias, modifier = Modifier.weight(1f, false))
+                            SelectableText(alias, modifier = Modifier.weight(1f, false))
                             Row {
                                 if (canChangeRoomAlias) {
                                     Tooltip({ Text(i18n.makeMainAlias()) }) {

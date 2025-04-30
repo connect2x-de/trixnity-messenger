@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
-import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -16,7 +16,7 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.TestScope
