@@ -334,8 +334,8 @@ class TimelineElementHolderViewModelImpl(
 
     override val canBeCopied: StateFlow<Boolean> = timelineEventFlow.map { timelineEvent ->
         when (timelineEvent.content?.getOrNull()) {
-            is UnknownEventContent, is StateEventContent, is RedactedEventContent, EmptyEventContent, null -> false
-            is MessageEventContent -> true
+            is RoomMessageEventContent.FileBased, is RoomMessageEventContent.Location, is TextBased -> true
+            is UnknownEventContent, is StateEventContent, is RedactedEventContent, is MessageEventContent, EmptyEventContent, null -> false
         }
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
@@ -601,7 +601,22 @@ class TimelineElementHolderViewModelImpl(
             coroutineScope.launch {
                 val element = timelineEventFlow.first().content?.getOrNull()
                 if (element is RoomMessageEventContent) {
-                    saveToClipboard(element.body)
+                    when (element) {
+                        // TODO: Use element.encryptedFile to copy it directly
+                        is RoomMessageEventContent.FileBased ->
+                            saveToClipboard(element.externalUrl ?: element.body)
+
+                        is RoomMessageEventContent.Location -> {
+                            val geoUri = element.geoUri.substringAfter(':').substringBefore('?')
+                            saveToClipboard("${element.body} ($geoUri)")
+                        }
+
+                        is TextBased ->
+                            saveToClipboard(element.body)
+                        is RoomMessageEventContent.Unknown, is RoomMessageEventContent.VerificationRequest -> {
+                            log.trace { "Tried to copy non-copyable timeline message" }
+                        }
+                    }
                 }
             }
         }

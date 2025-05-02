@@ -52,6 +52,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
 
@@ -144,8 +145,8 @@ class OutboxElementHolderViewModelImpl(
 
     override val canBeCopied: StateFlow<Boolean> = outboxMessageFlow.map { outboxMessage ->
         when (outboxMessage?.content) {
-            null -> false
-            is MessageEventContent -> true
+            is RoomMessageEventContent.FileBased, is RoomMessageEventContent.Location, is TextBased -> true
+            is MessageEventContent, null -> false
         }
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
@@ -338,7 +339,23 @@ class OutboxElementHolderViewModelImpl(
             coroutineScope.launch {
                 val element = outboxMessageFlow.firstOrNull()?.content
                 if (element is RoomMessageEventContent) {
-                    saveToClipboard(element.body)
+                    when (element) {
+                        // TODO: Use element.encryptedFile to copy it directly
+                        is RoomMessageEventContent.FileBased ->
+                            saveToClipboard(element.externalUrl ?: element.body)
+
+                        is RoomMessageEventContent.Location -> {
+                            val geoUri = element.geoUri.substringAfter(':').substringBefore('?')
+                            saveToClipboard("${element.body} ($geoUri)")
+                        }
+
+                        is TextBased ->
+                            saveToClipboard(element.body)
+
+                        is RoomMessageEventContent.Unknown, is RoomMessageEventContent.VerificationRequest -> {
+                            log.trace { "Tried to copy non-copyable outbox Message ($transactionId)" }
+                        }
+                    }
                 }
             }
         }
