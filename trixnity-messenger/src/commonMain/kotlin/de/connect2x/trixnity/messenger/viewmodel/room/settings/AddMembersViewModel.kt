@@ -35,7 +35,7 @@ interface AddMembersViewModelFactory {
 
 interface AddMembersViewModel {
     val potentialMembersViewModel: PotentialMembersViewModel
-    val groupUsers: StateFlow<List<Search.SearchUserElement>>
+    val groupUsers: MutableStateFlow<List<Search.SearchUserElement>>
     val canAddMembers: StateFlow<Boolean>
     val error: StateFlow<String?>
     val errorCause: StateFlow<String?>

@@ -33,7 +33,7 @@ interface PotentialMembersViewModelFactory {
 }
 
 interface PotentialMembersViewModel {
-    val selectedUsers: StateFlow<List<Search.SearchUserElement>>
+    val selectedUsers: MutableStateFlow<List<Search.SearchUserElement>>
     val searchHandler: UserSearchHandler
     val offline: StateFlow<Boolean>
     val error: MutableStateFlow<String?>
