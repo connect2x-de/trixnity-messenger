@@ -2,11 +2,9 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.util.Search
-import de.connect2x.trixnity.messenger.util.plusSorted
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,8 +12,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.RoomId
-import kotlin.collections.minus
-import kotlin.collections.plus
 
 private val log = KotlinLogging.logger {}
 
@@ -39,7 +35,7 @@ interface AddMembersViewModelFactory {
 
 interface AddMembersViewModel {
     val potentialMembersViewModel: PotentialMembersViewModel
-    val groupUsers: MutableStateFlow<List<Search.SearchUserElement>>
+    val groupUsers: StateFlow<List<Search.SearchUserElement>>
     val canAddMembers: StateFlow<Boolean>
     val error: StateFlow<String?>
     val errorCause: StateFlow<String?>
@@ -75,7 +71,7 @@ class AddMembersViewModelImpl(
         onBack()
     }
 
-    override val groupUsers = MutableStateFlow(listOf<Search.SearchUserElement>())
+    override val groupUsers = potentialMembersViewModel.selectedUsers
     override val canAddMembers =
         groupUsers.map { it.isNotEmpty() }
             .stateIn(coroutineScope, started = SharingStarted.WhileSubscribed(), false)
@@ -155,40 +151,20 @@ class AddMembersViewModelImpl(
 
     override fun onUserClick(user: Search.SearchUserElement) {
         if (groupUsers.value.contains(user).not()) {
-            groupUsers.value += user
             removeUserFromList(user)
         }
     }
 
-    // IMPORTANT: has to be separate as the renderer will collapse when 2 collectAsState() references change at the same time
     override fun removeUserFromList(user: Search.SearchUserElement) {
-        coroutineScope.launch {
-            delay(50)
-
-            potentialMembersViewModel.selectedUsers.value += user.userId
-            potentialMembersViewModel.searchHandler.foundUsers.value -= user
-        }
+        potentialMembersViewModel.selectUser(user)
     }
 
     override fun removeUserFromGroup(user: Search.SearchUserElement) {
-        groupUsers.value -= user
         addUserToList(user)
     }
 
     override fun addUserToList(user: Search.SearchUserElement) {
-        coroutineScope.launch {
-            delay(50)
-
-            potentialMembersViewModel.selectedUsers.value -= user.userId
-
-            val searchTerm = potentialMembersViewModel.searchHandler.searchTerm.textValue
-            if (
-                user.displayName.contains(searchTerm) ||
-                user.userId.full.contains(searchTerm.lowercase())
-            ) {
-                potentialMembersViewModel.searchHandler.foundUsers.plusSorted(user)
-            }
-        }
+        potentialMembersViewModel.unselectUser(user)
     }
 
     private fun <T, A : Appendable> Iterable<T>.joinTo(

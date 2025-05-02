@@ -7,11 +7,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.core.MatrixRegex
@@ -36,6 +35,7 @@ class DefaultUserSearchHandler(
     private val limit: Long? = 100,
     private val maxAvatarSize: Long,
     private val filterNot: (UserId) -> Boolean = { false },
+    private val skippedUsers: StateFlow<Set<UserId>> = MutableStateFlow(emptySet()),
 ) : UserSearchHandler {
     override val searchTerm = TextFieldViewModelImpl()
     override val initialUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
@@ -50,17 +50,28 @@ class DefaultUserSearchHandler(
         searchTerm
             .map { it.text }
             .distinctUntilChanged()
-            .onEach { if (it.isBlank()) foundUsers.value = initialUsers.value }
             .debounce(debounceDuration)
-            .filter { it.isNotBlank() }
             .map {
                 if (MatrixRegex.userId.matches(it.lowercase())) it.lowercase()
                 else it
             }
             .scopedCollectLatest {
-                waitForUserResults.value = true
-                foundUsers.value = search.searchUsers(client, it, limit, filterNot, this, maxAvatarSize)
-                waitForUserResults.value = false
+                if (it.isBlank()) {
+                    foundUsers.value = initialUsers.value
+                } else {
+                    waitForUserResults.value = true
+                    skippedUsers.collectLatest { skippedUser ->
+                        foundUsers.value = search.searchUsers(
+                            client,
+                            it,
+                            limit,
+                            { filterNot(it) || skippedUser.contains(it) },
+                            this,
+                            maxAvatarSize
+                        )
+                        waitForUserResults.value = false
+                    }
+                }
             }
     }
 }
