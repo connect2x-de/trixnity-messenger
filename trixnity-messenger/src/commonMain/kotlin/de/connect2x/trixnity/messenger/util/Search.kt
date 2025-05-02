@@ -38,7 +38,7 @@ interface Search {
         maxPreviewSize: Long,
     ): List<SearchUserElement>
 
-    interface SearchUserElement : Comparable<SearchUserElement> {
+    interface SearchUserElement {
         val displayName: String
         val initials: String
         val image: ByteArray?
@@ -67,9 +67,6 @@ interface Search {
         override fun hashCode(): Int {
             return userId.hashCode()
         }
-
-        override fun compareTo(other: SearchUserElement): Int =
-            this.displayName.compareTo(other.displayName)
     }
 }
 
