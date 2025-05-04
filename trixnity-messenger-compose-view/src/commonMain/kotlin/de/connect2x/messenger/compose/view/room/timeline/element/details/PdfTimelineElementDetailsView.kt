@@ -55,13 +55,14 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         onSave: () -> Unit,
         onClose: () -> Unit,
     ) {
+        val minZoom = 0.5f
         val media = element.downloadMediaResult.collectAsState().value
         val progress = element.downloadMediaProgress.collectAsState().value
         val (error, setError) = remember { mutableStateOf<String?>(null) }
         val zoom = remember { mutableStateOf(1.0f) }
         val offset = remember { mutableStateOf(Offset.Zero) }
         val state = rememberTransformableState { zoomChange, offsetChange, _ ->
-            zoom.value = (zoom.value * zoomChange).coerceIn(0.8f, 4f)
+            zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, 4f)
             offset.value = offset.value + offsetChange.times(zoom.value)
         }
         val canZoom = remember { mutableStateOf(false) }
@@ -76,7 +77,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
             element,
             onSave,
             onClose,
-            additions = { ZoomButtons(zoom, minScale = 1f, maxScale = 4f) }) {
+            additions = { ZoomButtons(zoom, minScale = minZoom, maxScale = 4f) }) {
             val focusRequester = remember { FocusRequester() }
             Column {
                 Box(
@@ -89,7 +90,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                             canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
                             true
                         }
-                        .zoomModifier(focusRequester, canZoom, zoom, 0.8f, 4f),
+                        .zoomModifier(focusRequester, canZoom, zoom, minZoom, 4f),
                 ) {
                     when {
                         progress != null && media == null -> {
