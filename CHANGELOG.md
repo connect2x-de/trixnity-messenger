@@ -21,7 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add delay for appearance of tooltips when hovering element
 - Remove double parenthesis for file size of upload element
-
+- Update Firebase Cloud Messaging from 33.11.0 to 33.13.0
+ 
 ### Security
 
 ## 3.5.6
