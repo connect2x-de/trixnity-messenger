@@ -17,9 +17,9 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
 interface ReadMarkerView {
     @Composable
@@ -41,11 +41,12 @@ class ReadMarkerViewImpl : ReadMarkerView {
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel
     ) {
         val i18n = DI.get<I18nView>()
-        if (timelineElementHolderViewModel is TimelineElementHolderViewModel) {
-            val isByMe = timelineElementHolderViewModel.isByMe
+        val isByMe = timelineElementHolderViewModel.isByMe
+        if (isByMe) {
             val isSent by timelineElementHolderViewModel.isSent.collectAsState()
-            if (isByMe && isSent) {
-                val isRead = timelineElementHolderViewModel.isRead.collectAsState().value == true
+            if (isSent) {
+                val isRead =
+                    timelineElementHolderViewModel.asTimelineElementHolder()?.isRead?.collectAsState()?.value == true
 
                 Box(
                     Modifier
@@ -66,7 +67,7 @@ class ReadMarkerViewImpl : ReadMarkerView {
                         )
                     }
                 }
-            }
-        } else Box(Modifier.size(MaterialTheme.typography.labelSmall.dp).padding(start = 2.dp))
+            } else Box(Modifier.size(MaterialTheme.typography.labelSmall.dp).padding(start = 2.dp))
+        }
     }
 }
