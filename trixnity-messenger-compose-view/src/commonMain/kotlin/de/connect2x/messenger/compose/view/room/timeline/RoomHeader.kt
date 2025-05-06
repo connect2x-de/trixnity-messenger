@@ -113,6 +113,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
                             Row(
                                 horizontalArrangement = Arrangement.Start,
                                 verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(start = 4.dp)
                             ) {
                                 Box {
                                     AvatarWithPresence(
@@ -245,6 +246,7 @@ fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
                 topic,
                 style = MaterialTheme.typography.labelMedium,
                 overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(end = 14.dp),
                 maxLines = 1,
             )
         }
