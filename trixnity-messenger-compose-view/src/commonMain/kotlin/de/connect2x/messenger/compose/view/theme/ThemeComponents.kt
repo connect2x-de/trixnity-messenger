@@ -8,6 +8,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.runtime.Composable
@@ -22,6 +23,7 @@ import de.connect2x.messenger.compose.view.theme.components.FloatingActionButton
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.CircularProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
+import de.connect2x.messenger.compose.view.theme.components.SliderStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.messenger.compose.view.theme.components.TooltipStyle
 
@@ -242,5 +244,9 @@ class ThemeComponentsImpl : ThemeComponents {
             strokeWidth = 2.dp,
         ),
         linearProgressIndicator = LinearProgressIndicatorStyle.default(),
+        // slider
+        slider = SliderStyle.default(
+            colors = SliderDefaults.colors()
+        ),
     )
 }
