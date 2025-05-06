@@ -41,7 +41,7 @@ data class MatrixMessengerConfiguration(
 
     var notificationsEnabled: Boolean = false,
 
-    var messengerFeatures: MatrixMessengerFeatures = MatrixMessengerFeatures(
+    val features: MatrixMessengerFeatures = MatrixMessengerFeatures(
         enablePdfReader = true,
     ),
 

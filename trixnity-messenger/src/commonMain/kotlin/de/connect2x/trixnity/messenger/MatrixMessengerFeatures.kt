@@ -7,5 +7,5 @@ data class MatrixMessengerFeatures(
     /**
      * If true, the PDF reader details view in the timeline will be enabled.
      */
-    val enablePdfReader: Boolean = true,
+    var enablePdfReader: Boolean = true,
 )
