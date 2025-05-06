@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Give immediate feedback when a message has been sent (even before sync)
 - Update Firebase Cloud Messaging from 33.11.0 to 33.13.0
+- Rename member filters and add invited filter
 
 ### Deprecated
 
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add delay for appearance of tooltips when hovering element
 - Remove double parenthesis for file size of upload element
+- Layout of member filtering buttons are reversed
  
 ### Security
 
