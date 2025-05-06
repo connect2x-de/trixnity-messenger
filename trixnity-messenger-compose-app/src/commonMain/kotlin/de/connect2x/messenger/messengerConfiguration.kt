@@ -22,7 +22,7 @@ fun messengerConfiguration(
     sendLogsEmailAddress = null
     urlProtocol = BuildConfig.appId
     modulesFactories += listOf(
-        ::composeViewModule,
+        { composeViewModule(null) },
         // TODO this needs to be removed and fixed, as there is no MatrixMessengerSettingsHolderImpl at MultiMessenger level!
         ::platformMatrixMessengerSettingsHolderModule,
         // TODO there should be a more clean way for I18n
@@ -52,7 +52,7 @@ fun messengerConfiguration(
     // MatrixMessengerConfiguration flavors
     messengerConfiguration {
         modulesFactories += listOf(
-            ::composeViewModule,
+            { composeViewModule(this) },
         )
         when (BuildConfig.flavor) {
             Flavor.PROD -> {}
