@@ -47,6 +47,11 @@ sealed interface BaseTimelineElementHolderViewModel {
     val isByMe: Boolean
 
     /**
+     * Whether this message has been sent (always true when not from us).
+     */
+    val isSent: StateFlow<Boolean>
+
+    /**
      * The sender info of this event.
      */
     val sender: StateFlow<UserInfoElement?>

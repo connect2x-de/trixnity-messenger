@@ -28,14 +28,12 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -43,7 +41,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -142,7 +139,6 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val showLoadingIndicatorAfter: StateFlow<Boolean>
 
     val isRead: StateFlow<Boolean?>
-    val isSent: StateFlow<Boolean>
     val readers: StateFlow<List<UserInfoElement>?>
 
     val reactions: StateFlow<EventReactions?>
@@ -243,7 +239,7 @@ class TimelineElementHolderViewModelImpl(
         showLoadingIndicatorAfter
             .debounce { if (it) 1.seconds else Duration.ZERO } // prevent indicator on fast loading
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
-    
+
     private fun isEventReplaced(message: RoomOutboxMessage<*>?): Boolean =
         (message?.content?.relatesTo as? RelatesTo.Replace)?.eventId == eventId
 
