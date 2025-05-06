@@ -152,7 +152,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
                                     Spacer(Modifier.size(5.dp))
                                 }
 
-                                Column {
+                                Column(modifier = Modifier.padding(end = 14.dp)) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         RoomName(roomHeaderElement)
                                         Spacer(Modifier.size(7.dp))
@@ -245,7 +245,6 @@ fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
                 topic,
                 style = MaterialTheme.typography.labelMedium,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(end = 14.dp),
                 maxLines = 1,
             )
         }
