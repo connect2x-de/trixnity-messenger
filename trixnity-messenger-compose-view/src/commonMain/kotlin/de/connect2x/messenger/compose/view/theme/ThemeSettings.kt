@@ -26,7 +26,8 @@ data class ThemeSettings(
     }
 }
 
-internal val CurrentThemeSettings: ThemeSettings
+@ExperimentalThemingApi
+val CurrentThemeSettings: ThemeSettings
     @Composable
     get() = DI.getOrNull<MatrixMessengerSettingsHolder>()
         ?.map {

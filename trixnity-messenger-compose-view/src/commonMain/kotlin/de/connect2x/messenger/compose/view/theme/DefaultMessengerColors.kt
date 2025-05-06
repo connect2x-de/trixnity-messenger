@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 
+@OptIn(ExperimentalThemingApi::class)
 internal val DefaultMessengerColors: MessengerColors
     @Composable
     get() {
