@@ -46,8 +46,17 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
@@ -58,6 +67,106 @@ import kotlin.math.max
 import kotlin.math.min
 
 private val log = KotlinLogging.logger { }
+
+actual fun getPlatformPDFReader(
+    media: PlatformMedia,
+    onError: (String?) -> Unit,
+    scope: CoroutineScope,
+    scale: StateFlow<Float>,
+    viewSize: StateFlow<IntSize>,
+    density: Float
+): PDFReader {
+    val reader = PlatformPDFReader(media, onError, scope, scale, viewSize, density)
+
+    scope.launch {
+        reader.initialize()
+    }
+
+    return reader
+}
+
+class PlatformPDFReader(
+    val media: PlatformMedia,
+    val onError: (String?) -> Unit,
+    val scope: CoroutineScope,
+    val scale: StateFlow<Float>,
+    val viewSize: StateFlow<IntSize>,
+    val density: Float
+) : PDFReader {
+    private val document = MutableStateFlow<Pair<PDDocument, PDFRenderer>?>(null)
+    private val documentWidth: MutableStateFlow<Int?> = MutableStateFlow(null)
+    private val temporaryFile: MutableStateFlow<OkioPlatformMedia.TemporaryFile?> = MutableStateFlow(null)
+    private val renderCache: MutableStateFlow<MutableMap<String, Pair<Long, ImageBitmap>>> =
+        MutableStateFlow(mutableMapOf())
+    private val maxDpi = documentWidth.filterNotNull().map { 1f / it.toFloat() * 64f * 3600f }.stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(), 300f
+    )
+    private val dpi = combine(
+        viewSize,
+        documentWidth.filterNotNull(),
+        scale,
+        maxDpi
+    ) { viewSize, dwidth, scale, maxDpi -> viewSize.width / dwidth * scale / density * 64f.coerceAtMost(maxDpi) }.stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(), 300f
+    )
+
+    override val numOfPages: MutableState<Int?> = mutableStateOf(null)
+    suspend fun initialize() {
+        val temporaryFileResult = (media as OkioPlatformMedia).getTemporaryFile()
+        if (temporaryFileResult.isSuccess) {
+            val newTemporaryFile = temporaryFileResult.getOrThrow()
+            try {
+                val documentData = Loader.loadPDF(newTemporaryFile.path.toFile())
+                val renderer = PDFRenderer(documentData)
+                document.value = Pair(documentData, renderer)
+                documentWidth.value = renderer.renderImage(0)?.width
+                temporaryFile.value = newTemporaryFile
+                numOfPages.value = documentData.numberOfPages
+            } catch (exception: Exception) {
+                onError(exception.message)
+            }
+        } else {
+            onError(temporaryFileResult.exceptionOrNull()?.message)
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    override fun onDispose() {
+        GlobalScope.launch { temporaryFile.value?.delete() }
+        document.value?.first?.close()
+        renderCache.value.clear()
+        document.value = null
+    }
+
+    private val pageCacheSize =
+        scale.map { max(2f, min(16f, 8f / it)).toInt() }.stateIn(scope, SharingStarted.WhileSubscribed(), 2)
+
+    override fun getPage(pageId: Int): StateFlow<ImageBitmap?> {
+        return MutableStateFlow<ImageBitmap?>(null).also { imageFlow ->
+            scope.launch {
+                val cacheKey = "$pageId:${dpi.value.toInt()}"
+                val renderer = document.first { it != null }?.second
+                imageFlow.value = renderCache.value[cacheKey]?.second
+                    ?: renderer?.renderImageWithDPI(pageId, dpi.value)?.let {
+                        val img = it.toComposeImageBitmap()
+                        log.debug {
+                            "render pdf page $pageId " +
+                                    "to bitmap (${img.width}x${img.height}) " +
+                                    "at scale factor: $dpi " +
+                                    "with ${renderCache.value.size} pages already cached"
+                        }
+                        renderCache.value[cacheKey] = Pair(System.currentTimeMillis(), img)
+                        renderCache.value.toList().sortedBy { it.second.first }
+                            .subList(0, 0.coerceAtLeast(renderCache.value.size - pageCacheSize.value))
+                            .forEach { renderCache.value.remove(it.first) }
+                        img
+                    }
+            }
+        }
+    }
+}
 
 @Composable
 actual fun PDFReader(
@@ -155,7 +264,7 @@ actual fun PDFReader(
                                             "at scale factor: $newDpi " +
                                             "with ${renderCache.size} pages already cached"
                                 }
-                                renderCache[cacheKey] = Pair<Long, ImageBitmap>(System.currentTimeMillis(), img)
+                                renderCache[cacheKey] = Pair(System.currentTimeMillis(), img)
                                 renderCache.toList().sortedBy { it.second.first }
                                     .subList(0, 0.coerceAtLeast(renderCache.size - pageCacheSize))
                                     .forEach { renderCache.remove(it.first) }

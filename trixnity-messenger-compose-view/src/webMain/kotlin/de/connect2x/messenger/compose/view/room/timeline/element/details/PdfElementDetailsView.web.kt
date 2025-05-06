@@ -49,6 +49,10 @@ import net.folivo.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
 import net.folivo.trixnity.client.media.opfs.OpfsPlatformMedia
 import web.blob.Blob
 
+actual class PDFReader {
+
+}
+
 @OptIn(DelicateCoroutinesApi::class)
 @Composable
 actual fun PDFReader(
@@ -71,7 +75,7 @@ actual fun PDFReader(
     LaunchedEffect(Unit) {
         val temporaryFileResult =
             (media as? OpfsPlatformMedia)?.getTemporaryFile() ?: (media as IndexeddbPlatformMedia).getTemporaryFile()
-        if (temporaryFileResult.isSuccess == true) {
+        if (temporaryFileResult.isSuccess) {
             val newTemporaryFile = when (val result = temporaryFileResult.getOrNull()) {
                 is OpfsPlatformMedia.TemporaryFile -> {
                     fileDeleteFunction.value = result::delete
