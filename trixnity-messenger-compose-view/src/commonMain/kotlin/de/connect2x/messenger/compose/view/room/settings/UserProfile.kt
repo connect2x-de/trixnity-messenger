@@ -147,7 +147,15 @@ class UserProfileViewImpl : UserProfileView {
                     Alignment.CenterHorizontally
                 ) {
                     if (userInfoElement != null) {
-                        ThemedUserAvatar(userInfoElement.initials, image)
+                        BoxWithConstraints(Modifier.fillMaxWidth()) {
+                            Box(Modifier.align(Alignment.Center)) {
+                                ThemedUserAvatar(
+                                    userInfoElement.initials,
+                                    image,
+                                    this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)
+                                )
+                            }
+                        }
                         Spacer(Modifier.height(20.dp))
                         SelectableText(userInfoElement.name, style = MaterialTheme.typography.titleLarge)
 
