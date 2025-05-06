@@ -3,28 +3,17 @@ package de.connect2x.messenger.compose.view.util
 import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.CopyableContent
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.ContentType
-import js.objects.ReadonlyRecord
+import js.objects.recordOf
 import org.khronos.webgl.Uint8Array
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import web.blob.Blob
-import web.blob.BlobPropertyBag
-import web.blob.EndingType
 import web.clipboard.ClipboardItem
 import web.navigator.navigator
 
-private fun String.asBlob() = Blob(arrayOf(this))
-private fun <B> readonlyRecordOf(vararg elements: Pair<String, B>): ReadonlyRecord<String, B> {
-    return object : ReadonlyRecord<String, B> {
-        private val entries: Map<String, B> =
-            buildMap { elements.forEach { put(it.first, it.second) } }.toMap()
-
-        override fun get(key: String): B? {
-            return entries[key]
-        }
-    }
-}
+private val log = KotlinLogging.logger { }
 
 actual fun platformCopyToClipboardModule(): Module = module {
     single<CopyToClipboard> {
@@ -32,29 +21,32 @@ actual fun platformCopyToClipboardModule(): Module = module {
             @Composable
             override fun create(): suspend (CopyableContent, I18nView) -> Unit {
                 return { content, _ ->
-                    val (type, blob) = when (content) {
+                    val items = when (content) {
                         is CopyableContent.File -> {
                             val uint8Array = Uint8Array(content.file.toTypedArray())
                             val blob = Blob(
-                                arrayOf(uint8Array),
-                                object : BlobPropertyBag {
-                                    override val endings = EndingType.transparent
-                                    override val type: String = content.fileType.toString()
-                                }
+                                arrayOf(uint8Array)
                             )
 
-                            content.fileType to blob
+                            // TODO: Investigate further why pretty much only image/png works
+                            recordOf(
+                                content.fileType.toString() to blob,
+                                ContentType.Text.Plain.toString() to content.fileName
+                            )
                         }
 
-                        is CopyableContent.FormattedText -> ContentType.Text.Html to content.text.asBlob()
-                        is CopyableContent.Location -> ContentType.Text.Plain to content.coordinates.asBlob()
-                        is CopyableContent.Text -> ContentType.Text.Plain to content.text.asBlob()
-                    }
+                        is CopyableContent.FormattedText -> recordOf(
+                            ContentType.Text.Html.toString() to content.text,
+                            ContentType.Text.Plain.toString() to content.unformattedText
+                        )
 
+                        is CopyableContent.Location -> recordOf(ContentType.Text.Plain.toString() to content.coordinates)
+                        is CopyableContent.Text -> recordOf(ContentType.Text.Plain.toString() to content.text)
+                    }
 
                     navigator.clipboard.write(
                         arrayOf(
-                            ClipboardItem(readonlyRecordOf(Pair(type.toString(), blob)))
+                            ClipboardItem(items)
                         )
                     )
                 }
