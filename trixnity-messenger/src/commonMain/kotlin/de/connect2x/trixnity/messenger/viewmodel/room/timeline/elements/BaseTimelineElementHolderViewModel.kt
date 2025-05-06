@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.messenger.util.CopyableContent
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import kotlinx.coroutines.flow.StateFlow
 
@@ -73,7 +74,7 @@ sealed interface BaseTimelineElementHolderViewModel {
     fun jumpTo()
 
     /**
-     * If possible, copy the elements content
+     * If possible, save the elements content to the clipboard
      */
-    fun copy(saveToClipboard: (String) -> Unit): () -> Unit
+    fun copy(saveToClipboard: suspend (CopyableContent) -> Unit): () -> Unit
 }

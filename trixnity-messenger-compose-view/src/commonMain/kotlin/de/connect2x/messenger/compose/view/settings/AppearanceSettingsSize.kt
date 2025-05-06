@@ -36,6 +36,7 @@ import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.messenger.compose.view.theme.SystemDensity
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.trixnity.messenger.util.CopyableContent
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
@@ -236,7 +237,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
     override fun jumpTo() {}
-    override fun copy(saveToClipboard: (String) -> Unit): () -> Unit = {}
+    override fun copy(saveToClipboard: suspend (CopyableContent) -> Unit): () -> Unit = {}
 }
 
 private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -288,5 +289,5 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
     override fun jumpTo() {}
-    override fun copy(saveToClipboard: (String) -> Unit): () -> Unit = {}
+    override fun copy(saveToClipboard: suspend (CopyableContent) -> Unit): () -> Unit = {}
 }

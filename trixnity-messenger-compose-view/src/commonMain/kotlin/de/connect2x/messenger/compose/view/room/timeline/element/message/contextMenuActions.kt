@@ -10,15 +10,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
+import de.connect2x.messenger.compose.view.util.CopyToClipboard
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -38,7 +39,7 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
     val canRetrySend = asOutboxElementHolder()?.canRetrySend?.collectAsState()?.value == true
     val canAbortSend = asOutboxElementHolder()?.canAbortSend?.collectAsState()?.value == true
 
-    val clipboardManager = LocalClipboardManager.current
+    val copyToClipboard = DI.get<CopyToClipboard>().create()
 
     return buildList {
         if (this@contextMenuActions is TimelineElementHolderViewModel) {
@@ -96,8 +97,8 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
         if (canBeCopied) add(
             BaseTimelineElementHolderContextMenuAction(
                 label = i18n.commonCopy(),
-                action = copy { text ->
-                    clipboardManager.setText(AnnotatedString(text))
+                action = copy {
+                    copyToClipboard(it, i18n)
                 },
             )
         )

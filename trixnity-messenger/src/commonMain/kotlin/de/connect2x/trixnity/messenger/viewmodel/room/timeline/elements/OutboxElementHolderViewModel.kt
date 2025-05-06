@@ -6,6 +6,8 @@ import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
+import de.connect2x.trixnity.messenger.util.CopyableContent
+import de.connect2x.trixnity.messenger.util.handleContent
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
@@ -334,28 +336,12 @@ class OutboxElementHolderViewModelImpl(
         log.trace { "Tried to jump to unsent outbox Message ($transactionId)" }
     }
 
-    override fun copy(saveToClipboard: (String) -> Unit): () -> Unit {
+    override fun copy(saveToClipboard: suspend (CopyableContent) -> Unit): () -> Unit {
         return {
             coroutineScope.launch {
                 val element = outboxMessageFlow.firstOrNull()?.content
                 if (element is RoomMessageEventContent) {
-                    when (element) {
-                        // TODO: Use element.encryptedFile to copy it directly
-                        is RoomMessageEventContent.FileBased ->
-                            saveToClipboard(element.externalUrl ?: element.body)
-
-                        is RoomMessageEventContent.Location -> {
-                            val geoUri = element.geoUri.substringAfter(':').substringBefore('?')
-                            saveToClipboard("${element.body} ($geoUri)")
-                        }
-
-                        is TextBased ->
-                            saveToClipboard(element.body)
-
-                        is RoomMessageEventContent.Unknown, is RoomMessageEventContent.VerificationRequest -> {
-                            log.trace { "Tried to copy non-copyable outbox Message ($transactionId)" }
-                        }
-                    }
+                    element.handleContent(saveToClipboard, matrixClient, config.maxMediaSizeInMemory)
                 }
             }
         }

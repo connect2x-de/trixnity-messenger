@@ -4,6 +4,8 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.CopyableContent
+import de.connect2x.trixnity.messenger.util.handleContent
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -596,27 +598,12 @@ class TimelineElementHolderViewModelImpl(
         jumpTo(roomId, eventId)
     }
 
-    override fun copy(saveToClipboard: (String) -> Unit): () -> Unit {
+    override fun copy(saveToClipboard: suspend (CopyableContent) -> Unit): () -> Unit {
         return {
             coroutineScope.launch {
                 val element = timelineEventFlow.first().content?.getOrNull()
                 if (element is RoomMessageEventContent) {
-                    when (element) {
-                        // TODO: Use element.encryptedFile to copy it directly
-                        is RoomMessageEventContent.FileBased ->
-                            saveToClipboard(element.externalUrl ?: element.body)
-
-                        is RoomMessageEventContent.Location -> {
-                            val geoUri = element.geoUri.substringAfter(':').substringBefore('?')
-                            saveToClipboard("${element.body} ($geoUri)")
-                        }
-
-                        is TextBased ->
-                            saveToClipboard(element.body)
-                        is RoomMessageEventContent.Unknown, is RoomMessageEventContent.VerificationRequest -> {
-                            log.trace { "Tried to copy non-copyable timeline message" }
-                        }
-                    }
+                    element.handleContent(saveToClipboard, matrixClient, config.maxMediaSizeInMemory)
                 }
             }
         }
@@ -672,7 +659,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
     override fun jumpTo() {}
-    override fun copy(saveToClipboard: (String) -> Unit): () -> Unit = {}
+    override fun copy(saveToClipboard: suspend (CopyableContent) -> Unit): () -> Unit = {}
 }
 
 class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -724,5 +711,5 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
     override fun jumpTo() {}
-    override fun copy(saveToClipboard: (String) -> Unit): () -> Unit = {}
+    override fun copy(saveToClipboard: suspend (CopyableContent) -> Unit): () -> Unit = {}
 }

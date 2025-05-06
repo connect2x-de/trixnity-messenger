@@ -120,7 +120,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElement
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelectorImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ImageTimelineElementDetailsView
-import de.connect2x.messenger.compose.view.room.timeline.element.details.PreviewNotSupportedTimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.details.TimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementView
@@ -266,6 +265,7 @@ import de.connect2x.messenger.compose.view.uia.UiaPasswordInputView
 import de.connect2x.messenger.compose.view.uia.UiaPasswordInputViewImpl
 import de.connect2x.messenger.compose.view.uia.UiaRegistrationTokenView
 import de.connect2x.messenger.compose.view.uia.UiaRegistrationTokenViewImpl
+import de.connect2x.messenger.compose.view.util.platformCopyToClipboardModule
 import de.connect2x.messenger.compose.view.verification.DeviceVerificationWizardView
 import de.connect2x.messenger.compose.view.verification.DeviceVerificationWizardViewImpl
 import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWizardView
@@ -299,6 +299,7 @@ fun composeViewModule(): Module = module {
         settingsViewModule(),
         verificationViewModule(),
         uiaViewModule(),
+        platformCopyToClipboardModule()
     )
 }
 

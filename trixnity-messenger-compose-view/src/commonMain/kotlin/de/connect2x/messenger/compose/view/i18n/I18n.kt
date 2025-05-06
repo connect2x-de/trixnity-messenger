@@ -123,7 +123,7 @@ open class I18nView(
 
     open fun commonCopied() = translate {
         EN - "copied"
-        DE - "kopiert"
+        DE - "Kopiert"
     }
 
     open fun commonWaiting() = translate {
