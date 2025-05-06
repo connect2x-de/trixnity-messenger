@@ -112,8 +112,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
                         ) {
                             Row(
                                 horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(start = 4.dp)
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Box {
                                     AvatarWithPresence(
