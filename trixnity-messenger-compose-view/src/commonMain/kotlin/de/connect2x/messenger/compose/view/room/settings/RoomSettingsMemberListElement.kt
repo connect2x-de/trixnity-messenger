@@ -20,12 +20,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.AvatarWithPresence
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.UserState
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.*
+import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
+import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.Role
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import net.folivo.trixnity.core.model.UserId
@@ -85,7 +86,9 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (isMemberElementLoading) LoadingSpinner() else {
-                        AvatarWithPresence(image, memberElement.initials, presence)
+                        ThemedUserAvatar(memberElement.initials, image) {
+                            AvatarPresenceBadge(presence)
+                        }
                         Spacer(Modifier.size(5.dp))
                         UserState(
                             memberListElementViewModel.userTrustLevel,

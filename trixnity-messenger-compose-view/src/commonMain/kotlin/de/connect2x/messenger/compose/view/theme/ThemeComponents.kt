@@ -1,6 +1,8 @@
 package de.connect2x.messenger.compose.view.theme
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -15,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.theme.components.AvatarStyle
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.LocalContent
 import de.connect2x.messenger.compose.view.theme.components.DividerStyle
@@ -248,5 +251,13 @@ class ThemeComponentsImpl : ThemeComponents {
         slider = SliderStyle.default(
             colors = SliderDefaults.colors()
         ),
+        // avatar
+        avatar = AvatarStyle.default(
+            color = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            outerBorder = BorderStroke(1.dp, MaterialTheme.colorScheme.secondaryContainer),
+            innerBorder = BorderStroke(1.dp, MaterialTheme.colorScheme.surface),
+            shape = CircleShape,
+        )
     )
 }

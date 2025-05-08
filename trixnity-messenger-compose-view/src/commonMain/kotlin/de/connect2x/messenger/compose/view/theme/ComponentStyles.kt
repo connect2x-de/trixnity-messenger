@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
+import de.connect2x.messenger.compose.view.theme.components.AvatarStyle
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.DividerStyle
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
@@ -61,6 +62,8 @@ data class ComponentStyles(
     val linearProgressIndicator: LinearProgressIndicatorStyle,
     // slider
     val slider: SliderStyle,
+    // avatar
+    val avatar: AvatarStyle,
 )
 
 internal val LocalComponentStyles = staticCompositionLocalOf<ComponentStyles> { error("compositionLocal not defined") }

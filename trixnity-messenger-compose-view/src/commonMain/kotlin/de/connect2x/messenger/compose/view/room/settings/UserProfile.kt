@@ -58,7 +58,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
-import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MessengerDialog
@@ -78,6 +77,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel
@@ -147,11 +147,15 @@ class UserProfileViewImpl : UserProfileView {
                     Alignment.CenterHorizontally
                 ) {
                     if (userInfoElement != null) {
-                        Avatar(
-                            image,
-                            userInfoElement.initials,
-                            size = 150.dp
-                        )
+                        BoxWithConstraints(Modifier.fillMaxWidth()) {
+                            Box(Modifier.align(Alignment.Center)) {
+                                ThemedUserAvatar(
+                                    userInfoElement.initials,
+                                    image,
+                                    this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)
+                                )
+                            }
+                        }
                         Spacer(Modifier.height(20.dp))
                         SelectableText(userInfoElement.name, style = MaterialTheme.typography.titleLarge)
 
