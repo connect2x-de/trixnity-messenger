@@ -11,6 +11,7 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMeth
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -527,4 +528,18 @@ suspend fun MatrixMessengerWithRoot.authorizeUia() = with(root) {
     val uiaStepDummyViewModel = uiaStack.waitFor(UiaRouter.Wrapper.UiaStepDummy::class).viewModel
     uiaStepDummyViewModel.next()
     uiaStack.waitFor(UiaRouter.Wrapper.None::class)
+}
+
+suspend fun MatrixMessengerWithRoot.initiateUserVerification(roomId: RoomId, userId: UserId) = with(root) {
+    val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
+    mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel.selectRoom(roomId)
+    val roomViewModel = mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
+    roomViewModel.openUserProfile(userId)
+    val userProfileViewModel = roomViewModel.extrasStack.waitFor(ExtrasRouter.Wrapper.UserProfile::class).viewModel
+    userProfileViewModel.startVerification()
+    val timelineViewModel = roomViewModel.timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
+    timelineViewModel.elements.first { holderViewModels -> holderViewModels.any { it is RoomMessageTimelineElementViewModel.VerificationRequest } }
+    val verificationRequest = timelineViewModel.elements.value.filterIsInstance<RoomMessageTimelineElementViewModel.VerificationRequest>().first()
+    verificationRequest.reachedEndState.first { it?.first?.not() ?: false }
+    verificationRequest.stack.waitFor(VerificationViewModel.Wrapper.Wait::class)
 }

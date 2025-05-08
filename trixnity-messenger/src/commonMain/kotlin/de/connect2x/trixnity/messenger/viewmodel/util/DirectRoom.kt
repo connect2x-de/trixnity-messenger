@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
@@ -11,6 +12,8 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 
+private val log = KotlinLogging.logger { }
+
 interface DirectRoom {
     fun getUsers(matrixClient: MatrixClient, directRoom: RoomId): Flow<List<UserId>>
     fun getUsersWithMembership(matrixClient: MatrixClient, directRoom: RoomId): Flow<Map<UserId, Flow<Membership?>>>
@@ -21,6 +24,7 @@ class DirectRoomImpl : DirectRoom {
     override fun getUsers(matrixClient: MatrixClient, directRoom: RoomId): Flow<List<UserId>> {
         return matrixClient.user.getAccountData<DirectEventContent>().map { directEventContent ->
             directEventContent?.mappings?.let { directMappings ->
+                log.debug { "=== direct mappings: $directMappings" }
                 directMappings.entries.filter { (_, rooms) ->
                     rooms?.contains(directRoom) ?: false
                 }.map { it.key }
