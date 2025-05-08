@@ -14,7 +14,7 @@ fun <T> ToggleableFilterChip(
     val applied = appliedFilters.collectAsState().value.containsAll(filters)
 
     FilterChip(
-        selected = !applied,
+        selected = applied,
         onClick = {
             if (applied) {
                 appliedFilters.value = appliedFilters.value.minus(filters)
