@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Give immediate feedback when a message has been sent (even before sync)
 - Update Firebase Cloud Messaging from 33.11.0 to 33.13.0
 - Expose current theme settings for library users
+- Styling: Allow customizing slider via theme
 
 ### Deprecated
 
