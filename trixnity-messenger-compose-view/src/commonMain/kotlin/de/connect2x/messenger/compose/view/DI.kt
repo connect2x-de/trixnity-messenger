@@ -471,7 +471,7 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
 
 fun timelineElementDetailsViewsModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {
     timelineElementDetailsView<ImageTimelineElementDetailsView> { ImageTimelineElementDetailsView() }
-    if (messengerConfiguration?.messengerFeatures?.enablePdfReader == true) {
+    if (messengerConfiguration?.features?.enablePdfReader == true) {
         timelineElementDetailsView<PdfTimelineElementDetailsView> {
             PdfTimelineElementDetailsView()
         }
