@@ -52,11 +52,9 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
@@ -65,7 +63,6 @@ import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
-import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.EmojiSelector
 import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.FilePickerType.ATTACHMENT_FILE
@@ -87,6 +84,7 @@ import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconToggleButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
+import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
@@ -202,11 +200,7 @@ fun UserSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: FocusRe
                                 .buttonPointerModifier()
                                 .padding(vertical = 5.dp)
                         ) {
-                            Avatar(
-                                avatar,
-                                initials = userInfoElement.initials,
-                                size = 28.dp
-                            )
+                            ThemedUserAvatar(userInfoElement.initials, avatar)
                             Spacer(Modifier.size(5.dp))
                             Text(userInfoElement.name, style = MaterialTheme.typography.bodyLarge)
                             Text(" (${userInfoElement.userId.full})", style = MaterialTheme.typography.bodyMedium)

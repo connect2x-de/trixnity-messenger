@@ -27,25 +27,27 @@ import de.connect2x.messenger.compose.view.theme.components
 
 @Immutable
 sealed interface IconButtonStyle {
+    val size: Dp
+
     data class Default(
-        val size: Dp,
+        override val size: Dp,
         val colors: IconToggleButtonColors,
     ) : IconButtonStyle
 
     data class Filled(
-        val size: Dp,
+        override val size: Dp,
         val shape: Shape,
         val colors: IconToggleButtonColors,
     ) : IconButtonStyle
 
     data class FilledTonal(
-        val size: Dp,
+        override val size: Dp,
         val shape: Shape,
         val colors: IconToggleButtonColors,
     ) : IconButtonStyle
 
     data class Outlined(
-        val size: Dp,
+        override val size: Dp,
         val shape: Shape,
         val colors: IconToggleButtonColors,
         val enabledBorder: BorderStroke?,
@@ -130,6 +132,7 @@ fun ThemedIconButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     style: IconButtonStyle = MaterialTheme.components.commonIconButton,
+    size: Dp = style.size,
     interactionSource: MutableInteractionSource? = null,
     content: @Composable () -> Unit
 ) {
@@ -137,7 +140,7 @@ fun ThemedIconButton(
         is IconButtonStyle.Default ->
             IconButton(
                 onClick = onClick,
-                modifier = modifier.requiredSize(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.requiredSize(size).buttonPointerModifier(enabled),
                 enabled = enabled,
                 colors = style.colors.iconButtonColors().withContentColors(),
                 interactionSource = interactionSource,
@@ -147,7 +150,7 @@ fun ThemedIconButton(
         is IconButtonStyle.Filled ->
             FilledIconButton(
                 onClick = onClick,
-                modifier = modifier.requiredSize(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.requiredSize(size).buttonPointerModifier(enabled),
                 enabled = enabled,
                 shape = style.shape,
                 colors = style.colors.iconButtonColors().withContentColors(),
@@ -157,7 +160,7 @@ fun ThemedIconButton(
         is IconButtonStyle.FilledTonal ->
             FilledTonalIconButton(
                 onClick = onClick,
-                modifier = modifier.requiredSize(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.requiredSize(size).buttonPointerModifier(enabled),
                 enabled = enabled,
                 shape = style.shape,
                 colors = style.colors.iconButtonColors().withContentColors(),
@@ -167,7 +170,7 @@ fun ThemedIconButton(
         is IconButtonStyle.Outlined ->
             OutlinedIconButton(
                 onClick = onClick,
-                modifier = modifier.requiredSize(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.requiredSize(size).buttonPointerModifier(enabled),
                 enabled = enabled,
                 shape = style.shape,
                 colors = style.colors.iconButtonColors().withContentColors(),
@@ -184,6 +187,7 @@ fun ThemedIconToggleButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     style: IconButtonStyle = MaterialTheme.components.commonIconButton,
+    size: Dp = style.size,
     interactionSource: MutableInteractionSource? = null,
     content: @Composable () -> Unit
 ) {
@@ -192,7 +196,7 @@ fun ThemedIconToggleButton(
             IconToggleButton(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                modifier = modifier.size(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.size(size).buttonPointerModifier(enabled),
                 enabled = enabled,
                 colors = style.colors.withContentColors(),
                 interactionSource = interactionSource,
@@ -202,7 +206,7 @@ fun ThemedIconToggleButton(
             FilledIconToggleButton(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                modifier = modifier.size(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.size(size).buttonPointerModifier(enabled),
                 enabled = enabled,
                 colors = style.colors.withContentColors(),
                 interactionSource = interactionSource,
@@ -212,7 +216,7 @@ fun ThemedIconToggleButton(
             FilledTonalIconToggleButton(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                modifier = modifier.size(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.size(size).buttonPointerModifier(enabled),
                 enabled = enabled,
                 colors = style.colors.withContentColors(),
                 interactionSource = interactionSource,
@@ -222,7 +226,7 @@ fun ThemedIconToggleButton(
             OutlinedIconToggleButton(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                modifier = modifier.size(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.size(size).buttonPointerModifier(enabled),
                 enabled = enabled,
                 colors = style.colors.withContentColors(),
                 interactionSource = interactionSource,

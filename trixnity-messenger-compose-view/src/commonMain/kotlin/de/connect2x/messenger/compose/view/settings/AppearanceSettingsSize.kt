@@ -36,6 +36,7 @@ import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.messenger.compose.view.theme.SystemDensity
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedSlider
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
@@ -129,7 +130,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                     style = MaterialTheme.typography.titleSmall
                 )
             }
-            Slider(
+            ThemedSlider(
                 value = finalNewFontSize,
                 onValueChange = { newFontSize = it },
                 steps = 0,
@@ -151,7 +152,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                     style = MaterialTheme.typography.titleSmall
                 )
             }
-            Slider(
+            ThemedSlider(
                 value = finalNewDisplaySize,
                 onValueChange = { newDisplaySize = it },
                 valueRange = defaultSizes.minDisplaySize..defaultSizes.maxDisplaySize,
