@@ -113,7 +113,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
                         ) {
                             Row(
                                 horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Box {
                                     ThemedUserAvatar(roomHeaderElement.roomImageInitials, roomHeaderElement.roomImage) {
@@ -151,7 +151,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
                                     Spacer(Modifier.size(5.dp))
                                 }
 
-                                Column {
+                                Column(modifier = Modifier.padding(end = 14.dp)) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         RoomName(roomHeaderElement)
                                         Spacer(Modifier.size(7.dp))

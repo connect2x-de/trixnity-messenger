@@ -11,6 +11,7 @@ import de.connect2x.messenger.compose.view.theme.components.FloatingActionButton
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.CircularProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
+import de.connect2x.messenger.compose.view.theme.components.SliderStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.messenger.compose.view.theme.components.TooltipStyle
 
@@ -59,6 +60,8 @@ data class ComponentStyles(
     val smallCircularProgressIndicator: CircularProgressIndicatorStyle,
     val extraSmallCircularProgressIndicator: CircularProgressIndicatorStyle,
     val linearProgressIndicator: LinearProgressIndicatorStyle,
+    // slider
+    val slider: SliderStyle,
     // avatar
     val avatar: AvatarStyle,
 )
