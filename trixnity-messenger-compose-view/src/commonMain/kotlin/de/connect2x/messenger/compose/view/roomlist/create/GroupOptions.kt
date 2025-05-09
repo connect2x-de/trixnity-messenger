@@ -28,6 +28,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.i18n.getExplanation
 import de.connect2x.messenger.compose.view.i18n.getExplanationWhenEncrypted
 import de.connect2x.messenger.compose.view.i18n.getStateName
+import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 
@@ -70,7 +71,7 @@ class CreateGroupOptionsViewImpl : CreateGroupOptionsView {
                     Text(visibilityType)
                 }
 
-                Switch(
+                ThemedSwitch(
                     checked = isPrivate,
                     onCheckedChange = { createNewGroupViewModel.isPrivate.value = it }
                 )
@@ -95,7 +96,7 @@ class CreateGroupOptionsViewImpl : CreateGroupOptionsView {
                     Icon(icon, null)
                 }
 
-                Switch(
+                ThemedSwitch(
                     checked = isEncrypted,
                     onCheckedChange = { createNewGroupViewModel.changeEncryptionStatus(it) }
                 )

@@ -29,6 +29,7 @@ import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorSty
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.SliderStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
+import de.connect2x.messenger.compose.view.theme.components.SwitchStyle
 import de.connect2x.messenger.compose.view.theme.components.TooltipStyle
 
 @Composable
@@ -120,6 +121,8 @@ class ThemeComponentsImpl : ThemeComponents {
             containerColor = Color.LightGray,
             elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp)
         ),
+        // other inputs
+        switch = SwitchStyle.default(),
         // surfaces
         background = SurfaceStyle.default(),
         dialog = SurfaceStyle.default(
