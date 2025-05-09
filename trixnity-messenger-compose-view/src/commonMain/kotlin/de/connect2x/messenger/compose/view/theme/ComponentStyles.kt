@@ -28,6 +28,8 @@ data class ComponentStyles(
     val destructiveIconButton: IconButtonStyle,
     val floatingActionButton: FloatingActionButtonStyle,
     val floatingActionButtonDisabled: FloatingActionButtonStyle,
+    val reactionButton: ButtonStyle,
+    val selectedReactionButton: ButtonStyle,
     // surfaces
     val background: SurfaceStyle,
     val dialog: SurfaceStyle,

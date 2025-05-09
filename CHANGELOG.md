@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Styling: Allow customizing slider via theme
 - Styling: Use styleable components for avatars
 - Styling: Use styleable components for chips
+- Styling: Make emoji reactions themable
 
 ### Deprecated
 

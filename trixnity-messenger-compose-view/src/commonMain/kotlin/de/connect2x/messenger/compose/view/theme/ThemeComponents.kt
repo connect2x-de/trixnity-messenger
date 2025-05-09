@@ -120,6 +120,25 @@ class ThemeComponentsImpl : ThemeComponents {
             containerColor = Color.LightGray,
             elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp)
         ),
+        reactionButton = ButtonStyle.outlined(
+            iconSize = 18.dp,
+            iconSpacing = 4.dp,
+            contentPadding = PaddingValues(12.dp, 4.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        ),
+        selectedReactionButton = ButtonStyle.filledTonal(
+            iconSize = 18.dp,
+            iconSpacing = 4.dp,
+            contentPadding = PaddingValues(12.dp, 4.dp),
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary,
+                disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            ),
+        ),
         // surfaces
         background = SurfaceStyle.default(),
         dialog = SurfaceStyle.default(
