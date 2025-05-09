@@ -139,6 +139,10 @@ class ThemeComponentsImpl : ThemeComponents {
             color = MaterialTheme.colorScheme.surfaceContainerLow,
             tonalElevation = 4.dp,
         ),
+        details = SurfaceStyle.default(
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            tonalElevation = 4.dp,
+        ),
         header = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 8.dp,

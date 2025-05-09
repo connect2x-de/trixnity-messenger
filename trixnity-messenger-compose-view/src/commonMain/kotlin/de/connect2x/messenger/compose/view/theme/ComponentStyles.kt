@@ -36,6 +36,7 @@ data class ComponentStyles(
     val dialog: SurfaceStyle,
     val popup: SurfaceStyle,
     val sidebar: SurfaceStyle,
+    val details: SurfaceStyle,
     val header: SurfaceStyle,
     val timeline: SurfaceStyle,
     // dividers
