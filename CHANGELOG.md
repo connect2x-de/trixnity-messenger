@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unintuitive icon used for logout button
 - No padding at the end of the room header description (View: RoomHeader)
 - User Profile Avatars not loading
+- Direct rooms sometimes were interpreted as a group
  
 ### Security
 
