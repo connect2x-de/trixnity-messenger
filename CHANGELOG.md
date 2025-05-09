@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expose current theme settings for library users
 - Styling: Allow customizing slider via theme
 - Styling: Use styleable components for avatars
+- Styling: Use styleable components for chips
 
 ### Deprecated
 
