@@ -127,10 +127,7 @@ class UserProfileViewImpl : UserProfileView {
         val canOpenChat = userProfileViewModel.canOpenChat.collectAsState().value
 
         Column(
-            Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .blockPointerInput(),
+            Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             DialogHandler(userProfileViewModel)
