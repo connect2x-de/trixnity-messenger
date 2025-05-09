@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expose current theme settings for library users
 - Styling: Allow customizing slider via theme
 - Styling: Use styleable components for avatars
+- Styling: Use styleable components for chips
+- Styling: Make details pane style customizable
+- Styling: Allow customizing banners via theme
 
 ### Deprecated
 
@@ -30,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unintuitive icon used for logout button
 - No padding at the end of the room header description (View: RoomHeader)
 - User Profile Avatars not loading
+- Styling: use tonalElevation for surfaces
  
 ### Security
 

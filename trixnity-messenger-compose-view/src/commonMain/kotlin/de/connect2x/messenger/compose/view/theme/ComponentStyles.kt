@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import de.connect2x.messenger.compose.view.theme.components.AvatarStyle
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
+import de.connect2x.messenger.compose.view.theme.components.ChipStyle
 import de.connect2x.messenger.compose.view.theme.components.DividerStyle
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.FloatingActionButtonStyle
@@ -32,8 +33,12 @@ data class ComponentStyles(
     val dialog: SurfaceStyle,
     val popup: SurfaceStyle,
     val sidebar: SurfaceStyle,
+    val details: SurfaceStyle,
     val header: SurfaceStyle,
     val timeline: SurfaceStyle,
+    val errorBanner: SurfaceStyle,
+    val warningBanner: SurfaceStyle,
+    val commonBanner: SurfaceStyle,
     // dividers
     val horizontalDivider: DividerStyle?,
     val verticalDivider: DividerStyle?,
@@ -64,6 +69,11 @@ data class ComponentStyles(
     val slider: SliderStyle,
     // avatar
     val avatar: AvatarStyle,
+    // chips
+    val primaryChip: ChipStyle,
+    val secondaryChip: ChipStyle,
+    val commonChip: ChipStyle,
+    val destructiveChip: ChipStyle,
 )
 
 internal val LocalComponentStyles = staticCompositionLocalOf<ComponentStyles> { error("compositionLocal not defined") }

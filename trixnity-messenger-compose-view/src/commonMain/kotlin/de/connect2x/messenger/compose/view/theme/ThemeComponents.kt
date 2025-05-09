@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.theme.components.AvatarStyle
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
+import de.connect2x.messenger.compose.view.theme.components.ChipStyle
 import de.connect2x.messenger.compose.view.theme.components.LocalContent
 import de.connect2x.messenger.compose.view.theme.components.DividerStyle
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
@@ -135,11 +136,27 @@ class ThemeComponentsImpl : ThemeComponents {
             color = MaterialTheme.colorScheme.surfaceContainerLow,
             tonalElevation = 4.dp,
         ),
+        details = SurfaceStyle.default(
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            tonalElevation = 4.dp,
+        ),
         header = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 8.dp,
         ),
         timeline = SurfaceStyle.default(),
+        errorBanner = SurfaceStyle.default(
+            color = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        ),
+        warningBanner = SurfaceStyle.default(
+            color = MaterialTheme.messengerColors.warning,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ),
+        commonBanner = SurfaceStyle.default(
+            color = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ),
         // dividers
         horizontalDivider = DividerStyle.default(),
         verticalDivider = DividerStyle.default(),
@@ -258,6 +275,43 @@ class ThemeComponentsImpl : ThemeComponents {
             outerBorder = BorderStroke(1.dp, MaterialTheme.colorScheme.secondaryContainer),
             innerBorder = BorderStroke(1.dp, MaterialTheme.colorScheme.surface),
             shape = CircleShape,
-        )
+        ),
+        // chips
+        primaryChip = ChipStyle.default(
+            colors = ChipStyle.Colors.default(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            ),
+        ),
+        secondaryChip = ChipStyle.default(
+            colors = ChipStyle.Colors.default(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                selectedTrailingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            ),
+        ),
+        commonChip = ChipStyle.default(
+            colors = ChipStyle.Colors.default(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            ),
+        ),
+        destructiveChip = ChipStyle.default(
+            colors = ChipStyle.Colors.default(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                selectedContainerColor = MaterialTheme.colorScheme.errorContainer,
+                selectedLabelColor = MaterialTheme.colorScheme.onErrorContainer,
+                selectedLeadingIconColor = MaterialTheme.colorScheme.onErrorContainer,
+                selectedTrailingIconColor = MaterialTheme.colorScheme.onErrorContainer,
+            ),
+        ),
     )
 }
