@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.integrationtests.util
 import de.connect2x.trixnity.messenger.CreateRepositoriesModule
 import de.connect2x.trixnity.messenger.DebugName
 import de.connect2x.trixnity.messenger.MatrixMessenger
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.create
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerImpl
@@ -41,12 +42,13 @@ fun createTrixnityMessengerTestModule(debugName: String = "client") = module {
     }
 }
 
-suspend fun createTestMatrixMessenger(debugName: String = "client") =
-    MatrixMessengerWithRoot(
-        MatrixMessenger.create {
-            modulesFactories += { createTrixnityMessengerTestModule(debugName) }
-        }
-    )
+suspend fun createTestMatrixMessenger(debugName: String = "client"): MatrixMessengerWithRoot {
+    val matrixMessenger = MatrixMessenger.create {
+        modulesFactories += { createTrixnityMessengerTestModule(debugName) }
+    }
+    matrixMessenger.di.get<MatrixMessengerSettingsHolder>().update { it.base.copy(preferredLang = "en") }
+    return MatrixMessengerWithRoot(matrixMessenger)
+}
 
 suspend fun createTestMatrixMultiMessenger(
     debugName: String = "client",

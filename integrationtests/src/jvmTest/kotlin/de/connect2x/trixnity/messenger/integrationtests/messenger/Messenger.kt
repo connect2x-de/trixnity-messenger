@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
 package de.connect2x.trixnity.messenger.integrationtests.messenger
 
 import de.connect2x.trixnity.messenger.MatrixClients
@@ -11,11 +13,15 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMeth
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
+import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.VerificationRequest
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
@@ -30,6 +36,7 @@ import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
@@ -307,8 +314,8 @@ suspend fun MatrixMessengerWithRoot.sendMessage(roomId: RoomId, message: String)
         val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
         val roomListViewModel = mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
         roomListViewModel.selectRoom(roomId)
-        val timelineViewModel = mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
-            .timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
+        val roomViewModel = mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
+        val timelineViewModel = roomViewModel.timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
         val inputAreaViewModel = timelineViewModel.inputAreaViewModel
         val job = launch { inputAreaViewModel.isSendEnabled.collect {} }
         inputAreaViewModel.textField.update(message)
@@ -316,22 +323,8 @@ suspend fun MatrixMessengerWithRoot.sendMessage(roomId: RoomId, message: String)
         inputAreaViewModel.isSendEnabled.first { it }
         inputAreaViewModel.sendMessage()
         timelineViewModel.jumpToEndOfTimeline() // TODO remove?
-        timelineViewModel.elements.first { vms ->
-            log.debug { "vms: $vms" }
-            timelineViewModel.viewState.value = TimelineViewModel.ViewState(
-                firstVisibleElement = vms.first().key,
-                lastVisibleElement = vms.last().key,
-                firstLoadedElement = vms.first().key,
-                lastLoadedElement = vms.last().key,
-                windowIsFocused = true,
-            )
-            vms
-                .filterIsInstance<TimelineElementHolderViewModel>()
-                .any {
-                    val vm = it.element.filterNotNull().first()
-                    log.debug { "+++ vm: $vm, ${vm::class.simpleName}" }
-                    vm is RoomMessageTimelineElementViewModel.TextBased.Text && vm.body == message
-                }
+        findTimelineElement<TimelineElementHolderViewModel>(roomViewModel) { vm ->
+            vm is TextBased.Text && vm.body == message
         }
         job.cancel()
     }
@@ -342,24 +335,9 @@ suspend fun MatrixMessengerWithRoot.findMessage(roomId: RoomId, message: String)
         val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
         val roomListViewModel = mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
         roomListViewModel.selectRoom(roomId)
-        val timelineViewModel = mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
-            .timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
-        timelineViewModel.elements.first { vms ->
-            log.debug { "vms: $vms" }
-            timelineViewModel.viewState.value = TimelineViewModel.ViewState(
-                firstVisibleElement = vms.first().key,
-                lastVisibleElement = vms.last().key,
-                firstLoadedElement = vms.first().key,
-                lastLoadedElement = vms.last().key,
-                windowIsFocused = true,
-            )
-            vms
-                .filterIsInstance<TimelineElementHolderViewModel>()
-                .any {
-                    val vm = it.element.filterNotNull().first()
-                    log.debug { "+++ vm: $vm, ${vm::class.simpleName}" }
-                    vm is RoomMessageTimelineElementViewModel.TextBased.Text && vm.body == message
-                }
+        val roomViewModel = mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
+        findTimelineElement<TimelineElementHolderViewModel>(roomViewModel) { vm ->
+            vm is TextBased.Text && vm.body == message
         }
         true
     } ?: false
@@ -531,15 +509,161 @@ suspend fun MatrixMessengerWithRoot.authorizeUia() = with(root) {
 }
 
 suspend fun MatrixMessengerWithRoot.initiateUserVerification(roomId: RoomId, userId: UserId) = with(root) {
+    log.info { "  +- initiate user verification (client1)" }
+    withTimeout(20.seconds) {
+        val roomViewModel = goToRoom(roomId)
+        roomViewModel.openUserProfile(userId)
+        val userProfileViewModel = roomViewModel.extrasStack.waitFor(ExtrasRouter.Wrapper.UserProfile::class).viewModel
+        userProfileViewModel.startVerification()
+        log.debug { "started user verification" }
+        delay(1.seconds) // wait for request to finish
+        val verificationRequest = findActiveVerification(roomViewModel)
+        verificationRequest.reachedEndState.first { it == null }
+        log.debug { "wait for verification state machine to move on" }
+        val verificationViewModel =
+            verificationRequest.stack.waitFor(VerificationRouter.Wrapper.Verification::class).viewModel
+        verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.Wait::class)
+        log.debug { "user verification started" }
+    }
+}
+
+suspend fun MatrixMessengerWithRoot.acceptUserVerification(roomId: RoomId, otherUserId: UserId) = with(root) {
+    log.info { "  +- accept user verification (client2)" }
+    withTimeout(20.seconds) {
+        val verificationViewModel = verificationViewModel(roomId)
+        val requestViewModel =
+            verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.Request::class).viewModel
+        requestViewModel.theirUserId shouldBe otherUserId
+        requestViewModel.next()
+        log.debug { "user verification accepted" }
+    }
+}
+
+suspend fun MatrixMessengerWithRoot.startVerificationWithEmoji(roomId: RoomId) = with(root) {
+    log.info { "  +- start verification with emoji (client1)" }
+    withTimeout(20.seconds) {
+        val verificationViewModel = verificationViewModel(roomId)
+        val selectVerification =
+            verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.SelectVerificationMethod::class).viewModel
+        selectVerification.verificationMethods.size shouldBe 1
+        selectVerification.acceptVerificationMethod(selectVerification.verificationMethods[0].first)
+        verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.Wait::class)
+    }
+}
+
+suspend fun MatrixMessengerWithRoot.acceptVerificationWithEmoji(roomId: RoomId) = with(root) {
+    log.info { "  +- accept verification with emoji (client2)" }
+    withTimeout(20.seconds) {
+        val verificationViewModel = verificationViewModel(roomId)
+        val acceptSasStartViewModel =
+            verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.AcceptSasStart::class).viewModel
+        acceptSasStartViewModel.accept()
+        val compareViewModel =
+            verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.CompareEmojisOrNumbers::class).viewModel
+        compareViewModel.accept()
+        verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.Wait::class)
+    }
+}
+
+suspend fun MatrixMessengerWithRoot.originalClientAcceptVerificationWithEmoji(roomId: RoomId) = with(root) {
+    log.info { "  +- other client accept verification with emoji (client1)" }
+    val verificationViewModel = verificationViewModel(roomId)
+    val compareViewModel =
+        verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.CompareEmojisOrNumbers::class).viewModel
+    compareViewModel.accept()
+    verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.Success::class)
+    val roomViewModel = goToRoom(roomId)
+    val verificationRequest = findActiveVerification(roomViewModel)
+    verificationRequest.reachedEndState.first {
+        println("endState: $it")
+        it == true to "Erfolgreich"
+    }
+}
+
+private suspend fun RootViewModel.goToRoom(roomId: RoomId): RoomViewModel {
+    log.debug { "go to room $roomId" }
     val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
     mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel.selectRoom(roomId)
     val roomViewModel = mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
-    roomViewModel.openUserProfile(userId)
-    val userProfileViewModel = roomViewModel.extrasStack.waitFor(ExtrasRouter.Wrapper.UserProfile::class).viewModel
-    userProfileViewModel.startVerification()
+    log.debug { "go to room $roomId successful" }
+    return roomViewModel
+}
+
+private suspend fun RootViewModel.verificationViewModel(roomId: RoomId): VerificationViewModel {
+    val roomViewModel = goToRoom(roomId)
+    val verificationRequest = findActiveVerification(roomViewModel)
+    verificationRequest.reachedEndState.first { it == null }
+    val verificationViewModel =
+        verificationRequest.stack.waitFor(VerificationRouter.Wrapper.Verification::class).viewModel
+    return verificationViewModel
+}
+
+private suspend fun findActiveVerification(roomViewModel: RoomViewModel): VerificationRequest {
+    log.debug { "find active verification" }
+    val verificationRequest =
+        findTimelineElement<VerificationRequest, BaseTimelineElementHolderViewModel>(roomViewModel)
+    log.debug { "found active verification: $verificationRequest" }
+    return verificationRequest
+}
+
+private suspend inline fun <reified H : BaseTimelineElementHolderViewModel> findTimelineElement(
+    roomViewModel: RoomViewModel,
+    crossinline condition: (TimelineElementViewModel<*>) -> Boolean,
+) {
     val timelineViewModel = roomViewModel.timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
-    timelineViewModel.elements.first { holderViewModels -> holderViewModels.any { it is RoomMessageTimelineElementViewModel.VerificationRequest } }
-    val verificationRequest = timelineViewModel.elements.value.filterIsInstance<RoomMessageTimelineElementViewModel.VerificationRequest>().first()
-    verificationRequest.reachedEndState.first { it?.first?.not() ?: false }
-    verificationRequest.stack.waitFor(VerificationViewModel.Wrapper.Wait::class)
+    timelineViewModel.elements.first { vms ->
+        log.debug { "vms: $vms" }
+        initViewState(timelineViewModel, vms)
+        vms
+            .filterIsInstance<H>()
+            .any {
+                val vm = it.element.filterNotNull().first()
+                log.debug { "+++ vm: $vm, ${vm::class.simpleName}" }
+                condition(vm)
+            }
+    }
+}
+
+private suspend inline fun <reified T : TimelineElementViewModel<*>, reified H : BaseTimelineElementHolderViewModel> findTimelineElement(
+    roomViewModel: RoomViewModel,
+): T {
+    val timelineViewModel = roomViewModel.timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
+    timelineViewModel.elements.first { it.isNotEmpty() }
+    timelineViewModel.elements.flatMapLatest { vms ->
+        initViewState(timelineViewModel, vms)
+        combine(
+            vms
+                .filterIsInstance<H>()
+                .map { it.element.filterNotNull() }) {
+            it.toList()
+        }
+    }.first { vms ->
+        log.debug { "+++ vms: $vms" }
+        vms
+            .any { vm ->
+                log.debug { "+++ vm: ${vm::class.simpleName}" }
+                vm is T
+            }
+    }
+
+    return timelineViewModel.elements.map {
+        it
+            .filterIsInstance<H>()
+            .find { vm -> vm.element.filterNotNull().first() is T }
+    }.filterNotNull().first().element.filterNotNull().first() as T
+}
+
+private fun initViewState(
+    timelineViewModel: TimelineViewModel,
+    vms: List<BaseTimelineElementHolderViewModel>
+) {
+    if (timelineViewModel.viewState.value == null) {
+        timelineViewModel.viewState.value = TimelineViewModel.ViewState(
+            firstVisibleElement = vms.first().key,
+            lastVisibleElement = vms.last().key,
+            firstLoadedElement = vms.first().key,
+            lastLoadedElement = vms.last().key,
+            windowIsFocused = true,
+        )
+    }
 }

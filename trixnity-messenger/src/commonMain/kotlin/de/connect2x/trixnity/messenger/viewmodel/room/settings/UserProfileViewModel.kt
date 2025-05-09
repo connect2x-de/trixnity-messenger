@@ -541,7 +541,10 @@ class UserProfileViewModelImpl(
             coroutineScope.launch {
                 val req = matrixClient.verification.createUserVerificationRequest(userId)
                     .fold(
-                        onSuccess = { it },
+                        onSuccess = {
+                            log.debug { "started verification with user $userId" }
+                            it
+                        },
                         onFailure = {
                             log.error(it) { "cannot verify user $userId" }
                             error.value = i18n.userVerificationNoMatch() // TODO
