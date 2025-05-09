@@ -7,13 +7,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 
 @Composable
 fun Setting(
@@ -32,11 +31,10 @@ fun Setting(
             if (explanation != null) Text(text = explanation, style = MaterialTheme.typography.bodySmall)
         }
         Spacer(Modifier.size(5.dp))
-        Switch(
+        ThemedSwitch(
             checked = value,
             enabled = enabled,
             onCheckedChange = { toggle(it) },
-            modifier = Modifier.buttonPointerModifier()
         )
     }
 }

@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Styling: Use styleable components for chips
 - Styling: Make details pane style customizable
 - Styling: Allow customizing banners via theme
+- Styling: Allow customizing switches via theme
 
 ### Deprecated
 
