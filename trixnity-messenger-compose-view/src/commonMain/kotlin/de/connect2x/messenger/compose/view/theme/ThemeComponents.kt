@@ -148,6 +148,18 @@ class ThemeComponentsImpl : ThemeComponents {
             tonalElevation = 8.dp,
         ),
         timeline = SurfaceStyle.default(),
+        errorBanner = SurfaceStyle.default(
+            color = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        ),
+        warningBanner = SurfaceStyle.default(
+            color = MaterialTheme.messengerColors.warning,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ),
+        commonBanner = SurfaceStyle.default(
+            color = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ),
         // dividers
         horizontalDivider = DividerStyle.default(),
         verticalDivider = DividerStyle.default(),

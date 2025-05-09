@@ -39,6 +39,9 @@ data class ComponentStyles(
     val details: SurfaceStyle,
     val header: SurfaceStyle,
     val timeline: SurfaceStyle,
+    val errorBanner: SurfaceStyle,
+    val warningBanner: SurfaceStyle,
+    val commonBanner: SurfaceStyle,
     // dividers
     val horizontalDivider: DividerStyle?,
     val verticalDivider: DividerStyle?,
