@@ -121,7 +121,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.details.Element
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelectorImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ImageTimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.details.PdfTimelineElementDetailsView
-import de.connect2x.messenger.compose.view.room.timeline.element.details.PreviewNotSupportedTimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.details.TimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementView
@@ -167,12 +166,12 @@ import de.connect2x.messenger.compose.view.roomlist.header.CloseProfileView
 import de.connect2x.messenger.compose.view.roomlist.header.CloseProfileViewImpl
 import de.connect2x.messenger.compose.view.roomlist.header.ShowSearchView
 import de.connect2x.messenger.compose.view.roomlist.header.ShowSearchViewImpl
-import de.connect2x.messenger.compose.view.roomlist.room.KnockRoomListElement
-import de.connect2x.messenger.compose.view.roomlist.room.KnockRoomListElementImpl
 import de.connect2x.messenger.compose.view.roomlist.room.ArchivedRoomListElement
 import de.connect2x.messenger.compose.view.roomlist.room.ArchivedRoomListElementImpl
 import de.connect2x.messenger.compose.view.roomlist.room.InviteRoomListElement
 import de.connect2x.messenger.compose.view.roomlist.room.InviteRoomListElementImpl
+import de.connect2x.messenger.compose.view.roomlist.room.KnockRoomListElement
+import de.connect2x.messenger.compose.view.roomlist.room.KnockRoomListElementImpl
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainerView
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainerViewImpl
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementView
@@ -273,6 +272,7 @@ import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWiza
 import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWizardViewImpl
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardView
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardViewImpl
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named
@@ -280,7 +280,10 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
-fun composeViewModule(): Module = module {
+/**
+ * @param messengerConfiguration if this is the DI for the UI of a MatrixMessenger, then add the configuration, else `null`
+ */
+fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Module = module {
     includes(
         i18nViewModule(),
         themeViewModule(),
@@ -295,7 +298,7 @@ fun composeViewModule(): Module = module {
         searchViewModule(),
         roomViewModule(),
         roomSettingsViewModule(),
-        timelineViewModule(),
+        timelineViewModule(messengerConfiguration),
         userSearchViewModule(),
         settingsViewModule(),
         verificationViewModule(),
@@ -415,7 +418,7 @@ inline fun <reified F : TimelineElementDetailsView<*>> Module.timelineElementDet
     noinline definition: Scope.(ParametersHolder) -> F
 ) = single<F>(named<F>(), definition = definition).bind<TimelineElementDetailsView<*>>()
 
-fun timelineViewModule() = module {
+fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {
     timelineElementView<EncryptedErrorTimelineElementView> { EncryptedErrorTimelineElementView() }
     timelineElementView<EncryptedWaitTimelineElementView> { EncryptedWaitTimelineElementView() }
     timelineElementView<RedactedTimelineElementView> { RedactedTimelineElementView() }
@@ -437,8 +440,7 @@ fun timelineViewModule() = module {
     timelineElementView<MemberStateTimelineElementView> { MemberStateTimelineElementView() }
     timelineElementView<NameStateTimelineElementView> { NameStateTimelineElementView() }
     timelineElementView<TopicStateTimelineElementView> { TopicStateTimelineElementView() }
-    timelineElementDetailsView<ImageTimelineElementDetailsView> { ImageTimelineElementDetailsView() }
-    timelineElementDetailsView<PdfTimelineElementDetailsView> { PdfTimelineElementDetailsView() }
+    includes(timelineElementDetailsViewsModule(messengerConfiguration))
     single<TimelineElementViewSelector> { TimelineElementViewSelectorImpl(getAll()) }
     single<ElementDetailsViewSelector> { ElementDetailsViewSelectorImpl(getAll()) }
 
@@ -465,6 +467,15 @@ fun timelineViewModule() = module {
     single<SendAttachmentView> { SendAttachmentViewImpl() }
     single<SendAttachmentTitleView> { SendAttachmentTitleViewImpl() }
     single<TypingIndicatorView> { TypingIndicatorViewImpl() }
+}
+
+fun timelineElementDetailsViewsModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {
+    timelineElementDetailsView<ImageTimelineElementDetailsView> { ImageTimelineElementDetailsView() }
+    if (messengerConfiguration?.features?.enablePdfReader == true) {
+        timelineElementDetailsView<PdfTimelineElementDetailsView> {
+            PdfTimelineElementDetailsView()
+        }
+    }
 }
 
 fun userSearchViewModule() = module {
