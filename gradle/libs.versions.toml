@@ -1,8 +1,8 @@
 [versions]
 jvmTarget = "17"
-c2xConventions = "39087842"
+c2xConventions = "41503362" # https://gitlab.com/connect2x/c2x-conventions/-/packages
 
-trixnityMessenger = "3.5.6"
+trixnityMessenger = "3.5.7"
 trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
@@ -37,11 +37,11 @@ icu4j = "77.1" # https://github.com/unicode-org/icu/releases
 testContainers = "1.20.6" # https://github.com/testcontainers/testcontainers-java/releases
 composeMultiplatform = "1.7.3" # https://github.com/JetBrains/compose-multiplatform/releases
 richeditor = "1.0.0-rc11" # https://github.com/MohamedRejeb/compose-rich-editor/releases
-aboutLibraries = "12.0.0-a04" # https://github.com/mikepenz/AboutLibraries/releases
+aboutLibraries = "12.0.0" # https://github.com/mikepenz/AboutLibraries/releases
 copyWebpackPlugin = "12.0.2" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
 composeUiTest = "1.7.8" # https://androidx.tech/artifacts/compose.ui/ui-test-junit4/
 filekit = "0.8.8" # https://github.com/vinceglb/FileKit/releases
-firebase = "33.11.0" # https://firebase.google.com/support/release-notes/android
+firebase = "33.13.0" # https://firebase.google.com/support/release-notes/android
 googleServices = "4.4.2" # https://developers.google.com/android/guides/google-services-plugin
 
 androidGradle = "8.7.3" # https://developer.android.com/reference/tools/gradle-api
@@ -58,6 +58,7 @@ androidxWorkManager = "2.10.0" # https://developer.android.com/jetpack/androidx/
 androidxLiveData = "2.8.7" # https://developer.android.com/jetpack/androidx/releases/lifecycle
 androidxAppCompat = "1.7.0" # https://developer.android.com/jetpack/androidx/releases/appcompat
 androidxAutofill = "1.3.0-rc01" # https://developer.android.com/jetpack/androidx/releases/autofill
+androidxAnnotation = "1.9.1" # https://developer.android.com/jetpack/androidx/releases/annotation
 
 kotlinLogging = "7.0.5" # https://github.com/MicroUtils/kotlin-logging/releases
 slf4j = "2.0.17" # https://github.com/qos-ch/slf4j/tags
@@ -105,6 +106,7 @@ androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "a
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "androidxWorkManager" }
 androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "androidxLiveData" }
 androidx-autofill = { module = "androidx.autofill:autofill", version.ref = "androidxAutofill" }
+androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logback-android = { module = "com.github.tony19:logback-android", version.ref = "logbackAndroid" }

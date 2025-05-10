@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -107,7 +109,7 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                                 }
 
                                 OutlinedButton(onClick = { showLogoutWarning = accountInfo }) {
-                                    Icon(Icons.Default.DeleteForever, i18n.commonDelete())
+                                    Icon(Icons.AutoMirrored.Default.Logout, i18n.commonDelete())
                                 }
                             }
                         }

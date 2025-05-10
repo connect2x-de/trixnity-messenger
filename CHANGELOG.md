@@ -13,17 +13,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Give immediate feedback when a message has been sent (even before sync)
+- Update Firebase Cloud Messaging from 33.11.0 to 33.13.0
+- Expose current theme settings for library users
+- Styling: Allow customizing slider via theme
+- Styling: Use styleable components for avatars
+- Styling: Use styleable components for chips
+- Styling: Make details pane style customizable
+- Styling: Allow customizing banners via theme
+- Styling: Allow customizing switches via theme
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
+- Add delay for appearance of tooltips when hovering element
+- Remove double parenthesis for file size of upload element
+- Unintuitive icon used for logout button
+- No padding at the end of the room header description (View: RoomHeader)
+- User Profile Avatars not loading
+- Styling: use tonalElevation for surfaces
+ 
+### Security
+
+## 3.5.6
+
+### Changed
+
+- Styling: Use stylable components for roomlist
+- Styling: Define default colors for different surface levels
+- Styling: support local content color for most components
+- Styling: Allow overriding MessengerColors
+
+### Fixed
+
+- Duplicated libraries in the About > Licenses are now differentiable
 - Wait for database being closed before trying to delete user folder
 - Update selected account when deleting account
 - Improved web build performance
-
-### Security
 
 ## 3.5.5
 
@@ -725,6 +754,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - image dimensions should be null, when not determined
+- Don't show user presence in direct chat when user left room
 
 ## 2.0.2
 

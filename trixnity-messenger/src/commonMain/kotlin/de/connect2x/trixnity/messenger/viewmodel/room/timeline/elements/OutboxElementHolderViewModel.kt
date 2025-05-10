@@ -218,6 +218,10 @@ class OutboxElementHolderViewModelImpl(
 
     override val isByMe: Boolean = true
 
+    override val isSent: StateFlow<Boolean> = outboxMessageFlow
+        .map { it == null || it.sentAt != null }
+        .stateIn(coroutineScope, WhileSubscribed(), true)
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private val previousSentTimelineEventFlow =
         combine(
@@ -233,7 +237,8 @@ class OutboxElementHolderViewModelImpl(
                     ).filterNotNull()
                 }
         ) { outbox, nextSupportedTimelineEvent ->
-            val firstOutboxElement = outbox.firstOrNull { it.transactionId != nextSupportedTimelineEvent.event.unsigned?.transactionId }
+            val firstOutboxElement =
+                outbox.firstOrNull { it.transactionId != nextSupportedTimelineEvent.event.unsigned?.transactionId }
 
             if (firstOutboxElement?.transactionId == transactionId) nextSupportedTimelineEvent
             else null

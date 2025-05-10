@@ -109,6 +109,7 @@ class SendAttachmentViewImpl : SendAttachmentView {
                     Text(buildAnnotatedString {
                         append(sendAttachmentViewModel.file.fileName)
                         pushStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)))
+                        append(" ")
                         append(fileSize)
                     })
                 }

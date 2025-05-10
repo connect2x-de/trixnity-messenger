@@ -143,6 +143,12 @@ data class ButtonStyle(
 }
 
 @Composable
+private fun ButtonColors.withContentColors() = copy(
+    contentColor = contentColor.withContentColor(),
+    disabledContentColor = disabledContentColor.withContentColor(enabled = false),
+)
+
+@Composable
 fun ThemedButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -157,7 +163,7 @@ fun ThemedButton(
         modifier = modifier.buttonPointerModifier(enabled),
         enabled = enabled,
         shape = style.shape,
-        colors = style.colors,
+        colors = style.colors.withContentColors(),
         elevation = style.elevation,
         border = style.border(enabled),
         contentPadding = style.contentPadding,
