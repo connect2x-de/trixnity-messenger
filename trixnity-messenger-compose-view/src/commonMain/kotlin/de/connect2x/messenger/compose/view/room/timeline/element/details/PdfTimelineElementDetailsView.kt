@@ -31,6 +31,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -62,9 +63,13 @@ import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.datetime.Clock
 import net.folivo.trixnity.client.media.PlatformMedia
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.reflect.KClass
 
 
@@ -76,6 +81,40 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         return ContentType.Application.Pdf.match(mimeType)
     }
 
+
+    private fun removeOldElements(pageCacheSize: Int) {
+        cache.toList().sortedBy { it.second.first.value }
+            .subList(0, 0.coerceAtLeast(cache.size - pageCacheSize))
+            .forEach { cache.remove(it.first) }
+    }
+
+    val cache =
+        mutableStateMapOf<String, Triple<MutableStateFlow<Long?>, MutableStateFlow<ImageBitmap?>, MutableStateFlow<Int?>>>()
+
+    fun getCacheElement(cacheKey: String): StateFlow<ImageBitmap?> {
+        return cache[cacheKey]?.second ?: run {
+            return MutableStateFlow<ImageBitmap?>(null).also {
+                cache[cacheKey] =
+                    Triple(
+                        MutableStateFlow(null),
+                        it,
+                        MutableStateFlow(null)
+                    )
+            }
+        }
+    }
+
+    suspend fun loadImageWithDpi(reader: PDFReader, pageId: Int, dpi: Float, pageCacheSize: Int) {
+        val cacheKey = "$pageId"
+        val element = cache[cacheKey]
+        if (element?.third?.value != dpi.toInt()) {
+            element?.first?.value = Clock.System.now().toEpochMilliseconds()
+            element?.third?.value = dpi.toInt()
+            removeOldElements(pageCacheSize)
+            element?.second?.value = reader.getPage(pageId, dpi).await()
+        }
+    }
+
     @Composable
     override fun create(
         element: RoomMessageTimelineElementViewModel.FileBased.File,
@@ -83,18 +122,25 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         onClose: () -> Unit,
     ) {
         val minZoom = 0.5f
+        val maxZoom = 4f
         val media = element.downloadMediaResult.collectAsState().value
         val progress = element.downloadMediaProgress.collectAsState().value
         val (error, setError) = remember { mutableStateOf<String?>(null) }
-        val zoom = remember { MutableStateFlow(1.0f) }
+        val zoom = remember { mutableStateOf(1.0f) }
         val offset = remember { mutableStateOf(Offset.Zero) }
+        val canZoom = remember { mutableStateOf(false) }
+
         val state = rememberTransformableState { zoomChange, offsetChange, _ ->
-            zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, 4f)
+            println("Change state by $zoomChange, $offsetChange")
+            zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, maxZoom)
             offset.value = offset.value + offsetChange.times(zoom.value)
         }
-        val viewSize = MutableStateFlow(IntSize.Zero)
-        val canZoom = remember { mutableStateOf(false) }
+        val viewSize = remember { MutableStateFlow(IntSize.Zero) }
         val i18n = DI.current.get<I18nView>()
+        val maxDpi = remember { mutableStateOf(300f) }
+        val dpi = remember { mutableStateOf(300f) }
+        val pageCacheSize = remember { mutableStateOf(max(2f, min(16f, 8f / zoom.value)).toInt()) }
+
         LaunchedEffect(Unit) {
             element.downloadMedia()
         }
@@ -105,7 +151,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
             element,
             onSave,
             onClose,
-            additions = { ZoomButtons(zoom, minScale = minZoom, maxScale = 4f) }) {
+            additions = { ZoomButtons(zoom, minScale = minZoom, maxScale = maxZoom) }) {
             val focusRequester = remember { FocusRequester() }
             Column {
                 Box(
@@ -118,7 +164,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                             canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
                             true
                         }
-                        .zoomModifier(focusRequester, canZoom, zoom, minZoom, 4f),
+                        .zoomModifier(focusRequester, canZoom, zoom, minZoom, maxZoom),
                 ) {
                     when {
                         progress != null && media == null -> {
@@ -130,9 +176,13 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                             val scope = rememberCoroutineScope()
                             val reader = remember {
                                 getPlatformPDFReader(
-                                    media, setError, scope, zoom, viewSize,
-                                    density
+                                    media, setError, scope
                                 )
+                            }
+                            LaunchedEffect(reader.documentWidth.value) {
+                                reader.documentWidth.value?.let {
+                                    maxDpi.value = 1f / it.toFloat() * 64f * 3600f
+                                }
                             }
                             DisposableEffect(Unit) {
                                 onDispose {
@@ -147,6 +197,12 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                                 horizontalScroll.scrollBy(-offset.value.x)
                                 offset.value = Offset.Zero
                             }
+                            LaunchedEffect(reader.documentWidth.value, viewSize.value, zoom.value, maxDpi.value) {
+                                reader.documentWidth.value?.let {
+                                    dpi.value =
+                                        viewSize.value.width / it * zoom.value / density * 64f.coerceAtMost(maxDpi.value)
+                                }
+                            }
 
                             Box(
                                 Modifier
@@ -158,15 +214,22 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                                 if (numOfPages != null) {
                                     LazyColumn(
                                         modifier = Modifier
-                                            .horizontalScroll(horizontalScroll)
+                                            .horizontalScroll(horizontalScroll, enabled = canZoom.value.not())
                                             .fillMaxSize()
                                             .transformable(state),
                                         verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
                                         contentPadding = PaddingValues(horizontal = MaterialTheme.messengerDpConstants.middle),
                                         state = lazyListState,
+                                        userScrollEnabled = canZoom.value,
                                         content = {
                                             items(count = numOfPages, key = { it }) { pageId ->
-                                                val image = reader.getPage(pageId).collectAsState().value
+                                                val cacheKey = "$pageId"
+                                                val image = getCacheElement(cacheKey).collectAsState().value
+                                                LaunchedEffect(zoom.value) {
+                                                    pageCacheSize.value = max(2f, min(16f, 8f / zoom.value)).toInt()
+                                                    loadImageWithDpi(reader, pageId, dpi.value, pageCacheSize.value)
+                                                }
+
                                                 if (image != null) {
                                                     Image(
                                                         bitmap = image,
@@ -251,16 +314,14 @@ expect fun PDFReader(
 )
 
 interface PDFReader {
-    fun getPage(pageId: Int): StateFlow<ImageBitmap?>
+    fun getPage(pageId: Int, dpi: Float): Deferred<ImageBitmap?>
     fun onDispose()
     val numOfPages: MutableState<Int?>
+    val documentWidth: MutableState<Int?>
 }
 
 expect fun getPlatformPDFReader(
     media: PlatformMedia,
     onError: (String?) -> Unit,
     scope: CoroutineScope,
-    scale: StateFlow<Float>,
-    viewSize: StateFlow<IntSize>,
-    density: Float
 ): PDFReader

@@ -95,7 +95,7 @@ class PdfReaderWeb(blob: Blob) {
         mutex.withLock {
             val element = cache[cacheKey] ?: run {
                 cache[cacheKey] =
-                    Triple<MutableStateFlow<Long?>, MutableStateFlow<ImageBitmap?>, MutableStateFlow<Int?>>(
+                    Triple(
                         MutableStateFlow(null),
                         MutableStateFlow(null),
                         MutableStateFlow(null)
