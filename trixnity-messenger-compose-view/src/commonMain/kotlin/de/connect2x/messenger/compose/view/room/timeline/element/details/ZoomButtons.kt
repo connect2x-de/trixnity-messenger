@@ -42,7 +42,6 @@ fun Modifier.zoomModifier(
                             focusRequester.requestFocus() // otherwise, key events will be lost
                             if (canZoom.value) {
                                 val delta = 0.1f * -it.scrollDelta.y
-                                println("Changing zoom to $delta")
                                 zoom.value = (zoom.value + delta).coerceIn(minScale, maxScale)
                             }
                         }
