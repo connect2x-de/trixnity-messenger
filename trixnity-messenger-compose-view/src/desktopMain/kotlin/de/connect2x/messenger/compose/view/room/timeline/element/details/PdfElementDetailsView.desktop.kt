@@ -39,9 +39,6 @@ class PlatformPDFReader(
     private val document = MutableStateFlow<Pair<PDDocument, PDFRenderer>?>(null)
     override val documentWidth: MutableState<Int?> = mutableStateOf(null)
     private val temporaryFile: MutableStateFlow<OkioPlatformMedia.TemporaryFile?> = MutableStateFlow(null)
-    private val renderCache: MutableStateFlow<MutableMap<String, Pair<Long, ImageBitmap>>> =
-        MutableStateFlow(mutableMapOf())
-
 
     override val numOfPages: MutableState<Int?> = mutableStateOf(null)
     suspend fun initialize() {
@@ -67,21 +64,22 @@ class PlatformPDFReader(
     override fun onDispose() {
         GlobalScope.launch { temporaryFile.value?.delete() }
         document.value?.first?.close()
-        renderCache.value.clear()
         document.value = null
     }
 
 
-    override suspend fun getPage(pageId: Int, dpi: Float): Deferred<ImageBitmap?> = CoroutineScope(coroutineContext).async {
-        val renderer = document.first { it != null }?.second
-        return@async renderer?.renderImageWithDPI(pageId, dpi)?.let {
-            log.debug {
-                "render pdf page $pageId " +
-                        "to bitmap (${it.width}x${it.height}) " +
-                        "at scale factor: $dpi " +
-                        "with ${renderCache.value.size} pages already cached"
+    override suspend fun getPage(pageId: Int, dpi: Float): Deferred<ImageBitmap?> =
+        CoroutineScope(coroutineContext).async {
+            val renderer = document.first { it != null }?.second
+            val box = document.first { it != null }?.first?.getPage(pageId)?.cropBox
+            println("PDF $pageId is ${box?.width} wide and ${box?.height} high")
+            return@async renderer?.renderImageWithDPI(pageId, dpi)?.let {
+                log.debug {
+                    "render pdf page $pageId " +
+                            "to bitmap (${it.width}x${it.height}) " +
+                            "at scale factor: $dpi "
+                }
+                it.toComposeImageBitmap()
             }
-            it.toComposeImageBitmap()
         }
-    }
 }

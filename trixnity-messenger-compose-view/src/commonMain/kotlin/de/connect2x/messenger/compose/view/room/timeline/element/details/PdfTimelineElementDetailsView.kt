@@ -127,6 +127,9 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         onSave: () -> Unit,
         onClose: () -> Unit,
     ) {
+        LaunchedEffect(Unit) {
+            println("Starting pdf reader")
+        }
         val minZoom = 0.5f
         val maxZoom = 4f
         val media = element.downloadMediaResult.collectAsState().value
@@ -142,8 +145,8 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         }
         val viewSize = remember { MutableStateFlow(IntSize.Zero) }
         val i18n = DI.current.get<I18nView>()
-        val maxDpi = remember { mutableStateOf(300f) }
-        val dpi = remember { mutableStateOf(300f) }
+        val maxDpi = remember { mutableStateOf(72f) }
+        val dpi = remember { mutableStateOf(72f) }
         val pageCacheSize = remember { mutableStateOf(max(2f, min(16f, 8f / zoom.value)).toInt()) }
 
         LaunchedEffect(Unit) {
@@ -193,6 +196,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                             DisposableEffect(Unit) {
                                 onDispose {
                                     reader.value?.onDispose()
+                                    cache.clear()
                                 }
                             }
                             val lazyListState = rememberLazyListState()
