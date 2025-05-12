@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Styling: Make details pane style customizable
 - Styling: Allow customizing banners via theme
 - Styling: Allow customizing switches via theme
+- Styling: Make emoji reactions themable
 
 ### Deprecated
 
@@ -34,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No padding at the end of the room header description (View: RoomHeader)
 - User Profile Avatars not loading
 - Styling: use tonalElevation for surfaces
+- Styling: Fix alignment & color for room list time & encryption icon
 - Direct rooms sometimes were interpreted as a group
  
 ### Security
