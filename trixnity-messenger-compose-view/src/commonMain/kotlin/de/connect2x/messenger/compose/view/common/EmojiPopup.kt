@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.common
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
@@ -12,6 +13,6 @@ fun EmojiPopup(
     isByMe: Boolean,
 ) {
     TimelinePopup(isOpen, onDismiss, modifier, isByMe) {
-        EmojiSelector(onSelect)
+        EmojiSelector(Modifier.fillMaxSize().justArrowKeyNavigation(), onSelect)
     }
 }

@@ -70,6 +70,7 @@ import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_AND_VIDEO
 import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
 import de.connect2x.messenger.compose.view.common.FilePickerType.VIDEO_CAPTURE
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.common.justArrowKeyNavigation
 import de.connect2x.messenger.compose.view.files.EmptyFileListException
 import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.NotPasteableException
@@ -131,11 +132,9 @@ class InputAreaViewImpl : InputAreaView {
                     ReplyToArea(inputAreaViewModel)
                 }
                 if (emojisOpen.value) {
-                    Box(Modifier.heightIn(max = 100.dp)) {
-                        EmojiSelector {
-                            textField.value = textField.value.insert(it)
-                            focusRequester.requestFocus()
-                        }
+                    EmojiSelector(Modifier.heightIn(max = 120.dp).fillMaxWidth().justArrowKeyNavigation()) {
+                        textField.value = textField.value.insert(it)
+                        focusRequester.requestFocus()
                     }
                 }
 
