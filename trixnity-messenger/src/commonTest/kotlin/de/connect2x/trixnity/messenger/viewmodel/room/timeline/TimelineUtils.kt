@@ -5,7 +5,6 @@ import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import io.kotest.assertions.withClue
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -141,7 +140,6 @@ fun timeline(
             timelineMock.eventsInStore.map { it.reversed().asFlow() }
     every {
         roomServiceMock.getTimeline(
-            eq(roomId),
             any<suspend (TimelineStateChange<TimelineViewModelImpl.TimelineElementWrapper>) -> Unit>(),
             any<suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper>()
         )
@@ -150,7 +148,7 @@ fun timeline(
         MockedTimeline(
             pageSize,
             timelineMock,
-            it.args[2] as (suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper)
+            it.args[1] as (suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper)
         )
     }
 
@@ -204,7 +202,17 @@ internal class MockedTimeline(
         )
     }
 
+    override suspend fun init(
+        startFrom: EventId,
+        configStart: GetTimelineEventConfig.() -> Unit,
+        configBefore: GetTimelineEventsConfig.() -> Unit,
+        configAfter: GetTimelineEventsConfig.() -> Unit
+    ): TimelineStateChange<TimelineViewModelImpl.TimelineElementWrapper> {
+        throw NotImplementedError("calling this only works with legacy TimelineImpl")
+    }
+
     override suspend fun internalInit(
+        roomId: RoomId,
         startFrom: EventId,
         configStart: GetTimelineEventConfig.() -> Unit,
         configBefore: GetTimelineEventsConfig.() -> Unit,
@@ -223,6 +231,7 @@ internal class MockedTimeline(
     }
 
     override suspend fun internalLoadBefore(
+        roomId: RoomId,
         startFrom: EventId,
         config: GetTimelineEventsConfig.() -> Unit
     ): List<Flow<TimelineEvent>> {
@@ -233,6 +242,7 @@ internal class MockedTimeline(
     }
 
     override suspend fun internalLoadAfter(
+        roomId: RoomId,
         startFrom: EventId,
         config: GetTimelineEventsConfig.() -> Unit
     ): List<Flow<TimelineEvent>> {
@@ -248,6 +258,14 @@ class NoOpTimeline<T> : Timeline<T> {
     override val state: Flow<TimelineState<T>> = flowOf(TimelineState())
 
     override suspend fun init(
+        startFrom: EventId,
+        configStart: GetTimelineEventConfig.() -> Unit,
+        configBefore: GetTimelineEventsConfig.() -> Unit,
+        configAfter: GetTimelineEventsConfig.() -> Unit
+    ): TimelineStateChange<T> = TimelineStateChange()
+
+    override suspend fun init(
+        roomId: RoomId,
         startFrom: EventId,
         configStart: GetTimelineEventConfig.() -> Unit,
         configBefore: GetTimelineEventsConfig.() -> Unit,
