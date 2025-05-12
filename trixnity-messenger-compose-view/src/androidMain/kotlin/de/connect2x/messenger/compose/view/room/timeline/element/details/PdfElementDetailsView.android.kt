@@ -57,10 +57,8 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
         pageId: Int,
         dpi: Float
     ): Deferred<ImageBitmap?> = CoroutineScope(coroutineContext).async {
-        println("Starting to render page $pageId")
         renderer.value?.let {
             it.openPage(pageId).use { page ->
-                println("page $pageId is ${page.width} wide and ${page.height} high")
                 val scaledDpi = dpi.div(72f)
                 val width = (page.width * scaledDpi).toInt()
                 val height = (page.height * scaledDpi).toInt()

@@ -89,10 +89,10 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
             }
     }
 
-    val cache =
+    private val cache =
         mutableStateMapOf<Int, Triple<MutableStateFlow<Long?>, MutableStateFlow<ImageBitmap?>, MutableStateFlow<Int?>>>()
 
-    fun getCacheElement(cacheKey: Int): StateFlow<ImageBitmap?> {
+    private fun getCacheElement(cacheKey: Int): StateFlow<ImageBitmap?> {
         return cache[cacheKey]?.second ?: run {
             return MutableStateFlow<ImageBitmap?>(null).also {
                 cache[cacheKey] =
@@ -105,7 +105,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         }
     }
 
-    suspend fun loadImageWithDpi(
+    private suspend fun loadImageWithDpi(
         reader: PDFReader,
         pageId: Int,
         dpi: Float,
@@ -127,9 +127,6 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         onSave: () -> Unit,
         onClose: () -> Unit,
     ) {
-        LaunchedEffect(Unit) {
-            println("Starting pdf reader")
-        }
         val minZoom = 0.5f
         val maxZoom = 4f
         val media = element.downloadMediaResult.collectAsState().value
@@ -145,7 +142,6 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         }
         val viewSize = remember { MutableStateFlow(IntSize.Zero) }
         val i18n = DI.current.get<I18nView>()
-        val maxDpi = remember { mutableStateOf(72f) }
         val dpi = remember { mutableStateOf(72f) }
         val pageCacheSize = remember { mutableStateOf(max(2f, min(16f, 8f / zoom.value)).toInt()) }
 
@@ -181,17 +177,10 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
 
                         media != null -> {
                             val density = LocalDensity.current.density
-                            val reader = remember {
-                                mutableStateOf<PDFReader?>(null)
-                            }
+                            val reader = remember { mutableStateOf<PDFReader?>(null) }
                             LaunchedEffect(Unit) {
                                 reader.value =
                                     getPlatformPDFReader(media) { setError(it ?: i18n.fileCouldNotBeLoaded()) }
-                            }
-                            LaunchedEffect(reader.value?.documentWidth?.value) {
-                                reader.value?.documentWidth?.value?.let {
-                                    maxDpi.value = 1f / it.toFloat() * 64f * 3600f
-                                }
                             }
                             DisposableEffect(Unit) {
                                 onDispose {
@@ -211,11 +200,11 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                                 reader.value?.documentWidth?.value,
                                 viewSize.value,
                                 zoom.value,
-                                maxDpi.value
                             ) {
                                 reader.value?.documentWidth?.value?.let {
+                                    val maxDpi = 1f / it.toFloat() * 64f * 3600f
                                     dpi.value =
-                                        viewSize.value.width / it * zoom.value / density * 64f.coerceAtMost(maxDpi.value)
+                                        viewSize.value.width / it * zoom.value / density * 64f.coerceAtMost(maxDpi)
                                 }
                             }
 

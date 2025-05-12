@@ -41,6 +41,7 @@ class PlatformPDFReader(
     private val temporaryFile: MutableStateFlow<OkioPlatformMedia.TemporaryFile?> = MutableStateFlow(null)
 
     override val numOfPages: MutableState<Int?> = mutableStateOf(null)
+
     suspend fun initialize() {
         val temporaryFileResult = (media as OkioPlatformMedia).getTemporaryFile()
         if (temporaryFileResult.isSuccess) {
@@ -71,8 +72,6 @@ class PlatformPDFReader(
     override suspend fun getPage(pageId: Int, dpi: Float): Deferred<ImageBitmap?> =
         CoroutineScope(coroutineContext).async {
             val renderer = document.first { it != null }?.second
-            val box = document.first { it != null }?.first?.getPage(pageId)?.cropBox
-            println("PDF $pageId is ${box?.width} wide and ${box?.height} high")
             return@async renderer?.renderImageWithDPI(pageId, dpi)?.let {
                 log.debug {
                     "render pdf page $pageId " +
