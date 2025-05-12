@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media
-import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
 import org.koin.core.component.get
@@ -76,11 +75,11 @@ open class AvatarCutterViewModelImpl(
             if (fileSize == null || fileSize <= maxAvatarSize) {
                 _avatarImage.value = file.content.limitedByteArrayOrNull(maxAvatarSize) {
                     log.warn { "Uploaded avatar file exceeds avatar size limits, so it's not shown" }
-                    error.value = i18n.attachmentSizeMaxSizeError(maxAvatarSize)
+                    error.value = i18n.avatarSizeMaxSizeError(maxAvatarSize)
                 }
             } else {
                 log.warn { "Uploaded avatar file exceeds avatar size limits, so it's not shown" }
-                error.value = i18n.attachmentSizeMaxSizeError(maxAvatarSize)
+                error.value = i18n.avatarSizeMaxSizeError(maxAvatarSize)
             }
         }
     }
@@ -98,7 +97,7 @@ open class AvatarCutterViewModelImpl(
                 file.content,
                 file.mimeType,
             )
-            matrixClient.media.uploadMedia(cacheUri, MutableStateFlow<FileTransferProgress?>(null)).fold(
+            matrixClient.media.uploadMedia(cacheUri).fold(
                 onSuccess = { url ->
                     log.debug { "Successfully uploaded avatar image" }
                     if (roomId == null) setUserAvatar(url)
