@@ -1,78 +1,40 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.details
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.TransformableState
-import androidx.compose.foundation.gestures.scrollBy
-import androidx.compose.foundation.gestures.transformable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
-import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.HorizontalScrollbar
-import de.connect2x.messenger.compose.view.VerticalScrollbar
+import androidx.compose.ui.graphics.ImageBitmap
 import de.connect2x.messenger.compose.view.files.GlobalWorkerOptions
 import de.connect2x.messenger.compose.view.files.PdfReaderWeb
-import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.theme.messengerDpConstants
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
 import net.folivo.trixnity.client.media.opfs.OpfsPlatformMedia
 import web.blob.Blob
+import kotlin.coroutines.coroutineContext
 
-actual class PDFReader {
-
+actual suspend fun getPlatformPDFReader(media: PlatformMedia, onError: (String?) -> Unit): PDFReader {
+    val reader = PDFPlatformReader(media, onError)
+    reader.initialize()
+    return reader
 }
 
-@OptIn(DelicateCoroutinesApi::class)
-@Composable
-actual fun PDFReader(
-    media: PlatformMedia,
-    scale: Float,
-    isZooming: Boolean,
-    offset: MutableState<Offset>,
-    state: TransformableState,
-    onError: (String?) -> Unit,
-) {
-    val i18n = DI.current.get<I18nView>()
-    val density = LocalDensity.current.density
-    val dpi = remember { mutableStateOf<Float?>(null) }
-    val temporaryFile = remember { mutableStateOf<Blob?>(null) }
-    val fileDeleteFunction = remember { mutableStateOf<(suspend () -> Unit)?>(null) }
-    val reader = remember { mutableStateOf<PdfReaderWeb?>(null) }
-    val viewSize = remember { mutableStateOf(IntSize.Zero) }
+class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit) : PDFReader {
 
-    GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs"
-    LaunchedEffect(Unit) {
+    private val fileDeleteFunction: MutableStateFlow<(suspend () -> Unit)?> = MutableStateFlow(null)
+    private val temporaryFile: MutableStateFlow<Blob?> = MutableStateFlow(null)
+    private val reader: MutableStateFlow<PdfReaderWeb?> = MutableStateFlow(null)
+    override val numOfPages: MutableState<Int?> = mutableStateOf(null)
+    override val documentWidth: MutableState<Int?> = mutableStateOf(null)
+
+    suspend fun initialize() {
+        GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs"
         val temporaryFileResult =
             (media as? OpfsPlatformMedia)?.getTemporaryFile() ?: (media as IndexeddbPlatformMedia).getTemporaryFile()
         if (temporaryFileResult.isSuccess) {
@@ -93,6 +55,8 @@ actual fun PDFReader(
                 temporaryFile.value = newTemporaryFile
                 val createdReader = newTemporaryFile?.let { PdfReaderWeb(it) }
                 reader.value = createdReader
+                numOfPages.value = createdReader?.pageSize?.first { it != null }
+                documentWidth.value = createdReader?.documentWidth?.first { it != null }
             } catch (exception: Exception) {
                 onError(exception.message)
             }
@@ -100,79 +64,19 @@ actual fun PDFReader(
             onError(temporaryFileResult.exceptionOrNull()?.message)
         }
     }
-    DisposableEffect(Unit) {
-        onDispose {
-            reader.value?.clearCache()
-            GlobalScope.launch { fileDeleteFunction.value?.invoke() }
-        }
+
+    override suspend fun getPage(
+        pageId: Int,
+        dpi: Float
+    ): Deferred<ImageBitmap?> = CoroutineScope(coroutineContext).async {
+        val reader = reader.first { it != null }
+        val renderFlow: MutableStateFlow<ImageBitmap?> = MutableStateFlow(null)
+        reader?.renderPage(pageId + 1, renderFlow, dpi.div(72f))
+        return@async renderFlow.first { it != null }
     }
 
-    LaunchedEffect(reader.value?.documentWidth?.value, scale, viewSize.value) {
-        reader.value?.documentWidth?.value?.toFloat()?.let {
-            val maxDpi = 1f / it * 64f * 3600f
-            dpi.value = (viewSize.value.width / it * scale / density * 64f).coerceAtMost(maxDpi)
-        }
-    }
-
-    val lazyListState = rememberLazyListState()
-    val horizontalScroll = rememberScrollState()
-
-    LaunchedEffect(offset.value) {
-        lazyListState.scrollBy(-offset.value.y)
-        horizontalScroll.scrollBy(-offset.value.x)
-        offset.value = Offset.Zero
-    }
-    Box(Modifier.fillMaxSize().onSizeChanged { viewSize.value = it }, contentAlignment = Alignment.Center) {
-        reader.value?.let { reader ->
-            val pageCount = reader.pageSize.value
-            pageCount?.let {
-                LazyColumn(
-                    modifier = Modifier
-                        .horizontalScroll(horizontalScroll)
-                        .fillMaxSize()
-                        .transformable(state),
-                    state = lazyListState,
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    contentPadding = PaddingValues(8.dp)
-                ) {
-                    items(it) { pageId ->
-                        dpi.value?.let {
-                            val currentBitmap = reader.cache["${pageId + 1}"]?.second?.collectAsState()?.value
-                            LaunchedEffect(it) {
-                                reader.renderPageWhenNecessary(pageId, it, scale)
-                            }
-                            if (currentBitmap != null) {
-                                Image(
-                                    currentBitmap,
-                                    contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),
-                                    modifier = Modifier
-                                        .background(color = MaterialTheme.colorScheme.background) // Avoid performance drops on transparent images.
-                                        .width(viewSize.value.width.dp / density * scale - MaterialTheme.messengerDpConstants.middle * 2),
-                                    contentScale = ContentScale.FillWidth,
-                                )
-                            } else Box(
-                                Modifier.height(viewSize.value.height.dp / density * scale - MaterialTheme.messengerDpConstants.middle * 2)
-                                    .width(viewSize.value.width.dp / density * scale - MaterialTheme.messengerDpConstants.middle * 2),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        } ?: Box(
-                            Modifier.height(viewSize.value.height.dp / density * scale - MaterialTheme.messengerDpConstants.middle * 2)
-                                .width(viewSize.value.width.dp / density * scale - MaterialTheme.messengerDpConstants.middle * 2),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-                }
-            }
-        }
-        if (dpi.value == null) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-        }
-        HorizontalScrollbar(Modifier.align(Alignment.BottomCenter).fillMaxWidth(), horizontalScroll)
-        VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), lazyListState, false)
+    @OptIn(DelicateCoroutinesApi::class)
+    override fun onDispose() {
+        GlobalScope.launch { fileDeleteFunction.value?.invoke() }
     }
 }
