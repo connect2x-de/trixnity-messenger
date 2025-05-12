@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +19,6 @@ import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset
 import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PUBLIC
 import net.folivo.trixnity.clientserverapi.model.rooms.DirectoryVisibility
 import net.folivo.trixnity.core.model.events.InitialStateEvent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 
@@ -157,7 +155,6 @@ open class CreateNewGroupViewModelImpl(
 
     override fun onUserClick(user: SearchUserElement) {
         if (groupUsers.value.contains(user).not()) {
-            groupUsers.value += user
             removeUserFromList(user)
         }
     }
@@ -165,20 +162,17 @@ open class CreateNewGroupViewModelImpl(
     // IMPORTANT: has to be separate as the renderer will collapse when 2 collectAsState() references change at the same time
     override fun removeUserFromList(user: SearchUserElement) {
         coroutineScope.launch {
-            delay(50)
-            createNewRoomViewModel.searchHandler.foundUsers.value -= user
+            createNewRoomViewModel.searchHandler.selectUser(user)
         }
     }
 
     override fun removeUserFromGroup(user: SearchUserElement) {
-        groupUsers.value -= user
         addUserToList(user)
     }
 
     override fun addUserToList(user: SearchUserElement) {
         coroutineScope.launch {
-            delay(50)
-            createNewRoomViewModel.searchHandler.foundUsers.value += user
+            createNewRoomViewModel.searchHandler.unselectUser(user)
         }
     }
 

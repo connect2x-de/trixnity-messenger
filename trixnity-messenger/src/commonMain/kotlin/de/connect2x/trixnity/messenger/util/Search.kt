@@ -33,7 +33,6 @@ interface Search {
         matrixClient: MatrixClient,
         searchTerm: String,
         limit: Long?,
-        filterNot: (userId: UserId) -> Boolean = { false },
         presenceScope: CoroutineScope,
         maxPreviewSize: Long,
     ): List<SearchUserElement>
@@ -79,12 +78,11 @@ class SearchImpl(
         matrixClient: MatrixClient,
         searchTerm: String,
         limit: Long?,
-        filterNot: (userId: UserId) -> Boolean,
         presenceScope: CoroutineScope,
         maxAvatarSize: Long,
     ): List<SearchUserElement> = coroutineScope {
         val userId = UserId(searchTerm)
-        if (userId.isValid() && !filterNot(userId)) {
+        if (userId.isValid()) {
             val profile = matrixClient.api.user.getProfile(userId)
                 .onFailure { exc ->
                     log.error(exc) { "Cannot access user profile for $userId." }
@@ -116,7 +114,7 @@ class SearchImpl(
                     presence
                 )
             )
-        } else if (userId.isValid()) emptyList() else {
+        } else {
             // TODO this does not search for matrix IDs, see https://github.com/matrix-org/synapse/issues/7588
             matrixClient.api.user.searchUsers(searchTerm, i18n.currentLang.code, limit)
                 .fold( // TODO get correct language
@@ -125,7 +123,6 @@ class SearchImpl(
                         response.results
                             .asSequence()
                             .filter { searchUser -> searchUser.userId != matrixClient.userId }
-                            .filterNot { filterNot(it.userId) }
                             .sortedBy { searchUser -> searchUser.displayName }
                             .take(limit?.toInt() ?: Int.MAX_VALUE)
                             .map { searchUser ->

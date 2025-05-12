@@ -35,7 +35,7 @@ interface AddMembersViewModelFactory {
 
 interface AddMembersViewModel {
     val potentialMembersViewModel: PotentialMembersViewModel
-    val groupUsers: MutableStateFlow<List<Search.SearchUserElement>>
+    val groupUsers: StateFlow<List<Search.SearchUserElement>>
     val canAddMembers: StateFlow<Boolean>
     val error: StateFlow<String?>
     val errorCause: StateFlow<String?>
@@ -78,7 +78,6 @@ class AddMembersViewModelImpl(
 
     override val error = MutableStateFlow<String?>(null)
     override val errorCause = MutableStateFlow<String?>(null)
-    internal val foundUsers = potentialMembersViewModel.searchHandler.foundUsers
 
     override val isAddingMembers = MutableStateFlow(false)
 
@@ -156,7 +155,7 @@ class AddMembersViewModelImpl(
     }
 
     override fun removeUserFromList(user: Search.SearchUserElement) {
-        potentialMembersViewModel.selectUser(user)
+        potentialMembersViewModel.searchHandler.selectUser(user)
     }
 
     override fun removeUserFromGroup(user: Search.SearchUserElement) {
@@ -164,7 +163,7 @@ class AddMembersViewModelImpl(
     }
 
     override fun addUserToList(user: Search.SearchUserElement) {
-        potentialMembersViewModel.unselectUser(user)
+        potentialMembersViewModel.searchHandler.unselectUser(user)
     }
 
     private fun <T, A : Appendable> Iterable<T>.joinTo(
