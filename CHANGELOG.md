@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Styling: Make details pane style customizable
 - Styling: Allow customizing banners via theme
 - Styling: Allow customizing switches via theme
+- Styling: Make emoji reactions themable
 
 ### Deprecated
 
