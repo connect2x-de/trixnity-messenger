@@ -13,10 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Give immediate feedback when a message has been sent (even before sync)
 - Update Firebase Cloud Messaging from 33.11.0 to 33.13.0
+- Rename member filters and add invited filter
 - Expose current theme settings for library users
 - Styling: Allow customizing slider via theme
 - Styling: Use styleable components for avatars
 - Styling: Use styleable components for chips
+- Styling: Make details pane style customizable
+- Styling: Allow customizing banners via theme
+- Styling: Allow customizing switches via theme
 
 ### Deprecated
 
@@ -29,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unintuitive icon used for logout button
 - No padding at the end of the room header description (View: RoomHeader)
 - User Profile Avatars not loading
+- Styling: use tonalElevation for surfaces
 - Direct rooms sometimes were interpreted as a group
  
 ### Security

@@ -76,6 +76,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedInfoChip
 import de.connect2x.messenger.compose.view.theme.components.ThemedSuggestionChip
+import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
@@ -127,10 +128,7 @@ class UserProfileViewImpl : UserProfileView {
         val canOpenChat = userProfileViewModel.canOpenChat.collectAsState().value
 
         Column(
-            Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .blockPointerInput(),
+            Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             DialogHandler(userProfileViewModel)
@@ -222,7 +220,7 @@ class UserProfileViewImpl : UserProfileView {
                             Spacer(Modifier.size(10.dp))
                             Text(i18n.userProfileBlockUser())
                         }
-                        Switch(
+                        ThemedSwitch(
                             checked = isUserBlocked,
                             onCheckedChange = {
                                 if (isUserBlocked) {
@@ -371,7 +369,7 @@ private fun BanUserSection(userProfileViewModel: UserProfileViewModel, i18n: I18
             Spacer(Modifier.size(10.dp))
             Text(i18n.userProfileBanUser())
         }
-        Switch(
+        ThemedSwitch(
             checked = membership == Membership.BAN,
             onCheckedChange = {
                 if (membership == Membership.BAN) {
