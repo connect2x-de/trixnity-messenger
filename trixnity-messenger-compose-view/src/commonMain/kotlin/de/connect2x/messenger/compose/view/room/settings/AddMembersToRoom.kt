@@ -9,13 +9,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -24,12 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
-import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.Avatar
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.VerticalGrid
@@ -38,6 +33,8 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModel
 
 
@@ -120,17 +117,16 @@ fun ColumnScope.UsersInGroup(addMembersToRoom: AddMembersViewModel) {
                             } else Modifier),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Avatar(groupUser.image, groupUser.initials) {
-                            Icon(
-                                Icons.Default.Close,
-                                i18n.commonRemove(),
-                                Modifier
-                                    .align(Alignment.BottomEnd)
-                                    .clip(CircleShape)
-                                    .size(15.dp)
-                                    .clickable { addMembersToRoom.removeUserFromGroup(groupUser) }
-                                    .buttonPointerModifier(),
-                            )
+                        ThemedUserAvatar(groupUser.initials, groupUser.image) {
+                            Tooltip({ Text(i18n.commonRemove() )}) {
+                                ThemedIconButton(
+                                    style = MaterialTheme.components.primaryIconButton,
+                                    size = 15.dp,
+                                    onClick = { addMembersToRoom.removeUserFromGroup(groupUser) }
+                                ) {
+                                    Icon(Icons.Default.Close, i18n.commonRemove())
+                                }
+                            }
                         }
                         Text(groupUser.displayName, style = MaterialTheme.typography.labelMedium, maxLines = 2)
                     }

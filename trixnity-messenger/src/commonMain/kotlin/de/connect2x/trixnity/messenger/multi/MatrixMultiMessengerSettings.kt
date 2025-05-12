@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.settings.SettingsStorage
 import de.connect2x.trixnity.messenger.settings.SettingsView
 import de.connect2x.trixnity.messenger.settings.get
 import de.connect2x.trixnity.messenger.settings.update
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
@@ -47,7 +48,8 @@ interface MatrixMultiMessengerSettingsHolder : SettingsHolder<MatrixMultiMesseng
 
 class MatrixMultiMessengerSettingsHolderImpl(
     storage: SettingsStorage,
-) : SettingsHolderImpl<MatrixMultiMessengerSettings>(storage, ::MatrixMultiMessengerSettings),
+    settings: MutableStateFlow<MatrixMultiMessengerSettings?> = MutableStateFlow(null)
+) : SettingsHolderImpl<MatrixMultiMessengerSettings>(storage, ::MatrixMultiMessengerSettings, settings),
     MatrixMultiMessengerSettingsHolder
 
 suspend inline fun <reified T : SettingsView<MatrixMultiMessengerSettings>> MatrixMultiMessengerSettingsHolder.update(

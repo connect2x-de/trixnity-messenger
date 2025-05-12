@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,15 +24,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.AvatarWithImage
 import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.AvatarContentIcon
+import de.connect2x.messenger.compose.view.theme.components.ThemedAvatar
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
+import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 
 interface CreateNewChatView {
     @Composable
@@ -94,7 +95,9 @@ fun AddOrSearchGroup(createNewChatViewModel: CreateNewChatViewModel) {
                 Modifier.padding(horizontal = 10.dp, vertical = 20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                AvatarWithImage { Icon(Icons.Default.GroupAdd, i18n.createNewGroupCreate()) }
+                ThemedAvatar(avatarSize().dp) {
+                    AvatarContentIcon(Icons.Default.GroupAdd, avatarSize().dp)
+                }
                 Spacer(Modifier.size(20.dp))
                 Text(i18n.createNewGroupCreate())
             }
@@ -109,7 +112,9 @@ fun AddOrSearchGroup(createNewChatViewModel: CreateNewChatViewModel) {
                 Modifier.padding(horizontal = 10.dp, vertical = 20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                AvatarWithImage { Icon(Icons.Default.TravelExplore, i18n.createNewGroupSearch()) }
+                ThemedAvatar(avatarSize().dp) {
+                    AvatarContentIcon(Icons.Default.TravelExplore, avatarSize().dp)
+                }
                 Spacer(Modifier.size(20.dp))
                 Text(i18n.createNewGroupSearch())
             }

@@ -2,11 +2,11 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.MatrixClientFactory
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException.DatabaseLockedException
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -18,8 +18,8 @@ import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.ktor.http.HttpStatusCode
-import io.ktor.util.network.UnresolvedAddressException
+import io.ktor.http.*
+import io.ktor.util.network.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first

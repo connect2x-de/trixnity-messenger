@@ -29,10 +29,11 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.AvatarWithPresence
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
+import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
 import kotlinx.coroutines.flow.map
@@ -135,7 +136,9 @@ private fun UserElement(
             Modifier.padding(horizontal = 10.dp, vertical = 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AvatarWithPresence(user.image, user.initials, presence)
+            ThemedUserAvatar(user.initials, user.image) {
+                AvatarPresenceBadge(presence)
+            }
             Spacer(Modifier.size(10.dp))
             Column {
                 Text(

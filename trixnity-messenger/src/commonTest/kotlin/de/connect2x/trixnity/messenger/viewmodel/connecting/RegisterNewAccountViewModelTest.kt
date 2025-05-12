@@ -2,15 +2,15 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.MatrixClientFactory
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.firstNotNullWithClue
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testViewModelContext
-import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaImpl
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
@@ -19,9 +19,8 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respond
-import io.ktor.http.Url
+import io.ktor.client.engine.mock.*
+import io.ktor.http.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope

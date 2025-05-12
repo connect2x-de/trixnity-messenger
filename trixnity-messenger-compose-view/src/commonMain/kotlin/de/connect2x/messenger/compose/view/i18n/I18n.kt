@@ -920,19 +920,24 @@ open class I18nView(
         DE - "Benutzeroptionen"
     }
 
-    open fun settingsRoomMemberListCurrent() = translate {
-        EN - "Current"
-        DE - "Aktuelle"
+    open fun settingsRoomMemberListJoined() = translate {
+        EN - "Joined"
+        DE - "Beigetreten"
     }
 
-    open fun settingsRoomMemberListPending() = translate {
-        EN - "Requesting"
-        DE - "Anfragend"
+    open fun settingsRoomMemberListKnocking() = translate {
+        EN - "Kocking"
+        DE - "Klopfend"
     }
 
-    open fun settingsRoomMemberListFormer() = translate {
-        EN - "Former"
-        DE - "Ehemalige"
+    open fun settingsRoomMemberListInvited() = translate {
+        EN - "Invited"
+        DE - "Eingeladen"
+    }
+
+    open fun settingsRoomMemberListBanned() = translate {
+        EN - "Banned"
+        DE - "Gebannt"
     }
 
     open fun unbannable() = translate {

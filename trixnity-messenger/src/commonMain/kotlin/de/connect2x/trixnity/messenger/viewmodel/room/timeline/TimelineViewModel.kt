@@ -175,7 +175,6 @@ interface TimelineViewModel {
 
     fun errorDismiss()
     fun leaveRoom()
-
     fun jumpToEndOfTimeline()
 
     /**
@@ -637,6 +636,7 @@ class TimelineViewModelImpl(
             onMessageReport = ::onShowReportMessageModal,
             onOpenMention = onOpenMention,
             onOpenMetadata = onOpenMetadata,
+            jumpTo = ::jumpTo
         )
         return TimelineElementWrapper(
             key = key,
@@ -697,6 +697,7 @@ class TimelineViewModelImpl(
                         formattedDate = formattedDate,
                         formattedTime = formattedTime,
                         onOpenMention = onOpenMention,
+                        jumpTo = ::jumpTo
                     ).also {
                         outboxElementCache[transactionId] = OutboxElementWrapper(
                             transactionId,
@@ -938,6 +939,27 @@ class TimelineViewModelImpl(
         val scrollToKey = lastOutboxElementKey ?: lastTimelineEventKey
         log.debug { "jump to end of timeline (key=$scrollToKey)" }
         scrollTo.emit(scrollToKey)
+    }
+
+    private fun jumpTo(roomId: RoomId, eventId: EventId) {
+        coroutineScope.launch {
+            var element = timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }
+            if (element == null) {
+                log.debug { "Element $roomId-$eventId is not loaded, re-initialize timeline" }
+                timelineStartFrom.emit(eventId)
+                timeline.state.first()
+                element = timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }
+            }
+
+            if (element == null) {
+                log.error { "Element could not be found even though timeline is initialized" }
+                return@launch
+            }
+
+            val elementKey = element.key
+            log.debug { "Jump to element $elementKey in timeline" }
+            scrollTo.emit(elementKey)
+        }
     }
 
     override fun jumpToEndOfTimeline() {

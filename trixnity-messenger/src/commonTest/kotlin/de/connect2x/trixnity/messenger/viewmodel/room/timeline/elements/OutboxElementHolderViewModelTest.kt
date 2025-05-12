@@ -1,10 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.settle
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -327,7 +327,8 @@ class OutboxElementHolderViewModelTest {
             outboxMessageFlow = flowOf(outboxMessage),
             formattedDate = "01.01.2000",
             formattedTime = "07:24",
-            onOpenMention = mock()
+            onOpenMention = mock(),
+            jumpTo = { _, _ -> }
         )
     }
 }

@@ -65,7 +65,7 @@ fun ThemedFloatingActionButton(
             expanded = expanded,
             shape = style.shape,
             containerColor = style.containerColor,
-            contentColor = style.contentColor,
+            contentColor = style.contentColor.withContentColor(enabled),
             elevation = style.elevation,
             interactionSource = interactionSource,
         )

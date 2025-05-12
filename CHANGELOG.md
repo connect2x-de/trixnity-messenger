@@ -9,12 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Copy button for MXID in UserProfile
-- Theming for ProgressIndicators
-
 ### Changed
 
-- Clicking on files without preview opens a "Not supported" message instead of starting a download
+- Give immediate feedback when a message has been sent (even before sync)
+- Update Firebase Cloud Messaging from 33.11.0 to 33.13.0
+- Rename member filters and add invited filter
+- Expose current theme settings for library users
+- Styling: Allow customizing slider via theme
+- Styling: Use styleable components for avatars
+- Styling: Use styleable components for chips
+- Styling: Make details pane style customizable
+- Styling: Allow customizing banners via theme
+- Styling: Allow customizing switches via theme
 - Show error popups when problems occur during room avatar update and align confirm update button to lower right
 
 ### Deprecated
@@ -23,9 +29,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Overflows in RoomHeader
-
+- Add delay for appearance of tooltips when hovering element
+- Remove double parenthesis for file size of upload element
+- Unintuitive icon used for logout button
+- No padding at the end of the room header description (View: RoomHeader)
+- User Profile Avatars not loading
+- Styling: use tonalElevation for surfaces
+ 
 ### Security
+
+## 3.5.6
+
+### Changed
+
+- Styling: Use stylable components for roomlist
+- Styling: Define default colors for different surface levels
+- Styling: support local content color for most components
+- Styling: Allow overriding MessengerColors
+
+### Fixed
+
+- Duplicated libraries in the About > Licenses are now differentiable
+- Wait for database being closed before trying to delete user folder
+- Update selected account when deleting account
+- Improved web build performance
+
+## 3.5.5
+
+### Added
+
+- Scroll to replied element in timeline when clicking
+- Add "deactivate account" functionality
+
+### Fixed
+
+- Show correct indicator message when an invitation is rejected or revoked
+
+## 3.5.4
+
+### Added
+
+- Copy button for MXID in UserProfile
+- Theming for ProgressIndicators
+- Leave and forget upgraded rooms too
+
+### Changed
+
+- Clicking on files without preview opens a "Not supported" message instead of starting a download
+- Close di on close
+- Destroy lifecycle on profile change
+- Fix crash on startup because of mismatched Compose UI Test version
+
+### Fixed
+
+- Overflows in RoomHeader
+- Reset read and send marker when editing messages while being offline
+- Preview in accessibility settings
+- Copy recovery key not available on small screens
+- Wrong tooltip text of 'cancel edit' button
+- Open room settings when clicking on header in group room
 
 ## 3.5.3
 
@@ -692,6 +754,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - image dimensions should be null, when not determined
+- Don't show user presence in direct chat when user left room
 
 ## 2.0.2
 

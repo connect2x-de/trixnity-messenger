@@ -1,6 +1,7 @@
 import de.connect2x.conventions.authenticatedPackageRegistry
 import de.connect2x.conventions.c2xOrganization
 import de.connect2x.conventions.configureJava
+import de.connect2x.conventions.defaultDependencyLocking
 import de.connect2x.conventions.isCI
 import de.connect2x.conventions.withVersionSuffix
 
@@ -12,6 +13,7 @@ plugins {
     alias(libs.plugins.kotlinx.kover) apply false
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.aboutlibraries.plugin) apply false
     alias(libs.plugins.kotest) apply false
     alias(libs.plugins.mokkery) apply false
     alias(libs.plugins.skie) apply false
@@ -27,12 +29,8 @@ allprojects {
     group = "de.connect2x"
     version = withVersionSuffix(rootProject.libs.versions.trixnityMessenger)
     configureJava(rootProject.libs.versions.jvmTarget)
-
     if (System.getenv("WITH_LOCK")?.toBoolean() == true) {
-        dependencyLocking {
-            lockAllConfigurations()
-        }
-        val dependenciesForAll by tasks.registering(DependencyReportTask::class)
+        defaultDependencyLocking()
     }
 }
 

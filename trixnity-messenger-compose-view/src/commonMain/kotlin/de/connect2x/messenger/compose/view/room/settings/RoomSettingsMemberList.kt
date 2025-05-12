@@ -85,21 +85,28 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
                 memberListViewModel.filterByMemberships,
                 setOf(Membership.JOIN)
             ) {
-                Text(i18n.settingsRoomMemberListCurrent())
+                Text(i18n.settingsRoomMemberListJoined())
             }
             Spacer(Modifier.size(5.dp))
             ToggleableFilterChip(
                 memberListViewModel.filterByMemberships,
-                setOf(Membership.KNOCK, Membership.INVITE)
+                setOf(Membership.KNOCK)
             ) {
-                Text(i18n.settingsRoomMemberListPending())
+                Text(i18n.settingsRoomMemberListKnocking())
+            }
+            Spacer(Modifier.size(5.dp))
+            ToggleableFilterChip(
+                memberListViewModel.filterByMemberships,
+                setOf(Membership.INVITE)
+            ) {
+                Text(i18n.settingsRoomMemberListInvited())
             }
             Spacer(Modifier.size(5.dp))
             ToggleableFilterChip(
                 memberListViewModel.filterByMemberships,
                 setOf(Membership.BAN)
             ) {
-                Text(i18n.settingsRoomMemberListFormer())
+                Text(i18n.settingsRoomMemberListBanned())
             }
         }
 

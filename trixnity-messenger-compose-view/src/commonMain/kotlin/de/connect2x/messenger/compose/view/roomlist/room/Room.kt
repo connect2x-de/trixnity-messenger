@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MapsUgc
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -23,14 +22,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.AvatarWithImage
-import de.connect2x.messenger.compose.view.common.AvatarWithPresence
 import de.connect2x.messenger.compose.view.common.PlaceholderHighlight
 import de.connect2x.messenger.compose.view.common.fade
 import de.connect2x.messenger.compose.view.common.icons.PublicIcon
 import de.connect2x.messenger.compose.view.common.placeholder
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components.AvatarContentIcon
+import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
+import de.connect2x.messenger.compose.view.theme.components.ThemedAvatar
+import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -120,16 +121,17 @@ fun RoomImage(roomElementViewModel: RoomListElementViewModel) {
                 )
         )
     } else {
-        if (isInvite) AvatarWithImage {
-            Icon(Icons.Default.MapsUgc, i18n.roomListJoin())
-        }
-        else Box {
-            AvatarWithPresence(
-                roomImage,
-                roomImageInitials,
-                presence
-            )
-            if (isPublic) PublicIcon()
+        if (isInvite) {
+            ThemedAvatar(avatarSize().dp) {
+                AvatarContentIcon(Icons.Default.MapsUgc, avatarSize().dp)
+            }
+        } else {
+            Box {
+                ThemedUserAvatar(roomImageInitials, roomImage) {
+                    AvatarPresenceBadge(presence)
+                }
+                if (isPublic) PublicIcon()
+            }
         }
     }
 }

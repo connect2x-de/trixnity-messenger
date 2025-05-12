@@ -30,12 +30,13 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolder
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.theme.DefaultSizes
 import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.messenger.compose.view.theme.SystemDensity
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedSlider
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
@@ -89,8 +90,8 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
             )
         ) {
             Column(Modifier.padding(end = 10.dp).fillMaxWidth(1.0f).aspectRatio(1.0f)) {
-                TimelineElementHolder(PreviewTimelineElementViewModel1())
-                TimelineElementHolder(PreviewTimelineElementViewModel2())
+                MessagePreviewContent(PreviewTimelineElementViewModel1())
+                MessagePreviewContent(PreviewTimelineElementViewModel2())
             }
         }
         Spacer(Modifier.height(30.dp))
@@ -129,7 +130,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                     style = MaterialTheme.typography.titleSmall
                 )
             }
-            Slider(
+            ThemedSlider(
                 value = finalNewFontSize,
                 onValueChange = { newFontSize = it },
                 steps = 0,
@@ -151,7 +152,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                     style = MaterialTheme.typography.titleSmall
                 )
             }
-            Slider(
+            ThemedSlider(
                 value = finalNewDisplaySize,
                 onValueChange = { newDisplaySize = it },
                 valueRange = defaultSizes.minDisplaySize..defaultSizes.maxDisplaySize,
@@ -176,10 +177,22 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
     }
 }
 
+@Composable
+private fun MessagePreviewContent(messageHolder: TimelineElementHolderViewModel) {
+    val element = messageHolder.element.collectAsState().value
+    val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
+    Column {
+        element?.let { element ->
+            timelineElementViewSelector.createAsPreview(messageHolder, element)
+        }
+    }
+}
+
 private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val roomId: RoomId = RoomId("!room")
     override val eventId: EventId = EventId("\$1:localhost")
     override val key: String = eventId.full
+    override val isSent: StateFlow<Boolean> = MutableStateFlow(false)
     override val element: MutableStateFlow<TimelineElementViewModel<*>?> =
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
             override val body: String = "Hello everyone!"
@@ -192,8 +205,9 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override val formattedTime: String = "12:12"
     override val formattedDate: String = "21.11.2024"
     override val isByMe: Boolean = true
-    override val sender: MutableStateFlow<UserInfoElement?> = MutableStateFlow(null)
-    override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(true)
+    override val sender: MutableStateFlow<UserInfoElement?> =
+        MutableStateFlow(UserInfoElement(UserId("alice", "server"), "Alice", "A"))
+    override val showSender: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val showBigGapBefore: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val isReply: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val showUnreadMarker: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -221,12 +235,14 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
+    override fun jumpTo() {}
 }
 
 private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val roomId: RoomId = RoomId("!room")
     override val eventId: EventId = EventId("\$2:localhost")
     override val key: String = eventId.full
+    override val isSent: StateFlow<Boolean> = MutableStateFlow(false)
     override val element: MutableStateFlow<TimelineElementViewModel<*>?> =
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
             override val body: String = "Hello!"
@@ -269,4 +285,5 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override fun addReaction(reaction: String) {}
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
+    override fun jumpTo() {}
 }
