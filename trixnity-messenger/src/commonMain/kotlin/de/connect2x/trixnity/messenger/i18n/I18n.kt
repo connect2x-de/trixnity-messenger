@@ -400,6 +400,11 @@ open class I18n(
         DE - "Datei"
     }
 
+    open fun roomListContentVerificationRequest(username: String) = translate {
+        EN - "User verification for user $username"
+        DE - "Nutzerverifikation von $username"
+    }
+
     open fun roomHeaderTypingSingle(username: String) = translate {
         EN - "$username is typing..."
         DE - "$username schreibt..."

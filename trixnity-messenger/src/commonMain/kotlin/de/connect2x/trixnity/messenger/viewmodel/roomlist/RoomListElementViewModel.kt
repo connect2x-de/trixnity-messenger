@@ -377,9 +377,9 @@ open class RoomListElementViewModelImpl(
                 is FileBased.Video -> i18n.roomListContentVideo()
                 is FileBased.Audio -> i18n.roomListContentAudio()
                 is FileBased.File -> i18n.roomListContentFile()
+                is VerificationRequest -> i18n.roomListContentVerificationRequest(content.to.toString())
                 is TextBased,
                 is Location,
-                is VerificationRequest,
                 is Unknown -> content.bodyWithoutFallback
 
                 else -> ""
