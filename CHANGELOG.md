@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - User Profile Avatars not loading
 - Styling: use tonalElevation for surfaces
 - Styling: Fix alignment & color for room list time & encryption icon
+- Fix: Emoji Selector keyboard navigation
  
 ### Security
 
