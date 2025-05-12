@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.NoEncryption
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -22,7 +23,7 @@ fun UnencryptedIcon() {
             Icons.Default.NoEncryption,
             i18n.roomTypeUnencrypted(),
             Modifier.size(16.dp),
-            tint = MaterialTheme.colorScheme.onSecondary,
+            tint = LocalContentColor.current,
         )
     }
 }

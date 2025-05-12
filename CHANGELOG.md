@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No padding at the end of the room header description (View: RoomHeader)
 - User Profile Avatars not loading
 - Styling: use tonalElevation for surfaces
+- Styling: Fix alignment & color for room list time & encryption icon
  
 ### Security
 
