@@ -14,6 +14,7 @@ import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorSty
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.SliderStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
+import de.connect2x.messenger.compose.view.theme.components.SwitchStyle
 import de.connect2x.messenger.compose.view.theme.components.TooltipStyle
 
 data class ComponentStyles(
@@ -30,6 +31,8 @@ data class ComponentStyles(
     val floatingActionButtonDisabled: FloatingActionButtonStyle,
     val reactionButton: ButtonStyle,
     val selectedReactionButton: ButtonStyle,
+    // other inputs
+    val switch: SwitchStyle,
     // surfaces
     val background: SurfaceStyle,
     val dialog: SurfaceStyle,

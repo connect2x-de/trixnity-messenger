@@ -51,6 +51,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.util.Tooltip
+import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -295,10 +296,9 @@ private fun ColumnScope.MessageContentHistorySwitch(
         ) {
             Text(text = i18n.timelineElementMetadataHistory(), style = MaterialTheme.typography.titleSmall)
             Spacer(Modifier.size(5.dp).weight(1f, true))
-            Switch(
+            ThemedSwitch(
                 checked = showHistory,
                 onCheckedChange = { showHistory = it },
-                modifier = Modifier.buttonPointerModifier(),
             )
         }
     }
