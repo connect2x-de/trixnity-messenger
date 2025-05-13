@@ -10,7 +10,7 @@ import androidx.compose.ui.node.DelegatingNode
 import androidx.compose.ui.node.ModifierNodeElement
 
 @Composable
-fun Modifier.justIndication(interactionSource: InteractionSource, ripple: IndicationNodeFactory = ripple(bounded = true)) =
+fun Modifier.customIndication(interactionSource: InteractionSource, ripple: IndicationNodeFactory = ripple(bounded = true)) =
     then(CustomIndicationElement(interactionSource, ripple))
 
 data class CustomIndicationElement(

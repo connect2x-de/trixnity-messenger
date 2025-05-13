@@ -13,6 +13,6 @@ fun EmojiPopup(
     isByMe: Boolean,
 ) {
     TimelinePopup(isOpen, onDismiss, modifier, isByMe) {
-        EmojiSelector(Modifier.fillMaxSize().justArrowKeyNavigation(), onSelect)
+        EmojiSelector(Modifier.fillMaxSize().customKeyNavigation(), onSelect)
     }
 }
