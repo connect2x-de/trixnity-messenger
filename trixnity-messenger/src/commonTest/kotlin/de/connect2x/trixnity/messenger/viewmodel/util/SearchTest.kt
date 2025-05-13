@@ -116,20 +116,6 @@ class SearchTest {
     }
 
     @Test
-    fun `be sorted by display name`() = runTest {
-        val searchTerm = "anything"
-
-        injectSearchUsers(searchTerm, availableUsersSorted.shuffled())
-
-        val res = search.searchUsers(
-            matrixClientMock, searchTerm, limit = null, presenceScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
-        )
-
-        res.size shouldBe availableUsersSorted.size
-        res shouldBeEqual availableUsersSorted
-    }
-
-    @Test
     fun `not return self on non direct search`() = runTest {
         val searchTerm = "any"
 

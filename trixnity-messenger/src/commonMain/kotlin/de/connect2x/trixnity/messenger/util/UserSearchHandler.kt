@@ -6,7 +6,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -48,13 +47,13 @@ class DefaultUserSearchHandler(
     override val searchTerm = TextFieldViewModelImpl()
     override val initialUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val selectedUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
-    private val _foundUsers: MutableSharedFlow<List<Search.SearchUserElement>> = MutableSharedFlow(replay = 1)
+    private val unfilteredFoundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val foundUsers: StateFlow<List<Search.SearchUserElement>> =
-        combine(_foundUsers, selectedUsers, filterNotUsers) { foundUsers, selectedUsers, filterNotUsers ->
-            foundUsers.filterNot {
-                filterNotUsers.contains(it.userId) || selectedUsers.contains(it)
-            }
-        }.stateIn(coroutineScope, WhileSubscribed(), initialUsers.value)
+        combine(unfilteredFoundUsers, selectedUsers, filterNotUsers) { foundUsers, selectedUsers, filterNotUsers ->
+            foundUsers
+                .filterNot(selectedUsers::contains)
+                .filterNot { filterNotUsers.contains(it.userId) }
+        }.stateIn(coroutineScope, WhileSubscribed(), emptyList())
     override val waitForUserResults: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     init {
@@ -80,10 +79,10 @@ class DefaultUserSearchHandler(
             }
             .scopedCollectLatest {
                 if (it.isBlank()) {
-                    _foundUsers.tryEmit(initialUsers.value)
+                    unfilteredFoundUsers.value = initialUsers.value
                 } else {
                     waitForUserResults.value = true
-                    _foundUsers.tryEmit(
+                    unfilteredFoundUsers.value =
                         search.searchUsers(
                             client,
                             it,
@@ -91,7 +90,6 @@ class DefaultUserSearchHandler(
                             this,
                             maxAvatarSize
                         )
-                    )
                     waitForUserResults.value = false
                 }
             }
@@ -105,9 +103,6 @@ object PreviewUserSearchHandler : UserSearchHandler {
     override val foundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val selectedUsers: StateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val waitForUserResults: StateFlow<Boolean> = MutableStateFlow(false)
-    override fun selectUser(user: Search.SearchUserElement) {
-    }
-
-    override fun unselectUser(user: Search.SearchUserElement) {
-    }
+    override fun selectUser(user: Search.SearchUserElement) {}
+    override fun unselectUser(user: Search.SearchUserElement) {}
 }

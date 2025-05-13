@@ -84,7 +84,7 @@ open class CreateNewGroupViewModelImpl(
     override val optionalRoomName = TextFieldViewModelImpl()
     override var optionalGroupTopic = TextFieldViewModelImpl()
 
-    override val groupUsers = MutableStateFlow(listOf<SearchUserElement>())
+    override val groupUsers = createNewRoomViewModel.searchHandler.selectedUsers
     override val canCreateNewGroup: StateFlow<Boolean> = combine(isPrivate, isEncrypted) { private, encrypted ->
         !(private && !encrypted)
     }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
