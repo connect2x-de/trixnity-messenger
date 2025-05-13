@@ -140,7 +140,6 @@ class RoomViewModelTest {
         } returns MutableStateFlow(null)
         every {
             roomServiceMock.getTimeline(
-                any(),
                 any<suspend (TimelineStateChange<TimelineViewModelImpl.TimelineElementWrapper>) -> Unit>(),
                 any<suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper>(),
             )
