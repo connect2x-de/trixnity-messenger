@@ -26,6 +26,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -120,6 +121,7 @@ class AddMembersViewModelTest {
         delay(300.milliseconds)
         cut.canAddMembers.value shouldBe true
         cut.groupUsers.value shouldContainExactly listOf(user2)
+        searchHandler.foundUsers.firstOrNull { !it.contains(user2) }
         searchHandler.foundUsers.value shouldNotContain user2
 
         cut.removeUserFromGroup(user2)
@@ -127,6 +129,7 @@ class AddMembersViewModelTest {
         delay(300.milliseconds)
         cut.canAddMembers.value shouldBe false
         cut.groupUsers.value shouldBe emptyList()
+        searchHandler.foundUsers.firstOrNull { it.contains(user2) }
         searchHandler.foundUsers.value shouldContain user2
 
         subscriberJob.cancel()
