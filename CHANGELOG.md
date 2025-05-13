@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.5.7
+
+### Changed
+
 - Give immediate feedback when a message has been sent (even before sync)
 - Update Firebase Cloud Messaging from 33.11.0 to 33.13.0
 - Rename member filters and add invited filter
@@ -23,10 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Styling: Allow customizing switches via theme
 - Styling: Make emoji reactions themable
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Add delay for appearance of tooltips when hovering element
@@ -37,8 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Styling: use tonalElevation for surfaces
 - Styling: Fix alignment & color for room list time & encryption icon
  
-### Security
-
 ## 3.5.6
 
 ### Changed
