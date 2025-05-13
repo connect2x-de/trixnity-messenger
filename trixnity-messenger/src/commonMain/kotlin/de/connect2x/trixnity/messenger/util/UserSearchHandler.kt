@@ -8,7 +8,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -47,29 +47,26 @@ class DefaultUserSearchHandler(
 ) : UserSearchHandler {
     override val searchTerm = TextFieldViewModelImpl()
     override val initialUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
-    private val _selectedUsers: MutableSharedFlow<List<Search.SearchUserElement>> = MutableSharedFlow(replay = 1)
-    override val selectedUsers: StateFlow<List<Search.SearchUserElement>> =
-        _selectedUsers.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
+    override val selectedUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     private val _foundUsers: MutableSharedFlow<List<Search.SearchUserElement>> = MutableSharedFlow(replay = 1)
     override val foundUsers: StateFlow<List<Search.SearchUserElement>> =
-        combine(_foundUsers, _selectedUsers, filterNotUsers) { foundUsers, selectedUsers, filterNotUsers ->
+        combine(_foundUsers, selectedUsers, filterNotUsers) { foundUsers, selectedUsers, filterNotUsers ->
             foundUsers.filterNot {
                 filterNotUsers.contains(it.userId) || selectedUsers.contains(it)
             }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), initialUsers.value)
+        }.stateIn(coroutineScope, WhileSubscribed(), initialUsers.value)
     override val waitForUserResults: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     init {
         coroutineScope.launch { searchUsers() }
     }
 
-    // Consider moving this back into PotentialMembersViewModel once CreateNewRoomViewModel uses it
     override fun selectUser(user: Search.SearchUserElement) {
-        _selectedUsers.tryEmit(selectedUsers.value + user)
+        selectedUsers.value += user
     }
 
     override fun unselectUser(user: Search.SearchUserElement) {
-        _selectedUsers.tryEmit(selectedUsers.value - user)
+        selectedUsers.value -= user
     }
 
     private suspend fun searchUsers() {

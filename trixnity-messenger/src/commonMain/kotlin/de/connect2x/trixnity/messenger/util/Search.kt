@@ -123,7 +123,6 @@ class SearchImpl(
                         response.results
                             .asSequence()
                             .filter { searchUser -> searchUser.userId != matrixClient.userId }
-                            .sortedBy { searchUser -> searchUser.displayName }
                             .take(limit?.toInt() ?: Int.MAX_VALUE)
                             .map { searchUser ->
                                 async {

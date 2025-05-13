@@ -159,7 +159,6 @@ open class CreateNewGroupViewModelImpl(
         }
     }
 
-    // IMPORTANT: has to be separate as the renderer will collapse when 2 collectAsState() references change at the same time
     override fun removeUserFromList(user: SearchUserElement) {
         coroutineScope.launch {
             createNewRoomViewModel.searchHandler.selectUser(user)
