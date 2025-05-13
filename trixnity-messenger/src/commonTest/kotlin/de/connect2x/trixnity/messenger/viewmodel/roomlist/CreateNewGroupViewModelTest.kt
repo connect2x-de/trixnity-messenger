@@ -26,7 +26,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -162,13 +161,12 @@ class CreateNewGroupViewModelTest {
         val cut = createNewGroupViewModel()
         val searchHandler = cut.createNewRoomViewModel.searchHandler
         backgroundScope.launch { cut.canCreateNewGroup.collect {} }
+        backgroundScope.launch { searchHandler.foundUsers.collect {  } }
         searchHandler.searchTerm.update("u")
         searchHandler.foundUsers.first {
             it == listOf(user2, user3)
         }
         cut.onUserClick(user2)
-
-        searchHandler.foundUsers.firstOrNull { !it.contains(user2) }
 
         eventually(3.seconds) {
             cut.groupUsers.value shouldContainExactly listOf(user2)
@@ -176,8 +174,6 @@ class CreateNewGroupViewModelTest {
         }
 
         cut.removeUserFromGroup(user2)
-
-        searchHandler.foundUsers.firstOrNull { it.contains(user2) }
 
         eventually(3.seconds) {
             cut.groupUsers.value shouldBe emptyList()

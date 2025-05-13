@@ -109,8 +109,9 @@ class AddMembersViewModelTest {
         val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userDisplayName3, initials = "U")
 
         val cut = createNewAddMembersViewmodel()
-        val subscriberJob = launch { cut.canAddMembers.collect {} }
+        backgroundScope.launch { cut.canAddMembers.collect {} }
         val searchHandler = cut.potentialMembersViewModel.searchHandler
+        backgroundScope.launch { searchHandler.foundUsers.collect {  } }
         searchHandler.searchTerm.update("u")
         searchHandler.foundUsers.first {
             it == listOf(user2, user3)
@@ -121,7 +122,6 @@ class AddMembersViewModelTest {
         delay(300.milliseconds)
         cut.canAddMembers.value shouldBe true
         cut.groupUsers.value shouldContainExactly listOf(user2)
-        searchHandler.foundUsers.firstOrNull { !it.contains(user2) }
         searchHandler.foundUsers.value shouldNotContain user2
 
         cut.removeUserFromGroup(user2)
@@ -129,10 +129,7 @@ class AddMembersViewModelTest {
         delay(300.milliseconds)
         cut.canAddMembers.value shouldBe false
         cut.groupUsers.value shouldBe emptyList()
-        searchHandler.foundUsers.firstOrNull { it.contains(user2) }
         searchHandler.foundUsers.value shouldContain user2
-
-        subscriberJob.cancel()
     }
 
     @Test
