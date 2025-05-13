@@ -5,11 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import de.connect2x.messenger.compose.view.files.GlobalWorkerOptions
 import de.connect2x.messenger.compose.view.files.PdfReaderWeb
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -17,7 +14,6 @@ import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
 import net.folivo.trixnity.client.media.opfs.OpfsPlatformMedia
 import web.blob.Blob
-import kotlin.coroutines.coroutineContext
 
 actual suspend fun getPlatformPDFReader(media: PlatformMedia, onError: (String?) -> Unit): PDFReader {
     val reader = PDFPlatformReader(media, onError)
@@ -68,11 +64,11 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
     override suspend fun getPage(
         pageId: Int,
         dpi: Float
-    ): Deferred<ImageBitmap?> = CoroutineScope(coroutineContext).async {
+    ): ImageBitmap? {
         val reader = reader.first { it != null }
         val renderFlow: MutableStateFlow<ImageBitmap?> = MutableStateFlow(null)
         reader?.renderPage(pageId + 1, renderFlow, dpi.div(72f))
-        return@async renderFlow.first { it != null }
+        return renderFlow.first { it != null }
     }
 
     @OptIn(DelicateCoroutinesApi::class)

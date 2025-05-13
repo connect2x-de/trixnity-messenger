@@ -10,16 +10,13 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.createBitmap
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
-import kotlin.coroutines.coroutineContext
 
 private val log = KotlinLogging.logger {}
 
@@ -56,9 +53,10 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
     override suspend fun getPage(
         pageId: Int,
         dpi: Float
-    ): Deferred<ImageBitmap?> = CoroutineScope(coroutineContext).async {
-        renderer.value?.let {
-            it.openPage(pageId).use { page ->
+    ): ImageBitmap? {
+        val renderer = renderer.first { it != null }
+        renderer?.let {
+            renderer.openPage(pageId).use { page ->
                 val scaledDpi = dpi.div(72f)
                 val width = (page.width * scaledDpi).toInt()
                 val height = (page.height * scaledDpi).toInt()
@@ -69,9 +67,10 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
                             "at scale factor: $dpi "
                 }
                 page.render(bitmap, null, null, RENDER_MODE_FOR_DISPLAY)
-                return@async bitmap.asImageBitmap()
+                return bitmap.asImageBitmap()
             }
         }
+        return null
     }
 
     @OptIn(DelicateCoroutinesApi::class)

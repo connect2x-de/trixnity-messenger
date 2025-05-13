@@ -5,11 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -18,7 +15,6 @@ import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.PDFRenderer
-import kotlin.coroutines.coroutineContext
 
 private val log = KotlinLogging.logger { }
 
@@ -69,16 +65,15 @@ class PlatformPDFReader(
     }
 
 
-    override suspend fun getPage(pageId: Int, dpi: Float): Deferred<ImageBitmap?> =
-        CoroutineScope(coroutineContext).async {
-            val renderer = document.first { it != null }?.second
-            return@async renderer?.renderImageWithDPI(pageId, dpi)?.let {
-                log.debug {
-                    "render pdf page $pageId " +
-                            "to bitmap (${it.width}x${it.height}) " +
-                            "at scale factor: $dpi "
-                }
-                it.toComposeImageBitmap()
+    override suspend fun getPage(pageId: Int, dpi: Float): ImageBitmap? {
+        val renderer = document.first { it != null }?.second
+        return renderer?.renderImageWithDPI(pageId, dpi)?.let {
+            log.debug {
+                "render pdf page $pageId " +
+                        "to bitmap (${it.width}x${it.height}) " +
+                        "at scale factor: $dpi "
             }
+            it.toComposeImageBitmap()
         }
+    }
 }

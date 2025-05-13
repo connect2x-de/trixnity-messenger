@@ -61,7 +61,6 @@ import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.ktor.http.*
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.datetime.Clock
@@ -117,7 +116,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
             element?.first?.value = Clock.System.now().toEpochMilliseconds()
             element?.third?.value = dpi.toInt()
             removeOldElements(pageCacheSize, lazyListState)
-            element?.second?.value = reader.getPage(pageId, dpi).await()
+            element?.second?.value = reader.getPage(pageId, dpi)
         }
     }
 
@@ -160,7 +159,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
             Column {
                 Box(
                     Modifier
-                        .background(Color.Black)
+                        .background(color = if (media == null) MaterialTheme.colorScheme.background else Color.Black)
                         .fillMaxSize()
                         .focusRequester(focusRequester)
                         .focusable()
@@ -311,7 +310,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
 }
 
 interface PDFReader {
-    suspend fun getPage(pageId: Int, dpi: Float): Deferred<ImageBitmap?>
+    suspend fun getPage(pageId: Int, dpi: Float): ImageBitmap?
     fun onDispose()
     val numOfPages: MutableState<Int?>
     val documentWidth: MutableState<Int?>
