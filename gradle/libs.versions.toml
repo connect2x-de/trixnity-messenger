@@ -11,7 +11,7 @@ kotlin = "2.1.10" # https://github.com/JetBrains/kotlin/releases
 kotlinWrappers = "2025.3.20" # https://github.com/JetBrains/kotlin-wrappers/releases (should be same as in Trixnity)
 
 kotlinxCoroutines = "1.10.1" # https://github.com/Kotlin/kotlinx.coroutines/releases
-kotlinxSerialization = "1.8.0" # https://github.com/Kotlin/kotlinx.serialization/releases
+kotlinxSerialization = "1.8.1" # https://github.com/Kotlin/kotlinx.serialization/releases
 kotlinxDatetime = "0.6.2" # https://github.com/Kotlin/kotlinx-datetime/releases
 kotlinxKover = "0.9.1" # https://github.com/Kotlin/kotlinx-kover/releases
 

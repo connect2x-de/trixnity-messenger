@@ -1,11 +1,11 @@
 package de.connect2x.messenger.compose.view.util
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.ClipEntry
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.CopyableContent
 import org.koin.core.module.Module
 import org.koin.dsl.module
-import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.Transferable
@@ -14,12 +14,10 @@ import java.io.ByteArrayInputStream
 import java.io.IOException
 
 actual fun platformCopyToClipboardModule(): Module = module {
-    single<CopyToClipboard> {
-        object : CopyToClipboard {
+    single<ToClipboardEntry> {
+        object : ToClipboardEntry {
             @Composable
-            override fun create(): suspend (CopyableContent, I18nView) -> Unit {
-                val clipboardManager = Toolkit.getDefaultToolkit().systemClipboard
-
+            override fun invoke(): suspend (CopyableContent, I18nView) -> ClipEntry {
                 return { content, _ ->
                     val transferable: Transferable = when (content) {
                         is CopyableContent.File -> object : Transferable {
@@ -47,7 +45,7 @@ actual fun platformCopyToClipboardModule(): Module = module {
                         is CopyableContent.FormattedText -> StringSelection(content.unformattedText)
                     }
 
-                    clipboardManager.setContents(transferable, null)
+                    ClipEntry(transferable)
                 }
             }
         }
