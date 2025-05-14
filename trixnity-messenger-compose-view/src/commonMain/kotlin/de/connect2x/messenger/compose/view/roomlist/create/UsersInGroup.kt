@@ -30,32 +30,38 @@ import de.connect2x.messenger.compose.view.common.VerticalGrid
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
+import de.connect2x.trixnity.messenger.util.UserSearchHandler
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 
 interface UsersInGroupView {
     @Composable
-    fun create(createNewGroupViewModel: CreateNewGroupViewModel)
+    fun create(userSearchHandler: UserSearchHandler)
+}
+
+@Composable
+fun UsersInGroup(userSearchHandler: UserSearchHandler) {
+    DI.get<UsersInGroupView>().create(userSearchHandler)
 }
 
 @Composable
 fun UsersInGroup(createNewGroupViewModel: CreateNewGroupViewModel) {
-    DI.get<UsersInGroupView>().create(createNewGroupViewModel)
+    DI.get<UsersInGroupView>().create(createNewGroupViewModel.createNewRoomViewModel.searchHandler)
 }
 
 class UsersInGroupViewImpl : UsersInGroupView {
     @Composable
-    override fun create(createNewGroupViewModel: CreateNewGroupViewModel) {
+    override fun create(userSearchHandler: UserSearchHandler) {
         val i18n = DI.get<I18nView>()
         val isMobile = Platform.current.isMobile
-        val groupUsers = createNewGroupViewModel.groupUsers.collectAsState()
-        if (groupUsers.value.isNotEmpty()) {
+        val selectedUsers = userSearchHandler.selectedUsers.collectAsState()
+        if (selectedUsers.value.isNotEmpty()) {
             Box(Modifier.padding(horizontal = 10.dp, vertical = 15.dp)) {
                 VerticalGrid(spacing = 10.dp) {
-                    groupUsers.value.map { groupUser ->
+                    selectedUsers.value.map { groupUser ->
                         Column(
                             Modifier.requiredWidth(60.dp)
                                 .then(if (isMobile) Modifier.clickable {
-                                    createNewGroupViewModel.removeUserFromGroup(groupUser)
+                                    userSearchHandler.unselectUser(groupUser)
                                 } else Modifier),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
@@ -68,7 +74,7 @@ class UsersInGroupViewImpl : UsersInGroupView {
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.primary)
                                         .size(15.dp)
-                                        .clickable { createNewGroupViewModel.removeUserFromGroup(groupUser) }
+                                        .clickable { userSearchHandler.unselectUser(groupUser) }
                                         .buttonPointerModifier(),
                                 )
                             }
