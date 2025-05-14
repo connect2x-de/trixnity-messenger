@@ -202,6 +202,7 @@ internal class MockedTimeline(
         )
     }
 
+    @Deprecated("use init with explicit roomId instead")
     override suspend fun init(
         startFrom: EventId,
         configStart: GetTimelineEventConfig.() -> Unit,
@@ -257,6 +258,7 @@ internal class MockedTimeline(
 class NoOpTimeline<T> : Timeline<T> {
     override val state: Flow<TimelineState<T>> = flowOf(TimelineState())
 
+    @Deprecated("use init with explicit roomId instead")
     override suspend fun init(
         startFrom: EventId,
         configStart: GetTimelineEventConfig.() -> Unit,
