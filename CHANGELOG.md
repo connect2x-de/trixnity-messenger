@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated Ktor from 3.1.3 to 3.1.4
+- Updated Koin from 4.0.3 to 4.0.4
+- Updated C2X conventions plugin from 41503362 to 43109500
+- Separate license processing tasks for android product flavors and build type permutations
+
 ### Deprecated
 
 ### Removed

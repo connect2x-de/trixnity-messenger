@@ -23,6 +23,49 @@ enum class BuildFlavor { PROD, DEV }
 
 val buildFlavor = BuildFlavor.valueOf(System.getenv("MESSENGER_BUILD_FLAVOR") ?: if (isCI) "PROD" else "DEV")
 
+registerMultiplatformLicensesTasks { licenseTask, target, variant ->
+    // TODO: move this into c2x-conventions eventually
+    val targetName = target.targetName
+    val buildConfigTask =
+        tasks.register("generateBuildConfig${targetName.capitalized()}${variant.capitalized()}") {
+            dependsOn(licenseTask)
+            group = "build config"
+            val generatedSrc =
+                layout.buildDirectory.dir("generatedSrc/${targetName}Main/kotlin")
+            doLast {
+                val outputFile = generatedSrc.get()
+                    .dir(appId.replace(".", "/"))
+                    .file("BuildConfig.kt")
+                val quotes = "\"\"\""
+                val licencesString = licenseTask.get().outputFile.get().asFile.readText()
+                    .replace("$", "\${'$'}")
+                    .replace(quotes, "")
+
+                val buildConfigString =
+                    """
+            package $appId
+
+            actual val BuildConfig: CommonBuildConfig = object : CommonBuildConfig {
+                override val version: String = "$version"
+                override val flavor: Flavor = Flavor.valueOf("$buildFlavor")
+                override val appName: String = "$appName"
+                override val appId: String = "$appId"
+                override val licenses: String = $quotes$licencesString$quotes
+            }
+        """.trimIndent()
+                outputFile.asFile.apply {
+                    ensureParentDirsCreated()
+                    createNewFile()
+                    writeText(buildConfigString)
+                }
+            }
+            outputs.dirs(generatedSrc)
+        }
+    kotlin.sourceSets.named("${targetName}Main") {
+        kotlin.srcDir(buildConfigTask.map { it.outputs })
+    }
+}
+
 kotlin {
     androidTarget()
     jvm("desktop")
@@ -82,49 +125,6 @@ kotlin {
                 implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
             }
         }
-    }
-}
-
-registerMultiplatformLicensesTasks { licenseTask, target, _ ->
-    // TODO: move this into c2x-conventions eventually
-    val targetName = target.targetName
-    val buildConfigTask =
-        tasks.register("generateBuildConfig${targetName.capitalized()}") {
-            dependsOn(licenseTask)
-            group = "build config"
-            val generatedSrc =
-                layout.buildDirectory.dir("generatedSrc/${targetName}Main/kotlin")
-            doLast {
-                val outputFile = generatedSrc.get()
-                    .dir(appId.replace(".", "/"))
-                    .file("BuildConfig.kt")
-                val quotes = "\"\"\""
-                val licencesString = licenseTask.get().outputFile.get().asFile.readText()
-                    .replace("$", "\${'$'}")
-                    .replace(quotes, "")
-
-                val buildConfigString =
-                    """
-            package $appId
-
-            actual val BuildConfig: CommonBuildConfig = object : CommonBuildConfig {
-                override val version: String = "$version"
-                override val flavor: Flavor = Flavor.valueOf("$buildFlavor")
-                override val appName: String = "$appName"
-                override val appId: String = "$appId"
-                override val licenses: String = $quotes$licencesString$quotes
-            }
-        """.trimIndent()
-                outputFile.asFile.apply {
-                    ensureParentDirsCreated()
-                    createNewFile()
-                    writeText(buildConfigString)
-                }
-            }
-            outputs.dirs(generatedSrc)
-        }
-    kotlin.sourceSets.named("${targetName}Main") {
-        kotlin.srcDir(buildConfigTask.map { it.outputs })
     }
 }
 
