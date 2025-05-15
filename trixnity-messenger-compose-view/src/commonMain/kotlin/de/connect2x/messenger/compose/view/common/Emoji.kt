@@ -78,7 +78,7 @@ fun EmojiButton(
             .requiredSize(48.dp)
             .customClickable(
                 focusRequester = focusRequester ?: remember { FocusRequester() },
-                indication = ripple(bounded = false, radius = 30.dp),
+                indication = ripple(bounded = false, radius = 24.dp),
                 onClick = onClick,
             )
             .padding(8.dp),
