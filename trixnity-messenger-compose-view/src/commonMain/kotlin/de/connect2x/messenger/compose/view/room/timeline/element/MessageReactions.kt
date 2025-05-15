@@ -34,6 +34,8 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
+import kotlin.collections.any
+import kotlin.collections.orEmpty
 
 
 interface MessageReactionsView {
@@ -65,7 +67,6 @@ class MessageReactionsViewImpl : MessageReactionsView {
         if (timelineElementHolderViewModel !is TimelineElementHolderViewModel) {
             return
         }
-        val i18n = DI.current.get<I18nView>()
         val reactions = timelineElementHolderViewModel.reactions.collectAsState().value?.byReaction.orEmpty()
         val reactionList = remember(reactions) {
             reactions.entries.sortedByDescending { it.value.size }.map { it.key }
@@ -83,30 +84,49 @@ class MessageReactionsViewImpl : MessageReactionsView {
             isByMe = timelineElementHolderViewModel.isByMe,
         )
 
-        if (reactions.isNotEmpty()) {
-            FlowRow(
-                modifier,
-                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-                verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
-            ) {
-                for (reaction in reactionList) {
-                    val reactionEvents = reactions[reaction].orEmpty()
-                    MessageReactionButton(
-                        reaction = reaction,
-                        reactionEvents = reactionEvents,
-                        count = reactionEvents.size,
-                        myReaction = reactionEvents.any { it.isMe },
-                        onAddReaction = timelineElementHolderViewModel::addReaction,
-                        onRemoveReaction = { timelineElementHolderViewModel.removeReaction(reaction) },
-                    )
-                }
-                MessageAddReactionButton(
-                    onClick = {
-                        reactionsOpen.value = true
-                    },
-                    i18n.reactMessage()
+        MessageReactionList(
+            reactionList,
+            reactions,
+            onAddReaction = timelineElementHolderViewModel::addReaction,
+            onRemoveReaction = timelineElementHolderViewModel::removeReaction,
+            onOpenReactions = { reactionsOpen.value = true },
+            modifier,
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun MessageReactionList(
+    reactionList: List<String>,
+    reactions: Map<String, Set<EventReactions.ByReactionInfo>>,
+    onAddReaction: (String) -> Unit,
+    onRemoveReaction: (String) -> Unit,
+    onOpenReactions: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val i18n = DI.current.get<I18nView>()
+    if (reactions.isNotEmpty()) {
+        FlowRow(
+            modifier,
+            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+            verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
+        ) {
+            for (reaction in reactionList) {
+                val reactionEvents = reactions[reaction].orEmpty()
+                MessageReactionButton(
+                    reaction = reaction,
+                    reactionEvents = reactionEvents,
+                    count = reactionEvents.size,
+                    myReaction = reactionEvents.any { it.isMe },
+                    onAddReaction = onAddReaction,
+                    onRemoveReaction = { onRemoveReaction(reaction) },
                 )
             }
+            MessageAddReactionButton(
+                onClick = onOpenReactions,
+                i18n.reactMessage()
+            )
         }
     }
 }
