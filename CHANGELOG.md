@@ -14,6 +14,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Ktor from 3.1.3 to 3.1.4
 - Updated Koin from 4.0.3 to 4.0.4
 - Updated C2X conventions plugin from 41503362 to 43109500
+- Updated Trixnity from 4.15.2 to 4.15.3
+- Updated js-joda from 2.21.2 to 2.22.0
+- Updated zip.js from 2.7.58 to 2.7.61
+- Updated Kotlin Wrappers from 2025.3.20 to 2025.5.6
+- Updated KotlinX Coroutines from 1.10.1 to 1.10.2
+- Updated KotlinX Serialization from 1.8.0 to 1.8.1
+- Updated SKIE from 0.10.1 to 0.10.2-preview.2.1.20
+- Updated KIM from 0.23 to 0.24
+- Updated pdfbox from 3.0.4 to 3.0.5
+- Updated RichEditor from 1.0.0-rc11 to 1.0.0-rc12
+- Updated AndroidX Crypto from 1.1.0-alpha06 to 1.1.0-alpha07
+- Updated AndroidX LiveData from 2.8.7 to 2.9.0
+- Updated Kotlin Logging 7.0.5 to 7.0.7
 - Separate license processing tasks for android product flavors and build type permutations
 
 ### Deprecated
