@@ -81,7 +81,7 @@ class SearchImpl(
         limit: Long?,
         filterNot: (userId: UserId) -> Boolean,
         presenceScope: CoroutineScope,
-        maxAvatarSize: Long,
+        maxPreviewSize: Long,
     ): List<SearchUserElement> = coroutineScope {
         val userId = UserId(searchTerm)
         if (userId.isValid()) {
@@ -94,7 +94,7 @@ class SearchImpl(
                 matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
                     onSuccess = {
                         it.limitedByteArrayOrNull(
-                            maxAvatarSize
+                            maxPreviewSize
                         ) {
                             log.error { "Image for $userId exceeds preview limits, so it's not displayed" }
                         }
@@ -130,7 +130,7 @@ class SearchImpl(
                             .take(limit?.toInt() ?: Int.MAX_VALUE)
                             .map { searchUser ->
                                 async {
-                                    val image = getImage(matrixClient, searchUser, maxAvatarSize)
+                                    val image = getImage(matrixClient, searchUser, maxPreviewSize)
                                     val presence = getPresence(matrixClient, searchUser.userId)
                                         .stateIn(presenceScope, SharingStarted.WhileSubscribed(), null)
 
