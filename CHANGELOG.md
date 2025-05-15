@@ -23,9 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated SKIE from 0.10.1 to 0.10.2-preview.2.1.20
 - Updated KIM from 0.23 to 0.24
 - Updated pdfbox from 3.0.4 to 3.0.5
-- Updated RichEditor from 1.0.0-rc11 to 1.0.0-rc12
+- Updated okio from 3.10.2 to 3.11.0
 - Updated AndroidX Crypto from 1.1.0-alpha06 to 1.1.0-alpha07
 - Updated AndroidX LiveData from 2.8.7 to 2.9.0
+- Updated AndroidX SQLite from 2.5.0-rc03 to 2.5.1
+- Updated AndroidX SQLite MC from 2.5.0-rc03 to 2.5.1
 - Updated Kotlin Logging 7.0.5 to 7.0.7
 - Separate license processing tasks for android product flavors and build type permutations
 
@@ -34,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+
+- Fixed cancellation exceptions and a small memory leak caused by message replies
 
 ### Security
 
