@@ -287,8 +287,6 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                                         selected = selectedMethod.value == SelectSelfVerificationMethod(method)
                                     )
                                 }
-
-                                else -> Box {}
                             }
                         }
 

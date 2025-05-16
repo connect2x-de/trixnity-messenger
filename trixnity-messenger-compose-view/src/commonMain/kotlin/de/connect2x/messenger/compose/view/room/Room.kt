@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -16,6 +17,8 @@ import de.connect2x.messenger.compose.view.TWO_PANE_THRESHOLD
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.room.settings.ExtrasPaneContentSwitch
 import de.connect2x.messenger.compose.view.room.timeline.RoomContentSwitch
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModel
 
 
@@ -57,11 +60,13 @@ class RoomViewImpl : RoomView {
                 )
 
                 // Extras Pane
-                if (isExtrasShown) Box(
-                    modifier = Modifier
-                        .weight(if (isSinglePane) 1F else SETTINGS_WEIGHT)
-                ) {
-                    ExtrasPaneContentSwitch(roomViewModel.extrasStack, isSinglePane)
+                if (isExtrasShown) {
+                    ThemedSurface(
+                        style = MaterialTheme.components.details,
+                        modifier = Modifier.weight(if (isSinglePane) 1F else SETTINGS_WEIGHT)
+                    ) {
+                        ExtrasPaneContentSwitch(roomViewModel.extrasStack, isSinglePane)
+                    }
                 }
             }
         }

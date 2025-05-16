@@ -48,7 +48,6 @@ fun RowScope.RoomTime(roomListElementViewModel: RoomListElementViewModel, modifi
     }
     Text(
         time ?: " ",
-        modifier.then(Modifier.alignByBaseline()),
         style = MaterialTheme.typography.labelMedium,
         maxLines = 1,
     )

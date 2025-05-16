@@ -80,7 +80,7 @@ fun Modifier.themedSurface(
 ): Modifier {
     val shadowElevation = with (LocalDensity.current) { style.shadowElevation.toPx() }
     val backgroundColor = if (style.color != MaterialTheme.colorScheme.surface) style.color
-    else MaterialTheme.colorScheme.surfaceColorAtElevation(style.shadowElevation)
+    else MaterialTheme.colorScheme.surfaceColorAtElevation(style.tonalElevation)
     val shadowModifier = Modifier.graphicsLayer(
         shadowElevation = shadowElevation,
         shape = style.shape,

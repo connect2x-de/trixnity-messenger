@@ -9,7 +9,6 @@ fun HistoryVisibilityEventContent.HistoryVisibility.getExplanation(i18n: I18nVie
         HistoryVisibilityEventContent.HistoryVisibility.SHARED -> i18n.historyVisibilitySharedExplanation()
         HistoryVisibilityEventContent.HistoryVisibility.JOINED -> i18n.historyVisibilityJoinedExplanation()
         HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE -> i18n.historyVisibilityWorldReadableExplanation()
-        else -> ""
     }
 }
 
@@ -26,7 +25,6 @@ fun HistoryVisibilityEventContent.HistoryVisibility.getStateName(i18n: I18nView)
         HistoryVisibilityEventContent.HistoryVisibility.SHARED -> i18n.historyVisibilityShared()
         HistoryVisibilityEventContent.HistoryVisibility.JOINED -> i18n.historyVisibilityJoined()
         HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE -> i18n.historyVisibilityWorldReadable()
-        else -> ""
     }
 }
 
