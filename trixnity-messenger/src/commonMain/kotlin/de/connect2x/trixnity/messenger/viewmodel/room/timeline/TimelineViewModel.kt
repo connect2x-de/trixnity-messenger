@@ -92,7 +92,6 @@ import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.GetTimelineEventsConfig
 import net.folivo.trixnity.client.room.Timeline
-import net.folivo.trixnity.client.room.TimelineStateChange
 import net.folivo.trixnity.client.room.getAccountData
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.TimelineEvent
@@ -263,7 +262,6 @@ class TimelineViewModelImpl(
     private val timelineStartFrom = MutableSharedFlow<EventId>(replay = 1)
     private val timeline: Timeline<TimelineElementWrapper> =
         matrixClient.room.getTimeline(
-            roomId = roomId,
             onStateChange = { stateChange ->
                 if (stateChange.removedElements.isNotEmpty()) {
                     log.debug { "forget old timeline elements" }
@@ -503,6 +501,7 @@ class TimelineViewModelImpl(
             timelineStartFrom.collect { startFrom ->
                 log.debug { "try init timeline from $startFrom" }
                 timeline.init(
+                    roomId = roomId,
                     startFrom = startFrom,
                     configBefore = {
                         fetchSize = config.timelineInitialSize.toLong() - 1
@@ -869,7 +868,7 @@ class TimelineViewModelImpl(
                     log.debug { "load timeline events after" }
                     val timelineStateChange =
                         coroutineScope {
-                            select<TimelineStateChange<TimelineElementWrapper>?> {
+                            select {
                                 // IMPORTANT: when we are at the end of the timeline, this suspends and waits for new messages
                                 async { timeline.loadAfter(loadConfig) }.onAwait { it }
                                 async { visibleElements.first { it != currentVisibleElements } }.onAwait { null }

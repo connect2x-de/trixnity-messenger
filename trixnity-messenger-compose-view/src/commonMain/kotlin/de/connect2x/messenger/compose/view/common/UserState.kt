@@ -25,8 +25,8 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import kotlinx.coroutines.flow.StateFlow
-import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.crypto.key.UserTrustLevel
 
 @Composable
 fun RowScope.UserState(
