@@ -83,7 +83,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
 
     private fun removeOldElements(pageCacheSize: Int, lazyListState: LazyListState) {
         val visibleItems = lazyListState.layoutInfo.visibleItemsInfo.map { itemInfo -> itemInfo.index }
-        cache.toList().sortedBy { it.second.first.value }
+        cache.toList().sortedBy { it.second.value?.first }
             .subList(0, 0.coerceAtLeast(cache.size - pageCacheSize)).filter { !visibleItems.contains(it.first) }
             .forEach {
                 cache.remove(it.first)
@@ -92,22 +92,16 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
 
     //The pdf page cache, consisting of the page number as the key and the time it was loaded, the image itself and its DPI as the value
     private val cache =
-        mutableStateMapOf<Int, Triple<MutableStateFlow<Long?>, MutableStateFlow<ImageBitmap?>, MutableStateFlow<Int?>>>()
+        mutableStateMapOf<Int, MutableStateFlow<Triple<Long, ImageBitmap?, Int>?>>()
 
     private val mutex = Mutex()
 
-    private fun getCacheElement(cacheKey: Int): StateFlow<ImageBitmap?> {
-        return cache[cacheKey]?.second ?: run {
-            return MutableStateFlow<ImageBitmap?>(null).also {
-                cache[cacheKey] =
-                    Triple(
-                        MutableStateFlow(null),
-                        it,
-                        MutableStateFlow(null)
-                    )
-            }
+    private fun getCacheElement(cacheKey: Int): StateFlow<Triple<Long, ImageBitmap?, Int>?> {
+        return cache[cacheKey] ?: run {
+            return MutableStateFlow<Triple<Long, ImageBitmap?, Int>?>(null).also { cache[cacheKey] = it }
         }
     }
+
 
     private suspend fun loadImageWithDpi(
         reader: PDFReader,
@@ -117,11 +111,9 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         lazyListState: LazyListState
     ) = mutex.withLock {
         val element = cache[pageId]
-        if (element?.third?.value != dpi.toInt()) {
+        if (element?.value?.third != dpi.toInt()) {
             removeOldElements(pageCacheSize, lazyListState)
-            element?.second?.value = reader.getPage(pageId, dpi)
-            element?.first?.value = Clock.System.now().toEpochMilliseconds()
-            element?.third?.value = dpi.toInt()
+            element?.value = Triple(Clock.System.now().toEpochMilliseconds(), reader.getPage(pageId, dpi), dpi.toInt())
         }
     }
 
@@ -234,7 +226,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                                         userScrollEnabled = canZoom.value.not(),
                                         content = {
                                             items(count = numOfPages, key = { it }) { pageId ->
-                                                val image = getCacheElement(pageId).collectAsState().value
+                                                val image = getCacheElement(pageId).collectAsState().value?.second
                                                 LaunchedEffect(dpi) {
                                                     pageCacheSize.value = max(2f, min(16f, 8f / zoom.value)).toInt()
                                                     loadImageWithDpi(
