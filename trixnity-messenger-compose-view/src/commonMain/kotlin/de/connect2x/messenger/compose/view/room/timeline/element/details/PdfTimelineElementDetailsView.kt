@@ -63,6 +63,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import net.folivo.trixnity.client.media.PlatformMedia
 import kotlin.math.max
@@ -88,8 +90,11 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
             }
     }
 
+    //The pdf page cache, consisting of the page number as the key and the time it was loaded, the image itself and its DPI as the value
     private val cache =
         mutableStateMapOf<Int, Triple<MutableStateFlow<Long?>, MutableStateFlow<ImageBitmap?>, MutableStateFlow<Int?>>>()
+
+    private val mutex = Mutex()
 
     private fun getCacheElement(cacheKey: Int): StateFlow<ImageBitmap?> {
         return cache[cacheKey]?.second ?: run {
@@ -111,12 +116,14 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         pageCacheSize: Int,
         lazyListState: LazyListState
     ) {
-        val element = cache[pageId]
-        if (element?.third?.value != dpi.toInt()) {
-            element?.first?.value = Clock.System.now().toEpochMilliseconds()
-            element?.third?.value = dpi.toInt()
-            removeOldElements(pageCacheSize, lazyListState)
-            element?.second?.value = reader.getPage(pageId, dpi)
+        mutex.withLock {
+            val element = cache[pageId]
+            if (element?.third?.value != dpi.toInt()) {
+                element?.first?.value = Clock.System.now().toEpochMilliseconds()
+                element?.third?.value = dpi.toInt()
+                removeOldElements(pageCacheSize, lazyListState)
+                element?.second?.value = reader.getPage(pageId, dpi)
+            }
         }
     }
 
@@ -202,8 +209,8 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                             ) {
                                 reader.value?.documentWidth?.value?.let {
                                     val maxDpi = 1f / it.toFloat() * 64f * 3600f
-                                    dpi.value =
-                                        viewSize.value.width / it * zoom.value / density * 64f.coerceAtMost(maxDpi)
+                                    val dpiTarget = density * zoom.value
+                                    dpi.value = (dpiTarget * it).coerceAtMost(maxDpi)
                                 }
                             }
 
@@ -228,7 +235,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                                         content = {
                                             items(count = numOfPages, key = { it }) { pageId ->
                                                 val image = getCacheElement(pageId).collectAsState().value
-                                                LaunchedEffect(zoom.value) {
+                                                LaunchedEffect(dpi.value) {
                                                     pageCacheSize.value = max(2f, min(16f, 8f / zoom.value)).toInt()
                                                     loadImageWithDpi(
                                                         reader,

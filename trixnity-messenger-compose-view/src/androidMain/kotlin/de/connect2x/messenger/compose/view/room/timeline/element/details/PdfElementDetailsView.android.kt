@@ -60,12 +60,12 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
                 val scaledDpi = dpi.div(72f)
                 val width = (page.width * scaledDpi).toInt()
                 val height = (page.height * scaledDpi).toInt()
-                val bitmap = createBitmap(width, height)
                 log.debug {
                     "render pdf page $pageId " +
                             "to viewport (${width}x${height}) " +
                             "at scale factor: $dpi "
                 }
+                val bitmap = createBitmap(width, height)
                 page.render(bitmap, null, null, RENDER_MODE_FOR_DISPLAY)
                 return bitmap.asImageBitmap()
             }
