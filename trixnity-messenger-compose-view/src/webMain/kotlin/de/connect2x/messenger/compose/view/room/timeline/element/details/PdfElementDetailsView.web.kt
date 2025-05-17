@@ -8,6 +8,7 @@ import de.connect2x.messenger.compose.view.files.PdfReaderWeb
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media.PlatformMedia
@@ -65,9 +66,9 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
         pageId: Int,
         dpi: Float
     ): ImageBitmap? {
-        val reader = reader.first { it != null }
+        val reader = reader.filterNotNull().first()
         val renderFlow: MutableStateFlow<ImageBitmap?> = MutableStateFlow(null)
-        reader?.renderPage(pageId + 1, renderFlow, dpi.div(72f))
+        reader.renderPage(pageId + 1, renderFlow, dpi)
         return renderFlow.first { it != null }
     }
 

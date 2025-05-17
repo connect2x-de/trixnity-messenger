@@ -115,17 +115,16 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         dpi: Float,
         pageCacheSize: Int,
         lazyListState: LazyListState
-    ) {
-        mutex.withLock {
-            val element = cache[pageId]
-            if (element?.third?.value != dpi.toInt()) {
-                element?.first?.value = Clock.System.now().toEpochMilliseconds()
-                element?.third?.value = dpi.toInt()
-                removeOldElements(pageCacheSize, lazyListState)
-                element?.second?.value = reader.getPage(pageId, dpi)
-            }
+    ) = mutex.withLock {
+        val element = cache[pageId]
+        if (element?.third?.value != dpi.toInt()) {
+            removeOldElements(pageCacheSize, lazyListState)
+            element?.second?.value = reader.getPage(pageId, dpi)
+            element?.first?.value = Clock.System.now().toEpochMilliseconds()
+            element?.third?.value = dpi.toInt()
         }
     }
+
 
     @Composable
     override fun create(
@@ -148,7 +147,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         }
         val viewSize = remember { MutableStateFlow(IntSize.Zero) }
         val i18n = DI.current.get<I18nView>()
-        val dpi = remember { mutableStateOf(72f) }
+        val dpi = remember { mutableStateOf<Float?>(null) }
         val pageCacheSize = remember { mutableStateOf(max(2f, min(16f, 8f / zoom.value)).toInt()) }
 
         LaunchedEffect(Unit) {
@@ -222,7 +221,8 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                             ) {
                                 val numOfPages = reader.value?.numOfPages?.value
                                 val reader = reader.value
-                                if (reader != null && numOfPages != null) {
+                                val dpi = dpi.value
+                                if (reader != null && numOfPages != null && dpi != null) {
                                     LazyColumn(
                                         modifier = Modifier
                                             .horizontalScroll(state = horizontalScroll, enabled = canZoom.value.not())
@@ -235,12 +235,12 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                                         content = {
                                             items(count = numOfPages, key = { it }) { pageId ->
                                                 val image = getCacheElement(pageId).collectAsState().value
-                                                LaunchedEffect(dpi.value) {
+                                                LaunchedEffect(dpi) {
                                                     pageCacheSize.value = max(2f, min(16f, 8f / zoom.value)).toInt()
                                                     loadImageWithDpi(
                                                         reader,
                                                         pageId,
-                                                        dpi.value,
+                                                        dpi,
                                                         pageCacheSize.value,
                                                         lazyListState
                                                     )
