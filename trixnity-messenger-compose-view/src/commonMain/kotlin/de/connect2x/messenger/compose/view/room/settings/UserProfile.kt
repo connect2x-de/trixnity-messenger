@@ -71,6 +71,7 @@ import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
 import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
@@ -249,8 +250,9 @@ class UserProfileViewImpl : UserProfileView {
                             )
                         }
                     }
+                    val isSinglePane = IsSinglePane.current
                     MenuElement(Modifier.clickable {
-                        userProfileViewModel.startVerification()
+                        userProfileViewModel.startVerification(isSinglePane)
                     }) {
                         Icon(
                             Icons.AutoMirrored.Filled.Wysiwyg,
