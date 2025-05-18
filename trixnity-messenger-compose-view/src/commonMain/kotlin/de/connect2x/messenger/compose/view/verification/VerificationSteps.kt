@@ -264,7 +264,6 @@ fun VerificationTimeout(
     verificationStepTimeoutViewModel: VerificationStepTimeoutViewModel,
     deviceVerification: Boolean = true,
 ) {
-    val i18n = DI.get<I18nView>()
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         VerificationTimeoutContent(deviceVerification)
         if (deviceVerification) {
