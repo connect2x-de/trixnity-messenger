@@ -32,6 +32,7 @@ suspend inline fun <S : Settings<S>, reified T : SettingsView<S>> SettingsHolder
     noinline updater: (T) -> T,
 ) = update(serializer(), updater)
 
+@OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 abstract class SettingsHolderImpl<S : Settings<S>>(
     private val storage: SettingsStorage,
     private val settingsFactory: (Map<String, JsonElement>) -> S,

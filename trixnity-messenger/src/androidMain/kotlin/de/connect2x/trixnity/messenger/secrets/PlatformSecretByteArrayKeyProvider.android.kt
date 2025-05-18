@@ -1,9 +1,9 @@
+@file:Suppress("DEPRECATION") // TODO: migrate this to new crypto API eventually
+
 package de.connect2x.trixnity.messenger.secrets
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.util.*
 import kotlinx.serialization.json.JsonObject
@@ -11,6 +11,9 @@ import net.folivo.trixnity.crypto.core.SecureRandom
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import androidx.core.content.edit
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 
 private val log = KotlinLogging.logger {}
 
@@ -29,17 +32,17 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
                         val key = when {
                             existingKey == null -> {
                                 val newKey = SecureRandom.nextBytes(size)
-                                encryptedSharedPreferences.edit().apply {
+                                encryptedSharedPreferences.edit {
                                     putString(id, newKey.encodeBase64())
-                                }.apply()
+                                }
                                 newKey
                             }
 
                             existingKey.size < size -> {
                                 val newKey = existingKey + SecureRandom.nextBytes(size - existingKey.size)
-                                encryptedSharedPreferences.edit().apply {
+                                encryptedSharedPreferences.edit {
                                     putString(id, newKey.encodeBase64())
-                                }.apply()
+                                }
                                 newKey
                             }
 
