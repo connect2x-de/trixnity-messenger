@@ -89,7 +89,7 @@ private fun aesHmacSha2RecoveryKey() = AesHmacSha2RecoveryKey(
     keyId = "1",
     info = SecretKeyEventContent.AesHmacSha2Key(null, null, null, null),
     keySecretService = object : KeySecretService {
-        override suspend fun decryptMissingSecrets(key: ByteArray, keyId: String, keyInfo: SecretKeyEventContent) {}
+        override suspend fun decryptOrCreateMissingSecrets(key: ByteArray, keyId: String, keyInfo: SecretKeyEventContent) {}
     }
 )
 
