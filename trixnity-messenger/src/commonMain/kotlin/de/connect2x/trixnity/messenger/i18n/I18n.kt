@@ -401,8 +401,23 @@ open class I18n(
     }
 
     open fun roomListContentVerificationRequest(username: String) = translate {
-        EN - "User verification for user $username"
-        DE - "Nutzerverifikation von $username"
+        EN - "User verification request for user $username"
+        DE - "Anfrage für Nutzerverifikation von $username"
+    }
+
+    open fun roomListContentVerificationCancelled() = translate {
+        EN - "User verification cancelled"
+        DE - "Nutzerverifikation abgebrochen"
+    }
+
+    open fun roomListContentVerificationCompleted() = translate {
+        EN - "User verification completed"
+        DE - "Nutzerverifikation abgeschlossen"
+    }
+
+    open fun roomListContentVerificationInProgress() = translate {
+        EN - "User verification in progress"
+        DE - "Nutzerverifikation wird durchgeführt"
     }
 
     open fun roomHeaderTypingSingle(username: String) = translate {

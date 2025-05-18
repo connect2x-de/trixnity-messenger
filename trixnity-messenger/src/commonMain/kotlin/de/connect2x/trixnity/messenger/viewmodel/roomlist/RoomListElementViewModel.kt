@@ -42,7 +42,11 @@ import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
+import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
+import net.folivo.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
+import net.folivo.trixnity.core.model.events.m.key.verification.VerificationStep
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -372,12 +376,14 @@ open class RoomListElementViewModelImpl(
     private fun timelineEventTypeDescription(event: TimelineEvent): String =
         event.content?.getOrNull().let { content ->
             when (content) {
-                !is RoomMessageEventContent -> ""
                 is FileBased.Image -> i18n.roomListContentImage()
                 is FileBased.Video -> i18n.roomListContentVideo()
                 is FileBased.Audio -> i18n.roomListContentAudio()
                 is FileBased.File -> i18n.roomListContentFile()
                 is VerificationRequest -> i18n.roomListContentVerificationRequest(content.to.toString())
+                is VerificationDoneEventContent -> i18n.roomListContentVerificationCompleted()
+                is VerificationCancelEventContent -> i18n.roomListContentVerificationCancelled()
+                is VerificationStep -> i18n.roomListContentVerificationInProgress()
                 is TextBased,
                 is Location,
                 is Unknown -> content.bodyWithoutFallback
