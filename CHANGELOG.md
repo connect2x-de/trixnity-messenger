@@ -30,7 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated AndroidX SQLite MC from 2.5.0-rc03 to 2.5.1
 - Updated Kotlin Logging 7.0.5 to 7.0.7
 - Separate license processing tasks for android product flavors and build type permutations
-- Show error popups when problems occur during room avatar update and align confirm avatar update button to lower right
+- Show error popups when problems occur during room avatar update
+- Align confirm avatar update button to lower right in AvatarCutter
 
 ### Deprecated
 
