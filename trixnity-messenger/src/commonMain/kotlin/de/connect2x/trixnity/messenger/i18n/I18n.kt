@@ -914,8 +914,8 @@ open class I18n(
     }
 
     open fun profileAvatarError() = translate {
-        EN - "The avatar image could not be changed."
-        DE - "Das Nutzerbild konnte nicht geändert werden."
+        EN - "The avatar image could not be changed. Please try again later."
+        DE - "Das Nutzerbild konnte nicht geändert werden. Bitte versuchen Sie es später erneut."
     }
 
     open fun profileNameError() = translate {
@@ -980,6 +980,12 @@ open class I18n(
         val sizeInMB = attachmentMaxSize / 1.mb()
         EN - "The attachment exceeds the maximum allowed attachment size of $sizeInMB MB."
         DE - "Der Anhang überschreitet die maximal zulässige Größe für Anhänge von $sizeInMB MB."
+    }
+
+    open fun avatarSizeMaxSizeError(avatarMaxSize: Long) = translate {
+        val sizeInMB = avatarMaxSize / 1.mb()
+        EN - "The avatar exceeds the maximum allowed avatar size of $sizeInMB MB."
+        DE - "Der Avatar überschreitet die maximal zulässige Größe für Avatare von $sizeInMB MB."
     }
 
     open fun profileCreationDuplicate() = translate {

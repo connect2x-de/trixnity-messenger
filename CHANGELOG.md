@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Separate license processing tasks for android product flavors and build type permutations
 - Switch to room view when starting a user verification in single pane mode
 - Show state of user verification in room list element
+- Show error popups when problems occur during room avatar update
+- Align confirm avatar update button to lower right in AvatarCutter
 
 ### Deprecated
 
