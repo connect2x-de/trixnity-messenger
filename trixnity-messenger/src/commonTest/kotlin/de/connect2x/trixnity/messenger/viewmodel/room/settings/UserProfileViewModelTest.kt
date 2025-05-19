@@ -434,6 +434,7 @@ class UserProfileViewModelTest {
             selectedRoomId = roomId,
             onOpenRoom = mock(),
             onBack = mock(),
+            onCloseSettings = mock()
         )
     }
 }

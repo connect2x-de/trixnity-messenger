@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.verification
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -83,7 +84,7 @@ fun SelectVerificationMethodContent(
     selectedVerificationMethod: MutableState<VerificationMethod?>
 ) {
     val verificationMethods = selectVerificationMethodViewModel.verificationMethods
-    Column {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         if (selectVerificationMethodViewModel.hasSelection) {
             verificationMethods.forEach { (verificationMethod, explanation) ->
                 Row(
@@ -114,10 +115,11 @@ fun SelectVerificationMethodContent(
 fun SelectVerificationMethod(selectVerificationMethodViewModel: SelectVerificationMethodViewModel) {
     val verificationMethods = selectVerificationMethodViewModel.verificationMethods
     val selectedVerificationMethod = remember { mutableStateOf(verificationMethods.firstOrNull()?.first) }
-
-    SelectVerificationMethodContent(selectVerificationMethodViewModel, selectedVerificationMethod)
-    Spacer(Modifier.size(20.dp))
-    OkButton { selectedVerificationMethod.value?.let { selectVerificationMethodViewModel.acceptVerificationMethod(it) } }
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        SelectVerificationMethodContent(selectVerificationMethodViewModel, selectedVerificationMethod)
+        Spacer(Modifier.size(20.dp))
+        OkButton { selectedVerificationMethod.value?.let { selectVerificationMethodViewModel.acceptVerificationMethod(it) } }
+    }
 }
 
 
@@ -175,23 +177,25 @@ fun BoxScope.CompareEmojisOrNumbersContent(verificationStepCompareViewModel: Ver
 fun BoxScope.CompareEmojisOrNumbers(verificationStepCompareViewModel: VerificationStepCompareViewModel) {
     val i18n = DI.get<I18nView>()
 
-    CompareEmojisOrNumbersContent(verificationStepCompareViewModel)
-    Spacer(Modifier.size(20.dp))
-    Row(horizontalArrangement = Arrangement.SpaceEvenly) {
-        ThemedButton(
-            style = MaterialTheme.components.destructiveButton,
-            onClick = verificationStepCompareViewModel::decline,
-            modifier = Modifier.weight(1.0f, fill = false),
-        ) {
-            Text(i18n.verificationNotMatch(), color = Color.White)
-        }
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box { CompareEmojisOrNumbersContent(verificationStepCompareViewModel) }
         Spacer(Modifier.size(20.dp))
-        ThemedButton(
-            style = MaterialTheme.components.primaryButton,
-            onClick = verificationStepCompareViewModel::accept,
-            modifier = Modifier.weight(1.0f, fill = false)
-        ) {
-            Text(i18n.verificationMatch())
+        Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+            ThemedButton(
+                style = MaterialTheme.components.destructiveButton,
+                onClick = verificationStepCompareViewModel::decline,
+                modifier = Modifier.weight(1.0f, fill = false),
+            ) {
+                Text(i18n.verificationNotMatch(), color = Color.White)
+            }
+            Spacer(Modifier.size(20.dp))
+            ThemedButton(
+                style = MaterialTheme.components.primaryButton,
+                onClick = verificationStepCompareViewModel::accept,
+                modifier = Modifier.weight(1.0f, fill = false)
+            ) {
+                Text(i18n.verificationMatch())
+            }
         }
     }
 }
@@ -230,7 +234,7 @@ fun VerificationRejected(
     verificationStepRejectedViewModel: VerificationStepRejectedViewModel,
     deviceVerification: Boolean = true,
 ) {
-    Column {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         VerificationRejectedContent(deviceVerification)
         if (deviceVerification) {
             Spacer(Modifier.size(20.dp))
@@ -260,8 +264,7 @@ fun VerificationTimeout(
     verificationStepTimeoutViewModel: VerificationStepTimeoutViewModel,
     deviceVerification: Boolean = true,
 ) {
-    val i18n = DI.get<I18nView>()
-    Column {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         VerificationTimeoutContent(deviceVerification)
         if (deviceVerification) {
             Spacer(Modifier.size(20.dp))
@@ -290,8 +293,7 @@ fun VerificationCancelled(
     verificationStepCancelledViewModel: VerificationStepCancelledViewModel,
     deviceVerification: Boolean = true,
 ) {
-    val i18n = DI.get<I18nView>()
-    Column {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         VerificationCancelledContent(deviceVerification)
         if (deviceVerification) {
             Spacer(Modifier.size(20.dp))
