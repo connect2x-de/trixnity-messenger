@@ -17,6 +17,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
+import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.CoroutineScope
@@ -24,6 +25,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
@@ -49,10 +53,10 @@ import kotlin.time.Duration.Companion.milliseconds
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChangePowerLevelViewModelTest {
 
-    private val bob = UserId("bob", "localhost")
     private val alice = UserId("alice", "localhost")
-    private val roomId = RoomId("room", "localhost")
+    private val bob = UserId("bob", "localhost")
     private val testUser = UserId("test", "server")
+    private val roomId = RoomId("room", "localhost")
 
     private val roomUserAlice = RoomUser(
         roomId, alice, "Alice", StateEvent(
@@ -80,13 +84,15 @@ class ChangePowerLevelViewModelTest {
 
     private val roomUserBobFlow = MutableStateFlow(roomUserBob)
 
-
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
     val roomsApiClientMock = mock<RoomApiClient>()
     private val matrixClientServerApiMock = mock<MatrixClientServerApiClient>()
     private lateinit var syncStateMocker: BlockingAnsweringScope<StateFlow<SyncState>>
+
+    private val canSetAlicePowerLevelToMax = MutableStateFlow<Long?>(null)
+    private val aliceTargetPowerLevel = MutableStateFlow<Long>(0)
 
     @BeforeTest
     fun setup() {
@@ -127,14 +133,19 @@ class ChangePowerLevelViewModelTest {
                 "",
             )
         )
+
+        every {
+            userServiceMock.canSetPowerLevelToMax(roomId, alice)
+        } returns canSetAlicePowerLevelToMax
+        every {
+            userServiceMock.getPowerLevel(roomId, alice)
+        } returns aliceTargetPowerLevel
     }
 
     @Test
     fun `changing a role should close member options after changing the user role`() =
         runTestWithCoroutineScope { coroutineScope ->
-            every {
-                userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(alice))
-            } returns MutableStateFlow(100L)
+            canSetAlicePowerLevelToMax.value = 100
             every {
                 userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(testUser))
             } returns MutableStateFlow(100L)
@@ -148,9 +159,7 @@ class ChangePowerLevelViewModelTest {
                 )
             } returns Result.success(EventId(""))
 
-            val cut = changePowerLevelViewModel(
-                backgroundScope, alice, MutableStateFlow(100L)
-            )
+            val cut = changePowerLevelViewModel(backgroundScope, alice)
             cut.setRoleToAdmin()
             delay(100.milliseconds)
 
@@ -168,18 +177,14 @@ class ChangePowerLevelViewModelTest {
     @Test
     fun `changing a role should show an error message when trying to change a role and we are not connected`() =
         runTestWithCoroutineScope { coroutineScope ->
-            every {
-                userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(alice))
-            } returns MutableStateFlow(100L)
+            canSetAlicePowerLevelToMax.value = 100
             every {
                 userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(testUser))
             } returns MutableStateFlow(100L)
 
             syncStateMocker returns MutableStateFlow(SyncState.ERROR)
 
-            val cut = changePowerLevelViewModel(
-                backgroundScope, alice, MutableStateFlow(100L)
-            )
+            val cut = changePowerLevelViewModel(backgroundScope, alice)
             cut.setRoleToAdmin()
             delay(100.milliseconds)
 
@@ -189,11 +194,9 @@ class ChangePowerLevelViewModelTest {
     @Test
     fun `changing a role should show an error message when changing a role fails`() =
         runTestWithCoroutineScope { coroutineScope ->
+            canSetAlicePowerLevelToMax.value = 100
             every {
-                userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(alice))
-            } returns MutableStateFlow(100L)
-            every {
-                userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(testUser))
+                userServiceMock.canSetPowerLevelToMax(roomId, testUser)
             } returns MutableStateFlow(100L)
 
             everySuspend {
@@ -205,9 +208,7 @@ class ChangePowerLevelViewModelTest {
                 )
             } returns Result.failure(Throwable())
 
-            val cut = changePowerLevelViewModel(
-                backgroundScope, alice, MutableStateFlow(100L)
-            )
+            val cut = changePowerLevelViewModel(backgroundScope, alice)
             cut.setRoleToAdmin()
             delay(100.milliseconds)
 
@@ -217,9 +218,7 @@ class ChangePowerLevelViewModelTest {
     @Test
     fun `changing the power level should close member options after changing the power level successfully`() =
         runTestWithCoroutineScope { coroutineScope ->
-            every {
-                userServiceMock.canSetPowerLevelToMax(roomId, alice)
-            } returns MutableStateFlow(100L)
+            canSetAlicePowerLevelToMax.value = 100
 
             everySuspend {
                 roomsApiClientMock.sendStateEvent(
@@ -230,9 +229,7 @@ class ChangePowerLevelViewModelTest {
                 )
             } returns Result.success(EventId(""))
 
-            val cut = changePowerLevelViewModel(
-                backgroundScope, alice, MutableStateFlow(100L)
-            )
+            val cut = changePowerLevelViewModel(backgroundScope, alice)
             cut.setPowerLevelTo(99L)
             delay(100.milliseconds)
 
@@ -250,15 +247,11 @@ class ChangePowerLevelViewModelTest {
     @Test
     fun `changing the power level should show an error message if trying to change a power level and we are not connected`() =
         runTestWithCoroutineScope { coroutineScope ->
-            every {
-                userServiceMock.canSetPowerLevelToMax(roomId, alice)
-            } returns MutableStateFlow(100L)
+            canSetAlicePowerLevelToMax.value = 100
 
             syncStateMocker returns MutableStateFlow(SyncState.ERROR)
 
-            val cut = changePowerLevelViewModel(
-                backgroundScope, alice, MutableStateFlow(100L)
-            )
+            val cut = changePowerLevelViewModel(backgroundScope, alice)
             cut.setPowerLevelTo(99L)
             delay(100.milliseconds)
 
@@ -268,9 +261,7 @@ class ChangePowerLevelViewModelTest {
     @Test
     fun `changing the power level should show an error message if changing the power level fails`() =
         runTestWithCoroutineScope { coroutineScope ->
-            every {
-                userServiceMock.canSetPowerLevelToMax(roomId, alice)
-            } returns MutableStateFlow(100L)
+            canSetAlicePowerLevelToMax.value = 100
 
             everySuspend {
                 roomsApiClientMock.sendStateEvent(
@@ -281,9 +272,7 @@ class ChangePowerLevelViewModelTest {
                 )
             } returns Result.failure(Throwable())
 
-            val cut = changePowerLevelViewModel(
-                backgroundScope, alice, MutableStateFlow(100L)
-            )
+            val cut = changePowerLevelViewModel(backgroundScope, alice)
             cut.setPowerLevelTo(99L)
             delay(100.milliseconds)
 
@@ -293,13 +282,9 @@ class ChangePowerLevelViewModelTest {
     @Test
     fun `changing the power level input should show an error message if input is empty`() =
         runTestWithCoroutineScope { coroutineScope ->
-            every {
-                userServiceMock.canSetPowerLevelToMax(roomId, alice)
-            } returns MutableStateFlow(100L)
+            canSetAlicePowerLevelToMax.value = 100
 
-            val cut = changePowerLevelViewModel(
-                backgroundScope, alice, MutableStateFlow(100L)
-            )
+            val cut = changePowerLevelViewModel(backgroundScope, alice)
 
             cut.changingPowerLevelDialogInput.update("")
             delay(10.milliseconds)
@@ -313,13 +298,9 @@ class ChangePowerLevelViewModelTest {
     @Test
     fun `changing the power level input should show an error message if input is not a number`() =
         runTestWithCoroutineScope { coroutineScope ->
-            every {
-                userServiceMock.canSetPowerLevelToMax(roomId, alice)
-            } returns MutableStateFlow(100L)
+            canSetAlicePowerLevelToMax.value = 100
 
-            val cut = changePowerLevelViewModel(
-                backgroundScope, alice, MutableStateFlow(100L)
-            )
+            val cut = changePowerLevelViewModel(backgroundScope, alice)
 
             cut.changingPowerLevelDialogInput.update(".,")
             delay(10.milliseconds)
@@ -336,9 +317,7 @@ class ChangePowerLevelViewModelTest {
                 userServiceMock.canSetPowerLevelToMax(roomId, alice)
             } returns MutableStateFlow(100)
 
-            val cut = changePowerLevelViewModel(
-                backgroundScope, alice, MutableStateFlow(100L)
-            )
+            val cut = changePowerLevelViewModel(backgroundScope, alice)
 
             cut.changingPowerLevelDialogInput.update("-56")
             delay(10.milliseconds)
@@ -355,9 +334,11 @@ class ChangePowerLevelViewModelTest {
                 userServiceMock.canSetPowerLevelToMax(roomId, alice)
             } returns MutableStateFlow(56)
 
-            val cut = changePowerLevelViewModel(
-                backgroundScope, alice, MutableStateFlow(56L)
-            )
+            every {
+                userServiceMock.getPowerLevel(roomId, alice)
+            } returns MutableStateFlow(56)
+
+            val cut = changePowerLevelViewModel(backgroundScope, alice)
 
             cut.changingPowerLevelDialogInput.update("57")
             delay(10.milliseconds)
@@ -367,23 +348,76 @@ class ChangePowerLevelViewModelTest {
     @Test
     fun `changing the power level input should show an error message if we are not allowed to change the power level`() =
         runTestWithCoroutineScope { coroutineScope ->
-            every {
-                userServiceMock.canSetPowerLevelToMax(roomId, alice)
-            } returns MutableStateFlow(null)
-
-            val cut = changePowerLevelViewModel(
-                backgroundScope, alice, MutableStateFlow(100L)
-            )
+            val cut = changePowerLevelViewModel(backgroundScope, alice)
 
             cut.changingPowerLevelDialogInput.update("57")
             delay(10.milliseconds)
             cut.changingPowerLevelDialogError.value shouldNotBe null
         }
 
+    @Test
+    fun `canSetPowerLevelToRole - should be false when currentPowerLevel is the same`() =
+        runTestWithCoroutineScope { coroutineScope ->
+            canSetAlicePowerLevelToMax.value = 100
+
+            val cut = changePowerLevelViewModel(backgroundScope, alice)
+            coroutineScope.launch { cut.canSetRoleToUser.collect() } // subscribe all internal flows
+            for (role in ChangePowerLevelViewModel.Role.entries) {
+                withClue(role) {
+                    aliceTargetPowerLevel.value = role.getMinPowerLevel()
+                    delay(10.milliseconds)
+                    cut.canSetPowerLevelToRole(role).first() shouldBe false
+                }
+            }
+        }
+
+    @Test
+    fun `canSetPowerLevelToRole - should be false when we are not allowed to set it - null`() =
+        runTestWithCoroutineScope { coroutineScope ->
+            val cut = changePowerLevelViewModel(backgroundScope, alice)
+            coroutineScope.launch { cut.canSetRoleToUser.collect() } // subscribe all internal flows
+            for (role in ChangePowerLevelViewModel.Role.entries) {
+                withClue(role) {
+                    aliceTargetPowerLevel.value = role.getMinPowerLevel() - 1
+                    delay(10.milliseconds)
+                    cut.canSetPowerLevelToRole(role).first() shouldBe false
+                }
+            }
+        }
+
+    @Test
+    fun `canSetPowerLevelToRole - should be false when we are not allowed to set it`() =
+        runTestWithCoroutineScope { coroutineScope ->
+            val cut = changePowerLevelViewModel(backgroundScope, alice)
+            coroutineScope.launch { cut.canSetRoleToUser.collect() } // subscribe all internal flows
+            for (role in ChangePowerLevelViewModel.Role.entries) {
+                withClue(role) {
+                    canSetAlicePowerLevelToMax.value = role.getMinPowerLevel() - 1
+                    aliceTargetPowerLevel.value = role.getMinPowerLevel() - 1
+                    delay(10.milliseconds)
+                    cut.canSetPowerLevelToRole(role).first() shouldBe false
+                }
+            }
+        }
+
+    @Test
+    fun `canSetPowerLevelToRole - should be true when we are allowed to set it`() =
+        runTestWithCoroutineScope { coroutineScope ->
+            val cut = changePowerLevelViewModel(backgroundScope, alice)
+            coroutineScope.launch { cut.canSetRoleToUser.collect() } // subscribe all internal flows
+            for (role in ChangePowerLevelViewModel.Role.entries) {
+                withClue(role) {
+                    canSetAlicePowerLevelToMax.value = role.getMinPowerLevel()
+                    aliceTargetPowerLevel.value = role.getMinPowerLevel() - 1
+                    delay(10.milliseconds)
+                    cut.canSetPowerLevelToRole(role).first() shouldBe true
+                }
+            }
+        }
+
     private fun TestScope.changePowerLevelViewModel(
         backgroundScope: CoroutineScope,
         userId: UserId,
-        powerLevel: StateFlow<Long>,
     ): ChangePowerLevelViewModelImpl {
         return ChangePowerLevelViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
@@ -401,7 +435,6 @@ class ChangePowerLevelViewModelTest {
             targetUser = userId,
             error = MutableStateFlow(null),
             selectedRoomId = roomId,
-            powerLevel = powerLevel,
         )
     }
 }

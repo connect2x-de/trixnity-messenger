@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed cancellation exceptions and a small memory leak caused by message replies
 - Correct button placement in user verification
+- Fix wrong calculations in ChangePowerLevelViewModel
 
 ### Security
 
@@ -72,7 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Styling: use tonalElevation for surfaces
 - Styling: Fix alignment & color for room list time & encryption icon
 - Direct rooms sometimes were interpreted as a group
- 
+
 ## 3.5.6
 
 ### Changed
