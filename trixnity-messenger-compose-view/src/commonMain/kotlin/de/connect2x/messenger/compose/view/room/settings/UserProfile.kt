@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.room.settings
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,7 +32,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
@@ -63,7 +61,6 @@ import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.messenger.compose.view.common.WarningDialog
-import de.connect2x.messenger.compose.view.common.blockPointerInput
 import de.connect2x.messenger.compose.view.common.icons.BanIcon
 import de.connect2x.messenger.compose.view.common.icons.BlockIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
@@ -71,6 +68,7 @@ import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
 import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
@@ -249,8 +247,9 @@ class UserProfileViewImpl : UserProfileView {
                             )
                         }
                     }
+                    val isSinglePane = IsSinglePane.current
                     MenuElement(Modifier.clickable {
-                        userProfileViewModel.startVerification()
+                        userProfileViewModel.startVerification(isSinglePane)
                     }) {
                         Icon(
                             Icons.AutoMirrored.Filled.Wysiwyg,
