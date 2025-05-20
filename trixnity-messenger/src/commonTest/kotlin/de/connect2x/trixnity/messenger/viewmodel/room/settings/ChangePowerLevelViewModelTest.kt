@@ -285,10 +285,11 @@ class ChangePowerLevelViewModelTest {
             canSetAlicePowerLevelToMax.value = 100
 
             val cut = changePowerLevelViewModel(backgroundScope, alice)
+            coroutineScope.launch { cut.changingPowerLevelDialogError.collect() }
 
             cut.changingPowerLevelDialogInput.update("")
             delay(10.milliseconds)
-            cut.changingPowerLevelDialogError.value shouldNotBe null
+            cut.changingPowerLevelDialogError.value shouldBe null
             cut.changingPowerLevelDialogInput.update("  ")
             delay(10.milliseconds)
             cut.changingPowerLevelDialogError.value shouldNotBe null
@@ -301,6 +302,7 @@ class ChangePowerLevelViewModelTest {
             canSetAlicePowerLevelToMax.value = 100
 
             val cut = changePowerLevelViewModel(backgroundScope, alice)
+            coroutineScope.launch { cut.changingPowerLevelDialogError.collect() }
 
             cut.changingPowerLevelDialogInput.update(".,")
             delay(10.milliseconds)
@@ -318,6 +320,7 @@ class ChangePowerLevelViewModelTest {
             } returns MutableStateFlow(100)
 
             val cut = changePowerLevelViewModel(backgroundScope, alice)
+            coroutineScope.launch { cut.changingPowerLevelDialogError.collect() }
 
             cut.changingPowerLevelDialogInput.update("-56")
             delay(10.milliseconds)
@@ -339,6 +342,7 @@ class ChangePowerLevelViewModelTest {
             } returns MutableStateFlow(56)
 
             val cut = changePowerLevelViewModel(backgroundScope, alice)
+            coroutineScope.launch { cut.changingPowerLevelDialogError.collect() }
 
             cut.changingPowerLevelDialogInput.update("57")
             delay(10.milliseconds)
@@ -349,6 +353,7 @@ class ChangePowerLevelViewModelTest {
     fun `changing the power level input should show an error message if we are not allowed to change the power level`() =
         runTestWithCoroutineScope { coroutineScope ->
             val cut = changePowerLevelViewModel(backgroundScope, alice)
+            coroutineScope.launch { cut.changingPowerLevelDialogError.collect() }
 
             cut.changingPowerLevelDialogInput.update("57")
             delay(10.milliseconds)
