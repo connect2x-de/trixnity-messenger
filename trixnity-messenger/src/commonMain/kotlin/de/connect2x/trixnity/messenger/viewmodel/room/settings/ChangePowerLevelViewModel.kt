@@ -137,11 +137,15 @@ open class ChangePowerLevelViewModelImpl(
             canSetPowerLevelToMax,
             changingPowerLevelDialogInput.text,
         ) { canSetPowerLevelToMax, text ->
-            validateNewPowerLevelInput(
-                text,
-                maxPowerLevel = canSetPowerLevelToMax,
-                i18n
-            )
+            if (text.isEmpty()) {
+                null
+            } else {
+                validateNewPowerLevelInput(
+                    text,
+                    maxPowerLevel = canSetPowerLevelToMax,
+                    i18n
+                )
+            }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val showPowerLevelHelp = MutableStateFlow(false)
