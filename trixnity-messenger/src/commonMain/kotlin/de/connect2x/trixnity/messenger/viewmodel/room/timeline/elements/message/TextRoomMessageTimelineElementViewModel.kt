@@ -14,7 +14,7 @@ interface TextRoomMessageTimelineElementViewModelFactory : TimelineElementViewMo
         viewModelContext: MatrixClientViewModelContext,
         content: TextBased.Text,
         roomId: RoomId,
-        eventId: EventIdOrTransactionId,
+        eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
     ): RoomMessageTimelineElementViewModel.TextBased.Text? =
         TextRoomMessageTimelineElementViewModelImpl(

@@ -63,6 +63,7 @@ interface OutboxElementHolderViewModelFactory {
         formattedDate: String,
         formattedTime: String,
         onOpenMention: OpenMentionCallback,
+        jumpTo: (roomId: RoomId, eventId: EventId) -> Unit
     ): OutboxElementHolderViewModel = OutboxElementHolderViewModelImpl(
         viewModelContext = viewModelContext,
         key = key,
@@ -72,6 +73,7 @@ interface OutboxElementHolderViewModelFactory {
         formattedDate = formattedDate,
         formattedTime = formattedTime,
         onOpenMention = onOpenMention,
+        jumpTo = jumpTo
     )
 
     companion object : OutboxElementHolderViewModelFactory
@@ -99,12 +101,12 @@ class OutboxElementHolderViewModelImpl(
     override val formattedDate: String,
     override val formattedTime: String,
     onOpenMention: OpenMentionCallback,
+    private val jumpTo: (roomId: RoomId, eventId: EventId) -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, OutboxElementHolderViewModel {
 
     private val timeZone = get<TimeZone>()
     private val i18n = get<I18n>()
     private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
-    private val repliedTimelineElementHolderViewModelFactory = get<TimelineElementHolderViewModelFactory>()
     private val config = get<MatrixMessengerConfiguration>()
 
     private data class TimelineElementViewModelWrapper(
@@ -202,6 +204,7 @@ class OutboxElementHolderViewModelImpl(
                 onMessageReport = { _, _ -> },
                 onOpenMention = { _, _ -> },
                 onOpenMetadata = {},
+                jumpTo = jumpTo
             ).also {
                 repliedElementCache.value = TimelineElementHolderViewModelWrapper(repliedEventId, it, lifecycle)
             }
@@ -214,6 +217,10 @@ class OutboxElementHolderViewModelImpl(
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val isByMe: Boolean = true
+
+    override val isSent: StateFlow<Boolean> = outboxMessageFlow
+        .map { it == null || it.sentAt != null }
+        .stateIn(coroutineScope, WhileSubscribed(), true)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val previousSentTimelineEventFlow =
@@ -230,7 +237,8 @@ class OutboxElementHolderViewModelImpl(
                     ).filterNotNull()
                 }
         ) { outbox, nextSupportedTimelineEvent ->
-            val firstOutboxElement = outbox.firstOrNull { it.transactionId != nextSupportedTimelineEvent.event.unsigned?.transactionId }
+            val firstOutboxElement =
+                outbox.firstOrNull { it.transactionId != nextSupportedTimelineEvent.event.unsigned?.transactionId }
 
             if (firstOutboxElement?.transactionId == transactionId) nextSupportedTimelineEvent
             else null
@@ -311,4 +319,6 @@ class OutboxElementHolderViewModelImpl(
             matrixClient.room.retrySendMessage(roomId = roomId, transactionId = transactionId)
         }
     }
+
+    override fun jumpTo() {}
 }

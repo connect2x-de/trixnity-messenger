@@ -27,25 +27,27 @@ import de.connect2x.messenger.compose.view.theme.components
 
 @Immutable
 sealed interface IconButtonStyle {
+    val size: Dp
+
     data class Default(
-        val size: Dp,
+        override val size: Dp,
         val colors: IconToggleButtonColors,
     ) : IconButtonStyle
 
     data class Filled(
-        val size: Dp,
+        override val size: Dp,
         val shape: Shape,
         val colors: IconToggleButtonColors,
     ) : IconButtonStyle
 
     data class FilledTonal(
-        val size: Dp,
+        override val size: Dp,
         val shape: Shape,
         val colors: IconToggleButtonColors,
     ) : IconButtonStyle
 
     data class Outlined(
-        val size: Dp,
+        override val size: Dp,
         val shape: Shape,
         val colors: IconToggleButtonColors,
         val enabledBorder: BorderStroke?,
@@ -105,12 +107,32 @@ sealed interface IconButtonStyle {
     }
 }
 
+private fun IconToggleButtonColors.iconButtonColors() =  IconButtonColors(
+    containerColor = containerColor,
+    contentColor = contentColor,
+    disabledContainerColor = disabledContainerColor,
+    disabledContentColor = disabledContentColor,
+)
+
+@Composable
+private fun IconButtonColors.withContentColors() = copy(
+    contentColor = contentColor.withContentColor(),
+    disabledContentColor = disabledContentColor.withContentColor(enabled = false),
+)
+
+@Composable
+private fun IconToggleButtonColors.withContentColors() = copy(
+    contentColor = contentColor.withContentColor(),
+    disabledContentColor = disabledContentColor.withContentColor(enabled = false),
+)
+
 @Composable
 fun ThemedIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     style: IconButtonStyle = MaterialTheme.components.commonIconButton,
+    size: Dp = style.size,
     interactionSource: MutableInteractionSource? = null,
     content: @Composable () -> Unit
 ) {
@@ -118,59 +140,40 @@ fun ThemedIconButton(
         is IconButtonStyle.Default ->
             IconButton(
                 onClick = onClick,
-                modifier = modifier.requiredSize(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.requiredSize(size).buttonPointerModifier(enabled),
                 enabled = enabled,
-                colors = IconButtonColors(
-                    containerColor = style.colors.containerColor,
-                    contentColor = style.colors.contentColor,
-                    disabledContainerColor = style.colors.disabledContainerColor,
-                    disabledContentColor = style.colors.disabledContentColor,
-                ),
+                colors = style.colors.iconButtonColors().withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )
+
         is IconButtonStyle.Filled ->
             FilledIconButton(
                 onClick = onClick,
-                modifier = modifier.requiredSize(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.requiredSize(size).buttonPointerModifier(enabled),
                 enabled = enabled,
                 shape = style.shape,
-                colors = IconButtonColors(
-                    containerColor = style.colors.containerColor,
-                    contentColor = style.colors.contentColor,
-                    disabledContainerColor = style.colors.disabledContainerColor,
-                    disabledContentColor = style.colors.disabledContentColor,
-                ),
+                colors = style.colors.iconButtonColors().withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )
         is IconButtonStyle.FilledTonal ->
             FilledTonalIconButton(
                 onClick = onClick,
-                modifier = modifier.requiredSize(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.requiredSize(size).buttonPointerModifier(enabled),
                 enabled = enabled,
                 shape = style.shape,
-                colors = IconButtonColors(
-                    containerColor = style.colors.containerColor,
-                    contentColor = style.colors.contentColor,
-                    disabledContainerColor = style.colors.disabledContainerColor,
-                    disabledContentColor = style.colors.disabledContentColor,
-                ),
+                colors = style.colors.iconButtonColors().withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )
         is IconButtonStyle.Outlined ->
             OutlinedIconButton(
                 onClick = onClick,
-                modifier = modifier.requiredSize(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.requiredSize(size).buttonPointerModifier(enabled),
                 enabled = enabled,
                 shape = style.shape,
-                colors = IconButtonColors(
-                    containerColor = style.colors.containerColor,
-                    contentColor = style.colors.contentColor,
-                    disabledContainerColor = style.colors.disabledContainerColor,
-                    disabledContentColor = style.colors.disabledContentColor,
-                ),
+                colors = style.colors.iconButtonColors().withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )
@@ -184,6 +187,7 @@ fun ThemedIconToggleButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     style: IconButtonStyle = MaterialTheme.components.commonIconButton,
+    size: Dp = style.size,
     interactionSource: MutableInteractionSource? = null,
     content: @Composable () -> Unit
 ) {
@@ -192,9 +196,9 @@ fun ThemedIconToggleButton(
             IconToggleButton(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                modifier = modifier.size(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.size(size).buttonPointerModifier(enabled),
                 enabled = enabled,
-                colors = style.colors,
+                colors = style.colors.withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )
@@ -202,9 +206,9 @@ fun ThemedIconToggleButton(
             FilledIconToggleButton(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                modifier = modifier.size(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.size(size).buttonPointerModifier(enabled),
                 enabled = enabled,
-                colors = style.colors,
+                colors = style.colors.withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )
@@ -212,9 +216,9 @@ fun ThemedIconToggleButton(
             FilledTonalIconToggleButton(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                modifier = modifier.size(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.size(size).buttonPointerModifier(enabled),
                 enabled = enabled,
-                colors = style.colors,
+                colors = style.colors.withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )
@@ -222,9 +226,9 @@ fun ThemedIconToggleButton(
             OutlinedIconToggleButton(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                modifier = modifier.size(style.size).buttonPointerModifier(enabled),
+                modifier = modifier.size(size).buttonPointerModifier(enabled),
                 enabled = enabled,
-                colors = style.colors,
+                colors = style.colors.withContentColors(),
                 interactionSource = interactionSource,
                 content = content
             )

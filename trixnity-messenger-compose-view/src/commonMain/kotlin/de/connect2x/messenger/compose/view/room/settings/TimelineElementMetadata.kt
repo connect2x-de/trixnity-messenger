@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
@@ -52,6 +51,8 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.util.Tooltip
+import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
+import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModel
@@ -252,7 +253,7 @@ private fun UserInfo(
                     .padding(start = 4.dp, top = 4.dp, bottom = 4.dp)
                     .align(Alignment.CenterVertically)
             ) {
-                Avatar(image, userInfo.initials)
+                ThemedUserAvatar(userInfo.initials, image)
             }
             Column(
                 Modifier
@@ -295,10 +296,9 @@ private fun ColumnScope.MessageContentHistorySwitch(
         ) {
             Text(text = i18n.timelineElementMetadataHistory(), style = MaterialTheme.typography.titleSmall)
             Spacer(Modifier.size(5.dp).weight(1f, true))
-            Switch(
+            ThemedSwitch(
                 checked = showHistory,
                 onCheckedChange = { showHistory = it },
-                modifier = Modifier.buttonPointerModifier(),
             )
         }
     }

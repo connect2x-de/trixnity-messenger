@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 
+@OptIn(ExperimentalThemingApi::class)
 internal val DefaultMessengerColors: MessengerColors
     @Composable
     get() {
@@ -11,8 +12,8 @@ internal val DefaultMessengerColors: MessengerColors
         val accentColor = settings.accentColor ?: DI.get<DefaultAccentColor>().value
 
         return if (settings.isDarkMode()) {
-            DefaultMessengerDarkColors.create(accentColor)
+            DI.get<ThemeDarkMessengerColors>().create(accentColor)
         } else {
-            DefaultMessengerLightColors.create(accentColor)
+            DI.get<ThemeLightMessengerColors>().create(accentColor)
         }
     }

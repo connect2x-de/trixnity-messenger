@@ -32,7 +32,7 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
                 single<I18n> { object : I18n(get(), get(), get(), get()) {} }
             }
         },
-        ::composeViewModule,
+        { composeViewModule(null) },
         {
             module {
                 single<FileSystem> {
@@ -43,7 +43,7 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
     )
     messengerConfiguration {
         modulesFactories += listOf(
-            ::composeViewModule,
+            { composeViewModule(this) },
             {
                 module {
                     single<CreateRepositoriesModule> {

@@ -33,7 +33,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key
-import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.membership
@@ -51,6 +50,7 @@ import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.crypto.key.UserTrustLevel
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
@@ -61,14 +61,16 @@ interface UserProfileViewModelFactory {
         userId: UserId,
         selectedRoomId: RoomId,
         onOpenRoom: (UserId, RoomId) -> Unit,
-        onBack: () -> Unit
+        onBack: () -> Unit,
+        onCloseSettings: () -> Unit
     ): UserProfileViewModel {
         return UserProfileViewModelImpl(
             viewModelContext = viewModelContext,
             userId = userId,
             selectedRoomId = selectedRoomId,
             onOpenRoom = onOpenRoom,
-            onBack = onBack
+            onBack = onBack,
+            onCloseSettings = onCloseSettings
         )
     }
 
@@ -126,7 +128,7 @@ interface UserProfileViewModel {
     fun errorDismiss()
 
     fun openChat()
-    fun startVerification()
+    fun startVerification(closeSettingsAfterStart: Boolean = false)
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -136,11 +138,12 @@ class UserProfileViewModelImpl(
     private val selectedRoomId: RoomId,
     private val onOpenRoom: (UserId, RoomId) -> Unit,
     private val onBack: () -> Unit,
+    private val onCloseSettings: () -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, UserProfileViewModel {
     override val isMyself = userId == matrixClient.userId
 
     private val roomUser = matrixClient.user.getById(selectedRoomId, userId)
-        .shareIn(coroutineScope, SharingStarted.WhileSubscribed())
+        .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
 
     override val canOpenChat =
         matrixClient.user.getAccountData<DirectEventContent>().map { directEvent ->
@@ -532,7 +535,7 @@ class UserProfileViewModelImpl(
 
     override val verifying = MutableStateFlow(false)
 
-    override fun startVerification() {
+    override fun startVerification(closeSettingsAfterStart: Boolean) {
         if (isMyself) {
             log.warn { "cannot verify yourself" }
             return
@@ -541,7 +544,13 @@ class UserProfileViewModelImpl(
             coroutineScope.launch {
                 val req = matrixClient.verification.createUserVerificationRequest(userId)
                     .fold(
-                        onSuccess = { it },
+                        onSuccess = {
+                            it.also {
+                                if (closeSettingsAfterStart) {
+                                    onCloseSettings()
+                                }
+                            }
+                        },
                         onFailure = {
                             log.error(it) { "cannot verify user $userId" }
                             error.value = i18n.userVerificationNoMatch() // TODO

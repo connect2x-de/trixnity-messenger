@@ -85,9 +85,10 @@ class ThemeImpl : Theme {
                 LocalDensity provides density,
                 SystemDensity provides LocalDensity.current,
                 MaxHeaderHeight provides maxHeaderHeight,
-                LocalComponentStyles provides componentStyles.create(),
             ) {
-                content()
+                MaterialThemeComponents(componentStyles) {
+                    content()
+                }
             }
         }
     }

@@ -1,14 +1,14 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eqNull
+import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.firstNotNullWithClue
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaImpl
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.SuspendAnsweringScope
@@ -46,7 +46,6 @@ import kotlinx.datetime.toInstant
 import kotlinx.serialization.json.Json
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.MatrixClientConfiguration
-import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.key.KeyTrustService
 import net.folivo.trixnity.client.store.KeyStore
@@ -70,6 +69,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
 import net.folivo.trixnity.core.model.keys.DeviceKeys
 import net.folivo.trixnity.core.model.keys.Keys
+import net.folivo.trixnity.crypto.key.DeviceTrustLevel
 import net.folivo.trixnity.crypto.olm.OlmDecrypter
 import net.folivo.trixnity.crypto.olm.OlmEncryptionService
 import org.koin.dsl.koinApplication
@@ -380,8 +380,8 @@ class DevicesSettingsViewModelTest {
 
         eventually(1.seconds) {
             accountsWithDevices.filter { it.isNotEmpty() }.first {
-                    it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.displayName.value == "device1 updated"
-                }
+                it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.displayName.value == "device1 updated"
+            }
         }
     }
 

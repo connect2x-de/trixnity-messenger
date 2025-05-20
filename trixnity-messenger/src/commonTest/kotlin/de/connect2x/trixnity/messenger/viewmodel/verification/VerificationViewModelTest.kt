@@ -1,10 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eqNull
-import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.settle
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -23,7 +23,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.verification.ActiveDeviceVerification
 import net.folivo.trixnity.client.verification.ActiveVerificationState
@@ -35,6 +34,7 @@ import net.folivo.trixnity.clientserverapi.model.devices.Device
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
+import net.folivo.trixnity.crypto.key.DeviceTrustLevel
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test

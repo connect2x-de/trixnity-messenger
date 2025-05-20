@@ -2,14 +2,14 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eqNull
-import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.util.Search
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.eventually
+import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testDispatcher
-import de.connect2x.trixnity.messenger.viewmodel.util.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
+import de.connect2x.trixnity.messenger.util.Search
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -24,7 +24,7 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope

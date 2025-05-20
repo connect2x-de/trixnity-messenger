@@ -9,14 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Copy button for MXID in UserProfile
-- Theming for ProgressIndicators
-- Leave and forget upgraded rooms too
-- Search when adding members
+- PDF readers for Desktop, Android and Web
 
 ### Changed
 
-- Clicking on files without preview opens a "Not supported" message instead of starting a download
+- Updated Ktor from 3.1.3 to 3.1.4
+- Updated Koin from 4.0.3 to 4.0.4
+- Updated C2X conventions plugin from 41503362 to 43109500
+- Updated Trixnity from 4.15.2 to 4.15.3
+- Updated js-joda from 2.21.2 to 2.22.0
+- Updated zip.js from 2.7.58 to 2.7.61
+- Updated Kotlin Wrappers from 2025.3.20 to 2025.5.6
+- Updated KotlinX Coroutines from 1.10.1 to 1.10.2
+- Updated KotlinX Serialization from 1.8.0 to 1.8.1
+- Updated SKIE from 0.10.1 to 0.10.2-preview.2.1.20
+- Updated KIM from 0.23 to 0.24
+- Updated pdfbox from 3.0.4 to 3.0.5
+- Updated okio from 3.10.2 to 3.11.0
+- Updated AndroidX Crypto from 1.1.0-alpha06 to 1.1.0-alpha07
+- Updated AndroidX LiveData from 2.8.7 to 2.9.0
+- Updated AndroidX SQLite from 2.5.0-rc03 to 2.5.1
+- Updated AndroidX SQLite MC from 2.5.0-rc03 to 2.5.1
+- Updated Kotlin Logging 7.0.5 to 7.0.7
+- Separate license processing tasks for android product flavors and build type permutations
+- Switch to room view when starting a user verification in single pane mode
+- Show state of user verification in room list element
+- Show error popups when problems occur during room avatar update
+- Align confirm avatar update button to lower right in AvatarCutter
 
 ### Deprecated
 
@@ -24,10 +43,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Overflows in RoomHeader
-- Copy recovery key not available on small screens
+- Fixed cancellation exceptions and a small memory leak caused by message replies
+- Correct button placement in user verification
+- Fixed various bugs in user search
 
 ### Security
+
+## 3.5.7
+
+### Changed
+
+- Give immediate feedback when a message has been sent (even before sync)
+- Update Firebase Cloud Messaging from 33.11.0 to 33.13.0
+- Rename member filters and add invited filter
+- Expose current theme settings for library users
+- Styling: Allow customizing slider via theme
+- Styling: Use styleable components for avatars
+- Styling: Use styleable components for chips
+- Styling: Make details pane style customizable
+- Styling: Allow customizing banners via theme
+- Styling: Allow customizing switches via theme
+- Styling: Make emoji reactions themable
+
+### Fixed
+
+- Add delay for appearance of tooltips when hovering element
+- Remove double parenthesis for file size of upload element
+- Unintuitive icon used for logout button
+- No padding at the end of the room header description (View: RoomHeader)
+- User Profile Avatars not loading
+- Styling: use tonalElevation for surfaces
+- Styling: Fix alignment & color for room list time & encryption icon
+- Direct rooms sometimes were interpreted as a group
+ 
+## 3.5.6
+
+### Changed
+
+- Styling: Use stylable components for roomlist
+- Styling: Define default colors for different surface levels
+- Styling: support local content color for most components
+- Styling: Allow overriding MessengerColors
+
+### Fixed
+
+- Duplicated libraries in the About > Licenses are now differentiable
+- Wait for database being closed before trying to delete user folder
+- Update selected account when deleting account
+- Improved web build performance
+
+## 3.5.5
+
+### Added
+
+- Scroll to replied element in timeline when clicking
+- Add "deactivate account" functionality
+
+### Fixed
+
+- Show correct indicator message when an invitation is rejected or revoked
+
+## 3.5.4
+
+### Added
+
+- Copy button for MXID in UserProfile
+- Theming for ProgressIndicators
+- Leave and forget upgraded rooms too
+
+### Changed
+
+- Clicking on files without preview opens a "Not supported" message instead of starting a download
+- Close di on close
+- Destroy lifecycle on profile change
+- Fix crash on startup because of mismatched Compose UI Test version
+
+### Fixed
+
+- Overflows in RoomHeader
+- Reset read and send marker when editing messages while being offline
+- Preview in accessibility settings
+- Copy recovery key not available on small screens
+- Wrong tooltip text of 'cancel edit' button
+- Open room settings when clicking on header in group room
 
 ## 3.5.3
 
@@ -694,6 +792,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - image dimensions should be null, when not determined
+- Don't show user presence in direct chat when user left room
 
 ## 2.0.2
 

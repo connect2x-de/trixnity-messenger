@@ -2,14 +2,18 @@ package de.connect2x.messenger.compose.view
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.CanvasBasedWindow
 import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.decompose.InternalDecomposeApi
+import com.arkivanov.decompose.lifecycle.MergedLifecycle
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.destroy
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
@@ -136,14 +140,23 @@ suspend fun startMessenger(
     }
 }
 
+@OptIn(InternalDecomposeApi::class)
 @Composable
 private fun rememberRootViewModel(
     matrixMessenger: MatrixMessenger,
-    lifecycleRegistry: LifecycleRegistry
-): RootViewModel =
-    remember(matrixMessenger) {
-        matrixMessenger.createRoot(DefaultComponentContext(lifecycleRegistry))
+    deviceLifecycle: LifecycleRegistry
+): RootViewModel {
+    val ownLifecycle = remember(matrixMessenger) { LifecycleRegistry() }
+    val rootViewModel = remember(matrixMessenger) {
+        matrixMessenger.createRoot(DefaultComponentContext(MergedLifecycle(ownLifecycle, deviceLifecycle)))
     }
+    DisposableEffect(matrixMessenger) {
+        onDispose {
+            ownLifecycle.destroy()
+        }
+    }
+    return rootViewModel
+}
 
 private fun LifecycleRegistry.updateState(visible: Boolean, focused: Boolean) {
     val target = when {

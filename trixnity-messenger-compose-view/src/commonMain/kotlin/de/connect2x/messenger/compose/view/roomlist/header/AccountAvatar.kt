@@ -27,12 +27,12 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
 import kotlinx.coroutines.flow.map
@@ -117,7 +117,7 @@ fun AvatarArea(
     accountInfo: AccountInfo,
 ) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Avatar(accountInfo.avatar, accountInfo.initials)
+        ThemedUserAvatar(accountInfo.initials, accountInfo.avatar)
         Spacer(Modifier.size(10.dp))
         Column {
             Text(
@@ -148,7 +148,7 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
             onClick = { accountSelectionOpen.value = accountSelectionOpen.value.not() },
         ) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Avatar(null, "*")
+                ThemedUserAvatar("*", null)
                 Spacer(Modifier.size(10.dp))
                 Tooltip(
                     tooltip = {
@@ -206,7 +206,7 @@ fun AllAccountsMenuItem(selectAction: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(vertical = 10.dp), // to make up for missing account name space
             ) {
-                Avatar(null, "*")
+                ThemedUserAvatar("*", null)
                 Spacer(Modifier.size(10.dp))
                 Text(
                     i18n.accountAllAccounts(),
@@ -231,7 +231,7 @@ fun AccountMenuItem(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.buttonPointerModifier()
             ) {
-                Avatar(accountInfo.avatar, accountInfo.initials)
+                ThemedUserAvatar(accountInfo.initials, accountInfo.avatar)
                 Spacer(Modifier.size(10.dp))
                 Column {
                     Text(

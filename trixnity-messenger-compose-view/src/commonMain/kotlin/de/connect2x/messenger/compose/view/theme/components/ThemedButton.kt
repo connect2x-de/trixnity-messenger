@@ -40,7 +40,7 @@ data class ButtonStyle(
             shape: Shape = ButtonDefaults.textShape,
             colors: ButtonColors = ButtonDefaults.textButtonColors(),
             contentPadding: PaddingValues = ButtonDefaults.TextButtonContentPadding,
-            textStyle: TextStyle? = null,
+            textStyle: TextStyle? = MaterialTheme.typography.labelLarge,
             iconSize: Dp = ButtonDefaults.IconSize,
             iconSpacing: Dp = ButtonDefaults.IconSpacing,
         ) = ButtonStyle(
@@ -62,7 +62,7 @@ data class ButtonStyle(
             enabledBorder: BorderStroke? = ButtonDefaults.outlinedButtonBorder(true),
             disabledBorder: BorderStroke? = ButtonDefaults.outlinedButtonBorder(false),
             contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
-            textStyle: TextStyle? = null,
+            textStyle: TextStyle? = MaterialTheme.typography.labelLarge,
             iconSize: Dp = ButtonDefaults.IconSize,
             iconSpacing: Dp = ButtonDefaults.IconSpacing,
         ) = ButtonStyle(
@@ -83,7 +83,7 @@ data class ButtonStyle(
             colors: ButtonColors = ButtonDefaults.buttonColors(),
             elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
             contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
-            textStyle: TextStyle? = null,
+            textStyle: TextStyle? = MaterialTheme.typography.labelLarge,
             iconSize: Dp = ButtonDefaults.IconSize,
             iconSpacing: Dp = ButtonDefaults.IconSpacing,
         ) = ButtonStyle(
@@ -104,7 +104,7 @@ data class ButtonStyle(
             colors: ButtonColors = ButtonDefaults.filledTonalButtonColors(),
             elevation: ButtonElevation? = ButtonDefaults.filledTonalButtonElevation(),
             contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
-            textStyle: TextStyle? = null,
+            textStyle: TextStyle? = MaterialTheme.typography.labelLarge,
             iconSize: Dp = ButtonDefaults.IconSize,
             iconSpacing: Dp = ButtonDefaults.IconSpacing,
         ) = ButtonStyle(
@@ -125,7 +125,7 @@ data class ButtonStyle(
             colors: ButtonColors = ButtonDefaults.elevatedButtonColors(),
             elevation: ButtonElevation? = ButtonDefaults.elevatedButtonElevation(),
             contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
-            textStyle: TextStyle? = null,
+            textStyle: TextStyle? = MaterialTheme.typography.labelLarge,
             iconSize: Dp = ButtonDefaults.IconSize,
             iconSpacing: Dp = ButtonDefaults.IconSpacing,
         ) = ButtonStyle(
@@ -143,6 +143,12 @@ data class ButtonStyle(
 }
 
 @Composable
+private fun ButtonColors.withContentColors() = copy(
+    contentColor = contentColor.withContentColor(),
+    disabledContentColor = disabledContentColor.withContentColor(enabled = false),
+)
+
+@Composable
 fun ThemedButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -157,7 +163,7 @@ fun ThemedButton(
         modifier = modifier.buttonPointerModifier(enabled),
         enabled = enabled,
         shape = style.shape,
-        colors = style.colors,
+        colors = style.colors.withContentColors(),
         elevation = style.elevation,
         border = style.border(enabled),
         contentPadding = style.contentPadding,

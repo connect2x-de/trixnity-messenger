@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.room.settings
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -34,9 +32,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
@@ -58,7 +53,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
-import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MessengerDialog
@@ -67,7 +61,6 @@ import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.messenger.compose.view.common.WarningDialog
-import de.connect2x.messenger.compose.view.common.blockPointerInput
 import de.connect2x.messenger.compose.view.common.icons.BanIcon
 import de.connect2x.messenger.compose.view.common.icons.BlockIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
@@ -75,15 +68,20 @@ import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
 import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedInfoChip
+import de.connect2x.messenger.compose.view.theme.components.ThemedSuggestionChip
+import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
+import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel
-import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.crypto.key.UserTrustLevel
 
 
 @Composable
@@ -128,10 +126,7 @@ class UserProfileViewImpl : UserProfileView {
         val canOpenChat = userProfileViewModel.canOpenChat.collectAsState().value
 
         Column(
-            Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .blockPointerInput(),
+            Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             DialogHandler(userProfileViewModel)
@@ -147,11 +142,15 @@ class UserProfileViewImpl : UserProfileView {
                     Alignment.CenterHorizontally
                 ) {
                     if (userInfoElement != null) {
-                        Avatar(
+                        BoxWithConstraints(Modifier.fillMaxWidth()) {
+                            Box(Modifier.align(Alignment.Center)) {
+                                ThemedUserAvatar(
+                                    userInfoElement.initials,
                             image,
-                            userInfoElement.initials,
-                            size = 150.dp
+                                    this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)
                         )
+                            }
+                        }
                         Spacer(Modifier.height(20.dp))
                         SelectableText(userInfoElement.name, style = MaterialTheme.typography.titleLarge)
 
@@ -164,17 +163,36 @@ class UserProfileViewImpl : UserProfileView {
 
                     Spacer(Modifier.height(5.dp))
                     when (userTrustLevel) {
-                        is UserTrustLevel.CrossSigned ->
-                            StatusRow(i18n.secure(), true) { VerifiedIcon(VerificationLevel.USER) }
+                        is UserTrustLevel.CrossSigned -> {
+                            ThemedInfoChip(
+                                style = MaterialTheme.components.primaryChip,
+                                icon = { VerifiedIcon(VerificationLevel.USER) },
+                                label = { Text(i18n.secure()) },
+                            )
+                        }
 
-                        is UserTrustLevel.NotAllDevicesCrossSigned ->
-                            StatusRow(i18n.insecure(), false) { NotVerifiedIcon(VerificationLevel.USER) }
+                        is UserTrustLevel.NotAllDevicesCrossSigned -> {
+                            ThemedInfoChip(
+                                style = MaterialTheme.components.destructiveChip,
+                                icon = { NotVerifiedIcon(VerificationLevel.USER) },
+                                label = { Text(i18n.insecure()) },
+                            )
+                        }
 
-                        UserTrustLevel.Blocked, is UserTrustLevel.Invalid, UserTrustLevel.Unknown, null ->
-                            StatusRow(i18n.roomNoEncryptionFound(), false) { NotVerifiedIcon(VerificationLevel.USER) }
+                        UserTrustLevel.Blocked, is UserTrustLevel.Invalid, UserTrustLevel.Unknown, null -> {
+                            ThemedInfoChip(
+                                style = MaterialTheme.components.destructiveChip,
+                                icon = { NotVerifiedIcon(VerificationLevel.USER) },
+                                label = { Text(i18n.roomNoEncryptionFound()) },
+                            )
+                        }
                     }
                     if (membership == Membership.BAN) {
-                        StatusRow(membershipReason ?: i18n.banned(), false) { BanIcon() }
+                        ThemedInfoChip(
+                            style = MaterialTheme.components.destructiveChip,
+                            icon = { BanIcon() },
+                            label = { Text(membershipReason ?: i18n.banned()) },
+                        )
                     }
                 }
             }
@@ -200,7 +218,7 @@ class UserProfileViewImpl : UserProfileView {
                             Spacer(Modifier.size(10.dp))
                             Text(i18n.userProfileBlockUser())
                         }
-                        Switch(
+                        ThemedSwitch(
                             checked = isUserBlocked,
                             onCheckedChange = {
                                 if (isUserBlocked) {
@@ -229,8 +247,9 @@ class UserProfileViewImpl : UserProfileView {
                             )
                         }
                     }
+                    val isSinglePane = IsSinglePane.current
                     MenuElement(Modifier.clickable {
-                        userProfileViewModel.startVerification()
+                        userProfileViewModel.startVerification(isSinglePane)
                     }) {
                         Icon(
                             Icons.AutoMirrored.Filled.Wysiwyg,
@@ -349,7 +368,7 @@ private fun BanUserSection(userProfileViewModel: UserProfileViewModel, i18n: I18
             Spacer(Modifier.size(10.dp))
             Text(i18n.userProfileBanUser())
         }
-        Switch(
+        ThemedSwitch(
             checked = membership == Membership.BAN,
             onCheckedChange = {
                 if (membership == Membership.BAN) {
@@ -569,7 +588,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                 )
                 FlowRow(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Arrangement.Top) {
                     if (canSetRoleToUser) {
-                        SuggestionChip(
+                        ThemedSuggestionChip(
                             onClick = {
                                 changePowerLevelInput = TextFieldValue(
                                     ChangePowerLevelViewModel.Role.USER
@@ -582,7 +601,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                         )
                     }
                     if (canSetRoleToModerator) {
-                        SuggestionChip(
+                        ThemedSuggestionChip(
                             onClick = {
                                 changePowerLevelInput = TextFieldValue(
                                     ChangePowerLevelViewModel.Role.MODERATOR
@@ -595,7 +614,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                         )
                     }
                     if (canSetRoleToAdmin) {
-                        SuggestionChip(
+                        ThemedSuggestionChip(
                             onClick = {
                                 changePowerLevelInput = TextFieldValue(
                                     ChangePowerLevelViewModel.Role.ADMIN
@@ -667,34 +686,6 @@ private fun MenuElement(
     ) {
         content()
     }
-}
-
-@Composable
-private fun StatusRow(text: String, positive: Boolean = true, icon: @Composable () -> Unit) {
-    SuggestionChip(
-        enabled = false,
-        onClick = {},
-        label = {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.verySmall),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                icon()
-
-                BoxWithConstraints {
-                    Text(
-                        text,
-                        color = if (positive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.widthIn(max = maxWidth * .5f)
-                    )
-                }
-            }
-        },
-        colors = SuggestionChipDefaults.suggestionChipColors().copy(
-            disabledContainerColor = if (positive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.errorContainer,
-            disabledLabelColor = if (positive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
-        ),
-    )
 }
 
 @Composable

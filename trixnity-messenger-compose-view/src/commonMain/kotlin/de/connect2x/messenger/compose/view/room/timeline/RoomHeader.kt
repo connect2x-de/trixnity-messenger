@@ -33,7 +33,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
-import de.connect2x.messenger.compose.view.common.AvatarWithPresence
 import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.UserState
@@ -44,9 +43,11 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
+import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.util.TextLabel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
@@ -74,7 +75,6 @@ class RoomHeaderViewImpl : RoomHeaderView {
     ) {
         val roomHeaderElement = roomHeaderViewModel.roomHeaderInfo.collectAsState().value
         val usersTyping = roomHeaderViewModel.usersTyping.collectAsState().value
-        val isDirectChat = roomHeaderViewModel.isDirectChat.collectAsState().value
         val knockingMembersCount = roomHeaderViewModel.knockingMembersCount.collectAsState().value
         val headerHeightFlow = MaxHeaderHeight.current
         val headerHeight = headerHeightFlow.collectAsState().value
@@ -109,19 +109,16 @@ class RoomHeaderViewImpl : RoomHeaderView {
 
                         ThemedButton(
                             style = MaterialTheme.components.accountSelector,
-                            enabled = isDirectChat,
                             onClick = { roomHeaderViewModel.openRoomSettings() },
                         ) {
                             Row(
                                 horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Box {
-                                    AvatarWithPresence(
-                                        roomHeaderElement.roomImage,
-                                        roomHeaderElement.roomImageInitials,
-                                        roomHeaderElement.presence,
-                                    )
+                                    ThemedUserAvatar(roomHeaderElement.roomImageInitials, roomHeaderElement.roomImage) {
+                                        AvatarPresenceBadge(roomHeaderElement.presence)
+                                    }
                                     if (roomHeaderElement.isPublic) {
                                         PublicIcon()
                                     }
@@ -154,7 +151,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
                                     Spacer(Modifier.size(5.dp))
                                 }
 
-                                Column {
+                                Column(modifier = Modifier.padding(end = 14.dp)) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         RoomName(roomHeaderElement)
                                         Spacer(Modifier.size(7.dp))
@@ -215,7 +212,7 @@ fun RoomName(
     Tooltip({
         TooltipText { roomHeaderElement.roomName }
     }) {
-        SelectableText(
+        Text(
             roomHeaderElement.roomName,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
