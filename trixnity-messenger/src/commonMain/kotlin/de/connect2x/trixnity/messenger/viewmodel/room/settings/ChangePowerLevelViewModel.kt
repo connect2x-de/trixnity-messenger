@@ -130,22 +130,21 @@ open class ChangePowerLevelViewModelImpl(
 
     override val changingPowerLevelDialogOpen = MutableStateFlow(false)
 
-    override val changingPowerLevelDialogError = MutableStateFlow<String?>(null)
     override val changingPowerLevelDialogInput = TextFieldViewModelImpl()
 
-    override val showPowerLevelHelp = MutableStateFlow(false)
+    override val changingPowerLevelDialogError =
+        combine(
+            canSetPowerLevelToMax,
+            changingPowerLevelDialogInput.text,
+        ) { canSetPowerLevelToMax, text ->
+            validateNewPowerLevelInput(
+                text,
+                maxPowerLevel = canSetPowerLevelToMax,
+                i18n
+            )
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    init {
-        coroutineScope.launch {
-            changingPowerLevelDialogInput.text.collect {
-                changingPowerLevelDialogError.value = validateNewPowerLevelInput(
-                    it,
-                    maxPowerLevel = canSetPowerLevelToMax.value,
-                    i18n
-                )
-            }
-        }
-    }
+    override val showPowerLevelHelp = MutableStateFlow(false)
 
     override fun setRoleToUser() =
         setUserToPowerLevel(Role.USER.getMinPowerLevel())
