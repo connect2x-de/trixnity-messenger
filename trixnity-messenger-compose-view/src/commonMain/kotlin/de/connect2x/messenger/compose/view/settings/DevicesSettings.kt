@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GppGood
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.RestoreFromTrash
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -60,6 +61,7 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.icons.EditIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
@@ -72,6 +74,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AccountWithDevices
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceInfo
 import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModel
 import kotlinx.coroutines.delay
+import net.folivo.trixnity.core.MSC3814
 import net.folivo.trixnity.core.model.UserId
 
 interface DevicesSettingsView {
@@ -215,6 +218,7 @@ fun OtherDevices(
     }
 }
 
+
 @Composable
 fun OtherDevice(userId: UserId, device: DeviceInfo, devicesSettingsViewModel: DevicesSettingsViewModel) {
     val i18n = DI.get<I18nView>()
@@ -311,6 +315,9 @@ fun DeviceRow(
     val i18n = DI.get<I18nView>()
     val displayName = device.displayName.collectAsState().value
     val isVerified = device.isVerified.collectAsState().value
+
+    @OptIn(MSC3814::class)
+    val isDehydrated = device.isDehydrated
     val focusRequester = remember { FocusRequester() }
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (editDeviceDisplayName.value) {
@@ -368,7 +375,20 @@ fun DeviceRow(
             )
         } else {
             Column(Modifier.weight(1.0f, fill = true)) {
-                Text(displayName)
+                Row {
+                    Text(displayName)
+                    if (isDehydrated) {
+                        Tooltip(tooltip = {
+                            TooltipText(i18n.dehydratedDevice())
+                        }) {
+                            Icon(
+                                Icons.Default.RestoreFromTrash,
+                                i18n.verificationTrusted(),
+                                modifier = Modifier.size(24.dp),
+                            )
+                        }
+                    }
+                }
                 Spacer(Modifier.size(5.dp))
                 Text(device.lastSeenAt, fontSize = 10.sp)
             }

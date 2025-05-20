@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added indicator for dehydrated devices in device settings.
+
 ### Changed
 
 - Updated Ktor from 3.1.3 to 3.1.4
@@ -72,7 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Styling: use tonalElevation for surfaces
 - Styling: Fix alignment & color for room list time & encryption icon
 - Direct rooms sometimes were interpreted as a group
- 
+
 ## 3.5.6
 
 ### Changed

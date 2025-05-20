@@ -571,6 +571,11 @@ open class I18nView(
         DE - "noch nicht verifiziert"
     }
 
+    open fun dehydratedDevice() = translate {
+        EN - "This virtual (so called dehydrated) device is used for retrieving messages when no other device is online."
+        DE - "Dieses virtuelle (sogenannte dehydrierte) Gerät wird verwendet um Nachrichten zu empfangen, wenn kein anderes Gerät online ist."
+    }
+
     open fun anErrorHasOccurred() = translate {
         EN - "An error has occurred."
         DE - "Ein Fehler ist aufgetreten."
