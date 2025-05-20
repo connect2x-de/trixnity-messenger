@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed cancellation exceptions and a small memory leak caused by message replies
 - Correct button placement in user verification
+- Fixed various bugs in user search
 
 ### Security
 

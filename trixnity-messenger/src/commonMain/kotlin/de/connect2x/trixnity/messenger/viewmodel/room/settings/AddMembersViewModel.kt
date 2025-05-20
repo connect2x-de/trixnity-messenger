@@ -5,7 +5,6 @@ import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +35,7 @@ interface AddMembersViewModelFactory {
 
 interface AddMembersViewModel {
     val potentialMembersViewModel: PotentialMembersViewModel
-    val groupUsers: MutableStateFlow<List<Search.SearchUserElement>>
+    val groupUsers: StateFlow<List<Search.SearchUserElement>>
     val canAddMembers: StateFlow<Boolean>
     val error: StateFlow<String?>
     val errorCause: StateFlow<String?>
@@ -72,14 +71,13 @@ class AddMembersViewModelImpl(
         onBack()
     }
 
-    override val groupUsers = MutableStateFlow(listOf<Search.SearchUserElement>())
+    override val groupUsers = potentialMembersViewModel.selectedUsers
     override val canAddMembers =
         groupUsers.map { it.isNotEmpty() }
             .stateIn(coroutineScope, started = SharingStarted.WhileSubscribed(), false)
 
     override val error = MutableStateFlow<String?>(null)
     override val errorCause = MutableStateFlow<String?>(null)
-    internal val foundUsers = potentialMembersViewModel.searchHandler.foundUsers
 
     override val isAddingMembers = MutableStateFlow(false)
 
@@ -152,29 +150,20 @@ class AddMembersViewModelImpl(
 
     override fun onUserClick(user: Search.SearchUserElement) {
         if (groupUsers.value.contains(user).not()) {
-            groupUsers.value += user
             removeUserFromList(user)
         }
     }
 
-    // IMPORTANT: has to be separate as the renderer will collapse when 2 collectAsState() references change at the same time
     override fun removeUserFromList(user: Search.SearchUserElement) {
-        coroutineScope.launch {
-            delay(50)
-            potentialMembersViewModel.searchHandler.foundUsers.value -= user
-        }
+        potentialMembersViewModel.searchHandler.selectUser(user)
     }
 
     override fun removeUserFromGroup(user: Search.SearchUserElement) {
-        groupUsers.value -= user
         addUserToList(user)
     }
 
     override fun addUserToList(user: Search.SearchUserElement) {
-        coroutineScope.launch {
-            delay(50)
-            potentialMembersViewModel.searchHandler.foundUsers.value += user
-        }
+        potentialMembersViewModel.searchHandler.unselectUser(user)
     }
 
     private fun <T, A : Appendable> Iterable<T>.joinTo(
