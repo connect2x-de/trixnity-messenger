@@ -25,7 +25,6 @@ import kotlin.time.toDuration
 
 interface UserSearchHandler {
     val searchTerm: TextFieldViewModel
-    val initialUsers: StateFlow<List<Search.SearchUserElement>>
     val selectedUsers: StateFlow<List<Search.SearchUserElement>>
     val foundUsers: StateFlow<List<Search.SearchUserElement>>
     val waitForUserResults: StateFlow<Boolean>
@@ -45,7 +44,6 @@ class DefaultUserSearchHandler(
     filterNotUsers: Flow<Set<UserId>> = flowOf(emptySet()),
 ) : UserSearchHandler {
     override val searchTerm = TextFieldViewModelImpl()
-    override val initialUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val selectedUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     private val unfilteredFoundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val foundUsers: StateFlow<List<Search.SearchUserElement>> =
@@ -78,9 +76,7 @@ class DefaultUserSearchHandler(
                 else it
             }
             .scopedCollectLatest {
-                if (it.isBlank()) {
-                    unfilteredFoundUsers.value = initialUsers.value
-                } else {
+                if (it.isNotBlank()) {
                     waitForUserResults.value = true
                     unfilteredFoundUsers.value =
                         search.searchUsers(
@@ -99,7 +95,6 @@ class DefaultUserSearchHandler(
 
 object PreviewUserSearchHandler : UserSearchHandler {
     override val searchTerm = TextFieldViewModelImpl("bla")
-    override val initialUsers: StateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val foundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val selectedUsers: StateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val waitForUserResults: StateFlow<Boolean> = MutableStateFlow(false)
