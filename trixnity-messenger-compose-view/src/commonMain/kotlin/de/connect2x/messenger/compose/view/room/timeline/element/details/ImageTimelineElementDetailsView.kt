@@ -53,14 +53,13 @@ class ImageTimelineElementDetailsView :
 
     // JPEG, PNG, BMP, WEBP (based on decodeToImageBitmap())
     override fun supportsMimeType(mimeType: ContentType): Boolean {
-        return listOf<ContentType>(
+        return listOf(
             ContentType.Image.JPEG,
             ContentType.Image.PNG,
             ContentType.Image.BMP,
             ContentType.Image.Webp,
             ContentType.Image.GIF // gifs can be rendered statically (first frame)
         ).any { it.match(mimeType) }
-        true
     }
 
     @OptIn(ExperimentalResourceApi::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
