@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix wrong calculations in ChangePowerLevelViewModel
 - Allow to change power levels for own user
 - Fixed various bugs in user search
+- Export Button was disabled on web
 
 ### Security
 
