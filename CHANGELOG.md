@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed cancellation exceptions and a small memory leak caused by message replies
 - Correct button placement in user verification
 - Fix wrong calculations in ChangePowerLevelViewModel
+- Allow to change power levels for own user
 
 ### Security
 
