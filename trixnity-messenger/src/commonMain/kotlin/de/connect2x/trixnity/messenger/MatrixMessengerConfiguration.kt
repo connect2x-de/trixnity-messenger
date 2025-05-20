@@ -41,6 +41,10 @@ data class MatrixMessengerConfiguration(
 
     var notificationsEnabled: Boolean = false,
 
+    val features: MatrixMessengerFeatures = MatrixMessengerFeatures(
+        enablePdfReader = true,
+    ),
+
     /**
      * The number of elements that should be loaded before and after the viewport.
      */

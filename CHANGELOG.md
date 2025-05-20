@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- PDF readers for Desktop, Android and Web
+- Added indicator for dehydrated devices in device settings.
+
 ### Changed
 
 - Updated Ktor from 3.1.3 to 3.1.4
