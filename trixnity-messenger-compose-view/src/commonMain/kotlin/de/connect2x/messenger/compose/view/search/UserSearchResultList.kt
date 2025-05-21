@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -105,7 +106,9 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
                         }
                     }
                     users.map { user ->
-                        UserElement(user, onClick = { userClickReaction(user) })
+                        key(user.userId) {
+                            UserElement(user, onClick = { userClickReaction(user) })
+                        }
                     }
                 }
                 if (shouldScroll) {
