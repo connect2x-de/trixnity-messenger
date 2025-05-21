@@ -88,7 +88,6 @@ class DefaultUserSearchHandler(
                         )
                     waitForUserResults.value = false
                 } else {
-                    selectedUsers.value = emptyList()
                     unfilteredFoundUsers.value = emptyList()
                 }
             }
