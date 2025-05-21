@@ -120,7 +120,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElement
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelectorImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ImageTimelineElementDetailsView
-import de.connect2x.messenger.compose.view.room.timeline.element.details.PreviewNotSupportedTimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.details.TimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementView
@@ -132,6 +131,8 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.Locatio
 import de.connect2x.messenger.compose.view.room.timeline.element.message.NoticeRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.TextRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.UnknownRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.VerificationCancelMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.VerificationDoneMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.VerificationRequestRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.VideoRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleView
@@ -166,12 +167,12 @@ import de.connect2x.messenger.compose.view.roomlist.header.CloseProfileView
 import de.connect2x.messenger.compose.view.roomlist.header.CloseProfileViewImpl
 import de.connect2x.messenger.compose.view.roomlist.header.ShowSearchView
 import de.connect2x.messenger.compose.view.roomlist.header.ShowSearchViewImpl
-import de.connect2x.messenger.compose.view.roomlist.room.KnockRoomListElement
-import de.connect2x.messenger.compose.view.roomlist.room.KnockRoomListElementImpl
 import de.connect2x.messenger.compose.view.roomlist.room.ArchivedRoomListElement
 import de.connect2x.messenger.compose.view.roomlist.room.ArchivedRoomListElementImpl
 import de.connect2x.messenger.compose.view.roomlist.room.InviteRoomListElement
 import de.connect2x.messenger.compose.view.roomlist.room.InviteRoomListElementImpl
+import de.connect2x.messenger.compose.view.roomlist.room.KnockRoomListElement
+import de.connect2x.messenger.compose.view.roomlist.room.KnockRoomListElementImpl
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainerView
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainerViewImpl
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementView
@@ -433,6 +434,8 @@ fun timelineViewModule() = module {
     timelineElementView<TextRoomMessageTimelineElementView> { TextRoomMessageTimelineElementView() }
     timelineElementView<VideoRoomMessageTimelineElementView> { VideoRoomMessageTimelineElementView() }
     timelineElementView<VerificationRequestRoomMessageTimelineElementView> { VerificationRequestRoomMessageTimelineElementView() }
+    timelineElementView<VerificationDoneMessageTimelineElementView> { VerificationDoneMessageTimelineElementView() }
+    timelineElementView<VerificationCancelMessageTimelineElementView> { VerificationCancelMessageTimelineElementView() }
     timelineElementView<UnknownRoomMessageTimelineElementView> { UnknownRoomMessageTimelineElementView() }
     timelineElementView<AvatarStateTimelineElementView> { AvatarStateTimelineElementView() }
     timelineElementView<CanonicalAliasStateTimelineElementView> { CanonicalAliasStateTimelineElementView() }

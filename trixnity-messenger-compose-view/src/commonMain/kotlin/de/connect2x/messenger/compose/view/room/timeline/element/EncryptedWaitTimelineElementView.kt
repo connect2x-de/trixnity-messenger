@@ -22,8 +22,8 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedWaitTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.EncryptedWaitTimelineElementViewModel
 import kotlin.reflect.KClass
 
 class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimelineElementViewModel> {

@@ -67,8 +67,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportToMessageVi
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedErrorTimelineElementViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EncryptedWaitTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
@@ -77,11 +75,15 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactorySelectorImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.AudioRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.EmoteRoomMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.EncryptedErrorTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.EncryptedWaitTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.FileRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.ImageRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.LocationRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.NoticeRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.TextRoomMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationCancelEventContentTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationDoneEventContentTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationRequestRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VideoRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.AvatarStateTimelineElementViewModelFactory
@@ -359,6 +361,8 @@ private fun timelineElementViewModels() = module {
     timelineElementViewModelFactory<EmoteRoomMessageTimelineElementViewModelFactory> { EmoteRoomMessageTimelineElementViewModelFactory }
     timelineElementViewModelFactory<LocationRoomMessageTimelineElementViewModelFactory> { LocationRoomMessageTimelineElementViewModelFactory }
     timelineElementViewModelFactory<VerificationRequestRoomMessageTimelineElementViewModelFactory> { VerificationRequestRoomMessageTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<VerificationDoneEventContentTimelineElementViewModelFactory> { VerificationDoneEventContentTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<VerificationCancelEventContentTimelineElementViewModelFactory> { VerificationCancelEventContentTimelineElementViewModelFactory }
 
     // State:
     timelineElementViewModelFactory<CreateStateTimelineElementViewModelFactory> { CreateStateTimelineElementViewModelFactory }

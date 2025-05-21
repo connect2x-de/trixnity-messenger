@@ -1,20 +1,17 @@
-package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
+package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 
 interface EncryptedWaitTimelineElementViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-    ): EncryptedWaitTimelineElementViewModel? {
+    ): MessageTimelineElementViewModel.EncryptedWait? {
         return EncryptedWaitTimelineElementViewModelImpl(viewModelContext)
     }
 
     companion object : EncryptedWaitTimelineElementViewModelFactory
 }
 
-interface EncryptedWaitTimelineElementViewModel : TimelineElementViewModel.Message<EncryptedMessageEventContent>
-
 class EncryptedWaitTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-) : MatrixClientViewModelContext by viewModelContext, EncryptedWaitTimelineElementViewModel
+) : MatrixClientViewModelContext by viewModelContext, MessageTimelineElementViewModel.EncryptedWait
