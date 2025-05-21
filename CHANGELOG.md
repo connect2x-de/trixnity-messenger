@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed various bugs in user search
 - Fixed user search results not being cleared when search term is empty
 - Fix crash when selecting user search results
+- Export Button was disabled on web
 - Fix: Emoji Selector keyboard navigation
 
 ### Security

@@ -1,15 +1,30 @@
 package de.connect2x.trixnity.messenger.export
 
-import externals.jszip.ZipWriterStream
-import js.buffer.ArrayBuffer
-import js.typedarrays.Uint8Array
+import ZipWriterConstructorOptions
+import externals.zipjs.BlobReader
+import externals.zipjs.ZipWriter
+import js.typedarrays.toUint8Array
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.utils.ByteArrayFlow
-import net.folivo.trixnity.utils.write
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import web.dom.document
+import web.fs.FileSystemCreateWritableOptions
+import web.fs.FileSystemDirectoryHandle
+import web.fs.FileSystemFileHandle
+import web.fs.FileSystemGetDirectoryOptions
+import web.fs.FileSystemGetFileOptions
+import web.fs.FileSystemRemoveOptions
+import web.fs.FileSystemWritableFileStream
+import web.html.HTML
+import web.navigator.navigator
+import web.timers.setTimeout
+import web.url.URL
+import web.window.WindowTarget
+import kotlin.time.Duration.Companion.seconds
+
 
 actual fun platformFileBasedExportRoomSinkWriter(): Module = module {
     single<FileBasedExportRoomSinkWriterFactory> {
@@ -17,43 +32,87 @@ actual fun platformFileBasedExportRoomSinkWriter(): Module = module {
             override fun create(
                 destination: Destination,
                 fileName: String
-            ): FileBasedExportRoomSinkWriter =
-                WebZipFileBasedExportRoomSinkWriter(destination, fileName)
+            ): FileBasedExportRoomSinkWriter = WebZipFileBasedExportRoomSinkWriter(fileName)
         }
     }
 }
 
 class WebZipFileBasedExportRoomSinkWriter(
-    destination: Destination,
-    fileName: String,
+    private val fileName: String,
 ) : FileBasedExportRoomSinkWriter {
-    private val zipper = ZipWriterStream()
-    private val fileStream = zipper.writable<String>(fileName)
-    private val fileStreamWriter = fileStream.getWriter()
+    private val destination = fileName.substringBeforeLast('.') + ".zip"
 
-    @OptIn(DelicateCoroutinesApi::class)
-    private val pipeToDestination = GlobalScope.async {
-        zipper.readable.pipeTo(destination.stream)
-    }
+    private lateinit var outputDirectory: FileSystemDirectoryHandle
+
+    private lateinit var zipFile: FileSystemFileHandle
+    private lateinit var zipStream: FileSystemWritableFileStream
+
+    private lateinit var textFile: FileSystemFileHandle
+    private lateinit var textStream: FileSystemWritableFileStream
+
+    private lateinit var mediaFile: FileSystemFileHandle
+
+    private lateinit var zipWriter: ZipWriter<dynamic>
 
     override suspend fun start() {
+        outputDirectory = navigator.storage.getDirectory()
+            .getDirectoryHandle("room-export", FileSystemGetDirectoryOptions(create = true))
+
+        zipFile = outputDirectory.getFileHandle("archive.tmp", FileSystemGetFileOptions(create = true))
+        zipStream = zipFile.createWritable(FileSystemCreateWritableOptions(keepExistingData = false))
+
+        textFile = outputDirectory.getFileHandle("events.tmp", FileSystemGetFileOptions(create = true))
+        textStream = textFile.createWritable(FileSystemCreateWritableOptions(keepExistingData = false))
+
+        mediaFile = outputDirectory.getFileHandle("media.tmp", FileSystemGetFileOptions(create = true))
+
+        zipWriter = ZipWriter(zipStream, ZipWriterConstructorOptions {
+            bufferedWrite = true
+            dataDescriptor = true
+            dataDescriptorSignature = true
+        })
+
         super.start()
     }
 
     override suspend fun addContent(content: String) {
-        fileStreamWriter.write(content)
+        textStream.write(content)
     }
 
     override suspend fun addMedia(content: ByteArrayFlow, filename: String) {
-        val mediaStream = zipper.writable<Uint8Array<ArrayBuffer>>("media/$filename")
-        mediaStream.write(content)
+        val mediaStream = mediaFile.createWritable(FileSystemCreateWritableOptions(keepExistingData = false))
+
+        content.collect {
+            @OptIn(ExperimentalStdlibApi::class)
+            mediaStream.write(it.toUint8Array())
+        }
+
         mediaStream.close()
+
+        zipWriter.add("media/${filename}", BlobReader(mediaFile.getFile())).await()
     }
 
     override suspend fun finish() {
-        fileStream.close()
-        zipper.close().await()
-        pipeToDestination.await()
+        textStream.close()
+
+        zipWriter.add(fileName, BlobReader(textFile.getFile())).await()
+        zipWriter.close().await()
+
+        val blobUrl = URL.createObjectURL(zipFile.getFile())
+
+        val a = document.createElement(HTML.a)
+        a.href = blobUrl
+        a.download = destination
+        a.target = WindowTarget._self
+        a.click()
+
+        setTimeout(60.seconds) {
+            @OptIn(DelicateCoroutinesApi::class)
+            GlobalScope.launch {
+                URL.revokeObjectURL(blobUrl)
+                navigator.storage.getDirectory().removeEntry(outputDirectory.name, FileSystemRemoveOptions(recursive = true))
+            }
+        }
     }
 }
 
