@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show state of user verification in room list element
 - Show error popups when problems occur during room avatar update
 - Align confirm avatar update button to lower right in AvatarCutter
+- When creating a new group, added users are shown in a scrollable list and not a grid (UsersInGroup)
 
 ### Deprecated
 
