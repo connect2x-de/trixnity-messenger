@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.export
 
 import externals.jszip.ZipWriterStream
+import js.buffer.ArrayBuffer
 import js.typedarrays.Uint8Array
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -44,7 +45,7 @@ class WebZipFileBasedExportRoomSinkWriter(
     }
 
     override suspend fun addMedia(content: ByteArrayFlow, filename: String) {
-        val mediaStream = zipper.writable<Uint8Array<*>>("media/$filename")
+        val mediaStream = zipper.writable<Uint8Array<ArrayBuffer>>("media/$filename")
         mediaStream.write(content)
         mediaStream.close()
     }

@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.flattenValues
 import net.folivo.trixnity.client.key
-import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
@@ -41,6 +40,7 @@ import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.crypto.key.UserTrustLevel
 import org.koin.core.component.get
 
 
@@ -225,8 +225,8 @@ open class RoomHeaderViewModelImpl(
             otherUsers.size == 1 && otherUserVerified.not()
         }.stateIn(coroutineScope, WhileSubscribed(), false)
     override val knockingMembersCount: StateFlow<Int> =
-        matrixClient.user.getAll(selectedRoomId).flattenValues().flatMapLatest {
-            flowOf(it.count { it.membership == Membership.KNOCK })
+        matrixClient.user.getAll(selectedRoomId).flattenValues().flatMapLatest { users ->
+            flowOf(users.count { user -> user.membership == Membership.KNOCK })
         }.stateIn(coroutineScope, WhileSubscribed(), 0)
 
     override val usersTyping = matrixClient.room.usersTyping.map { map ->

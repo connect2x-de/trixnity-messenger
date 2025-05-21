@@ -46,7 +46,6 @@ import kotlinx.datetime.toInstant
 import kotlinx.serialization.json.Json
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.MatrixClientConfiguration
-import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.key.KeyTrustService
 import net.folivo.trixnity.client.store.KeyStore
@@ -70,6 +69,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
 import net.folivo.trixnity.core.model.keys.DeviceKeys
 import net.folivo.trixnity.core.model.keys.Keys
+import net.folivo.trixnity.crypto.key.DeviceTrustLevel
 import net.folivo.trixnity.crypto.olm.OlmDecrypter
 import net.folivo.trixnity.crypto.olm.OlmEncryptionService
 import org.koin.dsl.koinApplication

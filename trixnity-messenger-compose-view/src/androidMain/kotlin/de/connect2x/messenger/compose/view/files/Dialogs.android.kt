@@ -165,8 +165,6 @@ actual fun LoadFileDialog(
             PHOTO_CAPTURE -> showCameraDialog = PHOTO
 
             VIDEO_CAPTURE -> showCameraDialog = VIDEO
-
-            else -> log.error { "file picker type not supported: $pickerType" }
         }
     }
     if (showCameraDialog != null) {
