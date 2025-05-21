@@ -2,9 +2,7 @@ package de.connect2x.trixnity.messenger.export
 
 import externals.zipjs.BlobReader
 import externals.zipjs.ZipWriter
-import externals.zipjs.Entry
 import js.objects.jso
-import js.objects.unsafeJso
 import js.typedarrays.toUint8Array
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
