@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.export
 
+import ZipWriterConstructorOptions
 import externals.zipjs.BlobReader
 import externals.zipjs.ZipWriter
-import js.objects.jso
 import js.typedarrays.toUint8Array
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -66,7 +66,7 @@ class WebZipFileBasedExportRoomSinkWriter(
 
         mediaFile = outputDirectory.getFileHandle("media.tmp", FileSystemGetFileOptions(create = true))
 
-        zipWriter = ZipWriter(zipStream, jso {
+        zipWriter = ZipWriter(zipStream, ZipWriterConstructorOptions {
             bufferedWrite = true
             dataDescriptor = true
             dataDescriptorSignature = true
