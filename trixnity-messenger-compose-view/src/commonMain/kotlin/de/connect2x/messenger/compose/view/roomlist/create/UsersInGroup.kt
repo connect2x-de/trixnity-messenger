@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -65,25 +66,31 @@ class UsersInGroupViewImpl : UsersInGroupView {
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         selectedUsers.value.map { groupUser ->
-                            Column(
-                                Modifier.requiredWidth(60.dp)
-                                    .then(if (isMobile) Modifier.clickable {
-                                        userSearchHandler.unselectUser(groupUser)
-                                    } else Modifier),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                ThemedUserAvatar(groupUser.initials, groupUser.image) {
-                                    Tooltip({ Text(i18n.commonRemove()) }) {
-                                        ThemedIconButton(
-                                            style = MaterialTheme.components.primaryIconButton,
-                                            size = 15.dp,
-                                            onClick = { userSearchHandler.unselectUser(groupUser) }
-                                        ) {
-                                            Icon(Icons.Default.Close, i18n.commonRemove())
+                            key(groupUser.userId) {
+                                Column(
+                                    Modifier.requiredWidth(60.dp)
+                                        .then(if (isMobile) Modifier.clickable {
+                                            userSearchHandler.unselectUser(groupUser)
+                                        } else Modifier),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    ThemedUserAvatar(groupUser.initials, groupUser.image) {
+                                        Tooltip({ Text(i18n.commonRemove()) }) {
+                                            ThemedIconButton(
+                                                style = MaterialTheme.components.primaryIconButton,
+                                                size = 15.dp,
+                                                onClick = { userSearchHandler.unselectUser(groupUser) }
+                                            ) {
+                                                Icon(Icons.Default.Close, i18n.commonRemove())
+                                            }
                                         }
                                     }
+                                    Text(
+                                        groupUser.displayName,
+                                        maxLines = 3,
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
                                 }
-                                Text(groupUser.displayName, maxLines = 3, style = MaterialTheme.typography.labelMedium)
                             }
                         }
                     }
