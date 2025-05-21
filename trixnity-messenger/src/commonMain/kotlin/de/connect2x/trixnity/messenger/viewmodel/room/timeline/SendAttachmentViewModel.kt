@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -87,14 +86,12 @@ class SendAttachmentViewModelImpl(
     private val fileContent: StateFlow<ByteArrayFlow?> = _fileContent.asStateFlow()
 
     private val fileSize = MutableStateFlow(file.fileSize)
+    private val previewFileSize = file.fileSize
     override val previewFileContent: StateFlow<ByteArray?> =
-        fileContent.combine(fileSize) { content, size ->
-            content to size
-        }.filter { (content, size) -> size == null || size <= messengerConfiguration.maxMediaSizeInMemory }
+        fileContent.filter { previewFileSize == null || previewFileSize <= messengerConfiguration.maxMediaSizeInMemory }
             .map {
-                it.first?.limitedByteArrayOrNull(messengerConfiguration.maxMediaSizeInMemory)
-            }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+                it?.limitedByteArrayOrNull(messengerConfiguration.maxMediaSizeInMemory)
+            }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val backCallback = BackCallback {
         cancel()
