@@ -2,7 +2,9 @@ package de.connect2x.trixnity.messenger.export
 
 import externals.zipjs.BlobReader
 import externals.zipjs.ZipWriter
+import externals.zipjs.Entry
 import js.objects.jso
+import js.objects.unsafeJso
 import js.typedarrays.toUint8Array
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -14,7 +16,9 @@ import web.dom.document
 import web.fs.FileSystemCreateWritableOptions
 import web.fs.FileSystemDirectoryHandle
 import web.fs.FileSystemFileHandle
+import web.fs.FileSystemGetDirectoryOptions
 import web.fs.FileSystemGetFileOptions
+import web.fs.FileSystemRemoveOptions
 import web.fs.FileSystemWritableFileStream
 import web.html.HTML
 import web.navigator.navigator
@@ -53,7 +57,8 @@ class WebZipFileBasedExportRoomSinkWriter(
     private lateinit var zipWriter: ZipWriter<dynamic>
 
     override suspend fun start() {
-        outputDirectory = navigator.storage.getDirectory().getDirectoryHandle("room-export")
+        outputDirectory = navigator.storage.getDirectory()
+            .getDirectoryHandle("room-export", FileSystemGetDirectoryOptions(create = true))
 
         zipFile = outputDirectory.getFileHandle("archive.tmp", FileSystemGetFileOptions(create = true))
         zipStream = zipFile.createWritable(FileSystemCreateWritableOptions(keepExistingData = false))
@@ -107,9 +112,7 @@ class WebZipFileBasedExportRoomSinkWriter(
             @OptIn(DelicateCoroutinesApi::class)
             GlobalScope.launch {
                 URL.revokeObjectURL(blobUrl)
-                outputDirectory.removeEntry(zipFile.name)
-                outputDirectory.removeEntry(textFile.name)
-                outputDirectory.removeEntry(mediaFile.name)
+                navigator.storage.getDirectory().removeEntry(outputDirectory.name, FileSystemRemoveOptions(recursive = true))
             }
         }
     }
