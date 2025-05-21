@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix wrong calculations in ChangePowerLevelViewModel
 - Allow to change power levels for own user
 - Fixed various bugs in user search
+- Fixed user search results not being cleared when search term is empty
 - Fix crash when selecting user search results
 
 ### Security
