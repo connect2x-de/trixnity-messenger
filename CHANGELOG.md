@@ -11,6 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Deprecated
+
+### Removed
+
+### Fixed
+- Update file size for images after processing
+
+### Security
+
+## 3.5.8
+
+### Added
+
+- PDF readers for Desktop, Android and Web (can be disabled via configuration: @see MatrixMessengerConfiguration.features)
+- Added indicator for dehydrated devices in device settings.
+- Allow changing locale in Android app settings
+
+### Changed
+
 - Updated Ktor from 3.1.3 to 3.1.4
 - Updated Koin from 4.0.3 to 4.0.4
 - Updated C2X conventions plugin from 41503362 to 43109500
@@ -32,18 +51,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Separate license processing tasks for android product flavors and build type permutations
 - Switch to room view when starting a user verification in single pane mode
 - Show state of user verification in room list element
-
-### Deprecated
-
-### Removed
+- Show error popups when problems occur during room avatar update
+- Align confirm avatar update button to lower right in AvatarCutter
+- When creating a new group, added users are shown in a scrollable list and not a grid (UsersInGroup)
 
 ### Fixed
 
 - Fixed cancellation exceptions and a small memory leak caused by message replies
 - Correct button placement in user verification
-- Update file size for images after processing
-
-### Security
+- Fix wrong calculations in ChangePowerLevelViewModel
+- Allow to change power levels for own user
+- Fixed various bugs in user search
+- Fixed user search results not being cleared when search term is empty
+- Fix crash when selecting user search results
+- Export Button was disabled on web
 
 ## 3.5.7
 
@@ -71,7 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Styling: use tonalElevation for surfaces
 - Styling: Fix alignment & color for room list time & encryption icon
 - Direct rooms sometimes were interpreted as a group
- 
+
 ## 3.5.6
 
 ### Changed

@@ -238,7 +238,6 @@ class UserProfileViewModelImpl(
         get<ChangePowerLevelViewModelFactory>()
             .create(
                 viewModelContext = viewModelContext.childContext("changePowerLevel-${userId.full}"),
-                powerLevel = powerLevel,
                 targetUser = userId,
                 error = error,
                 selectedRoomId = selectedRoomId

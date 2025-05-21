@@ -75,10 +75,13 @@ open class AvatarCutterViewModelImpl(
             if (fileSize == null || fileSize <= maxAvatarSize) {
                 _avatarImage.value = file.content.limitedByteArrayOrNull(maxAvatarSize) {
                     log.warn { "Uploaded avatar file exceeds avatar size limits, so it's not shown" }
+                    error.value = i18n.avatarSizeMaxSizeError(maxAvatarSize)
                 }
+            } else {
+                log.warn { "Uploaded avatar file exceeds avatar size limits, so it's not shown" }
+                error.value = i18n.avatarSizeMaxSizeError(maxAvatarSize)
             }
         }
-
     }
 
     override val avatarImage: StateFlow<ByteArray?> = _avatarImage.asStateFlow()
@@ -96,6 +99,7 @@ open class AvatarCutterViewModelImpl(
             )
             matrixClient.media.uploadMedia(cacheUri).fold(
                 onSuccess = { url ->
+                    log.debug { "Successfully uploaded avatar image" }
                     if (roomId == null) setUserAvatar(url)
                     else setRoomAvatar(url, roomId)
                 },
@@ -112,6 +116,7 @@ open class AvatarCutterViewModelImpl(
         matrixClient.setAvatarUrl(url).fold(
             onSuccess = {
                 upload.value = false
+                log.debug { "Successfully set user avatar" }
                 onClose()
             },
             onFailure = {
@@ -129,6 +134,7 @@ open class AvatarCutterViewModelImpl(
         ).fold(
             onSuccess = {
                 upload.value = false
+                log.debug { "Successfully set room avatar" }
                 onClose()
             },
             onFailure = {

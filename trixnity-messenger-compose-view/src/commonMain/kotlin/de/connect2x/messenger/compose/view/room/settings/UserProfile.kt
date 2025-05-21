@@ -115,15 +115,11 @@ class UserProfileViewImpl : UserProfileView {
         val userInfoElement = userProfileViewModel.userInfo.collectAsState().value
         val image = userInfoElement?.image?.collectAsState(null)?.value
         val userId = userProfileViewModel.userId
-        val blockingInProgress = userProfileViewModel.blockingInProgress.collectAsState().value
-        val isUserBlocked = userProfileViewModel.isUserBlocked.collectAsState().value
+
         val membership = userProfileViewModel.membership.collectAsState().value
         val membershipReason = userProfileViewModel.membershipReason.collectAsState().value
 
         val userTrustLevel = userProfileViewModel.userTrustLevel.collectAsState().value
-        val openingChat = userProfileViewModel.openingChat.collectAsState().value
-        val verifying = userProfileViewModel.verifying.collectAsState().value
-        val canOpenChat = userProfileViewModel.canOpenChat.collectAsState().value
 
         Column(
             Modifier.fillMaxSize(),
@@ -146,9 +142,9 @@ class UserProfileViewImpl : UserProfileView {
                             Box(Modifier.align(Alignment.Center)) {
                                 ThemedUserAvatar(
                                     userInfoElement.initials,
-                            image,
+                                    image,
                                     this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)
-                        )
+                                )
                             }
                         }
                         Spacer(Modifier.height(20.dp))
@@ -198,72 +194,9 @@ class UserProfileViewImpl : UserProfileView {
             }
 
             Column {
-                if (!userProfileViewModel.isMyself) {
-                    SmallSpacer()
-                    RoomOptions(userProfileViewModel, i18n)
-
-                    VerySmallSpacer()
-                    Row(
-                        Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.messengerDpConstants.small),
-                        Arrangement.Start,
-                        Alignment.CenterVertically
-                    ) {
-                        Text(i18n.userProfileUserOptions(), style = MaterialTheme.typography.titleMedium)
-                    }
-                    VerySmallSpacer()
-
-                    MenuElement(arrangement = Arrangement.SpaceBetween) {
-                        Row {
-                            BlockIcon()
-                            Spacer(Modifier.size(10.dp))
-                            Text(i18n.userProfileBlockUser())
-                        }
-                        ThemedSwitch(
-                            checked = isUserBlocked,
-                            onCheckedChange = {
-                                if (isUserBlocked) {
-                                    userProfileViewModel.unblockUser()
-                                } else {
-                                    userProfileViewModel.blockUser()
-                                }
-                            },
-                            enabled = !blockingInProgress
-                        )
-                    }
-                    if (canOpenChat) {
-                        MenuElement(Modifier.clickable {
-                            userProfileViewModel.openChat()
-                        }) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.Send,
-                                i18n.contact(),
-                                Modifier.size(24.dp),
-                                defaultColorForState(!openingChat)
-                            )
-                            Spacer(Modifier.size(10.dp))
-                            Text(
-                                text = i18n.userProfileContact(),
-                                color = defaultColorForState(!openingChat)
-                            )
-                        }
-                    }
-                    val isSinglePane = IsSinglePane.current
-                    MenuElement(Modifier.clickable {
-                        userProfileViewModel.startVerification(isSinglePane)
-                    }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Wysiwyg,
-                            i18n.userVerification(),
-                            Modifier.size(24.dp),
-                            defaultColorForState(!verifying)
-                        )
-                        Spacer(Modifier.size(10.dp))
-                        Text(
-                            text = i18n.userProfileVerification(),
-                            color = defaultColorForState(!verifying)
-                        )
-                    }
-                }
+                SmallSpacer()
+                RoomOptions(userProfileViewModel, i18n)
+                UserOptions(userProfileViewModel, i18n)
             }
         }
     }
@@ -295,14 +228,14 @@ private fun RoomOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
     val iHavePowerToKickUser by userProfileViewModel.iHavePowerToKickUser.collectAsState()
     val iHavePowerToBanUser by userProfileViewModel.iHavePowerToBanUser.collectAsState()
     val iHavePowerToUnbanUser by userProfileViewModel.iHavePowerToUnbanUser.collectAsState()
-    val maxPowerLevel by userProfileViewModel.changePowerLevelViewModel.canSetPowerLevelToMax.collectAsState()
+    val canSetPowerLevelToMax by userProfileViewModel.changePowerLevelViewModel.canSetPowerLevelToMax.collectAsState()
     val canSetRoleToAdmin by userProfileViewModel.changePowerLevelViewModel.canSetRoleToAdmin.collectAsState()
     val canSetRoleToModerator by userProfileViewModel.changePowerLevelViewModel.canSetRoleToModerator.collectAsState()
     val canSetRoleToUser by userProfileViewModel.changePowerLevelViewModel.canSetRoleToUser.collectAsState()
     val membership by userProfileViewModel.membership.collectAsState()
 
     val shouldShowChangePowerLevel = canSetRoleToUser || canSetRoleToModerator || canSetRoleToAdmin ||
-            (maxPowerLevel != null && maxPowerLevel != 0L)
+            (canSetPowerLevelToMax != null && canSetPowerLevelToMax != 0L)
     val shouldShowBan = iHavePowerToBanUser || (iHavePowerToUnbanUser && membership == Membership.BAN)
     val shouldShowKnockOptions = membership == Membership.KNOCK
 
@@ -323,21 +256,96 @@ private fun RoomOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
             ChangePowerLevelSection(userProfileViewModel, i18n)
         }
 
-        if (shouldShowKnockOptions) {
-            if (iHavePowerToAcceptKnock) {
-                AcceptKnockSection(userProfileViewModel, i18n)
+        if (!userProfileViewModel.isMyself) {
+            if (shouldShowKnockOptions) {
+                if (iHavePowerToAcceptKnock) {
+                    AcceptKnockSection(userProfileViewModel, i18n)
+                }
+                if (iHavePowerToRejectKnock) {
+                    RejectKnockSection(userProfileViewModel, i18n)
+                }
+            } else {
+                if (iHavePowerToKickUser) {
+                    KickUserSection(userProfileViewModel, i18n)
+                }
             }
-            if (iHavePowerToRejectKnock) {
-                RejectKnockSection(userProfileViewModel, i18n)
-            }
-        } else {
-            if (iHavePowerToKickUser) {
-                KickUserSection(userProfileViewModel, i18n)
+
+            if (shouldShowBan) {
+                BanUserSection(userProfileViewModel, i18n)
             }
         }
+    }
+}
 
-        if (shouldShowBan) {
-            BanUserSection(userProfileViewModel, i18n)
+@Composable
+private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
+    if (!userProfileViewModel.isMyself) {
+        val blockingInProgress = userProfileViewModel.blockingInProgress.collectAsState().value
+        val isUserBlocked = userProfileViewModel.isUserBlocked.collectAsState().value
+        val openingChat = userProfileViewModel.openingChat.collectAsState().value
+        val verifying = userProfileViewModel.verifying.collectAsState().value
+        val canOpenChat = userProfileViewModel.canOpenChat.collectAsState().value
+
+        VerySmallSpacer()
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.messengerDpConstants.small),
+            Arrangement.Start,
+            Alignment.CenterVertically
+        ) {
+            Text(i18n.userProfileUserOptions(), style = MaterialTheme.typography.titleMedium)
+        }
+        VerySmallSpacer()
+
+        MenuElement(arrangement = Arrangement.SpaceBetween) {
+            Row {
+                BlockIcon()
+                Spacer(Modifier.size(10.dp))
+                Text(i18n.userProfileBlockUser())
+            }
+            ThemedSwitch(
+                checked = isUserBlocked,
+                onCheckedChange = {
+                    if (isUserBlocked) {
+                        userProfileViewModel.unblockUser()
+                    } else {
+                        userProfileViewModel.blockUser()
+                    }
+                },
+                enabled = !blockingInProgress
+            )
+        }
+        if (canOpenChat) {
+            MenuElement(Modifier.clickable {
+                userProfileViewModel.openChat()
+            }) {
+                Icon(
+                    Icons.AutoMirrored.Filled.Send,
+                    i18n.contact(),
+                    Modifier.size(24.dp),
+                    defaultColorForState(!openingChat)
+                )
+                Spacer(Modifier.size(10.dp))
+                Text(
+                    text = i18n.userProfileContact(),
+                    color = defaultColorForState(!openingChat)
+                )
+            }
+        }
+        val isSinglePane = IsSinglePane.current
+        MenuElement(Modifier.clickable {
+            userProfileViewModel.startVerification(isSinglePane)
+        }) {
+            Icon(
+                Icons.AutoMirrored.Filled.Wysiwyg,
+                i18n.userVerification(),
+                Modifier.size(24.dp),
+                defaultColorForState(!verifying)
+            )
+            Spacer(Modifier.size(10.dp))
+            Text(
+                text = i18n.userProfileVerification(),
+                color = defaultColorForState(!verifying)
+            )
         }
     }
 }

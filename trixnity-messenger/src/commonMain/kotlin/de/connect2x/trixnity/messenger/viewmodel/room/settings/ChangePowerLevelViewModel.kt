@@ -30,14 +30,12 @@ private val log = KotlinLogging.logger {}
 interface ChangePowerLevelViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        powerLevel: StateFlow<Long>,
         error: MutableStateFlow<String?>,
         selectedRoomId: RoomId,
         targetUser: UserId,
     ): ChangePowerLevelViewModel {
         return ChangePowerLevelViewModelImpl(
             viewModelContext,
-            powerLevel,
             error,
             selectedRoomId,
             targetUser,
@@ -48,7 +46,6 @@ interface ChangePowerLevelViewModelFactory {
 }
 
 interface ChangePowerLevelViewModel {
-
     val canSetRoleToUser: StateFlow<Boolean>
     val canSetRoleToAdmin: StateFlow<Boolean>
     val canSetRoleToModerator: StateFlow<Boolean>
@@ -94,64 +91,64 @@ interface ChangePowerLevelViewModel {
 
 open class ChangePowerLevelViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    val powerLevel: StateFlow<Long>,
     val error: MutableStateFlow<String?>,
     private val selectedRoomId: RoomId,
     private val targetUser: UserId,
 ) : MatrixClientViewModelContext by viewModelContext, ChangePowerLevelViewModel {
 
     override val canSetPowerLevelToMax =
-        combine(
-            matrixClient.user.getById(selectedRoomId, targetUser),
-            matrixClient.user.canSetPowerLevelToMax(selectedRoomId, targetUser)
-        ) { user, maxPowerLevel ->
-            maxPowerLevel.takeIf { user != null }
-        }
+        matrixClient.user.canSetPowerLevelToMax(selectedRoomId, targetUser)
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val combineSetPowerLevelToMaxAndCurrentPowerLevel =
-        canSetPowerLevelToMax.combine(powerLevel) { maxPowerLevel, currentPowerLevel -> maxPowerLevel to currentPowerLevel }
-            .shareIn(coroutineScope, started = SharingStarted.WhileSubscribed(), 1)
+        combine(
+            canSetPowerLevelToMax,
+            matrixClient.user.getPowerLevel(selectedRoomId, targetUser)
+        ) { maxPowerLevel, targetUserPowerLevel ->
+            maxPowerLevel to targetUserPowerLevel
+        }.shareIn(coroutineScope, started = SharingStarted.WhileSubscribed(), 1)
 
-    override val canSetRoleToUser =
-        combineSetPowerLevelToMaxAndCurrentPowerLevel.map { (maxPowerLevel, currentPowerLevel) ->
-            currentPowerLevel != Role.USER.getMinPowerLevel() && (maxPowerLevel
-                ?: -1) >= Role.USER.getMinPowerLevel()
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    internal fun canSetPowerLevelToRole(role: Role) = // internal for test only
+        combineSetPowerLevelToMaxAndCurrentPowerLevel.map { (canSetPowerLevelToMax, currentPowerLevel) ->
+            log.trace { "role=$role canSetPowerLevelToMax=$canSetPowerLevelToMax currentPowerLevel=$currentPowerLevel" }
+            canSetPowerLevelToMax != null &&
+                    currentPowerLevel != role.getMinPowerLevel() &&
+                    canSetPowerLevelToMax >= role.getMinPowerLevel()
+        }
 
-    override val canSetRoleToAdmin =
-        combineSetPowerLevelToMaxAndCurrentPowerLevel.map { (maxPowerLevel, currentPowerLevel) ->
-            currentPowerLevel != Role.ADMIN.getMinPowerLevel() && (maxPowerLevel
-                ?: -1) >= Role.ADMIN.getMinPowerLevel()
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
-    override val canSetRoleToModerator =
-        combineSetPowerLevelToMaxAndCurrentPowerLevel.map { (maxPowerLevel, currentPowerLevel) ->
-            currentPowerLevel != Role.MODERATOR.getMinPowerLevel() && (maxPowerLevel
-                ?: -1) >= Role.MODERATOR.getMinPowerLevel()
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val canSetRoleToUser = canSetPowerLevelToRole(Role.USER)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val canSetRoleToModerator = canSetPowerLevelToRole(Role.MODERATOR)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val canSetRoleToAdmin = canSetPowerLevelToRole(Role.ADMIN)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
 
     override val changingRoleWarningDialogOpen =
         MutableStateFlow<Role?>(null)
 
     override val changingPowerLevelDialogOpen = MutableStateFlow(false)
 
-    override val changingPowerLevelDialogError = MutableStateFlow<String?>(null)
     override val changingPowerLevelDialogInput = TextFieldViewModelImpl()
 
-    override val showPowerLevelHelp = MutableStateFlow(false)
-
-    init {
-        coroutineScope.launch {
-            changingPowerLevelDialogInput.text.collect {
-                changingPowerLevelDialogError.value = validateNewPowerLevelInput(
-                    it,
-                    maxPowerLevel = canSetPowerLevelToMax.value,
+    override val changingPowerLevelDialogError =
+        combine(
+            canSetPowerLevelToMax,
+            changingPowerLevelDialogInput.text,
+        ) { canSetPowerLevelToMax, text ->
+            if (text.isEmpty()) {
+                null
+            } else {
+                validateNewPowerLevelInput(
+                    text,
+                    maxPowerLevel = canSetPowerLevelToMax,
                     i18n
                 )
             }
-        }
-    }
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    override val showPowerLevelHelp = MutableStateFlow(false)
 
     override fun setRoleToUser() =
         setUserToPowerLevel(Role.USER.getMinPowerLevel())

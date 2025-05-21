@@ -33,7 +33,6 @@ interface Search {
         matrixClient: MatrixClient,
         searchTerm: String,
         limit: Long?,
-        filterNot: (userId: UserId) -> Boolean = { false },
         presenceScope: CoroutineScope,
         maxPreviewSize: Long,
     ): List<SearchUserElement>
@@ -79,7 +78,6 @@ class SearchImpl(
         matrixClient: MatrixClient,
         searchTerm: String,
         limit: Long?,
-        filterNot: (userId: UserId) -> Boolean,
         presenceScope: CoroutineScope,
         maxPreviewSize: Long,
     ): List<SearchUserElement> = coroutineScope {
@@ -125,8 +123,6 @@ class SearchImpl(
                         response.results
                             .asSequence()
                             .filter { searchUser -> searchUser.userId != matrixClient.userId }
-                            .filterNot { filterNot(it.userId) }
-                            .sortedBy { searchUser -> searchUser.displayName }
                             .take(limit?.toInt() ?: Int.MAX_VALUE)
                             .map { searchUser ->
                                 async {

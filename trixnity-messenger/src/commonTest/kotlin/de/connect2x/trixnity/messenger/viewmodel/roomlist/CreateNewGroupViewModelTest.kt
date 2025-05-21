@@ -161,6 +161,7 @@ class CreateNewGroupViewModelTest {
         val cut = createNewGroupViewModel()
         val searchHandler = cut.createNewRoomViewModel.searchHandler
         backgroundScope.launch { cut.canCreateNewGroup.collect {} }
+        backgroundScope.launch { searchHandler.foundUsers.collect {  } }
         searchHandler.searchTerm.update("u")
         searchHandler.foundUsers.first {
             it == listOf(user2, user3)
