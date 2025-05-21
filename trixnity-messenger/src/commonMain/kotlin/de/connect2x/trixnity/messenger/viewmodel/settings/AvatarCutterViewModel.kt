@@ -35,7 +35,7 @@ interface AvatarCutterViewModelFactory {
 interface AvatarCutterViewModel {
     val upload: StateFlow<Boolean>
     val error: StateFlow<String?>
-    val file: FileDescriptor
+    var file: FileDescriptor
     val avatarCutterHeading: String
     val maxAvatarSize: Long
     val avatarImage: StateFlow<ByteArray?>
@@ -45,7 +45,7 @@ interface AvatarCutterViewModel {
 
 open class AvatarCutterViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    override val file: FileDescriptor,
+    override var file: FileDescriptor,
     private val onClose: () -> Unit,
     private val roomId: RoomId?
 ) : MatrixClientViewModelContext by viewModelContext, AvatarCutterViewModel {

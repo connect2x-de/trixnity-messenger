@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show state of user verification in room list element
 - Show error popups when problems occur during room avatar update
 - Align confirm avatar update button to lower right in AvatarCutter
+- Allow changing the FileDescriptor of a AvatarCutterViewModel after it has been created (#512)
 
 ### Deprecated
 
