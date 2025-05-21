@@ -13,6 +13,6 @@ internal actual fun SelectExportDestination(
     result: (Destination?) -> Unit
 ) {
     LaunchedEffect(result) {
-        result(Destination)
+        result(Destination())
     }
 }
