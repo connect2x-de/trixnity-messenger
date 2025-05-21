@@ -9,7 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- PDF readers for Desktop, Android and Web
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.5.8
+
+### Added
+
+- PDF readers for Desktop, Android and Web (can be disabled via configuration: @see MatrixMessengerConfiguration.features)
 - Added indicator for dehydrated devices in device settings.
 - Allow changing locale in Android app settings
 
@@ -40,10 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Align confirm avatar update button to lower right in AvatarCutter
 - When creating a new group, added users are shown in a scrollable list and not a grid (UsersInGroup)
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Fixed cancellation exceptions and a small memory leak caused by message replies
@@ -54,8 +64,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed user search results not being cleared when search term is empty
 - Fix crash when selecting user search results
 - Export Button was disabled on web
-
-### Security
 
 ## 3.5.7
 
