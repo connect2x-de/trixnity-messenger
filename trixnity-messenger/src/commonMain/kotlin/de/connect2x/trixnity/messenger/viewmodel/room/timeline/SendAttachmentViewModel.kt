@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -31,7 +32,6 @@ import net.folivo.trixnity.utils.byteArrayFlowFromSource
 import net.folivo.trixnity.utils.toByteArrayFlow
 import okio.Buffer
 import org.koin.core.component.get
-import kotlin.math.min
 
 
 private val log = KotlinLogging.logger { }
@@ -86,11 +86,13 @@ class SendAttachmentViewModelImpl(
     private val _fileContent = MutableStateFlow<ByteArrayFlow?>(null)
     private val fileContent: StateFlow<ByteArrayFlow?> = _fileContent.asStateFlow()
 
-    private val fileSize = file.fileSize
+    private val fileSize = MutableStateFlow(file.fileSize)
     override val previewFileContent: StateFlow<ByteArray?> =
-        fileContent.filter { fileSize == null || fileSize <= messengerConfiguration.maxMediaSizeInMemory }
+        fileContent.combine(fileSize) { content, size ->
+            content to size
+        }.filter { (content, size) -> size == null || size <= messengerConfiguration.maxMediaSizeInMemory }
             .map {
-                it?.limitedByteArrayOrNull(messengerConfiguration.maxMediaSizeInMemory)
+                it.first?.limitedByteArrayOrNull(messengerConfiguration.maxMediaSizeInMemory)
             }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
@@ -115,7 +117,9 @@ class SendAttachmentViewModelImpl(
                     get<ProcessImageUpload>().invoke(
                         imageByteArray,
                         file.mimeType ?: Image.PNG, // TODO: check if defaulting to PNG isn't causing any issues
-                    ).toByteArrayFlow()
+                    ).also {
+                        fileSize.value = it.size.toLong()
+                    }.toByteArrayFlow()
                 } else {
                     file.content
                 }
@@ -134,7 +138,7 @@ class SendAttachmentViewModelImpl(
                     when {
                         isImage ?: false -> {
                             log.debug { "send an image" }
-                            val size = file.fileSize
+                            val size = fileSize.value
                             val (width, height) = if (size == null || size <= messengerConfiguration.maxMediaSizeInMemory)
                                 getImageDimensions(
                                     byteArrayFlow,
