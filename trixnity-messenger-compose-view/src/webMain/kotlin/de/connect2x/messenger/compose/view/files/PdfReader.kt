@@ -1,6 +1,10 @@
 package de.connect2x.messenger.compose.view.files
 
 import androidx.compose.ui.graphics.ImageBitmap
+import externals.pdfjs.GetViewportParameters
+import externals.pdfjs.PDFDocumentProxy
+import externals.pdfjs.RenderParameters
+import externals.pdfjs.getDocument
 import io.github.oshai.kotlinlogging.KotlinLogging
 import js.typedarrays.Uint8Array
 import js.typedarrays.toByteArray
@@ -20,8 +24,8 @@ class PdfReaderWeb(blob: Blob) {
         val jsReader = getDocument(URL(URL.createObjectURL(blob)))
         jsReader.promise.then { loadedDocument ->
             pdfDocument.value = loadedDocument
-            pageSize.value = loadedDocument.numPages
-            loadedDocument.getPage(1).then { documentWidth.value = it.getViewport(ViewportParams(1f)).width }
+            pageSize.value = loadedDocument.numPages.toInt()
+            loadedDocument.getPageAsync(1).then { documentWidth.value = it.getViewport(GetViewportParameters(1f)).width.toInt() }
         }
     }
 
@@ -31,30 +35,24 @@ class PdfReaderWeb(blob: Blob) {
     private val dom = document
     val pageSize = MutableStateFlow<Int?>(null)
 
-    private data class ViewportParams(override var scale: Float) : GetViewportParameters
-    private data class RenderParams(
-        override var canvasContext: CanvasRenderingContext2D,
-        override var viewport: PDFPageViewport
-    ) : PDFRenderParams
-
     suspend fun renderPage(pageIndex: Int, bitmapFlow: MutableStateFlow<ImageBitmap?>, dpi: Float) {
         val scale = dpi.div(72f)
         val pageSize = pageSize.filterNotNull().first()
         if (pageIndex <= pageSize) {
             val canvas = getOrCreatePageCanvas(pageIndex)
             val document = pdfDocument.filterNotNull().first()
-            document.getPage(pageIndex).then { page ->
-                val scaledViewport = page.getViewport(params = ViewportParams(scale = scale))
+            document.getPageAsync(pageIndex).then { page ->
+                val scaledViewport = page.getViewport(GetViewportParameters(scale = scale))
                 log.debug {
                     "render pdf page $pageIndex " +
                             "to viewport (${scaledViewport.width}x${scaledViewport.height}) " +
                             "at scale factor: $scale "
                 }
-                canvas.height = scaledViewport.height
-                canvas.width = scaledViewport.width
+                canvas.height = scaledViewport.height.toInt()
+                canvas.width = scaledViewport.width.toInt()
                 val context = canvas.getContext(CanvasRenderingContext2D.ID)
                 context?.let {
-                    page.render(RenderParams(context, scaledViewport)).promise.then {
+                    page.render(RenderParameters(canvasContext = context, viewport = scaledViewport)).promise.then {
                         canvas.toBlob(callback = { blob ->
                             blob?.let {
                                 blob.arrayBufferAsync().then { buffer ->
