@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
@@ -64,9 +65,14 @@ fun RoomUser?.toUserInfoElement(
             flow {
                 // TODO some sort of retry (see retryLoopFlow)
                 emit(
-                    matrixClient.media.getMedia(avatarUrl).getOrNull()?.limitedByteArrayOrNull(maxAvatarSize) {
-                        log.error { "Room image for room $roomId exceeds preview size limits, so it's not displayed" }
-                    }
+                    matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong()).fold(
+                        onSuccess = {
+                            it.limitedByteArrayOrNull(maxAvatarSize) {
+                                log.error { "Room image for room $roomId exceeds preview size limits, so it's not displayed" }
+                            }
+                        },
+                        onFailure = { null }
+                    )
                 )
             }.stateIn(coroutineScope, WhileSubscribed(), null)
         }
