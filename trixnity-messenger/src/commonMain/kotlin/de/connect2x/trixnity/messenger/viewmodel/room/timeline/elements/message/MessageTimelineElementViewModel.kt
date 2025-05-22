@@ -41,6 +41,3 @@ sealed interface MessageTimelineElementViewModel<C: MessageEventContent>: Messag
         val message: String
     }
 }
-
-typealias EncryptedWaitTimelineElementViewModel = MessageTimelineElementViewModel.EncryptedWait
-typealias EncryptedErrorTimelineElementViewModel = MessageTimelineElementViewModel.EncryptedError

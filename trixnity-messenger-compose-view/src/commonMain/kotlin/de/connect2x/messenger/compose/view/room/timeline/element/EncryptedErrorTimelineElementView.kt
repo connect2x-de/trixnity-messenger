@@ -14,21 +14,21 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.EncryptedErrorTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.MessageTimelineElementViewModel
 import kotlin.reflect.KClass
 
-class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTimelineElementViewModel> {
-    override val supports: KClass<EncryptedErrorTimelineElementViewModel> =
-        EncryptedErrorTimelineElementViewModel::class
+class EncryptedErrorTimelineElementView : TimelineElementView<MessageTimelineElementViewModel.EncryptedError> {
+    override val supports: KClass<MessageTimelineElementViewModel.EncryptedError> =
+        MessageTimelineElementViewModel.EncryptedError::class
 
-    override suspend fun waitFor(element: EncryptedErrorTimelineElementViewModel) {
+    override suspend fun waitFor(element: MessageTimelineElementViewModel.EncryptedError) {
         // no-op (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: EncryptedErrorTimelineElementViewModel,
+        element: MessageTimelineElementViewModel.EncryptedError,
     ) {
         MessageBubble(
             holder,
@@ -42,7 +42,7 @@ class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTime
     @Composable
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
-        element: EncryptedErrorTimelineElementViewModel,
+        element: MessageTimelineElementViewModel.EncryptedError,
     ) {
         MessageBubble(
             holder,
@@ -56,7 +56,7 @@ class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTime
     @Composable
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
-        element: EncryptedErrorTimelineElementViewModel,
+        element: MessageTimelineElementViewModel.EncryptedError,
     ) {
         ReferencedMessagePill(
             holder = holder,
@@ -69,7 +69,7 @@ class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTime
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
-        element: EncryptedErrorTimelineElementViewModel) {
+        element: MessageTimelineElementViewModel.EncryptedError) {
         ReferencedMessagePill(
             holder = holder,
             content = {

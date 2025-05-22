@@ -23,20 +23,21 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.EncryptedWaitTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.MessageTimelineElementViewModel
 import kotlin.reflect.KClass
 
-class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimelineElementViewModel> {
-    override val supports: KClass<EncryptedWaitTimelineElementViewModel> = EncryptedWaitTimelineElementViewModel::class
+class EncryptedWaitTimelineElementView : TimelineElementView<MessageTimelineElementViewModel.EncryptedWait> {
+    override val supports: KClass<MessageTimelineElementViewModel.EncryptedWait> =
+        MessageTimelineElementViewModel.EncryptedWait::class
 
-    override suspend fun waitFor(element: EncryptedWaitTimelineElementViewModel) {
+    override suspend fun waitFor(element: MessageTimelineElementViewModel.EncryptedWait) {
         // no-op (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: EncryptedWaitTimelineElementViewModel,
+        element: MessageTimelineElementViewModel.EncryptedWait,
     ) {
         MessageBubble(
             holder,
@@ -50,7 +51,7 @@ class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimeli
     @Composable
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
-        element: EncryptedWaitTimelineElementViewModel,
+        element: MessageTimelineElementViewModel.EncryptedWait,
     ) {
         MessageBubble(
             holder,
@@ -64,8 +65,8 @@ class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimeli
     @Composable
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
-        element: EncryptedWaitTimelineElementViewModel,
-        ) {
+        element: MessageTimelineElementViewModel.EncryptedWait,
+    ) {
         ReferencedMessagePill(
             holder = holder,
             content = {
@@ -75,8 +76,10 @@ class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimeli
     }
 
     @Composable
-    override fun createReplyInSendMessage(holder: TimelineElementHolderViewModel,
-                                          element: EncryptedWaitTimelineElementViewModel,) {
+    override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: MessageTimelineElementViewModel.EncryptedWait,
+    ) {
         ReferencedMessagePill(
             holder = holder,
             content = {
