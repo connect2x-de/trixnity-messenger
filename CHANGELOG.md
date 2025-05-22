@@ -11,11 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Show readers and reactions of first instead of last revision of a message in `TimelineElementMetadataView`
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- Fixed tooltip appears too fast in `TimelineElementMetadataView`
+- Fixed "edited" is shown in the wrong place in `TimelineElementMetadataViewModel`
 
 ### Security
 
@@ -23,7 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- PDF readers for Desktop, Android and Web (can be disabled via configuration: @see MatrixMessengerConfiguration.features)
+- PDF readers for Desktop, Android and Web (can be disabled via configuration: @see
+  MatrixMessengerConfiguration.features)
 - Added indicator for dehydrated devices in device settings.
 - Allow changing locale in Android app settings
 
