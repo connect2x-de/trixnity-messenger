@@ -20,6 +20,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.MessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.VerificationRequest
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
@@ -518,7 +519,6 @@ suspend fun MatrixMessengerWithRoot.initiateUserVerification(roomId: RoomId, use
         log.debug { "started user verification" }
         delay(1.seconds) // wait for request to finish
         val verificationRequest = findActiveVerification(roomViewModel)
-        verificationRequest.reachedEndState.first { it == null }
         log.debug { "wait for verification state machine to move on" }
         val verificationViewModel =
             verificationRequest.stack.waitFor(VerificationRouter.Wrapper.Verification::class).viewModel
@@ -573,11 +573,8 @@ suspend fun MatrixMessengerWithRoot.originalClientAcceptVerificationWithEmoji(ro
     compareViewModel.accept()
     verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.Success::class)
     val roomViewModel = goToRoom(roomId)
-    val verificationRequest = findActiveVerification(roomViewModel)
-    verificationRequest.reachedEndState.first {
-        println("endState: $it")
-        it == true to "Erfolgreich"
-    }
+    val done = findTimelineElement<MessageTimelineElementViewModel.VerificationDone, BaseTimelineElementHolderViewModel>(roomViewModel)
+    done.message shouldBe "Erfolgreich"
 }
 
 private suspend fun RootViewModel.goToRoom(roomId: RoomId): RoomViewModel {
@@ -592,7 +589,6 @@ private suspend fun RootViewModel.goToRoom(roomId: RoomId): RoomViewModel {
 private suspend fun RootViewModel.verificationViewModel(roomId: RoomId): VerificationViewModel {
     val roomViewModel = goToRoom(roomId)
     val verificationRequest = findActiveVerification(roomViewModel)
-    verificationRequest.reachedEndState.first { it == null }
     val verificationViewModel =
         verificationRequest.stack.waitFor(VerificationRouter.Wrapper.Verification::class).viewModel
     return verificationViewModel
