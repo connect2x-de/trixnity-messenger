@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Name "privacy" settings to "privacy and security" settings
+
 ### Deprecated
 
 ### Removed
@@ -23,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- PDF readers for Desktop, Android and Web (can be disabled via configuration: @see MatrixMessengerConfiguration.features)
+- PDF readers for Desktop, Android and Web (can be disabled via configuration: @see
+  MatrixMessengerConfiguration.features)
 - Added indicator for dehydrated devices in device settings.
 - Allow changing locale in Android app settings
 

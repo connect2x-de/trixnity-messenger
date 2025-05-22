@@ -129,7 +129,8 @@ fun AccountSetupSettings(userSettingsViewModel: UserSettingsViewModel) {
 
 @Composable
 fun SettingItem(icon: @Composable () -> Unit, text: String, action: () -> Unit) {
-    Box(Modifier
+    Box(
+        Modifier
         .fillMaxWidth()
         .clickable { action() }
         .buttonPointerModifier()
