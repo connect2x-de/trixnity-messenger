@@ -27,10 +27,6 @@ class VerificationRouter(
         childFactory = ::createChild,
     )
 
-    init {
-        stack.subscribe { println("+++ VerificationRouter: ${it.active.configuration}") }
-    }
-
     private fun createChild(config: Config, componentContext: ComponentContext): Wrapper =
         when (config) {
             is Config.DeviceVerification -> Wrapper.Verification(
