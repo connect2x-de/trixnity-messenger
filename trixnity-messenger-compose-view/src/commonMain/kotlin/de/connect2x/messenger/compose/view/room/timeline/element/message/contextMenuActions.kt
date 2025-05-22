@@ -10,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
@@ -20,7 +19,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
-import de.connect2x.messenger.compose.view.util.ToClipboardEntry
+import de.connect2x.messenger.compose.view.util.CopyToClipboard
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -40,8 +39,7 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
     val canRetrySend = asOutboxElementHolder()?.canRetrySend?.collectAsState()?.value == true
     val canAbortSend = asOutboxElementHolder()?.canAbortSend?.collectAsState()?.value == true
 
-    val clipboard = LocalClipboard.current
-    val toClipboardEntry = DI.get<ToClipboardEntry>().invoke()
+    val copyToClipboard = DI.get<CopyToClipboard>()()
 
     return buildList {
         if (this@contextMenuActions is TimelineElementHolderViewModel) {
@@ -100,7 +98,7 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
             BaseTimelineElementHolderContextMenuAction(
                 label = i18n.commonCopy(),
                 action = copy {
-                    clipboard.setClipEntry(toClipboardEntry(it, i18n))
+                    copyToClipboard(it, i18n)
                 },
             )
         )

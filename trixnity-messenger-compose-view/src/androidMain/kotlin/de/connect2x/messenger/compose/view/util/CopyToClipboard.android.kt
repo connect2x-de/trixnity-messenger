@@ -1,10 +1,11 @@
 package de.connect2x.messenger.compose.view.util
 
 import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context.CLIPBOARD_SERVICE
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalContext
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.CopyableContent
@@ -13,12 +14,13 @@ import org.koin.dsl.module
 import java.util.Base64
 
 actual fun platformCopyToClipboardModule(): Module = module {
-    single<ToClipboardEntry> {
-        object : ToClipboardEntry {
+    single<CopyToClipboard> {
+        object : CopyToClipboard {
             @Composable
-            override fun invoke(): suspend (CopyableContent, I18nView) -> ClipEntry {
+            override fun invoke(): suspend (CopyableContent, I18nView) -> Unit {
                 val context = LocalContext.current
                 val contentResolver = context.contentResolver
+                val clipboardManager = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
 
                 return { content, i18n ->
                     val clipData = when (content) {
@@ -52,8 +54,8 @@ actual fun platformCopyToClipboardModule(): Module = module {
                             )
                     }
 
+                    clipboardManager.setPrimaryClip(clipData)
                     Toast.makeText(context, i18n.commonCopied(), Toast.LENGTH_SHORT).show()
-                    ClipEntry(clipData)
                 }
             }
         }
