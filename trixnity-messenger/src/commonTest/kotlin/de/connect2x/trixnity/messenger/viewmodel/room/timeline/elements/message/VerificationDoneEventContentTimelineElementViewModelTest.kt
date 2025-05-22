@@ -97,7 +97,7 @@ class VerificationDoneEventContentTimelineElementViewModelTest {
     }
 
     @Test
-    fun `done event is own event, original request by other user`() = runTest {
+    fun `done event is own event - ccnnbvcoriginal request by other user`() = runTest {
         val verificationDoneEventContent = VerificationDoneEventContent(
             relatesTo = RelatesTo.Reference(EventId("2")),
             transactionId = null,
@@ -154,7 +154,7 @@ class VerificationDoneEventContentTimelineElementViewModelTest {
     }
 
     @Test
-    fun `done event is not our own event, original request by current user`() = runTest {
+    fun `done event is not our own event - original request by current user`() = runTest {
         val verificationDoneEventContent = VerificationDoneEventContent(
             relatesTo = RelatesTo.Reference(EventId("2")),
             transactionId = null,

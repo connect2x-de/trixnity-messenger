@@ -105,8 +105,8 @@ import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefaultView
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefaultViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyView
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.EncryptedErrorTimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.EncryptedWaitTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.EncryptedErrorTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.EncryptedWaitTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerView

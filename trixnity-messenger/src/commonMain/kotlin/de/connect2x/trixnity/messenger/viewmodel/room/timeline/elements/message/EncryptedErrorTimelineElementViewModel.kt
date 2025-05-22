@@ -2,14 +2,20 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.Message
 import net.folivo.trixnity.client.store.TimelineEvent.TimelineEventContentError
+import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import org.koin.core.component.get
+
+interface EncryptedErrorTimelineElementViewModel : Message<EncryptedMessageEventContent> {
+    val error: String
+}
 
 interface EncryptedErrorTimelineElementViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         error: Throwable,
-    ): MessageTimelineElementViewModel.EncryptedError? {
+    ): EncryptedErrorTimelineElementViewModel? {
         return EncryptedErrorTimelineElementViewModelImpl(
             viewModelContext,
             error,
@@ -23,7 +29,7 @@ interface EncryptedErrorTimelineElementViewModelFactory {
 class EncryptedErrorTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     error: Throwable,
-) : MessageTimelineElementViewModel.EncryptedError, MatrixClientViewModelContext by viewModelContext {
+) : EncryptedErrorTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
     private val i18n = get<I18n>()
     override val error = when (error) {
         TimelineEventContentError.DecryptionAlgorithmNotSupported -> i18n.timelineElementDecryptionErrorAlgorithmNotSupported()

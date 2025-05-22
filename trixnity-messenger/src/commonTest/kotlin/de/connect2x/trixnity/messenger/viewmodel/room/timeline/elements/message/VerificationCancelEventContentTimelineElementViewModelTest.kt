@@ -98,7 +98,7 @@ class VerificationCancelEventContentTimelineElementViewModelTest {
     }
 
     @Test
-    fun `shows that this cancel event was sent by the current user, original request by other user`() = runTest {
+    fun `shows that this cancel event was sent by the current user - original request by other user`() = runTest {
         val verificationCancelEventContent = VerificationCancelEventContent(
             code = VerificationCancelEventContent.Code.Timeout,
             reason = "timeout",
@@ -156,7 +156,7 @@ class VerificationCancelEventContentTimelineElementViewModelTest {
     }
 
     @Test
-    fun `shows that this cancel event was sent by the other user, original request by current user`() = runTest {
+    fun `shows that this cancel event was sent by the other user - original request by current user`() = runTest {
         val verificationCancelEventContent = VerificationCancelEventContent(
             code = VerificationCancelEventContent.Code.MismatchedSas,
             reason = "timeout",

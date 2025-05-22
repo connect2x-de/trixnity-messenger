@@ -20,6 +20,24 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
 import org.koin.core.component.get
 
+/**
+ * Verification done events are sent 2 times (one is our own, the other by our peer).
+ */
+interface VerificationDoneEventContentTimelineElementViewModel :
+    TimelineElementViewModel.Message<VerificationDoneEventContent> {
+    /**
+     * Signifies whether this is our own done event. `null` means the value has not been computed.
+     */
+    val isOwn: StateFlow<Boolean?>
+
+    /**
+     * The original user who initiated the verification.
+     */
+    val verificationStartedBy: StateFlow<UserInfoElement?>
+    val message: String
+}
+
+
 interface VerificationDoneEventContentTimelineElementViewModelFactory :
     TimelineElementViewModelFactory<VerificationDoneEventContent> {
     override fun create(
@@ -28,7 +46,7 @@ interface VerificationDoneEventContentTimelineElementViewModelFactory :
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback
-    ): TimelineElementViewModel<VerificationDoneEventContent>? {
+    ): VerificationDoneEventContentTimelineElementViewModel? {
         return VerificationDoneEventContentTimelineElementViewModelImpl(
             viewModelContext,
             content,
@@ -48,7 +66,7 @@ class VerificationDoneEventContentTimelineElementViewModelImpl(
     private val content: VerificationDoneEventContent,
     roomId: RoomId,
     eventIdOrTransactionId: EventIdOrTransactionId
-) : MessageTimelineElementViewModel.VerificationDone, MatrixClientViewModelContext by viewModelContext {
+) : VerificationDoneEventContentTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
 
     private val initials = get<Initials>()
 

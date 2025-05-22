@@ -5,21 +5,29 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code
 import org.koin.core.component.get
 import kotlin.reflect.KClass
+
+/**
+ * Verification cancel events are sent 2 times (one is our own, the other by our peer).
+ */
+interface VerificationCancelEventContentTimelineElementViewModel : TimelineElementViewModel.Message<VerificationCancelEventContent> {
+    /**
+     * The original user who initiated the verification.
+     */
+    val verificationStartedBy: StateFlow<UserInfoElement?>
+    val cause: String
+}
+
 
 interface VerificationCancelEventContentTimelineElementViewModelFactory :
     TimelineElementViewModelFactory<VerificationCancelEventContent> {
@@ -29,7 +37,7 @@ interface VerificationCancelEventContentTimelineElementViewModelFactory :
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-    ): MessageTimelineElementViewModel.VerificationCancel? {
+    ): VerificationCancelEventContentTimelineElementViewModel? {
         return VerificationCancelEventContentTimelineElementViewModelImpl(
             viewModelContext,
             content,
@@ -49,7 +57,7 @@ class VerificationCancelEventContentTimelineElementViewModelImpl(
     private val content: VerificationCancelEventContent,
     private val roomId: RoomId,
     private val eventIdOrTransactionId: EventIdOrTransactionId
-) : MessageTimelineElementViewModel.VerificationCancel, MatrixClientViewModelContext by viewModelContext {
+) : VerificationCancelEventContentTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
     private val initials = get<Initials>()
 
     override val verificationStartedBy: StateFlow<UserInfoElement?> =

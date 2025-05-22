@@ -20,9 +20,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.MessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.VerificationRequest
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationDoneEventContentTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
@@ -573,7 +573,10 @@ suspend fun MatrixMessengerWithRoot.originalClientAcceptVerificationWithEmoji(ro
     compareViewModel.accept()
     verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.Success::class)
     val roomViewModel = goToRoom(roomId)
-    val done = findTimelineElement<MessageTimelineElementViewModel.VerificationDone, BaseTimelineElementHolderViewModel>(roomViewModel)
+    val done =
+        findTimelineElement<VerificationDoneEventContentTimelineElementViewModel, BaseTimelineElementHolderViewModel>(
+            roomViewModel
+        )
     done.message shouldBe "Erfolgreich"
 }
 
