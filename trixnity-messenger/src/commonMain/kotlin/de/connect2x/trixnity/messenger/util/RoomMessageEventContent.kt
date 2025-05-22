@@ -1,9 +1,5 @@
 package de.connect2x.trixnity.messenger.util
 
-import de.connect2x.trixnity.messenger.util.CopyableContent.File
-import de.connect2x.trixnity.messenger.util.CopyableContent.FormattedText
-import de.connect2x.trixnity.messenger.util.CopyableContent.Location
-import de.connect2x.trixnity.messenger.util.CopyableContent.Text
 import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.ContentType
@@ -17,7 +13,13 @@ private val log = KotlinLogging.logger {}
 suspend fun RoomMessageEventContent.handleContent(
     write: suspend (CopyableContent) -> Unit,
     matrixClient: MatrixClient,
-    maxMediaSize: Long
+    maxMediaSize: Long,
+    handleCustomEvent: (
+        event: RoomMessageEventContent.Unknown,
+        write: suspend (CopyableContent) -> Unit,
+        matrixClient: MatrixClient,
+        maxMediaSize: Long,
+    ) -> Unit = { _, _, _, _ ->}
 ) = when (this) {
     is RoomMessageEventContent.FileBased -> {
         file?.let { encryptedFile ->
@@ -37,7 +39,11 @@ suspend fun RoomMessageEventContent.handleContent(
         } ?: Text(body)
     )
 
-    is RoomMessageEventContent.Unknown, is RoomMessageEventContent.VerificationRequest -> {
+    is RoomMessageEventContent.Unknown -> {
+        log.debug { "Unknown message: ${this.type}" }
+        handleCustomEvent(this, write, matrixClient, maxMediaSize)
+    }
+    is RoomMessageEventContent.VerificationRequest -> {
         log.trace { "Tried to copy non-copyable message of type $type" }
     }
 }

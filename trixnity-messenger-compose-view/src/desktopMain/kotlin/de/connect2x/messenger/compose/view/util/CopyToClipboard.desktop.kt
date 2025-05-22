@@ -3,6 +3,10 @@ package de.connect2x.messenger.compose.view.util
 import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.CopyableContent
+import de.connect2x.trixnity.messenger.util.File
+import de.connect2x.trixnity.messenger.util.FormattedText
+import de.connect2x.trixnity.messenger.util.Location
+import de.connect2x.trixnity.messenger.util.Text
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import java.awt.Toolkit
@@ -22,7 +26,7 @@ actual fun platformCopyToClipboardModule(): Module = module {
 
                 return { content, _ ->
                     val transferable: Transferable = when (content) {
-                        is CopyableContent.File -> object : Transferable {
+                        is File -> object : Transferable {
                             private val dataFlavor = DataFlavor(content.fileType.toString())
                             override fun getTransferDataFlavors(): Array<DataFlavor> {
                                 return arrayOf(dataFlavor)
@@ -42,9 +46,10 @@ actual fun platformCopyToClipboardModule(): Module = module {
                             }
                         }
 
-                        is CopyableContent.Location -> StringSelection(content.coordinates)
-                        is CopyableContent.Text -> StringSelection(content.text)
-                        is CopyableContent.FormattedText -> StringSelection(content.unformattedText)
+                        is Location -> StringSelection(content.fallbackText)
+                        is Text -> StringSelection(content.text)
+                        is FormattedText -> StringSelection(content.unformattedText)
+                        else -> StringSelection(content.fallbackText)
                     }
 
                     clipboardManager.setContents(transferable, null)
