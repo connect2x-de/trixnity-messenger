@@ -11,9 +11,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -40,11 +44,19 @@ class UserSearchFieldViewImpl : UserSearchFieldView {
     override fun create(userSearchHandler: UserSearchHandler) {
         val i18n = DI.get<I18nView>()
         var userSearchTerm by userSearchHandler.searchTerm.collectAsTextFieldValueState()
+        val focusRequester = remember { FocusRequester() }
+
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+        }
 
         OutlinedTextField(
             value = userSearchTerm,
             onValueChange = { userSearchTerm = it },
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 20.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 20.dp)
+                .focusRequester(focusRequester),
             leadingIcon = { Icon(Icons.Default.Search, i18n.userSearchSearchPeople()) },
             trailingIcon = {
                 if (userSearchTerm.text.isNotBlank()) Icon(

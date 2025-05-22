@@ -25,6 +25,7 @@ import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.clientserverapi.model.devices.Device
+import net.folivo.trixnity.core.MSC3814
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.crypto.key.DeviceTrustLevel
 import org.koin.core.component.get
@@ -86,45 +87,57 @@ open class DevicesSettingsViewModelImpl(
                         userId = userId,
                         devicesInAccount = run {
                             log.trace { "get device keys for user ${matrixClient.userId}" }
-                            matrixClient.key.getDeviceKeys(matrixClient.userId).map {
+                            matrixClient.key.getDeviceKeys(matrixClient.userId).map { deviceKeys ->
                                 error.value = null
                                 isLoading.value = true
-                                log.trace { "loading info for devices ${it?.map { it.deviceId }}" }
+                                log.trace { "loading info for devices ${deviceKeys?.map { it.deviceId }}" }
                                 val devices = matrixClient.api.device.getDevices()
+                                    .onFailure {
+                                        log.warn(it) { "Cannot load devices from server." }
+                                        error.value = i18n.settingsDevicesLoadError()
+                                    }
+                                    .getOrNull()
                                 log.trace { "devices: $devices" }
                                 val thisDevice =
-                                    devices.getOrNull()?.find { it.deviceId == matrixClient.deviceId }?.let {
+                                    devices?.find { it.deviceId == matrixClient.deviceId }?.let { device ->
                                         DeviceInfo(
-                                            it.deviceId,
-                                            MutableStateFlow(displayName(it)),
-                                            lastSeenAt(it),
-                                            coroutineScope.isVerified(
+                                            deviceId = device.deviceId,
+                                            displayName = MutableStateFlow(displayName(device)),
+                                            lastSeenAt = lastSeenAt(device),
+                                            isVerified = coroutineScope.isVerified(
                                                 matrixClient.key.getTrustLevel(
                                                     matrixClient.userId,
                                                     matrixClient.deviceId,
                                                 )
                                             ),
+                                            isDehydrated =
+                                                @OptIn(MSC3814::class)
+                                                deviceKeys?.find { it.deviceId == device.deviceId }?.dehydrated == true,
                                         )
                                     } ?: DeviceInfo(
                                         deviceId = "",
                                         displayName = MutableStateFlow(""),
                                         lastSeenAt = "",
                                         isVerified = MutableStateFlow(false),
+                                        isDehydrated = false,
                                     )
-                                val otherDevices = devices.getOrNull()
+                                val otherDevices = devices
                                     ?.filterNot { it.deviceId == matrixClient.deviceId }
                                     ?.sortedByDescending { it.lastSeenTs }
-                                    ?.map {
+                                    ?.map { device ->
                                         val otherDeviceTrustLevel =
                                             matrixClient.key.getTrustLevel(
                                                 matrixClient.userId,
-                                                it.deviceId,
+                                                device.deviceId,
                                             )
                                         DeviceInfo(
-                                            it.deviceId,
-                                            MutableStateFlow(displayName(it)),
-                                            lastSeenAt(it),
+                                            device.deviceId,
+                                            MutableStateFlow(displayName(device)),
+                                            lastSeenAt(device),
                                             coroutineScope.isVerified(otherDeviceTrustLevel),
+                                            isDehydrated =
+                                                @OptIn(MSC3814::class)
+                                                deviceKeys?.find { it.deviceId == device.deviceId }?.dehydrated == true,
                                         )
                                     } ?: emptyList()
                                 log.trace { "thisDevice: $thisDevice, otherDevices: $otherDevices" }
@@ -132,11 +145,6 @@ open class DevicesSettingsViewModelImpl(
                                     thisDevice = thisDevice,
                                     otherDevices = otherDevices,
                                 )
-                                if (devices.isFailure) {
-                                    val exc = devices.exceptionOrNull()
-                                    log.warn(exc) { "Cannot load devices from server." }
-                                    error.value = i18n.settingsDevicesLoadError()
-                                }
 
                                 log.trace { "device list for account $userId: $result" }
                                 result
@@ -288,5 +296,7 @@ data class DeviceInfo(
     val deviceId: String,
     val displayName: MutableStateFlow<String>,
     val lastSeenAt: String,
-    val isVerified: StateFlow<Boolean>
+    val isVerified: StateFlow<Boolean>,
+    @MSC3814
+    val isDehydrated: Boolean,
 )

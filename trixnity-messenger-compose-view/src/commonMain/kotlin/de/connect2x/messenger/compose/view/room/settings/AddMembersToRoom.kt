@@ -1,9 +1,7 @@
 package de.connect2x.messenger.compose.view.room.settings
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,7 +13,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -27,11 +24,9 @@ import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.VerticalGrid
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.isMobile
-import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.roomlist.create.UsersInGroup
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
@@ -76,7 +71,7 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
                     if (error.value != null) {
                         ErrorDialog(error.value.orEmpty(), { addMembersViewModel.errorDismiss() }, errorCause = errorCause)
                     }
-                    UsersInGroup(addMembersViewModel)
+                    UsersInGroup(addMembersViewModel.potentialMembersViewModel.searchHandler)
                     SearchUsersSettings(
                         addMembersViewModel.potentialMembersViewModel,
                         onUserClick = addMembersViewModel::onUserClick
@@ -98,41 +93,5 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
                 }
             }
         }
-    }
-}
-
-@Composable
-fun ColumnScope.UsersInGroup(addMembersToRoom: AddMembersViewModel) {
-    val i18n = DI.get<I18nView>()
-    val isMobile = Platform.current.isMobile
-    val groupUsers = addMembersToRoom.groupUsers.collectAsState()
-    if (groupUsers.value.isNotEmpty()) {
-        Box(Modifier.padding(horizontal = 10.dp, vertical = 20.dp)) {
-            VerticalGrid(spacing = 10.dp) {
-                groupUsers.value.map { groupUser ->
-                    Column(
-                        Modifier.requiredWidth(60.dp)
-                            .then(if (isMobile) Modifier.clickable {
-                                addMembersToRoom.removeUserFromGroup(groupUser)
-                            } else Modifier),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        ThemedUserAvatar(groupUser.initials, groupUser.image) {
-                            Tooltip({ Text(i18n.commonRemove() )}) {
-                                ThemedIconButton(
-                                    style = MaterialTheme.components.primaryIconButton,
-                                    size = 15.dp,
-                                    onClick = { addMembersToRoom.removeUserFromGroup(groupUser) }
-                                ) {
-                                    Icon(Icons.Default.Close, i18n.commonRemove())
-                                }
-                            }
-                        }
-                        Text(groupUser.displayName, style = MaterialTheme.typography.labelMedium, maxLines = 2)
-                    }
-                }
-            }
-        }
-        HorizontalDivider(Modifier.fillMaxWidth().width(1.dp).padding(horizontal = 10.dp))
     }
 }

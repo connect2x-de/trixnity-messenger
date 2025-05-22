@@ -8,7 +8,6 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
@@ -23,7 +22,7 @@ import org.koin.core.component.get
 interface PotentialMembersViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        roomId: RoomId
+        roomId: RoomId,
     ): PotentialMembersViewModel {
         return PotentialMembersViewModelImpl(viewModelContext, roomId)
     }
@@ -33,6 +32,7 @@ interface PotentialMembersViewModelFactory {
 
 interface PotentialMembersViewModel {
     val searchHandler: UserSearchHandler
+    val selectedUsers: StateFlow<List<Search.SearchUserElement>>
     val offline: StateFlow<Boolean>
     val error: MutableStateFlow<String?>
 }
@@ -42,24 +42,26 @@ open class PotentialMembersViewModelImpl(
     roomId: RoomId,
 ) : PotentialMembersViewModel, MatrixClientViewModelContext by viewModelContext {
     private val maxAvatarSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    private val currentMembers =
+        matrixClient.user.getAll(roomId)
+            .flatten()
+            .mapNotNull {
+                it.values
+                    .filterNotNull()
+                    .filterNot { it.membership == Membership.LEAVE }
+                    .map { it.userId }
+                    .toSet()
+            }
     override val searchHandler: UserSearchHandler =
         DefaultUserSearchHandler(
             coroutineScope,
             get<Search>(),
             matrixClient,
-            maxAvatarSize = maxAvatarSize
-        ) { userId ->
-            currentMembers.value.contains(userId)
-        }
+            maxAvatarSize = maxAvatarSize,
+            filterNotUsers = currentMembers
+        )
+    override val selectedUsers: StateFlow<List<Search.SearchUserElement>> = searchHandler.selectedUsers
     override val offline: StateFlow<Boolean> = matrixClient.syncState.transform { emit(it == SyncState.ERROR) }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
-
-    private val currentMembers =
-        matrixClient.user.getAll(roomId).flatten()
-            .mapNotNull { it?.values?.filterNotNull().orEmpty() }
-            .map { roomUsers ->
-                roomUsers.filterNot { it.membership == Membership.LEAVE }.map { it.userId }
-            }
-            .stateIn(coroutineScope, SharingStarted.Eagerly, hashSetOf())
 }

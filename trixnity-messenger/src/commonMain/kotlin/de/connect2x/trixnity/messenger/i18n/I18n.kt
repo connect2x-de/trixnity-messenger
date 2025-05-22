@@ -400,6 +400,26 @@ open class I18n(
         DE - "Datei"
     }
 
+    open fun roomListContentVerificationRequest(username: String) = translate {
+        EN - "User verification request for user $username"
+        DE - "Anfrage für Nutzerverifikation von $username"
+    }
+
+    open fun roomListContentVerificationCancelled() = translate {
+        EN - "User verification cancelled"
+        DE - "Nutzerverifikation abgebrochen"
+    }
+
+    open fun roomListContentVerificationCompleted() = translate {
+        EN - "User verification completed"
+        DE - "Nutzerverifikation abgeschlossen"
+    }
+
+    open fun roomListContentVerificationInProgress() = translate {
+        EN - "User verification in progress"
+        DE - "Nutzerverifikation wird durchgeführt"
+    }
+
     open fun roomHeaderTypingSingle(username: String) = translate {
         EN - "$username is typing..."
         DE - "$username schreibt..."
@@ -894,8 +914,8 @@ open class I18n(
     }
 
     open fun profileAvatarError() = translate {
-        EN - "The avatar image could not be changed."
-        DE - "Das Nutzerbild konnte nicht geändert werden."
+        EN - "The avatar image could not be changed. Please try again later."
+        DE - "Das Nutzerbild konnte nicht geändert werden. Bitte versuchen Sie es später erneut."
     }
 
     open fun profileNameError() = translate {
@@ -960,6 +980,12 @@ open class I18n(
         val sizeInMB = attachmentMaxSize / 1.mb()
         EN - "The attachment exceeds the maximum allowed attachment size of $sizeInMB MB."
         DE - "Der Anhang überschreitet die maximal zulässige Größe für Anhänge von $sizeInMB MB."
+    }
+
+    open fun avatarSizeMaxSizeError(avatarMaxSize: Long) = translate {
+        val sizeInMB = avatarMaxSize / 1.mb()
+        EN - "The avatar exceeds the maximum allowed avatar size of $sizeInMB MB."
+        DE - "Der Avatar überschreitet die maximal zulässige Größe für Avatare von $sizeInMB MB."
     }
 
     open fun profileCreationDuplicate() = translate {
