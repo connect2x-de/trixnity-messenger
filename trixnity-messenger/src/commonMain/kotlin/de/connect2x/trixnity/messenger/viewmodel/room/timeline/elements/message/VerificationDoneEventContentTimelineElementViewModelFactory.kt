@@ -1,16 +1,24 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
+import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
-
-private val log = KotlinLogging.logger { }
+import org.koin.core.component.get
 
 interface VerificationDoneEventContentTimelineElementViewModelFactory :
     TimelineElementViewModelFactory<VerificationDoneEventContent> {
@@ -41,9 +49,22 @@ class VerificationDoneEventContentTimelineElementViewModelImpl(
     roomId: RoomId,
     eventIdOrTransactionId: EventIdOrTransactionId
 ) : MessageTimelineElementViewModel.VerificationDone, MatrixClientViewModelContext by viewModelContext {
-    init {
-        log.debug { "create VerificationDoneEventContentTimelineElementViewModelImpl: $eventIdOrTransactionId" }
-    }
+
+    private val initials = get<Initials>()
+
+    override val isOwn: StateFlow<Boolean?> =
+        flow {
+            emit(
+                eventIdOrTransactionId.eventIdOrNull()?.let { eventId ->
+                    matrixClient.room.getTimelineEvent(roomId, eventId)
+                        .filterNotNull().first().sender == matrixClient.userId
+                } ?: false
+            )
+        }.stateIn(coroutineScope, WhileSubscribed(), null)
+
+    override val verificationStartedBy: StateFlow<UserInfoElement?> =
+        matrixClient.verificationStartedBy(content, roomId, coroutineScope, initials)
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val message: String
         get() = i18n.userVerificationSuccess()

@@ -80,7 +80,7 @@ private fun VerificationCancelElement(
     element: VerificationCancel,
 ) {
     val i18n = DI.get<I18nView>()
-    val sender = holder.sender.collectAsState().value
+    val verificationStartedBy = element.verificationStartedBy.collectAsState().value
     ProvideTextStyle(TextStyle(fontSize = 12.sp)) {
         Box(
             Modifier
@@ -95,7 +95,7 @@ private fun VerificationCancelElement(
                     Icon(Icons.Default.Shield, "")
                     Spacer(Modifier.size(10.dp))
                     Text(
-                        text = i18n.userVerificationStarted(sender?.name ?: i18n.commonUnknown()),
+                        text = i18n.userVerificationStarted(verificationStartedBy?.name ?: i18n.commonUnknown()),
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1.0f, fill = true).padding(end = 10.dp)
                     )

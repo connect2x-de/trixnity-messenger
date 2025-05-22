@@ -79,34 +79,38 @@ private fun VerificationDoneElement(
     element: VerificationDone,
 ) {
     val i18n = DI.get<I18nView>()
+    val isOwn = element.isOwn.collectAsState().value
     val sender = holder.sender.collectAsState().value
-    ProvideTextStyle(TextStyle(fontSize = 12.sp)) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .padding(20.dp)
-        ) {
-            Column {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Default.Shield, "")
-                    Spacer(Modifier.size(10.dp))
-                    Text(
-                        text = i18n.userVerificationStarted(sender?.name ?: i18n.commonUnknown()),
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1.0f, fill = true).padding(end = 10.dp)
-                    )
-                    Icon(Icons.Default.SportsScore, i18n.userVerificationDone())
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.CheckCircle,
-                        i18n.userVerificationSuccess(),
-                    )
-                    Spacer(Modifier.size(10.dp))
-                    Text(text = element.message)
+
+    if (isOwn == true) {
+        ProvideTextStyle(TextStyle(fontSize = 12.sp)) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .padding(20.dp)
+            ) {
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(Icons.Default.Shield, "")
+                        Spacer(Modifier.size(10.dp))
+                        Text(
+                            text = i18n.userVerificationStarted(sender?.name ?: i18n.commonUnknown()),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1.0f, fill = true).padding(end = 10.dp)
+                        )
+                        Icon(Icons.Default.SportsScore, i18n.userVerificationDone())
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.CheckCircle,
+                            i18n.userVerificationSuccess(),
+                        )
+                        Spacer(Modifier.size(10.dp))
+                        Text(text = element.message)
+                    }
                 }
             }
         }
