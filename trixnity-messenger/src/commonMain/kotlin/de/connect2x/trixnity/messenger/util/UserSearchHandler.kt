@@ -87,6 +87,8 @@ class DefaultUserSearchHandler(
                             maxAvatarSize
                         )
                     waitForUserResults.value = false
+                } else {
+                    unfilteredFoundUsers.value = emptyList()
                 }
             }
     }

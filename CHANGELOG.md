@@ -9,8 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- PDF readers for Desktop, Android and Web
+### Changed
+
+- Name "privacy" settings to "privacy and security" settings
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Display avatar correctly cropped in message metadata view
+
+### Security
+
+## 3.5.8
+
+### Added
+
+- PDF readers for Desktop, Android and Web (can be disabled via configuration: @see
+  MatrixMessengerConfiguration.features)
 - Added indicator for dehydrated devices in device settings.
+- Allow changing locale in Android app settings
 
 ### Changed
 
@@ -37,11 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show state of user verification in room list element
 - Show error popups when problems occur during room avatar update
 - Align confirm avatar update button to lower right in AvatarCutter
-- Allow changing the FileDescriptor of a AvatarCutterViewModel after it has been created (#512)
-
-### Deprecated
-
-### Removed
+- When creating a new group, added users are shown in a scrollable list and not a grid (UsersInGroup)
 
 ### Fixed
 
@@ -50,8 +66,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix wrong calculations in ChangePowerLevelViewModel
 - Allow to change power levels for own user
 - Fixed various bugs in user search
-
-### Security
+- Fixed user search results not being cleared when search term is empty
+- Fix crash when selecting user search results
+- Export Button was disabled on web
 
 ## 3.5.7
 

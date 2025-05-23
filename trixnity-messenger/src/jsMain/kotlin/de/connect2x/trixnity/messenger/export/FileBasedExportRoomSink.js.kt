@@ -1,8 +1,9 @@
 package de.connect2x.trixnity.messenger.export
 
-import js.typedarrays.Uint8Array
-import web.streams.WritableStream
-
+// TODO: this should be a `data object` by all means, but dokka does not like this being an object when a class is expected
 actual data class Destination(
-    val stream: WritableStream<Uint8Array<*>>
+    /**
+     * Only here to keep dokka happy.
+     */
+    val dummy: Int = 0
 )

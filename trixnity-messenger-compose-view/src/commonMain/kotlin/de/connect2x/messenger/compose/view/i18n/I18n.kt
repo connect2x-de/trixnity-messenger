@@ -1722,8 +1722,8 @@ open class I18nView(
     }
 
     open fun privacyTitle() = translate {
-        EN - "Privacy"
-        DE - "Datenschutz"
+        EN - "Privacy and Security"
+        DE - "Datenschutz und Sicherheit"
     }
 
     open fun privacyPresenceIsPublic() = translate {
