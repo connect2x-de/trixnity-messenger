@@ -23,8 +23,7 @@ import org.koin.core.component.get
 /**
  * Verification done events are sent 2 times (one is our own, the other by our peer).
  */
-interface VerificationDoneRoomMessageTimelineElementViewModel :
-    TimelineElementViewModel.Message<VerificationDoneEventContent> {
+interface VerificationDoneTimelineElementViewModel : TimelineElementViewModel.Message<VerificationDoneEventContent> {
     /**
      * Signifies whether this is our own done event. `null` means the value has not been computed.
      */
@@ -38,7 +37,7 @@ interface VerificationDoneRoomMessageTimelineElementViewModel :
 }
 
 
-interface VerificationDoneRoomMessageTimelineElementViewModelFactory :
+interface VerificationDoneTimelineElementViewModelFactory :
     TimelineElementViewModelFactory<VerificationDoneEventContent> {
     override fun create(
         viewModelContext: MatrixClientViewModelContext,
@@ -46,8 +45,8 @@ interface VerificationDoneRoomMessageTimelineElementViewModelFactory :
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback
-    ): VerificationDoneRoomMessageTimelineElementViewModel? {
-        return VerificationDoneRoomMessageTimelineElementViewModelImpl(
+    ): VerificationDoneTimelineElementViewModel? {
+        return VerificationDoneTimelineElementViewModelImpl(
             viewModelContext,
             content,
             roomId,
@@ -58,15 +57,15 @@ interface VerificationDoneRoomMessageTimelineElementViewModelFactory :
     override val supports: kotlin.reflect.KClass<VerificationDoneEventContent>
         get() = VerificationDoneEventContent::class
 
-    companion object : VerificationDoneRoomMessageTimelineElementViewModelFactory
+    companion object : VerificationDoneTimelineElementViewModelFactory
 }
 
-class VerificationDoneRoomMessageTimelineElementViewModelImpl(
+class VerificationDoneTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: VerificationDoneEventContent,
     roomId: RoomId,
     eventIdOrTransactionId: EventIdOrTransactionId,
-) : VerificationDoneRoomMessageTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
+) : VerificationDoneTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
 
     private val initials = get<Initials>()
 

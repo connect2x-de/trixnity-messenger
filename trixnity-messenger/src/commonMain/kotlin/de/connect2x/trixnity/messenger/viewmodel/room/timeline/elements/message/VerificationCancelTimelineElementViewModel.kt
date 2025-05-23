@@ -20,7 +20,8 @@ import kotlin.reflect.KClass
 /**
  * Verification cancel events are sent 2 times (one is our own, the other by our peer).
  */
-interface VerificationCancelRoomMessageTimelineElementViewModel : TimelineElementViewModel.Message<VerificationCancelEventContent> {
+interface VerificationCancelTimelineElementViewModel :
+    TimelineElementViewModel.Message<VerificationCancelEventContent> {
     /**
      * The original user who initiated the verification.
      */
@@ -29,7 +30,7 @@ interface VerificationCancelRoomMessageTimelineElementViewModel : TimelineElemen
 }
 
 
-interface VerificationCancelRoomMessageTimelineElementViewModelFactory :
+interface VerificationCancelTimelineElementViewModelFactory :
     TimelineElementViewModelFactory<VerificationCancelEventContent> {
     override fun create(
         viewModelContext: MatrixClientViewModelContext,
@@ -37,8 +38,8 @@ interface VerificationCancelRoomMessageTimelineElementViewModelFactory :
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-    ): VerificationCancelRoomMessageTimelineElementViewModel? {
-        return VerificationCancelRoomMessageTimelineElementViewModelImpl(
+    ): VerificationCancelTimelineElementViewModel? {
+        return VerificationCancelTimelineElementViewModelImpl(
             viewModelContext,
             content,
             roomId,
@@ -49,15 +50,15 @@ interface VerificationCancelRoomMessageTimelineElementViewModelFactory :
     override val supports: KClass<VerificationCancelEventContent>
         get() = VerificationCancelEventContent::class
 
-    companion object : VerificationCancelRoomMessageTimelineElementViewModelFactory
+    companion object : VerificationCancelTimelineElementViewModelFactory
 }
 
-class VerificationCancelRoomMessageTimelineElementViewModelImpl(
+class VerificationCancelTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: VerificationCancelEventContent,
     roomId: RoomId,
     eventIdOrTransactionId: EventIdOrTransactionId,
-) : VerificationCancelRoomMessageTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
+) : VerificationCancelTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
     private val initials = get<Initials>()
 
     override val verificationStartedBy: StateFlow<UserInfoElement?> =

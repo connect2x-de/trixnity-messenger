@@ -30,21 +30,21 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationDoneRoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationDoneTimelineElementViewModel
 import kotlin.reflect.KClass
 
-class VerificationDoneMessageTimelineElementView : TimelineElementView<VerificationDoneRoomMessageTimelineElementViewModel> {
-    override val supports: KClass<out VerificationDoneRoomMessageTimelineElementViewModel> =
-        VerificationDoneRoomMessageTimelineElementViewModel::class
+class VerificationDoneMessageTimelineElementView : TimelineElementView<VerificationDoneTimelineElementViewModel> {
+    override val supports: KClass<out VerificationDoneTimelineElementViewModel> =
+        VerificationDoneTimelineElementViewModel::class
 
-    override suspend fun waitFor(element: VerificationDoneRoomMessageTimelineElementViewModel) {
+    override suspend fun waitFor(element: VerificationDoneTimelineElementViewModel) {
         // NO-OP (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: VerificationDoneRoomMessageTimelineElementViewModel
+        element: VerificationDoneTimelineElementViewModel
     ) {
         VerificationDoneElement(holder, element)
     }
@@ -52,7 +52,7 @@ class VerificationDoneMessageTimelineElementView : TimelineElementView<Verificat
     @Composable
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
-        element: VerificationDoneRoomMessageTimelineElementViewModel
+        element: VerificationDoneTimelineElementViewModel
     ) {
         VerificationDoneElement(holder, element)
     }
@@ -60,14 +60,14 @@ class VerificationDoneMessageTimelineElementView : TimelineElementView<Verificat
     @Composable
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
-        element: VerificationDoneRoomMessageTimelineElementViewModel
+        element: VerificationDoneTimelineElementViewModel
     ) {
     }
 
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
-        element: VerificationDoneRoomMessageTimelineElementViewModel
+        element: VerificationDoneTimelineElementViewModel
     ) {
     }
 
@@ -76,7 +76,7 @@ class VerificationDoneMessageTimelineElementView : TimelineElementView<Verificat
 @Composable
 private fun VerificationDoneElement(
     holder: BaseTimelineElementHolderViewModel,
-    element: VerificationDoneRoomMessageTimelineElementViewModel,
+    element: VerificationDoneTimelineElementViewModel,
 ) {
     val i18n = DI.get<I18nView>()
     val isOwn = element.isOwn.collectAsState().value

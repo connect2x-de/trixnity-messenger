@@ -31,21 +31,21 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationCancelRoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationCancelTimelineElementViewModel
 import kotlin.reflect.KClass
 
-class VerificationCancelMessageTimelineElementView : TimelineElementView<VerificationCancelRoomMessageTimelineElementViewModel> {
-    override val supports: KClass<out VerificationCancelRoomMessageTimelineElementViewModel> =
-        VerificationCancelRoomMessageTimelineElementViewModel::class
+class VerificationCancelTimelineElementView : TimelineElementView<VerificationCancelTimelineElementViewModel> {
+    override val supports: KClass<out VerificationCancelTimelineElementViewModel> =
+        VerificationCancelTimelineElementViewModel::class
 
-    override suspend fun waitFor(element: VerificationCancelRoomMessageTimelineElementViewModel) {
+    override suspend fun waitFor(element: VerificationCancelTimelineElementViewModel) {
         // NO-OP (has default size)
     }
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: VerificationCancelRoomMessageTimelineElementViewModel
+        element: VerificationCancelTimelineElementViewModel
     ) {
         VerificationCancelElement(holder, element)
     }
@@ -53,7 +53,7 @@ class VerificationCancelMessageTimelineElementView : TimelineElementView<Verific
     @Composable
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
-        element: VerificationCancelRoomMessageTimelineElementViewModel
+        element: VerificationCancelTimelineElementViewModel
     ) {
         VerificationCancelElement(holder, element)
     }
@@ -61,14 +61,14 @@ class VerificationCancelMessageTimelineElementView : TimelineElementView<Verific
     @Composable
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
-        element: VerificationCancelRoomMessageTimelineElementViewModel
+        element: VerificationCancelTimelineElementViewModel
     ) {
     }
 
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
-        element: VerificationCancelRoomMessageTimelineElementViewModel
+        element: VerificationCancelTimelineElementViewModel
     ) {
     }
 
@@ -77,7 +77,7 @@ class VerificationCancelMessageTimelineElementView : TimelineElementView<Verific
 @Composable
 private fun VerificationCancelElement(
     holder: BaseTimelineElementHolderViewModel,
-    element: VerificationCancelRoomMessageTimelineElementViewModel,
+    element: VerificationCancelTimelineElementViewModel,
 ) {
     val i18n = DI.get<I18nView>()
     val verificationStartedBy = element.verificationStartedBy.collectAsState().value

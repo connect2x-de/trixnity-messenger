@@ -32,7 +32,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
+import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -42,7 +42,8 @@ import org.koin.dsl.module
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
-class VerificationDoneEventContentTimelineElementViewModelTest {
+class VerificationCancelTimelineElementViewModelTest {
+
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
@@ -97,8 +98,10 @@ class VerificationDoneEventContentTimelineElementViewModelTest {
     }
 
     @Test
-    fun `done event is own event - ccnnbvcoriginal request by other user`() = runTest {
-        val verificationDoneEventContent = VerificationDoneEventContent(
+    fun `shows that this cancel event was sent by the current user - original request by other user`() = runTest {
+        val verificationCancelEventContent = VerificationCancelEventContent(
+            code = VerificationCancelEventContent.Code.Timeout,
+            reason = "timeout",
             relatesTo = RelatesTo.Reference(EventId("2")),
             transactionId = null,
         )
@@ -114,7 +117,7 @@ class VerificationDoneEventContentTimelineElementViewModelTest {
                     roomId = roomId,
                     originTimestamp = 0,
                 ),
-                content = Result.success(verificationDoneEventContent),
+                content = Result.success(verificationCancelEventContent),
                 previousEventId = null,
                 nextEventId = null,
                 gap = null,
@@ -145,17 +148,18 @@ class VerificationDoneEventContentTimelineElementViewModelTest {
             )
         )
 
-        val cut = verificationDoneEventContentTimelineElementViewModel(verificationDoneEventContent)
+        val cut = verificationCancelEventContentTimelineElementViewModel(verificationCancelEventContent)
         delay(100.milliseconds)
 
-        cut.isOwn.value shouldBe true
         cut.verificationStartedBy.value?.name shouldBe "otherUser"
-        cut.message.lowercase() shouldContain "successful"
+        cut.cause.lowercase() shouldContain "timeout"
     }
 
     @Test
-    fun `done event is not our own event - original request by current user`() = runTest {
-        val verificationDoneEventContent = VerificationDoneEventContent(
+    fun `shows that this cancel event was sent by the other user - original request by current user`() = runTest {
+        val verificationCancelEventContent = VerificationCancelEventContent(
+            code = VerificationCancelEventContent.Code.MismatchedSas,
+            reason = "timeout",
             relatesTo = RelatesTo.Reference(EventId("2")),
             transactionId = null,
         )
@@ -171,7 +175,7 @@ class VerificationDoneEventContentTimelineElementViewModelTest {
                     roomId = roomId,
                     originTimestamp = 0,
                 ),
-                content = Result.success(verificationDoneEventContent),
+                content = Result.success(verificationCancelEventContent),
                 previousEventId = null,
                 nextEventId = null,
                 gap = null,
@@ -202,17 +206,16 @@ class VerificationDoneEventContentTimelineElementViewModelTest {
             )
         )
 
-        val cut = verificationDoneEventContentTimelineElementViewModel(verificationDoneEventContent)
+        val cut = verificationCancelEventContentTimelineElementViewModel(verificationCancelEventContent)
         delay(100.milliseconds)
 
-        cut.isOwn.value shouldBe false
         cut.verificationStartedBy.value?.name shouldBe "user"
-        cut.message.lowercase() shouldContain "successful"
+        cut.cause.lowercase() shouldContain "match"
     }
 
-    fun TestScope.verificationDoneEventContentTimelineElementViewModel(verificationDoneEventContent: VerificationDoneEventContent): VerificationDoneRoomMessageTimelineElementViewModelImpl {
+    fun TestScope.verificationCancelEventContentTimelineElementViewModel(verificationCancelEventContent: VerificationCancelEventContent): VerificationCancelTimelineElementViewModelImpl {
         val result =
-            VerificationDoneRoomMessageTimelineElementViewModelImpl(
+            VerificationCancelTimelineElementViewModelImpl(
                 viewModelContext = MatrixClientViewModelContextImpl(
                     di = koinApplication {
                         modules(
@@ -227,12 +230,11 @@ class VerificationDoneEventContentTimelineElementViewModelTest {
                     userId = userId,
                     coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
                 ),
-                content = verificationDoneEventContent,
+                content = verificationCancelEventContent,
                 roomId = roomId,
                 eventIdOrTransactionId = EventIdOrTransactionId(eventId = EventId("1")),
             )
 
-        backgroundScope.launch { result.isOwn.collect() }
         backgroundScope.launch { result.verificationStartedBy.collect() }
 
         return result

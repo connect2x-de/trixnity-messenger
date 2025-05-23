@@ -22,7 +22,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.VerificationRequest
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationDoneRoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationDoneTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
@@ -574,7 +574,7 @@ suspend fun MatrixMessengerWithRoot.originalClientAcceptVerificationWithEmoji(ro
     verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.Success::class)
     val roomViewModel = goToRoom(roomId)
     val done =
-        findTimelineElement<VerificationDoneRoomMessageTimelineElementViewModel, BaseTimelineElementHolderViewModel>(
+        findTimelineElement<VerificationDoneTimelineElementViewModel, BaseTimelineElementHolderViewModel>(
             roomViewModel
         )
     done.message shouldBe "Erfolgreich"

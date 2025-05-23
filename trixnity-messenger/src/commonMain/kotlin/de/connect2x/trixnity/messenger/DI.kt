@@ -82,8 +82,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.LocationRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.NoticeRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.TextRoomMessageTimelineElementViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationCancelRoomMessageTimelineElementViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationDoneRoomMessageTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationCancelTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationDoneTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationRequestRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VideoRoomMessageTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.AvatarStateTimelineElementViewModelFactory
@@ -361,8 +361,8 @@ private fun timelineElementViewModels() = module {
     timelineElementViewModelFactory<EmoteRoomMessageTimelineElementViewModelFactory> { EmoteRoomMessageTimelineElementViewModelFactory }
     timelineElementViewModelFactory<LocationRoomMessageTimelineElementViewModelFactory> { LocationRoomMessageTimelineElementViewModelFactory }
     timelineElementViewModelFactory<VerificationRequestRoomMessageTimelineElementViewModelFactory> { VerificationRequestRoomMessageTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<VerificationDoneRoomMessageTimelineElementViewModelFactory> { VerificationDoneRoomMessageTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<VerificationCancelRoomMessageTimelineElementViewModelFactory> { VerificationCancelRoomMessageTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<VerificationDoneTimelineElementViewModelFactory> { VerificationDoneTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<VerificationCancelTimelineElementViewModelFactory> { VerificationCancelTimelineElementViewModelFactory }
 
     // State:
     timelineElementViewModelFactory<CreateStateTimelineElementViewModelFactory> { CreateStateTimelineElementViewModelFactory }
