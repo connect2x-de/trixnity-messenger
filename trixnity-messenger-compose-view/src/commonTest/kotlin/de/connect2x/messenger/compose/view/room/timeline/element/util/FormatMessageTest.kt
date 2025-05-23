@@ -119,6 +119,14 @@ class FormatMessageTest {
     }
 
     @Test
+    fun `links - should format link with space in the end`() {
+        assertEquals(
+            "Hello, take a look at <a href=\"https://tammy.connect2x.de/en-us/\">https://tammy.connect2x.de/en-us/</a> - cool isn't it?",
+            "Hello, take a look at https://tammy.connect2x.de/en-us/ - cool isn't it?".formatLinks()
+        )
+    }
+
+    @Test
     fun shouldFormatRegularLink() {
         assertEquals(
             "<a href=\"https://matrix.org\">https://matrix.org</a>",
