@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add setAvatarImage function to AvatarCutterViewModel
-- Added an additional test case for empty user search results
+- Add tests for various logic
 
 ### Changed
 
