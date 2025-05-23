@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added an additional test case for empty user search results
+
 ### Changed
 
 - Name "privacy" settings to "privacy and security" settings

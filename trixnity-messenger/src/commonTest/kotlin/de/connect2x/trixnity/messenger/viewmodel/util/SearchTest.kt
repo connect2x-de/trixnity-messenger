@@ -117,6 +117,27 @@ class SearchTest {
     }
 
     @Test
+    fun `clear results on empty search term`() = runTest {
+        val searchTerm = myUserId.full
+
+        injectSearchUsers(searchTerm, listOf(myUserData))
+        injectSearchUsers("", listOf(myUserData))
+
+        var res = search.searchUsers(
+            matrixClientMock, searchTerm, limit = null, presenceScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
+        )
+
+        res.size shouldBe 1
+        res[0] shouldBeEqual myUserData
+
+        res = search.searchUsers(
+            matrixClientMock, "", limit = null, presenceScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
+        )
+
+        res.size shouldBe 0
+    }
+
+    @Test
     fun `not return self on non direct search`() = runTest {
         val searchTerm = "any"
 
