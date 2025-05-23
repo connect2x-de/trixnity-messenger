@@ -64,7 +64,6 @@ import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.EmojiSelector
-import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.FilePickerType.ATTACHMENT_FILE
 import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_AND_VIDEO_FILE
 import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
@@ -81,8 +80,13 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconToggleButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.theme.messengerIcons
@@ -245,14 +249,26 @@ fun RowScope.InputAreaTextField(
             .weight(1.0f, fill = true)
     ) {
         if (showUploadError.value != null) {
-            ErrorDialog(
-                errorMessage = when (showUploadError.value) {
-                    is NotPasteableException -> i18n.uploadFileErrorNotPasteable()
-                    is EmptyFileListException -> i18n.uploadFileErrorFileListEmpty()
-                    else -> i18n.uploadFileErrorUnknown()
-                },
-                dismissAction = { showUploadError.value = null }, title = i18n.uploadFileErrorTitle()
-            )
+            ThemedModalDialog({ showUploadError.value = null }) {
+                ModalDialogHeader {
+                    Text(i18n.uploadFileErrorTitle())
+                }
+                ModalDialogContent {
+                    Text(when (showUploadError.value) {
+                        is NotPasteableException -> i18n.uploadFileErrorNotPasteable()
+                        is EmptyFileListException -> i18n.uploadFileErrorFileListEmpty()
+                        else -> i18n.uploadFileErrorUnknown()
+                    })
+                }
+                ModalDialogFooter {
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
+                        onClick = { showUploadError.value = null },
+                    ) {
+                        Text(i18n.actionOk())
+                    }
+                }
+            }
         }
         BasicTextField(
             cursorBrush = SolidColor(style.colors.cursorColor),

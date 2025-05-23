@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Name "privacy" settings to "privacy and security" settings
+- Styling: Use theme components for dialogs
 
 ### Deprecated
 

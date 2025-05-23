@@ -28,14 +28,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
-import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 
@@ -54,7 +58,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
     override fun create(createNewGroupViewModel: CreateNewGroupViewModel) {
         val i18n = DI.get<I18nView>()
         val canCreateNewGroup = createNewGroupViewModel.canCreateNewGroup.collectAsState()
-        val error = createNewGroupViewModel.error.collectAsState()
+        val error = createNewGroupViewModel.error.collectAsState().value
         val isPrivate by createNewGroupViewModel.isPrivate.collectAsState()
         val isEncrypted by createNewGroupViewModel.isEncrypted.collectAsState()
         val isCreating by createNewGroupViewModel.isCreating.collectAsState()
@@ -74,9 +78,23 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
         }
 
         Box(Modifier.fillMaxSize()) {
-
-            if (error.value != null) {
-                ErrorDialog(error.value.orEmpty(), { createNewGroupViewModel.errorDismiss() })
+            if (error != null) {
+                ThemedModalDialog({ createNewGroupViewModel.errorDismiss() }) {
+                    ModalDialogHeader {
+                        Text(i18n.anErrorHasOccurred())
+                    }
+                    ModalDialogContent {
+                        Text(error)
+                    }
+                    ModalDialogFooter {
+                        ThemedButton(
+                            style = MaterialTheme.components.primaryButton,
+                            onClick = { createNewGroupViewModel.errorDismiss() },
+                        ) {
+                            Text(i18n.actionOk())
+                        }
+                    }
+                }
             }
             Column(
                 verticalArrangement = Arrangement.SpaceBetween,

@@ -24,14 +24,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.AvatarContentIcon
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedAvatar
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -51,12 +55,27 @@ class CreateNewChatViewImpl : CreateNewChatView {
     override fun create(createNewChatViewModel: CreateNewChatViewModel) {
         val i18n = DI.get<I18nView>()
         val isCreating by createNewChatViewModel.isCreating.collectAsState()
-        val error = createNewChatViewModel.error.collectAsState()
+        val error = createNewChatViewModel.error.collectAsState().value
 
         Box(Modifier.fillMaxSize()) {
             Box {
-                if (error.value != null) {
-                    ErrorDialog(error.value.orEmpty(), { createNewChatViewModel.errorDismiss() })
+                if (error != null) {
+                    ThemedModalDialog({ createNewChatViewModel.errorDismiss() }) {
+                        ModalDialogHeader {
+                            Text(i18n.anErrorHasOccurred())
+                        }
+                        ModalDialogContent {
+                            Text(error)
+                        }
+                        ModalDialogFooter {
+                            ThemedButton(
+                                style = MaterialTheme.components.primaryButton,
+                                onClick = { createNewChatViewModel.errorDismiss() },
+                            ) {
+                                Text(i18n.actionOk())
+                            }
+                        }
+                    }
                 }
 
                 Column {
