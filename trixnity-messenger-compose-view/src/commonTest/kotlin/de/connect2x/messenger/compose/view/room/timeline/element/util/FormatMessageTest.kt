@@ -5,7 +5,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.formatM
 import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
-import io.ktor.http.Url
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import kotlin.test.Test
@@ -111,19 +110,13 @@ class FormatMessageTest {
 
     // Links
     @Test
-    fun `links - should format link with newline in the end`() {
-        assertEquals(
-            "Und jetzt mit Tammy link auf neuer Zeile\n<a href=\"https://tammy.connect2x.de/en-us/\">https://tammy.connect2x.de/en-us/</a>\n\nund wie sieht's aus?",
-            "Und jetzt mit Tammy link auf neuer Zeile\nhttps://tammy.connect2x.de/en-us/\n\nund wie sieht's aus?".formatLinks()
-        )
-    }
-
-    @Test
-    fun `links - should format link with space in the end`() {
-        assertEquals(
-            "Hello, take a look at <a href=\"https://tammy.connect2x.de/en-us/\">https://tammy.connect2x.de/en-us/</a> - cool isn't it?",
-            "Hello, take a look at https://tammy.connect2x.de/en-us/ - cool isn't it?".formatLinks()
-        )
+    fun `links - should format link excluding whitespace in the end`() {
+        listOf("\r", "\n", "\t", " `").forEach {
+            assertEquals(
+                "Hello, take a look at <a href=\"https://tammy.connect2x.de/en-us/\">https://tammy.connect2x.de/en-us/</a>${it}cool isn't it?",
+                "Hello, take a look at https://tammy.connect2x.de/en-us/${it}cool isn't it?".formatLinks()
+            )
+        }
     }
 
     @Test
