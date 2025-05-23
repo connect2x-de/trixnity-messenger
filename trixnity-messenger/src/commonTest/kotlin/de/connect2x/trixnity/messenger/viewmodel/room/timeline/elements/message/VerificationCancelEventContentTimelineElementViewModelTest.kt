@@ -213,9 +213,9 @@ class VerificationCancelEventContentTimelineElementViewModelTest {
         cut.cause.lowercase() shouldContain "match"
     }
 
-    fun TestScope.verificationCancelEventContentTimelineElementViewModel(verificationCancelEventContent: VerificationCancelEventContent): VerificationCancelEventContentTimelineElementViewModelImpl {
+    fun TestScope.verificationCancelEventContentTimelineElementViewModel(verificationCancelEventContent: VerificationCancelEventContent): VerificationCancelRoomMessageTimelineElementViewModelImpl {
         val result =
-            VerificationCancelEventContentTimelineElementViewModelImpl(
+            VerificationCancelRoomMessageTimelineElementViewModelImpl(
                 viewModelContext = MatrixClientViewModelContextImpl(
                     di = koinApplication {
                         modules(

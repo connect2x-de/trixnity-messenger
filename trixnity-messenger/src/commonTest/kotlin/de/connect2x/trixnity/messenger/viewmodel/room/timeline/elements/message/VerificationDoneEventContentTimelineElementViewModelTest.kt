@@ -210,9 +210,9 @@ class VerificationDoneEventContentTimelineElementViewModelTest {
         cut.message.lowercase() shouldContain "successful"
     }
 
-    fun TestScope.verificationDoneEventContentTimelineElementViewModel(verificationDoneEventContent: VerificationDoneEventContent): VerificationDoneEventContentTimelineElementViewModelImpl {
+    fun TestScope.verificationDoneEventContentTimelineElementViewModel(verificationDoneEventContent: VerificationDoneEventContent): VerificationDoneRoomMessageTimelineElementViewModelImpl {
         val result =
-            VerificationDoneEventContentTimelineElementViewModelImpl(
+            VerificationDoneRoomMessageTimelineElementViewModelImpl(
                 viewModelContext = MatrixClientViewModelContextImpl(
                     di = koinApplication {
                         modules(
