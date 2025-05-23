@@ -111,6 +111,14 @@ class FormatMessageTest {
 
     // Links
     @Test
+    fun `links - should format link with newline in the end`() {
+        assertEquals(
+            "Und jetzt mit Tammy link auf neuer Zeile\n<a href=\"https://tammy.connect2x.de/en-us/\">https://tammy.connect2x.de/en-us/</a>\n\nund wie sieht's aus?",
+            "Und jetzt mit Tammy link auf neuer Zeile\nhttps://tammy.connect2x.de/en-us/\n\nund wie sieht's aus?".formatLinks()
+        )
+    }
+
+    @Test
     fun shouldFormatRegularLink() {
         assertEquals(
             "<a href=\"https://matrix.org\">https://matrix.org</a>",
