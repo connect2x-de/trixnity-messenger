@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add setAvatarImage function to AvatarCutterViewModel
+
 ### Changed
 
 - Name "privacy" settings to "privacy and security" settings
