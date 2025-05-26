@@ -400,8 +400,6 @@ private suspend fun MatrixMessengerWithRoot.bootstrap(
         (verification as SelfVerificationRouter.Wrapper.CrossSigningBootstrap).viewModel
     crossSigningBootstrapViewModel.startCrossSigningBootstrap()
 
-    authorizeUia(username, password)
-
     crossSigningBootstrapViewModel.isBootstrapRunning.first { it.not() }
     val createdRecoveryKey = crossSigningBootstrapViewModel.recoveryKey.first { it != null }
     log.info { "user '$username' with password '$password' has recovery key '$createdRecoveryKey'" }
