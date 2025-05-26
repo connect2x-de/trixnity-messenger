@@ -177,7 +177,6 @@ class TimelineElementMetadataViewModelImpl(
                         viewModelContext = childContextWithOwnLifecycle(lifecycle),
                         key = "element-history-${historyEventId.full}",
                         timelineEventFlow = timelineEventFlow,
-                        showOriginal = true,
                         roomId = roomId,
                         eventId = historyEventId,
                         sender = timelineEvent.sender,

@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.util
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +23,8 @@ import net.folivo.trixnity.core.model.UserId
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+
+private val log = KotlinLogging.logger { }
 
 interface UserSearchHandler {
     val searchTerm: TextFieldViewModel
@@ -72,11 +75,15 @@ class DefaultUserSearchHandler(
             .distinctUntilChanged()
             .debounce(debounceDuration)
             .map {
-                if (MatrixRegex.userId.matches(it.lowercase())) it.lowercase()
+                if (MatrixRegex.userId.matches(it.lowercase())) {
+                    log.trace {"found matrix id"}
+                    it.lowercase()
+                }
                 else it
             }
             .scopedCollectLatest {
                 if (it.isNotBlank()) {
+                    log.trace { "search for users" }
                     waitForUserResults.value = true
                     unfilteredFoundUsers.value =
                         search.searchUsers(
@@ -88,6 +95,7 @@ class DefaultUserSearchHandler(
                         )
                     waitForUserResults.value = false
                 } else {
+                    log.trace { "user search blank -> empty list" }
                     unfilteredFoundUsers.value = emptyList()
                 }
             }
