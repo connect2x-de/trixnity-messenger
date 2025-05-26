@@ -36,7 +36,6 @@ import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.messenger.compose.view.theme.SystemDensity
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
-import de.connect2x.trixnity.messenger.util.CopyableContent
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
@@ -201,7 +200,6 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
             override val mentionsInFormattedBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
             override fun openMention(mention: TimelineElementMention) {}
         })
-    override val canBeCopied: StateFlow<Boolean>  = MutableStateFlow(true)
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val formattedTime: String = "12:12"
     override val formattedDate: String = "21.11.2024"
@@ -237,7 +235,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
     override fun jumpTo() {}
-    override fun copy(saveToClipboard: suspend (CopyableContent) -> Unit): () -> Unit = {}
+    override fun copy(callback: suspend () -> Unit): () -> Unit = {}
 }
 
 private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -253,7 +251,6 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
             override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
             override fun openMention(mention: TimelineElementMention) {}
         })
-    override val canBeCopied: StateFlow<Boolean> = MutableStateFlow(true)
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val formattedTime: String = "12:24"
     override val formattedDate: String = "21.11.2024"
@@ -289,5 +286,5 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
     override fun jumpTo() {}
-    override fun copy(saveToClipboard: suspend (CopyableContent) -> Unit): () -> Unit = {}
+    override fun copy(callback: suspend () -> Unit): () -> Unit = {}
 }

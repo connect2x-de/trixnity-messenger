@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
-import de.connect2x.trixnity.messenger.util.CopyableContent
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import kotlinx.coroutines.flow.StateFlow
 

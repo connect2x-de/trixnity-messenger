@@ -17,8 +17,6 @@ import java.io.IOException
 
 @Composable
 actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
-    val clipboardManager = Toolkit.getDefaultToolkit().systemClipboard
-
     val transferable = when (val content = this) {
         is FileBased -> object : Transferable {
             private val dataFlavor = DataFlavor(content.mimeType)
