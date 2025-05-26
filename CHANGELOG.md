@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Display avatar correctly cropped in message metadata view
+- End URLs on whitespace
 - Fixed tooltip appears too fast in `TimelineElementMetadataView`
 - Fixed "edited" is shown in the wrong place in `TimelineElementMetadataViewModel`
 
