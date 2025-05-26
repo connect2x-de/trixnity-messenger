@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.room.timeline.element.state
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.ClipEntry
 import de.connect2x.messenger.compose.view.room.timeline.Indicator
 import de.connect2x.messenger.compose.view.room.timeline.IndicatorText
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
@@ -63,6 +64,12 @@ class AvatarStateTimelineElementView : TimelineElementView<AvatarStateTimelineEl
             }
         )
     }
+
+    @Composable
+    override fun getClipEntry(
+        holder: TimelineElementHolderViewModel,
+        element: AvatarStateTimelineElementViewModel
+    ): ClipEntry? = null
 
     @Composable
     private fun StateElement(element: AvatarStateTimelineElementViewModel) {

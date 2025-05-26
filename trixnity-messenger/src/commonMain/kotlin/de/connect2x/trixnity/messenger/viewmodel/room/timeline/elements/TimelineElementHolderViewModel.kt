@@ -4,8 +4,6 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.util.CopyableContent
-import de.connect2x.trixnity.messenger.util.handleContent
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -67,11 +65,8 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.EmptyEventContent
 import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
-import net.folivo.trixnity.core.model.events.StateEventContent
-import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.ReactionEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -170,6 +165,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     fun addReaction(reaction: String)
     fun removeReaction(reaction: String)
     fun openTimelineElementMetadata()
+    fun copy(callback: suspend () -> Unit): () -> Unit
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -332,14 +328,6 @@ class TimelineElementHolderViewModelImpl(
                 elementCache.value = TimelineElementViewModelWrapper(it, lifecycle)
             }
         }.stateIn(coroutineScope, Eagerly, null)
-
-
-    override val canBeCopied: StateFlow<Boolean> = timelineEventFlow.map { timelineEvent ->
-        when (timelineEvent.content?.getOrNull()) {
-            is RoomMessageEventContent.FileBased, is RoomMessageEventContent.Location, is TextBased -> true
-            is UnknownEventContent, is StateEventContent, is RedactedEventContent, is MessageEventContent, EmptyEventContent, null -> false
-        }
-    }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override val isReply: StateFlow<Boolean?> = flow {
         val eventContent = timelineEventFlow.first().event.content
@@ -598,13 +586,10 @@ class TimelineElementHolderViewModelImpl(
         jumpTo(roomId, eventId)
     }
 
-    override fun copy(saveToClipboard: suspend (CopyableContent) -> Unit): () -> Unit {
+    override fun copy(callback: suspend () -> Unit): () -> Unit {
         return {
             coroutineScope.launch {
-                val element = timelineEventFlow.first().content?.getOrNull()
-                if (element is RoomMessageEventContent) {
-                    element.handleContent(saveToClipboard, matrixClient, config.maxMediaSizeInMemory)
-                }
+                callback()
             }
         }
     }
@@ -623,7 +608,6 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val mentionsInFormattedBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
             override fun openMention(mention: TimelineElementMention) {}
         })
-    override val canBeCopied: StateFlow<Boolean> = MutableStateFlow(true)
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val formattedTime: String = "12:12"
     override val formattedDate: String = "21.11.2024"
@@ -659,7 +643,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
     override fun jumpTo() {}
-    override fun copy(saveToClipboard: suspend (CopyableContent) -> Unit): () -> Unit = {}
+    override fun copy(callback: suspend () -> Unit): () -> Unit = {}
 }
 
 class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -675,7 +659,6 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
             override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
             override fun openMention(mention: TimelineElementMention) {}
         })
-    override val canBeCopied: StateFlow<Boolean> = MutableStateFlow(true)
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val formattedTime: String = "12:24"
     override val formattedDate: String = "21.11.2024"
@@ -711,5 +694,5 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
     override fun jumpTo() {}
-    override fun copy(saveToClipboard: suspend (CopyableContent) -> Unit): () -> Unit = {}
+    override fun copy(callback: suspend () -> Unit): () -> Unit = {}
 }
