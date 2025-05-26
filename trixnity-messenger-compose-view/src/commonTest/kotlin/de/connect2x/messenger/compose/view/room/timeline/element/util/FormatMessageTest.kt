@@ -110,7 +110,7 @@ class FormatMessageTest {
 
     // Links
     @Test
-    fun `links - should format link excluding whitespace in the end`() {
+    fun shouldFormatLinkExcludingWhitespaceInTheEnd() {
         listOf("\r", "\n", "\t", " `").forEach {
             assertEquals(
                 "Hello, take a look at <a href=\"https://tammy.connect2x.de/en-us/\">https://tammy.connect2x.de/en-us/</a>${it}cool isn't it?",
