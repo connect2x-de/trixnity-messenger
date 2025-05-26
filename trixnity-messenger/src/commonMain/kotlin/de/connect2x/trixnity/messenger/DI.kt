@@ -25,6 +25,7 @@ import de.connect2x.trixnity.messenger.util.SharedDataHandlerImpl
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
+import de.connect2x.trixnity.messenger.util.platformGetImageDimensionsModule
 import de.connect2x.trixnity.messenger.util.platformIsNetworkAvailableModule
 import de.connect2x.trixnity.messenger.util.platformMinimizeAppModule
 import de.connect2x.trixnity.messenger.util.platformPathsModule
@@ -296,6 +297,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
     ::platformUriCallerModule,
     ::platformDeleteProfileDataModule,
     ::platformProcessImageUploadModule,
+    ::platformGetImageDimensionsModule,
 )
 
 /*

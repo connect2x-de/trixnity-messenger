@@ -4,8 +4,8 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.GetImageDimensions
 import de.connect2x.trixnity.messenger.util.ProcessImageUpload
-import de.connect2x.trixnity.messenger.util.getImageDimensions
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.checkFileSizeExceedsLimit
@@ -73,7 +73,7 @@ class SendAttachmentViewModelImpl(
     private val messengerConfiguration = get<MatrixMessengerConfiguration>()
     private val _error: MutableStateFlow<String?> = MutableStateFlow(null)
 
-    private val _sendEnabled = MutableStateFlow(_error.value == null)
+    private val _sendEnabled = MutableStateFlow(false)
 
     override val error: StateFlow<String?> = _error.asStateFlow()
     override val sendEnabled: StateFlow<Boolean> = _sendEnabled.asStateFlow()
@@ -105,7 +105,6 @@ class SendAttachmentViewModelImpl(
                 _error.value = i18n.attachmentSizeMaxSizeError(maxSize)
             }
 
-            _sendEnabled.value = _error.value == null
             _fileContent.value = if (isImage == true) {
                 val imageByteArray = file.content.limitedByteArrayOrNull(messengerConfiguration.maxMediaSizeInMemory) {
                     log.debug { "Uploaded image ${file.fileName} couldn't be processed because it exceeds file size limits, it will be sent without processing" }
@@ -123,6 +122,7 @@ class SendAttachmentViewModelImpl(
             } else {
                 file.content
             }
+            _sendEnabled.value = _error.value == null
         }
     }
 
@@ -137,7 +137,7 @@ class SendAttachmentViewModelImpl(
                             log.debug { "send an image" }
                             val size = fileSize.value
                             val (width, height) = if (size == null || size <= messengerConfiguration.maxMediaSizeInMemory)
-                                getImageDimensions(
+                                get<GetImageDimensions>().invoke(
                                     byteArrayFlow,
                                     messengerConfiguration.maxMediaSizeInMemory
                                 ) else Pair(null, null)
