@@ -11,7 +11,6 @@ import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetImageDimensions
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.ProcessImageUpload
-import de.connect2x.trixnity.messenger.util.fileSystem
 import de.connect2x.trixnity.messenger.util.mb
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import dev.mokkery.answering.calls
@@ -40,16 +39,13 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.ByteArrayFlow
-import net.folivo.trixnity.utils.readByteArrayFlow
 import net.folivo.trixnity.utils.toByteArrayFlow
-import okio.Path.Companion.toPath
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -113,14 +109,12 @@ class SendAttachmentViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `should send correct image size metadata after processing image`() = runTestWithCoroutineScope {
-        val image = fileSystem.readByteArrayFlow("./src/commonTest/resources/images/cat.jpg".toPath(normalize = true))
-        assertNotNull(image)
+        val image = byteArrayOf(0,1,2,3,4,5,6,7,8,9).toByteArrayFlow()
         val fileContent = object : FileDescriptor {
-            override val fileName: String = "cat.jpg"
-            override val fileSize: Long? = 34034
+            override val fileName: String = "numbers.jpg"
+            override val fileSize: Long? = 10
             override val mimeType: ContentType? = ContentType.Image.JPEG
             override val content: ByteArrayFlow = image
-
         }
         val builder = MessageBuilder(roomId, matrixClientMock.room, matrixClientMock.media, me)
         val progressedSize = MutableStateFlow<Long?>(null)
