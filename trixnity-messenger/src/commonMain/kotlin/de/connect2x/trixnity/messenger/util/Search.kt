@@ -99,6 +99,9 @@ class SearchImpl(
                 )
             }
             val presence = getPresence(matrixClient, userId)
+                .map { presence ->
+                    presence ?: matrixClient.api.user.getPresence(userId).getOrNull()?.presence
+                }
                 .stateIn(presenceScope, SharingStarted.WhileSubscribed(), null)
 
             listOf(
