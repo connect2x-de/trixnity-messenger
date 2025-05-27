@@ -7,9 +7,9 @@ import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
-import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -40,7 +40,6 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.PresenceEventContent
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -99,7 +98,7 @@ class RoomHeaderViewModelTest {
     private val roomNameMock = mock<RoomName>()
     private val roomTopicMock = mock<RoomTopic>()
     private val initialsMock = mock<Initials>()
-    private val userPresenceMock = mock<UserPresence>()
+    private val roomPresenceMock = mock<RoomPresence>()
     private val directRoomMock = mock<DirectRoom>()
     private val userBlockingMock = mock<UserBlocking>()
 
@@ -117,7 +116,7 @@ class RoomHeaderViewModelTest {
             roomNameMock,
             roomTopicMock,
             initialsMock,
-            userPresenceMock,
+            roomPresenceMock,
             directRoomMock,
             userBlockingMock,
         )
@@ -187,9 +186,8 @@ class RoomHeaderViewModelTest {
                 any(),
             )
         } returns Result.success(InMemoryPlatformMedia("image".encodeToByteArray().toByteArrayFlow()))
-        every { userPresenceMock.presentEventContentFlow(any(), eq(roomId)) } returns flowOf(
-            PresenceEventContent(presence = Presence.ONLINE)
-        )
+        every { roomPresenceMock.invoke(any(), eq(roomId)) } returns flowOf(Presence.ONLINE)
+
         every { userBlockingMock.isUserBlocked(any(), any()) } returns MutableStateFlow(false)
     }
 
@@ -365,7 +363,7 @@ class RoomHeaderViewModelTest {
                                 module {
                                     single { roomNameMock }
                                     single { roomTopicMock }
-                                    single { userPresenceMock }
+                                    single { roomPresenceMock }
                                     single { initialsMock }
                                     single { directRoomMock }
                                     single { userBlockingMock }

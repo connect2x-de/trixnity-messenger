@@ -15,16 +15,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.withTimeoutOrNull
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
-import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
 
@@ -164,13 +162,7 @@ class SearchImpl(
     }
 
     private fun getPresence(matrixClient: MatrixClient, userId: UserId): Flow<Presence?> {
-        return flow {
-            val presence = matrixClient.user.userPresence.value[userId]?.presence
-                ?: withTimeoutOrNull(3.seconds) {
-                    matrixClient.api.user.getPresence(userId).getOrNull()?.presence
-                }
-            emit(presence)
-        }
+        return matrixClient.user.getPresence(userId).map { it?.presence }
     }
 
     private fun searchUserElement(

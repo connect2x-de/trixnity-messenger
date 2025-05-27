@@ -6,9 +6,9 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
-import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
@@ -147,7 +147,7 @@ open class RoomHeaderViewModelImpl(
     private val onOpenUserProfile: (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomHeaderViewModel {
     private val directRoom = get<DirectRoom>()
-    private val userPresence = get<UserPresence>()
+    private val roomPresence = get<RoomPresence>()
     private val roomName = get<RoomName>()
     private val roomTopic = get<RoomTopic>()
     private val initials = get<Initials>()
@@ -161,7 +161,7 @@ open class RoomHeaderViewModelImpl(
             matrixClient.room.getById(selectedRoomId),
             roomName.getRoomName(selectedRoomId, matrixClient),
             roomTopic.getRoomTopic(selectedRoomId, matrixClient),
-            userPresence.presentEventContentFlow(matrixClient, selectedRoomId),
+            roomPresence.invoke(matrixClient, selectedRoomId),
             matrixClient.room.getState<JoinRulesEventContent>(selectedRoomId),
         ) { room, roomNameElement, roomTopicElement, userPresence, joinRules ->
             val roomImage = room?.avatarUrl?.let { avatarUrl ->
@@ -188,7 +188,7 @@ open class RoomHeaderViewModelImpl(
                 roomTopic = roomTopicElement,
                 roomImageInitials = initials.compute(roomNameElement),
                 roomImage = roomImage,
-                presence = userPresence?.presence,
+                presence = userPresence,
                 isEncrypted = room?.encrypted == true,
                 isPublic = joinRules?.content?.joinRule == JoinRulesEventContent.JoinRule.Public,
                 isLeave = room?.membership?.let { it == Membership.LEAVE } == true

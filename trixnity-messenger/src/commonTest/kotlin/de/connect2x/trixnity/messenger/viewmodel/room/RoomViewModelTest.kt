@@ -178,7 +178,7 @@ class RoomViewModelTest {
             userServiceMock.loadMembers(RoomId(any()), any())
         } returns Unit
         every { userServiceMock.getById(any(), any()) } returns MutableStateFlow(null)
-        every { userServiceMock.userPresence } returns MutableStateFlow(emptyMap())
+        every { userServiceMock.getPresence(any()) } returns flowOf(null)
         every { userServiceMock.getAll(roomId) } returns MutableStateFlow(mapOf())
         every { userServiceMock.getAllReceipts(eq(roomId)) } returns MutableStateFlow(emptyMap())
         every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(false)
