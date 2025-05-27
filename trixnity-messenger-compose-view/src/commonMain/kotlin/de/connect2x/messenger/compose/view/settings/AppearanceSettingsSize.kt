@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,7 +26,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.grayscale
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
@@ -78,6 +78,23 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
         var newDisplaySize by remember { mutableStateOf(-1F) }
         val finalNewDisplaySize =
             if (newDisplaySize != -1F && newDisplaySize != displaySize) newDisplaySize else displaySize
+
+        // Preview
+        val systemDensity = SystemDensity.current
+        Column(Modifier.padding(end = 10.dp).fillMaxWidth(1.0f).height(200.dp)) {
+            CompositionLocalProvider(
+                LocalDensity provides Density(
+                    systemDensity.density * finalNewDisplaySize,
+                    systemDensity.fontScale * finalNewFontSize
+                )
+            ) {
+                MessagePreviewContent(PreviewTimelineElementViewModel1())
+                MessagePreviewContent(PreviewTimelineElementViewModel2())
+            }
+        }
+        Spacer(Modifier.height(30.dp))
+        HorizontalDivider()
+        Spacer(Modifier.height(5.dp))
 
         // Settings
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -141,31 +158,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                 enabled = !applySystemSizes
             )
 
-            Spacer(Modifier.height(30.dp))
-
-            // Preview
-            val systemDensity = SystemDensity.current
-            CompositionLocalProvider(
-                LocalDensity provides Density(
-                    systemDensity.density * finalNewDisplaySize,
-                    systemDensity.fontScale * finalNewFontSize
-                )
-            ) {
-                Column(
-                    Modifier
-                        .padding(end = 10.dp)
-                        .fillMaxWidth(1.0f)
-                        .let { if (applySystemSizes) it.grayscale() else it }
-                ) {
-                    MessagePreviewContent(PreviewTimelineElementViewModel1())
-                    MessagePreviewContent(PreviewTimelineElementViewModel2())
-                }
-            }
-            Spacer(Modifier.height(30.dp))
-
-            // Confirmation
-
-            Spacer(Modifier.height(5.dp))
+            Spacer(Modifier.height(10.dp))
 
             ThemedButton(
                 style = MaterialTheme.components.primaryButton,

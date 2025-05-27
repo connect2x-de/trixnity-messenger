@@ -148,7 +148,7 @@ private fun wizardStepAccessibility(
     viewModel: AccountSetupViewModel,
     step: AccountSetupWizardStep,
     i18n: I18nView
-) : WizardStep {
+): WizardStep {
     return WizardStep(
         id = step.stepId,
         title = { i18n.commonAccessibility() },
