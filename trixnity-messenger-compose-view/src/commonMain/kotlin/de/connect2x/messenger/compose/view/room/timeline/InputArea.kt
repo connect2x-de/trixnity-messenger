@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -69,6 +70,7 @@ import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_AND_VIDEO
 import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
 import de.connect2x.messenger.compose.view.common.FilePickerType.VIDEO_CAPTURE
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.common.customKeyNavigation
 import de.connect2x.messenger.compose.view.files.EmptyFileListException
 import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.NotPasteableException
@@ -135,8 +137,8 @@ class InputAreaViewImpl : InputAreaView {
                     ReplyToArea(inputAreaViewModel)
                 }
                 if (emojisOpen.value) {
-                    Box(Modifier.heightIn(max = 100.dp)) {
-                        EmojiSelector {
+                    Box(Modifier.fillMaxWidth().height(120.dp)) {
+                        EmojiSelector(Modifier.fillMaxSize().customKeyNavigation()) {
                             textField.value = textField.value.insert(it)
                             focusRequester.requestFocus()
                         }

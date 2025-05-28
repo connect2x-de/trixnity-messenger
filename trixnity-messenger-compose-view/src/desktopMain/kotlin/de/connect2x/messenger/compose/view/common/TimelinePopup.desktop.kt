@@ -8,16 +8,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
@@ -48,21 +42,11 @@ actual fun TimelinePopup(
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically(),
             ) {
-                val focusManager = LocalFocusManager.current
                 ThemedSurface(
                     style = MaterialTheme.components.popup,
-                    modifier = Modifier.size(320.dp, 240.dp).onKeyEvent { event ->
-                        when (event.key) {
-                            Key.DirectionUp -> focusManager.moveFocus(FocusDirection.Up)
-                            Key.DirectionLeft -> focusManager.moveFocus(FocusDirection.Left)
-                            Key.DirectionRight -> focusManager.moveFocus(FocusDirection.Right)
-                            Key.DirectionDown -> focusManager.moveFocus(FocusDirection.Down)
-                            else -> false
-                        }
-                    },
-                ) {
-                    content()
-                }
+                    modifier = Modifier.size(320.dp, 240.dp),
+                    content = content,
+                )
             }
         }
     }

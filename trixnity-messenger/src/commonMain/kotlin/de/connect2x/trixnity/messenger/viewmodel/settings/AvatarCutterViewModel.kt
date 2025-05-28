@@ -33,14 +33,15 @@ interface AvatarCutterViewModelFactory {
 }
 
 interface AvatarCutterViewModel {
+    val file: FileDescriptor
     val upload: StateFlow<Boolean>
     val error: StateFlow<String?>
-    val file: FileDescriptor
     val avatarCutterHeading: String
     val maxAvatarSize: Long
     val avatarImage: StateFlow<ByteArray?>
     fun cancel()
     fun accept()
+    fun setAvatarImage(data: ByteArray?)
 }
 
 open class AvatarCutterViewModelImpl(
@@ -85,6 +86,10 @@ open class AvatarCutterViewModelImpl(
     }
 
     override val avatarImage: StateFlow<ByteArray?> = _avatarImage.asStateFlow()
+
+    override fun setAvatarImage(data: ByteArray?) {
+        _avatarImage.value = data
+    }
 
     override fun cancel() {
         onClose()

@@ -20,7 +20,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -123,7 +122,7 @@ class TimelineElementHolderViewModelTest {
                 )
             )
         }
-        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns emptyFlow()
+        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns flowOf(null)
 
         receipts.value = mapOf()
     }
@@ -278,17 +277,20 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `isSent » should be false when outbox contains replaced element`() = runTest {
-        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf(flowOf(RoomOutboxMessage(
-            roomId = roomId,
-            transactionId = "",
-            createdAt = Instant.DISTANT_PAST,
-            content = object : MessageEventContent {
-                override val relatesTo: RelatesTo = RelatesTo.Replace(eventId = eventId)
-                override val externalUrl: String? = null
-                override val mentions: Mentions? = null
-            }
-        ))))
-        val timeline = timeline(roomServiceMock, roomId) {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(
+            listOf(
+                flowOf(
+                    RoomOutboxMessage(
+                        roomId = roomId,
+                        transactionId = "",
+                        createdAt = Instant.DISTANT_PAST,
+                        content = object : MessageEventContent {
+                            override val relatesTo: RelatesTo = RelatesTo.Replace(eventId = eventId)
+                            override val externalUrl: String? = null
+                            override val mentions: Mentions? = null
+                        }
+                    ))))
+        timeline(roomServiceMock, roomId) {
             +timelineEvent
         }
 
@@ -300,18 +302,21 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `isSent » should be true when outbox element is sent`() = runTest {
-        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf(flowOf(RoomOutboxMessage(
-            roomId = roomId,
-            transactionId = "",
-            createdAt = Instant.DISTANT_PAST,
-            sentAt = Instant.DISTANT_PAST,
-            content = object : MessageEventContent {
-                override val relatesTo: RelatesTo = RelatesTo.Replace(eventId = eventId)
-                override val externalUrl: String? = null
-                override val mentions: Mentions? = null
-            }
-        ))))
-        val timeline = timeline(roomServiceMock, roomId) {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(
+            listOf(
+                flowOf(
+                    RoomOutboxMessage(
+                        roomId = roomId,
+                        transactionId = "",
+                        createdAt = Instant.DISTANT_PAST,
+                        sentAt = Instant.DISTANT_PAST,
+                        content = object : MessageEventContent {
+                            override val relatesTo: RelatesTo = RelatesTo.Replace(eventId = eventId)
+                            override val externalUrl: String? = null
+                            override val mentions: Mentions? = null
+                        }
+                    ))))
+        timeline(roomServiceMock, roomId) {
             +timelineEvent
         }
 
@@ -629,10 +634,76 @@ class TimelineElementHolderViewModelTest {
         continually(2.seconds) { eventElement.value shouldBeSameInstanceAs currentViewModel }
     }
 
+    @Test
+    fun `isReplaced » ignoreReplacedEvents is false » should be false`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        timeline(roomServiceMock, roomId) {
+            +timelineEvent
+        }
+        val cut = cut(eventId = eventId, ignoreReplacedEvents = false)
+
+        backgroundScope.launch { cut.isReplaced.collect() }
+        eventually(100.milliseconds) {
+            cut.isReplaced.value shouldBe false
+        }
+    }
+
+    @Test
+    fun `isReplaced » should be true when new content in outbox`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(
+            listOf(
+                flowOf(
+                    RoomOutboxMessage(
+                        roomId = roomId,
+                        transactionId = "",
+                        createdAt = Instant.DISTANT_PAST,
+                        content = object : MessageEventContent {
+                            override val relatesTo: RelatesTo =
+                                RelatesTo.Replace(eventId = eventId, newContent = TextBased.Text("edit"))
+                            override val externalUrl: String? = null
+                            override val mentions: Mentions? = null
+                        }
+                    ))))
+        timeline(roomServiceMock, roomId) {
+            +timelineEvent
+        }
+        val cut = cut(eventId = eventId)
+
+        backgroundScope.launch { cut.isReplaced.collect() }
+        eventually(100.milliseconds) {
+            cut.isReplaced.value shouldBe true
+        }
+    }
+
+
+    @Test
+    fun `isReplaced » should be true when replaced`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        every { roomServiceMock.getTimelineEventRelations(roomId, eventId, RelationType.Replace) } returns flowOf(
+            mapOf(
+                EventId("0") to flowOf(TimelineEventRelation(roomId, EventId("0"), RelationType.Replace, eventId))
+            )
+        )
+        timeline(roomServiceMock, roomId) {
+            +timelineEvent
+            +messageEvent(sender = alice) {
+                text("edit")
+            }
+        }
+        val cut = cut(eventId = eventId)
+
+        backgroundScope.launch { cut.isReplaced.collect() }
+        eventually(100.milliseconds) {
+            cut.isReplaced.value shouldBe true
+        }
+
+    }
+
     private fun TestScope.cut(
         timelineEvent: TimelineEvent = this@TimelineElementHolderViewModelTest.timelineEvent,
         timelineEventFlow: Flow<TimelineEvent>? = null,
-        eventId: EventId = timelineEvent.eventId
+        eventId: EventId = timelineEvent.eventId,
+        ignoreReplacedEvents: Boolean = true,
     ): TimelineElementHolderViewModel {
         every { roomServiceMock.getTimelineEvent(roomId, eventId) } returns flowOf(timelineEvent)
         return TimelineElementHolderViewModelImpl(
@@ -650,7 +721,7 @@ class TimelineElementHolderViewModelTest {
                 .map { it?.eventId == eventId },
             showLoadingIndicatorBefore = flowOf(false),
             showLoadingIndicatorAfter = flowOf(false),
-            ignoreReplacedEvents = false,
+            ignoreReplacedEvents = ignoreReplacedEvents,
             getReceipts = { receipts },
             timelineEventFlow = timelineEventFlow ?: flowOf(timelineEvent),
             onMessageReplace = mock(),

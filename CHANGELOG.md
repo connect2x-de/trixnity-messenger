@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added an additional test case for empty user search results
+- Add setAvatarImage function to AvatarCutterViewModel
+- Add tests for various logic
 
 ### Changed
 
 - Name "privacy" settings to "privacy and security" settings
+- Show readers and reactions of first instead of last revision of a message in `TimelineElementMetadataView`
+- UserSearchHandler's foundUsers is now eagerly computed
 - Styling: Use theme components for dialogs
 
 ### Deprecated
@@ -23,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Display avatar correctly cropped in message metadata view
+- End URLs on whitespace
+- Fixed tooltip appears too fast in `TimelineElementMetadataView`
+- Fixed "edited" is shown in the wrong place in `TimelineElementMetadataViewModel`
 
 ### Security
 
@@ -72,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed user search results not being cleared when search term is empty
 - Fix crash when selecting user search results
 - Export Button was disabled on web
+- Fix: Emoji Selector keyboard navigation
 
 ## 3.5.7
 

@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -58,7 +59,6 @@ import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.roomId
 import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.store.unsigned
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction
@@ -102,13 +102,11 @@ interface TimelineElementHolderViewModelFactory {
         onOpenMention: OpenMentionCallback,
         onOpenMetadata: (eventId: EventId) -> Unit,
         jumpTo: (roomId: RoomId, eventId: EventId) -> Unit,
-        showOriginal: Boolean = false,
     ): TimelineElementHolderViewModel =
         TimelineElementHolderViewModelImpl(
             viewModelContext = viewModelContext,
             key = key,
             timelineEventFlow = timelineEventFlow,
-            showOriginal = showOriginal,
             roomId = roomId,
             eventId = eventId,
             senderUserId = sender,
@@ -172,7 +170,6 @@ class TimelineElementHolderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val key: String,
     timelineEventFlow: Flow<TimelineEvent>,
-    showOriginal: Boolean = false,
     override val roomId: RoomId,
     override val eventId: EventId,
     private val senderUserId: UserId,
@@ -244,20 +241,18 @@ class TimelineElementHolderViewModelImpl(
         (message?.content?.relatesTo as? RelatesTo.Replace)?.eventId == eventId
 
     private val outboxElementIfReplaced: SharedFlow<RoomOutboxMessage<*>?> =
-        if (showOriginal) {
-            MutableStateFlow(null)
-        } else {
-            matrixClient.room.getOutbox(roomId).flatten()
-                .map { outbox -> outbox.reversed().firstOrNull { isEventReplaced(it) } }
-                .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
-        }
+        if (!ignoreReplacedEvents) MutableStateFlow(null)
+        else matrixClient.room.getOutbox(roomId).flatten()
+            .map { outbox -> outbox.reversed().firstOrNull { isEventReplaced(it) } }
+            .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
     private val newContentIfReplaced: SharedFlow<MessageEventContent?> =
         outboxElementIfReplaced.map { (it?.content?.relatesTo as? RelatesTo.Replace)?.newContent }
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
     override val isReplaced: StateFlow<Boolean> =
-        combine(
+        if (!ignoreReplacedEvents) MutableStateFlow(false).asStateFlow()
+        else combine(
             newContentIfReplaced,
             matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId)
         ) { newContentIfReplaced, replaceAggregation ->
@@ -304,7 +299,7 @@ class TimelineElementHolderViewModelImpl(
                 newContent != null -> Result.success(newContent)
                 else -> timelineEvent.content?.map { content ->
                     val relatesTo = (content as? MessageEventContent)?.relatesTo
-                    if (showOriginal && relatesTo is RelatesTo.Replace) {
+                    if (!ignoreReplacedEvents && relatesTo is RelatesTo.Replace) {
                         val replacement = relatesTo.newContent
                         if (replacement != null)
                             return@map replacement
@@ -430,13 +425,11 @@ class TimelineElementHolderViewModelImpl(
     override val isByMe: Boolean = senderUserId == userId
 
     private val lastReplacement =
-        if (showOriginal) {
-            MutableStateFlow(null)
-        } else {
-            matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId)
-                .map { it.replacedBy }
-                .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
-        }
+        if (!ignoreReplacedEvents) MutableStateFlow(null)
+        else matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId)
+            .map { it.replacedBy }
+            .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+
 
     private val getEventReaders = get<GetEventReaders>()
 
