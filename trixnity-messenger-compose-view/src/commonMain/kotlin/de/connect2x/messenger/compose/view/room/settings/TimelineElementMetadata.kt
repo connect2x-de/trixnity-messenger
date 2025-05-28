@@ -230,9 +230,7 @@ private fun UserInfo(
             append(i18n.timelineElementMetadataUserInfoTooltipReactions(compiledReactionsList))
         }
     }
-    Tooltip(
-        { TooltipText(tooltipText) },
-    ) {
+    Tooltip({ TooltipText(tooltipText) }) {
         Row(
             Modifier
                 .fillMaxWidth()
