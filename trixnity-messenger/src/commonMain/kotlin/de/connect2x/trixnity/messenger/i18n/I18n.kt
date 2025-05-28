@@ -178,6 +178,11 @@ open class I18n(
     }
 
     open fun eventChangeBan(username: String, banner: String, groupOrChat: String, reason: String? = null) = translate {
+        EN - "$username has been permanently removed by $banner from $groupOrChat${if (reason == null) "" else " because \"$reason\""}"
+        DE - "$username wurde von $banner aus $groupOrChat permanent ausgeschlossen${if (reason == null) "" else ", da \"$reason\""}"
+    }
+
+    open fun eventChangeKick(username: String, banner: String, groupOrChat: String, reason: String? = null) = translate {
         EN - "$username has been removed by $banner from $groupOrChat${if (reason == null) "" else " because \"$reason\""}"
         DE - "$username wurde von $banner aus $groupOrChat ausgeschlossen${if (reason == null) "" else ", da \"$reason\""}"
     }

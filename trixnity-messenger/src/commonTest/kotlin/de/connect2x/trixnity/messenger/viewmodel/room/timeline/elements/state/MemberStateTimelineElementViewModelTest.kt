@@ -161,6 +161,7 @@ class MemberStateTimelineElementViewModelTest {
     fun `leaving user » should show an indicator for user leaving a room`() = runTest {
         val cut = memberStatusViewModel(
             mockTimelineEvent(
+                senderId = UserId("@bob:localhost"),
                 membership = Membership.LEAVE,
                 previousMemberEventContent = memberEventContent(membership = Membership.JOIN),
                 stateKey = "@bob:localhost",
@@ -183,7 +184,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory has been removed by Sender from the group"
+            cut.changeMessage.value shouldBe "Mallory has been permanently removed by Sender from the group"
         }
     }
 
@@ -192,6 +193,37 @@ class MemberStateTimelineElementViewModelTest {
         val cut = memberStatusViewModel(
             mockTimelineEvent(
                 membership = Membership.BAN,
+                previousMemberEventContent = memberEventContent(membership = Membership.JOIN),
+                stateKey = "@mallory:localhost",
+                reason = "he spammed our chat :("
+            ),
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe "Mallory has been permanently removed by Sender from the group because \"he spammed our chat :(\""
+        }
+    }
+
+    @Test
+    fun `banned user » should show an indicator for user being kicked from a room`() = runTest {
+        val cut = memberStatusViewModel(
+            mockTimelineEvent(
+                membership = Membership.LEAVE,
+                previousMemberEventContent = memberEventContent(membership = Membership.JOIN),
+                stateKey = "@mallory:localhost",
+            ),
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe "Mallory has been removed by Sender from the group"
+        }
+    }
+
+    @Test
+    fun `banned user » should show an indicator with reason for user being kicked from a room`() = runTest {
+        val cut = memberStatusViewModel(
+            mockTimelineEvent(
+                membership = Membership.LEAVE,
                 previousMemberEventContent = memberEventContent(membership = Membership.JOIN),
                 stateKey = "@mallory:localhost",
                 reason = "he spammed our chat :("

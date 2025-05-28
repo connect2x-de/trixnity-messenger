@@ -129,7 +129,9 @@ class MemberStateTimelineElementViewModelImpl(
                     when (content.membership) {
                         Membership.INVITE -> i18n.eventChangeInvite(thisUsername, username, content.reason)
                         Membership.JOIN -> i18n.eventChangeJoin(thisUsername, groupOrChatDative)
-                        Membership.LEAVE -> i18n.eventChangeLeave(thisUsername, groupOrChatAccusative)
+                        Membership.LEAVE ->
+                            if (senderIsStateKey) i18n.eventChangeLeave(thisUsername, groupOrChatAccusative)
+                            else i18n.eventChangeKick(thisUsername, username, groupOrChatDative, content.reason)
                         Membership.BAN -> i18n.eventChangeBan(thisUsername, username, groupOrChatDative, content.reason)
                         Membership.KNOCK -> i18n.eventChangeKnock(thisUsername, groupOrChatDative, content.reason)
                     }
