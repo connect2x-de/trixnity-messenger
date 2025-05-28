@@ -38,10 +38,9 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
     private val downloadManager = viewModelContext.get<DownloadManager>()
 
-    private val _loadMedia: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
-    override val loadMediaResult: StateFlow<ByteArray?> = _loadMedia.asStateFlow()
-    private val _loadMediaProgress: MutableStateFlow<FileTransferProgressElement?> =
-        MutableStateFlow<FileTransferProgressElement?>(null)
+    private val _loadMediaResult: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
+    override val loadMediaResult: StateFlow<ByteArray?> = _loadMediaResult.asStateFlow()
+    private val _loadMediaProgress: MutableStateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
     override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = _loadMediaProgress.asStateFlow()
     private val _loadMediaError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val loadMediaError: StateFlow<String?> = _loadMediaError.asStateFlow()
@@ -57,7 +56,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     override fun loadMedia() {
         activeLoadMedia.value?.cancel("new load media started")
 
-        _loadMedia.value = null
+        _loadMediaResult.value = null
         _loadMediaProgress.value = null
         _loadMediaError.value = null
         _loadMediaProgress.value = FileTransferProgressElement(
@@ -81,7 +80,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                 resultAsync.await()
                     .onSuccess {
                         val maxMediaSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-                        _loadMedia.value = it.limitSize(maxMediaSize).catch { e ->
+                        _loadMediaResult.value = it.limitSize(maxMediaSize).catch { e ->
                             if (e.cause is MaxByteFlowSizeException) {
                                 _loadMediaError.value = i18n.mediaTooLargeForPreview()
                             } else {
