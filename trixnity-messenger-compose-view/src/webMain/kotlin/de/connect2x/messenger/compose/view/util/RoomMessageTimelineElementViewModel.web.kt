@@ -9,6 +9,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import io.ktor.http.ContentType
 import org.khronos.webgl.Uint8Array
 import org.w3c.files.Blob
+import web.errors.DOMException
+import web.errors.DOMException.Companion.NotFoundError
 import web.clipboard.ClipboardItem as NativeClipboardItem
 import kotlin.js.Promise
 
@@ -60,9 +62,9 @@ actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
                 override val types: Array<String> = items.keys.toTypedArray()
 
                 override fun getType(type: String): Promise<Blob> {
-                    return Promise.resolve(
-                        items[type] ?: items[ContentType.Text.Plain.toString()]!!
-                    )
+                    return items[type]?.let {
+                        Promise.resolve(it)
+                    } ?: Promise.reject(DOMException("No representation of $type found", NotFoundError))
                 }
             }
         )
