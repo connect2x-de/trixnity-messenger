@@ -181,6 +181,7 @@ suspend fun MatrixMessengerWithRoot.createChatWithUser(username: String) = with(
         log.debug { "search for user '$username'" }
         val searchHandler = createNewChatViewModel.createNewRoomViewModel.searchHandler
         searchHandler.searchTerm.update(username)
+        searchHandler.waitForUserResults.first { it }
         searchHandler.waitForUserResults.first { it.not() }
         val users = searchHandler.foundUsers.first { users -> users.any { it.displayName == username } }
         createNewChatViewModel.onUserClick(users.first())
@@ -195,7 +196,9 @@ suspend fun MatrixMessengerWithRoot.createChatWithUser(username: String) = with(
             }
         }.first { it }
         log.debug { "found room -> return" }
-        sortedRoomListElementViewModels.value.filter { !it.isLeave.debounce(100.milliseconds).filterNotNull().first() }
+        sortedRoomListElementViewModels.value.filter {
+            !it.isLeave.debounce(100.milliseconds).filterNotNull().first()
+        }
             .first { it.roomName.value == username }
     }
 }
@@ -313,7 +316,8 @@ suspend fun MatrixMessengerWithRoot.getAllRooms(username: String) = with(root) {
 suspend fun MatrixMessengerWithRoot.sendMessage(roomId: RoomId, message: String) = with(root) {
     withTimeout(20.seconds) {
         val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
-        val roomListViewModel = mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
+        val roomListViewModel =
+            mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
         roomListViewModel.selectRoom(roomId)
         val roomViewModel = mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
         val timelineViewModel = roomViewModel.timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
@@ -334,7 +338,8 @@ suspend fun MatrixMessengerWithRoot.sendMessage(roomId: RoomId, message: String)
 suspend fun MatrixMessengerWithRoot.findMessage(roomId: RoomId, message: String): Boolean = with(root) {
     withTimeoutOrNull(10.seconds) {
         val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
-        val roomListViewModel = mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
+        val roomListViewModel =
+            mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
         roomListViewModel.selectRoom(roomId)
         val roomViewModel = mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
         findTimelineElement<TimelineElementHolderViewModel>(roomViewModel) { vm ->
@@ -512,7 +517,8 @@ suspend fun MatrixMessengerWithRoot.initiateUserVerification(roomId: RoomId, use
     withTimeout(20.seconds) {
         val roomViewModel = goToRoom(roomId)
         roomViewModel.openUserProfile(userId)
-        val userProfileViewModel = roomViewModel.extrasStack.waitFor(ExtrasRouter.Wrapper.UserProfile::class).viewModel
+        val userProfileViewModel =
+            roomViewModel.extrasStack.waitFor(ExtrasRouter.Wrapper.UserProfile::class).viewModel
         userProfileViewModel.startVerification()
         log.debug { "started user verification" }
         delay(1.seconds) // wait for request to finish
@@ -569,7 +575,6 @@ suspend fun MatrixMessengerWithRoot.originalClientAcceptVerificationWithEmoji(ro
     val compareViewModel =
         verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.CompareEmojisOrNumbers::class).viewModel
     compareViewModel.accept()
-    verificationViewModel.stack.waitFor(VerificationViewModel.Wrapper.Success::class)
     val roomViewModel = goToRoom(roomId)
     val done =
         findTimelineElement<VerificationDoneTimelineElementViewModel, BaseTimelineElementHolderViewModel>(
