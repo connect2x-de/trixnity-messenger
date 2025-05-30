@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -66,7 +67,7 @@ class RoomHeaderViewModelTest {
         )
     )
 
-    private val otherUser = UserId("cob", "localhost")
+    private val otherUser = UserId("lala", "localhost")
     private val otherRoomUser = RoomUser(
         roomId, otherUser, otherUser.full, StateEvent(
             MemberEventContent(membership = Membership.JOIN),
@@ -105,6 +106,7 @@ class RoomHeaderViewModelTest {
     private var roomNameElement: BlockingAnsweringScope<Flow<String>>
     private var roomTopicElement: BlockingAnsweringScope<Flow<String>>
     private var ignoredUsers: BlockingAnsweringScope<Flow<IgnoredUserListEventContent?>>
+    private val room = MutableStateFlow<Room?>(null)
 
     init {
         resetMocks(
@@ -155,9 +157,8 @@ class RoomHeaderViewModelTest {
         )
 
         every { initialsMock.compute(any()) } returns "MR"
-        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
-            Room(roomId, avatarUrl = "mxc://localhost/123456")
-        )
+        room.value = Room(roomId, avatarUrl = "mxc://localhost/123456")
+        every { roomServiceMock.getById(roomId) } returns room
         every {
             roomServiceMock.getState(
                 any(),
@@ -240,6 +241,7 @@ class RoomHeaderViewModelTest {
     fun `react to changes in the user's trust level`() = runTest {
         val trustLevel = MutableStateFlow<UserTrustLevel>(UserTrustLevel.CrossSigned(verified = true))
         val directRoom = MutableStateFlow(listOf(otherUser))
+        room.update { it?.copy(isDirect = true) }
         every { directRoomMock.getUsers(any(), eq(roomId)) } returns directRoom
         every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns trustLevel
 
@@ -262,6 +264,7 @@ class RoomHeaderViewModelTest {
     @Test
     fun `allow to verify other user if not yet verified and vice versa`() = runTest {
         val trustLevel = MutableStateFlow(UserTrustLevel.CrossSigned(verified = false))
+        room.update { it?.copy(isDirect = true) }
         every { directRoomMock.getUsers(any(), eq(roomId)) } returns flowOf(listOf(otherUser))
         every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns trustLevel
 
@@ -294,6 +297,7 @@ class RoomHeaderViewModelTest {
         runTest {
             val ignoredUsersEventContent = MutableStateFlow(IgnoredUserListEventContent(mapOf()))
             ignoredUsers returns ignoredUsersEventContent
+            room.update { it?.copy(isDirect = true) }
             every { directRoomMock.getUsers(any(), eq(roomId)) } returns flowOf(listOf(otherUser))
             every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns flowOf(
                 UserTrustLevel.CrossSigned(verified = false)
@@ -330,6 +334,7 @@ class RoomHeaderViewModelTest {
         cut.canBlockUser.value shouldBe false
         cut.canUnblockUser.value shouldBe false
 
+        room.update { it?.copy(isDirect = true) }
         directRoom.value = listOf(otherUser)
         delay(100)
 
