@@ -8,9 +8,12 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.Presence
+import net.folivo.trixnity.core.model.events.m.room.Membership
 
 interface RoomPresence {
     operator fun invoke(
@@ -28,18 +31,36 @@ class RoomPresenceImpl(
         matrixClient: MatrixClient,
         roomId: RoomId,
     ): Flow<Presence?> =
-        directRoom.getUsers(matrixClient, roomId)
-            .map { it - matrixClient.userId }
-            .flatMapLatest { directUsers ->
-                if (directUsers.isEmpty()) flowOf(null)
-                else combine(directUsers.map {
-                    matrixClient.user.getPresence(it).map { it?.presence }.distinctUntilChanged()
-                }) { userPresences ->
-                    when {
-                        userPresences.any { it == Presence.ONLINE } -> Presence.ONLINE
-                        userPresences.any { it == Presence.UNAVAILABLE } -> Presence.UNAVAILABLE
-                        else -> Presence.OFFLINE
-                    }
-                }
+        matrixClient.room.getById(roomId).map { it?.isDirect == true }.distinctUntilChanged()
+            .flatMapLatest { isDirect ->
+                if (isDirect)
+                    directRoom.getUsers(matrixClient, roomId)
+                        .map { it - matrixClient.userId }
+                        .flatMapLatest { directUsers ->
+                            if (directUsers.isEmpty()) flowOf(emptyList())
+                            else combine(directUsers.map { directUser ->
+                                matrixClient.user.getById(roomId, directUser)
+                                    .map { roomUser -> if (roomUser != null) roomUser.userId to roomUser.membership else null }
+                                    .distinctUntilChanged()
+                            }) { directUsersWithMembership ->
+                                directUsersWithMembership
+                                    .filterNotNull()
+                                    .filter { it.second == Membership.JOIN }
+                                    .map { it.first }
+                            }
+                        }
+                        .flatMapLatest { directUsers ->
+                            if (directUsers.isEmpty()) flowOf(null)
+                            else combine(directUsers.map {
+                                matrixClient.user.getPresence(it).map { it?.presence }.distinctUntilChanged()
+                            }) { userPresences ->
+                                when {
+                                    userPresences.any { it == Presence.ONLINE } -> Presence.ONLINE
+                                    userPresences.any { it == Presence.UNAVAILABLE } -> Presence.UNAVAILABLE
+                                    else -> Presence.OFFLINE
+                                }
+                            }
+                        }
+                else flowOf(null)
             }
 }
