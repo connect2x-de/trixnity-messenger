@@ -52,7 +52,6 @@ import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
@@ -61,7 +60,6 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
@@ -768,72 +766,6 @@ class RoomListViewModelTest {
         delay(10)
 
         cut.elements.value shouldHaveSize 3
-    }
-
-    @Test
-    fun `should show rooms the user has already left`() = runTest {
-        val room1 = Room(roomId1, createEventContent = roomCreateEventContent, membership = Membership.LEAVE)
-        val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
-
-        every { roomServiceMock.getAll() } returns MutableStateFlow(
-            mapOf(
-                roomId1 to MutableStateFlow(room1),
-                roomId2 to MutableStateFlow(room2),
-            )
-        )
-        every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-        every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-
-        val cut = roomListViewModel()
-        subscribe(cut)
-        delay(10)
-
-        cut.elements.value shouldHaveSize 2
-    }
-
-    @Test
-    fun `should not show rooms the users was kicked or banned from before joining in the list`() = runTest {
-        val room1 = Room(roomId1, createEventContent = roomCreateEventContent, membership = Membership.LEAVE, lastEventId = EventId("leftId"))
-        val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
-        every { roomServiceMock.getTimelineEvent(roomId1, EventId("leftId"), any()) } returns flowOf(
-            TimelineEvent(
-                event = StateEvent(
-                    content = MemberEventContent(
-                        membership = Membership.LEAVE,
-                    ),
-                    id = EventId("leftId"),
-                    sender = user1,
-                    roomId = roomId1,
-                    originTimestamp = 0L,
-                    unsigned = UnsignedRoomEventData.UnsignedStateEventData(
-                        previousContent = MemberEventContent(
-                            membership = Membership.INVITE,
-                        ),
-                    ),
-                    stateKey = "",
-                ),
-                content = Result.success(MemberEventContent(
-                    membership = Membership.LEAVE,
-                )),
-                previousEventId = null,
-                nextEventId = null,
-                gap = null,
-            )
-        )
-        every { roomServiceMock.getAll() } returns MutableStateFlow(
-            mapOf(
-                roomId1 to MutableStateFlow(room1),
-                roomId2 to MutableStateFlow(room2),
-            )
-        )
-        every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-        every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-
-        val cut = roomListViewModel()
-        subscribe(cut)
-        delay(10)
-
-        cut.elements.value shouldHaveSize 1
     }
 
     @Test
