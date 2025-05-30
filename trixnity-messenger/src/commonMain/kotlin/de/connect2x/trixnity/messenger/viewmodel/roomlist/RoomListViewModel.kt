@@ -50,17 +50,14 @@ import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.unsigned
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.milliseconds
@@ -322,24 +319,12 @@ class RoomListViewModelImpl(
                 )
 
                 val relevantRooms = roomsWithMeta.values.asFlow()
-                    .filter { (room, matrixClient) ->
+                    .filter { (room, _) ->
                         val isSpace = room.createEventContent?.type == RoomType.Space
                         val includedInSearch = searchedRooms.contains(room.roomId)
                         val isDisplayed = !isSpace &&
-                                (room.membership == Membership.INVITE ||
-                                        room.membership == Membership.JOIN ||
-                                        room.membership == Membership.KNOCK ||
-                                        (room.membership == Membership.LEAVE &&
-                                                room.lastEventId?.let { eventId ->
-                                                    val previousMembership =
-                                                        ((matrixClient.room.getTimelineEvent(room.roomId, eventId)
-                                                            .first()?.unsigned as? UnsignedRoomEventData.UnsignedStateEventData)
-                                                            ?.previousContent as? MemberEventContent)
-                                                            ?.membership
-                                                    previousMembership == Membership.JOIN
-                                                } ?: true)
-                                        )
-                                && includedInSearch
+                                (room.membership == Membership.INVITE || room.membership == Membership.JOIN || room.membership == Membership.LEAVE || room.membership == Membership.KNOCK) &&
+                                includedInSearch
                         isDisplayed
                     }.onEach { log.trace { "filtered rooms: $it" } }
                     .map { roomWithMeta ->
@@ -559,7 +544,6 @@ class PreviewRoomListViewModel : RoomListViewModel {
                 PreviewRoomListElementViewModel3(),
             )
         )
-
     @Deprecated("Api cleanup", replaceWith = ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
     override val syncStateError: MutableStateFlow<Map<UserId, Boolean>> = MutableStateFlow(mapOf())
 

@@ -55,7 +55,7 @@ class RoomListElementViewImpl : RoomListElementView {
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value
         val isLeave = roomListElementViewModel.isLeave.collectAsState().value
         val isLoaded = roomListElementViewModel.isLoaded.collectAsState().value
-        val isKnock = roomListElementViewModel.isKnock.collectAsState().value
+        val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
 
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
             MatrixClientColor(roomListElementViewModel)
