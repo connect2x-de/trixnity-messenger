@@ -336,6 +336,11 @@ open class I18nView(
         DE - "absenden"
     }
 
+    open fun commonShowTooltip() = translate {
+        EN - "show tooltip"
+        DE - "tooltip anzeigen"
+    }
+
     open fun ban() = translate {
         EN - "ban"
         DE - "Bannen"
