@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show readers and reactions of first instead of last revision of a message in `TimelineElementMetadataView`
 - UserSearchHandler's foundUsers is now eagerly computed
 - Make tooltip show/hide delays configurable
+- Rooms that were not joined before and are left are not displayed as archived rooms
 - Persist presence
 
 ### Deprecated
