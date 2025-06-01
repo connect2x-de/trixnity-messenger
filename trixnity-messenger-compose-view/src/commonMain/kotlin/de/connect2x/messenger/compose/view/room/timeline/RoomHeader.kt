@@ -46,9 +46,10 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedInfoChip
+import de.connect2x.messenger.compose.view.theme.components.ThemedLabel
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
-import de.connect2x.messenger.compose.view.util.TextLabel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderInfo
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModel
 
@@ -156,7 +157,7 @@ class RoomHeaderViewImpl : RoomHeaderView {
                                         RoomName(roomHeaderElement)
                                         Spacer(Modifier.size(7.dp))
                                         if (roomHeaderElement.isLeave) {
-                                            TextLabel(i18n.commonArchived())
+                                            ThemedLabel(i18n.commonArchived())
                                         }
                                     }
                                     if (usersTyping != null) {
