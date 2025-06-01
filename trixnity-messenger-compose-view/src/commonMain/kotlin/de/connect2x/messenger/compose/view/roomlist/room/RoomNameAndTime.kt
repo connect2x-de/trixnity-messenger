@@ -21,12 +21,8 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewMod
 
 @Composable
 fun RoomName(roomName: String?, modifier: Modifier = Modifier) {
-    Tooltip(
-        { TooltipText(roomName ?: " ") },
-        modifier,
-        delayMillis = 1_000,
-    ) {
-        Row {
+    Tooltip({ TooltipText(roomName ?: " ") }) {
+        Row(modifier) {
             SelectableText(
                 text = roomName ?: " ",
                 style = MaterialTheme.typography.labelLarge,

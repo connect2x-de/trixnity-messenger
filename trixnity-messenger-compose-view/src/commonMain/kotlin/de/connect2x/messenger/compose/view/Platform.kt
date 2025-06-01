@@ -2,13 +2,16 @@ package de.connect2x.messenger.compose.view
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
+import de.connect2x.messenger.compose.view.theme.components
 import org.koin.core.Koin
+import kotlin.time.Duration
 
 @Composable
 expect fun VerticalScrollbar(
@@ -40,9 +43,11 @@ expect fun HorizontalScrollbar(
 expect fun Tooltip(
     tooltip: @Composable () -> Unit,
     modifier: Modifier = Modifier,
-    delayMillis: Int = 500,
     onClick: (() -> Unit)? = null,
     enabled: Boolean = true,
+    longPressDelay: Duration = MaterialTheme.components.tooltip.longPressDelay,
+    hoverShowDelay: Duration = MaterialTheme.components.tooltip.hoverShowDelay,
+    hoverHideDelay: Duration = MaterialTheme.components.tooltip.hoverHideDelay,
     content: @Composable () -> Unit,
 )
 

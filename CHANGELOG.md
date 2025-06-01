@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Name "privacy" settings to "privacy and security" settings
 - Show readers and reactions of first instead of last revision of a message in `TimelineElementMetadataView`
 - UserSearchHandler's foundUsers is now eagerly computed
+- Make tooltip show/hide delays configurable
 - Styling: Use theme components for dialogs
 
 ### Deprecated
