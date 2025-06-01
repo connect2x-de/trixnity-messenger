@@ -82,6 +82,7 @@ fun ImageMessageBubblePreview() {
         override val thumbnail: StateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
         override val width: Int? = 40
         override val height: Int? = 40
+        override val thumbnailLoading: StateFlow<Boolean> = MutableStateFlow(false)
 
         override val name: String = "kiwi.png"
         override val description: String? = null

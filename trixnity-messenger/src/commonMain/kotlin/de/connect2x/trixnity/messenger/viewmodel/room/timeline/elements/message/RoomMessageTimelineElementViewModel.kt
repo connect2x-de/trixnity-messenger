@@ -64,6 +64,7 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
 
         interface Image : FileBased<RoomMessageEventContent.FileBased.Image> {
             val thumbnail: StateFlow<ByteArray?>
+            val thumbnailLoading: StateFlow<Boolean>
             val width: Int?
             val height: Int?
         }
