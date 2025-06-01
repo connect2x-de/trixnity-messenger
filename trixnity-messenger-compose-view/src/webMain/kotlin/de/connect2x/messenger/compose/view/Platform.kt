@@ -10,32 +10,25 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.areAnyPressed
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
+import de.connect2x.messenger.compose.view.common.tooltipAnchorSemantics
+import de.connect2x.messenger.compose.view.common.tooltipGestures
+import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components.ThemedPlainTooltip
 import kotlinx.browser.window
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.await
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.koin.core.Koin
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.time.Duration
 
 @Composable
 actual fun VerticalScrollbar(
@@ -77,62 +70,32 @@ actual fun HorizontalScrollbar(
     reverseLayout,
 )
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class, ExperimentalAtomicApi::class)
 @Composable
 actual fun Tooltip(
     tooltip: @Composable () -> Unit,
     modifier: Modifier,
-    delayMillis: Int,
     onClick: (() -> Unit)?,
     enabled: Boolean,
+    longPressDelay: Duration,
+    hoverShowDelay: Duration,
+    hoverHideDelay: Duration,
     content: @Composable () -> Unit,
 ) {
-    val tooltipState = rememberTooltipState(isPersistent = true)
-    var parentBounds by remember { mutableStateOf(Rect.Zero) }
+    val i18n = DI.current.get<I18nView>()
+    val tooltipState = rememberTooltipState()
     val scope = rememberCoroutineScope()
-    var job: Job? by remember { mutableStateOf(null) }
-
-    fun startShowing() {
-        if (job?.isActive == true) {  // Don't restart the job if it's already active
-            return
-        }
-        job = scope.launch {
-            delay(delayMillis.toLong())
-            tooltipState.show()
-        }
-    }
-
-    fun hide() {
-        job?.cancel()
-        job = null
-        tooltipState.dismiss()
-    }
-
-    fun hideIfNotHovered(globalPosition: Offset) {
-        if (!parentBounds.contains(globalPosition)) {
-            hide()
-        }
-    }
 
     TooltipBox(
         modifier = Modifier
-            .onGloballyPositioned { parentBounds = it.boundsInWindow() }
-            .onPointerEvent(PointerEventType.Enter) {
-                if (!tooltipState.isVisible && !it.buttons.areAnyPressed && enabled) {
-                    startShowing()
-                }
-            }
-            .onPointerEvent(PointerEventType.Move) {
-                if (!tooltipState.isVisible && !it.buttons.areAnyPressed && enabled) {
-                    startShowing()
-                }
-            }
-            .onPointerEvent(PointerEventType.Exit) {
-                hideIfNotHovered(parentBounds.topLeft + it.changes.first().position)
-            }
-            .onPointerEvent(PointerEventType.Press, pass = PointerEventPass.Initial) {
-                hide()
-            },
+            .tooltipGestures(
+                enabled = enabled,
+                state = tooltipState,
+                longPressDelay = longPressDelay,
+                hoverShowDelay = hoverShowDelay,
+                hoverHideDelay = hoverHideDelay,
+            )
+            .tooltipAnchorSemantics(i18n.commonShowTooltip(), enabled, tooltipState, scope),
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
         tooltip = { ThemedPlainTooltip { tooltip() } },
         state = tooltipState,

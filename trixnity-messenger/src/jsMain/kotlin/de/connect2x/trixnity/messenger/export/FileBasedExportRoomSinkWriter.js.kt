@@ -89,14 +89,14 @@ class WebZipFileBasedExportRoomSinkWriter(
 
         mediaStream.close()
 
-        zipWriter.add("media/${filename}", BlobReader(mediaFile.getFile())).await()
+        zipWriter.add("media/${filename}", BlobReader(mediaFile.getFile()))
     }
 
     override suspend fun finish() {
         textStream.close()
 
-        zipWriter.add(fileName, BlobReader(textFile.getFile())).await()
-        zipWriter.close().await()
+        zipWriter.add(fileName, BlobReader(textFile.getFile()))
+        zipWriter.close()
 
         val blobUrl = URL.createObjectURL(zipFile.getFile())
 
