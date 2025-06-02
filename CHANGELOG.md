@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UserSearchHandler's foundUsers is now eagerly computed
 - Make tooltip show/hide delays configurable
 - Styling: Use customizable components for labels
+- Persist presence
 
 ### Deprecated
 
