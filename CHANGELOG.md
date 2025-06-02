@@ -35,6 +35,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed tooltip appears too fast in `TimelineElementMetadataView`
 - Fixed "edited" is shown in the wrong place in `TimelineElementMetadataViewModel`
 - Send button is only active after the second char in the input field
+- Canceled or completed user verifications are shown correctly in the timeline (**Breaking change**: user verification
+  end states (canceled or done) have separate timeline view models now 
+  (MessageTimelineElementViewModel.VerificationCancel, MessageTimelineElementViewModel.VerificationDone))
 
 ### Security
 
