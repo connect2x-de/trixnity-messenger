@@ -139,12 +139,12 @@ import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviterImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomNameImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresenceImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopicImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlockingImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
-import de.connect2x.trixnity.messenger.viewmodel.util.UserPresenceImpl
 import de.connect2x.trixnity.messenger.viewmodel.verification.AcceptSasStartViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerifications
 import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerificationsImpl
@@ -243,7 +243,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<Thumbnails> { ThumbnailsImpl() }
             single<DirectRoom> { DirectRoomImpl() }
             single<ActiveVerifications> { ActiveVerificationsImpl() }
-            single<UserPresence> { UserPresenceImpl(get()) }
+            single<RoomPresence> { RoomPresenceImpl(get()) }
             single<Search> { SearchImpl(get(), get()) }
             single<RunInitialSync> { RunInitialSync }
             single<DragAndDropHandler> { DragAndDropHandlerBase() }

@@ -6,9 +6,10 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import de.connect2x.messenger.compose.view.theme.components.AvatarStyle
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.ChipStyle
+import de.connect2x.messenger.compose.view.theme.components.DialogStyle
 import de.connect2x.messenger.compose.view.theme.components.DividerStyle
-import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.FloatingActionButtonStyle
+import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.CircularProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
@@ -35,15 +36,21 @@ data class ComponentStyles(
     val switch: SwitchStyle,
     // surfaces
     val background: SurfaceStyle,
-    val dialog: SurfaceStyle,
     val popup: SurfaceStyle,
     val sidebar: SurfaceStyle,
     val details: SurfaceStyle,
     val header: SurfaceStyle,
     val timeline: SurfaceStyle,
+    // banners
     val errorBanner: SurfaceStyle,
     val warningBanner: SurfaceStyle,
     val commonBanner: SurfaceStyle,
+    // labels
+    val label: SurfaceStyle,
+    // dialogs
+    val dialog: SurfaceStyle,
+    val adaptiveDialog: DialogStyle,
+    val modalDialog: DialogStyle,
     // dividers
     val horizontalDivider: DividerStyle?,
     val verticalDivider: DividerStyle?,

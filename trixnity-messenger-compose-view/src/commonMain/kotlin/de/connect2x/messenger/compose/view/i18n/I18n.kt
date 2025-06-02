@@ -336,6 +336,11 @@ open class I18nView(
         DE - "absenden"
     }
 
+    open fun commonShowTooltip() = translate {
+        EN - "show tooltip"
+        DE - "tooltip anzeigen"
+    }
+
     open fun ban() = translate {
         EN - "ban"
         DE - "Bannen"
@@ -2822,6 +2827,24 @@ open class I18nView(
         EN - "Why do you wish to join? (Optional)"
         DE - "Warum möchtest du beitreten? (Optional)"
     }
+
+    fun actionCancel() = commonCancel().capitalize(Locale.current)
+    fun actionMore() = commonMore().capitalize(Locale.current)
+    fun actionClose() = commonClose().capitalize(Locale.current)
+    fun actionOk() = commonOk().capitalize(Locale.current)
+    fun actionBack() = commonBack().capitalize(Locale.current)
+    fun actionNext() = commonNext().capitalize(Locale.current)
+    fun actionRemove() = commonRemove().capitalize(Locale.current)
+    fun actionDelete() = commonDelete().capitalize(Locale.current)
+    fun actionCreate() = commonCreate().capitalize(Locale.current)
+    fun actionSelect() = commonSelect().capitalize(Locale.current)
+    fun actionCopy() = commonCopy().capitalize(Locale.current)
+    fun actionConfirm() = commonConfirm().capitalize(Locale.current)
+    fun actionExpand() = commonExpand().capitalize(Locale.current)
+    fun actionCollapse() = commonCollapse().capitalize(Locale.current)
+    fun actionZoomIn() = commonZoomIn().capitalize(Locale.current)
+    fun actionZoomOut() = commonZoomOut().capitalize(Locale.current)
+    fun actionSubmit() = commonSubmit().capitalize(Locale.current)
 }
 
 fun i18nViewModule() = module {

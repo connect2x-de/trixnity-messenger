@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Name "privacy" settings to "privacy and security" settings
 - Show readers and reactions of first instead of last revision of a message in `TimelineElementMetadataView`
 - UserSearchHandler's foundUsers is now eagerly computed
+- Make tooltip show/hide delays configurable
+- Styling: Use customizable components for labels
+- Persist presence
+- Styling: Use theme components for dialogs
 
 ### Deprecated
 
@@ -25,8 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Display avatar correctly cropped in message metadata view
+- End URLs on whitespace
 - Fixed tooltip appears too fast in `TimelineElementMetadataView`
 - Fixed "edited" is shown in the wrong place in `TimelineElementMetadataViewModel`
+- Send button is only active after the second char in the input field
 - Canceled or completed user verifications are shown correctly in the timeline (**Breaking change**: user verification
   end states (canceled or done) have separate timeline view models now 
   (MessageTimelineElementViewModel.VerificationCancel, MessageTimelineElementViewModel.VerificationDone))

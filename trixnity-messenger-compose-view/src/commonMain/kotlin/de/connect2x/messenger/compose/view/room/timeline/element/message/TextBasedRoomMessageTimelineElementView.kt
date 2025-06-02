@@ -202,7 +202,7 @@ internal fun String.formatMentions(
 // we use the most basic regex to find potential links and then use ktor's url parser
 // to validate if it really was a proper Url.
 private val maybeUrlRegex =
-    Regex("""https?://[^ "<]*""")
+    Regex("""https?://[^\s"<]*""")
 
 private val commonPunctuation =
     setOf('.', '!', '?', ':', ')')

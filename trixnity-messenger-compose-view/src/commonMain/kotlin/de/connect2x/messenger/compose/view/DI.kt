@@ -1,7 +1,5 @@
 package de.connect2x.messenger.compose.view
 
-import de.connect2x.messenger.compose.view.common.AdaptiveDialog
-import de.connect2x.messenger.compose.view.common.AdaptiveDialogImpl
 import de.connect2x.messenger.compose.view.common.FilePickerTypeSelectionView
 import de.connect2x.messenger.compose.view.common.FilePickerTypeSelectionViewImpl
 import de.connect2x.messenger.compose.view.common.MatrixUsernameView
@@ -329,7 +327,6 @@ fun themeViewModule(): Module = module {
 
 fun commonViewModule() = module {
     single<MatrixUsernameView> { MatrixUsernameViewImpl() }
-    single<AdaptiveDialog> { AdaptiveDialogImpl() }
 }
 
 fun rootViewModule() = module {
