@@ -40,11 +40,15 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.TextFieldModal
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogContent
+import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogHeader
+import de.connect2x.messenger.compose.view.theme.components.ThemedAdaptiveDialog
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.util.isKnock
@@ -81,20 +85,41 @@ class SearchGroupViewImpl : SearchGroupView {
             }
 
             knockGroupModalShownFor.value?.let {
-                TextFieldModal(
-                    title = i18n.knockRequest(),
-                    description = i18n.knockExplanation(),
-                    textFieldValueState = reason,
-                    onSubmit = {
-                        searchGroupViewModel.enterGroup(it.roomId, reason.value.text)
-                        knockGroupModalShownFor.value = null
-                    },
-                    onCancel = {
-                        knockGroupModalShownFor.value = null
-                    },
-                    label = i18n.knockLabel(),
-                    width = maxWidth.minus(20.dp).coerceAtMost(800.dp),
-                )
+                val onCancel = {
+                    knockGroupModalShownFor.value = null
+                }
+                val i18n = DI.current.get<I18nView>()
+                ThemedAdaptiveDialog(onCancel) {
+                    AdaptiveDialogHeader {
+                        Text(i18n.knockRequest())
+                    }
+                    AdaptiveDialogContent {
+                        Text(i18n.knockExplanation())
+                        OutlinedTextField(
+                            modifier = Modifier.fillMaxWidth(),
+                            value = reason.value,
+                            onValueChange = { reason.value = it },
+                            label = { Text(i18n.knockLabel()) }
+                        )
+                    }
+                    AdaptiveDialogFooter {
+                        ThemedButton(
+                            style = MaterialTheme.components.commonButton,
+                            onClick = onCancel
+                        ) {
+                            Text(i18n.actionCancel())
+                        }
+                        ThemedButton(
+                            style = MaterialTheme.components.primaryButton,
+                            onClick = {
+                                searchGroupViewModel.enterGroup(it.roomId, reason.value.text)
+                                knockGroupModalShownFor.value = null
+                            }
+                        ) {
+                            Text(i18n.actionSubmit())
+                        }
+                    }
+                }
             }
         }
     }

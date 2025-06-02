@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,16 +19,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -44,16 +39,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
-import de.connect2x.messenger.compose.view.VerticalScrollbar
-import de.connect2x.messenger.compose.view.common.AdaptiveDialog
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainer
 import de.connect2x.messenger.compose.view.theme.components
-import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
-import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
+import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogHeader
+import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogScrollContent
+import de.connect2x.messenger.compose.view.theme.components.ThemedAdaptiveDialog
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -95,82 +90,47 @@ class ShareDataViewImpl : ShareDataView {
             }
         }
 
-        AdaptiveDialog(viewModel::cancel) {
-            Column(Modifier.fillMaxSize()) {
-                TopAppBar(title = {
-                    Text(
-                        i18n.shareDataTitle(viewModel.sharedData), style = MaterialTheme.typography.titleMedium
-                    )
-                }, navigationIcon = {
-                    Tooltip(
-                        tooltip = { Text(i18n.shareFilesCancel()) }
-                    ) {
-                        ThemedIconButton(
-                            style = MaterialTheme.components.commonIconButton,
-                            onClick = viewModel::cancel,
-                        ) {
-                            Icon(
-                                Icons.Default.Close, i18n.shareFilesCancel()
-                            )
-                        }
-                    }
-                }, actions = {
-                    Tooltip(
-                        tooltip = { Text(i18n.inputAreaSend()) }
-                    ) {
-                        ThemedIconButton(
-                            style = MaterialTheme.components.commonIconButton,
-                            onClick = viewModel::send,
-                            enabled = enabled,
-                        ) {
-                            if (sending) {
-                                ThemedProgressIndicator(
-                                    style = MaterialTheme.components.smallCircularProgressIndicator
-                                )
-                            } else {
-                                Icon(
-                                    Icons.AutoMirrored.Default.Send,
-                                    i18n.inputAreaSend(),
-                                    tint = if (enabled) MaterialTheme.colorScheme.primary else LocalContentColor.current
-                                )
-                            }
-                        }
-                    }
-                })
-
+        ThemedAdaptiveDialog(viewModel::cancel) {
+            AdaptiveDialogHeader(onClose = viewModel::cancel) {
+                Text(i18n.shareDataTitle(viewModel.sharedData))
+            }
+            AdaptiveDialogScrollContent(scrollState = state) {
                 when (val data = viewModel.sharedData) {
                     is SharedData.SingleFile -> ShareFilesLazyRow(listOf(data.file))
                     is SharedData.MultipleFiles -> ShareFilesLazyRow(data.files)
                     is SharedData.PlainText -> ShareTextRow(data.text)
                     is SharedData.Url -> ShareUrlRow(data.url, data.icon, maxMediaSize)
                 }
-
-                Spacer(Modifier.height(MaterialTheme.messengerDpConstants.small))
-                Box(Modifier.fillMaxSize()) {
-                    if (allRooms.isEmpty()) {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Column(Modifier.padding(horizontal = MaterialTheme.messengerDpConstants.middle)) {
-                                Text(i18n.roomListNoRoom())
-                            }
-                        }
-                    } else {
-                        LazyColumn(Modifier.fillMaxSize(), state) {
-                            items(
-                                allRooms, { it.roomId.full }) { roomListElement ->
-                                RoomListElementContainer(
-                                    roomListElement.roomId,
-                                    viewModel.roomList,
-                                    roomListElement,
-                                )
-                            }
+                if (allRooms.isEmpty()) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(i18n.roomListNoRoom())
+                    }
+                } else {
+                    LazyColumn(Modifier.fillMaxSize(), state) {
+                        items(
+                            allRooms, { it.roomId.full }) { roomListElement ->
+                            RoomListElementContainer(
+                                roomListElement.roomId,
+                                viewModel.roomList,
+                                roomListElement,
+                            )
                         }
                     }
-
-                    VerticalScrollbar(
-                        Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                        state,
-                        false,
-                    )
+                }
+            }
+            AdaptiveDialogFooter {
+                ThemedButton(
+                    style = MaterialTheme.components.commonButton,
+                    onClick = viewModel::cancel,
+                ) {
+                    Text(i18n.actionCancel())
+                }
+                ThemedButton(
+                    style = MaterialTheme.components.primaryButton,
+                    onClick = viewModel::send,
+                    enabled = enabled
+                ) {
+                    Text(i18n.inputAreaSend())
                 }
             }
         }

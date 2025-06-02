@@ -87,7 +87,6 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
 
     interface VerificationRequest : RoomMessageTimelineElementViewModel<RoomMessageEventContent.VerificationRequest> {
         val isActive: StateFlow<Boolean?>
-        val reachedEndState: StateFlow<Pair<Boolean, String>?>
         val stack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>>
         fun cancel()
     }

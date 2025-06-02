@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.AlternateEmail
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,11 +26,11 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
-import de.connect2x.messenger.compose.view.common.ErrorText
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
+import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettings
@@ -247,9 +248,11 @@ fun ColumnScope.PlatformNotificationAccountSettings(
 
     // TODO settings.keywords
 
-    val updateError by viewModel.accountSettingsUpdateError.collectAsState()
+    val updateError = viewModel.accountSettingsUpdateError.collectAsState().value
     if (updateError != null) {
-        Spacer(Modifier.size(16.dp))
-        ErrorText(i18n.anErrorHasOccurred(), updateError)
+        MiddleSpacer()
+        Text(i18n.anErrorHasOccurred())
+        SmallSpacer()
+        Text(updateError, color = MaterialTheme.colorScheme.error)
     }
 }

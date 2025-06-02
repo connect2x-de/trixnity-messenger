@@ -3,8 +3,8 @@ package de.connect2x.trixnity.messenger.viewmodel.sharing
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.GetImageDimensions
 import de.connect2x.trixnity.messenger.util.SharedData
-import de.connect2x.trixnity.messenger.util.getImageDimensions
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
@@ -118,7 +118,7 @@ class SharedDataViewModelImpl(
                     file.mimeType?.match("image/*") == true -> {
                         log.debug { "send an image to ${roomId.full}" }
                         val size = file.fileSize
-                        val (width, height) = if (size == null || size <= maxMediaSizeInMemory) getImageDimensions(
+                        val (width, height) = if (size == null || size <= maxMediaSizeInMemory) get<GetImageDimensions>().invoke(
                             file.content,
                             maxMediaSizeInMemory
                         ) else Pair(null, null)
