@@ -130,15 +130,14 @@ internal fun ColumnScope.MessageImage(
     onSave: () -> Unit
 ) {
     val image = element.thumbnail.collectAsState().value
-    val thumbnailWidth = element.width
-    val thumbnailHeight = element.height
+    val thumbnailWidth = element.thumbnailWidth ?: element.width
+    val thumbnailHeight = element.thumbnailHeight ?: element.height
     val thumbnailLoading = element.thumbnailLoading.collectAsState().value
     val bitmap = remember(image) {
         image?.toImageBitmap()
-            ?: if (thumbnailWidth != null && thumbnailHeight != null && thumbnailLoading) ImageBitmap(
-                thumbnailWidth,
-                thumbnailHeight
-            ) else null
+            ?: if (thumbnailWidth != null && thumbnailHeight != null && thumbnailLoading) {
+                ImageBitmap(thumbnailWidth, thumbnailHeight)
+            } else null
     }
     bitmap?.let {
         MessageImageImpl(it, showActionMenu, onSave, thumbnailLoading)

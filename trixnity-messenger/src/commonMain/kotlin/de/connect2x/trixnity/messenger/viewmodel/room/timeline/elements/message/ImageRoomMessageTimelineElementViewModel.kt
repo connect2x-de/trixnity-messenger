@@ -52,6 +52,9 @@ class ImageRoomMessageTimelineElementViewModelImpl(
 
     override val thumbnailLoading: StateFlow<Boolean> = _thumbnailLoading.asStateFlow()
 
+    override val thumbnailWidth = content.info?.thumbnailInfo?.width
+    override val thumbnailHeight = content.info?.thumbnailInfo?.height
+
     override val thumbnail: StateFlow<ByteArray?> = flow {
         emit(
             // TODO needs some sort of retry!
