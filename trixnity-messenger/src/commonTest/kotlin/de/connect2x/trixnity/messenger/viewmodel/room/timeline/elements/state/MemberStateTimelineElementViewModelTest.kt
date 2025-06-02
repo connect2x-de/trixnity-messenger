@@ -184,7 +184,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory has been permanently removed by Sender from the group"
+            cut.changeMessage.value shouldBe "Mallory was banned from the group by Sender"
         }
     }
 
@@ -200,12 +200,43 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory has been permanently removed by Sender from the group because \"he spammed our chat :(\""
+            cut.changeMessage.value shouldBe "Mallory was banned from the group by Sender because \"he spammed our chat :(\""
         }
     }
 
     @Test
-    fun `banned user » should show an indicator for user being kicked from a room`() = runTest {
+    fun `banned user » should show an indicator for user being unbanned from a room`() = runTest {
+        val cut = memberStatusViewModel(
+            mockTimelineEvent(
+                membership = Membership.LEAVE,
+                previousMemberEventContent = memberEventContent(membership = Membership.BAN),
+                stateKey = "@mallory:localhost",
+            ),
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe "Mallory was unbanned by Sender"
+        }
+    }
+
+    @Test
+    fun `banned user » should show an indicator with reason for user being unbanned from a room`() = runTest {
+        val cut = memberStatusViewModel(
+            mockTimelineEvent(
+                membership = Membership.LEAVE,
+                previousMemberEventContent = memberEventContent(membership = Membership.BAN),
+                stateKey = "@mallory:localhost",
+                reason = "he spammed our chat :("
+            ),
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe "Mallory was unbanned by Sender because \"he spammed our chat :(\""
+        }
+    }
+
+    @Test
+    fun `kicked user » should show an indicator for user being kicked from a room`() = runTest {
         val cut = memberStatusViewModel(
             mockTimelineEvent(
                 membership = Membership.LEAVE,
@@ -215,12 +246,12 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory has been removed by Sender from the group"
+            cut.changeMessage.value shouldBe "Mallory was removed from the group by Sender"
         }
     }
 
     @Test
-    fun `banned user » should show an indicator with reason for user being kicked from a room`() = runTest {
+    fun `kicked user » should show an indicator with reason for user being kicked from a room`() = runTest {
         val cut = memberStatusViewModel(
             mockTimelineEvent(
                 membership = Membership.LEAVE,
@@ -231,7 +262,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory has been removed by Sender from the group because \"he spammed our chat :(\""
+            cut.changeMessage.value shouldBe "Mallory was removed from the group by Sender because \"he spammed our chat :(\""
         }
     }
 
@@ -246,7 +277,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob has been invited by Sender"
+            cut.changeMessage.value shouldBe "Bob was invited by Sender"
         }
     }
 
@@ -262,7 +293,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob has been invited by Sender because \"I want him to play Stardew Valley with us\""
+            cut.changeMessage.value shouldBe "Bob was invited by Sender because \"I want him to play Stardew Valley with us\""
         }
     }
 
@@ -341,12 +372,12 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob has been invited by Sender"
+            cut.changeMessage.value shouldBe "Bob was invited by Sender"
         }
 
         senderName.value = "Sender2"
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob has been invited by Sender2"
+            cut.changeMessage.value shouldBe "Bob was invited by Sender2"
         }
     }
 

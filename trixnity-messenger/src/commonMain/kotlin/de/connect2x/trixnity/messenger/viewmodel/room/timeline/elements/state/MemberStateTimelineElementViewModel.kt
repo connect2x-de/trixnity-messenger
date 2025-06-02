@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.State
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
+import de.connect2x.trixnity.messenger.viewmodel.util.MembershipChange
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -105,37 +106,35 @@ class MemberStateTimelineElementViewModelImpl(
         isDirect: Boolean,
         previousContent: MemberEventContent? = null,
     ): Flow<String> {
-        val senderIsStateKey = event.stateKey == event.sender.full
-        //Sender = stateKey -> Invitation was rejected, else it was revoked
-        val rejectedInvitation =
-            previousContent?.membership == Membership.INVITE && content.membership == Membership.LEAVE && senderIsStateKey
-        val revokedInvitation =
-            previousContent?.membership == Membership.INVITE && content.membership == Membership.LEAVE && !senderIsStateKey
         val groupOrChatDative =
             if (isDirect) i18n.eventChangeChatDative()
             else i18n.eventChangeGroupDative()
         val groupOrChatAccusative =
             if (isDirect) i18n.eventChangeChatAccusative()
             else i18n.eventChangeGroupAccusative()
+
+        val stateTransition = MembershipChange.of(
+            from = previousContent?.membership,
+            to = content.membership,
+            self = event.stateKey == event.sender.full,
+        )
+
         val thisUserId = UserId(event.stateKey)
         return matrixClient.user.getById(event.roomId, thisUserId)
             .map { user -> user?.name ?: thisUserId.full }
             .map { thisUsername ->
-                if (rejectedInvitation) {
-                    i18n.eventChangeRejected(thisUsername, content.reason)
-                } else if (revokedInvitation) {
-                    i18n.eventChangeRevoked(thisUsername, username, content.reason)
-                } else {
-                    when (content.membership) {
-                        Membership.INVITE -> i18n.eventChangeInvite(thisUsername, username, content.reason)
-                        Membership.JOIN -> i18n.eventChangeJoin(thisUsername, groupOrChatDative)
-                        Membership.LEAVE ->
-                            if (senderIsStateKey) i18n.eventChangeLeave(thisUsername, groupOrChatAccusative)
-                            else i18n.eventChangeKick(thisUsername, username, groupOrChatDative, content.reason)
-                        Membership.BAN -> i18n.eventChangeBan(thisUsername, username, groupOrChatDative, content.reason)
-                        Membership.KNOCK -> i18n.eventChangeKnock(thisUsername, groupOrChatDative, content.reason)
-                    }
+                when (stateTransition) {
+                    MembershipChange.INVITE -> i18n.eventChangeInvite(thisUsername, username, content.reason)
+                    MembershipChange.JOIN -> i18n.eventChangeJoin(thisUsername, groupOrChatDative)
+                    MembershipChange.BAN -> i18n.eventChangeBan(thisUsername, username, groupOrChatDative, content.reason)
+                    MembershipChange.KNOCK -> i18n.eventChangeKnock(thisUsername, groupOrChatDative, content.reason)
+                    MembershipChange.UNBAN -> i18n.eventChangeUnban(thisUsername, username, content.reason)
+                    MembershipChange.INVITE_REJECT -> i18n.eventChangeRejected(thisUsername, content.reason)
+                    MembershipChange.INVITE_REVOKE -> i18n.eventChangeRevoked(thisUsername, username, content.reason)
+                    MembershipChange.LEAVE -> i18n.eventChangeLeave(thisUsername, groupOrChatAccusative)
+                    MembershipChange.KICK -> i18n.eventChangeKick(thisUsername, username, groupOrChatDative, content.reason)
                 }
             }
     }
 }
+
