@@ -78,7 +78,9 @@ fun ThemedSurface(
 ) {
     Box(Modifier.padding(style.contentPadding)) {
         style.textStyle?.let {
-            CompositionLocalProvider(LocalTextStyle provides it, content)
+            CompositionLocalProvider(LocalTextStyle provides it) {
+                content()
+            }
         } ?: content()
     }
 }
