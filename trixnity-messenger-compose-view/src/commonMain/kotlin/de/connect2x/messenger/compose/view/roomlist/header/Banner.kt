@@ -3,7 +3,6 @@ package de.connect2x.messenger.compose.view.roomlist.header
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -77,8 +76,9 @@ fun Banner(
         ThemedSurface(
             style = style,
             modifier = Modifier.fillMaxWidth().thenNullable(modifier),
-            content = content,
-        )
+        ) {
+            content()
+        }
     }
 }
 

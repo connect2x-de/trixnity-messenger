@@ -65,8 +65,8 @@ open class ReportMessageViewModelImpl(
     }
 
     override fun closeReportMessageDialog() {
-        messageReportReason.update("")
         onReportMessageFinished()
+        messageReportReason.update("")
     }
 }
 

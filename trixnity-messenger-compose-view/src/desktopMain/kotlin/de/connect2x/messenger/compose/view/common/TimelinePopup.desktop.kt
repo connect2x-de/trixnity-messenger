@@ -45,8 +45,9 @@ actual fun TimelinePopup(
                 ThemedSurface(
                     style = MaterialTheme.components.popup,
                     modifier = Modifier.size(320.dp, 240.dp),
-                    content = content,
-                )
+                ) {
+                    content()
+                }
             }
         }
     }
