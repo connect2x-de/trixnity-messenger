@@ -580,7 +580,7 @@ suspend fun MatrixMessengerWithRoot.originalClientAcceptVerificationWithEmoji(ro
         findTimelineElement<VerificationDoneTimelineElementViewModel, BaseTimelineElementHolderViewModel>(
             roomViewModel
         )
-    done.message shouldBe "Erfolgreich"
+    done.message shouldBe "Successful"
 }
 
 private suspend fun RootViewModel.goToRoom(roomId: RoomId): RoomViewModel {
@@ -620,7 +620,7 @@ private suspend inline fun <reified H : BaseTimelineElementHolderViewModel> find
             .filterIsInstance<H>()
             .any {
                 val vm = it.element.filterNotNull().first()
-                log.debug { "+++ vm: $vm, ${vm::class.simpleName}" }
+                log.trace { "+++ vm: $vm, ${vm::class.simpleName}" }
                 condition(vm)
             }
     }
@@ -643,7 +643,7 @@ private suspend inline fun <reified T : TimelineElementViewModel<*>, reified H :
         log.debug { "+++ vms: $vms" }
         vms
             .any { vm ->
-                log.debug { "+++ vm: ${vm::class.simpleName}" }
+                log.trace { "+++ vm: ${vm::class.simpleName}" }
                 vm is T
             }
     }
