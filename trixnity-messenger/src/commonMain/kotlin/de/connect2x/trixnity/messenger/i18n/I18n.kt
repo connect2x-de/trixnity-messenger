@@ -163,7 +163,7 @@ open class I18n(
     }
 
     open fun eventChangeInvite(invitee: String, inviter: String, reason: String? = null) = translate {
-        EN - "$invitee has been invited by $inviter${if (reason == null) "" else " because \"$reason\""}"
+        EN - "$invitee was invited by $inviter${if (reason == null) "" else " because \"$reason\""}"
         DE - "$invitee wurde von $inviter eingeladen${if (reason == null) "" else ", da \"$reason\""}"
     }
 
@@ -177,9 +177,14 @@ open class I18n(
         DE - "$username hat $groupOrChat verlassen"
     }
 
-    open fun eventChangeBan(username: String, banner: String, groupOrChat: String, reason: String? = null) = translate {
-        EN - "$username has been removed by $banner from $groupOrChat${if (reason == null) "" else " because \"$reason\""}"
-        DE - "$username wurde von $banner aus $groupOrChat ausgeschlossen${if (reason == null) "" else ", da \"$reason\""}"
+    open fun eventChangeBan(target: String, moderator: String, groupOrChat: String, reason: String? = null) = translate {
+        EN - "$target was banned from $groupOrChat by $moderator${if (reason == null) "" else " because \"$reason\""}"
+        DE - "$target wurde von $moderator aus $groupOrChat verbannt${if (reason == null) "" else ", da \"$reason\""}"
+    }
+
+    open fun eventChangeKick(target: String, moderator: String, groupOrChat: String, reason: String? = null) = translate {
+        EN - "$target was removed from $groupOrChat by $moderator${if (reason == null) "" else " because \"$reason\""}"
+        DE - "$target wurde von $moderator aus $groupOrChat entfernt${if (reason == null) "" else ", da \"$reason\""}"
     }
 
     open fun eventChangeKnock(username: String, groupOrChat: String, reason: String? = null) = translate {
@@ -195,6 +200,11 @@ open class I18n(
     open fun eventChangeRevoked(invitee: String, inviter: String, reason: String? = null) = translate {
         EN - "$inviter has revoked the invitation to $invitee${if (reason == null) "" else " because \"$reason\""}"
         DE - "$inviter hat die Einladung an $invitee zurückgezogen${if (reason == null) "" else ", da \"$reason\""}"
+    }
+
+    open fun eventChangeUnban(target: String, moderator: String, reason: String? = null) = translate {
+        EN - "$target was unbanned by $moderator${if (reason == null) "" else " because \"$reason\""}"
+        DE - "$target wurde von $moderator entbannt${if (reason == null) "" else ", da \"$reason\""}"
     }
 
     open fun eventMessageRedacted(username: String) = translate {

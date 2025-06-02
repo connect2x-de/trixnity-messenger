@@ -15,9 +15,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
@@ -31,14 +29,8 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.MessageEventContent
-import net.folivo.trixnity.core.model.events.m.RelatesTo
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.keys.KeyValue
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
@@ -128,179 +120,6 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
         val cut = userVerificationViewModel()
 
         cut.isActive.firstWithClue(false)
-    }
-
-    @Test
-    fun `search for correct end event for an inactive verification`() = runTest {
-        everySuspend {
-            activeVerifications.getActiveVerification(
-                eq(matrixClientMock), eq(thisRoom), eq(timelineEventId)
-            )
-        } returns null
-        every { roomServiceMock.getTimelineEvents(any(), any(), any(), any()) } returns flow {
-            emit(
-                flowOf(
-                    TimelineEvent(
-                        event = ClientEvent.RoomEvent.MessageEvent(
-                            content = VerificationCancelEventContent(
-                                code = VerificationCancelEventContent.Code.Timeout,
-                                reason = "",
-                                relatesTo = RelatesTo.Reference(timelineEventId),
-                                transactionId = null
-                            ),
-                            EventId("cancel"),
-                            me,
-                            thisRoom,
-                            0L,
-                        ),
-                        content = null,
-                        previousEventId = null,
-                        nextEventId = null,
-                        gap = null,
-                    )
-                )
-            )
-        }
-
-        val cut = userVerificationViewModel()
-
-        cut.reachedEndState.map { it?.first }.firstWithClue(false)
-        cut.reachedEndState.map { it?.second }.firstWithClue("Timeout")
-    }
-
-    @Test
-    fun `interpret the end state as 'cancelled' when the corresponding end event for an inactive verification cannot be found in the next 40 messages`() =
-        runTest {
-            everySuspend {
-                activeVerifications.getActiveVerification(
-                    eq(matrixClientMock), eq(thisRoom), eq(timelineEventId)
-                )
-            } returns null
-
-            every {
-                roomServiceMock.getTimelineEvent(
-                    eq(thisRoom),
-                    eq(timelineEventId),
-                    any(),
-                )
-            } returns MutableStateFlow(timelineEvent(timelineEventId))
-
-            every { roomServiceMock.getTimelineEvents(any(), any(), any(), any()) } returns flow {
-                (0..40).forEach { eventIdNo ->
-                    emit(
-                        flowOf(
-                            timelineEventMessage(
-                                EventId("event-${eventIdNo}"), RoomMessageEventContent.TextBased.Text("")
-                            )
-                        )
-                    )
-                }
-            }
-
-            val cut = userVerificationViewModel()
-
-            cut.reachedEndState.map { it?.first }.firstWithClue(false)
-            cut.reachedEndState.map { it?.second }.firstWithClue("Cancelled")
-        }
-
-    @Test
-    fun `consider encrypted timeline events in the search for end events of inactive verification`() = runTest {
-        everySuspend {
-            activeVerifications.getActiveVerification(
-                eq(matrixClientMock), eq(thisRoom), eq(timelineEventId)
-            )
-        } returns null
-
-        every {
-            roomServiceMock.getTimelineEvent(
-                eq(thisRoom),
-                eq(timelineEventId),
-                any(),
-            )
-        } returns MutableStateFlow(timelineEvent(timelineEventId))
-
-        every { roomServiceMock.getTimelineEvents(any(), any(), any(), any()) } returns flow {
-            emit(
-                flowOf(
-                    TimelineEvent(
-                        event = ClientEvent.RoomEvent.MessageEvent(
-                            content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                                ciphertext = "",
-                                senderKey = KeyValue.Curve25519KeyValue(""),
-                                deviceId = "",
-                                sessionId = "",
-                            ),
-                            id = EventId(""),
-                            sender = me,
-                            roomId = thisRoom,
-                            originTimestamp = 0L,
-                        ),
-                        content = Result.success(
-                            VerificationCancelEventContent(
-                                code = VerificationCancelEventContent.Code.Timeout,
-                                reason = "",
-                                relatesTo = RelatesTo.Reference(timelineEventId),
-                                transactionId = "",
-                            )
-                        ),
-                        previousEventId = null,
-                        nextEventId = null,
-                        gap = null,
-                    )
-                )
-            )
-        }
-
-        val cut = userVerificationViewModel()
-
-        cut.reachedEndState.map { it?.first }.firstWithClue(false)
-    }
-
-    @Test
-    fun `ignore end events of other verifications`() = runTest {
-        everySuspend {
-            activeVerifications.getActiveVerification(
-                eq(matrixClientMock), eq(thisRoom), eq(timelineEventId)
-            )
-        } returns null
-
-        every {
-            roomServiceMock.getTimelineEvent(
-                eq(thisRoom),
-                eq(timelineEventId),
-                any(),
-            )
-        } returns MutableStateFlow(timelineEvent(timelineEventId))
-        val otherEventId = EventId("completely different")
-
-        every { roomServiceMock.getTimelineEvents(any(), any(), any(), any()) } returns flow {
-            emit(
-                flowOf(
-                    timelineEventMessage(
-                        otherEventId, VerificationDoneEventContent(
-                            relatesTo = RelatesTo.Reference(otherEventId), transactionId = null
-                        )
-                    )
-                )
-            )
-            emit(
-                flowOf(
-                    timelineEventMessage(
-                        otherEventId,
-                        VerificationCancelEventContent(
-                            code = VerificationCancelEventContent.Code.Timeout,
-                            reason = "",
-                            relatesTo = RelatesTo.Reference(timelineEventId),
-                            transactionId = null
-                        ),
-                    )
-                )
-            )
-        }
-
-        val cut = userVerificationViewModel()
-
-        cut.reachedEndState.map { it?.first }.firstWithClue(false)
     }
 
     private fun TestScope.userVerificationViewModel(): VerificationRequestRoomMessageTimelineElementViewModelImpl {

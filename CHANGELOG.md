@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make tooltip show/hide delays configurable
 - Styling: Use customizable components for labels
 - Persist presence
+- Styling: Use theme components for dialogs
+- Clearly distinguish between a room member leaving, being kicked, banned or unbanned.
 - Overlay file transfer progress over uploaded image thumbnail
 
 ### Deprecated
@@ -27,11 +29,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+- Update file size for images after processing
 
 - Display avatar correctly cropped in message metadata view
 - End URLs on whitespace
 - Fixed tooltip appears too fast in `TimelineElementMetadataView`
 - Fixed "edited" is shown in the wrong place in `TimelineElementMetadataViewModel`
+- Send button is only active after the second char in the input field
+- Canceled or completed user verifications are shown correctly in the timeline (**Breaking change**: user verification
+  end states (canceled or done) have separate timeline view models now 
+  (MessageTimelineElementViewModel.VerificationCancel, MessageTimelineElementViewModel.VerificationDone))
 - Remove timeline flickering due to switching between image fallback and thumbnail
 
 ### Security

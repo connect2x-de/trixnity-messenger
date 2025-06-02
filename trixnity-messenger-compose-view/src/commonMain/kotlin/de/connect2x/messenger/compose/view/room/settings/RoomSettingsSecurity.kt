@@ -10,10 +10,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.WarningDialog
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.settings.Setting
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsSecurityViewModel
 
 interface RoomSettingsSecurityView {
@@ -60,28 +65,36 @@ class RoomSettingsSecurityViewImpl : RoomSettingsSecurityView {
 fun RoomSettingsEnableEncryptionWarning(roomSettingsSecurityViewModel: RoomSettingsSecurityViewModel) {
     val i18n = DI.get<I18nView>()
     val isChat = roomSettingsSecurityViewModel.isChat.collectAsState().value
-    val encryptionWarningTitle = if (isChat) {
-        i18n.roomSettingsEnableEncryptionWarningTitleChat()
-    } else {
-        i18n.roomSettingsEnableEncryptionWarningTitleGroup()
-    }
-    val encryptionWarningMessage = if (isChat) {
-        i18n.roomSettingsEnableEncryptionWarningMessageChat()
-    } else {
-        i18n.roomSettingsEnableEncryptionWarningMessageGroup()
-    }
 
-    WarningDialog(
-        title = encryptionWarningTitle,
-        message = { Text(encryptionWarningMessage) },
-        dismissButtonText = i18n.commonCancel().capitalize(Locale.current),
-        confirmButtonText = i18n.roomEnableEncryptionWarningConfirmation(),
-        dismissAction = {
-            roomSettingsSecurityViewModel.closeEnableEncryptionWarning()
-        },
-        confirmAction = {
-            roomSettingsSecurityViewModel.enableEncryption()
-            roomSettingsSecurityViewModel.closeEnableEncryptionWarning()
+    ThemedModalDialog({ roomSettingsSecurityViewModel.closeEnableEncryptionWarning() }) {
+        ModalDialogHeader {
+            Text(
+                if (isChat) i18n.roomSettingsEnableEncryptionWarningTitleChat()
+                else i18n.roomSettingsEnableEncryptionWarningTitleGroup()
+            )
         }
-    )
+        ModalDialogContent {
+            Text(
+                if (isChat) i18n.roomSettingsEnableEncryptionWarningMessageChat()
+                else i18n.roomSettingsEnableEncryptionWarningMessageGroup()
+            )
+        }
+        ModalDialogFooter {
+            ThemedButton(
+                style = MaterialTheme.components.commonButton,
+                onClick = { roomSettingsSecurityViewModel.closeEnableEncryptionWarning() }
+            ) {
+                Text(i18n.actionCancel())
+            }
+            ThemedButton(
+                style = MaterialTheme.components.primaryButton,
+                onClick = {
+                    roomSettingsSecurityViewModel.enableEncryption()
+                    roomSettingsSecurityViewModel.closeEnableEncryptionWarning()
+                }
+            ) {
+                Text(i18n.roomEnableEncryptionWarningConfirmation())
+            }
+        }
+    }
 }

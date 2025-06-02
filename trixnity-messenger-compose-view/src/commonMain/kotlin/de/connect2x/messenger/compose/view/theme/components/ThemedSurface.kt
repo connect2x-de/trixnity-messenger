@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LocalTextStyle
@@ -65,7 +66,7 @@ data class SurfaceStyle(
 fun ThemedSurface(
     modifier: Modifier = Modifier,
     style: SurfaceStyle,
-    content: @Composable () -> Unit
+    content: @Composable BoxScope.() -> Unit
 ) = Surface(
     modifier = modifier.padding(style.padding),
     shape = style.shape,
@@ -77,7 +78,9 @@ fun ThemedSurface(
 ) {
     Box(Modifier.padding(style.contentPadding)) {
         style.textStyle?.let {
-            CompositionLocalProvider(LocalTextStyle provides it, content)
+            CompositionLocalProvider(LocalTextStyle provides it) {
+                content()
+            }
         } ?: content()
     }
 }
