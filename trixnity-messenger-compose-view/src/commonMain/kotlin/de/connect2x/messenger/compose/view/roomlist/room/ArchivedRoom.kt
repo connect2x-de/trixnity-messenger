@@ -34,7 +34,8 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
-import de.connect2x.messenger.compose.view.util.TextLabel
+import de.connect2x.messenger.compose.view.theme.components.ThemedInfoChip
+import de.connect2x.messenger.compose.view.theme.components.ThemedLabel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 interface ArchivedRoomListElement {
@@ -57,7 +58,7 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
             roomListElementViewModel = roomListElementViewModel,
             extraInfo = {
                 Spacer(Modifier.size(5.dp))
-                TextLabel(i18n.commonArchived())
+                ThemedLabel(i18n.commonArchived())
             }
         ) {
             Tooltip(
