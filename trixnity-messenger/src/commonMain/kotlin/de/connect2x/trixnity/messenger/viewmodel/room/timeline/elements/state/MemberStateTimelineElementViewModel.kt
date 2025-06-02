@@ -28,7 +28,6 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
 import kotlin.reflect.KClass
 
 interface MemberStateTimelineElementViewModelFactory : TimelineElementViewModelFactory<MemberEventContent> {
