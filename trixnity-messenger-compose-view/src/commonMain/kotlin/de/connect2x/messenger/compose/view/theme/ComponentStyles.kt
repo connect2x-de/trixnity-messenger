@@ -41,9 +41,12 @@ data class ComponentStyles(
     val details: SurfaceStyle,
     val header: SurfaceStyle,
     val timeline: SurfaceStyle,
+    // banners
     val errorBanner: SurfaceStyle,
     val warningBanner: SurfaceStyle,
     val commonBanner: SurfaceStyle,
+    // labels
+    val label: SurfaceStyle,
     // dialogs
     val dialog: SurfaceStyle,
     val adaptiveDialog: DialogStyle,

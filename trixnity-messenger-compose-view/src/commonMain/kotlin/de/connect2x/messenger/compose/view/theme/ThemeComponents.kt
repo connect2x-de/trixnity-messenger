@@ -16,6 +16,7 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.theme.components.AvatarStyle
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
@@ -163,6 +164,15 @@ class ThemeComponentsImpl : ThemeComponents {
             tonalElevation = 8.dp,
         ),
         timeline = SurfaceStyle.default(),
+        label = SurfaceStyle.default(
+            color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.25f)
+                .compositeOver(MaterialTheme.colorScheme.surface),
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline),
+            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 3.dp),
+            textStyle = MaterialTheme.typography.bodySmall,
+        ),
         errorBanner = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.errorContainer,
             contentColor = MaterialTheme.colorScheme.onErrorContainer,

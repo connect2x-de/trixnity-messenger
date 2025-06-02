@@ -10,8 +10,8 @@ import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
-import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTimestamp
 import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
@@ -109,7 +109,7 @@ open class RoomListElementViewModelImpl(
     private val onRoomClose: () -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, RoomListElementViewModel {
     private val roomInviter = get<RoomInviter>()
-    private val userPresence = get<UserPresence>()
+    private val roomPresence = get<RoomPresence>()
     private val roomNameCalculations = get<RoomName>()
     private val initials = get<Initials>()
     private val clock = get<Clock>()
@@ -270,8 +270,7 @@ open class RoomListElementViewModelImpl(
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val presence: StateFlow<Presence?> =
-        userPresence.presentEventContentFlow(matrixClient, roomId)
-            .map { it?.presence }
+        roomPresence.invoke(matrixClient, roomId)
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val isLoaded: StateFlow<Boolean> =

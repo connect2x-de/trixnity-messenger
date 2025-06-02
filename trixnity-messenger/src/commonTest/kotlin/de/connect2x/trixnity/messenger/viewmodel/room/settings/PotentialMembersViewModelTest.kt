@@ -75,6 +75,7 @@ class PotentialMembersViewModelTest {
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
         every { matrixClientServerApiClientMock.user } returns usersApiClientMock
         every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
+        every { userServiceMock.getPresence(any()) } returns flowOf(null)
     }
 
     @Test
