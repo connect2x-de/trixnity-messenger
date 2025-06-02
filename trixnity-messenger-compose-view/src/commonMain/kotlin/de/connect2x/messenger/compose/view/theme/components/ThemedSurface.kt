@@ -6,11 +6,13 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -18,6 +20,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -30,6 +33,7 @@ data class SurfaceStyle(
     val border: BorderStroke?,
     val contentPadding: PaddingValues,
     val padding: PaddingValues,
+    val textStyle: TextStyle?,
 ) {
     companion object {
         @Composable
@@ -42,6 +46,7 @@ data class SurfaceStyle(
             border: BorderStroke? = null,
             contentPadding: PaddingValues = PaddingValues(0.dp),
             padding: PaddingValues = PaddingValues(0.dp),
+            textStyle: TextStyle? = null,
         ) = SurfaceStyle(
             shape = shape,
             color = color,
@@ -51,6 +56,7 @@ data class SurfaceStyle(
             border = border,
             contentPadding = contentPadding,
             padding = padding,
+            textStyle = textStyle,
         )
     }
 }
@@ -70,7 +76,9 @@ fun ThemedSurface(
     border = style.border,
 ) {
     Box(Modifier.padding(style.contentPadding)) {
-        content()
+        style.textStyle?.let {
+            CompositionLocalProvider(LocalTextStyle provides it, content)
+        } ?: content()
     }
 }
 

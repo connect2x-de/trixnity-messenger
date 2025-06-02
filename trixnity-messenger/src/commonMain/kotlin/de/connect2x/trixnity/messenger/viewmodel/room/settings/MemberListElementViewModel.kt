@@ -136,7 +136,8 @@ class MemberListElementViewModelImpl(
     override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, memberUserId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
-    override val presence = matrixClient.user.userPresence.map { it[memberUserId]?.presence ?: Presence.OFFLINE }
+    override val presence = matrixClient.user.getPresence(memberUserId)
+        .map { it?.presence ?: Presence.OFFLINE }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Presence.OFFLINE)
 
     init {

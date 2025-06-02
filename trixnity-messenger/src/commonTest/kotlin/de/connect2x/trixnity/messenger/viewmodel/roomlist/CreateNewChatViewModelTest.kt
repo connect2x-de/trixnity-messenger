@@ -21,6 +21,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
@@ -90,6 +91,7 @@ class CreateNewChatViewModelTest {
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
         every { matrixClientServerApiClientMock.user } returns usersApiClientMock
         every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
+        every { userServiceMock.getPresence(any()) } returns flowOf(null)
 
         every { onRoomCreatedMock.invoke(any(), any()) } returns Unit
     }

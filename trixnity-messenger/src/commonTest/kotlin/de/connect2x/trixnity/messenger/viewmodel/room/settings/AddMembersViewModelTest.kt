@@ -26,6 +26,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -87,6 +88,7 @@ class AddMembersViewModelTest {
         every { matrixClientServerApiClientMock.user } returns usersApiClientMock
         every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
         every { userServiceMock.getAll(roomId) } returns MutableStateFlow(emptyMap())
+        every { userServiceMock.getPresence(any()) } returns flowOf(null)
     }
 
     @Test

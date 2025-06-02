@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Name "privacy" settings to "privacy and security" settings
 - Show readers and reactions of first instead of last revision of a message in `TimelineElementMetadataView`
+- UserSearchHandler's foundUsers is now eagerly computed
+- Make tooltip show/hide delays configurable
+- Styling: Use customizable components for labels
+- Persist presence
 - Overlay file transfer progress over uploaded image thumbnail
 
 ### Deprecated
@@ -25,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Display avatar correctly cropped in message metadata view
+- End URLs on whitespace
 - Fixed tooltip appears too fast in `TimelineElementMetadataView`
 - Fixed "edited" is shown in the wrong place in `TimelineElementMetadataViewModel`
 - Remove timeline flickering due to switching between image fallback and thumbnail

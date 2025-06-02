@@ -40,11 +40,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
+import net.folivo.trixnity.client.store.UserPresence
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
@@ -54,6 +56,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
+import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
@@ -219,9 +222,16 @@ class RoomListViewModelMultiAccountTest {
             )
         )
         every { userServiceMock3.getAll(eq(roomId5)) } returns MutableStateFlow(emptyMap())
-        every { userServiceMock1.userPresence } returns MutableStateFlow(mapOf())
-        every { userServiceMock2.userPresence } returns MutableStateFlow(mapOf())
-        every { userServiceMock3.userPresence } returns MutableStateFlow(mapOf())
+
+        every { userServiceMock1.getPresence(any()) } returns flowOf(
+            UserPresence(Presence.OFFLINE, Clock.System.now())
+        )
+        every { userServiceMock2.getPresence(any()) } returns flowOf(
+            UserPresence(Presence.OFFLINE, Clock.System.now())
+        )
+        every { userServiceMock3.getPresence(any()) } returns flowOf(
+            UserPresence(Presence.OFFLINE, Clock.System.now())
+        )
 
         every {
             roomServiceMock1.getState(

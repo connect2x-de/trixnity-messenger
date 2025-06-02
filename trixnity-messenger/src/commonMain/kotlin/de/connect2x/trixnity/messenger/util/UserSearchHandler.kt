@@ -8,7 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -54,7 +54,7 @@ class DefaultUserSearchHandler(
             foundUsers
                 .filterNot(selectedUsers::contains)
                 .filterNot { filterNotUsers.contains(it.userId) }
-        }.stateIn(coroutineScope, WhileSubscribed(), emptyList())
+        }.stateIn(coroutineScope, Eagerly, emptyList())
     override val waitForUserResults: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     init {

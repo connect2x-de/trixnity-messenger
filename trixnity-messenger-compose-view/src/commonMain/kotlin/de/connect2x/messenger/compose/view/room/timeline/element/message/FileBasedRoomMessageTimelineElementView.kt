@@ -16,7 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -186,7 +185,8 @@ fun LoadingProgresses(
     if (uploadProgress != null) {
         Box(modifier) {
             DownloadProgress(
-                uploadProgress, cancel = {
+                uploadProgress,
+                cancel = {
                     if (holder is OutboxElementHolderViewModel) {
                         holder.abortSend()
                     }
