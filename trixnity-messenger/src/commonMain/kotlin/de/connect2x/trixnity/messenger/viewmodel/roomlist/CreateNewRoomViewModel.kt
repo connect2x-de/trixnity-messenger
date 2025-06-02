@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.DefaultUserSearchHandler
 import de.connect2x.trixnity.messenger.util.PreviewUserSearchHandler
 import de.connect2x.trixnity.messenger.util.Search
@@ -33,9 +32,8 @@ open class CreateNewRoomViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val onRoomCreated: (UserId, RoomId) -> Unit
 ) : CreateNewRoomViewModel, MatrixClientViewModelContext by viewModelContext {
-    private val maxAvatarSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     override val searchHandler: UserSearchHandler =
-        DefaultUserSearchHandler(coroutineScope, get<Search>(), matrixClient, maxAvatarSize = maxAvatarSize)
+        DefaultUserSearchHandler(coroutineScope, get<Search>(), matrixClient)
     override val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>> = MutableStateFlow(emptyMap())
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 }

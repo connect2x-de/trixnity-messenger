@@ -42,7 +42,7 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     private val onOpenMention: OpenMentionCallback,
 ) : RoomMessageTimelineElementViewModel.TextBased<C>, MatrixClientViewModelContext by viewModelContext {
     private val initials = get<Initials>()
-    private val config = get<MatrixMessengerConfiguration>()
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     override val body: String = content.bodyWithoutFallback
     override val formattedBody: String? = content.formattedBodyWithoutFallback
 
@@ -71,8 +71,8 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                                     coroutineScope,
                                     matrixClient,
                                     initials,
-                                    config.avatarMaxSize,
-                                    mention.userId
+                                    mention.userId,
+                                    maxMediaSizeInMemory,
                                 )
                             )
                         }
@@ -112,10 +112,11 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
             matrixClient.room.getState<CanonicalAliasEventContent>(roomId).map { it?.content },
         ) { room, aliases ->
             room?.toRoomInfoElement(
-                config.avatarMaxSize,
+                coroutineScope,
                 initials,
                 matrixClient,
                 forceAlias?.full ?: aliases?.alias?.full ?: aliases?.aliases?.firstOrNull()?.full ?: room.roomId.full,
+                maxMediaSizeInMemory
             )
         }
 

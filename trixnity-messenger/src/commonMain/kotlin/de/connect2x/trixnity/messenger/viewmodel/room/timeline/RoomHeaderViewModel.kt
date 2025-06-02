@@ -10,7 +10,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
@@ -153,7 +152,7 @@ open class RoomHeaderViewModelImpl(
     private val roomTopic = get<RoomTopic>()
     private val initials = get<Initials>()
     private val userBlocking = get<UserBlocking>()
-    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
@@ -172,9 +171,7 @@ open class RoomHeaderViewModelImpl(
                     avatarSize().toLong()
                 ).fold(
                     onSuccess = {
-                        it.limitedByteArrayOrNull(
-                            maxAvatarSize
-                        ) { log.error { "Room avatar for room $selectedRoomId exceeds max preview limits, so it's not displayed" } }
+                        it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
                     },
                     onFailure = { exc ->
                         if (exc !is CancellationException) {

@@ -6,7 +6,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelV
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -140,6 +139,8 @@ class MemberListElementViewModelImpl(
         .map { it?.presence ?: Presence.OFFLINE }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Presence.OFFLINE)
 
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+
     init {
         coroutineScope.launch {
             matrixClient.user.getPowerLevel(selectedRoomId, memberUserId).collect { powerLevel ->
@@ -170,14 +171,12 @@ class MemberListElementViewModelImpl(
         onOpenUserProfile(memberUserId)
     }
 
+
     private suspend fun getImage(matrixClient: MatrixClient, user: RoomUser): ByteArray? {
-        val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
         return user.avatarUrl?.let { url ->
             matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
                 onSuccess = {
-                    it.limitedByteArrayOrNull(maxAvatarSize) {
-                        log.error { "User avatar for user ${user.userId} exceeds max preview size, so it is not displayed" }
-                    }
+                    it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
                 },
                 onFailure = { null }
             )

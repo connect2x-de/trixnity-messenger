@@ -1,6 +1,6 @@
 package de.connect2x.messenger.compose.view
 
-import de.connect2x.trixnity.messenger.CreateMediaStore
+import de.connect2x.trixnity.messenger.CreateMediaStoreModule
 import de.connect2x.trixnity.messenger.CreateRepositoriesModule
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -62,8 +62,8 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
                                     ?: throw IllegalStateException("Repositories module for $userId not instantiated")
                         }
                     }
-                    single<CreateMediaStore> {
-                        object : CreateMediaStore {
+                    single<CreateMediaStoreModule> {
+                        object : CreateMediaStoreModule {
                             val store by lazy { InMemoryMediaStore() }
                             override suspend fun invoke(userId: UserId): MediaStore = store
                         }

@@ -242,7 +242,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<DirectRoom> { DirectRoomImpl() }
             single<ActiveVerifications> { ActiveVerificationsImpl() }
             single<RoomPresence> { RoomPresenceImpl(get()) }
-            single<Search> { SearchImpl(get(), get()) }
+            single<Search> { SearchImpl(get(), get(), get()) }
             single<RunInitialSync> { RunInitialSync }
             single<DragAndDropHandler> { DragAndDropHandlerBase() }
             single<AccountSetupViewModelFactory> { AccountSetupViewModelFactory }
@@ -282,7 +282,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
     ::platformPathsModule,
     ::platformStringsModule,
     ::platformCreateRepositoriesModuleModule,
-    ::platformCreateMediaStoreModule,
+    ::platformCreateMediaStoreModuleModule,
     ::secretsModule,
     ::platformGetSystemLangModule,
     ::platformDeleteAccountDataModule,

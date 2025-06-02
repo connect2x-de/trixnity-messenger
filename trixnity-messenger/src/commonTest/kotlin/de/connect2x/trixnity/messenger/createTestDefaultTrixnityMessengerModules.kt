@@ -12,7 +12,12 @@ import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.test.TestScope
 import kotlinx.datetime.Clock
@@ -96,8 +101,8 @@ fun TestScope.createTestDefaultTrixnityMessengerModules(
             override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module = module
         }
     }
-    single<CreateMediaStore> {
-        object : CreateMediaStore {
+    single<CreateMediaStoreModule> {
+        object : CreateMediaStoreModule {
             val store by lazy { InMemoryMediaStore() }
             override suspend fun invoke(userId: UserId): MediaStore = store
         }

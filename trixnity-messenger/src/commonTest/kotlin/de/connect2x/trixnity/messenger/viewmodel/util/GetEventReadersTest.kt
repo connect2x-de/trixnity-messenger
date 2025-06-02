@@ -122,7 +122,7 @@ class GetEventReadersTest {
             sender = timelineEvent.sender,
             getReceipts = { receipts },
             initials = initialsMock,
-            avatarMaxSize = 100L
+            maxMediaSizeInMemory = 100L
         ).stateIn(coroutineScope)
 
     @Test

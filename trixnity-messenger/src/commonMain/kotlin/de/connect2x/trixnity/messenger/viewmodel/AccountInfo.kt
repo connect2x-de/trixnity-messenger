@@ -4,8 +4,8 @@ import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -51,7 +51,12 @@ data class AccountInfo(
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-fun MatrixClients.toAccountInfo(settings: MatrixMessengerSettingsHolder, initials: Initials, maxAvatarSize: Long) =
+fun MatrixClients.toAccountInfo(
+    coroutineScope: CoroutineScope,
+    settings: MatrixMessengerSettingsHolder,
+    initials: Initials,
+    maxMediaSizeInMemory: Long,
+) =
     flatMapLatest { matrixClients ->
         combine(
             matrixClients.map { (userId, matrixClient) ->
@@ -64,11 +69,7 @@ fun MatrixClients.toAccountInfo(settings: MatrixMessengerSettingsHolder, initial
                             avatarSize().toLong(),
                         ).fold(
                             onSuccess = {
-                                it.limitedByteArrayOrNull(
-                                    maxAvatarSize
-                                ) {
-                                    log.error { "Avatar for $userId exceeds preview size limits, so it's not displayed" }
-                                }
+                                it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
                             },
                             onFailure = {
                                 log.error(it) { "Cannot load user avatar" }

@@ -6,7 +6,6 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
@@ -66,7 +65,7 @@ class ChangeAvatarViewModelImpl(
         matrixClient.user.canSendEvent<AvatarEventContent>(selectedRoomId)
             .stateIn(coroutineScope, Eagerly, false) // Needs to be Eagerly for some use cases.
 
-    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     override val avatar = matrixClient.room.getById(selectedRoomId).map { room ->
         room?.avatarUrl?.let { avatar ->
             matrixClient.media.getThumbnail(
@@ -75,9 +74,7 @@ class ChangeAvatarViewModelImpl(
                 avatarSize().toLong(),
             ).fold(
                 onSuccess = {
-                    it.limitedByteArrayOrNull(maxAvatarSize) {
-                        log.error { "Room avatar for room $selectedRoomId exceeds max preview size, so it is not displayed" }
-                    }
+                    it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
                 },
                 onFailure = {
                     log.error(it) { "Cannot load user avatar." }

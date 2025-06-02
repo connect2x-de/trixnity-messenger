@@ -115,14 +115,18 @@ class SearchTest {
         injectSearchUsers("", listOf(myUserData))
 
         var res = search.searchUsers(
-            matrixClientMock, searchTerm, limit = null, presenceScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
+            matrixClientMock,
+            searchTerm,
+            limit = null,
+            coroutineScope = backgroundScope,
+            maxPreviewSize = Long.MAX_VALUE
         )
 
         res.size shouldBe 1
         res[0] shouldBeEqual myUserData
 
         res = search.searchUsers(
-            matrixClientMock, "", limit = null, presenceScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
+            matrixClientMock, "", limit = null, coroutineScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
         )
 
         res.size shouldBe 0
@@ -135,7 +139,11 @@ class SearchTest {
         injectSearchUsers(searchTerm, listOf(myUserData))
 
         val res = search.searchUsers(
-            matrixClientMock, searchTerm, limit = null, presenceScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
+            matrixClientMock,
+            searchTerm,
+            limit = null,
+            coroutineScope = backgroundScope,
+            maxPreviewSize = Long.MAX_VALUE
         )
 
         res.size shouldBe 0
@@ -146,7 +154,11 @@ class SearchTest {
         val searchTerm = myUserId.full
 
         val res = search.searchUsers(
-            matrixClientMock, searchTerm, limit = null, presenceScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
+            matrixClientMock,
+            searchTerm,
+            limit = null,
+            coroutineScope = backgroundScope,
+            maxPreviewSize = Long.MAX_VALUE
         )
 
         res.size shouldBe 1
@@ -164,7 +176,7 @@ class SearchTest {
             matrixClientMock,
             searchTerm,
             limit = limit.toLong(),
-            presenceScope = backgroundScope,
+            coroutineScope = backgroundScope,
             maxPreviewSize = Long.MAX_VALUE
         )
 
@@ -183,7 +195,7 @@ class SearchTest {
             matrixClientMock,
             searchTerm,
             limit = limit.toLong(),
-            presenceScope = backgroundScope,
+            coroutineScope = backgroundScope,
             maxPreviewSize = Long.MAX_VALUE
         )
 
@@ -201,7 +213,11 @@ class SearchTest {
         user.presence.value shouldBe Presence.OFFLINE
 
         val res = search.searchUsers(
-            matrixClientMock, searchTerm, limit = null, presenceScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
+            matrixClientMock,
+            searchTerm,
+            limit = null,
+            coroutineScope = backgroundScope,
+            maxPreviewSize = Long.MAX_VALUE
         )
 
         res.size shouldBe 1
@@ -214,7 +230,11 @@ class SearchTest {
         val searchTerm = user.userId.full
 
         val res = search.searchUsers(
-            matrixClientMock, searchTerm, limit = null, presenceScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
+            matrixClientMock,
+            searchTerm,
+            limit = null,
+            coroutineScope = backgroundScope,
+            maxPreviewSize = Long.MAX_VALUE
         )
 
         res.size shouldBe 1
@@ -242,7 +262,7 @@ class SearchTest {
         val subscriberScope = backgroundScope + subscriberJob
 
         val res = search.searchUsers(
-            matrixClientMock, searchTerm, limit = null, presenceScope = scopeToCancel, maxPreviewSize = Long.MAX_VALUE
+            matrixClientMock, searchTerm, limit = null, coroutineScope = scopeToCancel, maxPreviewSize = Long.MAX_VALUE
         )
         res.size shouldBe 1
         res.first().presence.value shouldBe null
