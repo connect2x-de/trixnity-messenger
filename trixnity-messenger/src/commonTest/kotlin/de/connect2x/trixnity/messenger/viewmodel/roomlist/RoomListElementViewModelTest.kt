@@ -7,8 +7,8 @@ import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
-import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -82,7 +82,7 @@ class RoomListElementViewModelTest {
 
     val usersApiClientMock = mock<UserApiClient>()
 
-    val userPresenceMock = mock<UserPresence>()
+    val roomPresenceMock = mock<RoomPresence>()
 
     val roomNameMock = mock<RoomName>()
 
@@ -118,7 +118,7 @@ class RoomListElementViewModelTest {
             matrixClientServerApiClientMock,
             roomsApiClientMock,
             usersApiClientMock,
-            userPresenceMock,
+            roomPresenceMock,
             roomNameMock,
             roomInviter,
             userBlockingMock,
@@ -218,7 +218,7 @@ class RoomListElementViewModelTest {
             )
         )
 
-        every { userPresenceMock.presentEventContentFlow(eq(matrixClientMock), any()) } returns MutableStateFlow(null)
+        every { roomPresenceMock.invoke(eq(matrixClientMock), any()) } returns MutableStateFlow(null)
 
         every { roomNameMock.getRoomName(any<RoomId>(), eq(matrixClientMock), any()) } returns flowOf("RoomName")
         every { clock.now() } returns Instant.parse("2021-11-03T15:00:00Z")
@@ -659,7 +659,7 @@ class RoomListElementViewModelTest {
                         ) to matrixClientMock
                     ),
                 ) + module {
-                    single { userPresenceMock }
+                    single { roomPresenceMock }
                     single { roomNameMock }
                     single { roomInviter }
                     single { clock }

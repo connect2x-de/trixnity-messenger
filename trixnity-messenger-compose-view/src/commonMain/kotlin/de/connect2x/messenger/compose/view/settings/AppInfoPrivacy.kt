@@ -1,17 +1,16 @@
 package de.connect2x.messenger.compose.view.settings
 
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material.RichText
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.MessengerModal
-import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
-import de.connect2x.messenger.compose.view.common.MessengerModalContent
-import de.connect2x.messenger.compose.view.common.NextButton
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogHeader
+import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogScrollContent
+import de.connect2x.messenger.compose.view.theme.components.ThemedAdaptiveDialog
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 
@@ -35,13 +34,14 @@ class AppInfoPrivacyViewImpl : AppInfoPrivacyView {
             LaunchedEffect(Unit) {
                 richTextState.setMarkdown(privacyInfo)
             }
-            MessengerModal(onDismiss = { appInfoViewModel.showPrivacy.value = false }, i18n.appInfoPrivacy()) {
-                MessengerModalContent {
-                    RichText(richTextState, color = MaterialTheme.colorScheme.onBackground)
+
+            ThemedAdaptiveDialog({ appInfoViewModel.showPrivacy.value = false }) {
+                AdaptiveDialogHeader(onClose = { appInfoViewModel.showPrivacy.value = false }) {
+                    Text(i18n.appInfoPrivacy())
                 }
-                MessengerModalButtonRow({
-                    NextButton(text = i18n.commonBack()) { appInfoViewModel.showPrivacy.value = false }
-                })
+                AdaptiveDialogScrollContent {
+                    RichText(richTextState)
+                }
             }
         }
     }

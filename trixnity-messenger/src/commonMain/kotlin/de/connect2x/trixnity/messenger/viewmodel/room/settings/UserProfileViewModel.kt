@@ -242,7 +242,7 @@ class UserProfileViewModelImpl(
                 error = error,
                 selectedRoomId = selectedRoomId
             )
-    override val presence = matrixClient.user.userPresence.map { it[userId]?.presence ?: Presence.OFFLINE }
+    override val presence = matrixClient.user.getPresence(userId).map { it?.presence ?: Presence.OFFLINE }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Presence.OFFLINE)
 
 

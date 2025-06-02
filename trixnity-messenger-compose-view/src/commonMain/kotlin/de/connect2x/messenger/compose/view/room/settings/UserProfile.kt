@@ -15,9 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -43,10 +41,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -55,12 +51,10 @@ import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.MessengerDialog
 import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.VerySmallSpacer
-import de.connect2x.messenger.compose.view.common.WarningDialog
 import de.connect2x.messenger.compose.view.common.icons.BanIcon
 import de.connect2x.messenger.compose.view.common.icons.BlockIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
@@ -70,9 +64,13 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedInfoChip
+import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedSuggestionChip
 import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
@@ -460,11 +458,14 @@ fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
     var kickUserReason by userProfileViewModel.kickUserReason.collectAsTextFieldValueState()
     val isDirect = userProfileViewModel.isDirect.collectAsState().value
 
-    WarningDialog(
-        title =
-            if (isDirect) i18n.settingsRoomMemberListKickUserWarningTitleChat(userProfileViewModel.userId.full)
-            else i18n.settingsRoomMemberListKickUserWarningTitleGroup(userProfileViewModel.userId.full),
-        message = {
+    ThemedModalDialog({ userProfileViewModel.closeKickUserWarning() }) {
+        ModalDialogHeader {
+            Text(
+                if (isDirect) i18n.settingsRoomMemberListKickUserWarningTitleChat(userProfileViewModel.userId.full)
+                else i18n.settingsRoomMemberListKickUserWarningTitleGroup(userProfileViewModel.userId.full)
+            )
+        }
+        ModalDialogContent {
             OutlinedTextField(
                 value = kickUserReason,
                 onValueChange = { kickUserReason = it },
@@ -473,15 +474,25 @@ fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
                 },
                 maxLines = 5
             )
-        },
-        dismissButtonText = i18n.commonCancel().capitalize(Locale.current),
-        confirmButtonText = i18n.userProfileRemoveUserConfirmation(),
-        dismissAction = { userProfileViewModel.closeKickUserWarning() },
-        confirmAction = {
-            userProfileViewModel.closeKickUserWarning()
-            userProfileViewModel.kickUser()
         }
-    )
+        ModalDialogFooter {
+            ThemedButton(
+                style = MaterialTheme.components.commonButton,
+                onClick = { userProfileViewModel.closeKickUserWarning() }
+            ) {
+                Text(i18n.actionCancel())
+            }
+            ThemedButton(
+                style = MaterialTheme.components.primaryButton,
+                onClick = {
+                    userProfileViewModel.closeKickUserWarning()
+                    userProfileViewModel.kickUser()
+                }
+            ) {
+                Text(i18n.userProfileRemoveUserConfirmation())
+            }
+        }
+    }
 }
 
 @Composable
@@ -489,9 +500,11 @@ fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
     val i18n = DI.current.get<I18nView>()
     var banUserReason by userProfileViewModel.banUserReason.collectAsTextFieldValueState()
 
-    WarningDialog(
-        title = i18n.userProfileBanUserConfirmationSure(),
-        message = {
+    ThemedModalDialog({ userProfileViewModel.closeBanUserWarning() }) {
+        ModalDialogHeader {
+            Text(i18n.userProfileBanUserConfirmationSure())
+        }
+        ModalDialogContent {
             OutlinedTextField(
                 value = banUserReason,
                 onValueChange = { banUserReason = it },
@@ -500,15 +513,25 @@ fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
                 },
                 maxLines = 5
             )
-        },
-        dismissButtonText = i18n.commonCancel().capitalize(Locale.current),
-        confirmButtonText = i18n.userProfileBanUserConfirmation(),
-        dismissAction = { userProfileViewModel.closeBanUserWarning() },
-        confirmAction = {
-            userProfileViewModel.closeBanUserWarning()
-            userProfileViewModel.banUser()
         }
-    )
+        ModalDialogFooter {
+            ThemedButton(
+                style = MaterialTheme.components.commonButton,
+                onClick = { userProfileViewModel.closeBanUserWarning() }
+            ) {
+                Text(i18n.actionCancel())
+            }
+            ThemedButton(
+                style = MaterialTheme.components.primaryButton,
+                onClick = {
+                    userProfileViewModel.closeBanUserWarning()
+                    userProfileViewModel.banUser()
+                }
+            ) {
+                Text(i18n.userProfileBanUserConfirmation())
+            }
+        }
+    }
 }
 
 @Composable
@@ -516,9 +539,11 @@ fun UnbanUserWarning(userProfileViewModel: UserProfileViewModel) {
     val i18n = DI.current.get<I18nView>()
     var unbanUserReason by userProfileViewModel.unbanUserReason.collectAsTextFieldValueState()
 
-    WarningDialog(
-        title = i18n.unbanTitle(),
-        message = {
+    ThemedModalDialog({ userProfileViewModel.closeUnbanUserWarning() }) {
+        ModalDialogHeader {
+            Text(i18n.unbanTitle())
+        }
+        ModalDialogContent {
             OutlinedTextField(
                 value = unbanUserReason,
                 onValueChange = { unbanUserReason = it },
@@ -527,15 +552,25 @@ fun UnbanUserWarning(userProfileViewModel: UserProfileViewModel) {
                 },
                 maxLines = 5
             )
-        },
-        dismissButtonText = i18n.commonCancel().capitalize(Locale.current),
-        confirmButtonText = i18n.unbanUserConfirmation(),
-        dismissAction = { userProfileViewModel.closeUnbanUserWarning() },
-        confirmAction = {
-            userProfileViewModel.closeUnbanUserWarning()
-            userProfileViewModel.unbanUser()
         }
-    )
+        ModalDialogFooter {
+            ThemedButton(
+                style = MaterialTheme.components.commonButton,
+                onClick = { userProfileViewModel.closeUnbanUserWarning() }
+            ) {
+                Text(i18n.actionCancel())
+            }
+            ThemedButton(
+                style = MaterialTheme.components.primaryButton,
+                onClick = {
+                    userProfileViewModel.closeUnbanUserWarning()
+                    userProfileViewModel.unbanUser()
+                }
+            ) {
+                Text(i18n.unbanUserConfirmation())
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -555,130 +590,111 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
     val canSetRoleToUser =
         userProfileViewModel.changePowerLevelViewModel.canSetRoleToUser.collectAsState().value
 
-    MessengerDialog(
-        onDismissRequest = {
-            userProfileViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog()
-        },
-        text = {
-            val state = rememberScrollState()
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth().verticalScroll(state)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.weight(1F, false).fillMaxWidth(),
-                        text = i18n.userProfileChangePowerLevel(),
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                    Tooltip(
-                        tooltip = { Text(i18n.commonHelp()) }
-                    ) {
-                        ThemedIconButton(
-                            style = MaterialTheme.components.commonIconButton,
-                            onClick = { if (showPowerLevelHelp) userProfileViewModel.changePowerLevelViewModel.closePowerLevelHelp() else userProfileViewModel.changePowerLevelViewModel.openPowerLevelHelp() },
-                        ) {
-                            Icon(Icons.AutoMirrored.Filled.Help, i18n.commonHelp())
-                        }
-                    }
-                }
-                Spacer(Modifier.size(10.dp))
-                OutlinedTextField(
-                    value = changePowerLevelInput,
-                    onValueChange = { changePowerLevelInput = it },
-                    isError = changingPowerLevelDialogError != null,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    maxLines = 1
+    ThemedModalDialog(userProfileViewModel.changePowerLevelViewModel::closeChangingPowerLevelDialog) {
+        ModalDialogHeader {
+            Text(i18n.userProfileChangePowerLevel())
+        }
+        ModalDialogContent {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1F, false).fillMaxWidth(),
+                    text = i18n.userProfileChangePowerLevel(),
+                    style = MaterialTheme.typography.labelLarge
                 )
-                FlowRow(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Arrangement.Top) {
-                    if (canSetRoleToUser) {
-                        ThemedSuggestionChip(
-                            onClick = {
-                                changePowerLevelInput = TextFieldValue(
-                                    ChangePowerLevelViewModel.Role.USER
-                                        .getMinPowerLevel().toString()
-                                )
-                            },
-                            label = {
-                                Text(i18n.userProfileRoleUser())
-                            }
-                        )
-                    }
-                    if (canSetRoleToModerator) {
-                        ThemedSuggestionChip(
-                            onClick = {
-                                changePowerLevelInput = TextFieldValue(
-                                    ChangePowerLevelViewModel.Role.MODERATOR
-                                        .getMinPowerLevel().toString()
-                                )
-                            },
-                            label = {
-                                Text(i18n.userProfileRoleModerator())
-                            }
-                        )
-                    }
-                    if (canSetRoleToAdmin) {
-                        ThemedSuggestionChip(
-                            onClick = {
-                                changePowerLevelInput = TextFieldValue(
-                                    ChangePowerLevelViewModel.Role.ADMIN
-                                        .getMinPowerLevel().toString()
-                                )
-                            },
-                            label = {
-                                Text(i18n.userProfileRoleAdministrator())
-                            }
-                        )
-                    }
-                }
-                Spacer(Modifier.size(5.dp))
-                changingPowerLevelDialogError?.let {
-                    Spacer(Modifier.size(5.dp))
-                    Text(color = MaterialTheme.colorScheme.error, text = it)
-                }
-                Spacer(Modifier.size(10.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                Tooltip(
+                    tooltip = { Text(i18n.commonHelp()) }
                 ) {
-                    ThemedButton(
-                        style = MaterialTheme.components.primaryButton,
-                        onClick = { userProfileViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog() },
-                        modifier = Modifier.weight(0.4f)
-                    ) {
-                        Text(i18n.commonCancel().capitalize(Locale.current))
-                    }
-                    Spacer(Modifier.size(15.dp))
-                    ThemedButton(
-                        style = MaterialTheme.components.primaryButton,
-                        enabled = changingPowerLevelDialogError == null && changePowerLevelInput.text != "",
+                    ThemedIconButton(
+                        style = MaterialTheme.components.commonIconButton,
                         onClick = {
-                            userProfileViewModel.changePowerLevelViewModel.setPowerLevelTo(
-                                changePowerLevelInput.text.toLong()
-                            )
-                            userProfileViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog()
+                            if (showPowerLevelHelp) userProfileViewModel.changePowerLevelViewModel.closePowerLevelHelp()
+                            else userProfileViewModel.changePowerLevelViewModel.openPowerLevelHelp()
                         },
-                        modifier = Modifier.weight(0.4f)
                     ) {
-                        Text(i18n.userProfileChangePowerLevel())
-                    }
-                }
-                if (showPowerLevelHelp) {
-                    Column(modifier = Modifier.align(alignment = Alignment.Start)) {
-                        Spacer(Modifier.size(15.dp))
-                        Text(i18n.userProfileNote(), style = MaterialTheme.typography.labelMedium)
-                        Spacer(Modifier.size(5.dp))
-                        Text(text = i18n.userProfileNoteText())
+                        Icon(Icons.AutoMirrored.Filled.Help, i18n.commonHelp())
                     }
                 }
             }
+            OutlinedTextField(
+                value = changePowerLevelInput,
+                onValueChange = { changePowerLevelInput = it },
+                isError = changingPowerLevelDialogError != null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 1
+            )
+            FlowRow(Modifier.fillMaxWidth(), Arrangement.spacedBy(4.dp, Alignment.Start), Arrangement.Top) {
+                if (canSetRoleToUser) {
+                    ThemedSuggestionChip(
+                        onClick = {
+                            changePowerLevelInput = TextFieldValue(
+                                ChangePowerLevelViewModel.Role.USER
+                                    .getMinPowerLevel().toString()
+                            )
+                        },
+                        label = {
+                            Text(i18n.userProfileRoleUser())
+                        }
+                    )
+                }
+                if (canSetRoleToModerator) {
+                    ThemedSuggestionChip(
+                        onClick = {
+                            changePowerLevelInput = TextFieldValue(
+                                ChangePowerLevelViewModel.Role.MODERATOR
+                                    .getMinPowerLevel().toString()
+                            )
+                        },
+                        label = {
+                            Text(i18n.userProfileRoleModerator())
+                        }
+                    )
+                }
+                if (canSetRoleToAdmin) {
+                    ThemedSuggestionChip(
+                        onClick = {
+                            changePowerLevelInput = TextFieldValue(
+                                ChangePowerLevelViewModel.Role.ADMIN
+                                    .getMinPowerLevel().toString()
+                            )
+                        },
+                        label = {
+                            Text(i18n.userProfileRoleAdministrator())
+                        }
+                    )
+                }
+            }
+            changingPowerLevelDialogError?.let {
+                Text(color = MaterialTheme.colorScheme.error, text = it)
+            }
+            if (showPowerLevelHelp) {
+                Text(i18n.userProfileNote(), style = MaterialTheme.typography.labelMedium)
+                Text(text = i18n.userProfileNoteText())
+            }
         }
-    )
+        ModalDialogFooter {
+            ThemedButton(
+                style = MaterialTheme.components.commonButton,
+                onClick = { userProfileViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog() },
+            ) {
+                Text(i18n.actionCancel())
+            }
+            ThemedButton(
+                style = MaterialTheme.components.primaryButton,
+                enabled = changingPowerLevelDialogError == null && changePowerLevelInput.text != "",
+                onClick = {
+                    userProfileViewModel.changePowerLevelViewModel.setPowerLevelTo(
+                        changePowerLevelInput.text.toLong()
+                    )
+                    userProfileViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog()
+                },
+            ) {
+                Text(i18n.userProfileChangePowerLevel())
+            }
+        }
+    }
 }
 
 @Composable

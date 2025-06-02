@@ -6,13 +6,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredWidth
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -20,16 +17,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Platform
-import de.connect2x.messenger.compose.view.Tooltip
-import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.create.UsersInGroup
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
-import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
-import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModel
 
 
@@ -60,7 +58,7 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
     @Composable
     override fun create(addMembersViewModel: AddMembersViewModel) {
         val canAddMembers = addMembersViewModel.canAddMembers.collectAsState()
-        val error = addMembersViewModel.error.collectAsState()
+        val error = addMembersViewModel.error.collectAsState().value
         val errorCause = addMembersViewModel.errorCause.collectAsState().value
         val i18n = DI.get<I18nView>()
 
@@ -68,8 +66,26 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
             Box(Modifier.fillMaxSize()) {
                 Column {
                     Header(addMembersViewModel::back, i18n.addMembers())
-                    if (error.value != null) {
-                        ErrorDialog(error.value.orEmpty(), { addMembersViewModel.errorDismiss() }, errorCause = errorCause)
+                    if (error != null) {
+                        ThemedModalDialog({ addMembersViewModel.errorDismiss() }) {
+                            ModalDialogHeader {
+                                Text(i18n.anErrorHasOccurred())
+                            }
+                            ModalDialogContent {
+                                Text(error)
+                                if (errorCause != null) {
+                                    Text(errorCause, color = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                            ModalDialogFooter {
+                                ThemedButton(
+                                    style = MaterialTheme.components.primaryButton,
+                                    onClick = { addMembersViewModel.errorDismiss() },
+                                ) {
+                                    Text(i18n.actionOk())
+                                }
+                            }
+                        }
                     }
                     UsersInGroup(addMembersViewModel.potentialMembersViewModel.searchHandler)
                     SearchUsersSettings(

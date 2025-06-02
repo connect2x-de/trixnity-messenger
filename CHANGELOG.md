@@ -18,18 +18,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show readers and reactions of first instead of last revision of a message in `TimelineElementMetadataView`
 - UserSearchHandler's foundUsers is now eagerly computed
 - Make tooltip show/hide delays configurable
-- Clearly distinguish between a room member leaving, being kicked, or being banned.
+- Styling: Use customizable components for labels
+- Persist presence
+- Styling: Use theme components for dialogs
+- Clearly distinguish between a room member leaving, being kicked, banned or unbanned.
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+- Update file size for images after processing
 
 - Display avatar correctly cropped in message metadata view
 - End URLs on whitespace
 - Fixed tooltip appears too fast in `TimelineElementMetadataView`
 - Fixed "edited" is shown in the wrong place in `TimelineElementMetadataViewModel`
+- Send button is only active after the second char in the input field
 
 ### Security
 
