@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Canceled or completed user verifications are shown correctly in the timeline (**Breaking change**: user verification
   end states (canceled or done) have separate timeline view models now 
   (MessageTimelineElementViewModel.VerificationCancel, MessageTimelineElementViewModel.VerificationDone))
+- Fixed AvatarCutter ignoring alignment/rotation metadata
 
 ### Security
 
