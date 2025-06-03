@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.6.0
+
+### Added
+
 - Add setAvatarImage function to AvatarCutterViewModel
 - Add tests for various logic
 
@@ -24,13 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clearly distinguish between a room member leaving, being kicked, banned or unbanned.
 - Adapt to Trixnity media cache changes
 
-### Deprecated
-
-### Removed
-
 ### Fixed
-- Update file size for images after processing
 
+- Update file size for images after processing
 - Display avatar correctly cropped in message metadata view
 - End URLs on whitespace
 - Fixed tooltip appears too fast in `TimelineElementMetadataView`
@@ -40,8 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   end states (canceled or done) have separate timeline view models now 
   (MessageTimelineElementViewModel.VerificationCancel, MessageTimelineElementViewModel.VerificationDone))
 - Fixed AvatarCutter ignoring alignment/rotation metadata
-
-### Security
 
 ## 3.5.8
 
