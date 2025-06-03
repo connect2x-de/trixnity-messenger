@@ -10,8 +10,7 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.client.media.InMemoryMediaStore
-import net.folivo.trixnity.client.media.MediaStore
+import net.folivo.trixnity.client.media.createInMemoryMediaStoreModule
 import net.folivo.trixnity.client.store.repository.createInMemoryRepositoriesModule
 import net.folivo.trixnity.core.model.UserId
 import okio.FileSystem
@@ -64,8 +63,8 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
                     }
                     single<CreateMediaStoreModule> {
                         object : CreateMediaStoreModule {
-                            val store by lazy { InMemoryMediaStore() }
-                            override suspend fun invoke(userId: UserId): MediaStore = store
+                            val store by lazy { createInMemoryMediaStoreModule() }
+                            override suspend fun invoke(userId: UserId): Module = store
                         }
                     }
 
