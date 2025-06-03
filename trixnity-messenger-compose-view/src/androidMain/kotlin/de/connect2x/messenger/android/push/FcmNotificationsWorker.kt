@@ -31,7 +31,6 @@ import de.connect2x.trixnity.messenger.PushMode
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -110,7 +109,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
         isDirect: Boolean,
         roomName: String,
         notificationHandlerProvider: NotificationHandlerProvider,
-        maxAvatarSize: Long
+        maxMediaSizeInMemory: Long
     ) {
         val content = event.content
         log.debug { "Content is RoomMessageEventContent: ${content is RoomMessageEventContent}" }
@@ -130,7 +129,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                     val image = it.avatarUrl?.let { avatarUrl ->
                         matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
                     }?.map { flow ->
-                        val bytes = flow.limitedByteArrayOrNull(maxAvatarSize)
+                        val bytes = flow.toByteArray(maxSize = maxMediaSizeInMemory)
                         bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size).getCircledBitmap() }
                     }?.getOrNull()
                     user.name to image
@@ -196,7 +195,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                 // we cannot assume that we should still be running
                 val pushModes =
                     matrixMessenger.di.get<MatrixMessengerSettingsHolder>().value.base.accounts.map { it.value.platformNotifications.pushMode }
-                val maxAvatarSize = matrixMessenger.di.get<MatrixMessengerConfiguration>().avatarMaxSize
+                val maxMediaSizeInMemory = matrixMessenger.di.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
                 if (pushModes.none { it == PushMode.PUSH } ||
                     applicationContext.backgroundSyncShouldBeRunning.not()
                 ) {
@@ -221,7 +220,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                             roomId,
                             eventId,
                             matrixMultiMessenger.di.get(),
-                            maxAvatarSize
+                            maxMediaSizeInMemory
                         )
                     }
 
