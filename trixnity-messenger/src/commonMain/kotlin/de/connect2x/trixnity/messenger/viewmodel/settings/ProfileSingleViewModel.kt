@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -58,19 +57,17 @@ class ProfileSingleViewModelImpl(
     override val canChangeDisplayName: StateFlow<Boolean> =
         matrixClient.serverData.map { it?.capabilities?.capabilities?.setDisplayName?.enabled ?: true }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
-    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
     override val avatar = matrixClient.avatarUrl.map { avatarUrl ->
         avatarUrl?.let {
             matrixClient.media.getThumbnail(
-                avatarUrl.toString(),
+                avatarUrl,
                 avatarSize().toLong(),
                 avatarSize().toLong()
             ).fold(
                 onSuccess = {
-                    it.limitedByteArrayOrNull(maxAvatarSize) {
-                        log.error { "User avatar for $userId exceeds max preview size, so it's not displayed" }
-                    }
+                    it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
                 },
                 onFailure = {
                     log.error(it) { "Cannot load user avatar." }

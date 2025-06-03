@@ -16,7 +16,6 @@ import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.util.currentImmediateDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
@@ -89,7 +88,7 @@ private suspend fun whenSyncIsRunning(
     i18n: I18nView
 ) {
     val settings = matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
-    val maxAvatarSize = matrixMessenger.di.get<MatrixMessengerConfiguration>().avatarMaxSize
+    val maxMediaSizeInMemory = matrixMessenger.di.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     matrixMessenger.di.get<MatrixClients>().scopedCollectLatest { matrixClients ->
         matrixClients.forEach { (userId, matrixClient) ->
             launch {
@@ -112,7 +111,7 @@ private suspend fun whenSyncIsRunning(
                                 isDirect,
                                 roomName,
                                 i18n,
-                                maxAvatarSize
+                                maxMediaSizeInMemory
                             )?.let {
                                 notificationHandler.push(it)
                             }
@@ -132,7 +131,7 @@ private suspend fun displayNotification(
     isDirect: Boolean,
     roomName: String,
     i18n: I18nView,
-    maxAvatarSize: Long
+    maxMediaSizeInMemory: Long
 ): Notification? {
     event.roomIdOrNull?.let { roomId ->
         val message = when {
@@ -147,7 +146,7 @@ private suspend fun displayNotification(
                 val user = matrixClient.user.getById(roomId, sender).first()
                 val image = user?.avatarUrl?.let { avatarUrl ->
                     matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
-                }?.map { it.limitedByteArrayOrNull(maxAvatarSize) }?.getOrNull()
+                }?.map { it.toByteArray(maxSize = maxMediaSizeInMemory) }?.getOrNull()
                 user?.name to image
             } ?: (null to null)
 

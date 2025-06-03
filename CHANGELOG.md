@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persist presence
 - Styling: Use theme components for dialogs
 - Clearly distinguish between a room member leaving, being kicked, banned or unbanned.
+- Adapt to Trixnity media cache changes
 
 ### Deprecated
 

@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isValid
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -28,11 +28,10 @@ private val log = KotlinLogging.logger { }
 
 interface Search {
     suspend fun searchUsers(
+        coroutineScope: CoroutineScope,
         matrixClient: MatrixClient,
         searchTerm: String,
         limit: Long?,
-        presenceScope: CoroutineScope,
-        maxPreviewSize: Long,
     ): List<SearchUserElement>
 
     interface SearchUserElement {
@@ -70,14 +69,16 @@ interface Search {
 class SearchImpl(
     private val initials: Initials,
     private val i18n: I18n,
+    matrixMessengerConfiguration: MatrixMessengerConfiguration,
 ) : Search {
 
+    private val maxMediaSizeInMemory = matrixMessengerConfiguration.maxMediaSizeInMemory
+
     override suspend fun searchUsers(
+        coroutineScope: CoroutineScope,
         matrixClient: MatrixClient,
         searchTerm: String,
         limit: Long?,
-        presenceScope: CoroutineScope,
-        maxPreviewSize: Long,
     ): List<SearchUserElement> = coroutineScope {
         val userId = UserId(searchTerm)
         if (userId.isValid()) {
@@ -89,11 +90,7 @@ class SearchImpl(
             val image = profile?.avatarUrl?.let { url ->
                 matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
                     onSuccess = {
-                        it.limitedByteArrayOrNull(
-                            maxPreviewSize
-                        ) {
-                            log.error { "Image for $userId exceeds preview limits, so it's not displayed" }
-                        }
+                        it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
                     },
                     onFailure = { null }
                 )
@@ -102,7 +99,7 @@ class SearchImpl(
                 .map { presence ->
                     presence ?: matrixClient.api.user.getPresence(userId).getOrNull()?.presence
                 }
-                .stateIn(presenceScope, SharingStarted.WhileSubscribed(), null)
+                .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
             listOf(
                 searchUserElement(
@@ -127,9 +124,9 @@ class SearchImpl(
                             .take(limit?.toInt() ?: Int.MAX_VALUE)
                             .map { searchUser ->
                                 async {
-                                    val image = getImage(matrixClient, searchUser, maxPreviewSize)
+                                    val image = getImage(coroutineScope, matrixClient, searchUser)
                                     val presence = getPresence(matrixClient, searchUser.userId)
-                                        .stateIn(presenceScope, SharingStarted.WhileSubscribed(), null)
+                                        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
                                     searchUserElement(searchUser, image, presence)
                                 }
@@ -146,18 +143,14 @@ class SearchImpl(
     }
 
     private suspend fun getImage(
+        coroutineScope: CoroutineScope,
         matrixClient: MatrixClient,
         searchUser: SearchUsers.Response.SearchUser,
-        maxAvatarSize: Long
     ): ByteArray? {
         return searchUser.avatarUrl?.let { url ->
             matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
                 onSuccess = {
-                    it.limitedByteArrayOrNull(
-                        maxAvatarSize
-                    ) {
-                        log.error { "Image for ${searchUser.userId} exceeds preview limits, so it's not displayed" }
-                    }
+                    it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
                 },
                 onFailure = { null }
             )

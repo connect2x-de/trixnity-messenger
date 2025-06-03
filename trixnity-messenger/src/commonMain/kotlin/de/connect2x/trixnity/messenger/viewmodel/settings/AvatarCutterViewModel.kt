@@ -6,7 +6,6 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.ProcessImageUpload
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.http.ContentType.*
@@ -22,7 +21,7 @@ import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.core.component.get
-import kotlin.jvm.JvmOverloads
+import net.folivo.trixnity.utils.toByteArray
 
 
 private val log = KotlinLogging.logger {}
@@ -86,7 +85,6 @@ open class AvatarCutterViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, AvatarCutterViewModel {
 
     private val i18n = get<I18n>()
-    private val messengerConfiguration = get<MatrixMessengerConfiguration>()
 
     override val upload = MutableStateFlow(false)
     override val error = MutableStateFlow<String?>(null)
@@ -99,15 +97,13 @@ open class AvatarCutterViewModelImpl(
         cancel()
     }
 
-    override val maxAvatarSize: Long = messengerConfiguration.avatarMaxSize
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    override val maxAvatarSize: Long = maxMediaSizeInMemory
 
     override val mimeType = MutableStateFlow<ContentType?>(file.mimeType)
     override val imageData = MutableStateFlow<ByteArrayFlow?>(file.content)
     override val avatarImage: StateFlow<ByteArray?> = imageData.map {
-        it?.limitedByteArrayOrNull(minOf(messengerConfiguration.maxMediaSizeInMemory, maxAvatarSize)) {
-            error.value = i18n.avatarSizeMaxSizeError(maxAvatarSize)
-            log.debug { "Uploaded image ${file.fileName} couldn't be processed because it exceeds file size limits, it will be sent without processing" }
-        }?.let {
+        it?.toByteArray(maxSize = maxMediaSizeInMemory)?.let {
             error.value = null
             get<ProcessImageUpload>().invoke(
                 it,
@@ -115,6 +111,7 @@ open class AvatarCutterViewModelImpl(
             )
         }
     }.stateIn(coroutineScope, SharingStarted.Eagerly, null)
+
 
     init {
         backHandler.register(backCallback)

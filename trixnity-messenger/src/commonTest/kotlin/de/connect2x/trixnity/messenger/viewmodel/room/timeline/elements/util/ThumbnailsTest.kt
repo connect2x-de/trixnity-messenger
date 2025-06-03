@@ -51,17 +51,19 @@ class ThumbnailsTest {
             )
         } returns Result.success(InMemoryPlatformMedia("encryptedThumbnail".encodeToByteArray().toByteArrayFlow()))
         val cut = ThumbnailsImpl()
-        val maxPreviewSize = MatrixMessengerConfiguration().maxMediaSizeInMemory
 
         val result = cut.loadThumbnail(
+            backgroundScope,
             matrixClientMock,
             thumbnailFile = thumbnailFile,
             thumbnailUrl = null,
+            thumbnailInfo = null,
             file = null,
-            url = null,
+            fileUrl = null,
+            fileInfo = null,
             sizeInBytes = 1_000,
             thumbnailProgressFlow = MutableStateFlow(null),
-            maxPreviewSize
+            maxMediaSizeInMemory = MatrixMessengerConfiguration().maxMediaSizeInMemory,
         )
 
         result shouldBe "encryptedThumbnail".encodeToByteArray()
@@ -83,17 +85,19 @@ class ThumbnailsTest {
         } returns Result.success(InMemoryPlatformMedia("encryptedOriginal".encodeToByteArray().toByteArrayFlow()))
 
         val cut = ThumbnailsImpl()
-        val maxPreviewSize = MatrixMessengerConfiguration().maxMediaSizeInMemory
 
         val result = cut.loadThumbnail(
+            backgroundScope,
             matrixClientMock,
             thumbnailFile = thumbnailFile,
             thumbnailUrl = null,
+            thumbnailInfo = null,
             file = originalFile,
-            url = null,
+            fileUrl = null,
+            fileInfo = null,
             sizeInBytes = 1_000,
             thumbnailProgressFlow = MutableStateFlow(null),
-            maxPreviewSize
+            maxMediaSizeInMemory = MatrixMessengerConfiguration().maxMediaSizeInMemory
         )
 
         result shouldBe "encryptedOriginal".encodeToByteArray()
@@ -115,17 +119,19 @@ class ThumbnailsTest {
         } returns Result.failure(RuntimeException("Oh no!"))
 
         val cut = ThumbnailsImpl()
-        val maxPreviewSize = MatrixMessengerConfiguration().maxMediaSizeInMemory
 
         val result = cut.loadThumbnail(
+            backgroundScope,
             matrixClientMock,
             thumbnailFile = thumbnailFile,
             thumbnailUrl = null,
+            thumbnailInfo = null,
             file = originalFile,
-            url = null,
+            fileUrl = null,
+            fileInfo = null,
             sizeInBytes = 1_000,
             thumbnailProgressFlow = MutableStateFlow(null),
-            maxPreviewSize
+            maxMediaSizeInMemory = MatrixMessengerConfiguration().maxMediaSizeInMemory,
         )
 
         result shouldBe null
@@ -147,17 +153,19 @@ class ThumbnailsTest {
                 )
             } returns Result.success(InMemoryPlatformMedia("encryptedOriginal".encodeToByteArray().toByteArrayFlow()))
 
-            val maxPreviewSize = MatrixMessengerConfiguration().maxMediaSizeInMemory
             val cut = ThumbnailsImpl()
             val result = cut.loadThumbnail(
+                backgroundScope,
                 matrixClientMock,
                 thumbnailFile = thumbnailFile,
                 thumbnailUrl = null,
+                thumbnailInfo = null,
                 file = originalFile,
-                url = null,
-                sizeInBytes = maxPreviewSize + 1, // too large!
+                fileUrl = null,
+                fileInfo = null,
+                sizeInBytes = MatrixMessengerConfiguration().maxMediaSizeInMemory + 1, // too large!
                 thumbnailProgressFlow = MutableStateFlow(null),
-                maxPreviewSize
+                MatrixMessengerConfiguration().maxMediaSizeInMemory,
             )
 
             result shouldBe null
@@ -176,18 +184,20 @@ class ThumbnailsTest {
         }
 
         val cut = ThumbnailsImpl()
-        val maxPreviewSize = MatrixMessengerConfiguration().maxMediaSizeInMemory
 
         val result = backgroundScope.async {
             cut.loadThumbnail(
+                backgroundScope,
                 matrixClientMock,
                 thumbnailFile = thumbnailFile,
                 thumbnailUrl = null,
+                thumbnailInfo = null,
                 file = null,
-                url = null,
+                fileUrl = null,
+                fileInfo = null,
                 sizeInBytes = 1_000,
                 thumbnailProgressFlow = MutableStateFlow(null),
-                maxPreviewSize
+                MatrixMessengerConfiguration().maxMediaSizeInMemory
             )
         }
         delay(250)
