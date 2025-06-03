@@ -15,7 +15,7 @@ kotlinxSerialization = "1.8.1" # https://github.com/Kotlin/kotlinx.serialization
 kotlinxDatetime = "0.6.2" # https://github.com/Kotlin/kotlinx-datetime/releases
 kotlinxKover = "0.9.1" # https://github.com/Kotlin/kotlinx-kover/releases
 
-trixnity = "4.16.0-LOCAL" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.16.0" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
 decompose = "3.3.0" # https://github.com/arkivanov/Decompose/releases
 koin = "4.0.4" # https://github.com/InsertKoinIO/koin/tags
