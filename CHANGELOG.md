@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added loading spinner to user profile view when blocking user to show in-progress action
+
 ### Changed
 
 ### Deprecated
@@ -18,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Resolved crash due to "Image too large" on Android
+- Fixed switch in user profile view for blocking not reflecting correct server-side state
 
 ### Security
 
