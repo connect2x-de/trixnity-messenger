@@ -76,6 +76,7 @@ data class ComponentStyles(
     val circularProgressIndicator: CircularProgressIndicatorStyle,
     val smallCircularProgressIndicator: CircularProgressIndicatorStyle,
     val extraSmallCircularProgressIndicator: CircularProgressIndicatorStyle,
+    val switchProgressIndicator: CircularProgressIndicatorStyle,
     val linearProgressIndicator: LinearProgressIndicatorStyle,
     // slider
     val slider: SliderStyle,
