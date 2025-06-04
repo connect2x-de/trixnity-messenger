@@ -281,9 +281,13 @@ open class RoomHeaderViewModelImpl(
             if (canBlockUser.value) {
                 val singleDirectUser = singleDirectUser.first()
                 if (singleDirectUser != null) {
-                    userBlocking.blockUser(matrixClient, singleDirectUser) {
-                        error.value = i18n.blockUserError(singleDirectUser.full)
-                    }
+                    userBlocking.blockUser(
+                        matrixClient = matrixClient,
+                        userToBlock = singleDirectUser,
+                        onFailure = {
+                            error.value = i18n.blockUserError(singleDirectUser.full)
+                        }
+                    )
                 }
             }
         }
@@ -294,9 +298,13 @@ open class RoomHeaderViewModelImpl(
             if (canUnblockUser.value) {
                 val singleDirectUser = singleDirectUser.first()
                 if (singleDirectUser != null) {
-                    userBlocking.unblockUser(matrixClient, singleDirectUser) {
-                        error.value = i18n.blockUserError(singleDirectUser.full)
-                    }
+                    userBlocking.unblockUser(
+                        matrixClient = matrixClient,
+                        userToUnblock = singleDirectUser,
+                        onFailure = {
+                            error.value = i18n.blockUserError(singleDirectUser.full)
+                        }
+                    )
                 }
             }
         }
