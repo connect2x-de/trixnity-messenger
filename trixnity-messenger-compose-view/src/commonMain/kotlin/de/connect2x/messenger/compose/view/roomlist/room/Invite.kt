@@ -24,6 +24,7 @@ import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 interface InviteRoomListElement {
@@ -84,6 +85,10 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                     Text(i18n.invitationRejectHeader())
                 }
                 ModalDialogContent {
+                    if(rejectionInProgress) {
+                        ThemedProgressIndicator(style = MaterialTheme.components.circularProgressIndicator)
+                        return@ModalDialogContent
+                    }
                     SelectableText(
                         text = i18n.formattedInvitationBody(
                             inviterName = inviterUserInfo?.name ?: i18n.commonUnknown(),
