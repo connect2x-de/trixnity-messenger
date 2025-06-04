@@ -78,6 +78,7 @@ class InviteRoomListElementImpl : InviteRoomListElement {
         }
 
         if (showReject) {
+            val rejectionInProgress = roomListElementViewModel.rejectionInProgress.collectAsState().value
             ThemedModalDialog({ showReject = false }) {
                 ModalDialogHeader {
                     Text(i18n.invitationRejectHeader())
@@ -94,12 +95,14 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = { roomListElementViewModel.rejectInvitationAndBlockInviter() },
+                        enabled = !rejectionInProgress
                     ) {
                         Text(i18n.invitationBlock())
                     }
                     ThemedButton(
                         style = MaterialTheme.components.primaryButton,
                         onClick = { roomListElementViewModel.rejectInvitation() },
+                        enabled = !rejectionInProgress
                     ) {
                         Text(i18n.invitationReject())
                     }
