@@ -75,12 +75,15 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
             )
             activeLoadMedia.value = resultAsync
             resultAsync.await()
-                .onSuccess {
-                    _loadMediaResult.value = it.toByteArray(
+                .mapCatching {
+                    it.toByteArray(
                         coroutineScope,
                         expectedSize = content.info?.size,
                         maxSize = maxMediaSizeInMemory
                     )
+                }
+                .onSuccess {
+                    _loadMediaResult.value = it
                 }.onFailure {
                     _loadMediaError.value = i18n.mediaCouldNotBeRead()
                 }
