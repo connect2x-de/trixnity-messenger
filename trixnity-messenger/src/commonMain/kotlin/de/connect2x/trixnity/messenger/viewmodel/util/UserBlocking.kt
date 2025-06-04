@@ -58,7 +58,7 @@ class UserBlockingImpl : UserBlocking {
                 matrixClient.user.getAccountData<IgnoredUserListEventContent>()
                     .map { it ?: IgnoredUserListEventContent(emptyMap()) }.first()
                     .ignoredUsers.let { ignoredUsers ->
-                        if (ignoredUsers.contains(userToBlock)) {
+                        if (userToBlock in ignoredUsers) {
                             onFailure(IllegalArgumentException("user to block is already blocked"))
                             return@let
                         }
@@ -76,7 +76,7 @@ class UserBlockingImpl : UserBlocking {
                         // Verify the success via the account data to avoid race conditions.
                         matrixClient.user.getAccountData<IgnoredUserListEventContent>().first {
                             // To avoid concurrency issues, only check if the userToBlock is present.
-                            it != null && it.ignoredUsers.contains(userToBlock)
+                            it != null && userToBlock in it.ignoredUsers
                         }.let {
                             log.info { "successfully blocked user '${userToBlock.full}'" }
                             onSuccess()
@@ -96,7 +96,7 @@ class UserBlockingImpl : UserBlocking {
             withTimeoutOrNull(5.seconds) {
                 matrixClient.user.getAccountData<IgnoredUserListEventContent>().first()
                     ?.ignoredUsers?.let { ignoredUsers ->
-                        if (ignoredUsers.contains(userToUnblock).not()) {
+                        if (userToUnblock !in ignoredUsers) {
                             onFailure(IllegalArgumentException("user to unblock is not blocked"))
                             return@let
                         }
@@ -114,7 +114,7 @@ class UserBlockingImpl : UserBlocking {
                         // Verify the success via the account data to avoid race conditions.
                         matrixClient.user.getAccountData<IgnoredUserListEventContent>().first {
                             // To avoid concurrency issues, only check if the userToUnblock is not present.
-                            it != null && it.ignoredUsers.contains(userToUnblock).not()
+                            it != null && userToUnblock !in it.ignoredUsers
                         }.let {
                             log.info { "successfully unblocked user '${userToUnblock.full}'" }
                             onSuccess()

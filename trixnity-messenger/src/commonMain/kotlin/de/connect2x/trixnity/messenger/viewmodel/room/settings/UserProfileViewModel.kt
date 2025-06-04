@@ -433,10 +433,7 @@ class UserProfileViewModelImpl(
                     error.value = null
                 },
                 onFailure = {
-                    if (it is CancellationException) {
-                        return@launch
-                    }
-
+                    if (it is CancellationException) return@launch
                     log.error(it) { "cannot unban user $roomUserId from $selectedRoomId: ${it.message}" }
                     error.value = i18n.settingsRoomMemberUnbanUserError()
                 }
