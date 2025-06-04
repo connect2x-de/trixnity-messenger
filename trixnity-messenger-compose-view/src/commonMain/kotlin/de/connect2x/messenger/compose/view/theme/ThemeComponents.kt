@@ -293,7 +293,6 @@ class ThemeComponentsImpl : ThemeComponents {
         ),
         extraSmallCircularProgressIndicator = CircularProgressIndicatorStyle.default(
             size = 24.dp,
-            strokeWidth = 2.dp,
         ),
         switchProgressIndicator = CircularProgressIndicatorStyle.default(
             size = 24.dp,
