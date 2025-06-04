@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed error display not going away when renaming device
+
 ### Security
 
 ## 3.6.0
