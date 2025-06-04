@@ -300,6 +300,7 @@ class ThemeComponentsImpl : ThemeComponents {
         ),
         switchProgressIndicator = CircularProgressIndicatorStyle.default(
             size = 24.dp,
+            strokeWidth = 2.dp,
         ),
         linearProgressIndicator = LinearProgressIndicatorStyle.default(),
         // slider
