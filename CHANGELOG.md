@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Resolved crash due to "Image too large" on Android
+
 ### Security
 
 ## 3.6.0
