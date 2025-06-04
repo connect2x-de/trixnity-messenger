@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -297,33 +298,27 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
         }
         VerySmallSpacer()
 
-        MenuElement(arrangement = Arrangement.SpaceBetween) {
-            Row(horizontalArrangement = Arrangement.Start) {
-                BlockIcon()
-                Spacer(Modifier.size(10.dp))
-                Text(i18n.userProfileBlockUser())
-            }
-            Row(horizontalArrangement = Arrangement.End) {
-                if(blockingInProgress) {
-                    SmallSpacer()
-                    ThemedProgressIndicator(
-                        Modifier.align(Alignment.CenterVertically).size(24.dp),
-                        MaterialTheme.components.circularProgressIndicator
-                    )
-                    SmallSpacer()
+        MenuElement {
+            BlockIcon()
+            Spacer(Modifier.size(10.dp))
+            Text(i18n.userProfileBlockUser())
+            Spacer(Modifier.weight(1f, true))
+            ThemedSwitch(
+                checked = isUserBlocked,
+                onCheckedChange = {
+                    if (isUserBlocked) {
+                        userProfileViewModel.unblockUser()
+                    } else {
+                        userProfileViewModel.blockUser()
+                    }
+                },
+                enabled = !blockingInProgress,
+                thumbContent = {
+                    if (blockingInProgress) {
+                        ThemedProgressIndicator(style = MaterialTheme.components.switchProgressIndicator)
+                    }
                 }
-                ThemedSwitch(
-                    checked = isUserBlocked,
-                    onCheckedChange = {
-                        if (isUserBlocked) {
-                            userProfileViewModel.unblockUser()
-                        } else {
-                            userProfileViewModel.blockUser()
-                        }
-                    },
-                    enabled = !blockingInProgress
-                )
-            }
+            )
         }
         if (canOpenChat) {
             MenuElement(Modifier.clickable {
@@ -714,7 +709,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
 private fun MenuElement(
     modifier: Modifier = Modifier,
     arrangement: Arrangement.Horizontal = Arrangement.Start,
-    content: @Composable () -> Unit,
+    content: @Composable RowScope.() -> Unit,
 ) {
     Row(
         modifier.fillMaxWidth().padding(horizontal = 10.dp).minimumInteractiveComponentSize(),
