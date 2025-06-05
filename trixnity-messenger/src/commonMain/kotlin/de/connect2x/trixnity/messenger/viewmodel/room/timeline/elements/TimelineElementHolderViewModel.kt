@@ -165,7 +165,6 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     fun addReaction(reaction: String)
     fun removeReaction(reaction: String)
     fun openTimelineElementMetadata()
-    fun copy(callback: suspend () -> Unit): () -> Unit
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -585,14 +584,6 @@ class TimelineElementHolderViewModelImpl(
     override fun jumpTo() {
         jumpTo(roomId, eventId)
     }
-
-    override fun copy(callback: suspend () -> Unit): () -> Unit {
-        return {
-            coroutineScope.launch {
-                callback()
-            }
-        }
-    }
 }
 
 class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
@@ -643,7 +634,6 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
     override fun jumpTo() {}
-    override fun copy(callback: suspend () -> Unit): () -> Unit = {}
 }
 
 class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -694,5 +684,4 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
     override fun jumpTo() {}
-    override fun copy(callback: suspend () -> Unit): () -> Unit = {}
 }

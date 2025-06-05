@@ -235,7 +235,6 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
     override fun jumpTo() {}
-    override fun copy(callback: suspend () -> Unit): () -> Unit = {}
 }
 
 private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
@@ -286,5 +285,4 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override fun removeReaction(reaction: String) {}
     override fun openTimelineElementMetadata() {}
     override fun jumpTo() {}
-    override fun copy(callback: suspend () -> Unit): () -> Unit = {}
 }
