@@ -37,7 +37,7 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
     val canBeRepliedTo = asTimelineElementHolder()?.canBeRepliedTo?.collectAsState()?.value == true
     val canBeEdited = asTimelineElementHolder()?.canBeEdited?.collectAsState()?.value == true
     val canBeRedacted = asTimelineElementHolder()?.canBeRedacted?.collectAsState()?.value == true
-    val canBeReported = asTimelineElementHolder()?.canBeReported?.collectAsState()?.value == true
+    val canBeReported = asTimelineElementHolder()?.canBeReporteds?.collectAsState()?.value == true
     val canRetrySend = asOutboxElementHolder()?.canRetrySend?.collectAsState()?.value == true
     val canAbortSend = asOutboxElementHolder()?.canAbortSend?.collectAsState()?.value == true
 
@@ -45,7 +45,7 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
     val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
     val clipEntry =
         this.element.collectAsState().value?.let { timelineElementViewModel ->
-            timelineElementViewSelector.getClipEntry(holder, timelineElementViewModel)
+            timelineElementViewSelector.getClipEntry(this, timelineElementViewModel)
         }
     val canBeCopied = clipEntry != null
     val coroutineScope = rememberCoroutineScope()
