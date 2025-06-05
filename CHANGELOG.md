@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Styling: Use theme components for dialogs
 - Clearly distinguish between a room member leaving, being kicked, banned or unbanned.
 - Overlay file transfer progress over uploaded image thumbnail
+- Send correct image size when uploading images on web
 
 ### Deprecated
 
