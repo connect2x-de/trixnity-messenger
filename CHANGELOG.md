@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Scroll to replied element in timeline when clicking
+- Copy message content
 
 ### Changed
 
