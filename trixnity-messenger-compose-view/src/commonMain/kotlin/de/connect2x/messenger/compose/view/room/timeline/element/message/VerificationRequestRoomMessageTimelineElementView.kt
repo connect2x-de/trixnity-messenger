@@ -97,7 +97,7 @@ class VerificationRequestRoomMessageTimelineElementView : TimelineElementView<Ve
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: VerificationRequest
     ): ClipEntry? = element.toClipEntry()
 }

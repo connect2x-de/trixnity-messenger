@@ -112,7 +112,7 @@ class AudioRoomMessageTimelineElementView : TimelineElementView<Audio> {
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: Audio
     ): ClipEntry? = element.toClipEntry()
 

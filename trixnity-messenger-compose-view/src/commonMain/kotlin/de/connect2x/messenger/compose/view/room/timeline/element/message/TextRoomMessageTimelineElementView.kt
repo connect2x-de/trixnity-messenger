@@ -51,7 +51,7 @@ class TextRoomMessageTimelineElementView : TimelineElementView<Text> {
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: Text
     ): ClipEntry? = element.toClipEntry()
 }

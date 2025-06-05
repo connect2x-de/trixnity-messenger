@@ -61,7 +61,7 @@ class LocationRoomMessageTimelineElementView : TimelineElementView<Location> {
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: Location
     ): ClipEntry? = element.toClipEntry()
 }

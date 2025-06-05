@@ -51,7 +51,7 @@ class EmoteRoomMessageTimelineElementView : TimelineElementView<Emote> {
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: Emote
     ): ClipEntry? = element.toClipEntry()
 }

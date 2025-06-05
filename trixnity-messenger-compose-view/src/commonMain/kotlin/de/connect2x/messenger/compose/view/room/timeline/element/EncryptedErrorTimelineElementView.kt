@@ -81,7 +81,7 @@ class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTime
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: EncryptedErrorTimelineElementViewModel
     ): ClipEntry? = null
 

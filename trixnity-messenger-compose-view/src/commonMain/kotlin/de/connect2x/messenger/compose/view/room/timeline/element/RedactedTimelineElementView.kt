@@ -93,7 +93,7 @@ class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementV
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: RedactedTimelineElementViewModel
     ): ClipEntry? = null
 }

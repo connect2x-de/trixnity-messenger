@@ -67,7 +67,7 @@ class TopicStateTimelineElementView : TimelineElementView<TopicStateTimelineElem
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: TopicStateTimelineElementViewModel
     ): ClipEntry? = null
 

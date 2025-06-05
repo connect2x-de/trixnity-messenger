@@ -46,7 +46,7 @@ interface TimelineElementViewSelector :
 
     @Composable
     fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
     ): ClipEntry? = rememberFactory(element).getClipEntry(holder, element)
 }

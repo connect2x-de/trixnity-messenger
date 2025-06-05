@@ -68,7 +68,7 @@ class CanonicalAliasStateTimelineElementView : TimelineElementView<CanonicalAlia
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: CanonicalAliasStateTimelineElementViewModel
     ): ClipEntry? = null
 

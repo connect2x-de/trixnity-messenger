@@ -68,7 +68,7 @@ class HistoryVisibilityStateTimelineElementView : TimelineElementView<HistoryVis
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: HistoryVisibilityStateTimelineElementViewModel
     ): ClipEntry? = null
 

@@ -118,7 +118,7 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<Video> {
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: Video
     ): ClipEntry? = element.toClipEntry()
 }

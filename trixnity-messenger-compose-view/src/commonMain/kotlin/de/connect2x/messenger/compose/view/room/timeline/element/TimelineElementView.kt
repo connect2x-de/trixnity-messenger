@@ -38,7 +38,7 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
 
     @Composable
     fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: V,
     ): ClipEntry?
 }
@@ -73,7 +73,7 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>
     ): ClipEntry? = null
 

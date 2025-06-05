@@ -111,7 +111,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<Image> {
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: Image
     ): ClipEntry? = element.toClipEntry()
 }

@@ -52,7 +52,7 @@ class NoticeRoomMessageTimelineElementView : TimelineElementView<Notice> {
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: Notice
     ): ClipEntry? = element.toClipEntry()
 }

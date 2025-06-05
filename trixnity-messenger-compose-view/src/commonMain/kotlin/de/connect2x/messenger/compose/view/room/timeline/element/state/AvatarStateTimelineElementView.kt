@@ -67,7 +67,7 @@ class AvatarStateTimelineElementView : TimelineElementView<AvatarStateTimelineEl
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: AvatarStateTimelineElementViewModel
     ): ClipEntry? = null
 

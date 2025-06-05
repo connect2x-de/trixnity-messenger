@@ -88,7 +88,7 @@ class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimeli
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: EncryptedWaitTimelineElementViewModel
     ): ClipEntry? = null
 }

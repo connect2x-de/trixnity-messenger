@@ -112,7 +112,7 @@ class FileRoomMessageTimelineElementView : TimelineElementView<File> {
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: File
     ): ClipEntry? = element.toClipEntry()
 }

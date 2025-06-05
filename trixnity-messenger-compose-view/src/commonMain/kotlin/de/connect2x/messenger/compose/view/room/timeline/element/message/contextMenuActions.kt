@@ -44,10 +44,8 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
     val clipboard = LocalClipboard.current
     val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
     val clipEntry =
-        asTimelineElementHolder()?.let { holder ->
-            this.element.collectAsState().value?.let { timelineElementViewModel ->
-                timelineElementViewSelector.getClipEntry(holder, timelineElementViewModel)
-            }
+        this.element.collectAsState().value?.let { timelineElementViewModel ->
+            timelineElementViewSelector.getClipEntry(holder, timelineElementViewModel)
         }
     val canBeCopied = clipEntry != null
     val coroutineScope = rememberCoroutineScope()

@@ -68,7 +68,7 @@ class EncryptionStateTimelineElementView : TimelineElementView<EncryptionStateTi
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: EncryptionStateTimelineElementViewModel
     ): ClipEntry? = null
 

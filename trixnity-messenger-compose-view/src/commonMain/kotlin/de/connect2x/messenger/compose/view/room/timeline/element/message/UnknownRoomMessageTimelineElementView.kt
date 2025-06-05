@@ -83,7 +83,7 @@ class UnknownRoomMessageTimelineElementView : TimelineElementView<Unknown> {
 
     @Composable
     override fun getClipEntry(
-        holder: TimelineElementHolderViewModel,
+        holder: BaseTimelineElementHolderViewModel,
         element: Unknown
     ): ClipEntry? = element.toClipEntry()
 
