@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.unit.dp
@@ -24,6 +25,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
@@ -48,6 +50,7 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
             }
         }
     val canBeCopied = clipEntry != null
+    val coroutineScope = rememberCoroutineScope()
 
     return buildList {
         if (this@contextMenuActions is TimelineElementHolderViewModel) {
@@ -90,8 +93,10 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
             if (canBeCopied) add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.commonCopy(),
-                    action = copy {
-                        clipboard.setClipEntry(clipEntry)
+                    action = {
+                        coroutineScope.launch {
+                            clipboard.setClipEntry(clipEntry)
+                        }
                     },
                 )
             )

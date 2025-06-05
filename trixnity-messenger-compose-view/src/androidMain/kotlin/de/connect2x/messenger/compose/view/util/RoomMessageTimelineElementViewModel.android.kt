@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.util
 
 import android.content.ClipData
-import android.content.ClipData.Item
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ClipEntry
@@ -10,7 +9,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.Location
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased
-import java.util.Base64
 
 @Composable
 actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
@@ -19,13 +17,15 @@ actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
 
     val clipData = when (this) {
         is FileBased ->
-            ClipData(
-                this.name,
-                arrayOf(this.mimeType),
-                Item(
-                    Base64.getEncoder().encodeToString(this.loadMediaResult.value)
+            this.formattedCaption?.let {
+                ClipData.newHtmlText(
+                    this.caption,
+                    this.caption,
+                    it
                 )
-            )
+            } ?: this.caption?.let {
+                ClipData.newPlainText(it, it)
+            }
 
         is Location ->
             ClipData.newUri(

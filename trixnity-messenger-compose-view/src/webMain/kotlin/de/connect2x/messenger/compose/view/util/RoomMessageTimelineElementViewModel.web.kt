@@ -7,11 +7,9 @@ import androidx.compose.ui.platform.ClipboardItem
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased
 import io.ktor.http.ContentType
-import org.khronos.webgl.Uint8Array
 import org.w3c.files.Blob
 import web.errors.DOMException
 import web.errors.DOMException.Companion.NotFoundError
-import web.clipboard.ClipboardItem as NativeClipboardItem
 import kotlin.js.Promise
 
 private fun <T : Any> T.asBlob() = Blob(arrayOf(this))
@@ -32,20 +30,16 @@ actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
 
 
         is FileBased<*> ->
-            if (
-                this.loadMediaProgress.value?.percent == 1f &&
-                this.mimeType != null &&
-                NativeClipboardItem.supports(this.mimeType ?: "")
-            ) {
-                this.loadMediaResult.value?.let {
-                    mapOf(
-                        this.mimeType to Uint8Array(it.toTypedArray()),
-                        ContentType.Text.Plain to this.name
-                    )
-                } ?: mapOf(ContentType.Text.Plain to this.name)
-            } else {
-                mapOf(ContentType.Text.Plain to this.name)
-            }
+            this.formattedCaption?.let {
+                mapOf(
+                    ContentType.Text.Html to it,
+                    ContentType.Text.Plain to this.caption
+                )
+            } ?: this.caption?.let {
+                mapOf(
+                    ContentType.Text.Plain to it
+                )
+            } ?: mapOf<Any, Any>()
 
         is RoomMessageTimelineElementViewModel.Location -> mapOf(
             ContentType.Text.Html to "<a href=\"${this.geoUri}\">${this.name}</a>",
@@ -54,7 +48,7 @@ actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
 
         is RoomMessageTimelineElementViewModel.VerificationRequest,
         is RoomMessageTimelineElementViewModel.Unknown -> mapOf<Any, Any>()
-    }.filter { it.key == null }.mapKeys { it.toString() }.mapValues { it.asBlob() }
+    }.mapKeys { it.toString() }.mapValues { it.asBlob() }
 
     return if (items.isEmpty()) null else ClipEntry(
         arrayOf(

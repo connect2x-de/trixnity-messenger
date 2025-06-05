@@ -36,6 +36,9 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     override val size: String? = content.info?.size?.let { " (${formatSize(it.toLong())})" } ?: ""
     override val mimeType: String? = content.info?.mimeType
 
+    override val caption: String? = if (content.body == content.fileName) null else content.body
+    override val formattedCaption: String? = content.formattedBody
+
     private val downloadManager = viewModelContext.get<DownloadManager>()
 
     private val _loadMedia: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
