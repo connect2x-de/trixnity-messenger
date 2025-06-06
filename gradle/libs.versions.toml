@@ -2,7 +2,7 @@
 jvmTarget = "17"
 c2xConventions = "43109500" # https://gitlab.com/connect2x/c2x-conventions/-/packages
 
-trixnityMessenger = "3.6.1"
+trixnityMessenger = "3.6.2"
 trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
