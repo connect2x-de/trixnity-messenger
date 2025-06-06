@@ -108,7 +108,7 @@ open class CreateNewChatViewModelImpl(
                 existingRoomIds?.isNotEmpty() == true &&
                 existingRoomIds.any {
                     val room = matrixClient.room.getById(it).first()
-                    room != null && room.membership != Membership.LEAVE
+                    room != null && (room.membership == Membership.JOIN ||room.membership == Membership.INVITE)
                 }
             ) {
                 log.debug { "Check whether there is already existing room with $userId" }
