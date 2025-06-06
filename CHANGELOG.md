@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Resolved crash due to "Image too large" on Android
 - Reuse an existing direct chat only if it is a direct chat with only that user when creating a new chat
 
 ### Security
