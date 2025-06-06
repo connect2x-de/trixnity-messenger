@@ -11,12 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Overlay file transfer progress over uploaded image thumbnail
-- Updated Trixnity from 4.16.0 to 4.16.1
-
 ### Deprecated
 
 ### Removed
+
+### Fixed
+
+### Security
+
+## 3.6.1
+
+### Changed
+
+- Overlay file transfer progress over uploaded image thumbnail
+- Updated Trixnity from 4.16.0 to 4.16.1
 
 ### Fixed
 
