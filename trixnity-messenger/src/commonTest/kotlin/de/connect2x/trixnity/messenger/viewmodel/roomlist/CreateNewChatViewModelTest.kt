@@ -744,7 +744,152 @@ class CreateNewChatViewModelTest {
     }
 
     @Test
-    fun `do not reuse existing direct room with other user, if this user is not part of it anymore, but there are still 2 users in it`() = runTest {
+    fun `do not reuse existing direct room with other user, if this user is not part of it anymore, but there are still 2 users in it`() =
+        runTest {
+            val roomId = RoomId("room1", "localhost")
+            val existingRoomId = RoomId("existingRoom", "localhost")
+            everySuspend {
+                roomsApiClientMock.createRoom(
+                    visibility = any(),
+                    roomAliasId = any(),
+                    name = any(),
+                    topic = any(),
+                    invite = any(),
+                    inviteThirdPid = any(),
+                    roomVersion = any(),
+                    creationContent = any(),
+                    initialState = any(),
+                    preset = any(),
+                    isDirect = any(),
+                    powerLevelContentOverride = any(),
+                    asUserId = any(),
+                )
+            } calls {
+                Result.success(roomId)
+            }
+            everySuspend {
+                usersApiClientMock.searchUsers(
+                    searchTerm = eq("u"),
+                    acceptLanguage = any(),
+                    limit = any(),
+                    asUserId = eqNull(),
+                )
+            } returns Result.success(
+                SearchUsers.Response(
+                    false, listOf(
+                        SearchUsers.Response.SearchUser(userId = userId1),
+                        SearchUsers.Response.SearchUser(userId = userId2),
+                        SearchUsers.Response.SearchUser(userId = userId3),
+                    )
+                )
+            )
+            every {
+                userServiceMock.getAccountData(DirectEventContent::class, any())
+            } returns MutableStateFlow(
+                DirectEventContent(mapOf(userId2 to setOf(existingRoomId)))
+            )
+            every {
+                userServiceMock.getById(existingRoomId, userId2)
+            } returns MutableStateFlow(
+                RoomUser(
+                    existingRoomId, userId2, name = "User2", ClientEvent.RoomEvent.StateEvent(
+                        content = MemberEventContent(
+                            membership = Membership.JOIN,
+                        ),
+                        id = EventId("1"),
+                        sender = userId1,
+                        roomId = existingRoomId,
+                        originTimestamp = 0L,
+                        stateKey = "",
+                    )
+                )
+            )
+            every { userServiceMock.getAll(existingRoomId) } returns MutableStateFlow(
+                mapOf(
+                    userId1 to flowOf(
+                        RoomUser(
+                            existingRoomId,
+                            userId1,
+                            "User1",
+                            ClientEvent.RoomEvent.StateEvent(
+                                content = MemberEventContent(membership = Membership.JOIN),
+                                id = EventId("2"),
+                                sender = userId1,
+                                roomId = existingRoomId,
+                                originTimestamp = 0L,
+                                stateKey = userId1.full,
+                            )
+                        )
+                    ),
+                    userId2 to flowOf(
+                        RoomUser(
+                            existingRoomId,
+                            userId2,
+                            "User2",
+                            ClientEvent.RoomEvent.StateEvent(
+                                content = MemberEventContent(membership = Membership.LEAVE), // <--
+                                id = EventId("3"),
+                                sender = userId2,
+                                roomId = existingRoomId,
+                                originTimestamp = 0L,
+                                stateKey = userId2.full,
+                            )
+                        )
+                    ),
+                    userId3 to flowOf(
+                        RoomUser(
+                            existingRoomId,
+                            userId3,
+                            "User3",
+                            ClientEvent.RoomEvent.StateEvent(
+                                content = MemberEventContent(membership = Membership.JOIN),
+                                id = EventId("4"),
+                                sender = userId3,
+                                roomId = existingRoomId,
+                                originTimestamp = 0L,
+                                stateKey = userId3.full,
+                            )
+                        )
+                    )
+                )
+            )
+            every { roomServiceMock.getById(any()) } returns MutableStateFlow(Room(roomId))
+
+            val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
+            val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
+
+            val cut = createNewChatViewModel()
+            val searchHandler = cut.createNewRoomViewModel.searchHandler
+            searchHandler.searchTerm.update("u")
+            searchHandler.foundUsers.first {
+                it == listOf(user2, user3)
+            }
+
+            cut.onUserClick(user2)
+            delay(10)
+            verifySuspend {
+                roomsApiClientMock.createRoom(
+                    visibility = any(),
+                    roomAliasId = any(),
+                    name = any(),
+                    topic = any(),
+                    invite = any(),
+                    inviteThirdPid = any(),
+                    roomVersion = any(),
+                    creationContent = any(),
+                    initialState = any(),
+                    preset = any(),
+                    isDirect = any(),
+                    powerLevelContentOverride = any(),
+                    asUserId = any(),
+                )
+            }
+            verify { onRoomCreatedMock.invoke(userId1, roomId) }
+            verifyNoMoreCalls(onRoomCreatedMock)
+        }
+
+    @Test
+    fun `ignore direct rooms we have left`() = runTest {
         val roomId = RoomId("room1", "localhost")
         val existingRoomId = RoomId("existingRoom", "localhost")
         everySuspend {
@@ -803,56 +948,9 @@ class CreateNewChatViewModelTest {
                 )
             )
         )
-        every { userServiceMock.getAll(existingRoomId) } returns MutableStateFlow(
-            mapOf(
-                userId1 to flowOf(
-                    RoomUser(
-                        existingRoomId,
-                        userId1,
-                        "User1",
-                        ClientEvent.RoomEvent.StateEvent(
-                            content = MemberEventContent(membership = Membership.JOIN),
-                            id = EventId("2"),
-                            sender = userId1,
-                            roomId = existingRoomId,
-                            originTimestamp = 0L,
-                            stateKey = userId1.full,
-                        )
-                    )
-                ),
-                userId2 to flowOf(
-                    RoomUser(
-                        existingRoomId,
-                        userId2,
-                        "User2",
-                        ClientEvent.RoomEvent.StateEvent(
-                            content = MemberEventContent(membership = Membership.LEAVE), // <--
-                            id = EventId("3"),
-                            sender = userId2,
-                            roomId = existingRoomId,
-                            originTimestamp = 0L,
-                            stateKey = userId2.full,
-                        )
-                    )
-                ),
-                userId3 to flowOf(
-                    RoomUser(
-                        existingRoomId,
-                        userId3,
-                        "User3",
-                        ClientEvent.RoomEvent.StateEvent(
-                            content = MemberEventContent(membership = Membership.JOIN),
-                            id = EventId("4"),
-                            sender = userId3,
-                            roomId = existingRoomId,
-                            originTimestamp = 0L,
-                            stateKey = userId3.full,
-                        )
-                    )
-                )
-            )
+        every { roomServiceMock.getById(any()) } returns MutableStateFlow(
+            Room(roomId, membership = Membership.LEAVE) // <--
         )
-        every { roomServiceMock.getById(any()) } returns MutableStateFlow(Room(roomId))
 
         val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
         val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")

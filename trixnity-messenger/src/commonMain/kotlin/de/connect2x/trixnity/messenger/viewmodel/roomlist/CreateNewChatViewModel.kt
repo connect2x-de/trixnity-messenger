@@ -106,7 +106,10 @@ open class CreateNewChatViewModelImpl(
             val existingRoomIds = createNewRoomViewModel.existingDirectRooms.value[userId]
             if (
                 existingRoomIds?.isNotEmpty() == true &&
-                existingRoomIds.any { matrixClient.room.getById(it).first() != null }
+                existingRoomIds.any {
+                    val room = matrixClient.room.getById(it).first()
+                    room != null && room.membership != Membership.LEAVE
+                }
             ) {
                 log.debug { "Check whether there is already existing room with $userId" }
                 // check whether the user left the room; if so, do NOT re-use the room
