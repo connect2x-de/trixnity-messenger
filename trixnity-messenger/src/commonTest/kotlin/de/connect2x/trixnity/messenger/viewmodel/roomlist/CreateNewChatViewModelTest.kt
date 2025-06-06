@@ -420,7 +420,7 @@ class CreateNewChatViewModelTest {
     }
 
     @Test
-    fun `create a new room if the users are in a direct chat already, but another user is also part of it`() = runTest {
+    fun `create a new room if the users are in a direct chat already but another user is also part of it`() = runTest {
         val roomId = RoomId("room1", "localhost")
         val existingRoomId = RoomId("existingRoom", "localhost")
         everySuspend {
@@ -564,7 +564,7 @@ class CreateNewChatViewModelTest {
     }
 
     @Test
-    fun `multiple direct rooms exist, and one has only the other user, so directly jump to this room`() = runTest {
+    fun `multiple direct rooms exist and one has only the other user so directly jump to this room`() = runTest {
         var createRoomCalled = false
         val roomId = RoomId("room1", "localhost")
         val existingRoom1Id = RoomId("existingRoom1", "localhost")
@@ -744,7 +744,7 @@ class CreateNewChatViewModelTest {
     }
 
     @Test
-    fun `do not reuse existing direct room with other user, if this user is not part of it anymore, but there are still 2 users in it`() =
+    fun `do not reuse existing direct room with other user if this user is not part of it anymore but there are still 2 users in it`() =
         runTest {
             val roomId = RoomId("room1", "localhost")
             val existingRoomId = RoomId("existingRoom", "localhost")
