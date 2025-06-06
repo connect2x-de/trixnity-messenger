@@ -12,9 +12,6 @@ import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,9 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import de.connect2x.messenger.compose.view.DI
@@ -41,7 +36,11 @@ import de.connect2x.messenger.compose.view.files.CameraDialogCapturingMode.VIDEO
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.UriFileDescriptor
@@ -64,9 +63,27 @@ actual fun SaveFileDialog(
     downloadFile: (suspend (PlatformMedia) -> Unit) -> Unit,
     onCloseSaveFileDialog: () -> Unit,
 ) {
+    val i18n = DI.get<I18nView>()
     val context = LocalContext.current
     val hasError = error?.isNotBlank() == true
-    if (hasError) DownloadErrorAlertDialog(error ?: "", onCloseSaveFileDialog)
+    if (hasError) {
+        ThemedModalDialog(onCloseSaveFileDialog) {
+            ModalDialogHeader {
+                Text(i18n.fileDialogDownloadErrorSave())
+            }
+            ModalDialogContent {
+                Text(error)
+            }
+            ModalDialogFooter {
+                ThemedButton(
+                    style = MaterialTheme.components.primaryButton,
+                    onClick = onCloseSaveFileDialog,
+                ) {
+                    Text(i18n.actionOk())
+                }
+            }
+        }
+    }
     LaunchedEffect(hasError) {
         if (!hasError) downloadFile { byteArrayFlow ->
             withContext(Dispatchers.IO) {
@@ -247,22 +264,21 @@ fun CameraDialog(
         else showPermissionAlert = true
     }
 
-    if (showPermissionAlert) AlertDialog(
-        modifier = Modifier.defaultMinSize(minWidth = 400.dp),
-        onDismissRequest = onCloseCameraDialog,
-        title = {},
-        dismissButton = {
-            ThemedButton(
-                style = MaterialTheme.components.primaryButton,
-                onClick = onCloseCameraDialog,
-            ) {
-                Text(i18n.commonOk())
+    if (showPermissionAlert) {
+        ThemedModalDialog(onCloseCameraDialog) {
+            ModalDialogContent {
+                Text(i18n.cameraDialogAlertNoPermission())
             }
-        },
-        confirmButton = {},
-        shape = RoundedCornerShape(8.dp),
-        text = { Text(i18n.cameraDialogAlertNoPermission()) },
-    )
+            ModalDialogFooter {
+                ThemedButton(
+                    style = MaterialTheme.components.primaryButton,
+                    onClick = onCloseCameraDialog,
+                ) {
+                    Text(i18n.actionOk())
+                }
+            }
+        }
+    }
 
     LaunchedEffect(tempUri, isPermissionGranted) {
         if (showPermissionAlert.not()) tempUri?.let {

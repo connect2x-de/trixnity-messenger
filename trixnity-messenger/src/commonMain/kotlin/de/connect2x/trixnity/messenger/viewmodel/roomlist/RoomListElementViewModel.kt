@@ -10,11 +10,10 @@ import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
-import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTimestamp
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -109,7 +108,7 @@ open class RoomListElementViewModelImpl(
     private val onRoomClose: () -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, RoomListElementViewModel {
     private val roomInviter = get<RoomInviter>()
-    private val userPresence = get<UserPresence>()
+    private val roomPresence = get<RoomPresence>()
     private val roomNameCalculations = get<RoomName>()
     private val initials = get<Initials>()
     private val clock = get<Clock>()
@@ -140,7 +139,8 @@ open class RoomListElementViewModelImpl(
     override val isLeave: StateFlow<Boolean?> =
         roomFlow.map { it.membership == Membership.LEAVE }
             .stateIn(coroutineScope, WhileSubscribed(), null)
-    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
+
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     override val inviterUserInfo: StateFlow<UserInfoElement?> =
         combine(isInvite.filterNotNull(), roomFlow) { isInvite, room ->
@@ -159,8 +159,8 @@ open class RoomListElementViewModelImpl(
                                 coroutineScope,
                                 matrixClient,
                                 initials,
-                                maxAvatarSize,
-                                inviterUserId
+                                inviterUserId,
+                                maxMediaSizeInMemory,
                             )
                         }
                 } ?: flowOf(null)
@@ -193,9 +193,7 @@ open class RoomListElementViewModelImpl(
                 matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
                     .fold(
                         onSuccess = {
-                            it.limitedByteArrayOrNull(maxAvatarSize) {
-                                log.error { "Room avatar for ${room.roomId} exceeds max preview size, so it's not displayed" }
-                            }
+                            it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
                         },
                         onFailure = {
                             log.error(it) { "Cannot load user avatar." }
@@ -270,8 +268,7 @@ open class RoomListElementViewModelImpl(
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val presence: StateFlow<Presence?> =
-        userPresence.presentEventContentFlow(matrixClient, roomId)
-            .map { it?.presence }
+        roomPresence.invoke(matrixClient, roomId)
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val isLoaded: StateFlow<Boolean> =

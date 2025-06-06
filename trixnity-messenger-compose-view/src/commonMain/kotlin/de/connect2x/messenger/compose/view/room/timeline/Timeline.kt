@@ -37,12 +37,17 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.VerticalScrollbar
-import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
@@ -216,10 +221,22 @@ class TimelineViewImpl : TimelineView {
                         }
                 ) {
                     if (error != null) {
-                        ErrorDialog(
-                            error,
-                            { timelineViewModel.errorDismiss() },
-                        )
+                        ThemedModalDialog({ timelineViewModel.errorDismiss() }) {
+                            ModalDialogHeader {
+                                Text(i18n.anErrorHasOccurred())
+                            }
+                            ModalDialogContent {
+                                Text(error)
+                            }
+                            ModalDialogFooter {
+                                ThemedButton(
+                                    style = MaterialTheme.components.primaryButton,
+                                    onClick = { timelineViewModel.errorDismiss() },
+                                ) {
+                                    Text(i18n.actionOk())
+                                }
+                            }
+                        }
                     }
                     Box(
                         Modifier

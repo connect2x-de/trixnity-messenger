@@ -9,6 +9,13 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 
 interface ActiveVerifications {  // TODO this as part of the DI just adds complexity
+    /**
+     * Returns whether there is an active device or user verification.
+     *
+     * @param matrixClient
+     * @param roomId only needed for user verification; for device verification should be `null`
+     * @param timelineEventId only needed for user verification; for device verification should be `null`
+     */
     suspend fun getActiveVerification(
         matrixClient: MatrixClient,
         roomId: RoomId?,

@@ -64,8 +64,11 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
 
         interface Image : FileBased<RoomMessageEventContent.FileBased.Image> {
             val thumbnail: StateFlow<ByteArray?>
+            val thumbnailLoading: StateFlow<Boolean>
             val width: Int?
             val height: Int?
+            val thumbnailWidth: Int?
+            val thumbnailHeight: Int?
         }
 
         interface Audio : FileBased<RoomMessageEventContent.FileBased.Audio> {
@@ -87,7 +90,6 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
 
     interface VerificationRequest : RoomMessageTimelineElementViewModel<RoomMessageEventContent.VerificationRequest> {
         val isActive: StateFlow<Boolean?>
-        val reachedEndState: StateFlow<Pair<Boolean, String>?>
         val stack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>>
         fun cancel()
     }

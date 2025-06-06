@@ -40,12 +40,16 @@ open class AcceptSasStartViewModelImpl(
     private val activeVerifications = viewModelContext.get<ActiveVerifications>()
 
     override fun accept() {
+        log.debug { "user accepted SAS start" }
         coroutineScope.launch {
             activeVerifications.getActiveVerification(matrixClient, roomId, timelineEventId)
                 ?.let { activeVerification ->
+                    log.debug { "start accepting SAS start, active verification: $activeVerification" }
                     val activeVerificationState = activeVerification.state.value
+                    log.debug { "active verification state: $activeVerificationState" }
                     if (activeVerificationState is ActiveVerificationState.Start) {
                         val method = activeVerificationState.method
+                        log.debug { "active verification method: $method" }
                         if (method is ActiveSasVerificationMethod) {
                             val methodState = method.state.value
                             if (methodState is ActiveSasVerificationState.TheirSasStart) {

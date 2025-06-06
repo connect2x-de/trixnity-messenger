@@ -5,10 +5,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.toByteReadChannel
+import org.koin.core.module.Module
+import org.koin.dsl.module
 import java.io.IOException
 import javax.imageio.ImageIO
 
-actual suspend fun getImageDimensions(byteArrayFlow: ByteArrayFlow, maxMediaSize: Long): Pair<Int?, Int?> {
+actual fun platformGetImageDimensionsModule(): Module = module {
+    single<GetImageDimensions> {
+        GetImageDimensions { byteArrayFlow, maxSize ->
+            getImageDimensions(byteArrayFlow, maxSize)
+        }
+    }
+}
+
+suspend fun getImageDimensions(byteArrayFlow: ByteArrayFlow, maxMediaSize: Long): Pair<Int?, Int?> {
     val inputStream = byteArrayFlow.toByteReadChannel().toInputStream()
     return withContext(Dispatchers.IO) {
         try {

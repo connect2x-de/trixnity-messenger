@@ -24,7 +24,7 @@ interface GetEventReactions {
         roomId: RoomId,
         eventId: EventId,
         initials: Initials,
-        avatarMaxSize: Long,
+        maxMediaSizeInMemory: Long,
     ): Flow<EventReactions>
 }
 
@@ -36,7 +36,7 @@ class GetEventReactionsImpl : GetEventReactions {
         roomId: RoomId,
         eventId: EventId,
         initials: Initials,
-        avatarMaxSize: Long,
+        maxMediaSizeInMemory: Long,
     ): Flow<EventReactions> =
         matrixClient.room.getTimelineEvent(roomId, eventId).flatMapLatest { timelineEvent ->
             when (timelineEvent?.content?.getOrNull()) {
@@ -62,7 +62,7 @@ class GetEventReactionsImpl : GetEventReactions {
                                                     this,
                                                     matrixClient,
                                                     initials,
-                                                    avatarMaxSize
+                                                    maxMediaSizeInMemory
                                                 ),
                                                 isByMe = event.sender == matrixClient.userId,
                                             )

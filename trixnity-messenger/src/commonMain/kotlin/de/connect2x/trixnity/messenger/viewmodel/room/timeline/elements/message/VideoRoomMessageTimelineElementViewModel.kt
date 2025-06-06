@@ -43,13 +43,13 @@ class VideoRoomMessageTimelineElementViewModelImpl(
 ) : RoomMessageTimelineElementViewModel.FileBased.Video,
     FileBasedRoomMessageTimelineElementViewModel<FileBased.Video>(viewModelContext, content) {
 
-    private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     private val thumbnails = get<Thumbnails>()
 
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
 
     private val thumbnailLoad = coroutineScope.async { // TODO needs some sort of retry
-        thumbnails.loadThumbnail(matrixClient, content, thumbnailProgressFlow, maxPreviewSize)
+        thumbnails.loadThumbnail(coroutineScope, matrixClient, content, thumbnailProgressFlow, maxMediaSizeInMemory)
     }
 
     override val duration: Long? = content.info?.duration

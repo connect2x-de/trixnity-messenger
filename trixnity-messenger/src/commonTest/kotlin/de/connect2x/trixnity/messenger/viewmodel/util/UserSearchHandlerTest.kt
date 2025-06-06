@@ -36,7 +36,7 @@ class UserSearchHandlerTest {
     @BeforeTest
     fun setup() {
         resetMocks(searchMock, matrixClientMock)
-        everySuspend { searchMock.searchUsers(matrixClientMock, userId, any(), any(), any()) } returns
+        everySuspend { searchMock.searchUsers(any(), matrixClientMock, userId, any()) } returns
                 listOf(searchUser)
     }
 
@@ -61,7 +61,7 @@ class UserSearchHandlerTest {
     @Test
     fun `should return found users`(): TestResult = runTest {
         val otherUser = Search.SearchUserElementImpl("Other user", "Ou", null, UserId("ou:local.local"))
-        everySuspend { searchMock.searchUsers(matrixClientMock, "us", any(), any(), any()) } returns
+        everySuspend { searchMock.searchUsers(any(), matrixClientMock, "us", any()) } returns
                 listOf(searchUser, otherUser)
         val cut = defaultUserSearchHandler()
         cut.searchTerm.update("us")
@@ -73,7 +73,7 @@ class UserSearchHandlerTest {
     @Test
     fun `should not return users that are already selected`() = runTest {
         val otherUser = Search.SearchUserElementImpl("Other user", "Ou", null, UserId("ou:local.local"))
-        everySuspend { searchMock.searchUsers(matrixClientMock, "us", any(), any(), any()) } returns
+        everySuspend { searchMock.searchUsers(any(), matrixClientMock, "us", any()) } returns
                 listOf(searchUser, otherUser)
         val cut = defaultUserSearchHandler()
         cut.searchTerm.update("us")
@@ -86,7 +86,7 @@ class UserSearchHandlerTest {
     @Test
     fun `should not return users that are in the filter list`() = runTest {
         val otherUser = Search.SearchUserElementImpl("Other user", "Ou", null, UserId("ou:local.local"))
-        everySuspend { searchMock.searchUsers(matrixClientMock, "us", any(), any(), any()) } returns
+        everySuspend { searchMock.searchUsers(any(), matrixClientMock, "us", any()) } returns
                 listOf(searchUser, otherUser)
         val cut = defaultUserSearchHandler(filterNotUsers = flowOf(setOf(UserId("ou:local.local"))))
         cut.searchTerm.update("us")
@@ -97,9 +97,8 @@ class UserSearchHandlerTest {
 
     fun TestScope.defaultUserSearchHandler(filterNotUsers: Flow<Set<UserId>> = flowOf(setOf())): DefaultUserSearchHandler {
         val result = DefaultUserSearchHandler(
-            search = searchMock,
             coroutineScope = backgroundScope + ImmediateDispatcherElement(testDispatcher),
-            maxAvatarSize = 20L,
+            search = searchMock,
             client = matrixClientMock,
             filterNotUsers = filterNotUsers,
         )

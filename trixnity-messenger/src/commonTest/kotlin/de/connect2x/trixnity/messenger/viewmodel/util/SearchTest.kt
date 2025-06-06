@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
@@ -9,7 +10,6 @@ import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
 import de.connect2x.trixnity.messenger.util.testGraphemeIterableProvider
 import dev.mokkery.answering.returns
-import dev.mokkery.coroutines.answering.awaits
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
@@ -17,27 +17,23 @@ import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.InternalForInheritanceCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.MediaService
+import net.folivo.trixnity.client.store.UserPresence
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.UserApiClient
@@ -49,7 +45,6 @@ import net.folivo.trixnity.core.model.events.m.PresenceEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
-import kotlin.time.Duration
 
 private fun Search.SearchUserElement.testAvatarData() = image?.let { "${userId.full}_avatarUrl" to it }
 
@@ -98,13 +93,10 @@ class SearchTest {
     val apiClientServerMock = mock<MatrixClientServerApiClient>()
     val usersApiClientMock = mock<UserApiClient>()
 
-    val userPresence = MutableStateFlow<Map<UserId, PresenceEventContent>>(mapOf())
-
     val i18n: I18n
     val search: Search
 
     init {
-        userPresence.update { emptyMap() }
         i18n = object : I18n(
             DefaultLanguages,
             createTestMatrixMessengerSettingsHolder(),
@@ -113,7 +105,7 @@ class SearchTest {
         ) {}
         setupMatrixClient()
         setupApiMocks()
-        search = SearchImpl(InitialsImpl(testGraphemeIterableProvider()), i18n)
+        search = SearchImpl(InitialsImpl(testGraphemeIterableProvider()), i18n, MatrixMessengerConfiguration())
     }
 
     @Test
@@ -124,14 +116,20 @@ class SearchTest {
         injectSearchUsers("", listOf(myUserData))
 
         var res = search.searchUsers(
-            matrixClientMock, searchTerm, limit = null, presenceScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
+            limit = null,
         )
 
         res.size shouldBe 1
         res[0] shouldBeEqual myUserData
 
         res = search.searchUsers(
-            matrixClientMock, "", limit = null, presenceScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = "",
+            limit = null,
         )
 
         res.size shouldBe 0
@@ -144,7 +142,10 @@ class SearchTest {
         injectSearchUsers(searchTerm, listOf(myUserData))
 
         val res = search.searchUsers(
-            matrixClientMock, searchTerm, limit = null, presenceScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
+            limit = null,
         )
 
         res.size shouldBe 0
@@ -155,7 +156,10 @@ class SearchTest {
         val searchTerm = myUserId.full
 
         val res = search.searchUsers(
-            matrixClientMock, searchTerm, limit = null, presenceScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
+            limit = null,
         )
 
         res.size shouldBe 1
@@ -170,11 +174,10 @@ class SearchTest {
         injectSearchUsers(searchTerm, availableUsersSorted, limit = limit.toLong())
 
         val res = search.searchUsers(
-            matrixClientMock,
-            searchTerm,
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
             limit = limit.toLong(),
-            presenceScope = backgroundScope,
-            maxPreviewSize = Long.MAX_VALUE
         )
 
         res.size shouldBe limit
@@ -189,11 +192,10 @@ class SearchTest {
         injectSearchUsers(searchTerm, availableUsersSorted.drop(1), limit = limit.toLong())
 
         val res = search.searchUsers(
-            matrixClientMock,
-            searchTerm,
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
             limit = limit.toLong(),
-            presenceScope = backgroundScope,
-            maxPreviewSize = Long.MAX_VALUE
         )
 
         res.size shouldBe limit - 1
@@ -201,21 +203,23 @@ class SearchTest {
     }
 
     @Test
-    fun `prefer userService over api`() = runTest {
+    fun `should get user presence`() = runTest {
         val user = availableUsersMapping["other_local"]!!
         val searchTerm = "preferUserService"
 
-        userPresence.update { mapOf(user.userId to PresenceEventContent(Presence.ONLINE)) }
         injectSearchUsers(searchTerm, listOf(user))
 
         user.presence.value shouldBe Presence.OFFLINE
 
         val res = search.searchUsers(
-            matrixClientMock, searchTerm, limit = null, presenceScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
+            limit = null,
         )
 
         res.size shouldBe 1
-        res.first().presence.drop(1).first() shouldBe Presence.ONLINE
+        res.first().presence.drop(1).first() shouldBe Presence.OFFLINE
     }
 
     @Test
@@ -224,7 +228,10 @@ class SearchTest {
         val searchTerm = user.userId.full
 
         val res = search.searchUsers(
-            matrixClientMock, searchTerm, limit = null, presenceScope = backgroundScope, maxPreviewSize = Long.MAX_VALUE
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
+            limit = null,
         )
 
         res.size shouldBe 1
@@ -236,13 +243,13 @@ class SearchTest {
     fun `cancel presence when cancelling searchUsersScope`() = runTest {
         val user = availableUsersMapping["other_local"]!!
         val searchTerm = "shouldCancel"
-        val blockingState = Channel<BlockingPresenceState>(1)
+        val started = MutableStateFlow(false)
+        val cancelled = MutableStateFlow(false)
 
         injectSearchUsers(searchTerm, listOf(user))
-        everySuspend { usersApiClientMock.getPresence(eq(user.userId), any()) } awaits {
-            BlockingPresenceResponse {
-                blockingState.trySend(it)
-            }
+        every { userServiceMock.getPresence(eq(user.userId)) } returns flow {
+            currentCoroutineContext().job.invokeOnCompletion { cancelled.value = true }
+            started.value = true
         }
 
         val jobToCancel = Job()
@@ -252,16 +259,19 @@ class SearchTest {
         val subscriberScope = backgroundScope + subscriberJob
 
         val res = search.searchUsers(
-            matrixClientMock, searchTerm, limit = null, presenceScope = scopeToCancel, maxPreviewSize = Long.MAX_VALUE
+            coroutineScope = scopeToCancel,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
+            limit = null,
         )
         res.size shouldBe 1
         res.first().presence.value shouldBe null
 
         res.first().presence.launchIn(subscriberScope)
 
-        blockingState.receive() shouldBe BlockingPresenceState.STARTED
+        started.first { it }
         jobToCancel.cancel()
-        blockingState.receive() shouldBe BlockingPresenceState.FINISHED
+        cancelled.first { it }
     }
 
     private fun injectSearchUsers(searchTerm: String, users: List<Search.SearchUserElement>, limit: Long? = null) {
@@ -298,8 +308,9 @@ class SearchTest {
         every { matrixClientMock.userId } returns myUserId
         every { matrixClientMock.api } returns apiClientServerMock
         every { apiClientServerMock.user } returns usersApiClientMock
-
-        every { userServiceMock.userPresence } returns userPresence
+        every { userServiceMock.getPresence(any()) } returns flowOf(
+            UserPresence(Presence.OFFLINE, Clock.System.now())
+        )
     }
 
     private fun setupGetProfile(userId: UserId, displayName: String, avatarUrl: String? = null) {
@@ -336,27 +347,5 @@ class SearchTest {
                     })
             )
         }
-    }
-}
-
-private enum class BlockingPresenceState {
-    STARTED, FINISHED
-}
-
-@OptIn(InternalForInheritanceCoroutinesApi::class)
-private class BlockingPresenceResponse(
-    private val inner: CompletableDeferred<Result<PresenceEventContent>> = CompletableDeferred(),
-    val onChange: (BlockingPresenceState) -> Unit,
-) : Deferred<Result<PresenceEventContent>> by inner {
-    override suspend fun await(): Result<PresenceEventContent> {
-        currentCoroutineContext().job.invokeOnCompletion {
-            if (it is CancellationException) {
-                inner.cancel(it)
-                onChange(BlockingPresenceState.FINISHED)
-            }
-        }
-        onChange(BlockingPresenceState.STARTED)
-        delay(Duration.INFINITE)
-        return Result.failure(Exception("unreachable"))
     }
 }

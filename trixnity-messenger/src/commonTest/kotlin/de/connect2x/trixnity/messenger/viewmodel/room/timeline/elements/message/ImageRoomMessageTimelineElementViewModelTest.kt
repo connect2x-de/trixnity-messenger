@@ -41,7 +41,7 @@ class ImageRoomMessageTimelineElementViewModelTest {
     fun `load a thumbnail successfully`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Image>(), any(), any()
+                any(), eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Image>(), any(), any()
             )
         } returns "thumbnail".encodeToByteArray()
 
@@ -57,7 +57,7 @@ class ImageRoomMessageTimelineElementViewModelTest {
     fun `load a thumbnail that takes a while to load`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Image>(), any(), any()
+                any(), eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Image>(), any(), any()
             )
         } calls {
             delay(500.milliseconds)
@@ -80,7 +80,7 @@ class ImageRoomMessageTimelineElementViewModelTest {
     fun `return 'null' for a thumbnail that cannot be loaded`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Image>(), any(), any()
+                any(), eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Image>(), any(), any()
             )
         } returns null
 

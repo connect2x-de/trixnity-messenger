@@ -194,7 +194,8 @@ class RoomListViewModelTest {
         every { userServiceMock.getAll(roomId4) } returns
                 MutableStateFlow(mapOf(user1 to flowOf(roomUser(roomId4, user1))))
         every { userServiceMock.getAll(eq(roomId5)) } returns MutableStateFlow(emptyMap())
-        every { userServiceMock.userPresence } returns MutableStateFlow(mapOf())
+
+        every { userServiceMock.getPresence(any()) } returns flowOf(null)
 
         every {
             roomServiceMock.getState(
@@ -817,7 +818,7 @@ class RoomListViewModelTest {
                         user3 to flowOf(roomUser(roomId23, user3))
                     )
                 )
-        every { userServiceMock2.userPresence } returns MutableStateFlow(mapOf())
+        every { userServiceMock2.getPresence(any()) } returns flowOf(null)
 
         every {
             roomServiceMock2.getState(
