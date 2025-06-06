@@ -1,23 +1,13 @@
 package de.connect2x.messenger.compose.view.settings
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
-import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,22 +20,27 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.min
-import androidx.compose.ui.window.Popup
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
-import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
-import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogContent
+import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogHeader
+import de.connect2x.messenger.compose.view.theme.components.ThemedAdaptiveDialog
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -70,132 +65,93 @@ class AvatarCutterViewImpl : AvatarCutterView {
         var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
         val byteArray = avatarCutterViewModel.avatarImage.collectAsState().value
 
-        byteArray?.let {
-            LaunchedEffect(true) {
-                bitmap = byteArray.toImageBitmap()
+        LaunchedEffect(byteArray) {
+            bitmap = byteArray?.toImageBitmap() ?: run {
+                log.error { "failed to create bitmap image " }
+                null
             }
+        }
 
-            bitmap?.let { bitmap ->
-                val (maxWidth, maxHeight) = if (bitmap.width > bitmap.height) Pair(800.dp, 600.dp) else Pair(
-                    600.dp,
-                    800.dp
-                )
-
-                val maxScaleX = maxWidth / bitmap.width
-                val maxScaleY = maxHeight / bitmap.height
-
-                val scale = min(maxScaleX, maxScaleY)
-
-                val width = scale * bitmap.width
-                val height = scale * bitmap.height
-
-                log.debug { "image (${bitmap.width},${bitmap.height}), scale ($scale), dim ($width,$height)" }
-                Popup(onDismissRequest = { avatarCutterViewModel.cancel() }) {
-                    Box(Modifier.fillMaxSize()) {
-                        BoxWithConstraints(
+        ThemedAdaptiveDialog({ avatarCutterViewModel.cancel() }) {
+            AdaptiveDialogHeader(onClose = avatarCutterViewModel::cancel) {
+                Text(avatarCutterViewModel.avatarCutterHeading)
+            }
+            AdaptiveDialogContent {
+                error?.let { ErrorView(it) }
+                bitmap?.let { bitmap ->
+                    Box(Modifier.weight(1.0f)) {
+                        Image(
+                            bitmap,
+                            i18n.commonAvatar(),
                             Modifier
                                 .align(Alignment.Center)
-                                .clip(RoundedCornerShape(8.dp))
-                                .width(maxWidth)
-                                .border(3.dp, MaterialTheme.colorScheme.primary)
-                        ) {
-                            Box(Modifier.background(Color.Black)) {
-                                Column {
-                                    AvatarCutterHeader(avatarCutterViewModel)
-
-                                    error?.let { ErrorView(it) }
-
-                                    Box {
-                                        Image(
-                                            bitmap,
-                                            i18n.commonAvatar(),
-                                            Modifier
-                                                .align(Alignment.Center)
-                                                .height(height)
-                                                .width(width)
-                                                .clip(RectangleShape)
-                                        )
-
-                                        log.debug { "maxWidth (${this@BoxWithConstraints.maxWidth}), maxHeight (${this@BoxWithConstraints.maxHeight})" }
-                                        val scaleX = this@BoxWithConstraints.maxWidth / width
-                                        val scaleY = this@BoxWithConstraints.maxHeight / height
-                                        val scaleDiameter = when {
-                                            scaleX < 1f && scaleX < scaleY -> scaleX
-                                            scaleY < 1f -> scaleY
-                                            else -> 1f
-                                        }
-
-                                        val diameter = (if (height >= width) width else height) * scaleDiameter
-
-                                        Box(
-                                            Modifier
-                                                .align(Alignment.Center)
-                                                .clip(CircleShape)
-                                                .width(diameter)
-                                                .height(diameter)
-                                                .background(Color.White.copy(alpha = 0.3f))
-                                        )
-                                    }
-                                }
-                            }
-                            Box(
-                                Modifier
-                                    .align(Alignment.BottomEnd)
-                                    .padding(bottom = 18.dp, end = 18.dp)
-                            ) {
-                                ThemedFloatingActionButton(
-                                    onClick = avatarCutterViewModel::accept,
-                                    modifier = Modifier
-                                        .align(Alignment.BottomEnd)
-                                        .padding(bottom = 18.dp, end = 18.dp),
-                                    text = { Text(i18n.commonOk()) },
-                                    icon = {
-                                        if (upload)
-                                            ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
-                                        else
-                                            Icon(Icons.Default.Check, i18n.commonOk())
-                                    },
+                                .fillMaxSize()
+                                .circleCrop(
+                                    MaterialTheme.components.adaptiveDialog.container.color,
+                                    bitmap.width,
+                                    bitmap.height,
                                 )
-                            }
-                        }
+                        )
                     }
                 }
-            } ?: run {
-                log.error { "failed to create bitmap image " }
             }
-        } ?: error?.let {
-            Popup(onDismissRequest = { avatarCutterViewModel.cancel() }) {
-                ErrorView(error)
+
+            AdaptiveDialogFooter {
+                ThemedButton(
+                    style = MaterialTheme.components.primaryButton,
+                    onClick = avatarCutterViewModel::accept,
+                    enabled = bitmap != null && !upload,
+                ) {
+                    if (upload) {
+                        ThemedProgressIndicator(
+                            style = MaterialTheme.components.extraSmallCircularProgressIndicator.copy(
+                                size = MaterialTheme.components.primaryButton.iconSize,
+                                padding = PaddingValues(0.dp)
+                            )
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize)
+                        )
+                    }
+                    Spacer(Modifier.size(MaterialTheme.components.commonButton.iconSpacing))
+                    Text(i18n.commonAccept())
+                }
             }
         }
     }
 }
 
 @Composable
-fun AvatarCutterHeader(avatarCutterViewModel: AvatarCutterViewModel) {
-    val i18n = DI.get<I18nView>()
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primary)
-            .padding(start = 20.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            avatarCutterViewModel.avatarCutterHeading,
-            Modifier.weight(1.0f, fill = true),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onPrimary,
-        )
-        Tooltip(
-            tooltip = { Text(i18n.commonCancel()) }
+private fun Modifier.circleCrop(
+    color: Color,
+    contentWidth: Int,
+    contentHeight: Int,
+) = drawWithContent {
+
+    drawContent()
+    drawIntoCanvas {
+        val (canvasWidth, canvasHeight) = size
+        val contentAspect = contentWidth.toFloat() / contentHeight.toFloat()
+        val canvasAspect = canvasWidth / canvasHeight
+
+        val scaledContentWidth = if (contentAspect >= canvasAspect) canvasWidth else canvasHeight * contentAspect
+        val scaledContentHeight = if (contentAspect >= canvasAspect) canvasWidth / contentAspect else canvasHeight
+
+        clipPath(
+            path = Path().apply {
+                addOval(
+                    Rect(
+                        center = center,
+                        radius = minOf(scaledContentWidth, scaledContentHeight) / 2f,
+                    )
+                )
+            },
+            clipOp = ClipOp.Difference,
         ) {
-            ThemedIconButton(
-                style = MaterialTheme.components.commonIconButton,
-                onClick = avatarCutterViewModel::cancel,
-            ) {
-                Icon(Icons.Default.Close, i18n.commonCancel())
-            }
+            drawRect(color, alpha = 0.5f)
         }
     }
 }

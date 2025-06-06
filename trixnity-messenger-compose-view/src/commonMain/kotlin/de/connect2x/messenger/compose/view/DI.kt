@@ -1,7 +1,5 @@
 package de.connect2x.messenger.compose.view
 
-import de.connect2x.messenger.compose.view.common.AdaptiveDialog
-import de.connect2x.messenger.compose.view.common.AdaptiveDialogImpl
 import de.connect2x.messenger.compose.view.common.FilePickerTypeSelectionView
 import de.connect2x.messenger.compose.view.common.FilePickerTypeSelectionViewImpl
 import de.connect2x.messenger.compose.view.common.MatrixUsernameView
@@ -105,8 +103,6 @@ import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefaultView
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyDefaultViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyView
 import de.connect2x.messenger.compose.view.room.timeline.VideoReplyViewImpl
-import de.connect2x.messenger.compose.view.room.timeline.element.EncryptedErrorTimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.EncryptedWaitTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactionsViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarkerView
@@ -124,6 +120,8 @@ import de.connect2x.messenger.compose.view.room.timeline.element.details.PdfTime
 import de.connect2x.messenger.compose.view.room.timeline.element.details.TimelineElementDetailsView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.EncryptedErrorTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.EncryptedWaitTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.FileBasedRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.FileBasedRoomMessageTimelineElementViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.message.FileRoomMessageTimelineElementView
@@ -132,6 +130,8 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.Locatio
 import de.connect2x.messenger.compose.view.room.timeline.element.message.NoticeRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.TextRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.UnknownRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.VerificationCancelTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.VerificationDoneMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.VerificationRequestRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.VideoRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubbleView
@@ -327,7 +327,6 @@ fun themeViewModule(): Module = module {
 
 fun commonViewModule() = module {
     single<MatrixUsernameView> { MatrixUsernameViewImpl() }
-    single<AdaptiveDialog> { AdaptiveDialogImpl() }
 }
 
 fun rootViewModule() = module {
@@ -437,6 +436,8 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
     timelineElementView<TextRoomMessageTimelineElementView> { TextRoomMessageTimelineElementView() }
     timelineElementView<VideoRoomMessageTimelineElementView> { VideoRoomMessageTimelineElementView() }
     timelineElementView<VerificationRequestRoomMessageTimelineElementView> { VerificationRequestRoomMessageTimelineElementView() }
+    timelineElementView<VerificationDoneMessageTimelineElementView> { VerificationDoneMessageTimelineElementView() }
+    timelineElementView<VerificationCancelTimelineElementView> { VerificationCancelTimelineElementView() }
     timelineElementView<UnknownRoomMessageTimelineElementView> { UnknownRoomMessageTimelineElementView() }
     timelineElementView<AvatarStateTimelineElementView> { AvatarStateTimelineElementView() }
     timelineElementView<CanonicalAliasStateTimelineElementView> { CanonicalAliasStateTimelineElementView() }

@@ -6,8 +6,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SliderDefaults
@@ -21,11 +21,12 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.theme.components.AvatarStyle
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.ChipStyle
-import de.connect2x.messenger.compose.view.theme.components.LocalContent
+import de.connect2x.messenger.compose.view.theme.components.DialogStyle
 import de.connect2x.messenger.compose.view.theme.components.DividerStyle
-import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.FloatingActionButtonStyle
+import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
+import de.connect2x.messenger.compose.view.theme.components.LocalContent
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.CircularProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.SliderStyle
@@ -145,11 +146,6 @@ class ThemeComponentsImpl : ThemeComponents {
         switch = SwitchStyle.default(),
         // surfaces
         background = SurfaceStyle.default(),
-        dialog = SurfaceStyle.default(
-            shape = RoundedCornerShape(4.dp),
-            color = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.onBackground,
-        ),
         popup = SurfaceStyle.default(
             shadowElevation = 4.dp,
             tonalElevation = 4.dp,
@@ -189,6 +185,10 @@ class ThemeComponentsImpl : ThemeComponents {
             color = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
         ),
+        // dialogs
+        dialog = SurfaceStyle.default(),
+        adaptiveDialog = DialogStyle.adaptiveDialog(),
+        modalDialog = DialogStyle.modalDialog(),
         // dividers
         horizontalDivider = DividerStyle.default(),
         verticalDivider = DividerStyle.default(),

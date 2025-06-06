@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.store.Room
@@ -43,10 +43,11 @@ data class RoomInfoElement(
 }
 
 suspend fun Room.toRoomInfoElement(
-    avatarMaxSize: Long,
+    coroutineScope: CoroutineScope,
     initials: Initials,
     matrixClient: MatrixClient,
-    name: String
+    name: String,
+    maxMediaSizeInMemory: Long,
 ): RoomInfoElement {
     return RoomInfoElement(
         name = name,
@@ -54,9 +55,7 @@ suspend fun Room.toRoomInfoElement(
         roomImageInitials = initials.compute(name),
         roomImage =
             this.avatarUrl?.let {
-                matrixClient.media.getMedia(it).getOrNull()?.limitedByteArrayOrNull(avatarMaxSize) {
-                    log.error { "Room image for room $roomId exceeds preview size limits, so it's not displayed" }
-                }
+                matrixClient.media.getMedia(it).getOrNull()?.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
             }
     )
 }

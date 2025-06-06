@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+- Overlay file transfer progress over uploaded image thumbnail
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Remove timeline flickering due to switching between image fallback and thumbnail
+- Resolved crash due to "Image too large" on Android
+
+### Security
+
+## 3.6.0
+
+### Added
+
 - Add setAvatarImage function to AvatarCutterViewModel
 - Add tests for various logic
 
@@ -20,7 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make tooltip show/hide delays configurable
 - Styling: Use customizable components for labels
 - Persist presence
-- Overlay file transfer progress over uploaded image thumbnail
 
 ### Deprecated
 
@@ -28,13 +46,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Update file size for images after processing
 - Display avatar correctly cropped in message metadata view
 - End URLs on whitespace
 - Fixed tooltip appears too fast in `TimelineElementMetadataView`
 - Fixed "edited" is shown in the wrong place in `TimelineElementMetadataViewModel`
-- Remove timeline flickering due to switching between image fallback and thumbnail
-
-### Security
+- Send button is only active after the second char in the input field
+- Canceled or completed user verifications are shown correctly in the timeline (**Breaking change**: user verification
+  end states (canceled or done) have separate timeline view models now 
+  (MessageTimelineElementViewModel.VerificationCancel, MessageTimelineElementViewModel.VerificationDone))
+- Fixed AvatarCutter ignoring alignment/rotation metadata
 
 ## 3.5.8
 

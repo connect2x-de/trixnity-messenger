@@ -3,10 +3,13 @@ package de.connect2x.trixnity.messenger.integrationtests.util
 import de.connect2x.trixnity.messenger.CreateRepositoriesModule
 import de.connect2x.trixnity.messenger.DebugName
 import de.connect2x.trixnity.messenger.MatrixMessenger
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.create
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerImpl
 import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
+import de.connect2x.trixnity.messenger.update
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import net.folivo.trixnity.client.store.repository.createInMemoryRepositoriesModule
@@ -41,12 +44,14 @@ fun createTrixnityMessengerTestModule(debugName: String = "client") = module {
     }
 }
 
-suspend fun createTestMatrixMessenger(debugName: String = "client") =
-    MatrixMessengerWithRoot(
-        MatrixMessenger.create {
-            modulesFactories += { createTrixnityMessengerTestModule(debugName) }
-        }
-    )
+suspend fun createTestMatrixMessenger(debugName: String = "client"): MatrixMessengerWithRoot {
+    val matrixMessenger = MatrixMessenger.create {
+        modulesFactories += { createTrixnityMessengerTestModule(debugName) }
+    }
+    matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
+        .update<MatrixMessengerSettingsBase> { it.copy(preferredLang = "en") }
+    return MatrixMessengerWithRoot(matrixMessenger)
+}
 
 suspend fun createTestMatrixMultiMessenger(
     debugName: String = "client",

@@ -43,7 +43,7 @@ interface GetEventReaders {
         sender: UserId,
         getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
         initials: Initials,
-        avatarMaxSize: Long,
+        maxMediaSizeInMemory: Long,
     ): Flow<List<UserInfoElement>?>
 }
 
@@ -119,7 +119,7 @@ class GetEventReadersImpl : GetEventReaders {
         sender: UserId,
         getReceipts: (RoomId) -> Flow<Map<EventId, Set<UserId>>>,
         initials: Initials,
-        avatarMaxSize: Long,
+        maxMediaSizeInMemory: Long,
     ): Flow<List<UserInfoElement>?> =
         flow {
             val cumulatedReads = mutableSetOf<UserId>()
@@ -147,7 +147,7 @@ class GetEventReadersImpl : GetEventReaders {
                 .scopedMapLatest { roomUsers ->
                     roomUsers.mapNotNull { user ->
                         if (user == null) return@mapNotNull null
-                        user.toUserInfoElement(this, matrixClient, initials, avatarMaxSize, user.userId)
+                        user.toUserInfoElement(this, matrixClient, initials, user.userId, maxMediaSizeInMemory)
                     }
                 }
         }
