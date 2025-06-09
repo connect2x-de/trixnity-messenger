@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Overlay file transfer progress over uploaded image thumbnail
 - Send correct image size when uploading images on web
 
 ### Deprecated
@@ -19,8 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
-
-- Remove timeline flickering due to switching between image fallback and thumbnail
 
 ### Security
 
