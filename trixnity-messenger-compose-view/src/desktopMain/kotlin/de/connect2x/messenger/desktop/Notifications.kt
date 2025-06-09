@@ -17,7 +17,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
@@ -49,13 +48,20 @@ fun Notifications(
     trayState: TrayState,
 ) {
     val i18n = DI.get<I18nView>()
-    val maxAvatarSize = DI.get<MatrixMessengerConfiguration>().avatarMaxSize
+    val maxMediaSizeInMemory = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     val windowIsFocused = IsFocused.current
     LaunchedEffect(windowIsFocused) {
         withContext(Dispatchers.Default) {
             val roomNameComputation = matrixMessenger.di.get<RoomName>()
-            whenSyncIsRunning(matrixMessenger, windowIsFocused, roomNameComputation, trayState, i18n, maxAvatarSize)
+            whenSyncIsRunning(
+                matrixMessenger,
+                windowIsFocused,
+                roomNameComputation,
+                trayState,
+                i18n,
+                maxMediaSizeInMemory
+            )
         }
     }
 }
@@ -135,7 +141,7 @@ private suspend fun displayNotification(
                 val user = matrixClient.user.getById(roomId, sender).first()
                 val image = user?.avatarUrl?.let { avatarUrl ->
                     matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
-                }?.map { it.limitedByteArrayOrNull(maxAvatarSize) }
+                }?.map { it.toByteArray(maxSize = maxAvatarSize) }
                     ?.map { bytes -> bytes?.toImageBitmap() }
                     ?.getOrNull()
                 user?.name to image

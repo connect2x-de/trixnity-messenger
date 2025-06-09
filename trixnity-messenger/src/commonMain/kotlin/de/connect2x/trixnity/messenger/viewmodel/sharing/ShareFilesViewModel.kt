@@ -81,7 +81,7 @@ class SharedDataViewModelImpl(
         onCloseRoom = { }
     )
 
-    private val maxMediaSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     // TODO: unified SendMessage viewmodel
     override fun send() {
@@ -118,9 +118,9 @@ class SharedDataViewModelImpl(
                     file.mimeType?.match("image/*") == true -> {
                         log.debug { "send an image to ${roomId.full}" }
                         val size = file.fileSize
-                        val (width, height) = if (size == null || size <= maxMediaSize) get<GetImageDimensions>().invoke(
+                        val (width, height) = if (size == null || size <= maxMediaSizeInMemory) get<GetImageDimensions>().invoke(
                             file.content,
-                            maxMediaSize,
+                            maxMediaSizeInMemory,
                             file.mimeType
                         ) else Pair(null, null)
                         image(

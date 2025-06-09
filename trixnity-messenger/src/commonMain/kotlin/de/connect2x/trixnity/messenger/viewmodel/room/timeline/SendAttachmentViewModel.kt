@@ -9,7 +9,6 @@ import de.connect2x.trixnity.messenger.util.ProcessImageUpload
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.checkFileSizeExceedsLimit
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.ContentType.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +27,7 @@ import net.folivo.trixnity.client.room.message.video
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.byteArrayFlowFromSource
+import net.folivo.trixnity.utils.toByteArray
 import net.folivo.trixnity.utils.toByteArrayFlow
 import okio.Buffer
 import org.koin.core.component.get
@@ -85,12 +85,13 @@ class SendAttachmentViewModelImpl(
     private val _fileContent = MutableStateFlow<ByteArrayFlow?>(null)
     private val fileContent: StateFlow<ByteArrayFlow?> = _fileContent.asStateFlow()
 
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     private val fileSize = MutableStateFlow(file.fileSize)
     private val previewFileSize = file.fileSize
     override val previewFileContent: StateFlow<ByteArray?> =
-        fileContent.filter { previewFileSize == null || previewFileSize <= messengerConfiguration.maxMediaSizeInMemory }
+        fileContent.filter { previewFileSize == null || previewFileSize <= maxMediaSizeInMemory }
             .map {
-                it?.limitedByteArrayOrNull(messengerConfiguration.maxMediaSizeInMemory)
+                it?.toByteArray(maxMediaSizeInMemory)
             }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val backCallback = BackCallback {
@@ -106,9 +107,7 @@ class SendAttachmentViewModelImpl(
             }
 
             _fileContent.value = if (isImage == true) {
-                val imageByteArray = file.content.limitedByteArrayOrNull(messengerConfiguration.maxMediaSizeInMemory) {
-                    log.debug { "Uploaded image ${file.fileName} couldn't be processed because it exceeds file size limits, it will be sent without processing" }
-                }
+                val imageByteArray = file.content.toByteArray(maxMediaSizeInMemory)
                 if (imageByteArray != null) {
                     get<ProcessImageUpload>().invoke(
                         imageByteArray,
@@ -136,10 +135,10 @@ class SendAttachmentViewModelImpl(
                         isImage ?: false -> {
                             log.debug { "send an image" }
                             val size = fileSize.value
-                            val (width, height) = if (size == null || size <= messengerConfiguration.maxMediaSizeInMemory)
+                            val (width, height) = if (size == null || size <= maxMediaSizeInMemory)
                                 get<GetImageDimensions>().invoke(
                                     byteArrayFlow,
-                                    messengerConfiguration.maxMediaSizeInMemory,
+                                    maxMediaSizeInMemory,
                                     file.mimeType
                                 ) else Pair(null, null)
                             image(

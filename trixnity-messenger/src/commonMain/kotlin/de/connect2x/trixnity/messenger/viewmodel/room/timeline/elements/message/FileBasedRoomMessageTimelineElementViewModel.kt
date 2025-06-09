@@ -5,10 +5,8 @@ import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.util.MaxByteFlowSizeException
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitSize
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Deferred
@@ -16,13 +14,11 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
@@ -46,6 +42,8 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     override val loadMediaError: StateFlow<String?> = _loadMediaError.asStateFlow()
 
     private val activeLoadMedia = MutableStateFlow<Deferred<Result<PlatformMedia>>?>(null)
+
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     init {
         coroutineScope.coroutineContext.job.invokeOnCompletion {
@@ -76,24 +74,19 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                 _loadMediaProgress,
             )
             activeLoadMedia.value = resultAsync
-            try {
-                resultAsync.await()
-                    .onSuccess {
-                        val maxMediaSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-                        _loadMediaResult.value = it.limitSize(maxMediaSize).catch { e ->
-                            if (e.cause is MaxByteFlowSizeException) {
-                                _loadMediaError.value = i18n.mediaTooLargeForPreview()
-                            } else {
-                                _loadMediaError.value = i18n.mediaCanNotBePreviewed()
-                            }
-                            _loadMediaProgress.value = null
-                        }.toByteArray()
-                    }.onFailure {
-                        _loadMediaError.value = i18n.mediaCouldNotBeRead()
-                    }
-            } catch (exc: CancellationException) {
-                log.error(exc) { "loading media has been cancelled" }
-            }
+            resultAsync.await()
+                .mapCatching {
+                    it.toByteArray(
+                        coroutineScope,
+                        expectedSize = content.info?.size,
+                        maxSize = maxMediaSizeInMemory
+                    )
+                }
+                .onSuccess {
+                    _loadMediaResult.value = it
+                }.onFailure {
+                    _loadMediaError.value = i18n.mediaCouldNotBeRead()
+                }
         }.invokeOnCompletion {
             activeLoadMedia.value = null
         }

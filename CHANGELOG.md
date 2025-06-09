@@ -9,6 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+- Overlay file transfer progress over uploaded image thumbnail
+- Send correct image size when uploading images on web
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Remove timeline flickering due to switching between image fallback and thumbnail
+
+### Security
+
+## 3.6.1
+
+### Changed
+
+- Overlay file transfer progress over uploaded image thumbnail
+- Updated Trixnity from 4.16.0 to 4.16.1
+
+### Fixed
+
+- Remove timeline flickering due to switching between image fallback and thumbnail
+- Resolved crash due to "Image too large" on Android
+
+### Security
+
+## 3.6.0
+
+### Added
+
 - Add setAvatarImage function to AvatarCutterViewModel
 - Add tests for various logic
 
@@ -20,18 +53,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make tooltip show/hide delays configurable
 - Styling: Use customizable components for labels
 - Persist presence
-- Styling: Use theme components for dialogs
-- Clearly distinguish between a room member leaving, being kicked, banned or unbanned.
-- Overlay file transfer progress over uploaded image thumbnail
-- Send correct image size when uploading images on web
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
-- Update file size for images after processing
 
+- Update file size for images after processing
 - Display avatar correctly cropped in message metadata view
 - End URLs on whitespace
 - Fixed tooltip appears too fast in `TimelineElementMetadataView`
@@ -40,9 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Canceled or completed user verifications are shown correctly in the timeline (**Breaking change**: user verification
   end states (canceled or done) have separate timeline view models now 
   (MessageTimelineElementViewModel.VerificationCancel, MessageTimelineElementViewModel.VerificationDone))
-- Remove timeline flickering due to switching between image fallback and thumbnail
-
-### Security
+- Fixed AvatarCutter ignoring alignment/rotation metadata
 
 ## 3.5.8
 

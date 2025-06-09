@@ -135,7 +135,7 @@ open class AddMatrixAccountViewModelImpl(
                                         api.media.downloadLegacy(it) { media ->
                                             byteArray =
                                                 media.content.toByteArrayFlow()
-                                                    .takeBytes(10 * 1024 * 1024) // max 10 MB
+                                                    .takeBytes(5 * 1024 * 1024) // max 5 MB
                                                     .toByteArray()
                                         }.onFailure { error ->
                                             log.warn { "could not download idp icon $error" }

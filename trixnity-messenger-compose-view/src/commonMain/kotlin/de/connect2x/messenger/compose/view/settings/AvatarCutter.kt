@@ -86,7 +86,11 @@ class AvatarCutterViewImpl : AvatarCutterView {
                             Modifier
                                 .align(Alignment.Center)
                                 .fillMaxSize()
-                                .circleCrop(MaterialTheme.components.adaptiveDialog.container.color)
+                                .circleCrop(
+                                    MaterialTheme.components.adaptiveDialog.container.color,
+                                    bitmap.width,
+                                    bitmap.height,
+                                )
                         )
                     }
                 }
@@ -121,16 +125,27 @@ class AvatarCutterViewImpl : AvatarCutterView {
 }
 
 @Composable
-private fun Modifier.circleCrop(color: Color) = drawWithContent {
+private fun Modifier.circleCrop(
+    color: Color,
+    contentWidth: Int,
+    contentHeight: Int,
+) = drawWithContent {
+
     drawContent()
     drawIntoCanvas {
-        val (w, h) = size
+        val (canvasWidth, canvasHeight) = size
+        val contentAspect = contentWidth.toFloat() / contentHeight.toFloat()
+        val canvasAspect = canvasWidth / canvasHeight
+
+        val scaledContentWidth = if (contentAspect >= canvasAspect) canvasWidth else canvasHeight * contentAspect
+        val scaledContentHeight = if (contentAspect >= canvasAspect) canvasWidth / contentAspect else canvasHeight
+
         clipPath(
             path = Path().apply {
                 addOval(
                     Rect(
                         center = center,
-                        radius = minOf(w, h) / 2f,
+                        radius = minOf(scaledContentWidth, scaledContentHeight) / 2f,
                     )
                 )
             },

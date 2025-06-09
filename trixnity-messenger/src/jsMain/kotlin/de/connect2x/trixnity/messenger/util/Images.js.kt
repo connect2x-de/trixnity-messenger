@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.util
 
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.await
@@ -24,7 +23,7 @@ suspend fun getImageDimensions(
     maxMediaSize: Long,
     mimeType: ContentType?
 ): Pair<Int?, Int?> {
-    val base64String = byteArrayFlow.limitedByteArrayOrNull(maxMediaSize)?.encodeBase64()
+    val base64String = byteArrayFlow.toByteArray(maxMediaSize)?.encodeBase64()
     return base64String?.let {
         val image = Image()
         image.src = "data:$mimeType;base64,${byteArrayFlow.toByteArray().encodeBase64()}"

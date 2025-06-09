@@ -43,7 +43,6 @@ class DefaultUserSearchHandler(
     private val client: MatrixClient,
     private val debounceDuration: Duration = 300.toDuration(DurationUnit.MILLISECONDS),
     private val limit: Long? = 100,
-    private val maxAvatarSize: Long,
     filterNotUsers: Flow<Set<UserId>> = flowOf(emptySet()),
 ) : UserSearchHandler {
     override val searchTerm = TextFieldViewModelImpl()
@@ -76,10 +75,9 @@ class DefaultUserSearchHandler(
             .debounce(debounceDuration)
             .map {
                 if (MatrixRegex.userId.matches(it.lowercase())) {
-                    log.trace {"found matrix id"}
+                    log.trace { "found matrix id" }
                     it.lowercase()
-                }
-                else it
+                } else it
             }
             .scopedCollectLatest {
                 if (it.isNotBlank()) {
@@ -87,11 +85,10 @@ class DefaultUserSearchHandler(
                     waitForUserResults.value = true
                     unfilteredFoundUsers.value =
                         search.searchUsers(
+                            this,
                             client,
                             it,
                             limit,
-                            this,
-                            maxAvatarSize
                         )
                     waitForUserResults.value = false
                 } else {

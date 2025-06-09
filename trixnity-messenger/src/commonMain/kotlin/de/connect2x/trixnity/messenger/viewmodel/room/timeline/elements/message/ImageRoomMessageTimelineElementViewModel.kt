@@ -43,10 +43,10 @@ class ImageRoomMessageTimelineElementViewModelImpl(
 ) : RoomMessageTimelineElementViewModel.FileBased.Image,
     FileBasedRoomMessageTimelineElementViewModel<FileBased.Image>(viewModelContext, content) {
 
-    private val maxPreviewSize = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     private val thumbnails = get<Thumbnails>()
 
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     private val _thumbnailLoading = MutableStateFlow(true)
 
@@ -58,7 +58,7 @@ class ImageRoomMessageTimelineElementViewModelImpl(
     override val thumbnail: StateFlow<ByteArray?> = flow {
         emit(
             // TODO needs some sort of retry!
-            thumbnails.loadThumbnail(matrixClient, content, thumbnailProgressFlow, maxPreviewSize)
+            thumbnails.loadThumbnail(coroutineScope, matrixClient, content, thumbnailProgressFlow, maxMediaSizeInMemory)
                 .also { _thumbnailLoading.value = false }
         )
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)

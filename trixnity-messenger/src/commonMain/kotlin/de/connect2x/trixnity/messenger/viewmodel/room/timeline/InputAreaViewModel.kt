@@ -58,7 +58,6 @@ import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.Mention as TrixnityMention
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
@@ -72,8 +71,8 @@ import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.html.HtmlGenerator.TagRenderer
 import org.intellij.markdown.parser.MarkdownParser
 import org.koin.core.component.get
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import net.folivo.trixnity.core.model.Mention as TrixnityMention
 
 private val log = KotlinLogging.logger { }
 
@@ -241,6 +240,7 @@ open class InputAreaViewModelImpl(
                         append(">")
                     }
                 }
+
             else -> ""
         }
 
@@ -492,7 +492,7 @@ open class InputAreaViewModelImpl(
         }
     }
 
-    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     private suspend fun listOfUsers(search: String): List<UserInfoElement> {
         val allUsers = matrixClient.user.getAll(roomId).first() // wait for all users to load
         return allUsers
@@ -509,7 +509,7 @@ open class InputAreaViewModelImpl(
             }
             .take(10)
             .map { roomUser ->
-                roomUser.toUserInfoElement(coroutineScope, matrixClient, initials, maxAvatarSize)
+                roomUser.toUserInfoElement(coroutineScope, matrixClient, initials, maxMediaSizeInMemory)
             }.toList()
     }
 

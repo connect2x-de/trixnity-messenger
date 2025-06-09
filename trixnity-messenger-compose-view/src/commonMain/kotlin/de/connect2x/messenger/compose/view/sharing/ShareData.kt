@@ -56,7 +56,7 @@ import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
+import net.folivo.trixnity.utils.toByteArray
 
 interface ShareDataView {
     @Composable
@@ -169,7 +169,7 @@ private fun ShareUrlRow(text: String, icon: FileDescriptor?, maxMediaSize: Long)
     var image by remember { mutableStateOf<ImageBitmap?>(null) }
 
     LaunchedEffect(icon) {
-        icon?.content?.limitedByteArrayOrNull(maxMediaSize)
+        icon?.content?.toByteArray(maxMediaSize)
             ?.also { image = it.toImageBitmap() }
     }
 
