@@ -5,10 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,8 +14,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -46,6 +43,7 @@ interface FileBasedRoomMessageTimelineElementView {
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
         isPreview: Boolean,
+        displayProgressOverElement: Boolean,
         overlay: @Composable BoxScope.() -> Unit,
         content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     )
@@ -56,11 +54,12 @@ fun FileBasedRoomMessageTimelineElement(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     isPreview: Boolean = false,
+    displayProgressOverElement: Boolean = false,
     overlay: @Composable BoxScope.() -> Unit,
     content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
 ) {
     DI.get<FileBasedRoomMessageTimelineElementView>()
-        .create(holder, element, isPreview, overlay, content)
+        .create(holder, element, isPreview, displayProgressOverElement, overlay, content)
 }
 
 class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimelineElementView {
@@ -69,6 +68,7 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
         holder: BaseTimelineElementHolderViewModel,
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
         isPreview: Boolean,
+        displayProgressOverElement: Boolean,
         overlay: @Composable BoxScope.() -> Unit,
         content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     ) {
@@ -85,6 +85,7 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
             element,
             { saveDialogOpen = true },
             isPreview,
+            displayProgressOverElement,
             overlay,
             content
         )
@@ -97,6 +98,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     onSave: () -> Unit,
     isPreview: Boolean = false,
+    displayProgressOverElement: Boolean,
     overlay: @Composable BoxScope.() -> Unit,
     content: @Composable ColumnScope.(() -> Unit, () -> Unit) -> Unit
 ) {
@@ -125,7 +127,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
         overlay,
         isPreview = isPreview,
     ) { showActionMenu ->
-        FileBasedView(holder, element, onSave, showActionMenu, content)
+        FileBasedView(holder, element, onSave, showActionMenu, displayProgressOverElement, content)
     }
 }
 
@@ -135,55 +137,68 @@ internal fun FileBasedView(
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     onSave: () -> Unit,
     showActionMenu: () -> Unit,
+    displayProgressOverElement: Boolean,
     content: @Composable ColumnScope.(onShowActionMenu: () -> Unit, openElementDetails: () -> Unit) -> Unit
 ) {
-    val downloadProgressElement = element.downloadMediaProgress.collectAsState()
-    val uploadProgress = holder.asOutboxElementHolder()?.uploadProgress?.collectAsState()?.value
+
     val elementDetailsFactory = DI.get<ElementDetailsViewSelector>().rememberFactory(element)
     var openElementDetails by remember { mutableStateOf(false) }
-
-    Column(
-        Modifier
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = {
-                        openElementDetails = true
-                    },
-                    onLongPress = { showActionMenu() },
-                )
-            }
-            .buttonPointerModifier()
-    ) {
-        // content based on the actual file
-        content(showActionMenu) {
-            openElementDetails = true
-        }
-    }
-
-    if (uploadProgress != null) {
-        Box {
-            DownloadProgress(uploadProgress, cancel = {
-                if (holder is OutboxElementHolderViewModel) {
-                    holder.abortSend()
-                } else {
-                    Unit
+    Box {
+        Column(
+            Modifier
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {
+                            openElementDetails = true
+                        },
+                        onLongPress = { showActionMenu() },
+                    )
                 }
-            })
+                .buttonPointerModifier()
+        ) {
+            // content based on the actual file
+            content(showActionMenu) {
+                openElementDetails = true
+            }
+            if (!displayProgressOverElement) {
+                LoadingProgresses(holder, element, Modifier.align(Alignment.CenterHorizontally))
+            }
         }
-    }
-    downloadProgressElement.value?.let {
-        Spacer(Modifier.size(10.dp))
-        Box(Modifier.height(40.dp)) {
-            DownloadProgress(
-                it,
-                { element.cancelDownloadMedia() },
-                Color.DarkGray
-            )
+        if (displayProgressOverElement) {
+            LoadingProgresses(holder, element, Modifier.align(Alignment.Center))
         }
-        Spacer(Modifier.size(10.dp))
-    }
 
+    }
     if (openElementDetails && elementDetailsFactory != null) {
         elementDetailsFactory.create(element, onSave, onClose = { openElementDetails = false })
     }
+}
+
+@Composable
+fun LoadingProgresses(
+    holder: BaseTimelineElementHolderViewModel,
+    element: RoomMessageTimelineElementViewModel.FileBased<*>,
+    modifier: Modifier
+) {
+    val downloadProgressElement = element.downloadMediaProgress.collectAsState().value
+    val uploadProgress = holder.asOutboxElementHolder()?.uploadProgress?.collectAsState()?.value
+    if (uploadProgress != null) {
+        Box(modifier) {
+            DownloadProgress(
+                uploadProgress,
+                cancel = {
+                    if (holder is OutboxElementHolderViewModel) {
+                        holder.abortSend()
+                    }
+                },
+            )
+        }
+    }
+    if (downloadProgressElement != null)
+        Box(modifier) {
+            DownloadProgress(
+                downloadProgressElement,
+                { element.cancelDownloadMedia() },
+            )
+        }
 }

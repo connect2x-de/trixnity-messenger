@@ -9,6 +9,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thu
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
@@ -47,10 +48,18 @@ class ImageRoomMessageTimelineElementViewModelImpl(
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
+    private val _thumbnailLoading = MutableStateFlow(true)
+
+    override val thumbnailLoading: StateFlow<Boolean> = _thumbnailLoading.asStateFlow()
+
+    override val thumbnailWidth = content.info?.thumbnailInfo?.width
+    override val thumbnailHeight = content.info?.thumbnailInfo?.height
+
     override val thumbnail: StateFlow<ByteArray?> = flow {
         emit(
             // TODO needs some sort of retry!
             thumbnails.loadThumbnail(coroutineScope, matrixClient, content, thumbnailProgressFlow, maxMediaSizeInMemory)
+                .also { _thumbnailLoading.value = false }
         )
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 

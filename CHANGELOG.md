@@ -19,6 +19,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 3.6.1
+
+### Changed
+
+- Overlay file transfer progress over uploaded image thumbnail
+- Updated Trixnity from 4.16.0 to 4.16.1
+
+### Fixed
+
+- Remove timeline flickering due to switching between image fallback and thumbnail
 - Resolved crash due to "Image too large" on Android
 - Fixed switch in user profile view for blocking not reflecting correct server-side state
 
@@ -39,9 +51,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make tooltip show/hide delays configurable
 - Styling: Use customizable components for labels
 - Persist presence
-- Styling: Use theme components for dialogs
-- Clearly distinguish between a room member leaving, being kicked, banned or unbanned.
-- Adapt to Trixnity media cache changes
+
+### Deprecated
+
+### Removed
 
 ### Fixed
 
