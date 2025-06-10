@@ -37,7 +37,7 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
     val canBeRepliedTo = asTimelineElementHolder()?.canBeRepliedTo?.collectAsState()?.value == true
     val canBeEdited = asTimelineElementHolder()?.canBeEdited?.collectAsState()?.value == true
     val canBeRedacted = asTimelineElementHolder()?.canBeRedacted?.collectAsState()?.value == true
-    val canBeReported = asTimelineElementHolder()?.canBeReporteds?.collectAsState()?.value == true
+    val canBeReported = asTimelineElementHolder()?.canBeReported?.collectAsState()?.value == true
     val canRetrySend = asOutboxElementHolder()?.canRetrySend?.collectAsState()?.value == true
     val canAbortSend = asOutboxElementHolder()?.canAbortSend?.collectAsState()?.value == true
 
