@@ -65,7 +65,6 @@ fun MessageBubbleContent(
         Column(
             Modifier
                 .padding(0.dp)
-                .weight(1.0f, fill = needsMaxWidth.not())
                 .then(highlighted)
         ) {
             if (showSender) {
@@ -93,102 +92,12 @@ fun MessageBubbleContent(
             RepliedElement(holder)
 
             // the hasRepliedElement is needed to avoid layouting already layouted elements which leads to this: "Asking for intrinsic measurements of SubcomposeLayout layouts is not supported."
-            if (needsMaxWidth || hasRepliedElement) {
-                content(showActionMenu)
-                Row(
-                    Modifier.align(Alignment.End).padding(5.dp),
-                    verticalAlignment = Alignment.Bottom
-                ) {
-                    MessageBubbleContentInfo(isReplaced, holder)
-                }
-            } else {
-                Layout(
-                    content = {
-                        content(showActionMenu)
-                        Row(
-                            modifier = Modifier.padding(
-                                start = 5.dp,
-                                end = 5.dp,
-                                bottom = 5.dp
-                            ),
-                            verticalAlignment = Alignment.Bottom,
-                        ) {
-                            MessageBubbleContentInfo(isReplaced, holder)
-                        }
-                    },
-                    measurePolicy = object : MeasurePolicy {
-                        val spacing = 10.dp
-                        override fun MeasureScope.measure(
-                            measurables: List<Measurable>,
-                            constraints: Constraints,
-                        ): MeasureResult {
-                            val spacing = spacing.roundToPx()
-                            val message = measurables[0].measure(constraints)
-                            val date = measurables.getOrNull(1)?.measure(constraints) // content [0] + Date [1]
-                            return date?.let {
-                                if (message.width + spacing + date.width < constraints.maxWidth) {
-                                    // add extra padding to bottom that is missing otherwise
-                                    val height = message.height + 10.dp.roundToPx()
-                                    layout(
-                                        width = message.width + spacing + date.width,
-                                        height = height,
-                                    ) {
-                                        message.place(0, 0)
-                                        date.place(
-                                            message.width + spacing,
-                                            height - date.height
-                                        )
-                                    }
-                                } else {
-                                    layout(
-                                        width = constraints.maxWidth,
-                                        height = message.height + date.height
-                                    ) {
-                                        message.place(0, 0)
-                                        date.place(
-                                            constraints.maxWidth - date.width,
-                                            message.height
-                                        )
-                                    }
-                                }
-                            } ?: layout(
-                                message.width,
-                                message.height
-                            ) {
-                                message.place(0, 0)
-                            }
-                        }
-
-                        override fun IntrinsicMeasureScope.minIntrinsicWidth(
-                            measurables: List<IntrinsicMeasurable>,
-                            height: Int
-                        ): Int {
-                            val spacing = (spacing + 1.dp).roundToPx() // to be _just_ big enough for one line
-                            return measurables.sumOf { it.minIntrinsicWidth(height) } + spacing
-                        }
-
-                        override fun IntrinsicMeasureScope.maxIntrinsicWidth(
-                            measurables: List<IntrinsicMeasurable>,
-                            height: Int
-                        ): Int {
-                            val spacing = (spacing + 1.dp).roundToPx() // to be _just_ big enough for one line
-                            return measurables.sumOf { it.maxIntrinsicWidth(height) } + spacing
-                        }
-
-                        override fun IntrinsicMeasureScope.minIntrinsicHeight(
-                            measurables: List<IntrinsicMeasurable>,
-                            width: Int
-                        ): Int {
-                            return measurables.sumOf { it.minIntrinsicHeight(width) }
-                        }
-
-                        override fun IntrinsicMeasureScope.maxIntrinsicHeight(
-                            measurables: List<IntrinsicMeasurable>,
-                            width: Int
-                        ): Int {
-                            return measurables.sumOf { it.maxIntrinsicHeight(width) }
-                        }
-                    })
+            content(showActionMenu)
+            Row(
+                Modifier.align(Alignment.End).padding(5.dp),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                MessageBubbleContentInfo(isReplaced, holder)
             }
 
             if (sendError != null) {

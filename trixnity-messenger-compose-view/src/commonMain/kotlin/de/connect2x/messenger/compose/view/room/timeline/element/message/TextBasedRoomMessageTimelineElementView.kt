@@ -4,8 +4,10 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SmartToy
@@ -26,8 +28,6 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.mohamedrejeb.richeditor.model.RichTextState
-import com.mohamedrejeb.richeditor.ui.BasicRichText
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
@@ -43,6 +43,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.ktor.http.Url
+import org.example.project.richtext.RichTextColors
+import org.example.project.richtext.RichTextDisplay
 
 @Composable
 fun TextBasedRoomMessageTimelineElementView(
@@ -89,65 +91,28 @@ private fun MessageTextContent(
             Spacer(Modifier.size(5.dp))
         }
 
-        val mentions = (element.mentionsInFormattedBody
-            ?: element.mentionsInBody)
-            .map {
-                it.key to it.value.collectAsState().value
-            }.sortedByDescending { it.first.first }
-
-        val message = element.formattedBody ?: element.body
-        val text = formatMessage(message, mentions)
-
-        val richTextState = rememberSaveable(text, saver = RichTextState.Saver) {
-            RichTextState().apply {
-                setHtml(text)
-            }
-        }
-        richTextState.config.linkColor =
-            if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
-            else MaterialTheme.messengerColors.link
-
-        if (mentions.any { it.second != null }) {
-            val baseUriHandler = LocalUriHandler.current
-            val uriHandler by remember {
-                mentionsUriHandler(
-                    baseUriHandler,
-                    element,
-                    mentions.map { it.second })
-            }
-
-            MessageRichText(
-                uriHandler,
-                richTextState,
-                showActionMenu,
-            )
-        } else {
-            MessageRichText(
-                LocalUriHandler.current,
-                richTextState,
-                showActionMenu,
-            )
-        }
-    }
-}
-
-@Composable
-private fun MessageRichText(
-    uriHandler: UriHandler,
-    state: RichTextState,
-    showActionMenu: () -> Unit
-) {
-    CompositionLocalProvider(
-        LocalUriHandler provides uriHandler
-    ) {
-        BasicRichText(
-            state = state,
-            modifier = Modifier.pointerInput(Unit) {
-                detectTapGestures(
-                    onLongPress = { showActionMenu() }
-                )
+        RichTextDisplay(
+            element.formattedBody ?: element.body,
+            modifier = Modifier.padding(16.dp)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onLongPress = { showActionMenu() }
+                    )
+                },
+            colors = RichTextColors.default(
+                linkColor =
+                    if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
+                    else MaterialTheme.messengerColors.link
+            ),
+            onCopy = {
+                println("Copy: $it")
             },
-            style = MaterialTheme.typography.bodyMedium.copy(color = LocalContentColor.current)
+            onLinkClick = {
+                println("Link: $it")
+            },
+            onMentionClick = {
+                println("Mention: $it")
+            }
         )
     }
 }
@@ -229,14 +194,14 @@ internal fun String.formatLinks(): String {
         val fullString = this@formatLinks
 
         return range.first > hrefPrefix.length
-            && range.last != fullString.length
-            && fullString.substring(range.first - hrefPrefix.length, range.first) == hrefPrefix
-            && fullString[range.last + 1] == '"'
+                && range.last != fullString.length
+                && fullString.substring(range.first - hrefPrefix.length, range.first) == hrefPrefix
+                && fullString[range.last + 1] == '"'
     }
 
     fun MatchResult.formatLinkAsHref(): String {
         val end = if (value.last() in commonPunctuation) value.length - 1
-                  else value.length
+        else value.length
 
         val withoutPunct = value.substring(0..<end)
         val punct = value.substring(end..<value.length)

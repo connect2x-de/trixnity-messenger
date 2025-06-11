@@ -1,18 +1,14 @@
 package de.connect2x.messenger.compose.view.settings
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import com.mohamedrejeb.richeditor.ui.material.RichText
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogScrollContent
 import de.connect2x.messenger.compose.view.theme.components.ThemedAdaptiveDialog
-import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 
@@ -32,17 +28,12 @@ class AppInfoImprintViewImpl : AppInfoImprintView {
         val i18n = DI.get<I18nView>()
         val imprint = DI.get<MatrixMessengerConfiguration>().imprint
         if (imprint != null) {
-            val richTextState = rememberRichTextState()
-            richTextState.config.linkColor = MaterialTheme.messengerColors.link
-            LaunchedEffect(Unit) {
-                richTextState.setMarkdown(imprint)
-            }
             ThemedAdaptiveDialog({ appInfoViewModel.showImprint.value = false }) {
                 AdaptiveDialogHeader(onClose = { appInfoViewModel.showImprint.value = false }) {
                     Text(i18n.appInfoImprint())
                 }
                 AdaptiveDialogScrollContent {
-                    RichText(richTextState)
+                    Text(imprint)
                 }
             }
         }
