@@ -18,6 +18,8 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
+import dev.mokkery.verify
+import dev.mokkery.verifyNoMoreCalls
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -40,6 +42,9 @@ import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.UserPresence
 import net.folivo.trixnity.client.user.UserService
+import net.folivo.trixnity.client.verification.ActiveUserVerification
+import net.folivo.trixnity.client.verification.ActiveVerificationState
+import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
@@ -90,18 +95,18 @@ class UserProfileViewModelTest {
     private val roomUserMapFlow = MutableStateFlow(mapOf<UserId, MutableStateFlow<RoomUser>>())
 
     val matrixClientMock = mock<MatrixClient>()
-
     val roomServiceMock = mock<RoomService>()
-
     val userServiceMock = mock<UserService>()
-
     val keyServiceMock = mock<KeyService>()
-
+    val verificationServiceMock = mock<VerificationService>()
+    val backgroundScope = TestScope()
     val matrixClientServerApiMock = mock<MatrixClientServerApiClient>()
-
     val usersApiClientMock = mock<UserApiClient>()
-
     val roomsApiClientMock = mock<RoomApiClient>()
+    val onOpenRoomMock = mock<(UserId, RoomId) -> Unit>()
+    val onCloseSettingsMock = mock<() -> Unit>()
+
+    val activeVerificationMock = mock<ActiveUserVerification>()
 
     val i18n = object : I18n(
         DefaultLanguages,
@@ -131,6 +136,7 @@ class UserProfileViewModelTest {
                     single { roomServiceMock }
                     single { userServiceMock }
                     single { keyServiceMock }
+                    single { verificationServiceMock }
                 })
         }.koin
         syncStateMocker = every { matrixClientMock.syncState }
@@ -195,6 +201,9 @@ class UserProfileViewModelTest {
                 avatarUrl = null,
             )
         )
+
+        every { onOpenRoomMock.invoke(any(), any()) } returns Unit
+        every { onCloseSettingsMock.invoke() } returns Unit
     }
 
 
@@ -406,6 +415,43 @@ class UserProfileViewModelTest {
         cut.membershipChanging.value shouldBe false
     }
 
+    @Test
+    fun `open the room where the user verification is started`() = runTest {
+        every {
+            userServiceMock.getPowerLevel(roomId, any())
+        } returns MutableStateFlow(50)
+
+        val verificationRoom = RoomId("verificationRoom", "localhost")
+        everySuspend { verificationServiceMock.createUserVerificationRequest(alice) } returns Result.success(
+            activeVerificationMock
+        )
+        every { activeVerificationMock.roomId} returns verificationRoom
+        every { activeVerificationMock.state } returns MutableStateFlow(ActiveVerificationState.Undefined)
+
+        val cut = userProfileViewModel(alice)
+        cut.startVerification(true)
+        delay(10.milliseconds)
+        verifySuspend { onOpenRoomMock.invoke(me, verificationRoom) }
+    }
+
+    @Test
+    fun `do not call onOpenRoom when the user verification is done in the same room`() = runTest {
+        every {
+            userServiceMock.getPowerLevel(roomId, any())
+        } returns MutableStateFlow(50)
+
+        everySuspend { verificationServiceMock.createUserVerificationRequest(alice) } returns Result.success(
+            activeVerificationMock
+        )
+        every { activeVerificationMock.roomId } returns roomId
+        every { activeVerificationMock.state } returns MutableStateFlow(ActiveVerificationState.Undefined)
+
+        val cut = userProfileViewModel(alice)
+        cut.startVerification(true)
+        delay(10.milliseconds)
+        verify { onCloseSettingsMock.invoke() }
+        verifyNoMoreCalls(onOpenRoomMock)
+    }
 
     private fun setMemberEventContentOf(roomUser: MutableStateFlow<RoomUser?>, eventContent: MemberEventContent) {
         roomUser.value = requireNotNull(roomUser.value).copy(
@@ -432,9 +478,9 @@ class UserProfileViewModelTest {
             ),
             userId = userId,
             selectedRoomId = roomId,
-            onOpenRoom = mock(),
+            onOpenRoom = onOpenRoomMock,
             onBack = mock(),
-            onCloseSettings = mock()
+            onCloseSettings = onCloseSettingsMock,
         )
     }
 }

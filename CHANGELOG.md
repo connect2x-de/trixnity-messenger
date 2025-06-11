@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- When creating a user verification from another room, jump to the direct room where the user verification is taking place
+
 ### Security
 
 ## 3.6.1
