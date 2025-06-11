@@ -1,8 +1,5 @@
-package org.example.project.richtext
+package de.connect2x.messenger.compose.view.richtext
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
@@ -12,22 +9,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.*
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.richtext.html.parseColor
 import net.folivo.trixnity.core.MatrixRegex
-import net.folivo.trixnity.core.model.Mention
-import net.folivo.trixnity.core.model.events.m.Mentions
-import org.example.project.html.parseColor
 
 @Composable
 internal fun InlineContent(content: RichText.InlineSpan, context: RichTextContext, first: Boolean) {
@@ -37,6 +36,8 @@ internal fun InlineContent(content: RichText.InlineSpan, context: RichTextContex
         }
         autoLinkify(annotatedContent, context)
     }
+
+    // TODO
     val chipHeight = 28.dp
     val chipPadding = 56.dp
     val chipStyle = MaterialTheme.typography.labelLarge
@@ -56,6 +57,7 @@ internal fun InlineContent(content: RichText.InlineSpan, context: RichTextContex
         val density = LocalDensity.current
         val mention = MatrixRegex.findMentions(url).values.single()
         DisableSelection {
+            // TODO
             ElevatedSuggestionChip(
                 label = { Text(mention.label ?: mention.match) },
                 icon = { Icon(Icons.Default.Person, contentDescription = null) },

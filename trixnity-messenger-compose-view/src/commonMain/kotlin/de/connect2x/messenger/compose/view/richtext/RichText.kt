@@ -1,15 +1,29 @@
-package org.example.project.richtext
+package de.connect2x.messenger.compose.view.richtext
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import org.example.project.html.HtmlNode
+import de.connect2x.messenger.compose.view.richtext.html.HtmlNode
 
 sealed interface RichText {
-    data class Block(val tag: String, val attributes: Map<String, String>, val children: List<RichText>) : RichText
+    data class Block(
+        val tag: String,
+        val attributes: Map<String, String>,
+        val children: List<RichText>,
+    ) : RichText
+
     data class InlineSpan(val children: List<Inline>) : RichText
+
     sealed interface Inline {
-        data class Block(val tag: String, val attributes: Map<String, String>, val children: List<Inline>) : Inline
-        data class Text(val fullContent: String, val content: String) : Inline
+        data class Block(
+            val tag: String,
+            val attributes: Map<String, String>,
+            val children: List<Inline>,
+        ) : Inline
+
+        data class Text(
+            val fullContent: String,
+            val content: String,
+        ) : Inline
     }
 
     companion object {
@@ -35,6 +49,7 @@ internal fun parseBlock(html: HtmlNode.HtmlElement): RichText.Block =
                 is HtmlNode.TextContent -> {
                     inlineNodes.add(parseInline(child))
                 }
+
                 is HtmlNode.HtmlElement ->
                     if (child.tag in RichText.inline) {
                         inlineNodes.add(parseInline(child))

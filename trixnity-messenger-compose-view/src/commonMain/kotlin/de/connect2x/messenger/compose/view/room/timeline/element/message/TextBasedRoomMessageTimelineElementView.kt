@@ -4,27 +4,19 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -33,18 +25,16 @@ import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.isMobile
+import de.connect2x.messenger.compose.view.richtext.RichTextColors
+import de.connect2x.messenger.compose.view.richtext.RichTextDisplay
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
-import de.connect2x.messenger.compose.view.room.timeline.element.util.mentionsUriHandler
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import io.ktor.http.Url
-import org.example.project.richtext.RichTextColors
-import org.example.project.richtext.RichTextDisplay
+import io.ktor.http.*
 
 @Composable
 fun TextBasedRoomMessageTimelineElementView(
@@ -105,18 +95,22 @@ private fun MessageTextContent(
                     else MaterialTheme.messengerColors.link
             ),
             onCopy = {
+                // TODO
                 println("Copy: $it")
             },
             onLinkClick = {
+                // TODO
                 println("Link: $it")
             },
             onMentionClick = {
+                // TODO
                 println("Mention: $it")
             }
         )
     }
 }
 
+// TODO
 @Composable
 private fun formatMessage(
     message: String,

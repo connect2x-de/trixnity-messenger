@@ -1,4 +1,4 @@
-package org.example.project.html
+package de.connect2x.messenger.compose.view.richtext.html
 
 import androidx.compose.ui.graphics.Color
 

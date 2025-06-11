@@ -1,4 +1,4 @@
-package org.example.project.richtext
+package de.connect2x.messenger.compose.view.richtext
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.horizontalScroll
@@ -43,9 +43,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
+import de.connect2x.messenger.compose.view.common.HorizontalScrollableMeasurePolicy
+import de.connect2x.messenger.compose.view.richtext.html.DataTable
+import de.connect2x.messenger.compose.view.richtext.html.ListScope
 import net.folivo.trixnity.core.model.Mention
-import org.example.project.em
-import org.example.project.html.ListScope
 
 data class RichTextContext(
     val listScope: ListScope? = null,

@@ -1,4 +1,4 @@
-package org.example.project.html
+package de.connect2x.messenger.compose.view.richtext.html
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -8,10 +8,16 @@ import com.fleeksoft.ksoup.nodes.Node
 import com.fleeksoft.ksoup.nodes.TextNode
 
 sealed interface HtmlNode {
-    data class HtmlElement(val tag: String, val attributes: Map<String, String>, val children: List<HtmlNode>) :
-        HtmlNode
+    data class HtmlElement(
+        val tag: String,
+        val attributes: Map<String, String>,
+        val children: List<HtmlNode>,
+    ) : HtmlNode
 
-    data class TextContent(val fullContent: String, val content: String) : HtmlNode
+    data class TextContent(
+        val fullContent: String,
+        val content: String,
+    ) : HtmlNode
 }
 
 @Composable

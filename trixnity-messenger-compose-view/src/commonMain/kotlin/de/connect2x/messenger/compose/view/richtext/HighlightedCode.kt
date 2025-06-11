@@ -1,4 +1,4 @@
-package org.example.project.richtext
+package de.connect2x.messenger.compose.view.richtext
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable

@@ -2,7 +2,6 @@ package de.connect2x.messenger.compose.view.settings
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -33,6 +32,7 @@ class AppInfoImprintViewImpl : AppInfoImprintView {
                     Text(i18n.appInfoImprint())
                 }
                 AdaptiveDialogScrollContent {
+                    // TODO
                     Text(imprint)
                 }
             }

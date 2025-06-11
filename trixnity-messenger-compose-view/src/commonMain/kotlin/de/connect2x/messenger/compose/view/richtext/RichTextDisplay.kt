@@ -1,9 +1,6 @@
-package org.example.project.richtext
+package de.connect2x.messenger.compose.view.richtext
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -14,9 +11,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.richtext.html.rememberHtml
 import net.folivo.trixnity.core.model.Mention
-import org.example.project.html.rememberHtml
 
 data class RichTextColors(
     val linkColor: Color,

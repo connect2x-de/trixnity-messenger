@@ -1,4 +1,4 @@
-package org.example.project.richtext
+package de.connect2x.messenger.compose.view.common
 
 import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.MeasurePolicy

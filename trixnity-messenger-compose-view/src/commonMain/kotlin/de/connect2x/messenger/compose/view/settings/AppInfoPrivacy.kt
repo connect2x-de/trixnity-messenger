@@ -32,6 +32,7 @@ class AppInfoPrivacyViewImpl : AppInfoPrivacyView {
                     Text(i18n.appInfoPrivacy())
                 }
                 AdaptiveDialogScrollContent {
+                    // TODO
                     Text(privacyInfo)
                 }
             }

@@ -1,4 +1,4 @@
-package org.example.project.html
+package de.connect2x.messenger.compose.view.richtext.html
 
 /*
  * Copyright (C) 2007 The Android Open Source Project

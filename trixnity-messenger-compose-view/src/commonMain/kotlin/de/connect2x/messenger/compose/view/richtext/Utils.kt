@@ -1,4 +1,4 @@
-package org.example.project
+package de.connect2x.messenger.compose.view.richtext
 
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable

@@ -1,4 +1,4 @@
-package org.example.project.richtext
+package de.connect2x.messenger.compose.view.richtext
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.text.InlineTextContent
@@ -14,14 +14,19 @@ import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.MeasurePolicy
 import androidx.compose.ui.layout.MeasureResult
 import androidx.compose.ui.layout.MeasureScope
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.text.*
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import kotlin.math.roundToInt
 
-const val INLINE_CONTENT_TAG = "androidx.compose.foundation.text.inlineContent"
+const val INLINE_CONTENT_TAG = "de.connect2x.messenger.compose.view.richtext.inlineContent"
 
 @Immutable
 internal data class CompoundTextContext(

@@ -1,4 +1,4 @@
-package org.example.project.richtext
+package de.connect2x.messenger.compose.view.richtext.html
 
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -8,6 +8,10 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import de.connect2x.messenger.compose.view.richtext.BlockContent
+import de.connect2x.messenger.compose.view.richtext.InlineContent
+import de.connect2x.messenger.compose.view.richtext.RichText
+import de.connect2x.messenger.compose.view.richtext.RichTextContext
 import io.github.windedge.table.ColumnBuilder
 import io.github.windedge.table.DataTable
 import io.github.windedge.table.RowBuilderImpl
