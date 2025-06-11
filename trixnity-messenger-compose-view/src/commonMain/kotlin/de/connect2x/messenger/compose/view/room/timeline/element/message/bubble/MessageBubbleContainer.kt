@@ -75,26 +75,22 @@ fun MessageBubbleContainer(
                     size
                 }
         ) {
-            Row {
-                ThemedSurface(
-                    style = messageBubbleStyle,
-                    modifier = Modifier.drawWithCache {
-                        onDrawBehind {
-                            if (isFirstInUserSequence) {
-                                drawChatEdge(holder.isByMe, messageBubbleStyle.color)
-                            }
-                        }
-                    },
-                ) {
-                    Box(modifier = Modifier.width(IntrinsicSize.Max)) {
-                        MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = true }, content)
-                        if (!isPreview) {
-                            MessageBubbleContentOverlay(
-                                hoverMessage,
-                                overlay,
-                            )
+            ThemedSurface(
+                style = messageBubbleStyle,
+                modifier = Modifier.drawWithCache {
+                    onDrawBehind {
+                        if (isFirstInUserSequence) {
+                            drawChatEdge(holder.isByMe, messageBubbleStyle.color)
                         }
                     }
+                },
+            ) {
+                MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = true }, content)
+                if (!isPreview) {
+                    MessageBubbleContentOverlay(
+                        hoverMessage,
+                        overlay,
+                    )
                 }
             }
 

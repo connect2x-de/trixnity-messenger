@@ -245,7 +245,7 @@ fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextContext) {
 
         "caption" -> {
             CompositionLocalProvider(
-                LocalTextStyle provides MaterialTheme.typography.labelLarge,
+                LocalTextStyle provides MaterialTheme.typography.titleMedium,
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(1.em)) {
                     Children(node, context)
