@@ -120,7 +120,26 @@ internal fun RowBuilderImpl.TableRowContent(node: RichText, context: RichTextCon
 
 internal fun RowBuilderImpl.TableRowContent(node: RichText.Block, context: RichTextContext) {
     when (node.tag) {
-        "td", "th" -> {
+        "th" -> {
+            cell {
+                CompositionLocalProvider(
+                    LocalTextStyle provides LocalTextStyle.current.copy(
+                        fontWeight = FontWeight.Companion.Bold,
+                    )
+                ) {
+                    Column {
+                        for (index in node.children.indices) {
+                            val child = node.children[index]
+                            when (child) {
+                                is RichText.Block -> BlockContent(child, context)
+                                is RichText.InlineSpan -> InlineContent(child, context, first = index == 0)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        "td" -> {
             cell {
                 Column {
                     for (index in node.children.indices) {

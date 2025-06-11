@@ -3,9 +3,9 @@ package org.example.project.richtext
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.material.icons.Icons
@@ -226,19 +225,21 @@ fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextContext) {
                 tonalElevation = 8.dp,
                 shadowElevation = 2.dp,
                 shape = MaterialTheme.shapes.small,
-                modifier = Modifier.width(700.dp).height(150.dp)
             ) {
-                Box {
-                    val scrollState = rememberScrollState()
-                    DataTable(
-                        node,
-                        context,
-                        modifier = Modifier
-                            .horizontalScroll(scrollState)
-                            .padding(8.dp)
-                    )
-                    HorizontalScrollbar(Modifier.align(Alignment.BottomCenter), scrollState)
-                }
+                val scrollState = rememberScrollState()
+                Layout(
+                    content = {
+                        DataTable(
+                            node,
+                            context,
+                            modifier = Modifier
+                                .horizontalScroll(scrollState)
+                                .padding(8.dp)
+                        )
+                        HorizontalScrollbar(Modifier, scrollState)
+                    },
+                    measurePolicy = HorizontalScrollableMeasurePolicy
+                )
             }
         }
 
@@ -259,6 +260,7 @@ fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextContext) {
                 tonalElevation = 8.dp,
                 shadowElevation = 2.dp,
                 shape = MaterialTheme.shapes.small,
+                modifier = Modifier.width(IntrinsicSize.Max)
             ) {
                 Column {
                     highlightedCode?.let {
@@ -289,20 +291,29 @@ fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextContext) {
                             }
                         }
                     }
-                    Box {
-                        //val scrollState = rememberScrollState()
-                        Column(Modifier.wrapContentHeight()
-                            //.horizontalScroll(scrollState)
-                            .padding(8.dp)) {
-                            highlightedCode?.content?.let {
-                                Text(it, fontFamily = FontFamily.Monospace)
-                            } ?: Children(
-                                node,
-                                context.copy(preformatted = true)
-                            )
-                        }
-                        //HorizontalScrollbar(Modifier.align(Alignment.BottomCenter), scrollState)
-                    }
+                    val scrollState = rememberScrollState()
+                    Layout(
+                        content = {
+                            Column(
+                                Modifier
+                                    .horizontalScroll(scrollState)
+                                    .padding(8.dp)
+                            ) {
+                                highlightedCode?.content?.let {
+                                    Text(
+                                        it,
+                                        fontFamily = FontFamily.Monospace,
+                                        softWrap = false,
+                                    )
+                                } ?: Children(
+                                    node,
+                                    context.copy(preformatted = true)
+                                )
+                            }
+                            HorizontalScrollbar(Modifier, scrollState)
+                        },
+                        measurePolicy = HorizontalScrollableMeasurePolicy
+                    )
                 }
             }
         }
@@ -317,6 +328,7 @@ fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextContext) {
                 tonalElevation = 8.dp,
                 shadowElevation = 2.dp,
                 shape = MaterialTheme.shapes.small,
+                modifier = Modifier.width(IntrinsicSize.Max)
             ) {
                 Column {
                     Surface(
@@ -376,3 +388,4 @@ fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextContext) {
         else -> Unit
     }
 }
+
