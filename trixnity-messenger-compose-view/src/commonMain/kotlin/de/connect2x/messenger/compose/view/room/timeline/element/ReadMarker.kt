@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
@@ -44,30 +45,29 @@ class ReadMarkerViewImpl : ReadMarkerView {
         val isByMe = timelineElementHolderViewModel.isByMe
         if (isByMe) {
             val isSent by timelineElementHolderViewModel.isSent.collectAsState()
-            if (isSent) {
-                val isRead =
-                    timelineElementHolderViewModel.asTimelineElementHolder()?.isRead?.collectAsState()?.value == true
-
-                Box(
-                    Modifier
-                        .size(MaterialTheme.typography.labelSmall.dp)
-                        .padding(start = 2.dp)
-                ) {
+            Box(Modifier.size(MaterialTheme.typography.labelSmall.dp).padding(start = 2.dp)) {
+                if (isSent) {
+                    val isRead =
+                        timelineElementHolderViewModel.asTimelineElementHolder()?.isRead?.collectAsState()?.value == true
                     if (isRead) {
-                        Icon(
-                            Icons.Filled.DoneAll,
-                            i18n.messageBubbleRead(),
-                            Modifier.fillMaxSize(),
-                        )
+                        Tooltip({ Text(i18n.messageBubbleRead()) }) {
+                            Icon(
+                                Icons.Filled.DoneAll,
+                                i18n.messageBubbleRead(),
+                                Modifier.fillMaxSize(),
+                            )
+                        }
                     } else {
-                        Icon(
-                            Icons.Filled.Done,
-                            i18n.messageBubbleRead(),
-                            Modifier.fillMaxSize(),
-                        )
+                        Tooltip({ Text(i18n.messageBubbleSent()) }) {
+                            Icon(
+                                Icons.Filled.Done,
+                                i18n.messageBubbleSent(),
+                                Modifier.fillMaxSize(),
+                            )
+                        }
                     }
                 }
-            } else Box(Modifier.size(MaterialTheme.typography.labelSmall.dp).padding(start = 2.dp))
+            }
         }
     }
 }
