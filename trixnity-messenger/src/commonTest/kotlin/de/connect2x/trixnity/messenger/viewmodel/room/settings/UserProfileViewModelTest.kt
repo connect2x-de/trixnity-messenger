@@ -99,7 +99,6 @@ class UserProfileViewModelTest {
     val userServiceMock = mock<UserService>()
     val keyServiceMock = mock<KeyService>()
     val verificationServiceMock = mock<VerificationService>()
-    val backgroundScope = TestScope()
     val matrixClientServerApiMock = mock<MatrixClientServerApiClient>()
     val usersApiClientMock = mock<UserApiClient>()
     val roomsApiClientMock = mock<RoomApiClient>()
