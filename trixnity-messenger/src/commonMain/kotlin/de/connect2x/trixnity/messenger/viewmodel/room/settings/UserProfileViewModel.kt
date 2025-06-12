@@ -541,6 +541,9 @@ class UserProfileViewModelImpl(
                     .fold(
                         onSuccess = {
                             it.also {
+                                if (it.roomId != selectedRoomId) {
+                                    onOpenRoom(matrixClient.userId, it.roomId)
+                                }
                                 if (closeSettingsAfterStart) {
                                     onCloseSettings()
                                 }
