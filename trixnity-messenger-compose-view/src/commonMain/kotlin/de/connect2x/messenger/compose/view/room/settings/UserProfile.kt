@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
@@ -281,7 +282,7 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
         val blockingInProgress = userProfileViewModel.blockingInProgress.collectAsState().value
         val isUserBlocked = userProfileViewModel.isUserBlocked.collectAsState().value
         val openingChat = userProfileViewModel.openingChat.collectAsState().value
-        val verifying = userProfileViewModel.verifying.collectAsState().value
+        val canVerify = userProfileViewModel.canVerify.collectAsState().value
         val canOpenChat = userProfileViewModel.canOpenChat.collectAsState().value
 
         VerySmallSpacer()
@@ -330,20 +331,22 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
             }
         }
         val isSinglePane = IsSinglePane.current
-        MenuElement(Modifier.clickable {
-            userProfileViewModel.startVerification(isSinglePane)
-        }) {
-            Icon(
-                Icons.AutoMirrored.Filled.Wysiwyg,
-                i18n.userVerification(),
-                Modifier.size(24.dp),
-                defaultColorForState(!verifying)
-            )
-            Spacer(Modifier.size(10.dp))
-            Text(
-                text = i18n.userProfileVerification(),
-                color = defaultColorForState(!verifying)
-            )
+        Tooltip(enabled = !canVerify, tooltip = { TooltipText(i18n.verificationAlreadyRunning()) }) {
+            MenuElement(Modifier.buttonPointerModifier().clickable(enabled = canVerify) {
+                userProfileViewModel.startVerification(isSinglePane)
+            }) {
+                Icon(
+                    Icons.AutoMirrored.Filled.Wysiwyg,
+                    i18n.userVerification(),
+                    Modifier.size(24.dp),
+                    defaultColorForState(canVerify)
+                )
+                Spacer(Modifier.size(10.dp))
+                Text(
+                    text = i18n.userProfileVerification(),
+                    color = defaultColorForState(canVerify)
+                )
+            }
         }
     }
 }

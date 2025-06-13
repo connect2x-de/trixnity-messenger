@@ -106,7 +106,7 @@ interface UserProfileViewModel {
     val blockingInProgress: StateFlow<Boolean>
     val presence: StateFlow<Presence>
     val openingChat: StateFlow<Boolean>
-    val verifying: StateFlow<Boolean>
+    val canVerify: StateFlow<Boolean>
     val canOpenChat: StateFlow<Boolean>
 
     fun openKickUserWarning()
@@ -528,14 +528,22 @@ class UserProfileViewModelImpl(
         }
     }
 
-    override val verifying = MutableStateFlow(false)
+    val verifying = MutableStateFlow(false)
+
+    override val canVerify =
+        matrixClient.verification.activeUserVerificationUserIDs.map { !it.contains(userId)}.stateIn(
+            coroutineScope,
+            SharingStarted.WhileSubscribed(),
+            false
+        )
+
 
     override fun startVerification(closeSettingsAfterStart: Boolean) {
         if (isMyself) {
             log.warn { "cannot verify yourself" }
             return
         }
-        if (verifying.compareAndSet(expect = false, update = true)) {
+        if (canVerify.value) {
             coroutineScope.launch {
                 val req = matrixClient.verification.createUserVerificationRequest(userId)
                     .fold(
