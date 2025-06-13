@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 @Composable
 actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
     val context = LocalContext.current
-    val contentResolver = context.contentResolver
 
     val clipData = when (this) {
         is FileBased ->
@@ -28,11 +27,7 @@ actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
             }
 
         is Location ->
-            ClipData.newUri(
-                contentResolver,
-                this.name,
-                Uri.parse(this.geoUri)
-            )
+            ClipData.newPlainText(this.coordinates, this.coordinates)
 
         is TextBased ->
             this.formattedBody?.let {

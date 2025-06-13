@@ -13,7 +13,7 @@ import java.awt.datatransfer.StringSelection
 actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
     val transferable = when (val content = this) {
         is FileBased -> content.caption?.let { StringSelection(it) }
-        is Location -> StringSelection(content.name)
+        is Location -> StringSelection(content.coordinates)
         is TextBased -> StringSelection(content.body)
         is RoomMessageTimelineElementViewModel.Unknown, is RoomMessageTimelineElementViewModel.VerificationRequest -> null
     }
