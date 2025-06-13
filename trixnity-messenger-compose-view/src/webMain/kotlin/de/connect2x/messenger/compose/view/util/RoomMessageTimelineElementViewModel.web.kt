@@ -42,7 +42,7 @@ actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
             } ?: mapOf<Any, Any>()
 
         is RoomMessageTimelineElementViewModel.Location -> mapOf(
-            ContentType.Text.Html to "<a href=\"${this.osmLink}\">${this.coordinates}</a>",
+            ContentType.Text.Html to "<a href=\"${this.osmLink}\" >${this.coordinates}</a>",
             ContentType.Text.Plain to this.coordinates
         )
 

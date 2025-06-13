@@ -336,6 +336,21 @@ open class I18nView(
         DE - "absenden"
     }
 
+    open fun commonRichText() = translate {
+        EN - "rich text"
+        DE - "Formatierter Text"
+    }
+
+    open fun commonText() = translate {
+        EN - "text"
+        DE - "Text"
+    }
+
+    open fun commonLocation() = translate {
+        EN - "location"
+        DE - "Standort"
+    }
+
     open fun ban() = translate {
         EN - "ban"
         DE - "Bannen"

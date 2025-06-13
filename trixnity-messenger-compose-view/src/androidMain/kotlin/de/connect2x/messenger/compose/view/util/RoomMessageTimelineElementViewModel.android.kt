@@ -1,10 +1,11 @@
 package de.connect2x.messenger.compose.view.util
 
 import android.content.ClipData
-import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ClipEntry
-import androidx.compose.ui.platform.LocalContext
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.Location
@@ -12,32 +13,39 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 
 @Composable
 actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
-    val context = LocalContext.current
+    val i18n = DI.get<I18nView>()
 
     val clipData = when (this) {
         is FileBased ->
             this.formattedCaption?.let {
                 ClipData.newHtmlText(
-                    this.caption,
+                    i18n.commonRichText(),
                     this.caption,
                     it
                 )
             } ?: this.caption?.let {
-                ClipData.newPlainText(it, it)
+                ClipData.newPlainText(
+                    i18n.commonText(),
+                    it
+                )
             }
 
         is Location ->
-            ClipData.newPlainText(this.coordinates, this.coordinates)
+            ClipData.newHtmlText(
+                i18n.commonLocation(),
+                this.coordinates,
+                "<a href=\"${this.osmLink}\" >${this.coordinates}</a>"
+            )
 
         is TextBased ->
             this.formattedBody?.let {
                 ClipData.newHtmlText(
-                    this.body,
+                    i18n.commonRichText(),
                     this.body,
                     this.formattedBody
                 )
             } ?: ClipData.newPlainText(
-                this.body,
+                i18n.commonText(),
                 this.body
             )
 
