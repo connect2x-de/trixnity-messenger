@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Don't show option for user verification when user is already verified
+
 ### Deprecated
 
 ### Removed
