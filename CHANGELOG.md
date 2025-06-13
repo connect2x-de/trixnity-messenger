@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## 3.6.3
+
+### Changed
+
+- Updated Trixnity from 4.16.2 to 4.16.3 (hotfix: dehydrated devices)
+
 ## 3.6.2
 
 ### Changed
