@@ -7,15 +7,15 @@ import org.jetbrains.compose.resources.decodeToImageBitmap
 
 private val log = KotlinLogging.logger {}
 
-expect fun ByteArray.toImageBitmap(width: Int, height: Int): ImageBitmap?
-
 @OptIn(ExperimentalResourceApi::class)
-fun ByteArray.toImageBitmap(): ImageBitmap? {
+actual fun ByteArray.toImageBitmap(
+    width: Int,
+    height: Int,
+): ImageBitmap? {
     return try {
         decodeToImageBitmap()
     } catch (e: Exception) {
         log.error(e) { "Cannot decode image" }
         null
     }
-
 }

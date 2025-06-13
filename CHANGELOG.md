@@ -11,13 +11,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Internal: add remote caching
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
+- When creating a user verification from another room, jump to the direct room where the user verification is taking place
 - Fixed error display not going away when renaming device
+
+### Security
+
+## 3.6.1
+
+### Changed
+
+- Overlay file transfer progress over uploaded image thumbnail
+- Updated Trixnity from 4.16.0 to 4.16.1
+
+### Fixed
+
+- Remove timeline flickering due to switching between image fallback and thumbnail
+- Resolved crash due to "Image too large" on Android
+- Reuse an existing direct chat only if it is a direct chat with only that user when creating a new chat
 
 ### Security
 
@@ -26,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add setAvatarImage function to AvatarCutterViewModel
-- Add tests for various logic
+- Accessibility Settings Step for Setup Wizard (`AccountSetupWizardStep.AccessibilityStep`)
 
 ### Changed
 
@@ -36,9 +54,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make tooltip show/hide delays configurable
 - Styling: Use customizable components for labels
 - Persist presence
-- Styling: Use theme components for dialogs
-- Clearly distinguish between a room member leaving, being kicked, banned or unbanned.
-- Adapt to Trixnity media cache changes
+
+### Deprecated
+
+### Removed
 
 ### Fixed
 
@@ -49,7 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed "edited" is shown in the wrong place in `TimelineElementMetadataViewModel`
 - Send button is only active after the second char in the input field
 - Canceled or completed user verifications are shown correctly in the timeline (**Breaking change**: user verification
-  end states (canceled or done) have separate timeline view models now 
+  end states (canceled or done) have separate timeline view models now
   (MessageTimelineElementViewModel.VerificationCancel, MessageTimelineElementViewModel.VerificationDone))
 - Fixed AvatarCutter ignoring alignment/rotation metadata
 

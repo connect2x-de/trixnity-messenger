@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
-private val log = KotlinLogging.logger { }
 
 interface AccountSetupViewModelFactory {
     fun create(
@@ -36,6 +35,7 @@ interface AccountSetupViewModel {
      */
     val completedVerification: MutableStateFlow<Boolean?>
     val userId: UserId
+    val appearanceSettingsViewModel: AppearanceSettingsViewModel
     val privacySettingsViewModel: PrivacySettingsSingleAccountViewModel
     val notificationSettingsViewModel: NotificationSettingsSingleAccountViewModel
 }
@@ -47,6 +47,9 @@ class AccountSetupViewModelImpl(
 ) :
     ViewModelContext by viewModelContext, AccountSetupViewModel {
     override val userId = viewModelContext.userId
+    override val appearanceSettingsViewModel: AppearanceSettingsViewModel by lazy {
+        get<AppearanceSettingsViewModelFactory>().create(viewModelContext) {}
+    }
 
     override val completedVerification: MutableStateFlow<Boolean?> = MutableStateFlow(null)
 

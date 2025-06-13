@@ -29,6 +29,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModel
  */
 open class AccountSetupWizardStep(val stepId: String) {
     data object ExplanationStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_EXPLANATION")
+    data object AccessibilityStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_ACCESSIBILITY")
     data object VerificationStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_VERIFICATION")
     data object PrivacySettingsStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_PRIVACY")
     data object NotificationSettingsStep : AccountSetupWizardStep("ACCOUNT_SETUP_WIZARD_NOTIFICATION")
@@ -46,6 +47,7 @@ interface AccountSetupWizardStepList {
 class AccountSetupWizardStepListImpl : AccountSetupWizardStepList {
     override val steps = listOf(
         AccountSetupWizardStep.ExplanationStep,
+        AccountSetupWizardStep.AccessibilityStep,
         AccountSetupWizardStep.PrivacySettingsStep,
         AccountSetupWizardStep.NotificationSettingsStep,
         AccountSetupWizardStep.VerificationStep,
@@ -94,6 +96,8 @@ fun AccountSetupWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountSetup) {
                 when (it) {
                     is AccountSetupWizardStep.ExplanationStep -> add(wizardStepExplanation(viewModel, it, i18n))
 
+                    is AccountSetupWizardStep.AccessibilityStep -> add(wizardStepAccessibility(viewModel, it, i18n))
+
                     is AccountSetupWizardStep.NotificationSettingsStep -> add(
                         wizardStepNotification(
                             viewModel,
@@ -137,6 +141,18 @@ private fun wizardStepExplanation(
         id = step.stepId,
         title = { "${i18n.commonWelcome()} ${viewModel.userId.localpart}" },
         content = { Text(i18n.accountSetupWizardExplanationMessage()) },
+    )
+}
+
+private fun wizardStepAccessibility(
+    viewModel: AccountSetupViewModel,
+    step: AccountSetupWizardStep,
+    i18n: I18nView
+): WizardStep {
+    return WizardStep(
+        id = step.stepId,
+        title = { i18n.commonAccessibility() },
+        content = { Column { AppearanceSettingsSize(viewModel.appearanceSettingsViewModel) } }
     )
 }
 
