@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Show correct user verification status in UserInfo when user verification hasn't been completed
+
 ### Security
 
 ## 3.6.3
