@@ -428,8 +428,11 @@ class UserProfileViewModelTest {
         )
         every { activeVerificationMock.roomId } returns verificationRoom
         every { activeVerificationMock.state } returns MutableStateFlow(ActiveVerificationState.Undefined)
+        every { matrixClientMock.key.getTrustLevel(any()) } returns MutableStateFlow(UserTrustLevel.CrossSigned(false))
 
         val cut = userProfileViewModel(alice)
+        delay(10.milliseconds)
+
         cut.startVerification(true)
         delay(10.milliseconds)
         verifySuspend { onOpenRoomMock.invoke(me, verificationRoom) }
@@ -446,8 +449,11 @@ class UserProfileViewModelTest {
         )
         every { activeVerificationMock.roomId } returns roomId
         every { activeVerificationMock.state } returns MutableStateFlow(ActiveVerificationState.Undefined)
+        every { matrixClientMock.key.getTrustLevel(any()) } returns MutableStateFlow(UserTrustLevel.CrossSigned(false))
 
         val cut = userProfileViewModel(alice)
+        delay(10.milliseconds)
+
         cut.startVerification(true)
         delay(10.milliseconds)
         verify { onCloseSettingsMock.invoke() }
