@@ -19,6 +19,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
+import dev.mokkery.verify.VerifyMode
 import dev.mokkery.verifyNoMoreCalls
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
@@ -36,6 +37,7 @@ import kotlinx.coroutines.yield
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
@@ -424,7 +426,7 @@ class UserProfileViewModelTest {
         everySuspend { verificationServiceMock.createUserVerificationRequest(alice) } returns Result.success(
             activeVerificationMock
         )
-        every { activeVerificationMock.roomId} returns verificationRoom
+        every { activeVerificationMock.roomId } returns verificationRoom
         every { activeVerificationMock.state } returns MutableStateFlow(ActiveVerificationState.Undefined)
 
         val cut = userProfileViewModel(alice)
@@ -450,6 +452,19 @@ class UserProfileViewModelTest {
         delay(10.milliseconds)
         verify { onCloseSettingsMock.invoke() }
         verifyNoMoreCalls(onOpenRoomMock)
+    }
+
+    @Test
+    fun `don't send user verification request when user is already verified`() = runTest {
+        every {
+            userServiceMock.getPowerLevel(roomId, any())
+        } returns MutableStateFlow(50)
+
+        val cut = userProfileViewModel(alice)
+        every { matrixClientMock.key.getTrustLevel(any()) } returns MutableStateFlow(UserTrustLevel.CrossSigned(true))
+        cut.startVerification()
+        delay(20)
+        verifySuspend(VerifyMode.exactly(0)) { cut.startVerification() }
     }
 
     private fun setMemberEventContentOf(roomUser: MutableStateFlow<RoomUser?>, eventContent: MemberEventContent) {
