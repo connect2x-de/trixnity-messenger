@@ -19,7 +19,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+
 - Fixed switch in user profile view for blocking not reflecting correct server-side state
+
+### Security
+
+## 3.6.3
+
+### Changed
+
+- Updated Trixnity from 4.16.2 to 4.16.3 (hotfix: dehydrated devices)
+
+## 3.6.2
+
+### Changed
+
+- Internal: add remote caching
+- Updated Trixnity from 4.16.1 to 4.16.2 (includes dehydrated devices fix)
+
+### Fixed
+
+- When creating a user verification from another room, jump to the direct room where the user verification is taking place
+
+## 3.6.1
+
+### Changed
+
+- Overlay file transfer progress over uploaded image thumbnail
+- Updated Trixnity from 4.16.0 to 4.16.1
+
+### Fixed
+
+- Remove timeline flickering due to switching between image fallback and thumbnail
+- Resolved crash due to "Image too large" on Android
+- Fixed switch in user profile view for blocking not reflecting correct server-side state
+- Reuse an existing direct chat only if it is a direct chat with only that user when creating a new chat
 
 ### Security
 
