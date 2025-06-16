@@ -79,7 +79,7 @@ class InviteRoomListElementImpl : InviteRoomListElement {
         }
 
         if (showReject) {
-            val rejectionInProgress = roomListElementViewModel.rejectionInProgress.collectAsState().value
+            val rejectionInProgress = roomListElementViewModel.rejectInvitationInProgress.collectAsState().value
             ThemedModalDialog({ showReject = false }) {
                 ModalDialogHeader {
                     Text(i18n.invitationRejectHeader())
