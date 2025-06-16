@@ -11,18 +11,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Internal: add remote caching
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
-- When creating a user verification from another room, jump to the direct room where the user verification is taking place
 - Fixed tooltips and accessible labels for Read/Sent markers
 
+=======
+>>>>>>> CHANGELOG.md
 ### Security
+
+## 3.6.3
+
+### Changed
+
+- Updated Trixnity from 4.16.2 to 4.16.3 (hotfix: dehydrated devices)
+
+## 3.6.2
+
+### Changed
+
+- Internal: add remote caching
+- Updated Trixnity from 4.16.1 to 4.16.2 (includes dehydrated devices fix)
+
+### Fixed
+
+- When creating a user verification from another room, jump to the direct room where the user verification is taking place
 
 ## 3.6.1
 
