@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
@@ -105,16 +106,20 @@ open class CreateNewChatViewModelImpl(
             val existingRoomIds = createNewRoomViewModel.existingDirectRooms.value[userId]
             if (
                 existingRoomIds?.isNotEmpty() == true &&
-                existingRoomIds.any { matrixClient.room.getById(it).first() != null }
+                existingRoomIds.any {
+                    val room = matrixClient.room.getById(it).first()
+                    room != null && (room.membership == Membership.JOIN ||room.membership == Membership.INVITE)
+                }
             ) {
                 log.debug { "Check whether there is already existing room with $userId" }
                 // check whether the user left the room; if so, do NOT re-use the room
                 existingRoomIds.find {
                     val membership = matrixClient.user.getById(it, userId).first()?.membership
-                    membership == Membership.JOIN || membership == Membership.INVITE || membership == Membership.KNOCK
-                }?.let {
+                    (membership == Membership.JOIN || membership == Membership.INVITE || membership == Membership.KNOCK)
+                            && (matrixClient.user.getAll(it).firstOrNull()?.size ?: 0) == 2
+                }?.let { roomId ->
                     log.info { "go to existing room with $userId" }
-                    createNewRoomViewModel.onRoomCreated(matrixClient.userId, it)
+                    createNewRoomViewModel.onRoomCreated(matrixClient.userId, roomId)
                 } ?: run {
                     createNewRoom(userId)
                 }

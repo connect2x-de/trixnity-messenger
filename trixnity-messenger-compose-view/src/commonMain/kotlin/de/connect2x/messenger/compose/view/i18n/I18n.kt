@@ -226,6 +226,11 @@ open class I18nView(
         DE - "Benachrichtigungen"
     }
 
+    open fun commonAccessibility() = translate {
+        EN - "Appearance"
+        DE - "Aussehen"
+    }
+
     open fun commonDefault() = translate {
         EN - "default"
         DE - "Standard"

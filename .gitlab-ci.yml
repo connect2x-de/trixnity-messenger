@@ -26,48 +26,16 @@ variables:
   ARTIFACT_COMPRESSION_LEVEL: "fastest"
   CACHE_COMPRESSION_LEVEL: "fastest"
 
-.cache-linux: &cache-linux
-  - key: global-trixnity-messenger-cache-linux
-    policy: pull-push
+.cache: &cache
+  - key:
+      files:
+        - gradle/wrapper/gradle-wrapper.properties
+        - gradle/libs.versions.toml
     paths:
-      - $GRADLE_USER_HOME
-      - $KONAN_DATA_DIR
-  - key: "$CI_COMMIT_REF_NAME-linux"
-    policy: push
-    paths:
-      - $GRADLE_USER_HOME
-      - $KONAN_DATA_DIR
-      - $KOTLIN_DATA_DIR
-
-.pull-cache-linux: &pull-cache-linux
-  - key: "$CI_COMMIT_REF_NAME-linux"
-    fallback_keys: [ "global-trixnity-messenger-cache-linux" ]
-    policy: pull
-    paths:
-      - $GRADLE_USER_HOME
-      - $KONAN_DATA_DIR
-      - $KOTLIN_DATA_DIR
-
-.cache-mac: &cache-mac
-  - key: global-trixnity-messenger-cache-mac
-    policy: pull-push
-    paths:
-      - $GRADLE_USER_HOME
-      - $KONAN_DATA_DIR
-      - $KOTLIN_DATA_DIR
-  - key: "$CI_COMMIT_REF_NAME-mac"
-    policy: push
-    paths:
-      - $GRADLE_USER_HOME
-      - $KONAN_DATA_DIR
-      - $KOTLIN_DATA_DIR
-
-.pull-cache-mac: &pull-cache-mac
-  - key: "$CI_COMMIT_REF_NAME-mac"
-    fallback_keys: [ "global-trixnity-messenger-cache-mac" ]
-    policy: pull
-    paths:
-      - $GRADLE_USER_HOME
+      - $GRADLE_USER_HOME/wrapper
+      - $GRADLE_USER_HOME/nodejs
+      - $GRADLE_USER_HOME/yarn
+      - $GRADLE_USER_HOME/native
       - $KONAN_DATA_DIR
       - $KOTLIN_DATA_DIR
 
@@ -114,14 +82,13 @@ build:mac:
   interruptible: true
   tags: [ "connect2x-mac" ]
   cache:
-    - *cache-mac
+    - *cache
   rules:
     - *if-merge-request-or-main
   script:
     - ./gradlew
       compileKotlin{IosArm64,IosSimulatorArm64,IosX64}
       compileTestKotlin{IosSimulatorArm64,IosX64}
-      linkDebugTestIosX64
       --stacktrace
 
 build:linux:
@@ -130,7 +97,7 @@ build:linux:
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   cache:
-    - *cache-linux
+    - *cache
   rules:
     - *if-merge-request-or-main
   script:
@@ -148,7 +115,7 @@ test:mac:
   needs: [ "build:mac" ]
   tags: [ "connect2x-mac" ]
   cache:
-    - *pull-cache-mac
+    - *cache
   artifacts: *artifact-reports
   rules:
     - *if-merge-request-or-main
@@ -165,7 +132,7 @@ test:linux:
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   cache:
-    - *pull-cache-linux
+    - *cache
   artifacts: *artifact-reports
   rules:
     - *if-merge-request-or-main
@@ -183,7 +150,7 @@ test:smoketest-desktop-linux:
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   cache:
-    - *pull-cache-linux
+    - *cache
   artifacts: *artifact-reports
   rules:
     - *if-merge-request-or-main
@@ -202,7 +169,7 @@ test:smoketest-web:
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   cache:
-    - *pull-cache-linux
+    - *cache
   artifacts: *artifact-reports
   rules:
     - *if-merge-request-or-main
@@ -219,7 +186,7 @@ test:smoketest-android:
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME_EMULATOR
   cache:
-    - *pull-cache-linux
+    - *cache
   artifacts:
     paths:
       - emulator.log
@@ -239,7 +206,7 @@ test:integration-test:
   services:
     - name: docker:dind
   cache:
-    - *pull-cache-linux
+    - *cache
   variables: *docker-variables
   artifacts: *artifact-reports
   rules:
@@ -254,14 +221,19 @@ security:dependencies:
   interruptible: true
   timeout: 30m
   needs: [ ]
-  tags: [ "saas-linux-small-amd64" ]
+  tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME_TRIVY
   variables:
     TRIVY_CACHE_DIR: ".trivycache/"
     WITH_LOCK: true
   cache:
-    paths:
-      - .trivycache/
+    - *cache
+    - key:
+        files:
+          - gradle/wrapper/gradle-wrapper.properties
+          - gradle/libs.versions.toml
+      paths:
+        - .trivycache/
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       allow_failure: true
@@ -300,7 +272,7 @@ publish:mac:
   stage: publish
   tags: [ "connect2x-mac" ]
   cache:
-    - *cache-mac # is reused by kmmPublish:mac
+    - *cache
   rules:
     - *if-kmm-publish
     - *if-not-scheduled
@@ -316,7 +288,7 @@ publish:linux:
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   cache:
-    - *pull-cache-linux
+    - *cache
   rules:
     - *if-not-scheduled
     - *if-main
@@ -331,7 +303,7 @@ staging:web:
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   cache:
-    - *pull-cache-linux
+    - *cache
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   needs: [ "build:linux" ]
@@ -354,7 +326,7 @@ kmmPublish:mac:
   stage: kmmPublish
   tags: [ "connect2x-mac" ]
   cache:
-    - *pull-cache-mac
+    - *cache
   rules:
     - *if-kmm-publish
     - *if-release
