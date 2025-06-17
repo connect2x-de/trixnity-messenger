@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated Trixnity from 4.16.3 to 4.16.4 (hotfix: dehydrated devices)
+
 ### Deprecated
 
 ### Removed
@@ -34,7 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- When creating a user verification from another room, jump to the direct room where the user verification is taking place
+- When creating a user verification from another room, jump to the direct room where the user verification is taking
+  place
 
 ## 3.6.1
 
