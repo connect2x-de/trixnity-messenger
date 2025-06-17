@@ -15,6 +15,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReaction
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -22,6 +23,7 @@ import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.ByteArrayFlow
+import net.folivo.trixnity.utils.toByteArray
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Preview
@@ -82,6 +84,9 @@ fun ImageMessageBubblePreview() {
         override val thumbnail: StateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
         override val width: Int? = 40
         override val height: Int? = 40
+        override val thumbnailWidth: Int? = 40
+        override val thumbnailHeight: Int? = 40
+        override val thumbnailLoading: StateFlow<Boolean> = MutableStateFlow(false)
 
         override val name: String = "kiwi.png"
         override val description: String? = null
@@ -151,4 +156,10 @@ class InMemoryPlatformMedia(private val delegate: ByteArrayFlow) : PlatformMedia
     ByteArrayFlow by delegate {
     override fun transformByteArrayFlow(transformer: (ByteArrayFlow) -> ByteArrayFlow): PlatformMedia =
         InMemoryPlatformMedia(delegate.let(transformer))
+
+    override suspend fun toByteArray(
+        coroutineScope: CoroutineScope?,
+        expectedSize: Long?,
+        maxSize: Long?
+    ): ByteArray? = delegate.toByteArray()
 }

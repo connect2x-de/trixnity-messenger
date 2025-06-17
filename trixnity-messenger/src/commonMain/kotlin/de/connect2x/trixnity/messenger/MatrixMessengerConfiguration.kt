@@ -41,6 +41,10 @@ data class MatrixMessengerConfiguration(
 
     var notificationsEnabled: Boolean = false,
 
+    val features: MatrixMessengerFeatures = MatrixMessengerFeatures(
+        enablePdfReader = true,
+    ),
+
     /**
      * The number of elements that should be loaded before and after the viewport.
      */
@@ -64,20 +68,9 @@ data class MatrixMessengerConfiguration(
     var showBigGapBeforeThreshold: Duration = 1.hours,
 
     /**
-     * The maximum size of image attachments that are processed to change their rotation before upload in *Bytes*.
-     */
-    @Deprecated("for backwards compatibility. This is being removed in future versions")
-    var imageAttachmentMaxProcessingSize: Long = 50.mb(),
-
-    /**
      * The maximum size of files that can be loaded into memory in *Bytes*
      */
     var maxMediaSizeInMemory: Long = 50.mb(),
-
-    /**
-     * The maximum size of avatars that can be uploaded/displayed in *Bytes*
-     */
-    var avatarMaxSize: Long = 10.mb(),
 
     var defaultHomeServer: String? = null,
 

@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.ProvideTextStyle
-import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.RichTooltipColors
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TooltipScope
@@ -19,6 +17,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.theme.components
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 data class TooltipStyle(
@@ -31,6 +31,9 @@ data class TooltipStyle(
     val actionStyle: TextStyle,
     val titleStyle: TextStyle,
     val textStyle: TextStyle,
+    val longPressDelay: Duration,
+    val hoverShowDelay: Duration,
+    val hoverHideDelay: Duration,
 ) {
     companion object {
         @OptIn(ExperimentalMaterial3Api::class)
@@ -45,6 +48,15 @@ data class TooltipStyle(
             actionStyle: TextStyle = MaterialTheme.typography.labelLarge,
             titleStyle: TextStyle = MaterialTheme.typography.titleSmall,
             textStyle: TextStyle = MaterialTheme.typography.bodySmall,
+            // See https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/view/ViewConfiguration.java
+            // See https://learn.microsoft.com/en-us/dotnet/api/system.windows.forms.tooltip.automaticdelay?view=windowsdesktop-10.0#remarks
+            // Android DEFAULT_LONG_PRESS_TIMEOUT = 0.4s
+            longPressDelay: Duration = 400.milliseconds,
+            // Android HOVER_TOOLTIP_SHOW_TIMEOUT = 0.5s
+            // Windows AutoPopDelay = 0.5s
+            hoverShowDelay: Duration = 500.milliseconds,
+            // Windows ReshowDelay = 0.1s
+            hoverHideDelay: Duration = 100.milliseconds,
         ) = TooltipStyle(
             contentPadding = contentPadding,
             caretSize = caretSize,
@@ -55,6 +67,9 @@ data class TooltipStyle(
             actionStyle = actionStyle,
             titleStyle = titleStyle,
             textStyle = textStyle,
+            longPressDelay = longPressDelay,
+            hoverShowDelay = hoverShowDelay,
+            hoverHideDelay = hoverHideDelay,
         )
     }
 }

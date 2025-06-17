@@ -13,6 +13,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
@@ -62,6 +63,7 @@ class CreateNewRoomViewModelTest {
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
         every { matrixClientServerApiClientMock.user } returns usersApiClientMock
         every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
+        every { userServiceMock.getPresence(any()) } returns flowOf(null)
     }
 
     @Test

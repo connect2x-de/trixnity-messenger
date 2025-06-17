@@ -15,7 +15,8 @@ import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
 
 const val synapseVersion =
-    "v1.108.0" // TODO you should update this from time to time. https://github.com/element-hq/synapse/releases
+    "v1.129.0" // TODO you should update this from time to time. https://github.com/element-hq/synapse/releases
+        // version 1.126.0ff (at least 130) causes the user search to sometimes not return the correct results
 
 fun synapseDocker(useRegistrationToken: Boolean = false): GenericContainer<Nothing> {
     return GenericContainer<Nothing>(DockerImageName.parse("docker.io/matrixdotorg/synapse:$synapseVersion"))

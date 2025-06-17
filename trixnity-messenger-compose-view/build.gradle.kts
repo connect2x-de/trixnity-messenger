@@ -74,7 +74,7 @@ kotlin {
                 implementation(compose.uiUtil)
                 implementation(libs.compose.richeditor)
                 implementation(libs.sysnotify)
-                implementation(libs.androidx.autofill)
+                implementation(libs.androidx.annotation)
             }
         }
         val desktopMain by getting {

@@ -6,7 +6,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelV
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +19,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key
-import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.avatarUrl
@@ -31,6 +29,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.crypto.key.UserTrustLevel
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
@@ -136,8 +135,11 @@ class MemberListElementViewModelImpl(
     override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, memberUserId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
-    override val presence = matrixClient.user.userPresence.map { it[memberUserId]?.presence ?: Presence.OFFLINE }
+    override val presence = matrixClient.user.getPresence(memberUserId)
+        .map { it?.presence ?: Presence.OFFLINE }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Presence.OFFLINE)
+
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     init {
         coroutineScope.launch {
@@ -169,14 +171,12 @@ class MemberListElementViewModelImpl(
         onOpenUserProfile(memberUserId)
     }
 
+
     private suspend fun getImage(matrixClient: MatrixClient, user: RoomUser): ByteArray? {
-        val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
         return user.avatarUrl?.let { url ->
             matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
                 onSuccess = {
-                    it.limitedByteArrayOrNull(maxAvatarSize) {
-                        log.error { "User avatar for user ${user.userId} exceeds max preview size, so it is not displayed" }
-                    }
+                    it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
                 },
                 onFailure = { null }
             )

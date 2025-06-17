@@ -57,10 +57,10 @@ class AccountsOverviewViewModelImpl(
 
     private val initials = get<Initials>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
-    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     override val accounts: StateFlow<List<AccountInfo>> =
-        matrixClients.toAccountInfo(messengerSettings, initials, maxAvatarSize)
+        matrixClients.toAccountInfo(coroutineScope, messengerSettings, initials, maxMediaSizeInMemory)
             .stateIn(coroutineScope, WhileSubscribed(), listOf())
 
     override fun createNewAccount() {

@@ -28,7 +28,7 @@ interface MatrixClientFactory {
 
 class MatrixClientFactoryImpl(
     private val repositoriesModuleCreation: CreateRepositoriesModule,
-    private val createMediaStore: CreateMediaStore,
+    private val createMediaStoreModule: CreateMediaStoreModule,
     private val settings: MatrixMessengerSettingsHolder,
     private val secretByteArrays: SecretByteArrays,
     private val configurer: List<ConfigureMatrixClientConfiguration>,
@@ -45,8 +45,8 @@ class MatrixClientFactoryImpl(
             repositoriesModuleFactory = { loginInfo ->
                 createRepositoriesModuleOrThrow(loginInfo.userId, getDatabaseKey(loginInfo.userId))
             },
-            mediaStoreFactory = { loginInfo ->
-                createMediaStore(loginInfo.userId)
+            mediaStoreModuleFactory = { loginInfo ->
+                createMediaStoreModule(loginInfo.userId)
             },
             getLoginInfo = {
                 kotlin.runCatching {
@@ -68,7 +68,7 @@ class MatrixClientFactoryImpl(
         log.debug { "initFromStore (userId=$userId)" }
         MatrixClient.fromStore(
             repositoriesModule = loadRepositoriesModuleOrThrow(userId, getDatabaseKey(userId)),
-            mediaStore = createMediaStore(userId),
+            mediaStoreModule = createMediaStoreModule(userId),
             configuration = {
                 configurer.forEach { with(it) { invoke() } }
             },

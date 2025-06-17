@@ -1,8 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -13,8 +12,6 @@ import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.core.model.UserId
-
-private val log = KotlinLogging.logger { }
 
 data class UserInfoElement(
     val userId: UserId,
@@ -53,8 +50,8 @@ fun RoomUser?.toUserInfoElement(
     coroutineScope: CoroutineScope,
     matrixClient: MatrixClient,
     initials: Initials,
-    maxAvatarSize: Long,
     fallbackUserId: UserId,
+    maxMediaSizeInMemory: Long,
 ): UserInfoElement =
     UserInfoElement(
         name = this?.name ?: fallbackUserId.full,
@@ -64,9 +61,12 @@ fun RoomUser?.toUserInfoElement(
             flow {
                 // TODO some sort of retry (see retryLoopFlow)
                 emit(
-                    matrixClient.media.getMedia(avatarUrl).getOrNull()?.limitedByteArrayOrNull(maxAvatarSize) {
-                        log.error { "Room image for room $roomId exceeds preview size limits, so it's not displayed" }
-                    }
+                    matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong()).fold(
+                        onSuccess = {
+                            it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
+                        },
+                        onFailure = { null }
+                    )
                 )
             }.stateIn(coroutineScope, WhileSubscribed(), null)
         }
@@ -76,5 +76,5 @@ fun RoomUser.toUserInfoElement(
     coroutineScope: CoroutineScope,
     matrixClient: MatrixClient,
     initials: Initials,
-    maxAvatarSize: Long,
-): UserInfoElement = toUserInfoElement(coroutineScope, matrixClient, initials, maxAvatarSize, userId)
+    maxMediaSizeInMemory: Long,
+): UserInfoElement = toUserInfoElement(coroutineScope, matrixClient, initials, userId, maxMediaSizeInMemory)

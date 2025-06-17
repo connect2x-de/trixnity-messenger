@@ -14,11 +14,14 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
-import de.connect2x.messenger.compose.view.common.MessengerModal
-import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
-import de.connect2x.messenger.compose.view.common.NextButton
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportMessageViewModel
 
 @Composable
@@ -34,26 +37,36 @@ fun MessageReport(
         focusRequester.requestFocus()
     }
 
-    MessengerModal(
-        onDismiss = { reportToMessageViewModel.closeReportMessageDialog() },
-        title = i18n.reportMessageHeader(),
-    ) {
-
-        OutlinedTextField(
-            modifier = Modifier
-                .focusRequester(focusRequester)
-                .fillMaxWidth(),
-            value = reason,
-            onValueChange = { reason = it },
-            minLines = 3,
-            maxLines = 5,
-            textStyle = MaterialTheme.typography.bodyMedium,
-            placeholder = { Text(i18n.reportMessageLabel()) }
-        )
-
-        MessengerModalButtonRow({
-            NextButton(text = i18n.reportMessage()) { reportToMessageViewModel.submitReportToMessage() }
-        })
+    ThemedModalDialog({ reportToMessageViewModel.closeReportMessageDialog() }) {
+        ModalDialogHeader {
+            Text(i18n.reportMessageHeader())
+        }
+        ModalDialogContent {
+            OutlinedTextField(
+                modifier = Modifier
+                    .focusRequester(focusRequester)
+                    .fillMaxWidth(),
+                value = reason,
+                onValueChange = { reason = it },
+                minLines = 3,
+                maxLines = 5,
+                textStyle = MaterialTheme.typography.bodyMedium,
+                placeholder = { Text(i18n.reportMessageLabel()) }
+            )
+        }
+        ModalDialogFooter {
+            ThemedButton(
+                style = MaterialTheme.components.commonButton,
+                onClick = { reportToMessageViewModel.closeReportMessageDialog() },
+            ) {
+                Text(i18n.actionCancel())
+            }
+            ThemedButton(
+                style = MaterialTheme.components.primaryButton,
+                onClick = { reportToMessageViewModel.submitReportToMessage() },
+            ) {
+                Text(i18n.reportMessage())
+            }
+        }
     }
-
 }

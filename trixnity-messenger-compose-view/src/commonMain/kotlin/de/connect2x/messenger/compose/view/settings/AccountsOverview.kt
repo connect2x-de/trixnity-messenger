@@ -18,12 +18,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -38,17 +36,20 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.MessengerModal
-import de.connect2x.messenger.compose.view.common.MessengerModalButtonRow
-import de.connect2x.messenger.compose.view.common.MessengerModalContent
 import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
 
@@ -106,8 +107,13 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                                     )
                                 }
 
-                                OutlinedButton(onClick = { showLogoutWarning = accountInfo }) {
-                                    Icon(Icons.Default.DeleteForever, i18n.commonDelete())
+                                Tooltip({ Text(i18n.actionDelete()) }) {
+                                    ThemedIconButton(
+                                        style = MaterialTheme.components.destructiveIconButton,
+                                        onClick = { showLogoutWarning = accountInfo }
+                                    ) {
+                                        Icon(Icons.AutoMirrored.Default.Logout, i18n.actionDelete())
+                                    }
                                 }
                             }
                         }
@@ -124,37 +130,30 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
             }
         }
         if (showLogoutWarning != null) {
-            MessengerModal(
-                onDismiss = { showLogoutWarning = null },
-                i18n.accountsOverviewLogoutWarning(showLogoutWarning?.userId?.full ?: i18n.commonUnknown()),
-            ) {
-                MessengerModalContent {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Warning, i18n.commonWarning())
-                        Spacer(Modifier.size(10.dp))
-                        Text(i18n.accountsOverviewLogoutWarningExplanation())
+            ThemedModalDialog({ showLogoutWarning = null }) {
+                ModalDialogHeader {
+                    Text(i18n.accountsOverviewLogoutWarning(showLogoutWarning?.userId?.full ?: i18n.commonUnknown()))
+                }
+                ModalDialogContent {
+                    Text(i18n.accountsOverviewLogoutWarningExplanation())
+                }
+                ModalDialogFooter {
+                    ThemedButton(
+                        style = MaterialTheme.components.commonButton,
+                        onClick = { showLogoutWarning = null },
+                    ) {
+                        Text(i18n.actionCancel())
+                    }
+                    ThemedButton(
+                        style = MaterialTheme.components.destructiveButton,
+                        onClick = {
+                            showLogoutWarning?.userId?.let { accountsOverviewViewModel.removeAccount(it) }
+                            showLogoutWarning = null
+                        },
+                    ) {
+                        Text(i18n.accountsOverviewLogout())
                     }
                 }
-                MessengerModalButtonRow(
-                    button1 = {
-                        ThemedButton(
-                            style = MaterialTheme.components.destructiveButton,
-                            onClick = {
-                                showLogoutWarning?.userId?.let { accountsOverviewViewModel.removeAccount(it) }
-                                showLogoutWarning = null
-                            },
-                        ) {
-                            Text(i18n.accountsOverviewLogout())
-                        }
-                    },
-                    button2 = {
-                        ThemedButton(
-                            style = MaterialTheme.components.primaryButton,
-                            onClick = { showLogoutWarning = null },
-                        ) {
-                            Text(i18n.commonCancel().capitalize(Locale.current))
-                        }
-                    })
             }
         }
     }

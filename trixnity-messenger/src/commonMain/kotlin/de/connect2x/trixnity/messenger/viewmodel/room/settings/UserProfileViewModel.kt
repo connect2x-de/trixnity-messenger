@@ -11,7 +11,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelV
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -33,7 +32,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key
-import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.membership
@@ -51,6 +49,7 @@ import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.crypto.key.UserTrustLevel
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
@@ -61,14 +60,16 @@ interface UserProfileViewModelFactory {
         userId: UserId,
         selectedRoomId: RoomId,
         onOpenRoom: (UserId, RoomId) -> Unit,
-        onBack: () -> Unit
+        onBack: () -> Unit,
+        onCloseSettings: () -> Unit
     ): UserProfileViewModel {
         return UserProfileViewModelImpl(
             viewModelContext = viewModelContext,
             userId = userId,
             selectedRoomId = selectedRoomId,
             onOpenRoom = onOpenRoom,
-            onBack = onBack
+            onBack = onBack,
+            onCloseSettings = onCloseSettings
         )
     }
 
@@ -126,7 +127,7 @@ interface UserProfileViewModel {
     fun errorDismiss()
 
     fun openChat()
-    fun startVerification()
+    fun startVerification(closeSettingsAfterStart: Boolean = false)
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -136,11 +137,12 @@ class UserProfileViewModelImpl(
     private val selectedRoomId: RoomId,
     private val onOpenRoom: (UserId, RoomId) -> Unit,
     private val onBack: () -> Unit,
+    private val onCloseSettings: () -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, UserProfileViewModel {
     override val isMyself = userId == matrixClient.userId
 
     private val roomUser = matrixClient.user.getById(selectedRoomId, userId)
-        .shareIn(coroutineScope, SharingStarted.WhileSubscribed())
+        .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
 
     override val canOpenChat =
         matrixClient.user.getAccountData<DirectEventContent>().map { directEvent ->
@@ -235,14 +237,14 @@ class UserProfileViewModelImpl(
         get<ChangePowerLevelViewModelFactory>()
             .create(
                 viewModelContext = viewModelContext.childContext("changePowerLevel-${userId.full}"),
-                powerLevel = powerLevel,
                 targetUser = userId,
                 error = error,
                 selectedRoomId = selectedRoomId
             )
-    override val presence = matrixClient.user.userPresence.map { it[userId]?.presence ?: Presence.OFFLINE }
+    override val presence = matrixClient.user.getPresence(userId).map { it?.presence ?: Presence.OFFLINE }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Presence.OFFLINE)
 
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     init {
         coroutineScope.launch {
@@ -273,25 +275,21 @@ class UserProfileViewModelImpl(
                 initials.compute(name),
                 getImageLazy(
                     matrixClient,
-                    userId,
                     avatarUrl
                 )
             )
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     }
 
-    private fun getImageLazy(matrixClient: MatrixClient, userId: UserId, avatarUrl: String?) = flow {
-        emit(getImage(matrixClient, userId, avatarUrl))
+    private fun getImageLazy(matrixClient: MatrixClient, avatarUrl: String?) = flow {
+        emit(getImage(matrixClient, avatarUrl))
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    private suspend fun getImage(matrixClient: MatrixClient, userId: UserId, avatarUrl: String?): ByteArray? {
-        val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
+    private suspend fun getImage(matrixClient: MatrixClient, avatarUrl: String?): ByteArray? {
         return avatarUrl?.let { url ->
             matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
                 onSuccess = {
-                    it.limitedByteArrayOrNull(maxAvatarSize) {
-                        log.error { "User avatar for user $userId exceeds max preview size, so it is not displayed" }
-                    }
+                    it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
                 },
                 onFailure = { null }
             )
@@ -532,7 +530,7 @@ class UserProfileViewModelImpl(
 
     override val verifying = MutableStateFlow(false)
 
-    override fun startVerification() {
+    override fun startVerification(closeSettingsAfterStart: Boolean) {
         if (isMyself) {
             log.warn { "cannot verify yourself" }
             return
@@ -541,7 +539,16 @@ class UserProfileViewModelImpl(
             coroutineScope.launch {
                 val req = matrixClient.verification.createUserVerificationRequest(userId)
                     .fold(
-                        onSuccess = { it },
+                        onSuccess = {
+                            it.also {
+                                if (it.roomId != selectedRoomId) {
+                                    onOpenRoom(matrixClient.userId, it.roomId)
+                                }
+                                if (closeSettingsAfterStart) {
+                                    onCloseSettings()
+                                }
+                            }
+                        },
                         onFailure = {
                             log.error(it) { "cannot verify user $userId" }
                             error.value = i18n.userVerificationNoMatch() // TODO

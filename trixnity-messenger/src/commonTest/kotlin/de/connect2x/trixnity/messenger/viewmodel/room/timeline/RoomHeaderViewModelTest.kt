@@ -7,9 +7,9 @@ import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
-import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -23,13 +23,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
-import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
@@ -41,10 +41,10 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.PresenceEventContent
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.crypto.key.UserTrustLevel
 import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -67,7 +67,7 @@ class RoomHeaderViewModelTest {
         )
     )
 
-    private val otherUser = UserId("cob", "localhost")
+    private val otherUser = UserId("lala", "localhost")
     private val otherRoomUser = RoomUser(
         roomId, otherUser, otherUser.full, StateEvent(
             MemberEventContent(membership = Membership.JOIN),
@@ -99,13 +99,14 @@ class RoomHeaderViewModelTest {
     private val roomNameMock = mock<RoomName>()
     private val roomTopicMock = mock<RoomTopic>()
     private val initialsMock = mock<Initials>()
-    private val userPresenceMock = mock<UserPresence>()
+    private val roomPresenceMock = mock<RoomPresence>()
     private val directRoomMock = mock<DirectRoom>()
     private val userBlockingMock = mock<UserBlocking>()
 
     private var roomNameElement: BlockingAnsweringScope<Flow<String>>
     private var roomTopicElement: BlockingAnsweringScope<Flow<String>>
     private var ignoredUsers: BlockingAnsweringScope<Flow<IgnoredUserListEventContent?>>
+    private val room = MutableStateFlow<Room?>(null)
 
     init {
         resetMocks(
@@ -117,7 +118,7 @@ class RoomHeaderViewModelTest {
             roomNameMock,
             roomTopicMock,
             initialsMock,
-            userPresenceMock,
+            roomPresenceMock,
             directRoomMock,
             userBlockingMock,
         )
@@ -156,9 +157,8 @@ class RoomHeaderViewModelTest {
         )
 
         every { initialsMock.compute(any()) } returns "MR"
-        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
-            Room(roomId, avatarUrl = "mxc://localhost/123456")
-        )
+        room.value = Room(roomId, avatarUrl = "mxc://localhost/123456")
+        every { roomServiceMock.getById(roomId) } returns room
         every {
             roomServiceMock.getState(
                 any(),
@@ -187,9 +187,8 @@ class RoomHeaderViewModelTest {
                 any(),
             )
         } returns Result.success(InMemoryPlatformMedia("image".encodeToByteArray().toByteArrayFlow()))
-        every { userPresenceMock.presentEventContentFlow(any(), eq(roomId)) } returns flowOf(
-            PresenceEventContent(presence = Presence.ONLINE)
-        )
+        every { roomPresenceMock.invoke(any(), eq(roomId)) } returns flowOf(Presence.ONLINE)
+
         every { userBlockingMock.isUserBlocked(any(), any()) } returns MutableStateFlow(false)
     }
 
@@ -242,6 +241,7 @@ class RoomHeaderViewModelTest {
     fun `react to changes in the user's trust level`() = runTest {
         val trustLevel = MutableStateFlow<UserTrustLevel>(UserTrustLevel.CrossSigned(verified = true))
         val directRoom = MutableStateFlow(listOf(otherUser))
+        room.update { it?.copy(isDirect = true) }
         every { directRoomMock.getUsers(any(), eq(roomId)) } returns directRoom
         every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns trustLevel
 
@@ -264,6 +264,7 @@ class RoomHeaderViewModelTest {
     @Test
     fun `allow to verify other user if not yet verified and vice versa`() = runTest {
         val trustLevel = MutableStateFlow(UserTrustLevel.CrossSigned(verified = false))
+        room.update { it?.copy(isDirect = true) }
         every { directRoomMock.getUsers(any(), eq(roomId)) } returns flowOf(listOf(otherUser))
         every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns trustLevel
 
@@ -296,6 +297,7 @@ class RoomHeaderViewModelTest {
         runTest {
             val ignoredUsersEventContent = MutableStateFlow(IgnoredUserListEventContent(mapOf()))
             ignoredUsers returns ignoredUsersEventContent
+            room.update { it?.copy(isDirect = true) }
             every { directRoomMock.getUsers(any(), eq(roomId)) } returns flowOf(listOf(otherUser))
             every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns flowOf(
                 UserTrustLevel.CrossSigned(verified = false)
@@ -332,6 +334,7 @@ class RoomHeaderViewModelTest {
         cut.canBlockUser.value shouldBe false
         cut.canUnblockUser.value shouldBe false
 
+        room.update { it?.copy(isDirect = true) }
         directRoom.value = listOf(otherUser)
         delay(100)
 
@@ -365,7 +368,7 @@ class RoomHeaderViewModelTest {
                                 module {
                                     single { roomNameMock }
                                     single { roomTopicMock }
-                                    single { userPresenceMock }
+                                    single { roomPresenceMock }
                                     single { initialsMock }
                                     single { directRoomMock }
                                     single { userBlockingMock }

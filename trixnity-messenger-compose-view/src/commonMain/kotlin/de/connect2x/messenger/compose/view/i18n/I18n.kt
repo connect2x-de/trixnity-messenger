@@ -226,6 +226,11 @@ open class I18nView(
         DE - "Benachrichtigungen"
     }
 
+    open fun commonAccessibility() = translate {
+        EN - "Appearance"
+        DE - "Aussehen"
+    }
+
     open fun commonDefault() = translate {
         EN - "default"
         DE - "Standard"
@@ -334,6 +339,11 @@ open class I18nView(
     open fun commonSubmit() = translate {
         EN - "submit"
         DE - "absenden"
+    }
+
+    open fun commonShowTooltip() = translate {
+        EN - "show tooltip"
+        DE - "tooltip anzeigen"
     }
 
     open fun ban() = translate {
@@ -569,6 +579,11 @@ open class I18nView(
     open fun verificationNotVerifiedYet() = translate {
         EN - "not verified yet"
         DE - "noch nicht verifiziert"
+    }
+
+    open fun dehydratedDevice() = translate {
+        EN - "This virtual (so called dehydrated) device is used to decrypt messages when no other device is online."
+        DE - "Dieses virtuelle (sogenannte dehydrierte) Gerät wird verwendet um Nachrichten zu entschlüsseln, wenn kein anderes Gerät online ist."
     }
 
     open fun anErrorHasOccurred() = translate {
@@ -920,19 +935,24 @@ open class I18nView(
         DE - "Benutzeroptionen"
     }
 
-    open fun settingsRoomMemberListCurrent() = translate {
-        EN - "Current"
-        DE - "Aktuelle"
+    open fun settingsRoomMemberListJoined() = translate {
+        EN - "Joined"
+        DE - "Beigetreten"
     }
 
-    open fun settingsRoomMemberListPending() = translate {
-        EN - "Requesting"
-        DE - "Anfragend"
+    open fun settingsRoomMemberListKnocking() = translate {
+        EN - "Kocking"
+        DE - "Klopfend"
     }
 
-    open fun settingsRoomMemberListFormer() = translate {
-        EN - "Former"
-        DE - "Ehemalige"
+    open fun settingsRoomMemberListInvited() = translate {
+        EN - "Invited"
+        DE - "Eingeladen"
+    }
+
+    open fun settingsRoomMemberListBanned() = translate {
+        EN - "Banned"
+        DE - "Gebannt"
     }
 
     open fun unbannable() = translate {
@@ -1712,8 +1732,8 @@ open class I18nView(
     }
 
     open fun privacyTitle() = translate {
-        EN - "Privacy"
-        DE - "Datenschutz"
+        EN - "Privacy and Security"
+        DE - "Datenschutz und Sicherheit"
     }
 
     open fun privacyPresenceIsPublic() = translate {
@@ -2812,6 +2832,24 @@ open class I18nView(
         EN - "Why do you wish to join? (Optional)"
         DE - "Warum möchtest du beitreten? (Optional)"
     }
+
+    fun actionCancel() = commonCancel().capitalize(Locale.current)
+    fun actionMore() = commonMore().capitalize(Locale.current)
+    fun actionClose() = commonClose().capitalize(Locale.current)
+    fun actionOk() = commonOk().capitalize(Locale.current)
+    fun actionBack() = commonBack().capitalize(Locale.current)
+    fun actionNext() = commonNext().capitalize(Locale.current)
+    fun actionRemove() = commonRemove().capitalize(Locale.current)
+    fun actionDelete() = commonDelete().capitalize(Locale.current)
+    fun actionCreate() = commonCreate().capitalize(Locale.current)
+    fun actionSelect() = commonSelect().capitalize(Locale.current)
+    fun actionCopy() = commonCopy().capitalize(Locale.current)
+    fun actionConfirm() = commonConfirm().capitalize(Locale.current)
+    fun actionExpand() = commonExpand().capitalize(Locale.current)
+    fun actionCollapse() = commonCollapse().capitalize(Locale.current)
+    fun actionZoomIn() = commonZoomIn().capitalize(Locale.current)
+    fun actionZoomOut() = commonZoomOut().capitalize(Locale.current)
+    fun actionSubmit() = commonSubmit().capitalize(Locale.current)
 }
 
 fun i18nViewModule() = module {

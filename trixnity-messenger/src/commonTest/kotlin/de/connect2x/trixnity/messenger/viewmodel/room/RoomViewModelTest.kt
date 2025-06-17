@@ -48,9 +48,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.key.KeyService
-import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.room.TimelineStateChange
 import net.folivo.trixnity.client.store.Room
@@ -69,6 +67,8 @@ import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import net.folivo.trixnity.crypto.key.DeviceTrustLevel
+import net.folivo.trixnity.crypto.key.UserTrustLevel
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
@@ -140,7 +140,6 @@ class RoomViewModelTest {
         } returns MutableStateFlow(null)
         every {
             roomServiceMock.getTimeline(
-                any(),
                 any<suspend (TimelineStateChange<TimelineViewModelImpl.TimelineElementWrapper>) -> Unit>(),
                 any<suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper>(),
             )
@@ -179,7 +178,7 @@ class RoomViewModelTest {
             userServiceMock.loadMembers(RoomId(any()), any())
         } returns Unit
         every { userServiceMock.getById(any(), any()) } returns MutableStateFlow(null)
-        every { userServiceMock.userPresence } returns MutableStateFlow(emptyMap())
+        every { userServiceMock.getPresence(any()) } returns flowOf(null)
         every { userServiceMock.getAll(roomId) } returns MutableStateFlow(mapOf())
         every { userServiceMock.getAllReceipts(eq(roomId)) } returns MutableStateFlow(emptyMap())
         every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(false)

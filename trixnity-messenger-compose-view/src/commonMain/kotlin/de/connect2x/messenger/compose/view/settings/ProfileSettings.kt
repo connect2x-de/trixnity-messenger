@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -45,7 +46,6 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
-import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_FILE
 import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
@@ -59,6 +59,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModel
@@ -143,15 +144,15 @@ fun ProfileAvatar(profileSingleViewModel: ProfileSingleViewModel) {
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         Box(Modifier.align(Alignment.Center)) {
-            Avatar(avatar, initials, this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)) {
-                Box(Modifier.align(Alignment.BottomEnd).padding(10.dp)) {
-                    Tooltip({Text(i18n.profileAvatarChange())}) {
+            ThemedUserAvatar(initials, avatar, this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)) {
+                Box(Modifier.padding(10.dp)) {
+                    Tooltip({ Text(i18n.profileAvatarChange()) }) {
                         ThemedIconButton(
                             enabled = canChangeAvatar,
                             style = MaterialTheme.components.secondaryIconButton,
                             onClick = { profileSingleViewModel.openAvatarCutter.value = true },
                         ) {
-                            EditIcon(Icons.Default.PhotoCamera, i18n.profileAvatarChange())
+                            Icon(Icons.Default.PhotoCamera, i18n.profileAvatarChange())
                         }
                     }
                 }

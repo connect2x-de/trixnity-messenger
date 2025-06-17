@@ -5,7 +5,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.formatM
 import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
-import io.ktor.http.Url
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import kotlin.test.Test
@@ -110,6 +109,16 @@ class FormatMessageTest {
     }
 
     // Links
+    @Test
+    fun shouldFormatLinkExcludingWhitespaceInTheEnd() {
+        listOf("\r", "\n", "\t", " `").forEach {
+            assertEquals(
+                "Hello, take a look at <a href=\"https://tammy.connect2x.de/en-us/\">https://tammy.connect2x.de/en-us/</a>${it}cool isn't it?",
+                "Hello, take a look at https://tammy.connect2x.de/en-us/${it}cool isn't it?".formatLinks()
+            )
+        }
+    }
+
     @Test
     fun shouldFormatRegularLink() {
         assertEquals(

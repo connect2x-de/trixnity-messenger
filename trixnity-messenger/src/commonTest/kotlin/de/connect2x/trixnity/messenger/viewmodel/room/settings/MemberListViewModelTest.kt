@@ -22,12 +22,13 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.Clock
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
-import net.folivo.trixnity.client.key.UserTrustLevel
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
+import net.folivo.trixnity.client.store.UserPresence
 import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -39,11 +40,11 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.PresenceEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import net.folivo.trixnity.crypto.key.UserTrustLevel
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
@@ -163,8 +164,8 @@ class MemberListViewModelTest {
         }
 
         every { keyServiceMock.getTrustLevel(any()) } returns flowOf(UserTrustLevel.Blocked)
-        every { userServiceMock.userPresence } returns MutableStateFlow(
-            mapOf(me to PresenceEventContent(Presence.OFFLINE))
+        every { userServiceMock.getPresence(any()) } returns flowOf(
+            UserPresence(Presence.OFFLINE, Clock.System.now())
         )
 
         setupAliceBobMe()
