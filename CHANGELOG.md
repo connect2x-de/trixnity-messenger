@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated Trixnity from 4.16.3 to 4.16.4 (hotfix: dehydrated devices)
-
 ### Deprecated
 
 ### Removed
@@ -20,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## 3.6.4
+
+### Changed
+
+- Updated Trixnity from 4.16.3 to 4.16.4 (hotfix: dehydrated devices)
 
 ## 3.6.3
 
