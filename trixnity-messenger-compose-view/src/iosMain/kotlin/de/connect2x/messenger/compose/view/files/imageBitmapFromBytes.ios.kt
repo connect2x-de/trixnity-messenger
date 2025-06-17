@@ -1,0 +1,18 @@
+package de.connect2x.messenger.compose.view.files
+
+import androidx.compose.ui.graphics.ImageBitmap
+import io.github.oshai.kotlinlogging.KotlinLogging
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.decodeToImageBitmap
+
+private val log = KotlinLogging.logger {}
+
+@OptIn(ExperimentalResourceApi::class)
+actual fun ByteArray.toImageBitmap(width: Int, height: Int): ImageBitmap? {
+    return try {
+        decodeToImageBitmap()
+    } catch (e: Exception) {
+        log.error(e) { "Cannot decode image" }
+        null
+    }
+}
