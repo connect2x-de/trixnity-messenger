@@ -292,7 +292,7 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
         val openingChat = userProfileViewModel.openingChat.collectAsState().value
         val verifying = userProfileViewModel.verifying.collectAsState().value
         val canOpenChat = userProfileViewModel.canOpenChat.collectAsState().value
-        val verificationAvailable = userProfileViewModel.userVerificationAvailable.collectAsState().value
+        val verificationAvailable = userProfileViewModel.canVerifyUser.collectAsState().value
 
         VerySmallSpacer()
         Row(
