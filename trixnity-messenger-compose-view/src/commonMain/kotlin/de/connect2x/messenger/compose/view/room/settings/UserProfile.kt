@@ -282,7 +282,7 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
         val blockingInProgress = userProfileViewModel.blockingInProgress.collectAsState().value
         val isUserBlocked = userProfileViewModel.isUserBlocked.collectAsState().value
         val openingChat = userProfileViewModel.openingChat.collectAsState().value
-        val canVerify = userProfileViewModel.canVerify.collectAsState().value
+        val verificationIsRunning = userProfileViewModel.verificationIsRunning.collectAsState().value
         val canOpenChat = userProfileViewModel.canOpenChat.collectAsState().value
 
         VerySmallSpacer()
@@ -331,20 +331,20 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
             }
         }
         val isSinglePane = IsSinglePane.current
-        Tooltip(enabled = !canVerify, tooltip = { TooltipText(i18n.verificationAlreadyRunning()) }) {
-            MenuElement(Modifier.buttonPointerModifier().clickable(enabled = canVerify) {
+        Tooltip(enabled = verificationIsRunning, tooltip = { TooltipText(i18n.verificationAlreadyRunning()) }) {
+            MenuElement(Modifier.buttonPointerModifier().clickable(enabled = !verificationIsRunning) {
                 userProfileViewModel.startVerification(isSinglePane)
             }) {
                 Icon(
                     Icons.AutoMirrored.Filled.Wysiwyg,
                     i18n.userVerification(),
                     Modifier.size(24.dp),
-                    defaultColorForState(canVerify)
+                    defaultColorForState(!verificationIsRunning)
                 )
                 Spacer(Modifier.size(10.dp))
                 Text(
                     text = i18n.userProfileVerification(),
-                    color = defaultColorForState(canVerify)
+                    color = defaultColorForState(!verificationIsRunning)
                 )
             }
         }
