@@ -1170,6 +1170,11 @@ open class I18nView(
         DE - "gelesen"
     }
 
+    open fun messageBubbleSent() = translate {
+        EN - "sent"
+        DE - "gesendet"
+    }
+
     open fun messageContentWaitForKeys() = translate {
         EN - "waiting for decryption keys"
         DE - "Warten auf Schlüssel zur Entschlüsselung"
