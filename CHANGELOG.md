@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Accessibility Settings Step for Setup Wizard (`AccountSetupWizardStep.AccessibilityStep`)
+- Accessibility Settings Step for Setup Wizard (`AccountSetupWizardStep.AccessibilityStep`) 
 
 ### Changed
 
