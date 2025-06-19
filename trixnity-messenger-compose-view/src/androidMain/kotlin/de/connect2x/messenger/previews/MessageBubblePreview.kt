@@ -83,9 +83,6 @@ fun ImageMessageBubblePreview() {
         override val width: Int? = 40
         override val height: Int? = 40
 
-        override val caption = "Kiwi!"
-        override val formattedCaption = null
-
         override val name: String = "kiwi.png"
         override val description: String? = null
         override val size: String? = "465kb"
@@ -128,8 +125,6 @@ fun FileMessageBubblePreview() {
         override val description: String? = "A file."
         override val size: String? = "465kb"
         override val mimeType: String? = "text/plain"
-        override val caption = null
-        override val formattedCaption = null
         override val loadMediaResult: StateFlow<ByteArray?> = MutableStateFlow("Kiwi".toByteArray())
         override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
         override val loadMediaError: StateFlow<String?> = MutableStateFlow(null)

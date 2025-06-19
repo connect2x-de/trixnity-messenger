@@ -48,10 +48,6 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         val size: String?
         val mimeType: String?
 
-        // TODO: Add something for mentions, etc. Perhaps extract caption into its own type?
-        val caption: String?
-        val formattedCaption: String?
-
         val loadMediaResult: StateFlow<ByteArray?>
         val loadMediaProgress: StateFlow<FileTransferProgressElement?>
         val loadMediaError: StateFlow<String?>

@@ -33,6 +33,4 @@ class AudioRoomMessageTimelineElementViewModelImpl(
 ) : RoomMessageTimelineElementViewModel.FileBased.Audio,
     FileBasedRoomMessageTimelineElementViewModel<FileBased.Audio>(viewModelContext, content) {
     override val duration: Long? = content.info?.duration
-    override val caption: String? = if (content.body == content.fileName) null else content.body
-    override val formattedCaption: String? = content.formattedBody
 }

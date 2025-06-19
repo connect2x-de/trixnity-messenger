@@ -29,17 +29,7 @@ actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
             )
 
 
-        is FileBased<*> ->
-            this.formattedCaption?.let {
-                mapOf(
-                    ContentType.Text.Html to it,
-                    ContentType.Text.Plain to this.caption
-                )
-            } ?: this.caption?.let {
-                mapOf(
-                    ContentType.Text.Plain to it
-                )
-            } ?: mapOf<Any, Any>()
+        is FileBased<*> -> mapOf<Any, Any>() // FIXME should deliver caption
 
         is RoomMessageTimelineElementViewModel.Location -> mapOf(
             ContentType.Text.Html to "<a href=\"${this.osmLink}\" >${this.coordinates}</a>",

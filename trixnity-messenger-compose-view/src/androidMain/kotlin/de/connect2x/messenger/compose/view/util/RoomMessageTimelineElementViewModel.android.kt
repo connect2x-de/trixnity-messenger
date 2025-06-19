@@ -16,19 +16,7 @@ actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
     val i18n = DI.get<I18nView>()
 
     val clipData = when (this) {
-        is FileBased ->
-            this.formattedCaption?.let {
-                ClipData.newHtmlText(
-                    i18n.commonRichText(),
-                    this.caption,
-                    it
-                )
-            } ?: this.caption?.let {
-                ClipData.newPlainText(
-                    i18n.commonText(),
-                    it
-                )
-            }
+        is FileBased -> null // FIXME should deliver caption
 
         is Location ->
             ClipData.newHtmlText(

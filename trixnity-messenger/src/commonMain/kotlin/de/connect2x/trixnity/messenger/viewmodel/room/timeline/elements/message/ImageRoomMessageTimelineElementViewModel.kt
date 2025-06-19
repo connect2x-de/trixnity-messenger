@@ -56,7 +56,4 @@ class ImageRoomMessageTimelineElementViewModelImpl(
 
     override val width: Int? = content.info?.width
     override val height: Int? = content.info?.height
-
-    override val caption: String? = if (content.body == content.fileName) null else content.body
-    override val formattedCaption: String? = content.formattedBody
 }

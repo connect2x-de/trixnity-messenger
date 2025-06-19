@@ -12,7 +12,7 @@ import java.awt.datatransfer.StringSelection
 @Composable
 actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
     val transferable = when (val content = this) {
-        is FileBased -> content.caption?.let { StringSelection(it) }
+        is FileBased -> null // FIXME should deliver caption
         is Location -> StringSelection(content.coordinates)
         is TextBased -> StringSelection(content.body)
         is RoomMessageTimelineElementViewModel.Unknown, is RoomMessageTimelineElementViewModel.VerificationRequest -> null
