@@ -1,6 +1,8 @@
-import com.mikepenz.aboutlibraries.plugin.AboutLibrariesTask
 import de.connect2x.conventions.isCI
+import de.connect2x.conventions.registerMultiplatformLicensesTasks
+import org.gradle.internal.extensions.stdlib.capitalized
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 
 plugins {
@@ -20,61 +22,62 @@ val appId = libs.versions.appId.get()
 enum class BuildFlavor { PROD, DEV }
 
 val buildFlavor = BuildFlavor.valueOf(System.getenv("MESSENGER_BUILD_FLAVOR") ?: if (isCI) "PROD" else "DEV")
-val licensesDir = layout.buildDirectory.dir("generated").get().dir("aboutLibraries").asFile
 
-val licenses by tasks.registering(AboutLibrariesTask::class) {
-    dependsOn("collectDependencies")
-    resultDirectory = licensesDir
-}
+registerMultiplatformLicensesTasks { licenseTask, target, variant ->
+    // TODO: move this into c2x-conventions eventually
+    val targetName = target.targetName
+    val buildConfigTask =
+        tasks.register("generateBuildConfig${targetName.capitalized()}${variant.capitalized()}") {
+            dependsOn(licenseTask)
+            group = "build config"
+            val generatedSrc =
+                layout.buildDirectory.dir("generatedSrc/${targetName}Main/kotlin")
+            doLast {
+                val outputFile = generatedSrc.get()
+                    .dir(appId.replace(".", "/"))
+                    .file("BuildConfig.kt")
+                val quotes = "\"\"\""
+                val licencesString = licenseTask.get().outputFile.get().asFile.readText()
+                    .replace("$", "\${'$'}")
+                    .replace(quotes, "")
 
-aboutLibraries {
-    configPath = "trixnity-messenger-compose-app/license-config"
-    // Disable this as it causes issues with a custom AboutLibrariesTask
-    registerAndroidTasks = false
-}
-
-val buildConfigGenerator by tasks.registering {
-    dependsOn(licenses)
-    val licencesFile = licensesDir.resolve("aboutlibraries.json")
-    val generatedSrc = layout.buildDirectory.dir("generated-src/kotlin/")
-    inputs.file(licencesFile)
-    doLast {
-        val outputFile = generatedSrc.get()
-            .dir(appId.replace(".", "/"))
-            .file("BuildConfig.kt")
-        val quotes = "\"\"\""
-        val licencesString = licencesFile.readText()
-            .replace("$", "\${'$'}")
-            .replace(quotes, "")
-
-        val buildConfigString =
-            """
+                val buildConfigString =
+                    """
             package $appId
-            
-            object BuildConfig {
-                const val version = "$version"
-                val flavor = Flavor.valueOf("$buildFlavor")
-                const val appName = "$appName"
-                const val appId = "$appId"
-                val licenses = $quotes$licencesString$quotes
+
+            actual val BuildConfig: CommonBuildConfig = object : CommonBuildConfig {
+                override val version: String = "$version"
+                override val flavor: Flavor = Flavor.valueOf("$buildFlavor")
+                override val appName: String = "$appName"
+                override val appId: String = "$appId"
+                override val licenses: String = $quotes$licencesString$quotes
             }
-            
-            enum class Flavor { PROD, DEV }
         """.trimIndent()
-        outputFile.asFile.apply {
-            ensureParentDirsCreated()
-            createNewFile()
-            writeText(buildConfigString)
+                outputFile.asFile.apply {
+                    ensureParentDirsCreated()
+                    createNewFile()
+                    writeText(buildConfigString)
+                }
+            }
+            outputs.dirs(generatedSrc)
         }
+    kotlin.sourceSets.named("${targetName}Main") {
+        kotlin.srcDir(buildConfigTask.map { it.outputs })
     }
-    outputs.dirs(generatedSrc)
 }
 
 kotlin {
     androidTarget()
     jvm("desktop")
-    js("web", IR) {
+    js("web") {
+        compilerOptions {
+            sourceMap.set(true)
+            sourceMapEmbedSources.set(JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS)
+        }
         browser {
+            commonWebpackConfig {
+                showProgress = true
+            }
             runTask {
                 mainOutputFileName = "$appId.js"
             }
@@ -91,7 +94,6 @@ kotlin {
                 implementation(projects.trixnityMessengerComposeView)
                 implementation(compose.components.resources)
             }
-            kotlin.srcDir(buildConfigGenerator.map { it.outputs })
         }
         val desktopMain by getting {
             dependencies {

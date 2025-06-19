@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -52,11 +53,9 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
@@ -65,14 +64,13 @@ import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
-import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.EmojiSelector
-import de.connect2x.messenger.compose.view.common.ErrorDialog
 import de.connect2x.messenger.compose.view.common.FilePickerType.ATTACHMENT_FILE
 import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_AND_VIDEO_FILE
 import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
 import de.connect2x.messenger.compose.view.common.FilePickerType.VIDEO_CAPTURE
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.common.customKeyNavigation
 import de.connect2x.messenger.compose.view.files.EmptyFileListException
 import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.NotPasteableException
@@ -84,9 +82,15 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconToggleButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
+import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
@@ -133,8 +137,8 @@ class InputAreaViewImpl : InputAreaView {
                     ReplyToArea(inputAreaViewModel)
                 }
                 if (emojisOpen.value) {
-                    Box(Modifier.heightIn(max = 100.dp)) {
-                        EmojiSelector {
+                    Box(Modifier.fillMaxWidth().height(120.dp)) {
+                        EmojiSelector(Modifier.fillMaxSize().customKeyNavigation()) {
                             textField.value = textField.value.insert(it)
                             focusRequester.requestFocus()
                         }
@@ -202,11 +206,7 @@ fun UserSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: FocusRe
                                 .buttonPointerModifier()
                                 .padding(vertical = 5.dp)
                         ) {
-                            Avatar(
-                                avatar,
-                                initials = userInfoElement.initials,
-                                size = 28.dp
-                            )
+                            ThemedUserAvatar(userInfoElement.initials, avatar)
                             Spacer(Modifier.size(5.dp))
                             Text(userInfoElement.name, style = MaterialTheme.typography.bodyLarge)
                             Text(" (${userInfoElement.userId.full})", style = MaterialTheme.typography.bodyMedium)
@@ -251,14 +251,26 @@ fun RowScope.InputAreaTextField(
             .weight(1.0f, fill = true)
     ) {
         if (showUploadError.value != null) {
-            ErrorDialog(
-                errorMessage = when (showUploadError.value) {
-                    is NotPasteableException -> i18n.uploadFileErrorNotPasteable()
-                    is EmptyFileListException -> i18n.uploadFileErrorFileListEmpty()
-                    else -> i18n.uploadFileErrorUnknown()
-                },
-                dismissAction = { showUploadError.value = null }, title = i18n.uploadFileErrorTitle()
-            )
+            ThemedModalDialog({ showUploadError.value = null }) {
+                ModalDialogHeader {
+                    Text(i18n.uploadFileErrorTitle())
+                }
+                ModalDialogContent {
+                    Text(when (showUploadError.value) {
+                        is NotPasteableException -> i18n.uploadFileErrorNotPasteable()
+                        is EmptyFileListException -> i18n.uploadFileErrorFileListEmpty()
+                        else -> i18n.uploadFileErrorUnknown()
+                    })
+                }
+                ModalDialogFooter {
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
+                        onClick = { showUploadError.value = null },
+                    ) {
+                        Text(i18n.actionOk())
+                    }
+                }
+            }
         }
         BasicTextField(
             cursorBrush = SolidColor(style.colors.cursorColor),

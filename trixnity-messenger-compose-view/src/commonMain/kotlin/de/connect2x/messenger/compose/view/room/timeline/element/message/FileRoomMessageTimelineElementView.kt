@@ -147,13 +147,11 @@ internal fun MessageFile(
             buildAnnotatedString {
                 append(element.name)
                 pushStyle(SpanStyle(Color.Gray))
-                append(" (")
                 append(element.size)
-                append(")")
             },
             Modifier.align(Alignment.CenterVertically)
         )
-        if (downloadSuccessful.value == true) {
+        if (downloadSuccessful.value) {
             Spacer(Modifier.size(10.dp))
             Icon(
                 Icons.Default.CheckCircle,

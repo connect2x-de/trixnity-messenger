@@ -3,21 +3,16 @@ package de.connect2x.messenger.compose.view.room.timeline.element
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddReaction
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -30,14 +25,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.EmojiPopup
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
+import kotlin.collections.any
+import kotlin.collections.orEmpty
 
 
 interface MessageReactionsView {
@@ -69,7 +67,6 @@ class MessageReactionsViewImpl : MessageReactionsView {
         if (timelineElementHolderViewModel !is TimelineElementHolderViewModel) {
             return
         }
-        val i18n = DI.current.get<I18nView>()
         val reactions = timelineElementHolderViewModel.reactions.collectAsState().value?.byReaction.orEmpty()
         val reactionList = remember(reactions) {
             reactions.entries.sortedByDescending { it.value.size }.map { it.key }
@@ -87,30 +84,49 @@ class MessageReactionsViewImpl : MessageReactionsView {
             isByMe = timelineElementHolderViewModel.isByMe,
         )
 
-        if (reactions.isNotEmpty()) {
-            FlowRow(
-                modifier,
-                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-                verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
-            ) {
-                for (reaction in reactionList) {
-                    val reactionEvents = reactions[reaction].orEmpty()
-                    MessageReactionButton(
-                        reaction = reaction,
-                        reactionEvents = reactionEvents,
-                        count = reactionEvents.size,
-                        myReaction = reactionEvents.any { it.isMe },
-                        onAddReaction = timelineElementHolderViewModel::addReaction,
-                        onRemoveReaction = { timelineElementHolderViewModel.removeReaction(reaction) },
-                    )
-                }
-                MessageAddReactionButton(
-                    onClick = {
-                        reactionsOpen.value = true
-                    },
-                    i18n.reactMessage()
+        MessageReactionList(
+            reactionList,
+            reactions,
+            onAddReaction = timelineElementHolderViewModel::addReaction,
+            onRemoveReaction = timelineElementHolderViewModel::removeReaction,
+            onOpenReactions = { reactionsOpen.value = true },
+            modifier,
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun MessageReactionList(
+    reactionList: List<String>,
+    reactions: Map<String, Set<EventReactions.ByReactionInfo>>,
+    onAddReaction: (String) -> Unit,
+    onRemoveReaction: (String) -> Unit,
+    onOpenReactions: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val i18n = DI.current.get<I18nView>()
+    if (reactions.isNotEmpty()) {
+        FlowRow(
+            modifier,
+            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+            verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
+        ) {
+            for (reaction in reactionList) {
+                val reactionEvents = reactions[reaction].orEmpty()
+                MessageReactionButton(
+                    reaction = reaction,
+                    reactionEvents = reactionEvents,
+                    count = reactionEvents.size,
+                    myReaction = reactionEvents.any { it.isMe },
+                    onAddReaction = onAddReaction,
+                    onRemoveReaction = { onRemoveReaction(reaction) },
                 )
             }
+            MessageAddReactionButton(
+                onClick = onOpenReactions,
+                i18n.reactMessage()
+            )
         }
     }
 }
@@ -131,10 +147,7 @@ internal fun MessageReactionDisplay(
     }
 }
 
-private val buttonPadding = PaddingValues(12.dp, 4.dp)
-private val buttonModifier = Modifier.buttonPointerModifier()
-    .defaultMinSize(minWidth = 54.dp, minHeight = 32.dp)
-    .heightIn(max = 40.dp)
+private val buttonModifier = Modifier.sizeIn(minWidth = 54.dp, minHeight = 32.dp, maxHeight = 40.dp)
 
 @Composable
 internal fun MessageReactionButton(
@@ -147,30 +160,24 @@ internal fun MessageReactionButton(
 ) {
     Tooltip({ TooltipText(reactionEvents.joinToString { it.sender.name }) }) {
         if (myReaction) {
-            FilledTonalButton(
+            ThemedButton(
                 onClick = { onRemoveReaction() },
-                contentPadding = buttonPadding,
+                style = MaterialTheme.components.selectedReactionButton,
                 modifier = buttonModifier,
-                colors = ButtonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                    contentColor = MaterialTheme.colorScheme.onSecondary,
-                    disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                )
             ) {
                 MessageReactionDisplay(reaction)
-                Spacer(Modifier.width(4.dp))
-                Text(count.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
+                Text(count.toString())
             }
         } else {
-            OutlinedButton(
+            ThemedButton(
                 onClick = { onAddReaction(reaction) },
-                contentPadding = buttonPadding,
+                style = MaterialTheme.components.reactionButton,
                 modifier = buttonModifier,
             ) {
                 MessageReactionDisplay(reaction)
-                Spacer(Modifier.width(4.dp))
-                Text(count.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
+                Text(count.toString())
             }
         }
     }
@@ -178,16 +185,15 @@ internal fun MessageReactionButton(
 
 @Composable
 internal fun MessageAddReactionButton(onClick: () -> Unit, label: String) {
-    OutlinedButton(
+    ThemedButton(
         onClick = onClick,
-        contentPadding = buttonPadding,
+        style = MaterialTheme.components.reactionButton,
         modifier = buttonModifier,
     ) {
         Icon(
             Icons.Outlined.AddReaction,
             contentDescription = label,
-            modifier = Modifier.size(18.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            modifier = Modifier.size(MaterialTheme.components.reactionButton.iconSize),
         )
     }
 }

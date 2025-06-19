@@ -32,6 +32,7 @@ internal class MessengerColorSchemeImpl(
         }
 }
 
+@OptIn(ExperimentalThemingApi::class)
 internal val DefaultMessengerColorScheme: ColorScheme
     @Composable
     get() {

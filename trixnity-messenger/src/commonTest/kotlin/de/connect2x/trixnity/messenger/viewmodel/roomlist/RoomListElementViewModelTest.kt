@@ -5,10 +5,12 @@ import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.util.LeaveRoom
+import de.connect2x.trixnity.messenger.util.LeaveRoomImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
-import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -20,6 +22,7 @@ import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -82,7 +85,7 @@ class RoomListElementViewModelTest {
 
     val usersApiClientMock = mock<UserApiClient>()
 
-    val userPresenceMock = mock<UserPresence>()
+    val roomPresenceMock = mock<RoomPresence>()
 
     val roomNameMock = mock<RoomName>()
 
@@ -118,7 +121,7 @@ class RoomListElementViewModelTest {
             matrixClientServerApiClientMock,
             roomsApiClientMock,
             usersApiClientMock,
-            userPresenceMock,
+            roomPresenceMock,
             roomNameMock,
             roomInviter,
             userBlockingMock,
@@ -218,11 +221,10 @@ class RoomListElementViewModelTest {
             )
         )
 
-        every { userPresenceMock.presentEventContentFlow(eq(matrixClientMock), any()) } returns MutableStateFlow(null)
+        every { roomPresenceMock.invoke(eq(matrixClientMock), any()) } returns MutableStateFlow(null)
 
         every { roomNameMock.getRoomName(any<RoomId>(), eq(matrixClientMock), any()) } returns flowOf("RoomName")
         every { clock.now() } returns Instant.parse("2021-11-03T15:00:00Z")
-
     }
 
     @Test
@@ -608,6 +610,95 @@ class RoomListElementViewModelTest {
     }
 
     @Test
+    fun `update rejectInvitationInProgress when rejecting invitation and blocking user succeeds`() = runTest {
+        val eventId1 = EventId("\$event1")
+        val room = Room(
+            roomId,
+            lastEventId = eventId1,
+            isDirect = false,
+        )
+
+        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(room)
+        every { roomServiceMock.getTimelineEvent(eq(roomId), eq(eventId1)) } returns flowOf(
+            TimelineEvent(
+                event = inviteEvent(),
+                content = Result.success(inviteEvent().content),
+                previousEventId = null,
+                nextEventId = null,
+                gap = null,
+            )
+        )
+
+        every {
+            userServiceMock.getAccountData(IgnoredUserListEventContent::class)
+        } returns MutableStateFlow(IgnoredUserListEventContent(mapOf(
+            UserId("do_not_want", "localhost") to JsonObject(emptyMap()),
+        )))
+
+        everySuspend {
+            usersApiClientMock.setAccountData(
+                content = any(), userId = any(), key = any(), asUserId = any()
+            )
+        } returns Result.success(Unit)
+
+        everySuspend { roomInviter.getInviter(any(), any()) } returns user2
+
+        val cut = roomListElementViewModel(roomId)
+
+        cut.rejectInvitationAndBlockInviter()
+        yield()
+        cut.rejectInvitationInProgress.value shouldBe true
+
+        delay(10.seconds)
+        cut.rejectInvitationInProgress.value shouldBe false
+    }
+
+    @Test
+    fun `update rejectInvitationInProgress when rejecting invitation and blocking user fails`() = runTest {
+        val eventId1 = EventId("\$event1")
+        val room = Room(
+            roomId,
+            lastEventId = eventId1,
+            isDirect = false,
+        )
+
+        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(room)
+        every { roomServiceMock.getTimelineEvent(eq(roomId), eq(eventId1)) } returns flowOf(
+            TimelineEvent(
+                event = inviteEvent(),
+                content = Result.success(inviteEvent().content),
+                previousEventId = null,
+                nextEventId = null,
+                gap = null,
+            )
+        )
+
+        every {
+            userServiceMock.getAccountData(IgnoredUserListEventContent::class)
+        } returns MutableStateFlow(IgnoredUserListEventContent(mapOf(
+            UserId("do_not_want", "localhost") to JsonObject(emptyMap()),
+        )))
+
+        everySuspend {
+            usersApiClientMock.setAccountData(
+                content = any(), userId = any(), key = any(), asUserId = any()
+            )
+        } returns Result.success(Unit)
+
+        everySuspend { roomInviter.getInviter(any(), any()) } returns user2
+        everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } returns Result.failure(Throwable())
+
+        val cut = roomListElementViewModel(roomId)
+
+        cut.rejectInvitationAndBlockInviter()
+        yield()
+        cut.rejectInvitationInProgress.value shouldBe true
+
+        delay(10.seconds)
+        cut.rejectInvitationInProgress.value shouldBe false
+    }
+
+    @Test
     fun `knocking - should unknock successfully`() = runTest {
         var left = false
         everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } calls {
@@ -626,7 +717,7 @@ class RoomListElementViewModelTest {
 
     @Test
     fun `knocking - should handle unknock failure`() = runTest {
-        everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } returns Result.failure(Throwable(""))
+        everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } returns Result.failure(Throwable())
 
         val cut = roomListElementViewModel(roomId)
         delay(500.milliseconds)
@@ -659,7 +750,7 @@ class RoomListElementViewModelTest {
                         ) to matrixClientMock
                     ),
                 ) + module {
-                    single { userPresenceMock }
+                    single { roomPresenceMock }
                     single { roomNameMock }
                     single { roomInviter }
                     single { clock }

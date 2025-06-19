@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.FileName
+import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -71,6 +73,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<Image> {
                     )
                 }
             },
+            displayProgressOverElement = true
         ) { showActionMenu, onSave ->
             MessageImage(element, showActionMenu, onSave)
         }
@@ -85,6 +88,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<Image> {
             holder,
             element,
             isPreview = true,
+            displayProgressOverElement = true,
             overlay = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -134,11 +138,17 @@ internal fun ColumnScope.MessageImage(
     onSave: () -> Unit
 ) {
     val image = element.thumbnail.collectAsState().value
+    val thumbnailWidth = element.thumbnailWidth ?: element.width
+    val thumbnailHeight = element.thumbnailHeight ?: element.height
+    val thumbnailLoading = element.thumbnailLoading.collectAsState().value
     val bitmap = remember(image) {
         image?.toImageBitmap()
+            ?: if (thumbnailWidth != null && thumbnailHeight != null && thumbnailLoading) {
+                ImageBitmap(thumbnailWidth, thumbnailHeight)
+            } else null
     }
     bitmap?.let {
-        MessageImageImpl(it, showActionMenu, onSave)
+        MessageImageImpl(it, showActionMenu, onSave, thumbnailLoading)
     } ?: MessageImageFallback(element, showActionMenu, onSave)
 }
 
@@ -147,31 +157,37 @@ internal fun ColumnScope.MessageImageImpl(
     image: ImageBitmap,
     showActionMenu: () -> Unit,
     onSave: () -> Unit,
+    thumbnailLoading: Boolean
 ) {
-    Image(
-        image,
-        "",
-        Modifier
-            .align(Alignment.CenterHorizontally)
-            .padding(3.dp)
-            .fillMaxWidth()
-            .heightIn(
-                50.dp,
-                with(LocalDensity.current) { 300.dp })
-            .clip(
-                RoundedCornerShape(8.dp)
-            )
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = {
-                        onSave()
-                    },
-                    onLongPress = { showActionMenu() },
+    Box {
+        Image(
+            image,
+            "",
+            Modifier
+                .align(Alignment.Center)
+                .padding(3.dp)
+                .fillMaxWidth()
+                .heightIn(
+                    50.dp,
+                    with(LocalDensity.current) { 300.dp })
+                .clip(
+                    RoundedCornerShape(8.dp)
                 )
-            }
-            .buttonPointerModifier(),
-        contentScale = ContentScale.Fit,
-    )
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {
+                            onSave()
+                        },
+                        onLongPress = { showActionMenu() },
+                    )
+                }
+                .buttonPointerModifier(),
+            contentScale = ContentScale.Fit,
+        )
+        if (thumbnailLoading) {
+            LoadingSpinner(Modifier.align(Alignment.Center))
+        }
+    }
 }
 
 @Composable

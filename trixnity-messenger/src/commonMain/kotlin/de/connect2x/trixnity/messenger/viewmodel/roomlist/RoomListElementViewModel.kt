@@ -10,11 +10,10 @@ import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
-import de.connect2x.trixnity.messenger.viewmodel.util.UserPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTimestamp
-import de.connect2x.trixnity.messenger.viewmodel.util.limitedByteArrayOrNull
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -43,10 +42,12 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
+import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
+import net.folivo.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
+import net.folivo.trixnity.core.model.events.m.key.verification.VerificationStep
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Location
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
@@ -90,6 +91,7 @@ interface RoomListElementViewModel {
     val unreadMessages: StateFlow<String?>
     val presence: StateFlow<Presence?>
     val accountColor: StateFlow<Long?>
+    val rejectInvitationInProgress: StateFlow<Boolean>
 
     fun unknock()
     fun acceptInvitation()
@@ -107,7 +109,7 @@ open class RoomListElementViewModelImpl(
     private val onRoomClose: () -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, RoomListElementViewModel {
     private val roomInviter = get<RoomInviter>()
-    private val userPresence = get<UserPresence>()
+    private val roomPresence = get<RoomPresence>()
     private val roomNameCalculations = get<RoomName>()
     private val initials = get<Initials>()
     private val clock = get<Clock>()
@@ -138,7 +140,8 @@ open class RoomListElementViewModelImpl(
     override val isLeave: StateFlow<Boolean?> =
         roomFlow.map { it.membership == Membership.LEAVE }
             .stateIn(coroutineScope, WhileSubscribed(), null)
-    private val maxAvatarSize = get<MatrixMessengerConfiguration>().avatarMaxSize
+
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     override val inviterUserInfo: StateFlow<UserInfoElement?> =
         combine(isInvite.filterNotNull(), roomFlow) { isInvite, room ->
@@ -157,8 +160,8 @@ open class RoomListElementViewModelImpl(
                                 coroutineScope,
                                 matrixClient,
                                 initials,
-                                maxAvatarSize,
-                                inviterUserId
+                                inviterUserId,
+                                maxMediaSizeInMemory,
                             )
                         }
                 } ?: flowOf(null)
@@ -191,9 +194,7 @@ open class RoomListElementViewModelImpl(
                 matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
                     .fold(
                         onSuccess = {
-                            it.limitedByteArrayOrNull(maxAvatarSize) {
-                                log.error { "Room avatar for ${room.roomId} exceeds max preview size, so it's not displayed" }
-                            }
+                            it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
                         },
                         onFailure = {
                             log.error(it) { "Cannot load user avatar." }
@@ -268,8 +269,7 @@ open class RoomListElementViewModelImpl(
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val presence: StateFlow<Presence?> =
-        userPresence.presentEventContentFlow(matrixClient, roomId)
-            .map { it?.presence }
+        roomPresence.invoke(matrixClient, roomId)
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val isLoaded: StateFlow<Boolean> =
@@ -279,6 +279,8 @@ open class RoomListElementViewModelImpl(
             lastMessage
         ) { roomName, isInvite, lastMessage -> roomName != null && isInvite != null && lastMessage != null }
             .stateIn(coroutineScope, WhileSubscribed(), false)
+
+    override val rejectInvitationInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override fun unknock() {
         coroutineScope.launch {
@@ -319,22 +321,36 @@ open class RoomListElementViewModelImpl(
 
     override fun rejectInvitation() {
         coroutineScope.launch {
-            rejectInvitationSuspend()
+            rejectInvitationInProgress.value = true
+            rejectInvitationSuspend(
+                onSuccess = { rejectInvitationInProgress.value = false },
+                onFailure = { rejectInvitationInProgress.value = false }
+            )
         }
     }
 
     override fun rejectInvitationAndBlockInviter() {
         coroutineScope.launch {
-            log.debug { "reject the invitation to ${roomId}and block inviter" }
+            log.debug { "Rejecting the invitation to $roomId and block inviter" }
             roomInviter.getInviter(matrixClient, roomId)?.let { inviter ->
-                log.debug { "inviter to block: ${inviter.full}" }
-                userBlocking.blockUser(matrixClient, inviter, onSuccess = {
-                    log.debug { "blocked user $inviter" }
-                    rejectInvitationSuspend()
-                }) {
-                    log.error { "cannot block user $inviter" }
-                    error.value = i18n.blockUserError(inviter.full)
-                }
+                log.debug { "Inviter to block: ${inviter.full}" }
+                rejectInvitationInProgress.value = true
+                userBlocking.blockUser(
+                    matrixClient = matrixClient,
+                    userToBlock = inviter,
+                    onSuccess = {
+                        log.debug { "Blocked user $inviter" }
+                        rejectInvitationSuspend(
+                            onSuccess = { rejectInvitationInProgress.value = false },
+                            onFailure = { rejectInvitationInProgress.value = false }
+                        )
+                    },
+                    onFailure = {
+                        log.error { "Cannot block user $inviter" }
+                        error.value = i18n.blockUserError(inviter.full)
+                        rejectInvitationInProgress.value = false
+                    }
+                )
             }
         }
     }
@@ -357,29 +373,40 @@ open class RoomListElementViewModelImpl(
         error.value = null
     }
 
-    private suspend fun rejectInvitationSuspend() {
+    private suspend fun rejectInvitationSuspend(
+        onSuccess: suspend () -> Unit = {},
+        onFailure: (Throwable) -> Unit = {}
+    ) {
         if (matrixClient.syncState.value == SyncState.ERROR) {
-            log.debug { "try to reject room invitation while not connected" }
+            log.debug { "Try to reject room invitation while not connected" }
             error.value = i18n.roomListInvitationOffline()
+            onFailure(IllegalStateException("Sync failed, cannot reject invitation while not connected"))
             return
         }
-
         leaveRoom(matrixClient, roomId)
-            .onSuccess { log.info { "successfully rejected invitation" } }
-            .onFailure { log.error(it) { "failed to reject invitation" } }
+            .onSuccess {
+                log.info { "Successfully rejected invitation" }
+                onSuccess()
+            }
+            .onFailure {
+                log.error(it) { "Failed to reject invitation" }
+                onFailure(it)
+            }
     }
 
     private fun timelineEventTypeDescription(event: TimelineEvent): String =
         event.content?.getOrNull().let { content ->
             when (content) {
-                !is RoomMessageEventContent -> ""
                 is FileBased.Image -> i18n.roomListContentImage()
                 is FileBased.Video -> i18n.roomListContentVideo()
                 is FileBased.Audio -> i18n.roomListContentAudio()
                 is FileBased.File -> i18n.roomListContentFile()
+                is VerificationRequest -> i18n.roomListContentVerificationRequest(content.to.toString())
+                is VerificationDoneEventContent -> i18n.roomListContentVerificationCompleted()
+                is VerificationCancelEventContent -> i18n.roomListContentVerificationCancelled()
+                is VerificationStep -> i18n.roomListContentVerificationInProgress()
                 is TextBased,
                 is Location,
-                is VerificationRequest,
                 is Unknown -> content.bodyWithoutFallback
 
                 else -> ""
@@ -409,6 +436,8 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow("99+")
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.ONLINE)
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
+    override val rejectInvitationInProgress: StateFlow<Boolean> = MutableStateFlow(false)
+
     override fun unknock() {}
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
@@ -440,6 +469,8 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow("2")
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.ONLINE)
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
+    override val rejectInvitationInProgress: StateFlow<Boolean> = MutableStateFlow(false)
+
     override fun unknock() {}
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
@@ -471,6 +502,8 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow(null)
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.ONLINE)
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
+    override val rejectInvitationInProgress: StateFlow<Boolean> = MutableStateFlow(false)
+
     override fun unknock() {}
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}
@@ -502,6 +535,8 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow(null)
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.OFFLINE)
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
+    override val rejectInvitationInProgress: StateFlow<Boolean> = MutableStateFlow(false)
+
     override fun unknock() {}
     override fun acceptInvitation() {}
     override fun rejectInvitation() {}

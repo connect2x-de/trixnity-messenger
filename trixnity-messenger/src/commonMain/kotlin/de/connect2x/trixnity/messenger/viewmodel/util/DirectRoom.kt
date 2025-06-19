@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
@@ -21,7 +22,7 @@ class DirectRoomImpl : DirectRoom {
                 directMappings.entries.filter { (_, rooms) ->
                     rooms?.contains(directRoom) ?: false
                 }.map { it.key }
-            }?: emptyList()
+            } ?: emptyList()
         }
     }
 }

@@ -48,7 +48,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
@@ -68,6 +67,7 @@ import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.space.ChildEventContent
+import net.folivo.trixnity.crypto.key.DeviceTrustLevel
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
@@ -194,7 +194,8 @@ class RoomListViewModelTest {
         every { userServiceMock.getAll(roomId4) } returns
                 MutableStateFlow(mapOf(user1 to flowOf(roomUser(roomId4, user1))))
         every { userServiceMock.getAll(eq(roomId5)) } returns MutableStateFlow(emptyMap())
-        every { userServiceMock.userPresence } returns MutableStateFlow(mapOf())
+
+        every { userServiceMock.getPresence(any()) } returns flowOf(null)
 
         every {
             roomServiceMock.getState(
@@ -817,7 +818,7 @@ class RoomListViewModelTest {
                         user3 to flowOf(roomUser(roomId23, user3))
                     )
                 )
-        every { userServiceMock2.userPresence } returns MutableStateFlow(mapOf())
+        every { userServiceMock2.getPresence(any()) } returns flowOf(null)
 
         every {
             roomServiceMock2.getState(

@@ -1,5 +1,7 @@
 package de.connect2x.messenger.compose.view.files
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import de.connect2x.messenger.compose.view.DI
@@ -9,6 +11,12 @@ import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_AND_VIDEO
 import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_FILE
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.JsFileDescriptor
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -17,7 +25,6 @@ import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
 import io.github.vinceglb.filekit.core.PickerType.Image
 import io.github.vinceglb.filekit.core.PickerType.ImageAndVideo
-import io.ktor.util.*
 import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
 import net.folivo.trixnity.client.media.opfs.OpfsPlatformMedia
@@ -101,8 +108,26 @@ actual fun SaveFileDialog(
     downloadFile: (suspend (PlatformMedia) -> Unit) -> Unit,
     onCloseSaveFileDialog: () -> Unit,
 ) {
+    val i18n = DI.get<I18nView>()
     val hasError = error?.isNotBlank() == true
-    if (hasError) DownloadErrorAlertDialog(error ?: "", onCloseSaveFileDialog)
+    if (hasError) {
+        ThemedModalDialog(onCloseSaveFileDialog) {
+            ModalDialogHeader {
+                Text(i18n.fileDialogDownloadErrorSave())
+            }
+            ModalDialogContent {
+                Text(error)
+            }
+            ModalDialogFooter {
+                ThemedButton(
+                    style = MaterialTheme.components.primaryButton,
+                    onClick = onCloseSaveFileDialog,
+                ) {
+                    Text(i18n.actionOk())
+                }
+            }
+        }
+    }
     LaunchedEffect(hasError) {
         if (!hasError) downloadFile {
             log.debug { "save file as fallback $fileName" }

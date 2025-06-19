@@ -26,6 +26,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.http.*
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -87,6 +88,7 @@ class CreateNewGroupViewModelTest {
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
         every { matrixClientServerApiClientMock.user } returns usersApiClientMock
         every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
+        every { userServiceMock.getPresence(any()) } returns flowOf(null)
     }
 
     @Test
@@ -161,6 +163,7 @@ class CreateNewGroupViewModelTest {
         val cut = createNewGroupViewModel()
         val searchHandler = cut.createNewRoomViewModel.searchHandler
         backgroundScope.launch { cut.canCreateNewGroup.collect {} }
+        backgroundScope.launch { searchHandler.foundUsers.collect { } }
         searchHandler.searchTerm.update("u")
         searchHandler.foundUsers.first {
             it == listOf(user2, user3)

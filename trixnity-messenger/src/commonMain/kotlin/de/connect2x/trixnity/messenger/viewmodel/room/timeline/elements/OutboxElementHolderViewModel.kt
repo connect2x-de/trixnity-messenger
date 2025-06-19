@@ -212,10 +212,14 @@ class OutboxElementHolderViewModelImpl(
     private val initials = get<Initials>()
     override val sender: StateFlow<UserInfoElement?> =
         matrixClient.user.getById(roomId, userId).map { user ->
-            user.toUserInfoElement(coroutineScope, matrixClient, initials, config.avatarMaxSize, userId)
+            user.toUserInfoElement(coroutineScope, matrixClient, initials, userId, config.maxMediaSizeInMemory)
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val isByMe: Boolean = true
+
+    override val isSent: StateFlow<Boolean> = outboxMessageFlow
+        .map { it == null || it.sentAt != null }
+        .stateIn(coroutineScope, WhileSubscribed(), true)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val previousSentTimelineEventFlow =

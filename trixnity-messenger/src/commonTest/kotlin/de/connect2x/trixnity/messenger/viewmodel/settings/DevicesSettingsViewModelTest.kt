@@ -46,7 +46,6 @@ import kotlinx.datetime.toInstant
 import kotlinx.serialization.json.Json
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.MatrixClientConfiguration
-import net.folivo.trixnity.client.key.DeviceTrustLevel
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.key.KeyTrustService
 import net.folivo.trixnity.client.store.KeyStore
@@ -70,6 +69,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
 import net.folivo.trixnity.core.model.keys.DeviceKeys
 import net.folivo.trixnity.core.model.keys.Keys
+import net.folivo.trixnity.crypto.key.DeviceTrustLevel
 import net.folivo.trixnity.crypto.olm.OlmDecrypter
 import net.folivo.trixnity.crypto.olm.OlmEncryptionService
 import org.koin.dsl.koinApplication
@@ -376,9 +376,11 @@ class DevicesSettingsViewModelTest {
                 .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
         }
 
+        cut.error.value shouldBe null
         cut.setDisplayName(UserId("test", "server"), ourDeviceId, "device1", "device1 updated")
 
         eventually(1.seconds) {
+            cut.error.value shouldBe null
             accountsWithDevices.filter { it.isNotEmpty() }.first {
                 it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.displayName.value == "device1 updated"
             }

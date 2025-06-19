@@ -43,6 +43,7 @@ import de.connect2x.messenger.compose.view.theme.DefaultAccentColor
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedSlider
 
 interface AppearanceSettingsColorView {
     @Composable
@@ -108,7 +109,7 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                 modifier = Modifier.padding(16.dp).fillMaxSize(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Slider(
+                ThemedSlider(
                     value = getCurrentHue(),
                     onValueChange = {
                         newHue = it
@@ -119,7 +120,11 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                     valueRange = 0F..359F,
                     steps = 359,
                     modifier = Modifier.weight(1F),
-                    colors = SliderDefaults.colors(thumbColor = currentColor),
+                    style = MaterialTheme.components.slider.let {
+                        it.copy(colors = it.colors.copy(
+                            thumbColor = currentColor
+                        ))
+                    },
                     track = { HueSliderTrack(defaultAccentColor) },
                 )
                 Spacer(Modifier.width(10.dp))

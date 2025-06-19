@@ -3,12 +3,9 @@ package de.connect2x.messenger.compose.view.roomlist.header
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,19 +13,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -53,32 +48,37 @@ import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.thenNullable
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
+import de.connect2x.messenger.compose.view.theme.components.ThemedHorizontalDivider
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 
 @Composable
 fun Banner(
+    style: SurfaceStyle = MaterialTheme.components.commonBanner,
     visible: Boolean,
-    background: Color = MaterialTheme.colorScheme.surface,
     onClick: (() -> Unit)? = null,
-    content: @Composable BoxScope.() -> Unit,
+    content: @Composable () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    val modifier = onClick?.let {
+        Modifier
+            .buttonPointerModifier()
+            .clickable(interactionSource, indication = ripple(bounded = true), onClick = onClick)
+    }
+
     AnimatedVisibility(
         visible,
         enter = expandVertically(),
         exit = shrinkVertically(),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(background)
-                .thenNullable(onClick?.let {
-                    Modifier
-                        .buttonPointerModifier()
-                        .clickable(interactionSource, indication = null) { onClick() }
-                }),
-            content = content,
-        )
+        ThemedSurface(
+            style = style,
+            modifier = Modifier.fillMaxWidth().thenNullable(modifier),
+        ) {
+            content()
+        }
     }
 }
 
@@ -87,8 +87,8 @@ fun SyncErrorBanner(roomListViewModel: RoomListViewModel) {
     val i18n = DI.get<I18nView>()
     val syncStates = roomListViewModel.syncStates.collectAsState().value
     Banner(
-        syncStates.failedFor.isNotEmpty(),
-        background = MaterialTheme.colorScheme.errorContainer,
+        style = MaterialTheme.components.errorBanner,
+        visible = syncStates.failedFor.isNotEmpty(),
     ) {
         Row(Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.CloudOff, i18n.roomListSyncErrorNoConnection())
@@ -119,8 +119,8 @@ fun NotVerifiedBanner(roomListViewModel: RoomListViewModel) {
     val i18n = DI.get<I18nView>()
     val firstUserNotVerified = roomListViewModel.unverifiedAccounts.collectAsState().value.firstOrNull()
     Banner(
-        firstUserNotVerified != null,
-        background = MaterialTheme.colorScheme.errorContainer,
+        style = MaterialTheme.components.errorBanner,
+        visible = firstUserNotVerified != null,
         onClick = {
             if (firstUserNotVerified != null) roomListViewModel.verifyAccount(firstUserNotVerified)
         },
@@ -132,15 +132,15 @@ fun NotVerifiedBanner(roomListViewModel: RoomListViewModel) {
             Icon(
                 Icons.Default.Warning,
                 i18n.roomListAccountNotVerifiedIcon(),
-                tint = MaterialTheme.colorScheme.onErrorContainer,
             )
             Spacer(Modifier.size(12.dp))
             Column(verticalArrangement = Arrangement.Center) {
-                if (firstUserNotVerified != null) Text(
-                    i18n.roomListAccountNotVerifiedMessage(firstUserNotVerified),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
+                if (firstUserNotVerified != null) {
+                    Text(
+                        i18n.roomListAccountNotVerifiedMessage(firstUserNotVerified),
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                }
             }
         }
     }
@@ -153,45 +153,40 @@ fun SearchRoomsBanner(roomListViewModel: RoomListViewModel) {
     var searchTerm by roomListViewModel.searchTerm.collectAsTextFieldValueState()
     val focusRequester = remember { FocusRequester() }
     Banner(
-        showSearch,
-        background = MaterialTheme.colorScheme.surface,
+        style = MaterialTheme.components.commonBanner,
+        visible = showSearch,
     ) {
-        Surface(tonalElevation = 8.dp) {
-            Column(
-                Modifier
+        Column(Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = searchTerm,
+                onValueChange = { searchTerm = it },
+                modifier = Modifier
                     .fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = searchTerm,
-                    onValueChange = { searchTerm = it },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp)
-                        .heightIn(40.dp)
-                        .focusRequester(focusRequester)
-                        .onKeyEvent {
-                            if (it.type == KeyEventType.KeyDown && it.key == Key.Escape) {
-                                roomListViewModel.showSearch.value = false
-                                true
-                            } else {
-                                false
-                            }
-                        },
-                    shape = RoundedCornerShape(8.dp),
-                    leadingIcon = { Icon(Icons.Default.Search, i18n.roomListSearch()) },
-                    placeholder = {
-                        Text(
-                            text = "${i18n.roomListSearch()}...",
-                            color = Color.Gray,
-                        )
+                    .padding(10.dp)
+                    .heightIn(40.dp)
+                    .focusRequester(focusRequester)
+                    .onKeyEvent {
+                        if (it.type == KeyEventType.KeyDown && it.key == Key.Escape) {
+                            roomListViewModel.showSearch.value = false
+                            true
+                        } else {
+                            false
+                        }
                     },
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Search,
-                        autoCorrectEnabled = false
+                shape = RoundedCornerShape(8.dp),
+                leadingIcon = { Icon(Icons.Default.Search, i18n.roomListSearch()) },
+                placeholder = {
+                    Text(
+                        text = "${i18n.roomListSearch()}...",
+                        color = Color.Gray,
                     )
+                },
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Search,
+                    autoCorrectEnabled = false
                 )
-                HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
-            }
+            )
+            ThemedHorizontalDivider()
         }
     }
     LaunchedEffect(showSearch) {

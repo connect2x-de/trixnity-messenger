@@ -194,6 +194,7 @@ class ExtrasRouterImpl(
                 selectedRoomId = config.roomId,
                 onOpenRoom = onOpenRoom,
                 onBack = ::onBack,
+                onCloseSettings = ::onCloseRoomSettings
             )
         )
 

@@ -30,10 +30,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.DownloadProgress
+import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerIcons
@@ -43,7 +45,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import io.ktor.http.*
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.decodeToImageBitmap
 import kotlin.reflect.KClass
 
 class ImageTimelineElementDetailsView :
@@ -53,14 +54,13 @@ class ImageTimelineElementDetailsView :
 
     // JPEG, PNG, BMP, WEBP (based on decodeToImageBitmap())
     override fun supportsMimeType(mimeType: ContentType): Boolean {
-        return listOf<ContentType>(
+        return listOf(
             ContentType.Image.JPEG,
             ContentType.Image.PNG,
             ContentType.Image.BMP,
             ContentType.Image.Webp,
             ContentType.Image.GIF // gifs can be rendered statically (first frame)
         ).any { it.match(mimeType) }
-        true
     }
 
     @OptIn(ExperimentalResourceApi::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
@@ -109,17 +109,22 @@ class ImageTimelineElementDetailsView :
                         .transformable(state = state),
                     contentAlignment = Alignment.Center,
                 ) {
-                    media?.decodeToImageBitmap()?.let { bitmap ->
-                        Image(
-                            bitmap,
-                            "",
-                            Modifier.graphicsLayer {
-                                translationX = offset.value.x
-                                translationY = offset.value.y
-                                scaleX = zoom.value
-                                scaleY = zoom.value
-                            }
-                        )
+                    with (LocalDensity.current) {
+                        media?.toImageBitmap(
+                            width = this@BoxWithConstraints.maxWidth.roundToPx(),
+                            height = this@BoxWithConstraints.maxHeight.roundToPx(),
+                        )?.let { bitmap ->
+                            Image(
+                                bitmap,
+                                "",
+                                Modifier.graphicsLayer {
+                                    translationX = offset.value.x
+                                    translationY = offset.value.y
+                                    scaleX = zoom.value
+                                    scaleY = zoom.value
+                                }
+                            )
+                        }
                     }
                     progress?.let {
                         if (media == null) {

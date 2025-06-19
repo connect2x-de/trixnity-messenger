@@ -163,7 +163,7 @@ open class I18n(
     }
 
     open fun eventChangeInvite(invitee: String, inviter: String, reason: String? = null) = translate {
-        EN - "$invitee has been invited by $inviter${if (reason == null) "" else " because \"$reason\""}"
+        EN - "$invitee was invited by $inviter${if (reason == null) "" else " because \"$reason\""}"
         DE - "$invitee wurde von $inviter eingeladen${if (reason == null) "" else ", da \"$reason\""}"
     }
 
@@ -177,9 +177,14 @@ open class I18n(
         DE - "$username hat $groupOrChat verlassen"
     }
 
-    open fun eventChangeBan(username: String, banner: String, groupOrChat: String, reason: String? = null) = translate {
-        EN - "$username has been removed by $banner from $groupOrChat${if (reason == null) "" else " because \"$reason\""}"
-        DE - "$username wurde von $banner aus $groupOrChat ausgeschlossen${if (reason == null) "" else ", da \"$reason\""}"
+    open fun eventChangeBan(target: String, moderator: String, groupOrChat: String, reason: String? = null) = translate {
+        EN - "$target was banned from $groupOrChat by $moderator${if (reason == null) "" else " because \"$reason\""}"
+        DE - "$target wurde von $moderator aus $groupOrChat verbannt${if (reason == null) "" else ", da \"$reason\""}"
+    }
+
+    open fun eventChangeKick(target: String, moderator: String, groupOrChat: String, reason: String? = null) = translate {
+        EN - "$target was removed from $groupOrChat by $moderator${if (reason == null) "" else " because \"$reason\""}"
+        DE - "$target wurde von $moderator aus $groupOrChat entfernt${if (reason == null) "" else ", da \"$reason\""}"
     }
 
     open fun eventChangeKnock(username: String, groupOrChat: String, reason: String? = null) = translate {
@@ -195,6 +200,11 @@ open class I18n(
     open fun eventChangeRevoked(invitee: String, inviter: String, reason: String? = null) = translate {
         EN - "$inviter has revoked the invitation to $invitee${if (reason == null) "" else " because \"$reason\""}"
         DE - "$inviter hat die Einladung an $invitee zurückgezogen${if (reason == null) "" else ", da \"$reason\""}"
+    }
+
+    open fun eventChangeUnban(target: String, moderator: String, reason: String? = null) = translate {
+        EN - "$target was unbanned by $moderator${if (reason == null) "" else " because \"$reason\""}"
+        DE - "$target wurde von $moderator entbannt${if (reason == null) "" else ", da \"$reason\""}"
     }
 
     open fun eventMessageRedacted(username: String) = translate {
@@ -398,6 +408,26 @@ open class I18n(
     open fun roomListContentFile() = translate {
         EN - "File"
         DE - "Datei"
+    }
+
+    open fun roomListContentVerificationRequest(username: String) = translate {
+        EN - "User verification request for user $username"
+        DE - "Anfrage für Nutzerverifikation von $username"
+    }
+
+    open fun roomListContentVerificationCancelled() = translate {
+        EN - "User verification cancelled"
+        DE - "Nutzerverifikation abgebrochen"
+    }
+
+    open fun roomListContentVerificationCompleted() = translate {
+        EN - "User verification completed"
+        DE - "Nutzerverifikation abgeschlossen"
+    }
+
+    open fun roomListContentVerificationInProgress() = translate {
+        EN - "User verification in progress"
+        DE - "Nutzerverifikation wird durchgeführt"
     }
 
     open fun roomHeaderTypingSingle(username: String) = translate {
@@ -894,8 +924,8 @@ open class I18n(
     }
 
     open fun profileAvatarError() = translate {
-        EN - "The avatar image could not be changed."
-        DE - "Das Nutzerbild konnte nicht geändert werden."
+        EN - "The avatar image could not be changed. Please try again later."
+        DE - "Das Nutzerbild konnte nicht geändert werden. Bitte versuchen Sie es später erneut."
     }
 
     open fun profileNameError() = translate {
@@ -960,6 +990,12 @@ open class I18n(
         val sizeInMB = attachmentMaxSize / 1.mb()
         EN - "The attachment exceeds the maximum allowed attachment size of $sizeInMB MB."
         DE - "Der Anhang überschreitet die maximal zulässige Größe für Anhänge von $sizeInMB MB."
+    }
+
+    open fun avatarSizeMaxSizeError(avatarMaxSize: Long) = translate {
+        val sizeInMB = avatarMaxSize / 1.mb()
+        EN - "The avatar exceeds the maximum allowed avatar size of $sizeInMB MB."
+        DE - "Der Avatar überschreitet die maximal zulässige Größe für Avatare von $sizeInMB MB."
     }
 
     open fun profileCreationDuplicate() = translate {
@@ -1281,6 +1317,16 @@ open class I18n(
     open fun banningFailed() = translate {
         EN - "Failed to ban user"
         DE - "Bannen dieses Teilnehmers ist fehlgeschlagen"
+    }
+
+    open fun deactivateAccountConfirmationMessage(userId: String) = translate {
+        EN - "Attention, if you continue, your entire account ($userId) will be deleted. You will lose access to all data (chats, message content, recovery key, etc.) and will no longer be able to log in with this account. There is no way to restore this data afterwards."
+        DE - "Achtung, wenn sie Fortfahren wird ihr gesamter Account ($userId) gelöscht. Sie verlieren somit den Zugriff auf alle Daten (Chats, Nachrichteninhalte, Widerherstellungsschlüssel, etc.) und können sich nicht mehr mit diesem Account anmelden. Es gibt keine Möglichkeit, diese Daten im Nachhinein wieder herzustellen."
+    }
+
+    open fun deactivateAccountError(message: String) = translate {
+        EN - "Account could not be deactivated: $message"
+        DE - "Der Account konnte nicht deaktiviert werden: $message"
     }
 }
 

@@ -1,6 +1,6 @@
 package de.connect2x.messenger.compose.view
 
-import de.connect2x.trixnity.messenger.CreateMediaStore
+import de.connect2x.trixnity.messenger.CreateMediaStoreModule
 import de.connect2x.trixnity.messenger.CreateRepositoriesModule
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -10,8 +10,7 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.client.media.InMemoryMediaStore
-import net.folivo.trixnity.client.media.MediaStore
+import net.folivo.trixnity.client.media.createInMemoryMediaStoreModule
 import net.folivo.trixnity.client.store.repository.createInMemoryRepositoriesModule
 import net.folivo.trixnity.core.model.UserId
 import okio.FileSystem
@@ -32,7 +31,7 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
                 single<I18n> { object : I18n(get(), get(), get(), get()) {} }
             }
         },
-        ::composeViewModule,
+        { composeViewModule(null) },
         {
             module {
                 single<FileSystem> {
@@ -43,7 +42,7 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
     )
     messengerConfiguration {
         modulesFactories += listOf(
-            ::composeViewModule,
+            { composeViewModule(this) },
             {
                 module {
                     single<CreateRepositoriesModule> {
@@ -62,10 +61,10 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
                                     ?: throw IllegalStateException("Repositories module for $userId not instantiated")
                         }
                     }
-                    single<CreateMediaStore> {
-                        object : CreateMediaStore {
-                            val store by lazy { InMemoryMediaStore() }
-                            override suspend fun invoke(userId: UserId): MediaStore = store
+                    single<CreateMediaStoreModule> {
+                        object : CreateMediaStoreModule {
+                            val store by lazy { createInMemoryMediaStoreModule() }
+                            override suspend fun invoke(userId: UserId): Module = store
                         }
                     }
 

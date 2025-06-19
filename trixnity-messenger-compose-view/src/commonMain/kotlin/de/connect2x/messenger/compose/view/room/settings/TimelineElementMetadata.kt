@@ -22,7 +22,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,9 +37,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.Avatar
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
@@ -51,7 +50,8 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
-import de.connect2x.messenger.compose.view.room.timeline.element.util.Tooltip
+import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
+import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModel
@@ -63,7 +63,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.folivo.trixnity.core.model.UserId
-import kotlin.time.Duration.Companion.milliseconds
 
 interface TimelineElementMetadataView {
     @Composable
@@ -91,10 +90,11 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
 
         val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
         var elementHistory by remember { mutableStateOf(listOf<TimelineElementHolderViewModel>()) }
-        var element by remember { mutableStateOf<TimelineElementHolderViewModel?>(null) }
-        val sender = element?.sender?.collectAsState()?.value
-        val reactions = element?.reactions?.collectAsState()?.value
-        val readers = element?.readers?.collectAsState()?.value
+        val firstElement = elementHistory.firstOrNull()
+        var lastElement by remember { mutableStateOf<TimelineElementHolderViewModel?>(null) }
+        val sender = lastElement?.sender?.collectAsState()?.value
+        val reactions = firstElement?.reactions?.collectAsState()?.value
+        val readers = firstElement?.readers?.collectAsState()?.value
         val scrollState = rememberScrollState()
 
         LaunchedEffect(Unit) {
@@ -112,7 +112,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
             }
             viewModel.element.filterNotNull().collect { newElement ->
                 waitForElementWithTimeout(timelineElementViewSelector, newElement)
-                element = newElement
+                lastElement = newElement
             }
         }
 
@@ -122,7 +122,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
             onBack = { viewModel.back() },
             backButtonType = if (isSinglePane || isBottomOfStack.not()) BACK else CLOSE,
         ) {
-            if (reactions == null || readers == null || sender == null || element == null || elementHistory.isEmpty()) {
+            if (reactions == null || readers == null || sender == null || lastElement == null || elementHistory.isEmpty()) {
                 LoadingSpinner(Modifier.fillMaxSize())
             } else {
                 Box(
@@ -141,15 +141,13 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                             onOpenUserProfile = viewModel::openUserProfile,
                         )
                         SubHeading(i18n.timelineElementMetadataMessage())
-                        element?.let {
+                        lastElement?.let {
                             MessageContentHistorySwitch(it, elementHistory)
                         }
                         SmallSpacer()
                         HorizontalDivider()
                         MiddleSpacer()
-                        element?.let {
-                            ReadersAndReactions(it, viewModel)
-                        }
+                        ReadersAndReactions(reactions, readers, viewModel::openUserProfile)
                         SmallSpacer()
                     }
                     VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
@@ -171,49 +169,46 @@ fun ColumnScope.SubHeading(heading: String) {// TODO re-use in other components
 
 @Composable
 fun ColumnScope.ReadersAndReactions(
-    element: TimelineElementHolderViewModel,
-    viewModel: TimelineElementMetadataViewModel,
+    reactions: EventReactions,
+    readers: List<UserInfoElement>,
+    onOpenUserProfile: (UserId) -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-    val reactions = element.reactions.collectAsState().value
-    val readers = element.readers.collectAsState().value
     val state = rememberLazyListState()
 
-    if (reactions != null && readers != null) {
-        val allReadersAndReactions = remember(readers, reactions) {
-            (readers.associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, false) } +
-                    reactions.byUser).values.toList()
-        }.sortedByDescending { it.reactions.size }
-        val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
+    val allReadersAndReactions = remember(readers, reactions) {
+        (readers.associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, false) } +
+                reactions.byUser).values.toList()
+    }.sortedByDescending { it.reactions.size }
+    val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
 
-        Column(Modifier.heightIn(min = 100.dp, max = 500.dp)) {
-            if (hasReadersOrReactions) {
-                Text(
-                    text = i18n.timelineElementMetadataReadersAndReactions(),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                SmallSpacer()
-                Box {
-                    LazyColumn(state = state) {
-                        items(allReadersAndReactions) { eventReaction ->
-                            UserInfo(
-                                eventReaction.sender,
-                                eventReaction.reactions.keys,
-                                onOpenUserProfile = viewModel::openUserProfile,
-                            )
-                            Spacer(Modifier.height(5.dp))
-                        }
-                    }
-                    if (allReadersAndReactions.size > 6) {
-                        VerticalScrollbar(Modifier.align(Alignment.CenterEnd), state, false)
+    Column(Modifier.heightIn(min = 100.dp, max = 500.dp)) {
+        if (hasReadersOrReactions) {
+            Text(
+                text = i18n.timelineElementMetadataReadersAndReactions(),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            SmallSpacer()
+            Box {
+                LazyColumn(state = state) {
+                    items(allReadersAndReactions) { eventReaction ->
+                        UserInfo(
+                            eventReaction.sender,
+                            eventReaction.reactions.keys,
+                            onOpenUserProfile = onOpenUserProfile,
+                        )
+                        Spacer(Modifier.height(5.dp))
                     }
                 }
-            } else {
-                Text(
-                    text = i18n.timelineElementMetadataReadersAndReactionsNone(),
-                    style = MaterialTheme.typography.labelMedium,
-                )
+                if (allReadersAndReactions.size > 6) {
+                    VerticalScrollbar(Modifier.align(Alignment.CenterEnd), state, false)
+                }
             }
+        } else {
+            Text(
+                text = i18n.timelineElementMetadataReadersAndReactionsNone(),
+                style = MaterialTheme.typography.labelMedium,
+            )
         }
     }
 }
@@ -235,10 +230,7 @@ private fun UserInfo(
             append(i18n.timelineElementMetadataUserInfoTooltipReactions(compiledReactionsList))
         }
     }
-    Tooltip(
-        { TooltipText(tooltipText) },
-        delay = 50.milliseconds,
-    ) {
+    Tooltip({ TooltipText(tooltipText) }) {
         Row(
             Modifier
                 .fillMaxWidth()
@@ -252,7 +244,7 @@ private fun UserInfo(
                     .padding(start = 4.dp, top = 4.dp, bottom = 4.dp)
                     .align(Alignment.CenterVertically)
             ) {
-                Avatar(image, userInfo.initials)
+                ThemedUserAvatar(userInfo.initials, image)
             }
             Column(
                 Modifier
@@ -295,10 +287,9 @@ private fun ColumnScope.MessageContentHistorySwitch(
         ) {
             Text(text = i18n.timelineElementMetadataHistory(), style = MaterialTheme.typography.titleSmall)
             Spacer(Modifier.size(5.dp).weight(1f, true))
-            Switch(
+            ThemedSwitch(
                 checked = showHistory,
                 onCheckedChange = { showHistory = it },
-                modifier = Modifier.buttonPointerModifier(),
             )
         }
     }

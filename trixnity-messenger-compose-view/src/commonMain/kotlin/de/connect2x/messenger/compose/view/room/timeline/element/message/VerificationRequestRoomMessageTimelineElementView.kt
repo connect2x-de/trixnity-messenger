@@ -9,11 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.SportsScore
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
@@ -110,26 +108,25 @@ private fun UserVerification(
     val i18n = DI.get<I18nView>()
     val sender = holder.sender.collectAsState().value
     val isActive = element.isActive.collectAsState().value == true
-    val reachedEndState = element.reachedEndState.collectAsState().value
     ProvideTextStyle(TextStyle(fontSize = 12.sp)) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .padding(20.dp)
-        ) {
-            Column {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Default.Shield, "")
-                    Spacer(Modifier.size(10.dp))
-                    Text(
-                        text = i18n.userVerificationStarted(sender?.name ?: i18n.commonUnknown()),
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1.0f, fill = true).padding(end = 10.dp)
-                    )
-                    if (isActive) {
+        if (isActive) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .padding(20.dp)
+            ) {
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(Icons.Default.Shield, "")
+                        Spacer(Modifier.size(10.dp))
+                        Text(
+                            text = i18n.userVerificationStarted(sender?.name ?: i18n.commonUnknown()),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1.0f, fill = true).padding(end = 10.dp)
+                        )
                         Tooltip(
                             tooltip = { Text(i18n.commonCancel()) }
                         ) {
@@ -143,12 +140,7 @@ private fun UserVerification(
                                 )
                             }
                         }
-                    } else {
-                        Icon(Icons.Default.SportsScore, i18n.userVerificationDone())
                     }
-                }
-
-                if (isActive) {
                     Children(stack = element.stack) {
                         when (val child = it.instance) {
                             is VerificationRouter.Wrapper.Verification -> UserVerificationStepSwitch(
@@ -156,26 +148,6 @@ private fun UserVerification(
                             )
 
                             is VerificationRouter.Wrapper.None -> Box {}
-                        }
-                    }
-                } else {
-                    if (reachedEndState != null) {
-                        Spacer(Modifier.size(20.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            when (reachedEndState.first) {
-                                true -> Icon(
-                                    Icons.Default.CheckCircle,
-                                    i18n.userVerificationSuccess(),
-                                )
-
-                                false -> Icon(
-                                    Icons.Default.Cancel,
-                                    i18n.userVerificationNotSuccessful(),
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
-                            Spacer(Modifier.size(10.dp))
-                            Text(text = reachedEndState.second)
                         }
                     }
                 }
