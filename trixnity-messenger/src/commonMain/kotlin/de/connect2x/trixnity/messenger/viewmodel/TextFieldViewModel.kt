@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.math.min
 
 private val log = KotlinLogging.logger { }
 
@@ -94,6 +95,11 @@ interface TextFieldViewModel : StateFlow<TextFieldViewModel.State> {
     val selectionValue: IntRange?
 
     /**
+     * The maximum allowed characters in the text field. Everything above the limit will be cut.
+     */
+    val maxLength: Int
+
+    /**
      * Update the state.
      */
     fun update(text: String, selection: IntRange? = null, epoch: ULong? = null)
@@ -101,12 +107,14 @@ interface TextFieldViewModel : StateFlow<TextFieldViewModel.State> {
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 open class TextFieldViewModelImpl private constructor(
-    private val delegate: MutableStateFlow<TextFieldViewModel.State>
+    private val delegate: MutableStateFlow<TextFieldViewModel.State>,
+    maxLength: Int,
 ) : TextFieldViewModel, StateFlow<TextFieldViewModel.State> by delegate.asStateFlow() {
     constructor(
+        maxLength: Int,
         initialText: String = "",
         initialSelection: IntRange? = null,
-    ) : this(MutableStateFlow(TextFieldViewModel.State(initialText, initialSelection, 1UL)))
+    ) : this(MutableStateFlow(TextFieldViewModel.State(initialText, initialSelection, 1UL)), maxLength)
 
     override val text: Flow<String>
         get() = map { it.text }.distinctUntilChanged()
@@ -116,14 +124,22 @@ open class TextFieldViewModelImpl private constructor(
         get() = map { it.selection }.distinctUntilChanged()
     override val selectionValue: IntRange?
         get() = value.selection
+    override val maxLength: Int = maxLength
 
     override fun update(text: String, selection: IntRange?, epoch: ULong?) {
         delegate.update {
             if (epoch == null || epoch > it.epoch) {
+                val endIndex = min(text.length, maxLength)
+                println("+++ $endIndex")
                 TextFieldViewModel.State(
                     epoch = it.epoch + 1u,
-                    text = text,
-                    selection = selection
+                    text = text.substring(0, endIndex),
+                    selection = selection?.let {
+                        IntRange(
+                            selection.first.coerceIn(0, endIndex),
+                            selection.last.coerceIn(0, endIndex),
+                        )
+                    },
                 )
             } else {
                 log.trace { "skip update, because epoch $epoch > ${it.epoch}" }
@@ -145,9 +161,10 @@ interface ApprovableTextFieldViewModel : TextFieldViewModel {
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 class ApprovableTextFieldViewModelImpl(
     serverValue: Flow<String?>,
+    maxLength: Int,
     private val coroutineScope: CoroutineScope,
     private val onApplyChange: suspend (String) -> Result<*>,
-) : TextFieldViewModelImpl(), ApprovableTextFieldViewModel {
+) : TextFieldViewModelImpl(maxLength), ApprovableTextFieldViewModel {
     private val serverStateValue = serverValue
         .map { it ?: "" }
         .stateIn(coroutineScope, Eagerly, "")
@@ -228,6 +245,7 @@ MutableStateFlow(TextFieldViewModel.State("", null, 0UL)) {
     override var textValue: String = ""
     override val selection: Flow<IntRange?> = flowOf(null)
     override var selectionValue: IntRange? = null
+    override val maxLength: Int = 100
     override fun update(text: String, selection: IntRange?, epoch: ULong?) {
     }
 }

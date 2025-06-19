@@ -46,7 +46,7 @@ open class ReportMessageViewModelImpl(
 
 
     private val eventId: MutableStateFlow<EventId> = MutableStateFlow(eventId)
-    override val messageReportReason: TextFieldViewModelImpl = TextFieldViewModelImpl()
+    override val messageReportReason: TextFieldViewModelImpl = TextFieldViewModelImpl(maxLength = 20_000)
 
     override fun submitReportToMessage() {
         coroutineScope.launch {
@@ -71,7 +71,7 @@ open class ReportMessageViewModelImpl(
 }
 
 class PreviewReportMessageViewModel : ReportMessageViewModel {
-    override val messageReportReason = TextFieldViewModelImpl()
+    override val messageReportReason = TextFieldViewModelImpl(maxLength = 20_000)
 
     override fun submitReportToMessage() {
         log.trace { "submit message report" }

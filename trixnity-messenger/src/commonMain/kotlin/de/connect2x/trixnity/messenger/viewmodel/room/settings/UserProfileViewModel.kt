@@ -188,7 +188,7 @@ class UserProfileViewModelImpl(
     private val _membershipChanging = MutableStateFlow(false)
     override val membershipChanging: StateFlow<Boolean> = _membershipChanging
 
-    override val kickUserReason = TextFieldViewModelImpl()
+    override val kickUserReason = TextFieldViewModelImpl(maxLength = 1_000)
 
     override val iHavePowerToKickUser =
         combine(
@@ -204,7 +204,7 @@ class UserProfileViewModelImpl(
         ) { inRoom, canBan -> inRoom && canBan }
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
-    override val banUserReason = TextFieldViewModelImpl()
+    override val banUserReason = TextFieldViewModelImpl(maxLength = 20_000)
 
     override val iHavePowerToUnbanUser: StateFlow<Boolean> =
         combine(
@@ -213,7 +213,7 @@ class UserProfileViewModelImpl(
         ) { inRoom, canUnBan -> inRoom && canUnBan }
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
-    override val unbanUserReason = TextFieldViewModelImpl()
+    override val unbanUserReason = TextFieldViewModelImpl(maxLength = 20_000)
 
     private val isKnocking: SharedFlow<Boolean> =
         membership.map { it == Membership.KNOCK }.shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
