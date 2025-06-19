@@ -139,7 +139,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                     Notification(
                         title = roomName,
                         icon = context.resources.getNotificationIcon(R.drawable.ic_logo),
-                        userData = roomId.full
+                        callbackData = roomId.full
                     )
                 ) {
                     var style = restoreMessagingStyle(context, roomId)

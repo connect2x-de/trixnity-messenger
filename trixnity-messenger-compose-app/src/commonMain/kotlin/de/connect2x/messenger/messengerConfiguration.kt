@@ -57,6 +57,7 @@ fun messengerConfiguration(
         when (BuildConfig.flavor) {
             Flavor.PROD -> {}
             Flavor.DEV -> {
+                notificationsDebugEnabled = true
                 // defaultHomeServer = "" // TODO your home server
             }
         }

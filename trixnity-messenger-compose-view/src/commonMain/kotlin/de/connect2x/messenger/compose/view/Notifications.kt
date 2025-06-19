@@ -6,13 +6,11 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.sysnotify.Notification
 import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.sysnotify.NotificationIcon
-import de.connect2x.sysnotify.create
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.util.currentImmediateDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -28,17 +26,17 @@ import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.notification
+import net.folivo.trixnity.client.notification.NotificationService
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.user
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.EventContent
 import net.folivo.trixnity.core.model.events.idOrNull
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.roomIdOrNull
 import net.folivo.trixnity.core.model.events.senderOrNull
+import net.folivo.trixnity.core.model.push.PushAction
 
 private val log = KotlinLogging.logger { }
 
@@ -48,9 +46,10 @@ fun Notifications(
 ) {
     val i18n = DI.get<I18nView>()
     val config = matrixMessenger.di.get<MatrixMessengerConfiguration>()
-    val notificationHandler = NotificationHandler.create(
+    val notificationHandler = NotificationHandler(
         name = "${config.appName} Notifications",
         id = "${config.appId}.notification",
+        isDebugEnabled = config.notificationsDebugEnabled,
     )
 
     LaunchedEffect(Unit) {
@@ -98,16 +97,15 @@ private suspend fun whenSyncIsRunning(
                     if (windowIsFocused.not() && currentSettings.base.notificationsEnabled) {
                         log.debug { "received notification for event ${notification.event.idOrNull}" }
                         // sound from web?
-                        if (currentSettings.platformNotifications.notificationsShowPopup) {
+                        if (shouldShowPopup(currentSettings)) {
                             val room = notification.event.roomIdOrNull?.let { matrixClient.room.getById(it).first() }
                             val isDirect = room?.isDirect ?: false
                             val roomName =
                                 room?.let { roomNameComputation.getRoomName(room, matrixClient).first() } ?: ""
                             displayNotification(
-                                currentSettings,
                                 matrixClient,
-                                notification.event,
-                                notification.event.content,
+                                notification,
+                                currentSettings,
                                 isDirect,
                                 roomName,
                                 i18n,
@@ -124,18 +122,19 @@ private suspend fun whenSyncIsRunning(
 }
 
 private suspend fun displayNotification(
-    currentSettings: MatrixMessengerAccountSettings,
     matrixClient: MatrixClient,
-    event: ClientEvent<*>,
-    content: EventContent, // possibly decrypted
+    notification: NotificationService.Notification,
+    currentSettings: MatrixMessengerAccountSettings,
     isDirect: Boolean,
     roomName: String,
     i18n: I18nView,
     maxMediaSizeInMemory: Long
 ): Notification? {
+    val event = notification.event
+    val content = event.content // possibly encrypted
     event.roomIdOrNull?.let { roomId ->
         val message = when {
-            currentSettings.platformNotifications.notificationsShowText.not() -> "(${i18n.newMessage()})"
+            shouldShowText(currentSettings).not() -> "(${i18n.newMessage()})"
             content is MemberEventContent && content.membership == Membership.INVITE -> roomName
             content is RoomMessageEventContent -> content.body
             else -> null
@@ -158,8 +157,14 @@ private suspend fun displayNotification(
             return Notification(
                 title = title,
                 description = text,
-                icon = imageInBytes?.let { NotificationIcon(it, avatarSize(), avatarSize()) })
+                icon = imageInBytes?.let { NotificationIcon(it, avatarSize(), avatarSize()) },
+                playSound = shouldPlaySound(currentSettings) && notification.actions.any { it is PushAction.SetSoundTweak }
+            )
         }
     } ?: log.warn { "cannot find roomId for event ${event.idOrNull}" }
     return null
 }
+
+expect fun shouldShowPopup(currentSettings: MatrixMessengerAccountSettings): Boolean
+expect fun shouldShowText(currentSettings: MatrixMessengerAccountSettings): Boolean
+expect fun shouldPlaySound(currentSettings: MatrixMessengerAccountSettings): Boolean

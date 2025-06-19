@@ -31,12 +31,12 @@ import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
-import de.connect2x.trixnity.messenger.util.currentImmediateDispatcher
 import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.sysnotify.handlePermissionRequest
 import de.connect2x.sysnotify.withActivity
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.platformNotifications
+import de.connect2x.trixnity.messenger.util.currentImmediateDispatcher
 import de.connect2x.trixnity.messenger.util.defaultActivityGetter
 import de.connect2x.trixnity.messenger.util.defaultUrlHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -89,7 +89,7 @@ class MessengerActivity : AppCompatActivity() {
                                 if (anyNotificationsEnabled) {
                                     log.debug { "Notifications are enabled for active messenger, requesting permissions" }
                                     matrixMultiMessenger.di.get<NotificationHandler>()
-                                        .withActivity(this@MessengerActivity)
+                                        .withActivity { this@MessengerActivity }
                                         .requestPermissions()
                                     scope.launch {
                                         setPush(
@@ -180,7 +180,7 @@ class MessengerActivity : AppCompatActivity() {
         scope.launch {
             matrixMessengerServiceConnection.matrixMultiMessenger.filterNotNull().first().di
                 .get<NotificationHandler>()
-                .withActivity(this@MessengerActivity)
+                .withActivity { this@MessengerActivity }
                 .handlePermissionRequest(requestCode, grantResults)
         }
     }
