@@ -537,6 +537,7 @@ class UserProfileViewModelImpl(
         }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override fun startVerification(closeSettingsAfterStart: Boolean) {
+        log.debug { "starting user verification" }
         if (isMyself) {
             log.warn { "cannot verify yourself" }
             return
@@ -548,10 +549,16 @@ class UserProfileViewModelImpl(
                         onSuccess = {
                             it.also {
                                 if (it.roomId != selectedRoomId) {
+                                    log.debug { "go to room ${it.roomId}, since the verification takes place there" }
                                     onOpenRoom(matrixClient.userId, it.roomId)
+                                } else {
+                                    log.debug { "stay in room $selectedRoomId as the verification takes place here" }
                                 }
                                 if (closeSettingsAfterStart) {
+                                    log.debug { "closing the settings" }
                                     onCloseSettings()
+                                } else {
+                                    log.debug { "keep settings open" }
                                 }
                             }
                         },
@@ -566,6 +573,8 @@ class UserProfileViewModelImpl(
             }.invokeOnCompletion {
                 verifying.update { false }
             }
+        } else {
+            log.warn { "cannot verify other user as preconditions are not met" }
         }
 
     }
