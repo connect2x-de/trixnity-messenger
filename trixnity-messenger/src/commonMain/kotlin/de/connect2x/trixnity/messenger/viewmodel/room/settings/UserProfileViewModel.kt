@@ -108,6 +108,7 @@ interface UserProfileViewModel {
     val openingChat: StateFlow<Boolean>
     val verificationIsRunning: StateFlow<Boolean>
     val canOpenChat: StateFlow<Boolean>
+    val canVerifyUser: StateFlow<Boolean>
 
     fun openKickUserWarning()
     fun closeKickUserWarning()
@@ -537,7 +538,13 @@ class UserProfileViewModelImpl(
             )
 
 
+    override val canVerifyUser: StateFlow<Boolean> =
+        userTrustLevel.map {
+            it is UserTrustLevel.CrossSigned && !it.verified || it is UserTrustLevel.NotAllDevicesCrossSigned && !it.verified
+        }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
+
     override fun startVerification(closeSettingsAfterStart: Boolean) {
+        log.debug { "starting user verification" }
         if (isMyself) {
             log.warn { "cannot verify yourself" }
             return
@@ -549,10 +556,16 @@ class UserProfileViewModelImpl(
                         onSuccess = {
                             it.also {
                                 if (it.roomId != selectedRoomId) {
+                                    log.debug { "go to room ${it.roomId}, since the verification takes place there" }
                                     onOpenRoom(matrixClient.userId, it.roomId)
+                                } else {
+                                    log.debug { "stay in room $selectedRoomId as the verification takes place here" }
                                 }
                                 if (closeSettingsAfterStart) {
+                                    log.debug { "closing the settings" }
                                     onCloseSettings()
+                                } else {
+                                    log.debug { "keep settings open" }
                                 }
                             }
                         },
@@ -565,6 +578,8 @@ class UserProfileViewModelImpl(
 
                 req.state.first(::isVerificationStateFinished)
             }
+        } else {
+            log.warn { "cannot verify other user as preconditions are not met" }
         }
 
     }
