@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Show correct user verification status in UserInfo when user verification hasn't been completed
 - Fixed tooltips and accessible labels for Read/Sent markers
+- Fixed switch in user profile view for blocking not reflecting correct server-side state
 
 ### Security
 
@@ -39,6 +40,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Trixnity from 4.16.2 to 4.16.3 (hotfix: dehydrated devices)
 
 ## 3.6.2
+
+### Added
+
+- Accessibility Settings Step for Setup Wizard (`AccountSetupWizardStep.AccessibilityStep`)
 
 ### Changed
 
@@ -61,7 +66,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Remove timeline flickering due to switching between image fallback and thumbnail
 - Resolved crash due to "Image too large" on Android
-- Fixed switch in user profile view for blocking not reflecting correct server-side state
 - Reuse an existing direct chat only if it is a direct chat with only that user when creating a new chat
 
 ### Security
