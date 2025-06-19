@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show correct user verification status in UserInfo when user verification hasn't been completed
 - Fixed tooltips and accessible labels for Read/Sent markers
 - Fixed switch in user profile view for blocking not reflecting correct server-side state
+- Fixed error display not going away when renaming device
 
 ### Security
 
