@@ -57,6 +57,7 @@ import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.messenger.compose.view.common.icons.BanIcon
 import de.connect2x.messenger.compose.view.common.icons.BlockIcon
+import de.connect2x.messenger.compose.view.common.icons.NeutralVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
 import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
@@ -158,11 +159,19 @@ class UserProfileViewImpl : UserProfileView {
                     Spacer(Modifier.height(5.dp))
                     when (userTrustLevel) {
                         is UserTrustLevel.CrossSigned -> {
-                            ThemedInfoChip(
-                                style = MaterialTheme.components.primaryChip,
-                                icon = { VerifiedIcon(VerificationLevel.USER) },
-                                label = { Text(i18n.secure()) },
-                            )
+                            if (userTrustLevel.verified) {
+                                ThemedInfoChip(
+                                    style = MaterialTheme.components.primaryChip,
+                                    icon = { VerifiedIcon(VerificationLevel.USER) },
+                                    label = { Text(i18n.secure()) },
+                                )
+                            } else {
+                                ThemedInfoChip(
+                                    style = MaterialTheme.components.destructiveChip,
+                                    icon = { NeutralVerifiedIcon(VerificationLevel.USER) },
+                                    label = { Text(i18n.insecure()) }
+                                )
+                            }
                         }
 
                         is UserTrustLevel.NotAllDevicesCrossSigned -> {
@@ -283,6 +292,7 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
         val openingChat = userProfileViewModel.openingChat.collectAsState().value
         val verifying = userProfileViewModel.verifying.collectAsState().value
         val canOpenChat = userProfileViewModel.canOpenChat.collectAsState().value
+        val verificationAvailable = userProfileViewModel.canVerifyUser.collectAsState().value
 
         VerySmallSpacer()
         Row(
@@ -330,20 +340,22 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
             }
         }
         val isSinglePane = IsSinglePane.current
-        MenuElement(Modifier.clickable {
-            userProfileViewModel.startVerification(isSinglePane)
-        }) {
-            Icon(
-                Icons.AutoMirrored.Filled.Wysiwyg,
-                i18n.userVerification(),
-                Modifier.size(24.dp),
-                defaultColorForState(!verifying)
-            )
-            Spacer(Modifier.size(10.dp))
-            Text(
-                text = i18n.userProfileVerification(),
-                color = defaultColorForState(!verifying)
-            )
+        if (verificationAvailable) {
+            MenuElement(Modifier.clickable {
+                userProfileViewModel.startVerification(isSinglePane)
+            }) {
+                Icon(
+                    Icons.AutoMirrored.Filled.Wysiwyg,
+                    i18n.userVerification(),
+                    Modifier.size(24.dp),
+                    defaultColorForState(!verifying)
+                )
+                Spacer(Modifier.size(10.dp))
+                Text(
+                    text = i18n.userProfileVerification(),
+                    color = defaultColorForState(!verifying)
+                )
+            }
         }
     }
 }

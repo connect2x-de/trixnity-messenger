@@ -11,17 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Don't show option for user verification when user is already verified
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
+- Show correct user verification status in UserInfo when user verification hasn't been completed
 - Fixed tooltips and accessible labels for Read/Sent markers
 
-=======
->>>>>>> CHANGELOG.md
 ### Security
+
+## 3.6.4
+
+### Changed
+
+- Updated Trixnity from 4.16.3 to 4.16.4 (hotfix: dehydrated devices)
 
 ## 3.6.3
 
@@ -38,7 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- When creating a user verification from another room, jump to the direct room where the user verification is taking place
+- When creating a user verification from another room, jump to the direct room where the user verification is taking
+  place
 
 ## 3.6.1
 
