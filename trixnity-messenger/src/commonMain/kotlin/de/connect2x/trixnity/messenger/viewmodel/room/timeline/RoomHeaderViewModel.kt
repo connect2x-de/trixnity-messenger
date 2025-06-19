@@ -280,11 +280,14 @@ open class RoomHeaderViewModelImpl(
         coroutineScope.launch {
             if (canBlockUser.value) {
                 val singleDirectUser = singleDirectUser.first()
-                if (singleDirectUser != null) {
-                    userBlocking.blockUser(matrixClient, singleDirectUser) {
+                if (singleDirectUser == null) return@launch
+                userBlocking.blockUser(
+                    matrixClient = matrixClient,
+                    userToBlock = singleDirectUser,
+                    onFailure = {
                         error.value = i18n.blockUserError(singleDirectUser.full)
                     }
-                }
+                )
             }
         }
     }
@@ -293,11 +296,14 @@ open class RoomHeaderViewModelImpl(
         coroutineScope.launch {
             if (canUnblockUser.value) {
                 val singleDirectUser = singleDirectUser.first()
-                if (singleDirectUser != null) {
-                    userBlocking.unblockUser(matrixClient, singleDirectUser) {
+                if (singleDirectUser == null) return@launch
+                userBlocking.unblockUser(
+                    matrixClient = matrixClient,
+                    userToUnblock = singleDirectUser,
+                    onFailure = {
                         error.value = i18n.blockUserError(singleDirectUser.full)
                     }
-                }
+                )
             }
         }
     }
