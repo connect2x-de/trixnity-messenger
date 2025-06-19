@@ -434,10 +434,7 @@ class UserProfileViewModelImpl(
                     error.value = null
                 },
                 onFailure = {
-                    if (it is CancellationException) {
-                        return@launch
-                    }
-
+                    if (it is CancellationException) return@launch
                     log.error(it) { "cannot unban user $roomUserId from $selectedRoomId: ${it.message}" }
                     error.value = i18n.settingsRoomMemberUnbanUserError()
                 }
@@ -447,27 +444,35 @@ class UserProfileViewModelImpl(
 
     override fun blockUser() {
         coroutineScope.launch {
-            try {
-                blockingInProgress.value = true
-                userBlocking.blockUser(matrixClient, userId) {
+            blockingInProgress.value = true
+            userBlocking.blockUser(
+                matrixClient = matrixClient,
+                userToBlock = userId,
+                onSuccess = {
+                    blockingInProgress.value = false
+                },
+                onFailure = {
                     error.value = i18n.blockUserError(userId.full)
+                    blockingInProgress.value = false
                 }
-            } finally {
-                blockingInProgress.value = false
-            }
+            )
         }
     }
 
     override fun unblockUser() {
         coroutineScope.launch {
-            try {
-                blockingInProgress.value = true
-                userBlocking.unblockUser(matrixClient, userId) {
+            blockingInProgress.value = true
+            userBlocking.unblockUser(
+                matrixClient = matrixClient,
+                userToUnblock = userId,
+                onSuccess = {
+                    blockingInProgress.value = false
+                },
+                onFailure = {
                     error.value = i18n.settingsUnblockUserError(userId.full)
+                    blockingInProgress.value = false
                 }
-            } finally {
-                blockingInProgress.value = false
-            }
+            )
         }
     }
 
