@@ -2,7 +2,7 @@
 jvmTarget = "17"
 c2xConventions = "43109500" # https://gitlab.com/connect2x/c2x-conventions/-/packages
 
-trixnityMessenger = "3.6.5"
+trixnityMessenger = "3.6.6"
 trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
@@ -15,7 +15,7 @@ kotlinxSerialization = "1.8.1" # https://github.com/Kotlin/kotlinx.serialization
 kotlinxDatetime = "0.6.2" # https://github.com/Kotlin/kotlinx-datetime/releases
 kotlinxKover = "0.9.1" # https://github.com/Kotlin/kotlinx-kover/releases
 
-trixnity = "4.16.4" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.16.5" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
 decompose = "3.3.0" # https://github.com/arkivanov/Decompose/releases
 koin = "4.0.4" # https://github.com/InsertKoinIO/koin/tags
