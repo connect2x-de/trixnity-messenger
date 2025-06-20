@@ -9,11 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added loading spinner to user profile view when blocking user to show in-progress action
-
 ### Changed
 
-- Don't show option for user verification when user is already verified
 - Updated SysNotify to 1.8.0 and commonized desktop and web notification handling
 
 ### Deprecated
@@ -22,12 +19,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 3.6.5
+
+### Added
+
+- Added loading spinner to user profile view when blocking user to show in-progress action
+
+### Changed
+
+- Don't show option for user verification when user is already verified
+- Updated Trixnity from 4.16.4 to 4.16.5
+
+### Fixed
+
 - Show correct user verification status in UserInfo when user verification hasn't been completed
 - Fixed tooltips and accessible labels for Read/Sent markers
 - Fixed switch in user profile view for blocking not reflecting correct server-side state
 - Fixed error display not going away when renaming device
-
-### Security
 
 ## 3.6.4
 
