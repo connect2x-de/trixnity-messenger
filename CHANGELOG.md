@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added loading spinner to user profile view when blocking user to show in-progress action
+
 ### Changed
 
-- Internal: add remote caching
+- Don't show option for user verification when user is already verified
 
 ### Deprecated
 
@@ -19,9 +21,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- When creating a user verification from another room, jump to the direct room where the user verification is taking place
+- Show correct user verification status in UserInfo when user verification hasn't been completed
+- Fixed tooltips and accessible labels for Read/Sent markers
+- Fixed switch in user profile view for blocking not reflecting correct server-side state
+- Fixed error display not going away when renaming device
 
 ### Security
+
+## 3.6.4
+
+### Changed
+
+- Updated Trixnity from 4.16.3 to 4.16.4 (hotfix: dehydrated devices)
+
+## 3.6.3
+
+### Changed
+
+- Updated Trixnity from 4.16.2 to 4.16.3 (hotfix: dehydrated devices)
+
+## 3.6.2
+
+### Added
+
+- Accessibility Settings Step for Setup Wizard (`AccountSetupWizardStep.AccessibilityStep`) 
+
+### Changed
+
+- Internal: add remote caching
+- Updated Trixnity from 4.16.1 to 4.16.2 (includes dehydrated devices fix)
+
+### Fixed
+
+- When creating a user verification from another room, jump to the direct room where the user verification is taking
+  place
 
 ## 3.6.1
 
@@ -43,7 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add setAvatarImage function to AvatarCutterViewModel
-- Accessibility Settings Step for Setup Wizard (`AccountSetupWizardStep.AccessibilityStep`)
+- Add tests for various logic
 
 ### Changed
 
@@ -53,10 +86,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make tooltip show/hide delays configurable
 - Styling: Use customizable components for labels
 - Persist presence
-
-### Deprecated
-
-### Removed
+- Styling: Use theme components for dialogs
+- Clearly distinguish between a room member leaving, being kicked, banned or unbanned.
+- Adapt to Trixnity media cache changes
 
 ### Fixed
 
@@ -67,7 +99,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed "edited" is shown in the wrong place in `TimelineElementMetadataViewModel`
 - Send button is only active after the second char in the input field
 - Canceled or completed user verifications are shown correctly in the timeline (**Breaking change**: user verification
-  end states (canceled or done) have separate timeline view models now
+  end states (canceled or done) have separate timeline view models now 
   (MessageTimelineElementViewModel.VerificationCancel, MessageTimelineElementViewModel.VerificationDone))
 - Fixed AvatarCutter ignoring alignment/rotation metadata
 

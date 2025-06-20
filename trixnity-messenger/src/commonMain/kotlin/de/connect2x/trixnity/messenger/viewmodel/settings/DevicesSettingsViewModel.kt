@@ -218,6 +218,7 @@ open class DevicesSettingsViewModelImpl(
                                     log.info { "changed display name to '$newDisplayName'" }
                                 }
                             }
+                        error.value = null
                     },
                     onFailure = {
                         log.error(it) { "Cannot change device display name for $deviceId." }

@@ -519,6 +519,7 @@ suspend fun MatrixMessengerWithRoot.initiateUserVerification(roomId: RoomId, use
         roomViewModel.openUserProfile(userId)
         val userProfileViewModel =
             roomViewModel.extrasStack.waitFor(ExtrasRouter.Wrapper.UserProfile::class).viewModel
+        withTimeout(5.seconds) { userProfileViewModel.canVerifyUser.first { it } }
         userProfileViewModel.startVerification()
         log.debug { "started user verification" }
         delay(1.seconds) // wait for request to finish
@@ -643,7 +644,7 @@ private suspend inline fun <reified T : TimelineElementViewModel<*>, reified H :
         log.debug { "+++ vms: $vms" }
         vms
             .any { vm ->
-                log.trace { "+++ vm: ${vm::class.simpleName}" }
+                log.debug { "+++ vm: ${vm::class.simpleName} (is ${vm is T})" }
                 vm is T
             }
     }
