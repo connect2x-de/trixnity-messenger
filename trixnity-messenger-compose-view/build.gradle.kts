@@ -2,7 +2,6 @@ import de.connect2x.conventions.registerCoverageTask
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -125,9 +124,6 @@ kotlin {
 dependencies {
     androidTestImplementation(libs.ui.test.junit4.android)
     debugImplementation(libs.ui.test.android.manifest)
-    implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-windows-x64") })
-    implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-linux-x64") })
-    implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-macos-x64") })
 }
 
 android {
