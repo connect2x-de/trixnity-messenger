@@ -46,10 +46,11 @@ fun TextFieldViewModel.collectAsTextFieldValueState(focusRequester: FocusRequest
     return uiState
 }
 
-private fun TextFieldViewModel.State.toTextFieldValue() =
-    TextFieldValue(
+private fun TextFieldViewModel.State.toTextFieldValue(): TextFieldValue {
+    return TextFieldValue(
         text,
         selection?.run {
             TextRange(first, last.coerceIn(0..text.length))
         } ?: TextRange.Zero
     )
+}

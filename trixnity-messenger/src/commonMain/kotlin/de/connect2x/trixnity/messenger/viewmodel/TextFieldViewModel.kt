@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.math.min
 
 private val log = KotlinLogging.logger { }
 
@@ -127,19 +126,19 @@ open class TextFieldViewModelImpl private constructor(
     override val maxLength: Int = maxLength
 
     override fun update(text: String, selection: IntRange?, epoch: ULong?) {
+        println("++++ ${text.takeLast(20)}, $selection, $epoch")
         delegate.update {
             if (epoch == null || epoch > it.epoch) {
-                val endIndex = min(text.length, maxLength)
-                println("+++ $endIndex")
+//                val endIndex = text.length.coerceIn(0..maxLength)
+//                println("+++ $endIndex")
                 TextFieldViewModel.State(
                     epoch = it.epoch + 1u,
-                    text = text.substring(0, endIndex),
-                    selection = selection?.let {
-                        IntRange(
-                            selection.first.coerceIn(0, endIndex),
-                            selection.last.coerceIn(0, endIndex),
-                        )
-                    },
+//                    text = text.take(endIndex),
+                    text = text,
+                    selection = selection,
+//                            selection?.let {
+//                        selection.first.coerceIn(0..endIndex)..selection.last.coerceIn(0..endIndex)
+//                    },
                 )
             } else {
                 log.trace { "skip update, because epoch $epoch > ${it.epoch}" }
