@@ -128,7 +128,6 @@ open class TextFieldViewModelImpl private constructor(
     override fun update(text: String, selection: IntRange?, epoch: ULong?) {
         delegate.update {
             if (epoch == null || epoch > it.epoch) {
-                println("+++ ${text.length}")
                 TextFieldViewModel.State(
                     epoch = it.epoch + 1u,
                     text = text.take(maxLength),
