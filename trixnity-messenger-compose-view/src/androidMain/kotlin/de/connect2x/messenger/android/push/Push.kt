@@ -61,6 +61,15 @@ internal suspend fun setPush(
         .updateHandlers(context, matrixMultiMessenger.di.get(), pushModes)
 }
 
+internal fun disableNotifications(context: Context) {
+    log.debug { "Disabling FcmService component" }
+    context.packageManager.setComponentEnabledSetting(
+        ComponentName(context, FcmService::class.java),
+        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+        PackageManager.DONT_KILL_APP,
+    )
+}
+
 private fun setPushersRequest(fcmToken: String, userId: UserId, deviceId: String, di: Koin): SetPushers.Request {
     val config = di.get<MatrixMultiMessengerConfiguration>()
     return SetPushers.Request.Set(

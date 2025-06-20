@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.arkivanov.decompose.defaultComponentContext
+import de.connect2x.messenger.android.push.disableNotifications
 import de.connect2x.messenger.android.push.setPush
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
@@ -100,6 +101,8 @@ class MessengerActivity : AppCompatActivity() {
                                             this,
                                         )
                                     }
+                                } else {
+                                    disableNotifications(applicationContext)
                                 }
                             }
                         }

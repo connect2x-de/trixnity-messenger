@@ -187,8 +187,9 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
         return output
     }
 
-    override suspend fun doWork(): Result =
-        withMatrixMessengerService(applicationContext) { matrixMultiMessenger ->
+    override suspend fun doWork(): Result {
+        log.debug { "FcmNotificationsWorker.doWork" }
+        return withMatrixMessengerService(applicationContext) { matrixMultiMessenger ->
             val matrixMessenger = matrixMultiMessenger.activeMatrixMessenger.value
                 ?: return@withMatrixMessengerService Result.failure()
             coroutineScope {
@@ -245,6 +246,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                 return@coroutineScope Result.failure()
             }
         }
+    }
 
     // since the account name is not known beforehand, we have to retrieve it here by checking which MatrixClient the
     // roomId belongs to
