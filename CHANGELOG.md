@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Don't show option for user verification when user is already verified
+- Updated SysNotify to 1.8.0 and commonized desktop and web notification handling
 
 ### Deprecated
 
@@ -44,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Accessibility Settings Step for Setup Wizard (`AccountSetupWizardStep.AccessibilityStep`) 
+- Accessibility Settings Step for Setup Wizard (`AccountSetupWizardStep.AccessibilityStep`)
 
 ### Changed
 
@@ -99,7 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed "edited" is shown in the wrong place in `TimelineElementMetadataViewModel`
 - Send button is only active after the second char in the input field
 - Canceled or completed user verifications are shown correctly in the timeline (**Breaking change**: user verification
-  end states (canceled or done) have separate timeline view models now 
+  end states (canceled or done) have separate timeline view models now
   (MessageTimelineElementViewModel.VerificationCancel, MessageTimelineElementViewModel.VerificationDone))
 - Fixed AvatarCutter ignoring alignment/rotation metadata
 
