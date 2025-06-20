@@ -58,13 +58,13 @@ class UiaPasswordInputViewImpl : UiaPasswordInputView {
                 if (isSubmitting) LoadingSpinner()
                 Spacer(Modifier.height(20.dp))
                 MatrixUsername(
-                    username = uiaStepPasswordViewModel.username.collectAsTextFieldValueState(),
+                    usernameProvider = { uiaStepPasswordViewModel.username.collectAsTextFieldValueState() },
                     label = i18n.addMatrixClientMatrixUsername(),
                     modifier = tabToNextAndEnterSend,
                 )
                 Spacer(Modifier.height(20.dp))
                 PasswordField(
-                    password = uiaStepPasswordViewModel.password.collectAsTextFieldValueState(),
+                    passwordProvider = { uiaStepPasswordViewModel.password.collectAsTextFieldValueState() },
                     modifier = tabToNextAndEnterSend
                 ) { Text(i18n.addMatrixClientPassword()) }
                 Spacer(Modifier.height(40.dp))

@@ -35,7 +35,6 @@ import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -60,6 +59,7 @@ import de.connect2x.messenger.compose.view.common.icons.BlockIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
 import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
+import de.connect2x.messenger.compose.view.common.maxLength
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.root.IsSinglePane
@@ -455,7 +455,7 @@ private fun DialogHandler(userProfileViewModel: UserProfileViewModel) {
 @Composable
 fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
     val i18n = DI.get<I18nView>()
-    var kickUserReason by userProfileViewModel.kickUserReason.collectAsTextFieldValueState()
+    val (kickUserReason, maxLength) = userProfileViewModel.kickUserReason.collectAsTextFieldValueState()
     val isDirect = userProfileViewModel.isDirect.collectAsState().value
 
     ThemedModalDialog({ userProfileViewModel.closeKickUserWarning() }) {
@@ -467,8 +467,8 @@ fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
         }
         ModalDialogContent {
             OutlinedTextField(
-                value = kickUserReason,
-                onValueChange = { kickUserReason = it },
+                value = kickUserReason.value,
+                onValueChange = { kickUserReason.value = it.maxLength(maxLength) },
                 label = {
                     Text(i18n.commonOptionalReason())
                 },
@@ -498,7 +498,7 @@ fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
 @Composable
 fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
     val i18n = DI.current.get<I18nView>()
-    var banUserReason by userProfileViewModel.banUserReason.collectAsTextFieldValueState()
+    val (banUserReason, maxLength) = userProfileViewModel.banUserReason.collectAsTextFieldValueState()
 
     ThemedModalDialog({ userProfileViewModel.closeBanUserWarning() }) {
         ModalDialogHeader {
@@ -506,8 +506,8 @@ fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
         }
         ModalDialogContent {
             OutlinedTextField(
-                value = banUserReason,
-                onValueChange = { banUserReason = it },
+                value = banUserReason.value,
+                onValueChange = { banUserReason.value = it.maxLength(maxLength) },
                 label = {
                     Text(i18n.commonOptionalReason())
                 },
@@ -537,7 +537,7 @@ fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
 @Composable
 fun UnbanUserWarning(userProfileViewModel: UserProfileViewModel) {
     val i18n = DI.current.get<I18nView>()
-    var unbanUserReason by userProfileViewModel.unbanUserReason.collectAsTextFieldValueState()
+    val (unbanUserReason, maxLength) = userProfileViewModel.unbanUserReason.collectAsTextFieldValueState()
 
     ThemedModalDialog({ userProfileViewModel.closeUnbanUserWarning() }) {
         ModalDialogHeader {
@@ -545,8 +545,8 @@ fun UnbanUserWarning(userProfileViewModel: UserProfileViewModel) {
         }
         ModalDialogContent {
             OutlinedTextField(
-                value = unbanUserReason,
-                onValueChange = { unbanUserReason = it },
+                value = unbanUserReason.value,
+                onValueChange = { unbanUserReason.value = it.maxLength(maxLength) },
                 label = {
                     Text(i18n.commonOptionalReason())
                 },
@@ -579,8 +579,8 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
     val i18n = DI.get<I18nView>()
     val changingPowerLevelDialogError =
         userProfileViewModel.changePowerLevelViewModel.changingPowerLevelDialogError.collectAsState().value
-    var changePowerLevelInput by
-    userProfileViewModel.changePowerLevelViewModel.changingPowerLevelDialogInput.collectAsTextFieldValueState()
+    val (changePowerLevelInput, maxLength) =
+        userProfileViewModel.changePowerLevelViewModel.changingPowerLevelDialogInput.collectAsTextFieldValueState()
     val showPowerLevelHelp =
         userProfileViewModel.changePowerLevelViewModel.showPowerLevelHelp.collectAsState().value
     val canSetRoleToAdmin =
@@ -617,8 +617,8 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                 }
             }
             OutlinedTextField(
-                value = changePowerLevelInput,
-                onValueChange = { changePowerLevelInput = it },
+                value = changePowerLevelInput.value,
+                onValueChange = { changePowerLevelInput.value = it.maxLength(maxLength) },
                 isError = changingPowerLevelDialogError != null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
@@ -629,7 +629,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                 if (canSetRoleToUser) {
                     ThemedSuggestionChip(
                         onClick = {
-                            changePowerLevelInput = TextFieldValue(
+                            changePowerLevelInput.value = TextFieldValue(
                                 ChangePowerLevelViewModel.Role.USER
                                     .getMinPowerLevel().toString()
                             )
@@ -642,7 +642,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                 if (canSetRoleToModerator) {
                     ThemedSuggestionChip(
                         onClick = {
-                            changePowerLevelInput = TextFieldValue(
+                            changePowerLevelInput.value = TextFieldValue(
                                 ChangePowerLevelViewModel.Role.MODERATOR
                                     .getMinPowerLevel().toString()
                             )
@@ -655,7 +655,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                 if (canSetRoleToAdmin) {
                     ThemedSuggestionChip(
                         onClick = {
-                            changePowerLevelInput = TextFieldValue(
+                            changePowerLevelInput.value = TextFieldValue(
                                 ChangePowerLevelViewModel.Role.ADMIN
                                     .getMinPowerLevel().toString()
                             )
@@ -683,10 +683,10 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
             }
             ThemedButton(
                 style = MaterialTheme.components.primaryButton,
-                enabled = changingPowerLevelDialogError == null && changePowerLevelInput.text != "",
+                enabled = changingPowerLevelDialogError == null && changePowerLevelInput.value.text != "",
                 onClick = {
                     userProfileViewModel.changePowerLevelViewModel.setPowerLevelTo(
-                        changePowerLevelInput.text.toLong()
+                        changePowerLevelInput.value.text.toLong()
                     )
                     userProfileViewModel.changePowerLevelViewModel.closeChangingPowerLevelDialog()
                 },

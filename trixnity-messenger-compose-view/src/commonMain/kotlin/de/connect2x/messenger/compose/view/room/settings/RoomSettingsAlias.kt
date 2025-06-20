@@ -22,8 +22,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
@@ -37,6 +35,7 @@ import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.gesturesDisabled
+import de.connect2x.messenger.compose.view.common.maxLength
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
@@ -50,7 +49,7 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
     val i18n = DI.current.get<I18nView>()
     val mainAlias = viewModel.mainAlias.collectAsState().value
     val moreAliases = viewModel.moreAliases.collectAsState().value
-    var newAlias by viewModel.newAlias.collectAsTextFieldValueState()
+    val (newAlias, maxLength) = viewModel.newAlias.collectAsTextFieldValueState()
     val isUpdating = viewModel.isUpdating.collectAsState().value
     val canChangeRoomAlias = viewModel.canChangeRoomAlias.collectAsState().value
 
@@ -67,11 +66,11 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                             Alignment.CenterVertically
                         ) {
                             OutlinedTextField(
-                                value = newAlias,
+                                value = newAlias.value,
                                 placeholder = { Text(i18n.newAlias()) },
                                 onValueChange = {
                                     if (it.text.isEmpty() || MatrixRegex.roomAlias.matchEntire("#${it.text}:${viewModel.domain}") != null) {
-                                        newAlias = it
+                                        newAlias.value = it.maxLength(maxLength)
                                     }
                                 },
                                 label = { Text(i18n.newAlias()) },

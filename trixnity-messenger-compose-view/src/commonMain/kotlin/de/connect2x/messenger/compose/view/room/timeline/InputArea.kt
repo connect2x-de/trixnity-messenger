@@ -71,6 +71,7 @@ import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
 import de.connect2x.messenger.compose.view.common.FilePickerType.VIDEO_CAPTURE
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.customKeyNavigation
+import de.connect2x.messenger.compose.view.common.maxLength
 import de.connect2x.messenger.compose.view.files.EmptyFileListException
 import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.NotPasteableException
@@ -126,7 +127,7 @@ class InputAreaViewImpl : InputAreaView {
         val isEdit = inputAreaViewModel.isReplace.collectAsState().value
         val emojisOpen = remember { mutableStateOf(false) }
         val focusRequester = remember { FocusRequester() }
-        val textField = inputAreaViewModel.textField.collectAsTextFieldValueState(focusRequester)
+        val (textField, maxLength) = inputAreaViewModel.textField.collectAsTextFieldValueState(focusRequester)
 
         ThemedSurface(
             style = MaterialTheme.components.inputAreaSurface,
@@ -139,7 +140,7 @@ class InputAreaViewImpl : InputAreaView {
                 if (emojisOpen.value) {
                     Box(Modifier.fillMaxWidth().height(120.dp)) {
                         EmojiSelector(Modifier.fillMaxSize().customKeyNavigation()) {
-                            textField.value = textField.value.insert(it)
+                            textField.value = textField.value.insert(it).maxLength(maxLength)
                             focusRequester.requestFocus()
                         }
                     }
@@ -154,7 +155,7 @@ class InputAreaViewImpl : InputAreaView {
                     if (canSendMessages) {
                         EmojiButton(emojisOpen)
 
-                        InputAreaTextField(inputAreaViewModel, textField, focusRequester)
+                        InputAreaTextField(inputAreaViewModel, textField, maxLength, focusRequester)
 
                         if (isEdit) {
                             EditButton(inputAreaViewModel)
@@ -227,6 +228,7 @@ fun UserSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: FocusRe
 fun RowScope.InputAreaTextField(
     inputAreaViewModel: InputAreaViewModel,
     textField: MutableState<TextFieldValue>,
+    maxLength: Int,
     focusRequester: FocusRequester,
     style: InputAreaStyle = MaterialTheme.components.inputArea,
 ) {
@@ -256,11 +258,13 @@ fun RowScope.InputAreaTextField(
                     Text(i18n.uploadFileErrorTitle())
                 }
                 ModalDialogContent {
-                    Text(when (showUploadError.value) {
-                        is NotPasteableException -> i18n.uploadFileErrorNotPasteable()
-                        is EmptyFileListException -> i18n.uploadFileErrorFileListEmpty()
-                        else -> i18n.uploadFileErrorUnknown()
-                    })
+                    Text(
+                        when (showUploadError.value) {
+                            is NotPasteableException -> i18n.uploadFileErrorNotPasteable()
+                            is EmptyFileListException -> i18n.uploadFileErrorFileListEmpty()
+                            else -> i18n.uploadFileErrorUnknown()
+                        }
+                    )
                 }
                 ModalDialogFooter {
                     ThemedButton(
@@ -281,7 +285,7 @@ fun RowScope.InputAreaTextField(
                     if (it.type == KeyEventType.KeyDown) {
                         when {
                             (it.isShiftPressed && it.key == Key.Enter) -> {
-                                textField.value = textField.value.insert("\n")
+                                textField.value = textField.value.insert("\n").maxLength(maxLength)
                                 true
                             }
 
@@ -310,11 +314,17 @@ fun RowScope.InputAreaTextField(
                 },
             value = textField.value,
             onValueChange = { textFieldValue ->
-                textField.value = textFieldValue
+                textField.value = textFieldValue.maxLength(maxLength)
             },
             interactionSource = interactionSource,
             maxLines = 6,
-            textStyle = style.textStyle.copy(color = style.textColor(enabled = true, isError = false, focused = IsFocused.current)),
+            textStyle = style.textStyle.copy(
+                color = style.textColor(
+                    enabled = true,
+                    isError = false,
+                    focused = IsFocused.current
+                )
+            ),
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Sentences,
             )
@@ -330,7 +340,13 @@ fun RowScope.InputAreaTextField(
                 placeholder = {
                     Text(
                         i18n.inputAreaPrompt(),
-                        style = style.textStyle.copy(color = style.placeholderColor(enabled = true, isError = false, focused = IsFocused.current)),
+                        style = style.textStyle.copy(
+                            color = style.placeholderColor(
+                                enabled = true,
+                                isError = false,
+                                focused = IsFocused.current
+                            )
+                        ),
                     )
                 },
                 colors = style.colors,

@@ -12,9 +12,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -24,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
+import de.connect2x.messenger.compose.view.common.maxLength
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
@@ -42,7 +41,7 @@ class UserSearchFieldViewImpl : UserSearchFieldView {
     @Composable
     override fun create(userSearchHandler: UserSearchHandler) {
         val i18n = DI.get<I18nView>()
-        var userSearchTerm by userSearchHandler.searchTerm.collectAsTextFieldValueState()
+        val (userSearchTerm, maxLength) = userSearchHandler.searchTerm.collectAsTextFieldValueState()
         val focusRequester = remember { FocusRequester() }
 
         LaunchedEffect(Unit) {
@@ -50,18 +49,18 @@ class UserSearchFieldViewImpl : UserSearchFieldView {
         }
 
         OutlinedTextField(
-            value = userSearchTerm,
-            onValueChange = { userSearchTerm = it },
+            value = userSearchTerm.value,
+            onValueChange = { userSearchTerm.value = it.maxLength(maxLength) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 10.dp, vertical = 20.dp)
                 .focusRequester(focusRequester),
             leadingIcon = { Icon(Icons.Default.Search, i18n.userSearchSearchPeople()) },
             trailingIcon = {
-                if (userSearchTerm.text.isNotBlank()) Icon(
+                if (userSearchTerm.value.text.isNotBlank()) Icon(
                     Icons.Default.Clear,
                     i18n.commonDelete(),
-                    Modifier.clickable { userSearchTerm = TextFieldValue("") }.buttonPointerModifier()
+                    Modifier.clickable { userSearchTerm.value = TextFieldValue("") }.buttonPointerModifier()
                 )
             },
             placeholder = { Text(i18n.userSearchNameOrMatrixId()) },

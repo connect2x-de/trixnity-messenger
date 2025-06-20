@@ -21,7 +21,7 @@ import de.connect2x.messenger.compose.view.get
 interface MatrixUsernameView {
     @Composable
     fun create(
-        username: MutableState<TextFieldValue>,
+        usernameProvider: @Composable () -> Pair<MutableState<TextFieldValue>, Int>,
         label: String,
         enabled: Boolean,
         modifier: Modifier,
@@ -31,30 +31,31 @@ interface MatrixUsernameView {
 
 @Composable
 fun MatrixUsername(
-    username: MutableState<TextFieldValue>,
+    usernameProvider: @Composable () -> Pair<MutableState<TextFieldValue>, Int>,
     label: String,
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
     trailingIcon: @Composable (() -> Unit)? = null,
 ) {
-    DI.get<MatrixUsernameView>().create(username, label, enabled, modifier, trailingIcon)
+    DI.get<MatrixUsernameView>().create(usernameProvider, label, enabled, modifier, trailingIcon)
 }
 
 class MatrixUsernameViewImpl : MatrixUsernameView {
     @OptIn(ExperimentalComposeUiApi::class)
     @Composable
     override fun create(
-        username: MutableState<TextFieldValue>,
+        usernameProvider: @Composable () -> Pair<MutableState<TextFieldValue>, Int>,
         label: String,
         enabled: Boolean,
         modifier: Modifier,
         trailingIcon: @Composable (() -> Unit)?,
     ) {
+        val (username, maxLength) = usernameProvider()
         OutlinedTextField(
             enabled = enabled,
             value = username.value,
             singleLine = true,
-            onValueChange = { username.value = it },
+            onValueChange = { username.value = it.maxLength(maxLength) },
             modifier = Modifier
                 .fillMaxWidth()
                 .autofill(AutofillType.Username) {

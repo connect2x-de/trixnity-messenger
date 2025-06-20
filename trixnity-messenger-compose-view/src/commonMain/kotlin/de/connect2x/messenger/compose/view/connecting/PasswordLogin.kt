@@ -42,19 +42,17 @@ class PasswordLoginViewImpl : PasswordLoginView {
         val canLogin = passwordLoginViewModel.canLogin.collectAsState().value
         val tabToNextAndEnterSend = TabInTextField(canLogin, passwordLoginViewModel::tryLogin)
         val i18n = DI.get<I18nView>()
-        val username = passwordLoginViewModel.username.collectAsTextFieldValueState()
-        val password = passwordLoginViewModel.password.collectAsTextFieldValueState()
 
         Column {
             MatrixUsername(
-                username = username,
+                usernameProvider = { passwordLoginViewModel.username.collectAsTextFieldValueState() },
                 label = i18n.addMatrixClientMatrixUsername(),
                 enabled = passwordLoginViewModel.addMatrixAccountState.collectAsState().value.inputEnabled(),
                 modifier = tabToNextAndEnterSend,
             )
             Spacer(Modifier.height(20.dp))
             PasswordField(
-                password = password,
+                passwordProvider = { passwordLoginViewModel.password.collectAsTextFieldValueState() },
                 enabled = passwordLoginViewModel.addMatrixAccountState.collectAsState().value.inputEnabled(),
                 modifier = tabToNextAndEnterSend,
             ) { Text(i18n.addMatrixClientPassword()) }
@@ -73,6 +71,7 @@ fun PasswordLoginState(state: AddMatrixAccountState) {
                 Modifier.fillMaxWidth(),
                 MaterialTheme.components.linearProgressIndicator
             )
+
             is AddMatrixAccountState.Failure ->
                 Text(state.message, color = MaterialTheme.colorScheme.error)
 

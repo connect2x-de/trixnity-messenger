@@ -26,10 +26,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -53,6 +51,7 @@ import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.icons.EditIcon
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
+import de.connect2x.messenger.compose.view.common.maxLength
 import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.filterFilePickerOptionsByAvailability
 import de.connect2x.messenger.compose.view.get
@@ -60,7 +59,6 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
-import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModel
 import kotlinx.coroutines.delay
@@ -165,7 +163,7 @@ fun ProfileAvatar(profileSingleViewModel: ProfileSingleViewModel) {
 fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileViewModel: ProfileViewModel) {
     val i18n = DI.get<I18nView>()
     val displayName = profileSingleViewModel.displayName.collectAsState().value
-    var editDisplayName by (profileSingleViewModel.editDisplayName as TextFieldViewModel).collectAsTextFieldValueState()
+    val (editDisplayName, maxLength) = profileSingleViewModel.editDisplayName.collectAsTextFieldValueState()
     val canChangeDisplayName = profileSingleViewModel.canChangeDisplayName.collectAsState().value
 
     val focusRequester = remember { FocusRequester() }
@@ -173,7 +171,7 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (editMode.value) {
-            Tooltip({Text(i18n.commonCancel())}) {
+            Tooltip({ Text(i18n.commonCancel()) }) {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = {
@@ -186,8 +184,8 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
             }
             Spacer(Modifier.size(10.dp))
             OutlinedTextField(
-                editDisplayName,
-                { editDisplayName = it },
+                editDisplayName.value,
+                { editDisplayName.value = it.maxLength(maxLength) },
                 Modifier
                     .onPreviewKeyEvent {
                         if (it.type == KeyEventType.KeyDown) {
@@ -222,7 +220,7 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
             }
         }
         if (editMode.value) {
-            Tooltip({Text(i18n.commonAcceptEdit())}) {
+            Tooltip({ Text(i18n.commonAcceptEdit()) }) {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = { done(editMode, profileSingleViewModel, profileViewModel) },
@@ -231,7 +229,7 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
                 }
             }
         } else {
-            Tooltip({Text(i18n.commonEdit())}) {
+            Tooltip({ Text(i18n.commonEdit()) }) {
                 ThemedIconButton(
                     enabled = canChangeDisplayName,
                     style = MaterialTheme.components.commonIconButton,

@@ -126,19 +126,15 @@ open class TextFieldViewModelImpl private constructor(
     override val maxLength: Int = maxLength
 
     override fun update(text: String, selection: IntRange?, epoch: ULong?) {
-        println("++++ ${text.takeLast(20)}, $selection, $epoch")
         delegate.update {
             if (epoch == null || epoch > it.epoch) {
-//                val endIndex = text.length.coerceIn(0..maxLength)
-//                println("+++ $endIndex")
+                println("+++ ${text.length}")
                 TextFieldViewModel.State(
                     epoch = it.epoch + 1u,
-//                    text = text.take(endIndex),
-                    text = text,
-                    selection = selection,
-//                            selection?.let {
-//                        selection.first.coerceIn(0..endIndex)..selection.last.coerceIn(0..endIndex)
-//                    },
+                    text = text.take(maxLength),
+                    selection = selection?.let {
+                        selection.first.coerceIn(0..maxLength)..selection.last.coerceIn(0..maxLength)
+                    },
                 )
             } else {
                 log.trace { "skip update, because epoch $epoch > ${it.epoch}" }

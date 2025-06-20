@@ -30,6 +30,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MoreOptions
+import de.connect2x.messenger.compose.view.common.maxLength
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
@@ -62,8 +63,8 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
         val isPrivate by createNewGroupViewModel.isPrivate.collectAsState()
         val isEncrypted by createNewGroupViewModel.isEncrypted.collectAsState()
         val isCreating by createNewGroupViewModel.isCreating.collectAsState()
-        val optionalRoomName = createNewGroupViewModel.optionalRoomName.collectAsTextFieldValueState()
-        val optionalRoomTopic = createNewGroupViewModel.optionalGroupTopic.collectAsTextFieldValueState()
+        val (optionalRoomName, roomNameMaxLength) = createNewGroupViewModel.optionalRoomName.collectAsTextFieldValueState()
+        val (optionalRoomTopic, roomTopicMaxLength) = createNewGroupViewModel.optionalGroupTopic.collectAsTextFieldValueState()
 
         val roomOptionsString = buildString {
             append(i18n.roomType())
@@ -124,9 +125,9 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             CreateGroupOptions(createNewGroupViewModel)
                         }
                         Spacer(Modifier.height(15.dp))
-                        OptionalRoomNameInput(optionalRoomName)
+                        OptionalRoomNameInput(optionalRoomName, roomNameMaxLength)
                         Spacer(Modifier.height(15.dp))
-                        OptionalRoomTopicInput(optionalRoomTopic)
+                        OptionalRoomTopicInput(optionalRoomTopic, roomTopicMaxLength)
                         UsersInGroup(createNewGroupViewModel)
                         SearchUsers(
                             createNewGroupViewModel.createNewRoomViewModel,
@@ -156,11 +157,12 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
 @Composable
 fun OptionalRoomNameInput(
     value: MutableState<TextFieldValue>,
+    maxLength: Int,
 ) {
     val i18n = DI.get<I18nView>()
     OutlinedTextField(
         value = value.value,
-        onValueChange = { value.value = it },
+        onValueChange = { value.value = it.maxLength(maxLength) },
         placeholder = { Text(i18n.optionalGroupNamePlaceholder()) },
         modifier = Modifier
             .fillMaxWidth()
@@ -172,11 +174,12 @@ fun OptionalRoomNameInput(
 @Composable
 fun OptionalRoomTopicInput(
     value: MutableState<TextFieldValue>,
+    maxLength: Int,
 ) {
     val i18n = DI.get<I18nView>()
     OutlinedTextField(
         value = value.value,
-        onValueChange = { value.value = it },
+        onValueChange = { value.value = it.maxLength(maxLength) },
         placeholder = { Text(i18n.optionalGroupTopicPlaceholder()) },
         modifier = Modifier
             .fillMaxWidth()
