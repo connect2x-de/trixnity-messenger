@@ -11,9 +11,18 @@ import androidx.compose.ui.text.input.TextFieldValue
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 
 @Composable
-fun TextFieldViewModel.collectAsTextFieldValueState(focusRequester: FocusRequester? = null): Pair<MutableState<TextFieldValue>, Int> {
+fun TextFieldViewModel.collectAsTextFieldValueState(focusRequester: FocusRequester? = null): MutableState<TextFieldValue> {
     val uiEpoch = remember { mutableStateOf(0UL) }
-    val uiState = remember { mutableStateOf(value.toTextFieldValue()) }
+    val uiState = remember {
+        val delegate = mutableStateOf(value.toTextFieldValue(maxLength))
+        object : MutableState<TextFieldValue> by delegate {
+            override var value: TextFieldValue
+                get() = delegate.value
+                set(value) {
+                    delegate.value = value.copy(value.text.take(maxLength))
+                }
+        }
+    }
     val uiStateValue = uiState.value
 
     // UI -> VM sync
@@ -28,7 +37,7 @@ fun TextFieldViewModel.collectAsTextFieldValueState(focusRequester: FocusRequest
     LaunchedEffect(Unit) {
         collect { vmState ->
             if (vmState.epoch > uiEpoch.value) {
-                val newState = vmState.toTextFieldValue()
+                val newState = vmState.toTextFieldValue(maxLength)
 
                 if (newState != uiState.value) {
                     // If the state has changed, the UI -> VM sync will increment the epoch, so we need to compensate for that
@@ -43,12 +52,12 @@ fun TextFieldViewModel.collectAsTextFieldValueState(focusRequester: FocusRequest
         }
     }
 
-    return uiState to maxLength
+    return uiState
 }
 
-private fun TextFieldViewModel.State.toTextFieldValue(): TextFieldValue {
+private fun TextFieldViewModel.State.toTextFieldValue(maxLength: Int): TextFieldValue {
     return TextFieldValue(
-        text,
+        text.take(maxLength),
         selection?.run {
             TextRange(first, last.coerceIn(0..text.length))
         } ?: TextRange.Zero

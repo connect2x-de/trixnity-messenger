@@ -49,7 +49,7 @@ class RegisterNewAccountViewImpl : RegisterNewAccountView {
             val tabToNextAndEnterSend =
                 TabInTextField(canRegisterNewUser, registerMatrixAccountViewModel::register)
             MatrixUsername(
-                usernameProvider = { registerMatrixAccountViewModel.username.collectAsTextFieldValueState() },
+                username = registerMatrixAccountViewModel.username.collectAsTextFieldValueState(),
                 label = i18n.registrationUsername(),
                 enabled = true,
             ) {
@@ -62,7 +62,7 @@ class RegisterNewAccountViewImpl : RegisterNewAccountView {
             }
             Spacer(Modifier.size(20.dp))
             PasswordField(
-                passwordProvider = { registerMatrixAccountViewModel.password.collectAsTextFieldValueState() },
+                password = registerMatrixAccountViewModel.password.collectAsTextFieldValueState(),
                 modifier = tabToNextAndEnterSend,
             ) { Text(i18n.registrationPassword()) }
         }

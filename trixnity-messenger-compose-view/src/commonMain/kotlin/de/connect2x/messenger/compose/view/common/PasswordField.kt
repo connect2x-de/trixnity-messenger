@@ -35,25 +35,24 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PasswordField(
-    passwordProvider: @Composable () -> Pair<MutableState<TextFieldValue>, Int>,
+    password: MutableState<TextFieldValue>,
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
     label: @Composable () -> Unit,
 ) {
-    val (password, maxLength) = passwordProvider()
     val passwordVisible = remember { mutableStateOf(false) }
     val i18n = DI.get<I18nView>()
 
     OutlinedTextField(
         value = password.value,
-        onValueChange = { password.value = it.maxLength(maxLength) },
+        onValueChange = { password.value = it },
         label = label,
         enabled = enabled,
         singleLine = true,
         modifier = Modifier
             .fillMaxWidth()
             .autofill(AutofillType.Password) {
-                password.value = TextFieldValue(it).maxLength(maxLength)
+                password.value = TextFieldValue(it)
             }
             .then(modifier),
         visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),

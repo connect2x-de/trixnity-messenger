@@ -26,6 +26,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
@@ -40,7 +41,6 @@ import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.TooltipText
-import de.connect2x.messenger.compose.view.common.maxLength
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -127,13 +127,13 @@ class SearchGroupViewImpl : SearchGroupView {
 
 @Composable
 fun SearchGroupSearchBar(searchGroupViewModel: SearchGroupViewModel) {
-    val (searchTerm, maxLength) = searchGroupViewModel.searchTerm.collectAsTextFieldValueState()
+    var searchTerm by searchGroupViewModel.searchTerm.collectAsTextFieldValueState()
 
     val i18n = DI.get<I18nView>()
 
     OutlinedTextField(
-        searchTerm.value,
-        { searchTerm.value = it.maxLength(maxLength) },
+        searchTerm,
+        { searchTerm = it },
         modifier = Modifier.fillMaxWidth().padding(10.dp),
         label = { Text(i18n.searchGroupSearch()) },
         keyboardOptions = KeyboardOptions(

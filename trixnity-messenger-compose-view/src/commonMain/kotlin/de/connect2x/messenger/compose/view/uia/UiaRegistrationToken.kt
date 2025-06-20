@@ -13,6 +13,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -24,7 +26,6 @@ import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.TabInTextField
-import de.connect2x.messenger.compose.view.common.maxLength
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -90,13 +91,13 @@ fun RegistrationToken(
     uiaStepRegistrationTokenViewModel: UiaStepRegistrationTokenViewModel,
     tabToNextAndEnterSend: Modifier,
 ) {
-    val (registrationToken, maxLength) = uiaStepRegistrationTokenViewModel.registrationToken.collectAsTextFieldValueState()
+    var registrationToken by uiaStepRegistrationTokenViewModel.registrationToken.collectAsTextFieldValueState()
     val i18n = DI.get<I18nView>()
     OutlinedTextField(
         enabled = true,
-        value = registrationToken.value,
+        value = registrationToken,
         singleLine = true,
-        onValueChange = { registrationToken.value = it.maxLength(maxLength) },
+        onValueChange = { registrationToken = it },
         modifier = Modifier.fillMaxWidth().then(tabToNextAndEnterSend),
         label = { Text(i18n.uiaRegistrationTokenAddToken()) },
         keyboardOptions = KeyboardOptions(

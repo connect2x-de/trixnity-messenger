@@ -18,6 +18,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -45,7 +46,7 @@ fun ApprovableTextField(
     val i18n = DI.get<I18nView>()
     val isEdit by viewModel.isEdit.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val (value, maxLength) = viewModel.collectAsTextFieldValueState()
+    var value by viewModel.collectAsTextFieldValueState()
 
     Column {
         Text(text = textCaption, style = MaterialTheme.typography.titleMedium)
@@ -70,8 +71,8 @@ fun ApprovableTextField(
                         Spacer(Modifier.size(10.dp))
                     }
                     OutlinedTextField(
-                        value = value.value,
-                        onValueChange = { value.value = it.maxLength(maxLength) },
+                        value = value,
+                        onValueChange = { value = it },
                         enabled = isEdit,
                         placeholder = { Text(textPlaceholder) },
                         modifier = Modifier.weight(1.0f, fill = true)
@@ -102,7 +103,7 @@ fun ApprovableTextField(
             else -> {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
-                        value = value.value,
+                        value = value,
                         onValueChange = {},
                         enabled = false,
                     )

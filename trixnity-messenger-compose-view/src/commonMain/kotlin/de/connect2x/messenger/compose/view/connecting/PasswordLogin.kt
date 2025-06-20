@@ -42,17 +42,19 @@ class PasswordLoginViewImpl : PasswordLoginView {
         val canLogin = passwordLoginViewModel.canLogin.collectAsState().value
         val tabToNextAndEnterSend = TabInTextField(canLogin, passwordLoginViewModel::tryLogin)
         val i18n = DI.get<I18nView>()
+        val username = passwordLoginViewModel.username.collectAsTextFieldValueState()
+        val password = passwordLoginViewModel.password.collectAsTextFieldValueState()
 
         Column {
             MatrixUsername(
-                usernameProvider = { passwordLoginViewModel.username.collectAsTextFieldValueState() },
+                username = username,
                 label = i18n.addMatrixClientMatrixUsername(),
                 enabled = passwordLoginViewModel.addMatrixAccountState.collectAsState().value.inputEnabled(),
                 modifier = tabToNextAndEnterSend,
             )
             Spacer(Modifier.height(20.dp))
             PasswordField(
-                passwordProvider = { passwordLoginViewModel.password.collectAsTextFieldValueState() },
+                password = password,
                 enabled = passwordLoginViewModel.addMatrixAccountState.collectAsState().value.inputEnabled(),
                 modifier = tabToNextAndEnterSend,
             ) { Text(i18n.addMatrixClientPassword()) }
