@@ -9,11 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added loading spinner to user profile view when blocking user to show in-progress action
-
 ### Changed
-
-- Don't show option for user verification when user is already verified
 
 ### Deprecated
 
@@ -21,12 +17,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 3.6.5
+
+### Added
+
+- Added loading spinner to user profile view when blocking user to show in-progress action
+
+### Changed
+
+- Don't show option for user verification when user is already verified
+- Updated Trixnity from 4.16.4 to 4.16.5
+
+### Fixed
+
 - Show correct user verification status in UserInfo when user verification hasn't been completed
 - Fixed tooltips and accessible labels for Read/Sent markers
 - Fixed switch in user profile view for blocking not reflecting correct server-side state
 - Fixed error display not going away when renaming device
-
-### Security
 
 ## 3.6.4
 
@@ -44,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Accessibility Settings Step for Setup Wizard (`AccountSetupWizardStep.AccessibilityStep`) 
+- Accessibility Settings Step for Setup Wizard (`AccountSetupWizardStep.AccessibilityStep`)
 
 ### Changed
 
@@ -99,7 +108,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed "edited" is shown in the wrong place in `TimelineElementMetadataViewModel`
 - Send button is only active after the second char in the input field
 - Canceled or completed user verifications are shown correctly in the timeline (**Breaking change**: user verification
-  end states (canceled or done) have separate timeline view models now 
+  end states (canceled or done) have separate timeline view models now
   (MessageTimelineElementViewModel.VerificationCancel, MessageTimelineElementViewModel.VerificationDone))
 - Fixed AvatarCutter ignoring alignment/rotation metadata
 
