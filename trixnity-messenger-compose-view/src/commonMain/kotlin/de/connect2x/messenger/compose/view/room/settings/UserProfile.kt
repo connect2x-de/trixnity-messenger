@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -53,6 +55,7 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.TooltipText
@@ -74,6 +77,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedInfoChip
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.components.ThemedSuggestionChip
 import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
@@ -306,12 +310,11 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
         }
         VerySmallSpacer()
 
-        MenuElement(arrangement = Arrangement.SpaceBetween) {
-            Row {
-                BlockIcon()
-                Spacer(Modifier.size(10.dp))
-                Text(i18n.userProfileBlockUser())
-            }
+        MenuElement {
+            BlockIcon()
+            Spacer(Modifier.size(10.dp))
+            Text(i18n.userProfileBlockUser())
+            Spacer(Modifier.weight(1f, true))
             ThemedSwitch(
                 checked = isUserBlocked,
                 onCheckedChange = {
@@ -321,7 +324,12 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
                         userProfileViewModel.blockUser()
                     }
                 },
-                enabled = !blockingInProgress
+                enabled = !blockingInProgress,
+                thumbContent = {
+                    if (blockingInProgress) {
+                        ThemedProgressIndicator(style = MaterialTheme.components.switchProgressIndicator)
+                    }
+                }
             )
         }
         if (canOpenChat) {
@@ -716,7 +724,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
 private fun MenuElement(
     modifier: Modifier = Modifier,
     arrangement: Arrangement.Horizontal = Arrangement.Start,
-    content: @Composable () -> Unit,
+    content: @Composable RowScope.() -> Unit,
 ) {
     Row(
         modifier.fillMaxWidth().padding(horizontal = 10.dp).minimumInteractiveComponentSize(),

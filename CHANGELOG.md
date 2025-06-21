@@ -11,17 +11,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Don't show option for user verification when user is already verified
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
-- Show correct user verification status in UserInfo when user verification hasn't been completed
-
 ### Security
+
+## 3.6.5
+
+### Added
+
+- Added loading spinner to user profile view when blocking user to show in-progress action
+
+### Changed
+
+- Don't show option for user verification when user is already verified
+- Updated Trixnity from 4.16.4 to 4.16.5
+
+### Fixed
+
+- Show correct user verification status in UserInfo when user verification hasn't been completed
+- Fixed tooltips and accessible labels for Read/Sent markers
+- Fixed switch in user profile view for blocking not reflecting correct server-side state
+- Fixed error display not going away when renaming device
 
 ## 3.6.4
 
@@ -36,6 +50,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Trixnity from 4.16.2 to 4.16.3 (hotfix: dehydrated devices)
 
 ## 3.6.2
+
+### Added
+
+- Accessibility Settings Step for Setup Wizard (`AccountSetupWizardStep.AccessibilityStep`)
 
 ### Changed
 
@@ -67,7 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add setAvatarImage function to AvatarCutterViewModel
-- Accessibility Settings Step for Setup Wizard (`AccountSetupWizardStep.AccessibilityStep`)
+- Add tests for various logic
 
 ### Changed
 
@@ -77,10 +95,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make tooltip show/hide delays configurable
 - Styling: Use customizable components for labels
 - Persist presence
-
-### Deprecated
-
-### Removed
+- Styling: Use theme components for dialogs
+- Clearly distinguish between a room member leaving, being kicked, banned or unbanned.
+- Adapt to Trixnity media cache changes
 
 ### Fixed
 
