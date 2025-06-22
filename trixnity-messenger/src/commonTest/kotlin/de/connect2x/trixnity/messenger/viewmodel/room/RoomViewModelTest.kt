@@ -164,6 +164,7 @@ class RoomViewModelTest {
                 MutableStateFlow(emptyMap())
         every { verificationServiceMock.activeDeviceVerification } returns
                 MutableStateFlow(null)
+        every { verificationServiceMock.activeUserVerifications } returns MutableStateFlow(listOf())
         every { verificationServiceMock.getSelfVerificationMethods() }.also {
             selfVerificationMethods = it
         } returns MutableStateFlow(
