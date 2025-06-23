@@ -787,17 +787,17 @@ open class I18nView(
     }
 
     open fun imageCouldNotBeLoaded() = translate {
-        EN - "Image could not be loaded."
+        EN - "Cannot load image file."
         DE - "Bild konnte nicht geladen werden."
     }
 
     open fun videoCouldNotBeLoaded() = translate {
-        EN - "Video could not be loaded."
+        EN - "Cannot load video file."
         DE - "Video konnte nicht geladen werden."
     }
 
     open fun fileCouldNotBeLoaded() = translate {
-        EN - "File could not be loaded."
+        EN - "Cannot load file."
         DE - "Datei konnte nicht geladen werden."
     }
 

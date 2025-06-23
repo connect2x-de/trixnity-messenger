@@ -146,7 +146,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
             element.downloadMedia()
         }
         LaunchedEffect(Unit) {
-            element.downloadMediaError.collect { setError(it) }
+            element.downloadMediaError.collect { setError(i18n.fileCouldNotBeLoaded()) }
         }
         FileBasedDetailsDialog(
             element,
@@ -157,7 +157,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
             Column {
                 Box(
                     Modifier
-                        .background(color = if (media == null) MaterialTheme.colorScheme.background else Color.Black)
+                        .background(color = Color.Black)
                         .fillMaxSize()
                         .focusRequester(focusRequester)
                         .focusable()
@@ -168,6 +168,22 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                         .zoomModifier(focusRequester, canZoom, zoom, minZoom, maxZoom),
                 ) {
                     when {
+                        error != null -> {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxSize().padding(32.dp),
+                            ) {
+                                Icon(
+                                    MaterialTheme.messengerIcons.typeFile,
+                                    i18n.commonFile(),
+                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally),
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                                Text(error, color = Color.White)
+                            }
+                        }
+
                         progress != null && media == null -> {
                             DownloadProgress(progress, element::cancelDownloadMedia)
                         }
@@ -177,7 +193,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                             val reader = remember { mutableStateOf<PDFReader?>(null) }
                             LaunchedEffect(Unit) {
                                 reader.value =
-                                    getPlatformPDFReader(media) { setError(it ?: i18n.fileCouldNotBeLoaded()) }
+                                    getPlatformPDFReader(media) { setError(i18n.fileCouldNotBeLoaded()) }
                             }
                             DisposableEffect(Unit) {
                                 onDispose {
@@ -273,22 +289,6 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                                     lazyListState,
                                     false
                                 )
-                            }
-                        }
-
-                        error != null -> {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxSize().padding(32.dp),
-                            ) {
-                                Icon(
-                                    MaterialTheme.messengerIcons.typeFile,
-                                    i18n.commonFile(),
-                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally),
-                                    tint = MaterialTheme.colorScheme.onBackground
-                                )
-                                Text(error, color = MaterialTheme.colorScheme.onBackground)
                             }
                         }
 
