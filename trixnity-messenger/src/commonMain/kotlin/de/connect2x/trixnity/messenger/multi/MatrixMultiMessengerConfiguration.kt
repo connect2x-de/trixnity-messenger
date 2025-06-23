@@ -50,8 +50,6 @@ data class MatrixMultiMessengerConfiguration(
      * Simultaneously use multiple profiles
      */
     var multiProfile: Boolean = true,
-
-    override var forbidDownloads: Boolean = false,
 ) : MatrixMessengerBaseConfiguration {
     val messengerWithBase: MatrixMessengerConfiguration.() -> Unit
         get() = {

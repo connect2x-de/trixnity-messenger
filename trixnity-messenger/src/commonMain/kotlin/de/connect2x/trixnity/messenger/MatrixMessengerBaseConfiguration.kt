@@ -22,8 +22,6 @@ interface MatrixMessengerBaseConfiguration {
     var licenses: String?
     var pushUrl: String?
 
-    var downloadsDisabled: Boolean
-
     var httpClientEngine: HttpClientEngine?
     var httpClientConfig: (HttpClientConfig<*>.() -> Unit)?
 
