@@ -3,8 +3,6 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrays
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.MatrixClient.LoginInfo
 import net.folivo.trixnity.client.fromStore
@@ -32,7 +30,6 @@ class MatrixClientFactoryImpl(
     private val repositoriesModuleCreation: CreateRepositoriesModule,
     private val createMediaStoreModule: CreateMediaStoreModule,
     private val settings: MatrixMessengerSettingsHolder,
-    private val configuration: MatrixMessengerConfiguration,
     private val secretByteArrays: SecretByteArrays,
     private val configurer: List<ConfigureMatrixClientConfiguration>,
     private val onLogin: suspend (loginInfo: LoginInfo, baseUrl: Url) -> Unit = { _, _ -> },
@@ -43,23 +40,16 @@ class MatrixClientFactoryImpl(
         checkExisting: suspend (LoginInfo) -> Unit,
     ): Result<MatrixClient> = kotlin.runCatching {
         log.debug { "loginWith to account" }
-        val databaseEncrypted = configuration.databaseEncryptionEnabled
         MatrixClient.loginWith(
             baseUrl = baseUrl,
             repositoriesModuleFactory = { loginInfo ->
-                settings.update<MatrixMessengerAccountSettingsBase>(userId = loginInfo.userId) {
-                    it.copy(encryptDatabase = databaseEncrypted)
-                }
-                createRepositoriesModuleOrThrow(
-                    userId = loginInfo.userId,
-                    databaseKey = if (databaseEncrypted) getDatabaseKey(loginInfo.userId) else null
-                )
+                createRepositoriesModuleOrThrow(loginInfo.userId, getDatabaseKey(loginInfo.userId))
             },
             mediaStoreModuleFactory = { loginInfo ->
                 createMediaStoreModule(loginInfo.userId)
             },
             getLoginInfo = {
-                runCatching {
+                kotlin.runCatching {
                     val loginInfo = getLoginInfo(it)
                     checkExisting(loginInfo)
                     onLogin(loginInfo, baseUrl)
@@ -76,18 +66,8 @@ class MatrixClientFactoryImpl(
         userId: UserId,
     ): Result<MatrixClient?> = kotlin.runCatching {
         log.debug { "initFromStore (userId=$userId)" }
-        val encryptDatabase =
-            settings[userId].map { it?.base?.encryptDatabase ?: legacyEncryptDatabasePlatformDefault() }.first()
-        // TODO remove after migration phase is over
-        settings.update<MatrixMessengerAccountSettingsBase>(userId) {
-            it.copy(encryptDatabase = encryptDatabase)
-        }
-
         MatrixClient.fromStore(
-            repositoriesModule = loadRepositoriesModuleOrThrow(
-                userId = userId,
-                databaseKey = if (encryptDatabase) getDatabaseKey(userId) else null
-            ),
+            repositoriesModule = loadRepositoriesModuleOrThrow(userId, getDatabaseKey(userId)),
             mediaStoreModule = createMediaStoreModule(userId),
             configuration = {
                 configurer.forEach { with(it) { invoke() } }
@@ -128,7 +108,7 @@ class MatrixClientFactoryImpl(
     }
 
     @Suppress("DEPRECATION") // TODO: remove this in the future
-    private suspend fun getDatabaseKey(userId: UserId): ByteArray {
+    private suspend fun getDatabaseKey(userId: UserId): ByteArray? {
         val legacyKey = settings.value.base.accounts[userId]
             ?.base?.databasePassword
             ?.let { secretByteArrays.getLegacy(it) }
@@ -141,7 +121,7 @@ class MatrixClientFactoryImpl(
             if (existing != null) {
                 existing
             } else {
-                val newKey = repositoriesModuleCreation.generateDatabaseKey()
+                val newKey = repositoriesModuleCreation.generateDatabaseKey() ?: return null
                 secretByteArrays.set(ID, newKey)
                 newKey
             }
@@ -152,6 +132,3 @@ class MatrixClientFactoryImpl(
     private fun isLocked(exc: Throwable): Boolean =
         exc.cause?.message?.contains("locked") == true || exc.cause?.let { isLocked(it) } ?: false
 }
-
-@Deprecated("Only for older clients with database encryption enabled or disabled.")
-expect fun legacyEncryptDatabasePlatformDefault(): Boolean
