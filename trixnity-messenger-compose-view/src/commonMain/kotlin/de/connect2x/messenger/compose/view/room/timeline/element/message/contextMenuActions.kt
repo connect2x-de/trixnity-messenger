@@ -126,7 +126,10 @@ class BaseTimelineElementHolderContextMenuAction(
                     Text(
                         label,
                         Modifier.buttonPointerModifier(),
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = if (isEnabled)
+                            MaterialTheme.colorScheme.onBackground
+                        else
+                            MaterialTheme.colorScheme.onBackground.copy(alpha = 0.38f),
                     )
                 },
                 onClick = {
@@ -151,7 +154,10 @@ class BaseTimelineElementHolderContextMenuAction(
         ) {
             Text(
                 label,
-                color = MaterialTheme.colorScheme.onBackground,
+                color = if (isEnabled)
+                    MaterialTheme.colorScheme.onBackground
+                else
+                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.38f),
                 modifier = Modifier
                     .padding(20.dp)
                     .fillMaxWidth()
