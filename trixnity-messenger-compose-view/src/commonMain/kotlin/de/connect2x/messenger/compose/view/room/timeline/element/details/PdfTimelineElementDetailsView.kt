@@ -54,6 +54,7 @@ import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.common.DownloadProgress
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
@@ -138,7 +139,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
             offset.value = offset.value + offsetChange.times(zoom.value)
         }
         val viewSize = remember { MutableStateFlow(IntSize.Zero) }
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val dpi = remember { mutableStateOf<Float?>(null) }
         val pageCacheSize = remember { mutableStateOf(max(2f, min(16f, 8f / zoom.value)).toInt()) }
 

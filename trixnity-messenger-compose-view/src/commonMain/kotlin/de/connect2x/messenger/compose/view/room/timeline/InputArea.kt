@@ -236,7 +236,7 @@ fun RowScope.InputAreaTextField(
     val interactionSource = remember { MutableInteractionSource() }
     val showUploadError = remember { mutableStateOf<Throwable?>(null) }
 
-    val maxAttachmentSize = DI.current.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    val maxAttachmentSize = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     if (Platform.current.isMobile.not()) {
         LaunchedEffect(Unit) {

@@ -55,7 +55,7 @@ fun messengerConfiguration(
             { composeViewModule(this) },
         )
 
-        forbidDownloads = BuildConfig.forbidDownloads
+        downloadsDisabled = BuildConfig.downloadsDisabled
         when (BuildConfig.flavor) {
             Flavor.PROD -> {}
             Flavor.DEV -> {

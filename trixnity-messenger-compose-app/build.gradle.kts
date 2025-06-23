@@ -40,7 +40,7 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
                 val licencesString = licenseTask.get().outputFile.get().asFile.readText()
                     .replace("$", "\${'$'}")
                     .replace(quotes, "")
-                val forbidDownloads: Boolean = System.getenv("TM_FORBID_DOWNLOAD") == "true"
+                val downloadsDisabled: Boolean = System.getenv("TM_DISABLE_DOWNLOADS") == "true"
 
                 val buildConfigString =
                     """
@@ -52,7 +52,7 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
                 override val appName: String = "$appName"
                 override val appId: String = "$appId"
                 override val licenses: String = $quotes$licencesString$quotes
-                override val forbidDownloads: Boolean = $forbidDownloads
+                override val downloadsDisabled: Boolean = $downloadsDisabled
             }
         """.trimIndent()
                 outputFile.asFile.apply {

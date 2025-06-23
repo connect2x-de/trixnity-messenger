@@ -16,6 +16,7 @@ import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.TooltipText
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
@@ -112,7 +113,7 @@ class BaseTimelineElementHolderContextMenuAction(
     internal fun dropDownMenuItem(
         onClose: () -> Unit,
     ) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         Tooltip(
             enabled = !isEnabled,
             tooltip = {
@@ -141,7 +142,7 @@ class BaseTimelineElementHolderContextMenuAction(
     internal fun bottomSheetItem(
         onClose: () -> Unit,
     ) {
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         Tooltip(
             enabled = !isEnabled,
             tooltip = {

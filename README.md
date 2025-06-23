@@ -150,6 +150,8 @@ val matrixMessenger = MatrixMessenger.create {
 }
 ```
 
+Some configuration options for the Matrix Messenger can also be changed via Environment Variables at build time, e.g. `TM_DISABLE_DOWNLOADS` to prohibit the download of files from the Messenger.
+
 ### MatrixClientConfiguration
 
 If you want to change the underlying `MatrixClientConfiguration`, you can register a

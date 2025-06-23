@@ -103,8 +103,8 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
     overlay: @Composable BoxScope.() -> Unit,
     content: @Composable ColumnScope.(() -> Unit, () -> Unit) -> Unit
 ) {
-    val i18n = DI.current.get<I18nView>()
-    val configuration = DI.current.get<MatrixMessengerConfiguration>()
+    val i18n = DI.get<I18nView>()
+    val configuration = DI.get<MatrixMessengerConfiguration>()
 
     MessageBubble(
         holder,
@@ -124,7 +124,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
             // download action
             BaseTimelineElementHolderContextMenuAction(
                 label = i18n.downloadMessage(),
-                isEnabled = !configuration.forbidDownloads,
+                isEnabled = !configuration.downloadsDisabled,
                 action = onSave,
             ).render(onClose)
         },

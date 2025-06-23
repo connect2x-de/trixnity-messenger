@@ -42,7 +42,7 @@ import net.folivo.trixnity.core.model.events.m.key.verification.VerificationMeth
 fun BoxScope.DeviceVerificationWizardStepSwitch(
     viewModel: VerificationViewModel
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val selectedVerificationMethod =
         remember { mutableStateOf<VerificationMethod?>(null) }
     val child = viewModel.stack.subscribeAsState().value.active.instance

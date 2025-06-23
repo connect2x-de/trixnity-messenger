@@ -44,7 +44,7 @@ fun FileBasedDetailsHeader(
     additionalButtons: @Composable RowScope.() -> Unit = {},
 ) {
     val i18n = DI.get<I18nView>()
-    val configuration = DI.current.get<MatrixMessengerConfiguration>()
+    val configuration = DI.get<MatrixMessengerConfiguration>()
     val downloadProgress = element.downloadMediaProgress.collectAsState().value
 
     Row(
@@ -88,7 +88,7 @@ fun FileBasedDetailsHeader(
             FileBasedDetailsHeaderButton(
                 Icons.Outlined.Download,
                 i18n.downloadMessage(),
-                !configuration.forbidDownloads,
+                !configuration.downloadsDisabled,
                 onSave
             )
         } else {
