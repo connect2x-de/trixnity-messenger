@@ -4,7 +4,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.SQLiteDriver
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import androidx.sqlitemc.driver.bundled.BundledSQLiteDriver
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException.DatabaseAccessException
 import de.connect2x.trixnity.messenger.util.RootPath
 import kotlinx.coroutines.runBlocking
