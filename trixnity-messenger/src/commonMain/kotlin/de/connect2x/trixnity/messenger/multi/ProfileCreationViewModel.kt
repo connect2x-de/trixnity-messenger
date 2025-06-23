@@ -44,7 +44,7 @@ class ProfileCreationViewModelImpl(
     private val profileManager = di.get<ProfileManager>()
     private val i18n = di.get<I18n>()
 
-    override val profileName = TextFieldViewModelImpl()
+    override val profileName = TextFieldViewModelImpl(maxLength = 1_000)
     override val error: StateFlow<String?> =
         combine(profileManager.profiles, profileName) { existingProfiles, currentProfileName ->
             when {
