@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Text input fields have a max length now
 - Rename Sqlite3mc driver package name
+- Allow to enable database encryption via config
 
 ### Deprecated
 
