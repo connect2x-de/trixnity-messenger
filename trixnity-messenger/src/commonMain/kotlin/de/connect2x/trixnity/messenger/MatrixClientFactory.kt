@@ -117,12 +117,12 @@ class MatrixClientFactoryImpl(
             settings.update<MatrixMessengerAccountSettingsBase>(userId) { it.copy(databasePassword = null) }
             legacyKey
         } else {
-            val existing = secretByteArrays.get(ID)
+            val existing = secretByteArrays.get("$ID-$userId") ?: secretByteArrays.get(ID)
             if (existing != null) {
                 existing
             } else {
                 val newKey = repositoriesModuleCreation.generateDatabaseKey() ?: return null
-                secretByteArrays.set(ID, newKey)
+                secretByteArrays.set("$ID-$userId", newKey)
                 newKey
             }
         }
