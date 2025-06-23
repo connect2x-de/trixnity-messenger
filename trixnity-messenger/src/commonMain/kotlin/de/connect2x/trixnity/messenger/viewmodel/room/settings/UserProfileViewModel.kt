@@ -106,7 +106,8 @@ interface UserProfileViewModel {
     val blockingInProgress: StateFlow<Boolean>
     val presence: StateFlow<Presence>
     val openingChat: StateFlow<Boolean>
-    val verifying: StateFlow<Boolean>
+    val verificationIsRunning: StateFlow<Boolean>
+    val verificationIsRunningInThisRoom: StateFlow<Boolean>
     val canOpenChat: StateFlow<Boolean>
     val canVerifyUser: StateFlow<Boolean>
 
@@ -129,6 +130,7 @@ interface UserProfileViewModel {
 
     fun openChat()
     fun startVerification(closeSettingsAfterStart: Boolean = false)
+    fun openVerificationRoom()
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -534,7 +536,18 @@ class UserProfileViewModelImpl(
         }
     }
 
-    override val verifying = MutableStateFlow(false)
+    override val verificationIsRunning =
+        matrixClient.verification.activeUserVerifications.map { activeVerifications -> activeVerifications.any { it.theirUserId == userId } }
+            .stateIn(
+                coroutineScope,
+                SharingStarted.Eagerly,
+                false
+            )
+
+    override val verificationIsRunningInThisRoom: StateFlow<Boolean> =
+        matrixClient.verification.activeUserVerifications.map { activeUserVerifications -> activeUserVerifications.any { it.theirUserId == userId && it.roomId == selectedRoomId } }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
 
     override val canVerifyUser: StateFlow<Boolean> =
         userTrustLevel.map {
@@ -547,7 +560,7 @@ class UserProfileViewModelImpl(
             log.warn { "cannot verify yourself" }
             return
         }
-        if (canVerifyUser.value && verifying.compareAndSet(expect = false, update = true)) {
+        if (!verificationIsRunning.value && canVerifyUser.value) {
             coroutineScope.launch {
                 val req = matrixClient.verification.createUserVerificationRequest(userId)
                     .fold(
@@ -575,14 +588,25 @@ class UserProfileViewModelImpl(
                     )
 
                 req.state.first(::isVerificationStateFinished)
-            }.invokeOnCompletion {
-                verifying.update { false }
             }
         } else {
             log.warn { "cannot verify other user as preconditions are not met" }
         }
-
     }
+
+    override fun openVerificationRoom() {
+        val room =
+            matrixClient.verification.activeUserVerifications.value.firstOrNull { it.theirUserId == userId }?.roomId
+        if (room != null && room != selectedRoomId) {
+            log.debug { "go to room ${room}, since the running verification takes place there" }
+            onOpenRoom(matrixClient.userId, room)
+        } else if (room == null) {
+            log.debug { "found no active verification room to navigate to" }
+        } else {
+            log.debug { "stay in room $selectedRoomId as the running verification takes place here" }
+        }
+    }
+
 
     private fun isVerificationStateFinished(verificationState: ActiveVerificationState) = when (verificationState) {
         ActiveVerificationState.Done,
