@@ -27,7 +27,7 @@ fun createTrixnityMessengerTestModule(debugName: String = "client") = module {
     single<CreateRepositoriesModule> {
         object : CreateRepositoriesModule {
             val modules: MutableMap<UserId, Module> = HashMap()
-            override suspend fun generateDatabaseKey(): ByteArray? = null
+            override suspend fun generateDatabaseKey(): ByteArray = ByteArray(32)
 
             override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module {
                 val module = createInMemoryRepositoriesModule()
