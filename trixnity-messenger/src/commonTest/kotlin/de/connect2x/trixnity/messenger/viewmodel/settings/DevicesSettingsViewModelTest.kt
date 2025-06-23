@@ -376,9 +376,11 @@ class DevicesSettingsViewModelTest {
                 .first { it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.deviceId == ourDeviceId }
         }
 
+        cut.error.value shouldBe null
         cut.setDisplayName(UserId("test", "server"), ourDeviceId, "device1", "device1 updated")
 
         eventually(1.seconds) {
+            cut.error.value shouldBe null
             accountsWithDevices.filter { it.isNotEmpty() }.first {
                 it[0].devicesInAccount.value.shouldNotBeNull().thisDevice.displayName.value == "device1 updated"
             }

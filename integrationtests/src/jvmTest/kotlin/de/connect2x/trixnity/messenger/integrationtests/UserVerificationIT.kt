@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
+import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
+import de.connect2x.trixnity.messenger.integrationtests.messenger.acceptInvitationToRoom
 import de.connect2x.trixnity.messenger.integrationtests.messenger.acceptUserVerification
 import de.connect2x.trixnity.messenger.integrationtests.messenger.acceptVerificationWithEmoji
 import de.connect2x.trixnity.messenger.integrationtests.messenger.createChatWithUser
@@ -85,6 +87,8 @@ class UserVerificationIT {
         )
         delay(2.seconds) // give user search time to find the user
         val roomId = messenger1.createChatWithUser(user2).roomId
+        messenger2.acceptInvitationToRoom(roomId)
+        messenger1.di.get<MatrixClients>().value.forEach { it.value.syncOnce() }
         messenger1.initiateUserVerification(roomId, userId2)
         messenger2.acceptUserVerification(roomId, userId1)
         messenger1.startVerificationWithEmoji(roomId)

@@ -61,6 +61,7 @@ class RoomSettingsTopicViewModelImpl(
             serverValue = matrixClient.room
                 .getState<TopicEventContent>(roomId = selectedRoomId)
                 .map { it?.content?.topic ?: "" },
+            maxLength = 20_000,
             coroutineScope = coroutineScope,
             onApplyChange = { newTopic ->
                 matrixClient.api.room.sendStateEvent(
