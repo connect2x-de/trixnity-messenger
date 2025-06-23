@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Show correct error message on corrupt files
+
 ### Security
 
 ## 3.6.5
