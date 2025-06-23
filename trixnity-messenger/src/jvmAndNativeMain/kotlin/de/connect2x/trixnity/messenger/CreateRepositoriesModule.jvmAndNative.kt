@@ -22,12 +22,10 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
     single<CreateRepositoriesModule> {
         val rootPath = get<RootPath>()
         val fileSystem = get<FileSystem>()
-        val databaseEncryptionEnabled = get<MatrixMessengerConfiguration>().databaseEncryptionEnabled
 
         object : CreateRepositoriesModule {
-            override suspend fun generateDatabaseKey(): ByteArray? =
-                if (databaseEncryptionEnabled) SecureRandom.nextBytes(EncryptedSQLiteDriver.KEY_SIZE)
-                else null
+            override suspend fun generateDatabaseKey(): ByteArray =
+                SecureRandom.nextBytes(EncryptedSQLiteDriver.KEY_SIZE)
 
             override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module {
                 fileSystem.createDirectories(rootPath.forAccountDatabase(userId), mustCreate = false)

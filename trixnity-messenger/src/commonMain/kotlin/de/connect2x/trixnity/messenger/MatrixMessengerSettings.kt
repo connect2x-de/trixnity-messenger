@@ -46,7 +46,7 @@ data class MatrixMessengerSettingsBase(
     val accentColor: Long? = null,
     val fontSize: Float? = null,
     val displaySize: Float? = null,
-    val applySystemSizes: Boolean = true
+    val applySystemSizes: Boolean = true,
 ) : SettingsView<MatrixMessengerSettings>
 
 @Serializable
@@ -80,6 +80,7 @@ data class SecretByteArraySettings(
 data class MatrixMessengerAccountSettingsBase(
     @Deprecated("for backwards compatibility")
     val databasePassword: SecretByteArray? = null, // TODO can be removed in future
+    val encryptDatabase: Boolean? = null,
     val displayName: String? = null,
     val displayColor: Long? = null,
     val notificationsEnabled: Boolean = false,
