@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Move to room with active verification, when verification with user is already running
+- Disable start user verification option when one is already running
+
 ### Deprecated
 
 ### Removed
