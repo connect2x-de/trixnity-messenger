@@ -96,7 +96,7 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
 
 class BaseTimelineElementHolderContextMenuAction(
     val label: String,
-    val isEnabled: Boolean = false,
+    val isEnabled: Boolean = true,
     internal val action: () -> Unit,
 ) {
     operator fun invoke() = action()

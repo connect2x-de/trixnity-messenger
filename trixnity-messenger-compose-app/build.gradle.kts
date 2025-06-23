@@ -40,7 +40,7 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
                 val licencesString = licenseTask.get().outputFile.get().asFile.readText()
                     .replace("$", "\${'$'}")
                     .replace(quotes, "")
-                val downloadsDisabled: Boolean = System.getenv("TM_DISABLE_DOWNLOADS") == "true"
+                val downloadsDisabled = project.findProperty("TM_DISABLE_DOWNLOADS")?.toString()?.toBoolean() ?: false
 
                 val buildConfigString =
                     """
