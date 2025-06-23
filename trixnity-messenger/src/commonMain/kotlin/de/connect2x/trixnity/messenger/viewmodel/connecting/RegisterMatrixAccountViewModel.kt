@@ -72,8 +72,8 @@ class RegisterMatrixAccountViewModelImpl(
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
-    override val username = TextFieldViewModelImpl()
-    override val password = TextFieldViewModelImpl()
+    override val username = TextFieldViewModelImpl(maxLength = 1_000)
+    override val password = TextFieldViewModelImpl(maxLength = 1_000)
 
     override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> = MutableStateFlow(None)
 
@@ -162,8 +162,8 @@ class PreviewRegisterMatrixAccountViewModel : RegisterMatrixAccountViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val isFirstMatrixClient: StateFlow<Boolean?> = MutableStateFlow(false)
     override val serverUrl: String = "http://localhost:8008"
-    override val username = TextFieldViewModelImpl("user1")
-    override val password = TextFieldViewModelImpl("user1-password")
+    override val username = TextFieldViewModelImpl(maxLength = 1_000, "user1")
+    override val password = TextFieldViewModelImpl(maxLength = 1_000, "user1-password")
     override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> = MutableStateFlow(None)
     override val isRegisteringNewUser: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canRegisterNewUser: MutableStateFlow<Boolean> = MutableStateFlow(true)

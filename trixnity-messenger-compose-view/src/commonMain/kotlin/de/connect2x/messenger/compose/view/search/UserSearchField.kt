@@ -28,7 +28,6 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
 
-// TODO TIM
 interface UserSearchFieldView {
     @Composable
     fun create(userSearchHandler: UserSearchHandler)
@@ -69,7 +68,8 @@ class UserSearchFieldViewImpl : UserSearchFieldView {
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Search,
                 autoCorrectEnabled = false
-            )
+            ),
+            maxLines = 1,
         )
     }
 }

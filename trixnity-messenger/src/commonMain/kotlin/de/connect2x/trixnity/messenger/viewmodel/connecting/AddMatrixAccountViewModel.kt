@@ -77,7 +77,7 @@ open class AddMatrixAccountViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     final override val serverUrl =
-        TextFieldViewModelImpl(get<MatrixMessengerConfiguration>().defaultHomeServer ?: "")
+        TextFieldViewModelImpl(maxLength = 1_000,get<MatrixMessengerConfiguration>().defaultHomeServer ?: "")
 
     private val config = get<MatrixMessengerConfiguration>()
 
@@ -185,7 +185,7 @@ open class AddMatrixAccountViewModelImpl(
 
 class PreviewAddMatrixAccountViewModel : AddMatrixAccountViewModel {
     override val isFirstMatrixClient: MutableStateFlow<Boolean?> = MutableStateFlow(true)
-    override val serverUrl = TextFieldViewModelImpl("matrix.org")
+    override val serverUrl = TextFieldViewModelImpl(maxLength = 1_000, "matrix.org")
     override val serverDiscoveryState: MutableStateFlow<ServerDiscoveryState> =
         MutableStateFlow(ServerDiscoveryState.None)
 
