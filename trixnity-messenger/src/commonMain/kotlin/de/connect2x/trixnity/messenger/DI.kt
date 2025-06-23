@@ -219,7 +219,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             }
 
             single<MatrixClientFactory> {
-                MatrixClientFactoryImpl(get(), get(), get(), get(), getAll())
+                MatrixClientFactoryImpl(get(), get(), get(), get(), get(), getAll())
             }
             single<MatrixClients> {
                 MatrixClientsImpl(get(), get(), get(), get(), get())

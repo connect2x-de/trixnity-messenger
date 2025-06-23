@@ -39,20 +39,25 @@ class PlatformPDFReader(
     override val numOfPages: MutableState<Int?> = mutableStateOf(null)
 
     suspend fun initialize() {
+        log.debug { "loading pdf..." }
         val temporaryFileResult = (media as OkioPlatformMedia).getTemporaryFile()
         if (temporaryFileResult.isSuccess) {
-            val newTemporaryFile = temporaryFileResult.getOrThrow()
             try {
+                val newTemporaryFile = temporaryFileResult.getOrThrow()
+                log.debug { "trying to initiate pdf" }
                 val documentData = Loader.loadPDF(newTemporaryFile.path.toFile())
+                log.debug { "successfully loaded ${documentData.numberOfPages} pages" }
                 val renderer = PDFRenderer(documentData)
                 document.value = Pair(documentData, renderer)
                 documentWidth.value = renderer.renderImage(0)?.width
                 temporaryFile.value = newTemporaryFile
                 numOfPages.value = documentData.numberOfPages
             } catch (exception: Exception) {
+                log.error { "something went wrong with opening the pdf" }
                 onError(exception.message)
             }
         } else {
+            log.error { "cannot load pdf file into temporary file" }
             onError(temporaryFileResult.exceptionOrNull()?.message)
         }
     }
