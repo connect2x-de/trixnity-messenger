@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- SVG is no longer treated as an image in the timeline
+- Unsupported image mime types are treated as images
 
 ### Security
 
