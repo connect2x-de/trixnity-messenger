@@ -173,7 +173,7 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (editMode.value) {
-            Tooltip({Text(i18n.commonCancel())}) {
+            Tooltip({ Text(i18n.commonCancel()) }) {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = {
@@ -222,7 +222,7 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
             }
         }
         if (editMode.value) {
-            Tooltip({Text(i18n.commonAcceptEdit())}) {
+            Tooltip({ Text(i18n.commonAcceptEdit()) }) {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = { done(editMode, profileSingleViewModel, profileViewModel) },
@@ -231,7 +231,7 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
                 }
             }
         } else {
-            Tooltip({Text(i18n.commonEdit())}) {
+            Tooltip({ Text(i18n.commonEdit()) }) {
                 ThemedIconButton(
                     enabled = canChangeDisplayName,
                     style = MaterialTheme.components.commonIconButton,

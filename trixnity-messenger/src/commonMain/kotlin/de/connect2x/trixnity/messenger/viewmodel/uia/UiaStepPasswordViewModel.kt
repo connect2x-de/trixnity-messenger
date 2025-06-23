@@ -60,8 +60,8 @@ class UiaStepPasswordViewModelImpl(
     private val onError: (MatrixServerException) -> Unit,
 ) : ViewModelContext by viewModelContext, UiaStepPasswordViewModel {
     private val i18n = get<I18n>()
-    override val username = TextFieldViewModelImpl()
-    override val password = TextFieldViewModelImpl()
+    override val username = TextFieldViewModelImpl(maxLength = 1_000)
+    override val password = TextFieldViewModelImpl(maxLength = 1_000)
     override val error = MutableStateFlow<String?>(null)
     override val isSubmitting: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
@@ -110,8 +110,8 @@ class UiaStepPasswordViewModelImpl(
 }
 
 class UiaStepPasswordViewModelPreview(mode: PreviewMode = BLANK) : UiaStepPasswordViewModel {
-    override val username = TextFieldViewModelImpl(if (mode == FILLED) "Timmy" else "")
-    override val password = TextFieldViewModelImpl(if (mode == FILLED) "12345678" else "")
+    override val username = TextFieldViewModelImpl(maxLength = 1_000, if (mode == FILLED) "Timmy" else "")
+    override val password = TextFieldViewModelImpl(maxLength = 1_000, if (mode == FILLED) "12345678" else "")
     override val error = MutableStateFlow(if (mode == ERROR) "Error!" else null)
     override val isSubmitting = MutableStateFlow(mode == SUBMITTING)
     override fun submit() {}

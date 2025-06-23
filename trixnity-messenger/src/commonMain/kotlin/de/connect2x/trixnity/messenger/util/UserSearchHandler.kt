@@ -45,7 +45,7 @@ class DefaultUserSearchHandler(
     private val limit: Long? = 100,
     filterNotUsers: Flow<Set<UserId>> = flowOf(emptySet()),
 ) : UserSearchHandler {
-    override val searchTerm = TextFieldViewModelImpl()
+    override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
     override val selectedUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     private val unfilteredFoundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val foundUsers: StateFlow<List<Search.SearchUserElement>> =
@@ -101,7 +101,7 @@ class DefaultUserSearchHandler(
 
 
 object PreviewUserSearchHandler : UserSearchHandler {
-    override val searchTerm = TextFieldViewModelImpl("bla")
+    override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000, "bla")
     override val foundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val selectedUsers: StateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val waitForUserResults: StateFlow<Boolean> = MutableStateFlow(false)

@@ -95,7 +95,7 @@ class SearchGroupViewModelImpl(
     private val initials = get<Initials>()
     private val enterRoom = get<EnterRoom>()
 
-    override val searchTerm = TextFieldViewModelImpl()
+    override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
     override val groupSearchInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     @Deprecated(

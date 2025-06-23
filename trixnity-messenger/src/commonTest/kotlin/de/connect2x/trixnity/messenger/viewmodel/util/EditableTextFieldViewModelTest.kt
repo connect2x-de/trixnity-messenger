@@ -166,5 +166,6 @@ class EditableTextFieldViewModelTest {
         coroutineScope = backgroundScope,
         onApplyChange = onApplyValue,
         serverValue = serverValue,
+        maxLength = 1_000,
     )
 }

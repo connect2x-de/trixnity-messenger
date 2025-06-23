@@ -188,7 +188,7 @@ class RoomListViewModelImpl(
     override val allSyncError: StateFlow<Boolean>
 
     override val showSearch = MutableStateFlow(false)
-    override val searchTerm = TextFieldViewModelImpl()
+    override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
 
     override val canCreateNewRoomWithAccount: StateFlow<Boolean>
 
@@ -544,6 +544,7 @@ class PreviewRoomListViewModel : RoomListViewModel {
                 PreviewRoomListElementViewModel3(),
             )
         )
+
     @Deprecated("Api cleanup", replaceWith = ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
     override val syncStateError: MutableStateFlow<Map<UserId, Boolean>> = MutableStateFlow(mapOf())
 
@@ -553,7 +554,7 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override val syncStates: StateFlow<UserSyncStates> = MutableStateFlow(UserSyncStates(setOf(), setOf()))
     override val initialSyncFinished: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val searchTerm = TextFieldViewModelImpl()
+    override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
     override val accountViewModel: AccountViewModel = PreviewAccountViewModel()
     override val canCreateNewRoomWithAccount: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val unverifiedAccounts: StateFlow<List<UserId>> = MutableStateFlow(listOf())

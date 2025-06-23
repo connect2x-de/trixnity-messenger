@@ -73,6 +73,7 @@ fun PasswordLoginState(state: AddMatrixAccountState) {
                 Modifier.fillMaxWidth(),
                 MaterialTheme.components.linearProgressIndicator
             )
+
             is AddMatrixAccountState.Failure ->
                 Text(state.message, color = MaterialTheme.colorScheme.error)
 
