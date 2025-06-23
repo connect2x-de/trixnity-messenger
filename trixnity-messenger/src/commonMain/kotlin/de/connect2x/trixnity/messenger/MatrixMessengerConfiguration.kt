@@ -98,6 +98,8 @@ data class MatrixMessengerConfiguration(
 
     override var pushUrl: String? = null,
 
+    override var forbidDownloads: Boolean = false,
+
     /**
      * Specify a [HttpClientEngine]. It is highly recommended to set it and share it within an application.
      */

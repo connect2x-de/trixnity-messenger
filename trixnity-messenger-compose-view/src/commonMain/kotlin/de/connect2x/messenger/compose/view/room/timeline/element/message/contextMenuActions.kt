@@ -11,8 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
+import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
@@ -92,6 +95,7 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
 
 class BaseTimelineElementHolderContextMenuAction(
     val label: String,
+    val isEnabled: Boolean = false,
     internal val action: () -> Unit,
 ) {
     operator fun invoke() = action()
@@ -108,36 +112,53 @@ class BaseTimelineElementHolderContextMenuAction(
     internal fun dropDownMenuItem(
         onClose: () -> Unit,
     ) {
-        DropdownMenuItem(
-            text = {
-                Text(
-                    label,
-                    Modifier.buttonPointerModifier(),
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-            },
-            onClick = {
-                onClose()
-                action()
-            },
-            contentPadding = PaddingValues(horizontal = 10.dp),
-        )
+        val i18n = DI.current.get<I18nView>()
+        Tooltip(
+            enabled = !isEnabled,
+            tooltip = {
+                TooltipText { i18n.commonButtonDisabled() }
+            }
+        ) {
+            DropdownMenuItem(
+                enabled = isEnabled,
+                text = {
+                    Text(
+                        label,
+                        Modifier.buttonPointerModifier(),
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                },
+                onClick = {
+                    onClose()
+                    action()
+                },
+                contentPadding = PaddingValues(horizontal = 10.dp),
+            )
+        }
     }
 
     @Composable
     internal fun bottomSheetItem(
         onClose: () -> Unit,
     ) {
-        Text(
-            label,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth()
-                .clickable {
-                    action()
-                    onClose()
-                },
-        )
+        val i18n = DI.current.get<I18nView>()
+        Tooltip(
+            enabled = !isEnabled,
+            tooltip = {
+                TooltipText { i18n.commonButtonDisabled() }
+            }
+        ) {
+            Text(
+                label,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth()
+                    .clickable {
+                        action()
+                        onClose()
+                    },
+            )
+        }
     }
 }
