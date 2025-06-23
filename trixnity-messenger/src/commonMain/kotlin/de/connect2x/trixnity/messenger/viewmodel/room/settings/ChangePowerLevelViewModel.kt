@@ -130,7 +130,7 @@ open class ChangePowerLevelViewModelImpl(
 
     override val changingPowerLevelDialogOpen = MutableStateFlow(false)
 
-    override val changingPowerLevelDialogInput = TextFieldViewModelImpl()
+    override val changingPowerLevelDialogInput = TextFieldViewModelImpl(maxLength = 10)
 
     override val changingPowerLevelDialogError =
         combine(

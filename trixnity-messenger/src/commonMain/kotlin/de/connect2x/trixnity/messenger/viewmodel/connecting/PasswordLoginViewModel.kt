@@ -62,8 +62,8 @@ open class PasswordLoginViewModelImpl(
     override val isFirstMatrixClient: StateFlow<Boolean?> = matrixClients.map { it.isEmpty() }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    final override val username = TextFieldViewModelImpl()
-    final override val password = TextFieldViewModelImpl()
+    final override val username = TextFieldViewModelImpl(maxLength = 1_000)
+    final override val password = TextFieldViewModelImpl(maxLength = 1_000)
 
     override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> =
         MutableStateFlow(AddMatrixAccountState.None)
@@ -105,8 +105,8 @@ class PreviewPasswordLoginViewModel : PasswordLoginViewModel {
     override val serverUrl: String = "https://timmy-messenger.de"
     override val isFirstMatrixClient: StateFlow<Boolean?> = MutableStateFlow(false)
     override val canLogin: StateFlow<Boolean> = MutableStateFlow(false)
-    override val username = TextFieldViewModelImpl()
-    override val password = TextFieldViewModelImpl()
+    override val username = TextFieldViewModelImpl(maxLength = 1_000)
+    override val password = TextFieldViewModelImpl(maxLength = 1_000)
     override val addMatrixAccountState: StateFlow<AddMatrixAccountState> =
         MutableStateFlow(AddMatrixAccountState.Failure("dino"))
 

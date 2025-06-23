@@ -39,6 +39,7 @@ data class MatrixMessengerConfiguration(
     var defaultReadMarkerIsPublic: Boolean = true,
     var defaultTypingIsPublic: Boolean = true,
 
+    var databaseEncryptionEnabled: Boolean = true,
     var notificationsEnabled: Boolean = false,
 
     val features: MatrixMessengerFeatures = MatrixMessengerFeatures(

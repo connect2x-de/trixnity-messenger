@@ -596,6 +596,15 @@ open class I18nView(
         DE - "noch nicht verifiziert"
     }
 
+    open fun verificationAlreadyRunning() = translate {
+        EN - "There is already a verification process with this user, please finish/cancel it before starting a new verification"
+        DE - "Es läuft bereits ein Verifikationsprozess mit diesem Nutzer, bitte beenden oder brechen Sie diesen ab, bevor Sie eine neue Verifikation starten"
+    }
+
+    open fun verificationAlreadyRunningInAnotherRoom() = translate {
+        EN - "There is already a verification process with this user in another room"
+        DE - "Es läuft bereits ein Verifikationsprozess mit diesem Nutzer in einem anderen Raum"
+    }
     open fun dehydratedDevice() = translate {
         EN - "This virtual (so called dehydrated) device is used to decrypt messages when no other device is online."
         DE - "Dieses virtuelle (sogenannte dehydrierte) Gerät wird verwendet um Nachrichten zu entschlüsseln, wenn kein anderes Gerät online ist."
@@ -802,17 +811,17 @@ open class I18nView(
     }
 
     open fun imageCouldNotBeLoaded() = translate {
-        EN - "Image could not be loaded."
+        EN - "Cannot load image file."
         DE - "Bild konnte nicht geladen werden."
     }
 
     open fun videoCouldNotBeLoaded() = translate {
-        EN - "Video could not be loaded."
+        EN - "Cannot load video file."
         DE - "Video konnte nicht geladen werden."
     }
 
     open fun fileCouldNotBeLoaded() = translate {
-        EN - "File could not be loaded."
+        EN - "Cannot load file."
         DE - "Datei konnte nicht geladen werden."
     }
 
@@ -888,6 +897,11 @@ open class I18nView(
     open fun userProfileVerification() = translate {
         EN - "start user verification"
         DE - "Vertrauensprüfung starten"
+    }
+
+    open fun userProfileNavigateToVerification() = translate {
+        EN - "to verification process"
+        DE - "Zur Vertrauensprüfung"
     }
 
     open fun userProfileCopyUserId() = translate {

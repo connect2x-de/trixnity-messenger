@@ -110,7 +110,7 @@ class RoomSettingsAliasViewModelImpl(
     private val _isUpdating = MutableStateFlow(false)
     override val isUpdating: StateFlow<Boolean> = _isUpdating.asStateFlow()
 
-    override val newAlias = TextFieldViewModelImpl()
+    override val newAlias = TextFieldViewModelImpl(maxLength = 1_000)
 
     internal val i18n = get<I18n>()
 
@@ -441,7 +441,7 @@ class PreviewRoomSettingsAliasViewModel : RoomSettingsAliasViewModel {
     override val domain: String = "example.org"
     override val moreAliases: MutableStateFlow<Set<String>> = MutableStateFlow(emptySet())
     override val isUpdating: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val newAlias = TextFieldViewModelImpl()
+    override val newAlias = TextFieldViewModelImpl(maxLength = 1_000, )
 
     override fun addNewAlias(onlyLocalpart: Boolean) {
     }

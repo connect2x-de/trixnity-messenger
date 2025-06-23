@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,10 +49,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.TooltipText
@@ -294,9 +293,10 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
         val blockingInProgress = userProfileViewModel.blockingInProgress.collectAsState().value
         val isUserBlocked = userProfileViewModel.isUserBlocked.collectAsState().value
         val openingChat = userProfileViewModel.openingChat.collectAsState().value
-        val verifying = userProfileViewModel.verifying.collectAsState().value
+        val verificationInThisRoom = userProfileViewModel.verificationIsRunningInThisRoom.collectAsState().value
         val canOpenChat = userProfileViewModel.canOpenChat.collectAsState().value
         val verificationAvailable = userProfileViewModel.canVerifyUser.collectAsState().value
+        val verificationIsRunning = userProfileViewModel.verificationIsRunning.collectAsState().value
 
         VerySmallSpacer()
         Row(
@@ -349,20 +349,40 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
         }
         val isSinglePane = IsSinglePane.current
         if (verificationAvailable) {
-            MenuElement(Modifier.clickable {
-                userProfileViewModel.startVerification(isSinglePane)
-            }) {
-                Icon(
-                    Icons.AutoMirrored.Filled.Wysiwyg,
-                    i18n.userVerification(),
-                    Modifier.size(24.dp),
-                    defaultColorForState(!verifying)
-                )
-                Spacer(Modifier.size(10.dp))
-                Text(
-                    text = i18n.userProfileVerification(),
-                    color = defaultColorForState(!verifying)
-                )
+            if (verificationIsRunning && !verificationInThisRoom) {
+                Tooltip(
+                    enabled = verificationIsRunning,
+                    tooltip = { TooltipText(i18n.verificationAlreadyRunningInAnotherRoom()) }) {
+                    MenuElement(Modifier.buttonPointerModifier().clickable {
+                        userProfileViewModel.openVerificationRoom()
+                    }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Wysiwyg,
+                            i18n.userVerification(),
+                            Modifier.size(24.dp),
+                        )
+                        Spacer(Modifier.size(10.dp))
+                        Text(text = i18n.userProfileNavigateToVerification())
+                    }
+                }
+            } else {
+                Tooltip(enabled = verificationIsRunning, tooltip = { TooltipText(i18n.verificationAlreadyRunning()) }) {
+                    MenuElement(Modifier.buttonPointerModifier(!verificationIsRunning).clickable(enabled = !verificationIsRunning) {
+                        userProfileViewModel.startVerification(isSinglePane)
+                    }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Wysiwyg,
+                            i18n.userVerification(),
+                            Modifier.size(24.dp),
+                            defaultColorForState(!verificationIsRunning)
+                        )
+                        Spacer(Modifier.size(10.dp))
+                        Text(
+                            text = i18n.userProfileVerification(),
+                            color = defaultColorForState(!verificationIsRunning)
+                        )
+                    }
+                }
             }
         }
     }
