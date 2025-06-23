@@ -11,10 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Text input fields have a max length now
-- Rename Sqlite3mc driver package name
-- Allow to enable database encryption via config
-
 ### Deprecated
 
 ### Removed
@@ -22,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## 3.6.6
+
+### Changed
+
+- Text input fields have a max length now
+- Rename Sqlite3mc driver package name
+- Allow to enable database encryption via config (all new accounts use encrypted databases by default, except web where
+  no decryption can be activated; existing unencrypted databases stay unencrypted)
 
 ## 3.6.5
 
