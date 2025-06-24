@@ -43,7 +43,7 @@ class MatrixClientFactoryImpl(
         MatrixClient.loginWith(
             baseUrl = baseUrl,
             repositoriesModuleFactory = { loginInfo ->
-                createRepositoriesModuleOrThrow(loginInfo.userId, getDatabaseKey(loginInfo.userId))
+                createRepositoriesModuleOrThrow(loginInfo.userId, getDatabaseKey(loginInfo.userId, true))
             },
             mediaStoreModuleFactory = { loginInfo ->
                 createMediaStoreModule(loginInfo.userId)
@@ -67,7 +67,7 @@ class MatrixClientFactoryImpl(
     ): Result<MatrixClient?> = kotlin.runCatching {
         log.debug { "initFromStore (userId=$userId)" }
         MatrixClient.fromStore(
-            repositoriesModule = loadRepositoriesModuleOrThrow(userId, getDatabaseKey(userId)),
+            repositoriesModule = loadRepositoriesModuleOrThrow(userId, getDatabaseKey(userId, false)),
             mediaStoreModule = createMediaStoreModule(userId),
             configuration = {
                 configurer.forEach { with(it) { invoke() } }
@@ -108,7 +108,7 @@ class MatrixClientFactoryImpl(
     }
 
     @Suppress("DEPRECATION") // TODO: remove this in the future
-    private suspend fun getDatabaseKey(userId: UserId): ByteArray? {
+    private suspend fun getDatabaseKey(userId: UserId, createNew: Boolean): ByteArray? {
         val legacyKey = settings.value.base.accounts[userId]
             ?.base?.databasePassword
             ?.let { secretByteArrays.getLegacy(it) }
@@ -117,13 +117,12 @@ class MatrixClientFactoryImpl(
             settings.update<MatrixMessengerAccountSettingsBase>(userId) { it.copy(databasePassword = null) }
             legacyKey
         } else {
-            val existing = secretByteArrays.get("$ID-$userId") ?: secretByteArrays.get(ID)
-            if (existing != null) {
-                existing
-            } else {
+            if (createNew) {
                 val newKey = repositoriesModuleCreation.generateDatabaseKey() ?: return null
                 secretByteArrays.set("$ID-$userId", newKey)
                 newKey
+            } else {
+                secretByteArrays.get("$ID-$userId") ?: secretByteArrays.get(ID)
             }
         }
     }
