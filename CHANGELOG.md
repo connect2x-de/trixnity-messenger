@@ -11,19 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Move to room with active verification, when verification with user is already running
-- Disable start user verification option when one is already running
-- Fix unnecessary breaking changes
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
-- Show correct error message on corrupt files
-
 ### Security
+
+## 3.6.7
+
+### Changed
+
+- Move to room with active verification, when verification with user is already running
+- Disable start user verification option when one is already running
+
+### Fixed
+
+- Show correct error message on corrupt files
+- Fix database encryption problem when app was in background mode
 
 ## 3.6.6
 
