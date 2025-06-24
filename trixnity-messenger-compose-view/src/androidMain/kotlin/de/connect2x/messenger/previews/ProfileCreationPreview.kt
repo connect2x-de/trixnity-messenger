@@ -1,7 +1,6 @@
 package de.connect2x.messenger.previews
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import de.connect2x.messenger.compose.view.profiles.ProfileCreation
 import de.connect2x.messenger.previews.util.InitMessengerPreview
@@ -18,7 +17,7 @@ private fun PasswordLoginPreview() {
             object : ProfileCreationViewModel {
                 override val canCreateProfile: StateFlow<Boolean> = MutableStateFlow(true)
                 override val error: StateFlow<String?> = MutableStateFlow(null)
-                override val profileName= TextFieldViewModelImpl("my profile")
+                override val profileName = TextFieldViewModelImpl(1_000, "my profile")
                 override fun createProfile() {
                 }
             },

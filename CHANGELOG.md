@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Move to room with active verification, when verification with user is already running
+- Disable start user verification option when one is already running
+
 ### Deprecated
 
 ### Removed
@@ -18,8 +21,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Unsupported image mime types are treated as images
+- Show correct error message on corrupt files
 
 ### Security
+
+## 3.6.6
+
+### Changed
+
+- Text input fields have a max length now
+- Rename Sqlite3mc driver package name
+- Allow to enable database encryption via config (all new accounts use encrypted databases by default, except web where
+  no decryption can be activated; existing unencrypted databases stay unencrypted)
 
 ## 3.6.5
 

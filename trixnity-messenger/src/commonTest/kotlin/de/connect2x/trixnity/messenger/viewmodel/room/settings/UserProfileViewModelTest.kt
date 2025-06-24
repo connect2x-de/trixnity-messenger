@@ -205,6 +205,8 @@ class UserProfileViewModelTest {
 
         every { onOpenRoomMock.invoke(any(), any()) } returns Unit
         every { onCloseSettingsMock.invoke() } returns Unit
+
+        every { verificationServiceMock.activeUserVerifications } returns MutableStateFlow(listOf())
     }
 
 
@@ -470,7 +472,54 @@ class UserProfileViewModelTest {
         every { matrixClientMock.key.getTrustLevel(any()) } returns MutableStateFlow(UserTrustLevel.CrossSigned(true))
         cut.startVerification()
         delay(20)
-        verifySuspend(VerifyMode.exactly(0)) { cut.startVerification() }
+        verifySuspend(VerifyMode.exactly(0)) { verificationServiceMock.createUserVerificationRequest(any()) }
+    }
+
+    @Test
+    fun `don't start verification when one has already been started in the same room`() = runTest {
+        every {
+            userServiceMock.getPowerLevel(roomId, any())
+        } returns MutableStateFlow(50)
+
+        everySuspend { verificationServiceMock.createUserVerificationRequest(alice) } returns Result.success(
+            activeVerificationMock
+        )
+        every { activeVerificationMock.theirUserId } returns alice
+        every { verificationServiceMock.activeUserVerifications } returns MutableStateFlow(listOf(activeVerificationMock))
+        every { activeVerificationMock.roomId } returns roomId
+        every { activeVerificationMock.state } returns MutableStateFlow(ActiveVerificationState.Undefined)
+        every { matrixClientMock.key.getTrustLevel(any()) } returns MutableStateFlow(UserTrustLevel.CrossSigned(false))
+
+        val cut = userProfileViewModel(alice)
+        delay(10.milliseconds)
+
+        cut.startVerification(true)
+        delay(10.milliseconds)
+        verifySuspend(VerifyMode.exactly(0)) { verificationServiceMock.createUserVerificationRequest(any()) }
+    }
+
+    @Test
+    fun `don't start verification when one has already been started in another room`() = runTest {
+        every {
+            userServiceMock.getPowerLevel(roomId, any())
+        } returns MutableStateFlow(50)
+
+        val verificationRoom = RoomId("verificationRoom", "localhost")
+        everySuspend { verificationServiceMock.createUserVerificationRequest(alice) } returns Result.success(
+            activeVerificationMock
+        )
+        every { activeVerificationMock.theirUserId } returns alice
+        every { verificationServiceMock.activeUserVerifications } returns MutableStateFlow(listOf(activeVerificationMock))
+        every { activeVerificationMock.roomId } returns verificationRoom
+        every { activeVerificationMock.state } returns MutableStateFlow(ActiveVerificationState.Undefined)
+        every { matrixClientMock.key.getTrustLevel(any()) } returns MutableStateFlow(UserTrustLevel.CrossSigned(false))
+
+        val cut = userProfileViewModel(alice)
+        delay(10.milliseconds)
+
+        cut.startVerification(true)
+        delay(10.milliseconds)
+        verifySuspend(VerifyMode.exactly(0)) { verificationServiceMock.createUserVerificationRequest(any()) }
     }
 
     private fun setMemberEventContentOf(roomUser: MutableStateFlow<RoomUser?>, eventContent: MemberEventContent) {
