@@ -18,7 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Unsupported image mime types are treated as images
-- Show correct error message on corrupt files
 
 ### Security
 
