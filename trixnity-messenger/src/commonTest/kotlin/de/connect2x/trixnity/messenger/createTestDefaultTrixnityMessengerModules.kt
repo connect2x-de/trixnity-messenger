@@ -95,9 +95,7 @@ fun TestScope.createTestDefaultTrixnityMessengerModules(
         object : CreateRepositoriesModule {
             val module by lazy { createInMemoryRepositoriesModule() }
 
-            override suspend fun generateDatabaseKey(): ByteArray =
-                throw IllegalStateException("cannot create database key")
-
+            override suspend fun generateDatabaseKey(): ByteArray? = null
             override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module = module
             override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module = module
         }
