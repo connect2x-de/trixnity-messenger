@@ -8,6 +8,7 @@ interface CommonBuildConfig {
     val appName: String
     val appId: String
     val licenses: String
+    val downloadsDisabled: Boolean
 }
 
 @Suppress("NO_ACTUAL_FOR_EXPECT") // This links to sources generated on demand
