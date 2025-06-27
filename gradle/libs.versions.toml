@@ -2,25 +2,25 @@
 jvmTarget = "17"
 c2xConventions = "43109500" # https://gitlab.com/connect2x/c2x-conventions/-/packages
 
-trixnityMessenger = "3.6.9"
+trixnityMessenger = "3.6.8"
 trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
 
-kotlin = "2.2.0" # https://github.com/JetBrains/kotlin/releases
-kotlinWrappers = "2025.6.11" # https://github.com/JetBrains/kotlin-wrappers/releases (should be same as in Trixnity)
+kotlin = "2.1.21" # https://github.com/JetBrains/kotlin/releases
+kotlinWrappers = "2025.6.9" # https://github.com/JetBrains/kotlin-wrappers/releases (should be same as in Trixnity)
 
 kotlinxCoroutines = "1.10.2" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinxSerialization = "1.8.1" # https://github.com/Kotlin/kotlinx.serialization/releases
 kotlinxDatetime = "0.6.2" # https://github.com/Kotlin/kotlinx-datetime/releases
 kotlinxKover = "0.9.1" # https://github.com/Kotlin/kotlinx-kover/releases
 
-trixnity = "4.16.6" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.16.7" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
 decompose = "3.3.0" # https://github.com/arkivanov/Decompose/releases
 koin = "4.1.0" # https://github.com/InsertKoinIO/koin/tags
-ktor = "3.2.0" # https://github.com/ktorio/ktor/releases
-mokkery = "2.9.0" # https://github.com/lupuuss/Mokkery/releases
+ktor = "3.1.3" # https://github.com/ktorio/ktor/releases
+mokkery = "2.8.0" # https://github.com/lupuuss/Mokkery/releases
 kotest = "6.0.0.M2" # https://github.com/kotest/kotest/releases
 jna = "5.17.0" # https://github.com/java-native-access/jna/tags
 okio = "3.13.0" # https://square.github.io/okio/changelog
