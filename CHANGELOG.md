@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated Trixnity from 4.16.5 to 4.16.6
+- Updated various dependencies (important: kotlin-wrappers updated to 2025.6.11)
+
 ### Deprecated
 
 ### Removed

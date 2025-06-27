@@ -5,13 +5,12 @@ import js.intl.SegmentData
 import js.intl.Segmenter
 import js.intl.SegmenterOptions
 import js.iterable.JsIterable
-import org.koin.dsl.module
+import js.iterable.iterator
 
 // Define our own external for this since kotlin.browser doesn't provide iterable bindings without going through dynamic
 internal external interface Segments : JsIterable<SegmentData>
 
-internal actual fun platformGraphemeIterableProvider(): GraphemeIterableProvider
-        = JsGraphemeIterableProvider
+internal actual fun platformGraphemeIterableProvider(): GraphemeIterableProvider = JsGraphemeIterableProvider
 
 internal object JsGraphemeIterableProvider : GraphemeIterableProvider {
     override fun invoke(string: String): GraphemeIterable {
@@ -22,11 +21,10 @@ internal object JsGraphemeIterableProvider : GraphemeIterableProvider {
 private class JsGaphemeIterable(
     inner: String
 ) : GraphemeIterable {
-    val segments = Segmenter("en", SegmenterOptions(Granularity.grapheme))
+    val segments = Segmenter("en", SegmenterOptions(granularity = Granularity.grapheme))
         .segment(inner).unsafeCast<Segments>()
 
-    override fun iterator(): GraphemeIterator
-        = JsGaphemeIterator(segments.iterator())
+    override fun iterator(): GraphemeIterator = JsGaphemeIterator(segments.iterator())
 
     override val graphemeCount: Int
         get() = segments.iterator().asSequence().count()
