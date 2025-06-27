@@ -12,7 +12,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.unit.Dp
@@ -31,7 +30,7 @@ fun ColumnScope.WizardImage(
     Image(
         painterResource(drawableResource),
         contentDescription = contentDescription,
-        colorFilter = ColorFilter.tint(if (isSystemInDarkTheme()) Color.White else Color.Black, BlendMode.Difference),
+        colorFilter = ColorFilter.tint(if (isSystemInDarkTheme()) Color.White else Color.Black),
         modifier = Modifier
             .padding(
                 horizontal =
@@ -55,7 +54,7 @@ fun WizardImage(
     Image(
         painterResource(drawableResource),
         contentDescription = contentDescription,
-        colorFilter = ColorFilter.tint(if (isSystemInDarkTheme()) Color.White else Color.Black, BlendMode.Difference),
+        colorFilter = ColorFilter.tint(if (isSystemInDarkTheme()) Color.White else Color.Black),
         modifier = Modifier
             .width(width)
             .height(height)
