@@ -12,8 +12,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
@@ -30,12 +31,12 @@ fun ColumnScope.WizardImage(
     Image(
         painterResource(drawableResource),
         contentDescription = contentDescription,
-        colorFilter = if (isSystemInDarkTheme()) ColorFilter.colorMatrix(invertColorMatrix()) else null,
+        colorFilter = ColorFilter.tint(if (isSystemInDarkTheme()) Color.White else Color.Black, BlendMode.Difference),
         modifier = Modifier
             .padding(
                 horizontal =
-                if (boxWithConstraintsScope.maxWidth < 400.dp) MaterialTheme.messengerDpConstants.verySmall
-                else MaterialTheme.messengerDpConstants.middle,
+                    if (boxWithConstraintsScope.maxWidth < 400.dp) MaterialTheme.messengerDpConstants.verySmall
+                    else MaterialTheme.messengerDpConstants.middle,
                 vertical = MaterialTheme.messengerDpConstants.verySmall,
             )
             .align(Alignment.CenterHorizontally)
@@ -54,18 +55,9 @@ fun WizardImage(
     Image(
         painterResource(drawableResource),
         contentDescription = contentDescription,
-        colorFilter = if (isSystemInDarkTheme()) ColorFilter.colorMatrix(invertColorMatrix()) else null,
+        colorFilter = ColorFilter.tint(if (isSystemInDarkTheme()) Color.White else Color.Black, BlendMode.Difference),
         modifier = Modifier
             .width(width)
             .height(height)
     )
 }
-
-private fun invertColorMatrix() = ColorMatrix( // invert colors in dark mode
-    floatArrayOf(
-        -1f, 0f, 0f, 0f, 255f,
-        0f, -1f, 0f, 0f, 255f,
-        0f, 0f, -1f, 0f, 255f,
-        0f, 0f, 0f, 1f, 0f
-    )
-)
