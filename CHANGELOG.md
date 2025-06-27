@@ -20,7 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Unsupported image mime types are treated as images
-- link colour in privacy and imprint page
+- Link colour in privacy and imprint page
+- Boostrap wizard graphics are not inverted and have visible background
 
 ### Security
 
