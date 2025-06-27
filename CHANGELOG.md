@@ -9,12 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Disable downloads by build environment variable
-
 ### Changed
-
-- Updated Trixnity from 4.16.5 to 4.16.6
-- Updated various dependencies (important: kotlin-wrappers updated to 2025.6.11)
 
 ### Deprecated
 
@@ -22,10 +17,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 3.6.8
+
+### Added
+
+- Disable downloads by build environment variable
+
+### Changed
+
+- Updated Trixnity from 4.16.5 to 4.16.6
+- Updated various dependencies (important: kotlin-wrappers updated to 2025.6.11)
+
+### Fixed
+
 - Unsupported image mime types are treated as images
 - link colour in privacy and imprint page
-
-### Security
 
 ## 3.6.7
 
