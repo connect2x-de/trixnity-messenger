@@ -34,6 +34,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -132,16 +133,23 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         val zoom = remember { mutableStateOf(1.0f) }
         val offset = remember { mutableStateOf(Offset.Zero) }
         val canZoom = remember { mutableStateOf(false) }
+        val viewSize = remember { mutableStateOf(IntSize.Zero) }
 
         val state = rememberTransformableState { zoomChange, offsetChange, _ ->
+            println("Zooming by $zoomChange with offset $offsetChange")
             zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, maxZoom)
-            offset.value = offset.value + offsetChange.times(zoom.value)
+            val zoomedOffsetChange = if (zoom.value * zoomChange in (minZoom..maxZoom)) Offset(
+                -viewSize.value.width / 2f * 2,
+                -viewSize.value.height / 2f * 2
+            ).times(zoomChange - 1) else Offset.Zero
+            offset.value = offset.value + offsetChange.times(zoom.value) + zoomedOffsetChange
         }
-        val viewSize = remember { MutableStateFlow(IntSize.Zero) }
+        val imageSize = remember { mutableStateOf(IntSize(0, 0)) }
+
+        val scope = rememberCoroutineScope()
         val i18n = DI.current.get<I18nView>()
         val dpi = remember { mutableStateOf<Float?>(null) }
         val pageCacheSize = remember { mutableStateOf(max(2f, min(16f, 8f / zoom.value)).toInt()) }
-
         LaunchedEffect(Unit) {
             element.downloadMedia()
         }
@@ -165,7 +173,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                             canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
                             true
                         }
-                        .zoomModifier(focusRequester, canZoom, zoom, minZoom, maxZoom),
+                        .zoomModifier(focusRequester, canZoom, zoom, minZoom, maxZoom, state, scope, viewSize),
                 ) {
                     when {
                         progress != null && media == null -> {
@@ -189,9 +197,11 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                             val horizontalScroll = rememberScrollState()
 
                             LaunchedEffect(offset.value) {
+                                println("Updating offset to ${offset.value}")
                                 lazyListState.scrollBy(-offset.value.y)
                                 horizontalScroll.scrollBy(-offset.value.x)
                                 offset.value = Offset.Zero
+                                println("Done updating offset")
                             }
                             LaunchedEffect(
                                 reader.value?.documentWidth?.value,
@@ -222,6 +232,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                                             .transformable(state),
                                         verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
                                         contentPadding = PaddingValues(horizontal = MaterialTheme.messengerDpConstants.middle),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
                                         state = lazyListState,
                                         userScrollEnabled = canZoom.value.not(),
                                         content = {
@@ -239,6 +250,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                                                 }
 
                                                 if (image != null) {
+                                                    imageSize.value = IntSize(image.width, image.height)
                                                     Image(
                                                         bitmap = image,
                                                         contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),

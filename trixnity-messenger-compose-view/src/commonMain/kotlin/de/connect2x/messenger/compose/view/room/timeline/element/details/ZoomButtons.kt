@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.details
 
+import androidx.compose.foundation.gestures.TransformableState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ZoomIn
 import androidx.compose.material.icons.outlined.ZoomOut
@@ -7,11 +8,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.IntSize
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun ZoomButtons(scale: MutableState<Float>, minScale: Float = 0.2f, maxScale: Float = 4.0f) {
@@ -30,7 +35,10 @@ fun Modifier.zoomModifier(
     canZoom: MutableState<Boolean>,
     zoom: MutableState<Float>,
     minScale: Float? = 0.2f,
-    maxScale: Float? = 4f
+    maxScale: Float? = 4f,
+    state: TransformableState? = null,
+    scope: CoroutineScope? = null,
+    viewSize: MutableState<IntSize>? = null
 ): Modifier {
     return this.then(
         Modifier.pointerInput(Unit) {
@@ -42,7 +50,20 @@ fun Modifier.zoomModifier(
                             focusRequester.requestFocus() // otherwise, key events will be lost
                             if (canZoom.value) {
                                 val delta = 0.1f * -it.scrollDelta.y
-                                zoom.value = (zoom.value + delta).coerceIn(minScale, maxScale)
+                                if (state == null || scope == null || viewSize == null) {
+                                    zoom.value = (zoom.value + delta).coerceIn(minScale, maxScale)
+                                } else if (it.scrollDelta.y.toInt() != 0) {
+                                    scope.launch {
+                                        state.transform {
+                                            val deltaMultiplier = 1 + delta
+                                            val minScale = minScale ?: 1f
+                                            val maxScale = maxScale ?: 2f
+                                            this.transformBy(
+                                                deltaMultiplier,
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                 }
