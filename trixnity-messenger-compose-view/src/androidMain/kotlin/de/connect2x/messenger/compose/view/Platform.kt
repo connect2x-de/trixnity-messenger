@@ -66,7 +66,7 @@ actual fun Tooltip(
     hoverHideDelay: Duration,
     content: @Composable () -> Unit,
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val tooltipState = rememberTooltipState()
     val scope = rememberCoroutineScope()
 

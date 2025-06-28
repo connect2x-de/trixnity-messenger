@@ -55,6 +55,7 @@ import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.common.DownloadProgress
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
@@ -147,14 +148,14 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         val imageSize = remember { mutableStateOf(IntSize(0, 0)) }
 
         val scope = rememberCoroutineScope()
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val dpi = remember { mutableStateOf<Float?>(null) }
         val pageCacheSize = remember { mutableStateOf(max(2f, min(16f, 8f / zoom.value)).toInt()) }
         LaunchedEffect(Unit) {
             element.downloadMedia()
         }
         LaunchedEffect(Unit) {
-            element.downloadMediaError.collect { setError(it) }
+            element.downloadMediaError.collect { setError(i18n.fileCouldNotBeLoaded()) }
         }
         FileBasedDetailsDialog(
             element,
@@ -165,7 +166,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
             Column {
                 Box(
                     Modifier
-                        .background(color = if (media == null) MaterialTheme.colorScheme.background else Color.Black)
+                        .background(color = Color.Black)
                         .fillMaxSize()
                         .focusRequester(focusRequester)
                         .focusable()
@@ -176,6 +177,22 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                         .zoomModifier(focusRequester, canZoom, zoom, minZoom, maxZoom, state, scope, viewSize),
                 ) {
                     when {
+                        error != null -> {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxSize().padding(32.dp),
+                            ) {
+                                Icon(
+                                    MaterialTheme.messengerIcons.typeFile,
+                                    i18n.commonFile(),
+                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally),
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                                Text(error, color = Color.White)
+                            }
+                        }
+
                         progress != null && media == null -> {
                             DownloadProgress(progress, element::cancelDownloadMedia)
                         }
@@ -185,7 +202,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                             val reader = remember { mutableStateOf<PDFReader?>(null) }
                             LaunchedEffect(Unit) {
                                 reader.value =
-                                    getPlatformPDFReader(media) { setError(it ?: i18n.fileCouldNotBeLoaded()) }
+                                    getPlatformPDFReader(media) { setError(i18n.fileCouldNotBeLoaded()) }
                             }
                             DisposableEffect(Unit) {
                                 onDispose {
@@ -285,22 +302,6 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                                     lazyListState,
                                     false
                                 )
-                            }
-                        }
-
-                        error != null -> {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxSize().padding(32.dp),
-                            ) {
-                                Icon(
-                                    MaterialTheme.messengerIcons.typeFile,
-                                    i18n.commonFile(),
-                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally),
-                                    tint = MaterialTheme.colorScheme.onBackground
-                                )
-                                Text(error, color = MaterialTheme.colorScheme.onBackground)
                             }
                         }
 

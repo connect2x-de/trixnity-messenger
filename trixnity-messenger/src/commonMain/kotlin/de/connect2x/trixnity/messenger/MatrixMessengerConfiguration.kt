@@ -39,6 +39,7 @@ data class MatrixMessengerConfiguration(
     var defaultReadMarkerIsPublic: Boolean = true,
     var defaultTypingIsPublic: Boolean = true,
 
+    var databaseEncryptionEnabled: Boolean = true,
     var notificationsEnabled: Boolean = false,
 
     val features: MatrixMessengerFeatures = MatrixMessengerFeatures(
@@ -97,6 +98,8 @@ data class MatrixMessengerConfiguration(
     override var licenses: String? = null,
 
     override var pushUrl: String? = null,
+
+    var downloadsDisabled: Boolean = false,
 
     /**
      * Specify a [HttpClientEngine]. It is highly recommended to set it and share it within an application.

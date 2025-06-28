@@ -117,26 +117,23 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                     }
 
                     Spacer(Modifier.height(15.dp))
-                    LimitedSizeStickyHeaderColumn(
+                    Column(
                         modifier = Modifier.fillMaxSize(),
-                        header = {
-                            MoreOptions(roomOptionsString, modifier = Modifier.padding(horizontal = 10.dp)) {
-                                CreateGroupOptions(createNewGroupViewModel)
-                            }
-                            Spacer(Modifier.height(15.dp))
-                            OptionalRoomNameInput(optionalRoomName)
-                            Spacer(Modifier.height(15.dp))
-                            OptionalRoomTopicInput(optionalRoomTopic)
-                            UsersInGroup(createNewGroupViewModel)
-                        },
-                        body = { shouldScroll ->
-                            SearchUsers(
-                                createNewGroupViewModel.createNewRoomViewModel,
-                                shouldScroll = shouldScroll,
-                                createNewGroupViewModel::onUserClick,
-                            )
+                    ) {
+                        MoreOptions(roomOptionsString, modifier = Modifier.padding(horizontal = 10.dp)) {
+                            CreateGroupOptions(createNewGroupViewModel)
                         }
-                    )
+                        Spacer(Modifier.height(15.dp))
+                        OptionalRoomNameInput(optionalRoomName)
+                        Spacer(Modifier.height(15.dp))
+                        OptionalRoomTopicInput(optionalRoomTopic)
+                        UsersInGroup(createNewGroupViewModel)
+                        SearchUsers(
+                            createNewGroupViewModel.createNewRoomViewModel,
+                            shouldScroll = true,
+                            createNewGroupViewModel::onUserClick,
+                        )
+                    }
                 }
             }
             Box(
@@ -167,7 +164,8 @@ fun OptionalRoomNameInput(
         placeholder = { Text(i18n.optionalGroupNamePlaceholder()) },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp)
+            .padding(horizontal = 10.dp),
+        maxLines = 2,
     )
 }
 
@@ -185,6 +183,7 @@ fun OptionalRoomTopicInput(
             .padding(horizontal = 10.dp),
         keyboardOptions = KeyboardOptions(
             capitalization = KeyboardCapitalization.Sentences,
-        )
+        ),
+        maxLines = 2,
     )
 }

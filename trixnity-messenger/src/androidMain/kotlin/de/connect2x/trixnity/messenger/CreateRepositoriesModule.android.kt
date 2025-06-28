@@ -3,40 +3,9 @@ package de.connect2x.trixnity.messenger
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import de.connect2x.trixnity.messenger.util.RootPath
-import de.connect2x.trixnity.messenger.secrets.SecretByteArray
-import net.folivo.trixnity.client.store.repository.room.TrixnityRoomDatabase
-import net.folivo.trixnity.client.store.repository.room.createRoomRepositoriesModule
-import net.folivo.trixnity.core.model.UserId
-import okio.FileSystem
-import org.koin.core.module.Module
-import org.koin.dsl.module
+import org.koin.core.scope.Scope
 
-actual fun platformCreateRepositoriesModuleModule(): Module = module {
-    single<CreateRepositoriesModule> {
-        val rootPath = get<RootPath>()
-        val fileSystem = get<FileSystem>()
-        val context = get<Context>()
-
-        object : CreateRepositoriesModule {
-            override suspend fun generateDatabaseKey(): ByteArray? = null
-            override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module {
-                fileSystem.createDirectories(rootPath.forAccountDatabase(userId), mustCreate = false)
-                return createRoomRepositoriesModule(db(userId))
-            }
-
-            override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module {
-                return createRoomRepositoriesModule(db(userId))
-            }
-
-            private fun db(userId: UserId): RoomDatabase.Builder<TrixnityRoomDatabase> =
-                Room.databaseBuilder<TrixnityRoomDatabase>(
-                    context,
-                    rootPath.forAccountDatabase(userId).resolve("database").toString()
-                ).apply {
-                    setDriver(BundledSQLiteDriver())
-                }
-        }
-    }
-}
+internal actual inline fun <reified T : RoomDatabase> Scope.roomDatabaseBuilder(
+    name: String,
+): RoomDatabase.Builder<T> =
+    Room.databaseBuilder(get<Context>(), name)
