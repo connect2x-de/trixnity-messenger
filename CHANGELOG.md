@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## 3.6.9
+
+### Fixed
+
+- Don't block opening room database
+
 ## 3.6.8
 
 ### Added
