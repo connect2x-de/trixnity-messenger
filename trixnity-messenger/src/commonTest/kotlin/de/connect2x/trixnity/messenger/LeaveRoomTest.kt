@@ -64,7 +64,7 @@ class LeaveRoomTest {
         every { roomService.getState(upgradedRoomId, CreateEventContent::class) } returns flowOf(null)
         every { roomService.getById(roomId) } returns room
         every { roomService.getById(upgradedRoomId) } returns upgradedRoom
-        everySuspend { roomService.forgetRoom(any()) } returns Unit
+        everySuspend { roomService.forgetRoom(any(), any()) } returns Unit
         every { matrixClientServerApiClient.room } returns roomApiClient
         every { matrixClient.api } returns matrixClientServerApiClient
         every { matrixClient.di } returns koinApplication {
@@ -170,7 +170,7 @@ class LeaveRoomTest {
     @Test
     fun `should forget room locally when API call failed with MatrixServerException`() = runTestWithCoroutineScope {
         room.value = Room(roomId, membership = Membership.LEAVE)
-        everySuspend { roomApiClient.forgetRoom(any()) } returns Result.failure(
+        everySuspend { roomApiClient.forgetRoom(any(), any()) } returns Result.failure(
             MatrixServerException(
                 statusCode = HttpStatusCode.InternalServerError,
                 errorResponse = ErrorResponse.Unknown("error")
@@ -182,7 +182,7 @@ class LeaveRoomTest {
         }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
-        verifySuspend { matrixClient.room.forgetRoom(any()) }
+        verifySuspend { matrixClient.room.forgetRoom(any(), any()) }
     }
 
     @Test
