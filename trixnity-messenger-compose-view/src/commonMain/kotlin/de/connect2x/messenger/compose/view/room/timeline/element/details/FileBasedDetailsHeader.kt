@@ -33,6 +33,7 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 
 @Composable
@@ -43,6 +44,7 @@ fun FileBasedDetailsHeader(
     additionalButtons: @Composable RowScope.() -> Unit = {},
 ) {
     val i18n = DI.get<I18nView>()
+    val configuration = DI.get<MatrixMessengerConfiguration>()
     val downloadProgress = element.downloadMediaProgress.collectAsState().value
 
     Row(
@@ -61,7 +63,7 @@ fun FileBasedDetailsHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small)
     ) {
-        FileBasedDetailsHeaderButton(Icons.Outlined.Close, i18n.commonClose(), onClose)
+        FileBasedDetailsHeaderButton(Icons.Outlined.Close, i18n.commonClose(), onAction = onClose)
 
         Box(
             Modifier.weight(1f, fill = true).padding(vertical = MaterialTheme.messengerDpConstants.small),
@@ -83,7 +85,12 @@ fun FileBasedDetailsHeader(
         additionalButtons(this)
 
         if (downloadProgress == null) {
-            FileBasedDetailsHeaderButton(Icons.Outlined.Download, i18n.downloadMessage(), onSave)
+            FileBasedDetailsHeaderButton(
+                Icons.Outlined.Download,
+                i18n.downloadMessage(),
+                !configuration.downloadsDisabled,
+                onSave
+            )
         } else {
             ThemedProgressIndicator(
                 progress = {
@@ -99,12 +106,20 @@ fun FileBasedDetailsHeader(
 fun FileBasedDetailsHeaderButton(
     icon: ImageVector,
     actionDescription: String,
+    isEnabled: Boolean = true,
     onAction: () -> Unit,
 ) {
+    val i18n = DI.get<I18nView>()
     Tooltip(
-        tooltip = { Text(actionDescription) },
+        tooltip = {
+            if (isEnabled)
+                Text(actionDescription)
+            else
+                Text(i18n.commonButtonDisabled())
+        },
     ) {
         ThemedIconButton(
+            enabled = isEnabled,
             style = MaterialTheme.components.fileViewerIconButton,
             onClick = onAction,
         ) {

@@ -31,6 +31,11 @@ open class I18nView(
         DE - "Kontextmenü"
     }
 
+    open fun commonButtonDisabled() = translate {
+        EN - "This option is deactivated"
+        DE - "Diese Option ist deaktiviert"
+    }
+
     open fun commonInactive() = translate {
         EN - "inactive"
         DE - "inaktiv"
