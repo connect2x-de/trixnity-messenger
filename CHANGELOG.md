@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.6.10
+
+### Added
+
+### Changed
+
 - Updated Trixnity from 4.16.7 to 4.16.8
 
 ### Deprecated
@@ -19,7 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Don't block opening room database
 - Update room database to support iOS shared storage
 
 ### Security
