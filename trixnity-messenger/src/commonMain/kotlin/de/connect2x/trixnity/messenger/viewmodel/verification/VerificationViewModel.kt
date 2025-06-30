@@ -5,6 +5,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
@@ -157,9 +158,10 @@ open class VerificationViewModelImpl(
         source = navigation,
         serializer = Config.serializer(),
         initialConfiguration = None,
-        handleBackButton = true,
         childFactory = ::createChild
     )
+
+    val backCallback = BackCallback { cancel() }
 
     private fun createChild(
         config: Config,
@@ -244,6 +246,7 @@ open class VerificationViewModelImpl(
 
 
     init {
+        backHandler.register(backCallback)
         coroutineScope.launch {
             if (timelineEventId == null) {
                 matrixClient.verification.activeDeviceVerification

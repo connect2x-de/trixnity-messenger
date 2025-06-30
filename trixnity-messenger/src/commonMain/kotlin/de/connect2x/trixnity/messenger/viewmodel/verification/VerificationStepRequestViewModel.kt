@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -40,6 +41,7 @@ open class VerificationStepRequestViewModelImpl(
     override val theirUserId: UserId?,
     theirDeviceId: String,
 ) : MatrixClientViewModelContext by viewModelContext, VerificationStepRequestViewModel {
+
 
     override val ourUserId: UserId = userId
 
