@@ -25,6 +25,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.SINGLE_PANE_THRESHOLD
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 
@@ -158,7 +159,7 @@ fun AdaptiveDialogHeader(
     style: DialogStyle = MaterialTheme.components.adaptiveDialog,
     title: @Composable ColumnScope.() -> Unit,
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     ThemedSurface(
         style = style.header,
         modifier = Modifier.fillMaxWidth(),

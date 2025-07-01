@@ -190,7 +190,7 @@ open class InputAreaViewModelImpl(
     override val isAllowedToSendMessages: StateFlow<Boolean> =
         matrixClient.user.canSendEvent<RoomMessageEventContent>(roomId)
             .stateIn(coroutineScope, WhileSubscribed(), false)
-    override val textField = TextFieldViewModelImpl()
+    override val textField = TextFieldViewModelImpl(maxLength = 20_000)
     override val isSendEnabled: StateFlow<Boolean> =
         textField.map { it.text.isNotBlank() }.stateIn(coroutineScope, Eagerly, false)
     override val showAttachmentSelectDialog = MutableStateFlow(false)
@@ -548,7 +548,7 @@ private fun IntRange.firstIsLast() = first == last
 
 class PreviewInputAreaViewModel : InputAreaViewModel {
     override val isAllowedToSendMessages: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    override val textField = TextFieldViewModelImpl()
+    override val textField = TextFieldViewModelImpl(maxLength = 20_000)
     override val isSendEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showAttachmentSelectDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val hasShownAttachmentSelectDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)

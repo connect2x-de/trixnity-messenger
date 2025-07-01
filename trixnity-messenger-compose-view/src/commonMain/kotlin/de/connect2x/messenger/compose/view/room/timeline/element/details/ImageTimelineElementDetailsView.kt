@@ -6,11 +6,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +42,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.util.BMP
+import de.connect2x.trixnity.messenger.util.SupportedMimeTypes
 import de.connect2x.trixnity.messenger.util.Webp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.ktor.http.*
@@ -53,15 +56,8 @@ class ImageTimelineElementDetailsView :
         RoomMessageTimelineElementViewModel.FileBased.Image::class
 
     // JPEG, PNG, BMP, WEBP (based on decodeToImageBitmap())
-    override fun supportsMimeType(mimeType: ContentType): Boolean {
-        return listOf(
-            ContentType.Image.JPEG,
-            ContentType.Image.PNG,
-            ContentType.Image.BMP,
-            ContentType.Image.Webp,
-            ContentType.Image.GIF // gifs can be rendered statically (first frame)
-        ).any { it.match(mimeType) }
-    }
+    override fun supportsMimeType(mimeType: ContentType): Boolean =
+        SupportedMimeTypes.isSupportedImage(mimeType)
 
     @OptIn(ExperimentalResourceApi::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
     @Composable
@@ -94,26 +90,47 @@ class ImageTimelineElementDetailsView :
             // we need focus in the box to capture key events
             val focusRequester = remember { FocusRequester() }
             BoxWithConstraints(Modifier.zIndex(0.0f)) {
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .focusRequester(focusRequester)
-                        .focusable()
-                        .onKeyEvent { keyEvent ->
-                            canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
-                            false
-                        }
-                        .zoomModifier(focusRequester, canZoom, zoom)
-                        // performance when image is rendered with no alpha channel
-                        .background(color = if (media == null) MaterialTheme.colorScheme.background else Color.Black)
-                        .transformable(state = state),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    with (LocalDensity.current) {
+                with(LocalDensity.current) {
+                    val bitmap = remember {
                         media?.toImageBitmap(
                             width = this@BoxWithConstraints.maxWidth.roundToPx(),
                             height = this@BoxWithConstraints.maxHeight.roundToPx(),
-                        )?.let { bitmap ->
+                        )
+                    }
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .focusRequester(focusRequester)
+                            .focusable()
+                            .onKeyEvent { keyEvent ->
+                                canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
+                                false
+                            }
+                            .zoomModifier(focusRequester, canZoom, zoom)
+                            // performance when image is rendered with no alpha channel
+                            .background(color = Color.Black)
+                            .transformable(state = state),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (media != null && bitmap == null) { // error decoding the image
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxSize().padding(32.dp),
+                            ) {
+                                Icon(
+                                    MaterialTheme.messengerIcons.typeFile,
+                                    i18n.commonFile(),
+                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally),
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                                Text(
+                                    i18n.imageCouldNotBeLoaded(),
+                                    color = Color.White
+                                )
+                            }
+                        }
+                        if (bitmap != null) {
                             Image(
                                 bitmap,
                                 "",
@@ -125,26 +142,26 @@ class ImageTimelineElementDetailsView :
                                 }
                             )
                         }
-                    }
-                    progress?.let {
-                        if (media == null) {
-                            DownloadProgress(it, element::cancelLoadMedia)
+                        progress?.let {
+                            if (media == null) {
+                                DownloadProgress(it, element::cancelLoadMedia)
+                            }
                         }
-                    }
-                    if (media == null && progress == null) {
-                        Box(modifier = Modifier.align(Alignment.Center)) {
-                            Column {
-                                Icon(
-                                    MaterialTheme.messengerIcons.typeImage, i18n.commonImage(),
-                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally),
-                                    tint = MaterialTheme.colorScheme.onBackground
-                                )
-                                if (error != null) {
-                                    Text(error, color = MaterialTheme.colorScheme.onBackground)
-                                } else Text(
-                                    i18n.imageCouldNotBeLoaded(),
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
+                        if (media == null && progress == null) {
+                            Box(modifier = Modifier.align(Alignment.Center)) {
+                                Column {
+                                    Icon(
+                                        MaterialTheme.messengerIcons.typeImage, i18n.commonImage(),
+                                        Modifier.size(96.dp).align(Alignment.CenterHorizontally),
+                                        tint = MaterialTheme.colorScheme.onBackground
+                                    )
+                                    if (error != null) {
+                                        Text(error, color = MaterialTheme.colorScheme.onBackground)
+                                    } else Text(
+                                        i18n.imageCouldNotBeLoaded(),
+                                        color = MaterialTheme.colorScheme.onBackground
+                                    )
+                                }
                             }
                         }
                     }

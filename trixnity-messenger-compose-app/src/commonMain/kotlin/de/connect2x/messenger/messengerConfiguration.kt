@@ -54,6 +54,8 @@ fun messengerConfiguration(
         modulesFactories += listOf(
             { composeViewModule(this) },
         )
+
+        downloadsDisabled = BuildConfig.downloadsDisabled
         when (BuildConfig.flavor) {
             Flavor.PROD -> {}
             Flavor.DEV -> {

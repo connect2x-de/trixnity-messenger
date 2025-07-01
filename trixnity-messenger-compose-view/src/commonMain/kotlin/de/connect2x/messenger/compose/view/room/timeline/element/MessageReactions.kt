@@ -105,7 +105,7 @@ private fun MessageReactionList(
     onOpenReactions: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     if (reactions.isNotEmpty()) {
         FlowRow(
             modifier,

@@ -6,6 +6,7 @@ import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetImageDimensions
 import de.connect2x.trixnity.messenger.util.ProcessImageUpload
+import de.connect2x.trixnity.messenger.util.SupportedMimeTypes
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.checkFileSizeExceedsLimit
@@ -28,11 +29,9 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.byteArrayFlowFromSource
 import net.folivo.trixnity.utils.toByteArray
-import net.folivo.trixnity.utils.toByteArray
 import net.folivo.trixnity.utils.toByteArrayFlow
 import okio.Buffer
 import org.koin.core.component.get
-
 
 private val log = KotlinLogging.logger { }
 
@@ -79,7 +78,8 @@ class SendAttachmentViewModelImpl(
     override val error: StateFlow<String?> = _error.asStateFlow()
     override val sendEnabled: StateFlow<Boolean> = _sendEnabled.asStateFlow()
 
-    override val isImage = file.mimeType?.match("image/*")
+    override val isImage =
+        file.mimeType?.let { it.match("image/*") && SupportedMimeTypes.isSupportedImage(it) } ?: false
     override val isVideo = file.mimeType?.match("video/*")
     override val isAudio = file.mimeType?.match("audio/*")
 

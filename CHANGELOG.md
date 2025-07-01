@@ -21,6 +21,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## 3.6.10
+
+### Added
+
+### Changed
+
+- Updated Trixnity from 4.16.7 to 4.16.8
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Update room database to support iOS shared storage
+
+### Security
+
+## 3.6.9
+
+### Fixed
+
+- Don't block opening room database
+
+## 3.6.8
+
+### Added
+
+- Disable downloads by build environment variable
+
+### Changed
+
+- Updated Trixnity from 4.16.5 to 4.16.7
+- Updated various dependencies (important: kotlin-wrappers updated to 2025.6.9)
+
+### Fixed
+
+- Unsupported image mime types are treated as images
+- link colour in privacy and imprint page
+
+## 3.6.7
+
+### Changed
+
+- Move to room with active verification, when verification with user is already running
+- Disable start user verification option when one is already running
+
+### Fixed
+
+- Show correct error message on corrupt files
+- Fix database encryption problem when app was in background mode
+
+## 3.6.6
+
+### Changed
+
+- Text input fields have a max length now
+- Rename Sqlite3mc driver package name
+- Allow to enable database encryption via config (all new accounts use encrypted databases by default, except web where
+  no decryption can be activated; existing unencrypted databases stay unencrypted)
+
 ## 3.6.5
 
 ### Added
