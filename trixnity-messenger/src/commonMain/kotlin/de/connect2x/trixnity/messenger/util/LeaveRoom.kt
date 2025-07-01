@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
@@ -54,7 +55,9 @@ class LeaveRoomImpl : LeaveRoom {
 
                 if (forget) {
                     log.trace { "wait for room $roomId to be marked as LEAVE" }
-                    roomFlow.filter { it?.membership == Membership.LEAVE }.first()
+                    withTimeoutOrNull(10.seconds) {
+                        roomFlow.filter { it?.membership == Membership.LEAVE }.first()
+                    } ?: log.warn { "Exceeded timeout for room membership to switch to leave, forgetting room..." }
                     log.trace { "forget room" }
                     val forgetResult = client.api.room.forgetRoom(roomId)
                     val forgetException = forgetResult.exceptionOrNull()
@@ -65,7 +68,7 @@ class LeaveRoomImpl : LeaveRoom {
                     }
 
                     log.trace { "remove local copy of room $roomId" }
-                    client.room.forgetRoom(roomId)
+                    client.room.forgetRoom(roomId, true)
                 }
             }
         }
