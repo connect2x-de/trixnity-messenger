@@ -123,7 +123,7 @@ class LeaveRoomTest {
         }
 
         LeaveRoomImpl().invoke(matrixClient, roomId, false).getOrThrow()
-        verifySuspend(VerifyMode.not) { roomApiClient.forgetRoom(any()) }
+        verifySuspend(VerifyMode.not) { roomApiClient.forgetRoom(roomId) }
     }
 
     @Test
@@ -133,7 +133,7 @@ class LeaveRoomTest {
         everySuspend { roomApiClient.leaveRoom(any()) } returns Result.success(Unit)
 
         LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
-        verifySuspend(VerifyMode.not) { roomApiClient.leaveRoom(any()) }
+        verifySuspend(VerifyMode.not) { roomApiClient.leaveRoom(roomId) }
     }
 
     @Test
@@ -151,7 +151,7 @@ class LeaveRoomTest {
         }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
-        verifySuspend { roomApiClient.forgetRoom(any()) }
+        verifySuspend { roomApiClient.forgetRoom(roomId) }
     }
 
     @Test
@@ -164,13 +164,13 @@ class LeaveRoomTest {
         }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).isSuccess shouldBe false
-        verifySuspend(VerifyMode.not) { roomApiClient.forgetRoom(any()) }
+        verifySuspend(VerifyMode.not) { roomApiClient.forgetRoom(roomId) }
     }
 
     @Test
     fun `should forget room locally when API call failed with MatrixServerException`() = runTestWithCoroutineScope {
         room.value = Room(roomId, membership = Membership.LEAVE)
-        everySuspend { roomApiClient.forgetRoom(any(), any()) } returns Result.failure(
+        everySuspend { roomApiClient.forgetRoom(any()) } returns Result.failure(
             MatrixServerException(
                 statusCode = HttpStatusCode.InternalServerError,
                 errorResponse = ErrorResponse.Unknown("error")
@@ -182,7 +182,7 @@ class LeaveRoomTest {
         }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
-        verifySuspend { matrixClient.room.forgetRoom(any(), true) }
+        verifySuspend { matrixClient.room.forgetRoom(roomId, true) }
     }
 
     @Test
@@ -191,7 +191,7 @@ class LeaveRoomTest {
         everySuspend { roomApiClient.forgetRoom(any()) } returns Result.success(Unit)
         everySuspend { roomApiClient.leaveRoom(any()) } returns Result.success(Unit)
         LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
-        verifySuspend { matrixClient.room.forgetRoom(any(), true) }
+        verifySuspend { matrixClient.room.forgetRoom(roomId, true) }
     }
 
     @Test
@@ -205,7 +205,7 @@ class LeaveRoomTest {
         }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).isSuccess shouldBe false
-        verifySuspend(VerifyMode.not) { matrixClient.room.forgetRoom(any()) }
+        verifySuspend(VerifyMode.not) { matrixClient.room.forgetRoom(roomId) }
     }
 
 
