@@ -43,7 +43,7 @@ fun MainViewController(lifecycle: Lifecycle): UIViewController {
             },
             activeMessenger = { matrixMessenger, rootViewModel ->
                 CompositionLocalProvider(
-                    Platform provides PlatformType.ANDROID, // TODO iOS
+                    Platform provides PlatformType.IOS, // TODO iOS
                     IsFocused provides true, // TODO
                     DI provides matrixMessenger.di,
                 ) {
@@ -55,7 +55,7 @@ fun MainViewController(lifecycle: Lifecycle): UIViewController {
             nonActiveMessenger = { existingProfiles ->
                 val showProfileCreation = remember { mutableStateOf(false) }
                 CompositionLocalProvider(
-                    Platform provides PlatformType.ANDROID, // TODO
+                    Platform provides PlatformType.IOS, // TODO
                     IsFocused provides true, // TODO
                     DI provides matrixMultiMessenger.di,
                     ShowProfileCreation provides showProfileCreation,
