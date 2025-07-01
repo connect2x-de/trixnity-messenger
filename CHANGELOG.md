@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Disable downloads by build environment variable
-
 ### Changed
 
 ### Deprecated
@@ -19,10 +17,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Unsupported image mime types are treated as images
-- link colour in privacy and imprint page
+- Show error to user when room list element action failed
+- Don't block opening room database
+- Forgetting room when declining invite to deleted room
 
 ### Security
+
+## 3.6.10
+
+### Added
+
+### Changed
+
+- Updated Trixnity from 4.16.7 to 4.16.8
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Update room database to support iOS shared storage
+
+### Security
+
+## 3.6.9
+
+### Fixed
+
+- Don't block opening room database
+
+## 3.6.8
+
+### Added
+
+- Disable downloads by build environment variable
+
+### Changed
+
+- Updated Trixnity from 4.16.5 to 4.16.7
+- Updated various dependencies (important: kotlin-wrappers updated to 2025.6.9)
+
+### Fixed
+
+- Unsupported image mime types are treated as images
+- link colour in privacy and imprint page
 
 ## 3.6.7
 
