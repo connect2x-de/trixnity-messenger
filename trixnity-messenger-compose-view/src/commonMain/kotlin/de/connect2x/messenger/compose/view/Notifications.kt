@@ -52,6 +52,7 @@ fun Notifications(
         id = "${config.appId}.notification",
         isDebugEnabled = config.notificationsDebugEnabled,
     )
+    registerActivationHandler(notificationHandler)
 
     LaunchedEffect(Unit) {
         matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
@@ -166,7 +167,7 @@ private suspend fun displayNotification(
             return Notification(
                 title = title,
                 description = text,
-                //icon = imageInBytes?.let { NotificationIcon(it, avatarSize(), avatarSize()) },
+                icon = imageInBytes?.let { NotificationIcon(it, avatarSize(), avatarSize()) },
                 playSound = shouldPlaySound(currentSettings) && notification.actions.any { it is PushAction.SetSoundTweak }
             )
         }
@@ -177,3 +178,4 @@ private suspend fun displayNotification(
 expect fun shouldShowPopup(currentSettings: MatrixMessengerAccountSettings): Boolean
 expect fun shouldShowText(currentSettings: MatrixMessengerAccountSettings): Boolean
 expect fun shouldPlaySound(currentSettings: MatrixMessengerAccountSettings): Boolean
+expect fun registerActivationHandler(handler: NotificationHandler)

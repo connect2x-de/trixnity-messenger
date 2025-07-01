@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view
 
+import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
 
 
@@ -8,3 +9,5 @@ actual fun shouldShowPopup(currentSettings: MatrixMessengerAccountSettings): Boo
 actual fun shouldShowText(currentSettings: MatrixMessengerAccountSettings): Boolean = true // not needed
 
 actual fun shouldPlaySound(currentSettings: MatrixMessengerAccountSettings): Boolean = true // not needed
+
+actual fun registerActivationHandler(handler: NotificationHandler) = Unit // not needed

@@ -51,7 +51,7 @@ kotlin {
     }
 
     sourceSets {
-        commonMain {
+        val commonMain by getting {
             dependencies {
                 api(projects.trixnityMessenger)
                 api(compose.runtime)
@@ -71,7 +71,11 @@ kotlin {
                 implementation(libs.androidx.annotation)
             }
         }
+        val desktopAndAndroidMain by creating {
+            dependsOn(commonMain)
+        }
         val desktopMain by getting {
+            dependsOn(desktopAndAndroidMain)
             dependencies {
                 implementation(libs.filekit.compose)
                 implementation(libs.ktor.client.okhttp)
@@ -79,6 +83,7 @@ kotlin {
             }
         }
         androidMain {
+            dependsOn(desktopAndAndroidMain)
             dependencies {
                 implementation(compose.uiTooling)
                 implementation(libs.bundles.android.common)
