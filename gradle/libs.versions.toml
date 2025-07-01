@@ -2,7 +2,7 @@
 jvmTarget = "17"
 c2xConventions = "43109500" # https://gitlab.com/connect2x/c2x-conventions/-/packages
 
-trixnityMessenger = "3.6.10"
+trixnityMessenger = "3.6.11"
 trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
@@ -53,7 +53,7 @@ androidxBrowser = "1.8.0" # https://developer.android.com/jetpack/androidx/relea
 androidxCrypto = "1.1.0-beta01" # https://developer.android.com/jetpack/androidx/releases/security
 androidxActivity = "1.10.1" # https://developer.android.com/jetpack/androidx/releases/activity
 androidxSqlite3 = "2.5.2" # https://developer.android.com/jetpack/androidx/releases/sqlite
-androidxSqlite3mc = "2.5.2-1" # https://gitlab.com/connect2x/androidx/-/releases
+androidxSqlite3mc = "2.5.2-3" # https://gitlab.com/connect2x/androidx/-/tags
 androidxWorkManager = "2.10.2" # https://developer.android.com/jetpack/androidx/releases/work
 androidxLiveData = "2.9.1" # https://developer.android.com/jetpack/androidx/releases/lifecycle
 androidxAppCompat = "1.7.1" # https://developer.android.com/jetpack/androidx/releases/appcompat
