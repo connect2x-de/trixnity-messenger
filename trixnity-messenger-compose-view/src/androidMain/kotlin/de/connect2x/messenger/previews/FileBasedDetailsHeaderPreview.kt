@@ -35,12 +35,12 @@ private fun ElementDetailsHeaderPreview() {
             FileBasedDetailsHeaderButton(
                 Icons.Outlined.ZoomIn,
                 "zoom in",
-                {},
+                onAction = {},
             )
             FileBasedDetailsHeaderButton(
                 Icons.Outlined.ZoomOut,
                 "zoom out",
-                {},
+                onAction = {},
             )
         }
     }

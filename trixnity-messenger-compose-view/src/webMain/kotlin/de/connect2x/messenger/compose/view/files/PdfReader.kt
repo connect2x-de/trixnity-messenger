@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import web.blob.Blob
 import web.canvas.CanvasRenderingContext2D
+import web.dom.ElementId
 import web.dom.document
 import web.html.HTMLCanvasElement
 import web.url.URL
@@ -25,7 +26,8 @@ class PdfReaderWeb(blob: Blob) {
         jsReader.promise.then { loadedDocument ->
             pdfDocument.value = loadedDocument
             pageSize.value = loadedDocument.numPages.toInt()
-            loadedDocument.getPageAsync(1).then { documentWidth.value = it.getViewport(GetViewportParameters(1f)).width.toInt() }
+            loadedDocument.getPageAsync(1)
+                .then { documentWidth.value = it.getViewport(GetViewportParameters(1f)).width.toInt() }
         }
     }
 
@@ -57,7 +59,7 @@ class PdfReaderWeb(blob: Blob) {
                             blob?.let {
                                 blob.arrayBufferAsync().then { buffer ->
                                     bitmapFlow.value = Uint8Array(buffer).toByteArray().toImageBitmap()
-                                    dom.getElementById("pdf-canvas-page-$pageIndex")?.remove()
+                                    dom.getElementById(ElementId("pdf-canvas-page-$pageIndex"))?.remove()
                                 }
                             }
                         })
@@ -68,9 +70,9 @@ class PdfReaderWeb(blob: Blob) {
     }
 
     private fun getOrCreatePageCanvas(pageId: Int): HTMLCanvasElement {
-        return (dom.getElementById("pdf-canvas-page-$pageId") ?: dom.createElement("canvas")
+        return (dom.getElementById(ElementId("pdf-canvas-page-$pageId")) ?: dom.createElement("canvas")
             .apply {
-                id = "pdf-canvas-page-$pageId"
+                id = ElementId("pdf-canvas-page-$pageId")
             }) as HTMLCanvasElement
     }
 }

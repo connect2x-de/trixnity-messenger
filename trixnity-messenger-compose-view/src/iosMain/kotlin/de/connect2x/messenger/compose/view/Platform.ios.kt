@@ -7,13 +7,18 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
+import de.connect2x.messenger.compose.view.common.tooltipAnchorSemantics
+import de.connect2x.messenger.compose.view.common.tooltipGestures
+import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components.ThemedPlainTooltip
 import org.koin.core.Koin
+import kotlin.time.Duration
 
 @Composable
 actual fun VerticalScrollbar(
@@ -54,16 +59,31 @@ actual fun HorizontalScrollbar(
 actual fun Tooltip(
     tooltip: @Composable () -> Unit,
     modifier: Modifier,
-    delayMillis: Int,
     onClick: (() -> Unit)?,
     enabled: Boolean,
+    longPressDelay: Duration,
+    hoverShowDelay: Duration,
+    hoverHideDelay: Duration,
     content: @Composable () -> Unit,
 ) {
+    val i18n = DI.current.get<I18nView>()
+    val tooltipState = rememberTooltipState()
+    val scope = rememberCoroutineScope()
+
     TooltipBox(
+        modifier = Modifier
+            .tooltipGestures(
+                enabled = enabled,
+                state = tooltipState,
+                longPressDelay = longPressDelay,
+                hoverShowDelay = hoverShowDelay,
+                hoverHideDelay = hoverHideDelay,
+            )
+            .tooltipAnchorSemantics(i18n.commonShowTooltip(), enabled, tooltipState, scope),
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-        tooltip = { ThemedPlainTooltip(content = { tooltip() }) },
-        state = rememberTooltipState(),
-        enableUserInput = enabled,
+        tooltip = { ThemedPlainTooltip { tooltip() } },
+        state = tooltipState,
+        enableUserInput = false,
     ) {
         content()
     }
