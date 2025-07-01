@@ -35,8 +35,11 @@ import org.jetbrains.skiko.wasm.onWasmReady
 import web.dom.DocumentVisibilityState
 import web.dom.document
 import web.events.Event
+import web.events.VISIBILITY_CHANGE
 import web.events.addEventListener
 import web.prompts.alert
+import web.uievents.BLUR
+import web.uievents.FOCUS
 import web.uievents.FocusEvent
 import web.window.window
 

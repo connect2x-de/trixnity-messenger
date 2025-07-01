@@ -19,7 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Show error to user when room list element action failed
 - Unsupported image mime types are treated as images
 - link colour in privacy and imprint page
 
