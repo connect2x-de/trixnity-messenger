@@ -6,7 +6,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.window.ComposeUIViewController
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.Lifecycle
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
@@ -24,7 +23,7 @@ import platform.UIKit.UIViewController
 
 private val log = KotlinLogging.logger {}
 
-fun MainViewController(): UIViewController {
+fun MainViewController(lifecycle: Lifecycle): UIViewController {
     log.info { "Starting iOS client" }
     val matrixMultiMessenger = runBlocking {
         MatrixMultiMessenger.create(
@@ -38,7 +37,7 @@ fun MainViewController(): UIViewController {
     ) {
         WithProfileSelection(
             matrixMultiMessenger,
-            componentContext = DefaultComponentContext(LifecycleRegistry(Lifecycle.State.STARTED)),
+            componentContext = DefaultComponentContext(lifecycle),
             activeMessengerOnce = { _, _ ->
                 // TODO
             },
