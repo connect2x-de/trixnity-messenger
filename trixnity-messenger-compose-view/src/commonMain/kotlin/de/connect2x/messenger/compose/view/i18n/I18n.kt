@@ -26,6 +26,11 @@ open class I18nView(
         DE - "Archiviert"
     }
 
+    open fun commonError() = translate {
+        EN - "Error"
+        DE - "Fehler"
+    }
+
     open fun commonContextMenu() = translate {
         EN - "context menu"
         DE - "Kontextmenü"
