@@ -182,7 +182,16 @@ class LeaveRoomTest {
         }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
-        verifySuspend { matrixClient.room.forgetRoom(any(), any()) }
+        verifySuspend { matrixClient.room.forgetRoom(any(), true) }
+    }
+
+    @Test
+    fun `should forget room locally when room is already deleted`() = runTestWithCoroutineScope {
+        room.value = Room(roomId, membership = Membership.INVITE)
+        everySuspend { roomApiClient.forgetRoom(any()) } returns Result.success(Unit)
+        everySuspend { roomApiClient.leaveRoom(any()) } returns Result.success(Unit)
+        LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
+        verifySuspend { matrixClient.room.forgetRoom(any(), true) }
     }
 
     @Test
