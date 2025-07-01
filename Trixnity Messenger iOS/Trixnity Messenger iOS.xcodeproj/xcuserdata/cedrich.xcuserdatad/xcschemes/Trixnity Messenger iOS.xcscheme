@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   version = "1.3">
+   <BuildAction>
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForRunning = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "21A1B04F2D806E4300623456"
+               BuildableName = "Trixnity Messenger iOS.app"
+               BlueprintName = "Trixnity Messenger iOS"
+               ReferencedContainer = "container:Trixnity Messenger iOS.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <LaunchAction
+      useCustomWorkingDirectory = "NO"
+      buildConfiguration = "Debug"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "21A1B04F2D806E4300623456"
+            BuildableName = "Trixnity Messenger iOS.app"
+            BlueprintName = "Trixnity Messenger iOS"
+            ReferencedContainer = "container:Trixnity Messenger iOS.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </LaunchAction>
+</Scheme>
