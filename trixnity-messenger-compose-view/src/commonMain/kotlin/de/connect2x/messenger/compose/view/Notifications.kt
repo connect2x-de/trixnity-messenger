@@ -166,7 +166,7 @@ private suspend fun displayNotification(
             return Notification(
                 title = title,
                 description = text,
-                icon = imageInBytes?.let { NotificationIcon(it, avatarSize(), avatarSize()) },
+                //icon = imageInBytes?.let { NotificationIcon(it, avatarSize(), avatarSize()) },
                 playSound = shouldPlaySound(currentSettings) && notification.actions.any { it is PushAction.SetSoundTweak }
             )
         }
