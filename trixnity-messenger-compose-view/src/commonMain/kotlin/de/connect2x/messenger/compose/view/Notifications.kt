@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.util.decodeImageRGBA8888
 import de.connect2x.sysnotify.Notification
 import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.sysnotify.NotificationIcon
@@ -145,7 +146,15 @@ private suspend fun displayNotification(
                 val user = matrixClient.user.getById(roomId, sender).first()
                 val image = user?.avatarUrl?.let { avatarUrl ->
                     matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
-                }?.map { it.toByteArray(maxSize = maxMediaSizeInMemory) }?.getOrNull()
+                }?.map {
+                    it.toByteArray(maxSize = maxMediaSizeInMemory)?.let { imageData ->
+                        decodeImageRGBA8888(
+                            imageData = imageData,
+                            newWidth = avatarSize(),
+                            newHeight = avatarSize()
+                        )
+                    }
+                }?.getOrNull()
                 user?.name to image
             } ?: (null to null)
 
