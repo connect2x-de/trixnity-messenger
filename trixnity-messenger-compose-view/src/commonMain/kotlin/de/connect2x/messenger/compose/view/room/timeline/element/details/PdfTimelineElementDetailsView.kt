@@ -148,7 +148,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         LaunchedEffect(Unit) {
             element.downloadMedia()
         }
-        LaunchedEffect(element.downloadMediaError.value) {
+        LaunchedEffect(element.downloadMediaError) {
             element.downloadMediaError.collect { if (it != null) setError(i18n.fileCouldNotBeLoaded()) }
         }
         FileBasedDetailsDialog(
