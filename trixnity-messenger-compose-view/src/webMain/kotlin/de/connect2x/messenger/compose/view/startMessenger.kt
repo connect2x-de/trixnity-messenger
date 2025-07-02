@@ -125,9 +125,9 @@ suspend fun startMessenger(
                             MessengerTheme {
                                 Client(rootViewModel)
                             }
-                            Notifications(
-                                matrixMessenger,
-                            )
+                            Notifications(matrixMessenger) {
+                                // TODO: make URI call to open chat
+                            }
                         }
                     }
                 }

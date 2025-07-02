@@ -44,6 +44,7 @@ private val log = KotlinLogging.logger { }
 @Composable
 fun Notifications(
     matrixMessenger: MatrixMessenger,
+    activationCallback: (Notification) -> Unit
 ) {
     val i18n = DI.get<I18nView>()
     val config = matrixMessenger.di.get<MatrixMessengerConfiguration>()
@@ -52,7 +53,7 @@ fun Notifications(
         id = "${config.appId}.notification",
         isDebugEnabled = config.notificationsDebugEnabled,
     )
-    registerActivationHandler(notificationHandler)
+    registerActivationHandler(notificationHandler, activationCallback)
 
     LaunchedEffect(Unit) {
         matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
@@ -168,7 +169,8 @@ private suspend fun displayNotification(
                 title = title,
                 description = text,
                 icon = imageInBytes?.let { NotificationIcon(it, avatarSize(), avatarSize()) },
-                playSound = shouldPlaySound(currentSettings) && notification.actions.any { it is PushAction.SetSoundTweak }
+                playSound = shouldPlaySound(currentSettings) && notification.actions.any { it is PushAction.SetSoundTweak },
+                callbackData = roomId.full
             )
         }
     } ?: log.warn { "cannot find roomId for event ${event.idOrNull}" }
@@ -178,4 +180,4 @@ private suspend fun displayNotification(
 expect fun shouldShowPopup(currentSettings: MatrixMessengerAccountSettings): Boolean
 expect fun shouldShowText(currentSettings: MatrixMessengerAccountSettings): Boolean
 expect fun shouldPlaySound(currentSettings: MatrixMessengerAccountSettings): Boolean
-expect fun registerActivationHandler(handler: NotificationHandler)
+expect fun registerActivationHandler(handler: NotificationHandler, activationCallback: (Notification) -> Unit)

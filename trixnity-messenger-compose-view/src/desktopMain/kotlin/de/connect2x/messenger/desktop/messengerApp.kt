@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
-import androidx.compose.ui.window.Notification
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -33,19 +32,24 @@ import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.defaultDragAndDropHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import okio.FileSystem
+import java.awt.Frame
 import java.awt.GraphicsEnvironment
 import java.awt.Taskbar
 import java.awt.dnd.DropTarget
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import androidx.compose.ui.window.Notification as ComposeNotification
 
 
 private val log = KotlinLogging.logger {}
@@ -53,7 +57,7 @@ private val log = KotlinLogging.logger {}
 fun CoroutineScope.messengerApp(
     matrixMultiMessenger: MatrixMultiMessenger,
     lifecycle: LifecycleRegistry,
-    urlHandler: UrlHandler,
+    urlHandler: UrlHandler
 ) {
     application {
         val gd = GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice
@@ -64,7 +68,7 @@ fun CoroutineScope.messengerApp(
             height = min(1000.dp, height.dp)
         )
         var windowIsFocused by remember { mutableStateOf(false) }
-        val notifications = mutableStateListOf<Notification>()
+        val notifications = mutableStateListOf<ComposeNotification>()
 
         Window(
             onCloseRequest = ::exitApplication,
@@ -134,9 +138,11 @@ fun CoroutineScope.messengerApp(
                             Client(rootViewModel)
                         }
 
-                        Notifications(
-                            matrixMessenger,
-                        )
+                        Notifications(matrixMessenger) { notification ->
+                            // First bring up the window manually since desktop doesn't handle this consistently
+                            window.state = Frame.NORMAL
+                            window.requestFocus()
+                        }
                     }
                 },
                 nonActiveMessenger = { existingProfiles ->
