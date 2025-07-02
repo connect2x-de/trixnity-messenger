@@ -45,7 +45,7 @@ fun createTrixnityMessengerTestModule(debugName: String = "client") = module {
 }
 
 suspend fun createTestMatrixMessenger(debugName: String = "client"): MatrixMessengerWithRoot {
-    val matrixMessenger = MatrixMessenger.create {
+    val matrixMessenger = MatrixMessenger.create(Dispatchers.Default) {
         modulesFactories += { createTrixnityMessengerTestModule(debugName) }
     }
     matrixMessenger.di.get<MatrixMessengerSettingsHolder>()

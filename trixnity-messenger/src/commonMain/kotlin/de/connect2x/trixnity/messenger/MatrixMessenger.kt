@@ -11,8 +11,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.SharingStarted
@@ -45,7 +45,7 @@ class MatrixMessengerImpl private constructor(
 ) : MatrixMessenger {
     companion object {
         suspend operator fun invoke(
-            coroutineContext: CoroutineContext = Dispatchers.Default,
+            coroutineContext: CoroutineContext,
             configuration: MatrixMessengerConfiguration.() -> Unit,
         ): MatrixMessengerImpl {
             log.debug { "create MatrixMessengerImpl" }
@@ -54,7 +54,10 @@ class MatrixMessengerImpl private constructor(
                 log.error(throwable) { "Exception in global CoroutineScope $exceptionCoroutineContext" }
             }
             val coroutineScope =
-                CoroutineScope(coroutineContext + CoroutineName("trixnity-messenger-global") + SupervisorJob() + exceptionHandler)
+                CoroutineScope(
+                    coroutineContext + CoroutineName("trixnity-messenger-global") +
+                            SupervisorJob(coroutineContext[Job]) + exceptionHandler
+                )
             val di = koinApplication {
                 modules(module {
                     single<CoroutineScope> { coroutineScope }

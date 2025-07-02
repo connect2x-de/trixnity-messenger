@@ -9,8 +9,10 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
@@ -27,11 +29,18 @@ interface MatrixMultiMessenger : ProfileManager, AutoCloseable {
     companion object
 
     val di: Koin
+
+    /**
+     * This will wait for the cancel() operations of child CoroutineScopes. Use this, when the app goes into the
+     * background to sure that every operation in Trixnity Messenger is finished.
+     */
+    suspend fun closeAndWait()
 }
 
 class MatrixMultiMessengerImpl private constructor(
     override val di: Koin,
     private val profileManager: ProfileManager,
+    private val supervisorJob: Job,
 ) : MatrixMultiMessenger, ProfileManager by profileManager {
 
     companion object {
@@ -44,8 +53,9 @@ class MatrixMultiMessengerImpl private constructor(
             val exceptionHandler = CoroutineExceptionHandler { exceptionCoroutineContext, throwable ->
                 log.error(throwable) { "Exception in global CoroutineScope $exceptionCoroutineContext" }
             }
+            val supervisorJob = SupervisorJob()
             val coroutineScope =
-                CoroutineScope(coroutineContext + CoroutineName("trixnity-multi-messenger-global") + SupervisorJob() + exceptionHandler)
+                CoroutineScope(coroutineContext + CoroutineName("trixnity-multi-messenger-global") + supervisorJob + exceptionHandler)
             val di = koinApplication {
                 modules(
                     module {
@@ -69,10 +79,13 @@ class MatrixMultiMessengerImpl private constructor(
                 log.debug { "start worker $work" }
                 coroutineScope.launch { work() }
             }
-            return MatrixMultiMessengerImpl(
+            val matrixMultiMessengerImpl = MatrixMultiMessengerImpl(
                 di = di,
-                profileManager = di.get()
+                profileManager = di.get(),
+                supervisorJob = supervisorJob,
             )
+
+            return matrixMultiMessengerImpl
         }
     }
 
@@ -83,6 +96,11 @@ class MatrixMultiMessengerImpl private constructor(
         activeMatrixMessenger.value?.close()
         di.get<MatrixMultiMessengerConfiguration>().httpClientEngine?.close()
         di.close()
+    }
+
+    override suspend fun closeAndWait() {
+        supervisorJob.cancelAndJoin()
+        close()
     }
 }
 

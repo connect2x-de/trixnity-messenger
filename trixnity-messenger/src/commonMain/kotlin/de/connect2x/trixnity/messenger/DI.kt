@@ -162,6 +162,7 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepTi
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccount
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccountImpl
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClientConfiguration
@@ -219,7 +220,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             }
 
             single<MatrixClientFactory> {
-                MatrixClientFactoryImpl(get(), get(), get(), get(), getAll())
+                MatrixClientFactoryImpl(get(), get(), get(), get(), getAll(), get<CoroutineScope>().coroutineContext)
             }
             single<MatrixClients> {
                 MatrixClientsImpl(get(), get(), get(), get(), get())
