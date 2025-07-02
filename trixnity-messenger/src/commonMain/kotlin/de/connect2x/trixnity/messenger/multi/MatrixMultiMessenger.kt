@@ -32,7 +32,7 @@ interface MatrixMultiMessenger : ProfileManager, AutoCloseable {
 
     /**
      * This will wait for the cancel() operations of child CoroutineScopes. Use this, when the app goes into the
-     * background to sure that every operation in Trixnity Messenger is finished.
+     * background to be sure that every operation in Trixnity Messenger is finished.
      */
     suspend fun closeAndWait()
 }
