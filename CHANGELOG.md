@@ -20,7 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show error to user when room list element action failed
 - Don't block opening room database
 - Forgetting room when declining invite to deleted room
-- Image detail view now shows image the first time it is opened
+- Image detail view now displays image the first time it is opened
+- PDF details view displays valid PDFs again
 
 ### Security
 
