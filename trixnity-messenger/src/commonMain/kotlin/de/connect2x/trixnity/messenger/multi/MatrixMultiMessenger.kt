@@ -12,10 +12,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import org.koin.core.Koin
 import org.koin.dsl.bind
@@ -40,7 +40,6 @@ interface MatrixMultiMessenger : ProfileManager, AutoCloseable {
 class MatrixMultiMessengerImpl private constructor(
     override val di: Koin,
     private val profileManager: ProfileManager,
-    private val supervisorJob: Job,
 ) : MatrixMultiMessenger, ProfileManager by profileManager {
 
     companion object {
@@ -53,9 +52,13 @@ class MatrixMultiMessengerImpl private constructor(
             val exceptionHandler = CoroutineExceptionHandler { exceptionCoroutineContext, throwable ->
                 log.error(throwable) { "Exception in global CoroutineScope $exceptionCoroutineContext" }
             }
-            val supervisorJob = SupervisorJob()
             val coroutineScope =
-                CoroutineScope(coroutineContext + CoroutineName("trixnity-multi-messenger-global") + supervisorJob + exceptionHandler)
+                CoroutineScope(
+                    coroutineContext
+                        + CoroutineName("trixnity-multi-messenger-global")
+                        + SupervisorJob(coroutineContext[Job])
+                        + exceptionHandler
+                )
             val di = koinApplication {
                 modules(
                     module {
@@ -82,7 +85,6 @@ class MatrixMultiMessengerImpl private constructor(
             val matrixMultiMessengerImpl = MatrixMultiMessengerImpl(
                 di = di,
                 profileManager = di.get(),
-                supervisorJob = supervisorJob,
             )
 
             return matrixMultiMessengerImpl
@@ -99,8 +101,9 @@ class MatrixMultiMessengerImpl private constructor(
     }
 
     override suspend fun closeAndWait() {
-        supervisorJob.cancelAndJoin()
+        val job = di.get<CoroutineScope>().coroutineContext.job
         close()
+        job.join()
     }
 }
 

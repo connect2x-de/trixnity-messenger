@@ -240,7 +240,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<EnterRoom> { EnterRoomImpl() }
             single<LeaveRoom> { LeaveRoomImpl() }
 
-            single<DownloadManager> { DownloadManagerImpl() }
+            single<DownloadManager> { DownloadManagerImpl(get<CoroutineScope>().coroutineContext) }
             single<Thumbnails> { ThumbnailsImpl() }
             single<DirectRoom> { DirectRoomImpl() }
             single<ActiveVerifications> { ActiveVerificationsImpl() }
