@@ -145,7 +145,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         val dpi = remember { mutableStateOf<Float?>(null) }
         val pageCacheSize = remember { mutableStateOf(max(2f, min(16f, 8f / zoom.value)).toInt()) }
 
-        LaunchedEffect(Unit) {
+        LaunchedEffect(media) {
             if (media == null) { // if the pdf is opened a second time there's no need to re-download it
                 element.downloadMedia()
             }
