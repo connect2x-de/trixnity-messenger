@@ -50,6 +50,11 @@ kotlin {
         binaries.library()
         generateTypeScriptDefinitions()
     }
+    listOf(
+//        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    )
 
     sourceSets {
         commonMain {
