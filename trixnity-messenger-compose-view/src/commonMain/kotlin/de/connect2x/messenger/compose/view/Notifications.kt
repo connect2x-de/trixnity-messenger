@@ -42,14 +42,12 @@ import org.koin.dsl.module
 
 private val log = KotlinLogging.logger { }
 
-fun globalNotificationsModule(config: MatrixMultiMessengerConfiguration) = module {
-    single<NotificationHandler> {
-        NotificationHandler(
-            name = "${config.appName} Notifications",
-            id = config.appId,
-            isDebugEnabled = config.notificationsDebugEnabled
-        )
-    }
+fun createNotificationHandler(config: MatrixMultiMessengerConfiguration): NotificationHandler {
+    return NotificationHandler(
+        name = config.appName,
+        id = config.appId,
+        isDebugEnabled = config.notificationsDebugEnabled
+    )
 }
 
 @Composable

@@ -85,8 +85,6 @@ trixnity-client-media-opfs = { module = "net.folivo:trixnity-client-media-opfs",
 trixnity-client-media-indexeddb = { module = "net.folivo:trixnity-client-media-indexeddb", version.ref = "trixnity" }
 
 sysnotify = { module = "de.connect2x:sysnotify", version.ref = "sysnotify" }
-sysnotify-android = { module = "de.connect2x:sysnotify-android", version.ref = "sysnotify" }
-sysnotify-js = { module = "de.connect2x:sysnotify-js", version.ref = "sysnotify" }
 
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
