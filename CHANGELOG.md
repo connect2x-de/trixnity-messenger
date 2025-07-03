@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.6.11
+
+### Added
+
 - More features in the iOS UI
 - MatrixMultiMessenger.closeSuspending() to wait for every operation in Trixnity Messenger to be finished (in comparison
   to close() which will fire and forget and thus could give the impression that all operations are finished which might
@@ -17,10 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Rename observeAsSate to observeAsState
-
-### Deprecated
-
-### Removed
+- Update Trixnity from 4.16.8 to 4.16.9
 
 ### Fixed
 
@@ -31,25 +42,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PDF details view displays valid PDFs again
 - Reopening PDF details view does not trigger download again
 
-### Security
-
 ## 3.6.10
-
-### Added
 
 ### Changed
 
 - Updated Trixnity from 4.16.7 to 4.16.8
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Update room database to support iOS shared storage
-
-### Security
 
 ## 3.6.9
 
