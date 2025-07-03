@@ -7,6 +7,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
@@ -58,7 +59,11 @@ fun coroutineScope(
         log.error(exception) { "coroutine scope with lifecycle has been cancelled${if (description != null) "($description)" else ""}" }
         // TODO close app
     }
-    val scope = CoroutineScope(context + SupervisorJob() + handler)
+    val scope = CoroutineScope(
+        context
+            + SupervisorJob(context[Job])
+            + handler
+    )
     lifecycle.doOnDestroy(scope::cancel)
     return scope
 }

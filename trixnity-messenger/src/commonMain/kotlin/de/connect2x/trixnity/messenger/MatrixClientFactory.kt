@@ -10,6 +10,7 @@ import net.folivo.trixnity.client.loginWith
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.module.Module
+import kotlin.coroutines.CoroutineContext
 
 
 private val log = KotlinLogging.logger { }
@@ -32,6 +33,7 @@ class MatrixClientFactoryImpl(
     private val settings: MatrixMessengerSettingsHolder,
     private val secretByteArrays: SecretByteArrays,
     private val configurer: List<ConfigureMatrixClientConfiguration>,
+    private val coroutineContext: CoroutineContext,
     private val onLogin: suspend (loginInfo: LoginInfo, baseUrl: Url) -> Unit = { _, _ -> },
 ) : MatrixClientFactory {
     override suspend fun loginWith(
@@ -59,6 +61,7 @@ class MatrixClientFactoryImpl(
             configuration = {
                 configurer.forEach { with(it) { invoke() } }
             },
+            coroutineContext = coroutineContext,
         ).getOrThrow()
     }
 
@@ -72,6 +75,7 @@ class MatrixClientFactoryImpl(
             configuration = {
                 configurer.forEach { with(it) { invoke() } }
             },
+            coroutineContext = coroutineContext,
         ).getOrThrow()
     }
 

@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
@@ -35,9 +36,11 @@ class DownloadManagerImpl(
     coroutineContext: CoroutineContext = Dispatchers.IOOrDefault,
 ) : DownloadManager {
     private val scope =
-        CoroutineScope(coroutineContext + SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
-            log.error(throwable) { "DownloadManager failed." }
-        })
+        CoroutineScope(
+            coroutineContext
+                + SupervisorJob(coroutineContext[Job])
+                + CoroutineExceptionHandler { _, throwable -> log.error(throwable) { "DownloadManager failed." }}
+        )
     private val _downloads = MutableStateFlow(listOf<Download>())
     // override val downloads: StateFlow<List<Download>> = _downloads.asStateFlow() // TODO for possible DownloadManagerViewModel
 
