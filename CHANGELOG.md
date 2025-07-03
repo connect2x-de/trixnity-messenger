@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Forgetting room when declining invite to deleted room
 - Image detail view now displays image the first time it is opened
 - PDF details view displays valid PDFs again
+- Reopening PDF details view does not trigger download again
 
 ### Security
 

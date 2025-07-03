@@ -145,8 +145,10 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         val dpi = remember { mutableStateOf<Float?>(null) }
         val pageCacheSize = remember { mutableStateOf(max(2f, min(16f, 8f / zoom.value)).toInt()) }
 
-        LaunchedEffect(Unit) {
-            element.downloadMedia()
+        LaunchedEffect(media) {
+            if (media == null) { // if the pdf is opened a second time there's no need to re-download it
+                element.downloadMedia()
+            }
         }
         LaunchedEffect(element.downloadMediaError) {
             element.downloadMediaError.collect { if (it != null) setError(i18n.fileCouldNotBeLoaded()) }
@@ -170,7 +172,6 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                         }
                         .zoomModifier(focusRequester, canZoom, zoom, minZoom, maxZoom),
                 ) {
-                    log.debug { "error: $error" }
                     when {
                         error != null -> {
                             Column(
