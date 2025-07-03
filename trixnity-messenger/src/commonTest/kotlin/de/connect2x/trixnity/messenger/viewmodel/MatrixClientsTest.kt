@@ -21,7 +21,6 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
-import dev.mokkery.verify
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
@@ -147,6 +146,8 @@ class MatrixClientsTest {
         everySuspend { authenticationApiClient.logout(any()) } returns Result.success(Unit)
         every { matrixClientMock1.close() } returns Unit
         every { matrixClientMock2.close() } returns Unit
+        everySuspend { matrixClientMock1.closeSuspending() } returns Unit
+        everySuspend { matrixClientMock2.closeSuspending() } returns Unit
 
         everySuspend { deleteAccountData.invoke(any()) } returns Unit
         mutableMatrixClients = MutableStateFlow(mapOf())
@@ -281,10 +282,8 @@ class MatrixClientsTest {
         )
         logoutCalled shouldBe true
         settings.value.base.accounts.keys shouldBe setOf(UserId("test2", "server"))
-        verify {
-            matrixClientMock1.close()
-        }
         verifySuspend {
+            matrixClientMock1.closeSuspending()
             deleteAccountData.invoke(UserId("test1", "server"))
         }
     }
@@ -303,10 +302,8 @@ class MatrixClientsTest {
         cut.filterNotNull().first { it.isEmpty() }
         logoutCalled shouldBe false
         settings.value.base.accounts.keys shouldBe setOf()
-        verify {
-            matrixClientMock1.close()
-        }
         verifySuspend {
+            matrixClientMock1.closeSuspending()
             deleteAccountData.invoke(UserId("test1", "server"))
         }
     }
@@ -329,10 +326,8 @@ class MatrixClientsTest {
         )
         logoutCalled shouldBe false
         settings.value.base.accounts.keys shouldBe setOf(UserId("test2", "server"))
-        verify {
-            matrixClientMock1.close()
-        }
         verifySuspend {
+            matrixClientMock1.closeSuspending()
             deleteAccountData.invoke(UserId("test1", "server"))
         }
     }
