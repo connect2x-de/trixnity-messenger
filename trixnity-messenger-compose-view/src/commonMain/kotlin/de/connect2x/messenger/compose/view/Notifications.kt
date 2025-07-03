@@ -46,7 +46,7 @@ fun globalNotificationsModule(config: MatrixMultiMessengerConfiguration) = modul
     single<NotificationHandler> {
         NotificationHandler(
             name = "${config.appName} Notifications",
-            id = "${config.appId}.notifications.global",
+            id = config.appId,
             isDebugEnabled = config.notificationsDebugEnabled
         )
     }
@@ -64,7 +64,7 @@ fun Notifications(
         val notificationHandler = withContext(currentImmediateDispatcher()) {
             NotificationHandler(
                 name = "${config.appName} Notifications",
-                id = "${config.appId}.notification",
+                id = config.appId,
                 isDebugEnabled = config.notificationsDebugEnabled,
             )
         }
