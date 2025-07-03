@@ -4,14 +4,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -83,13 +81,13 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
 
         // Preview
         val systemDensity = SystemDensity.current
-        CompositionLocalProvider(
-            LocalDensity provides Density(
-                systemDensity.density * finalNewDisplaySize,
-                systemDensity.fontScale * finalNewFontSize
-            )
-        ) {
-            Column(Modifier.padding(end = 10.dp).fillMaxWidth(1.0f).aspectRatio(1.0f)) {
+        Column(Modifier.padding(end = 10.dp).fillMaxWidth(1.0f).height(200.dp)) {
+            CompositionLocalProvider(
+                LocalDensity provides Density(
+                    systemDensity.density * finalNewDisplaySize,
+                    systemDensity.fontScale * finalNewFontSize
+                )
+            ) {
                 MessagePreviewContent(PreviewTimelineElementViewModel1())
                 MessagePreviewContent(PreviewTimelineElementViewModel2())
             }

@@ -88,7 +88,7 @@ class SearchGroupViewImpl : SearchGroupView {
                 val onCancel = {
                     knockGroupModalShownFor.value = null
                 }
-                val i18n = DI.current.get<I18nView>()
+                val i18n = DI.get<I18nView>()
                 ThemedAdaptiveDialog(onCancel) {
                     AdaptiveDialogHeader {
                         Text(i18n.knockRequest())

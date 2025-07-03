@@ -40,6 +40,7 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
                 val licencesString = licenseTask.get().outputFile.get().asFile.readText()
                     .replace("$", "\${'$'}")
                     .replace(quotes, "")
+                val downloadsDisabled = project.findProperty("TM_DISABLE_DOWNLOADS")?.toString()?.toBoolean() ?: false
 
                 val buildConfigString =
                     """
@@ -51,6 +52,7 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
                 override val appName: String = "$appName"
                 override val appId: String = "$appId"
                 override val licenses: String = $quotes$licencesString$quotes
+                override val downloadsDisabled: Boolean = $downloadsDisabled
             }
         """.trimIndent()
                 outputFile.asFile.apply {
@@ -87,12 +89,26 @@ kotlin {
         }
         binaries.executable()
     }
+    listOf(
+//        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            export(libs.decompose)
+            export(libs.essenty.lifecycle)
+            baseName = "TrixnityMessengerUI"
+            isStatic = true
+        }
+    }
 
     sourceSets {
         commonMain {
             dependencies {
                 implementation(projects.trixnityMessengerComposeView)
                 implementation(compose.components.resources)
+                api(libs.decompose) // needed for export to iOS
+                api(libs.essenty.lifecycle) // needed for export to iOS
             }
         }
         val desktopMain by getting {

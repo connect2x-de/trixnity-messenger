@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +49,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
@@ -57,6 +59,7 @@ import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.messenger.compose.view.common.icons.BanIcon
 import de.connect2x.messenger.compose.view.common.icons.BlockIcon
+import de.connect2x.messenger.compose.view.common.icons.NeutralVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
 import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
@@ -71,6 +74,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedInfoChip
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
+import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.components.ThemedSuggestionChip
 import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
@@ -158,11 +162,19 @@ class UserProfileViewImpl : UserProfileView {
                     Spacer(Modifier.height(5.dp))
                     when (userTrustLevel) {
                         is UserTrustLevel.CrossSigned -> {
-                            ThemedInfoChip(
-                                style = MaterialTheme.components.primaryChip,
-                                icon = { VerifiedIcon(VerificationLevel.USER) },
-                                label = { Text(i18n.secure()) },
-                            )
+                            if (userTrustLevel.verified) {
+                                ThemedInfoChip(
+                                    style = MaterialTheme.components.primaryChip,
+                                    icon = { VerifiedIcon(VerificationLevel.USER) },
+                                    label = { Text(i18n.secure()) },
+                                )
+                            } else {
+                                ThemedInfoChip(
+                                    style = MaterialTheme.components.destructiveChip,
+                                    icon = { NeutralVerifiedIcon(VerificationLevel.USER) },
+                                    label = { Text(i18n.insecure()) }
+                                )
+                            }
                         }
 
                         is UserTrustLevel.NotAllDevicesCrossSigned -> {
@@ -281,8 +293,10 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
         val blockingInProgress = userProfileViewModel.blockingInProgress.collectAsState().value
         val isUserBlocked = userProfileViewModel.isUserBlocked.collectAsState().value
         val openingChat = userProfileViewModel.openingChat.collectAsState().value
-        val verifying = userProfileViewModel.verifying.collectAsState().value
+        val verificationInThisRoom = userProfileViewModel.verificationIsRunningInThisRoom.collectAsState().value
         val canOpenChat = userProfileViewModel.canOpenChat.collectAsState().value
+        val verificationAvailable = userProfileViewModel.canVerifyUser.collectAsState().value
+        val verificationIsRunning = userProfileViewModel.verificationIsRunning.collectAsState().value
 
         VerySmallSpacer()
         Row(
@@ -294,12 +308,11 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
         }
         VerySmallSpacer()
 
-        MenuElement(arrangement = Arrangement.SpaceBetween) {
-            Row {
-                BlockIcon()
-                Spacer(Modifier.size(10.dp))
-                Text(i18n.userProfileBlockUser())
-            }
+        MenuElement {
+            BlockIcon()
+            Spacer(Modifier.size(10.dp))
+            Text(i18n.userProfileBlockUser())
+            Spacer(Modifier.weight(1f, true))
             ThemedSwitch(
                 checked = isUserBlocked,
                 onCheckedChange = {
@@ -309,7 +322,12 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
                         userProfileViewModel.blockUser()
                     }
                 },
-                enabled = !blockingInProgress
+                enabled = !blockingInProgress,
+                thumbContent = {
+                    if (blockingInProgress) {
+                        ThemedProgressIndicator(style = MaterialTheme.components.switchProgressIndicator)
+                    }
+                }
             )
         }
         if (canOpenChat) {
@@ -330,20 +348,42 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
             }
         }
         val isSinglePane = IsSinglePane.current
-        MenuElement(Modifier.clickable {
-            userProfileViewModel.startVerification(isSinglePane)
-        }) {
-            Icon(
-                Icons.AutoMirrored.Filled.Wysiwyg,
-                i18n.userVerification(),
-                Modifier.size(24.dp),
-                defaultColorForState(!verifying)
-            )
-            Spacer(Modifier.size(10.dp))
-            Text(
-                text = i18n.userProfileVerification(),
-                color = defaultColorForState(!verifying)
-            )
+        if (verificationAvailable) {
+            if (verificationIsRunning && !verificationInThisRoom) {
+                Tooltip(
+                    enabled = verificationIsRunning,
+                    tooltip = { TooltipText(i18n.verificationAlreadyRunningInAnotherRoom()) }) {
+                    MenuElement(Modifier.buttonPointerModifier().clickable {
+                        userProfileViewModel.openVerificationRoom()
+                    }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Wysiwyg,
+                            i18n.userVerification(),
+                            Modifier.size(24.dp),
+                        )
+                        Spacer(Modifier.size(10.dp))
+                        Text(text = i18n.userProfileNavigateToVerification())
+                    }
+                }
+            } else {
+                Tooltip(enabled = verificationIsRunning, tooltip = { TooltipText(i18n.verificationAlreadyRunning()) }) {
+                    MenuElement(Modifier.buttonPointerModifier(!verificationIsRunning).clickable(enabled = !verificationIsRunning) {
+                        userProfileViewModel.startVerification(isSinglePane)
+                    }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Wysiwyg,
+                            i18n.userVerification(),
+                            Modifier.size(24.dp),
+                            defaultColorForState(!verificationIsRunning)
+                        )
+                        Spacer(Modifier.size(10.dp))
+                        Text(
+                            text = i18n.userProfileVerification(),
+                            color = defaultColorForState(!verificationIsRunning)
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -497,7 +537,7 @@ fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
 
 @Composable
 fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     var banUserReason by userProfileViewModel.banUserReason.collectAsTextFieldValueState()
 
     ThemedModalDialog({ userProfileViewModel.closeBanUserWarning() }) {
@@ -536,7 +576,7 @@ fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
 
 @Composable
 fun UnbanUserWarning(userProfileViewModel: UserProfileViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     var unbanUserReason by userProfileViewModel.unbanUserReason.collectAsTextFieldValueState()
 
     ThemedModalDialog({ userProfileViewModel.closeUnbanUserWarning() }) {
@@ -701,7 +741,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
 private fun MenuElement(
     modifier: Modifier = Modifier,
     arrangement: Arrangement.Horizontal = Arrangement.Start,
-    content: @Composable () -> Unit,
+    content: @Composable RowScope.() -> Unit,
 ) {
     Row(
         modifier.fillMaxWidth().padding(horizontal = 10.dp).minimumInteractiveComponentSize(),

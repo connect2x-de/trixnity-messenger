@@ -236,7 +236,7 @@ fun RowScope.InputAreaTextField(
     val interactionSource = remember { MutableInteractionSource() }
     val showUploadError = remember { mutableStateOf<Throwable?>(null) }
 
-    val maxAttachmentSize = DI.current.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    val maxAttachmentSize = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     if (Platform.current.isMobile.not()) {
         LaunchedEffect(Unit) {
@@ -256,11 +256,13 @@ fun RowScope.InputAreaTextField(
                     Text(i18n.uploadFileErrorTitle())
                 }
                 ModalDialogContent {
-                    Text(when (showUploadError.value) {
-                        is NotPasteableException -> i18n.uploadFileErrorNotPasteable()
-                        is EmptyFileListException -> i18n.uploadFileErrorFileListEmpty()
-                        else -> i18n.uploadFileErrorUnknown()
-                    })
+                    Text(
+                        when (showUploadError.value) {
+                            is NotPasteableException -> i18n.uploadFileErrorNotPasteable()
+                            is EmptyFileListException -> i18n.uploadFileErrorFileListEmpty()
+                            else -> i18n.uploadFileErrorUnknown()
+                        }
+                    )
                 }
                 ModalDialogFooter {
                     ThemedButton(
@@ -314,7 +316,13 @@ fun RowScope.InputAreaTextField(
             },
             interactionSource = interactionSource,
             maxLines = 6,
-            textStyle = style.textStyle.copy(color = style.textColor(enabled = true, isError = false, focused = IsFocused.current)),
+            textStyle = style.textStyle.copy(
+                color = style.textColor(
+                    enabled = true,
+                    isError = false,
+                    focused = IsFocused.current
+                )
+            ),
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Sentences,
             )
@@ -330,7 +338,13 @@ fun RowScope.InputAreaTextField(
                 placeholder = {
                     Text(
                         i18n.inputAreaPrompt(),
-                        style = style.textStyle.copy(color = style.placeholderColor(enabled = true, isError = false, focused = IsFocused.current)),
+                        style = style.textStyle.copy(
+                            color = style.placeholderColor(
+                                enabled = true,
+                                isError = false,
+                                focused = IsFocused.current
+                            )
+                        ),
                     )
                 },
                 colors = style.colors,

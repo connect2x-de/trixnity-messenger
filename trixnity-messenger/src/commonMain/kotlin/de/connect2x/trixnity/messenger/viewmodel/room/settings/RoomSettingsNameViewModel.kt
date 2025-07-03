@@ -60,6 +60,7 @@ class RoomSettingsNameViewModelImpl(
             serverValue = matrixClient.room
                 .getById(selectedRoomId)
                 .map { it?.name?.explicitName ?: "" },
+            maxLength = 1_000,
             coroutineScope = coroutineScope,
             onApplyChange = { newName ->
                 matrixClient.api.room.sendStateEvent(

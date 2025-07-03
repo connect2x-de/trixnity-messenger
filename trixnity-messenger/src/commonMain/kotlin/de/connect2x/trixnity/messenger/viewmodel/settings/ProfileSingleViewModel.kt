@@ -84,7 +84,7 @@ class ProfileSingleViewModelImpl(
     override val initials = matrixClient.displayName.map { it?.let { initialsComputation.compute(it) } ?: "" }
         .stateIn(coroutineScope, SharingStarted.Eagerly, "")
 
-    override val editDisplayName = TextFieldViewModelImpl(matrixClient.displayName.value ?: "")
+    override val editDisplayName = TextFieldViewModelImpl(maxLength = 1_000, matrixClient.displayName.value ?: "")
 
     override val openAvatarCutter = MutableStateFlow(false)
 }

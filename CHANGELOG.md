@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- More features in the iOS UI
+
 ### Changed
 
 - Send correct image size when uploading images on web
@@ -19,9 +21,122 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Show error to user when room list element action failed
+- Don't block opening room database
+- Forgetting room when declining invite to deleted room
+- Image detail view now displays image the first time it is opened
+- PDF details view displays valid PDFs again
+- Reopening PDF details view does not trigger download again
 - Remove timeline flickering due to switching between image fallback and thumbnail in reply elements
 
 ### Security
+
+## 3.6.10
+
+### Added
+
+### Changed
+
+- Updated Trixnity from 4.16.7 to 4.16.8
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Update room database to support iOS shared storage
+
+### Security
+
+## 3.6.9
+
+### Fixed
+
+- Don't block opening room database
+
+## 3.6.8
+
+### Added
+
+- Disable downloads by build environment variable
+
+### Changed
+
+- Updated Trixnity from 4.16.5 to 4.16.7
+- Updated various dependencies (important: kotlin-wrappers updated to 2025.6.9)
+
+### Fixed
+
+- Unsupported image mime types are treated as images
+- link colour in privacy and imprint page
+
+## 3.6.7
+
+### Changed
+
+- Move to room with active verification, when verification with user is already running
+- Disable start user verification option when one is already running
+
+### Fixed
+
+- Show correct error message on corrupt files
+- Fix database encryption problem when app was in background mode
+
+## 3.6.6
+
+### Changed
+
+- Text input fields have a max length now
+- Rename Sqlite3mc driver package name
+- Allow to enable database encryption via config (all new accounts use encrypted databases by default, except web where
+  no decryption can be activated; existing unencrypted databases stay unencrypted)
+
+## 3.6.5
+
+### Added
+
+- Added loading spinner to user profile view when blocking user to show in-progress action
+
+### Changed
+
+- Don't show option for user verification when user is already verified
+- Updated Trixnity from 4.16.4 to 4.16.5
+
+### Fixed
+
+- Show correct user verification status in UserInfo when user verification hasn't been completed
+- Fixed tooltips and accessible labels for Read/Sent markers
+- Fixed switch in user profile view for blocking not reflecting correct server-side state
+- Fixed error display not going away when renaming device
+
+## 3.6.4
+
+### Changed
+
+- Updated Trixnity from 4.16.3 to 4.16.4 (hotfix: dehydrated devices)
+
+## 3.6.3
+
+### Changed
+
+- Updated Trixnity from 4.16.2 to 4.16.3 (hotfix: dehydrated devices)
+
+## 3.6.2
+
+### Added
+
+- Accessibility Settings Step for Setup Wizard (`AccountSetupWizardStep.AccessibilityStep`)
+
+### Changed
+
+- Internal: add remote caching
+- Updated Trixnity from 4.16.1 to 4.16.2 (includes dehydrated devices fix)
+
+### Fixed
+
+- When creating a user verification from another room, jump to the direct room where the user verification is taking
+  place
 
 ## 3.6.1
 
@@ -34,6 +149,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Remove timeline flickering due to switching between image fallback and thumbnail
 - Resolved crash due to "Image too large" on Android
+- Reuse an existing direct chat only if it is a direct chat with only that user when creating a new chat
 
 ### Security
 
@@ -52,10 +168,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make tooltip show/hide delays configurable
 - Styling: Use customizable components for labels
 - Persist presence
-
-### Deprecated
-
-### Removed
+- Styling: Use theme components for dialogs
+- Clearly distinguish between a room member leaving, being kicked, banned or unbanned.
+- Adapt to Trixnity media cache changes
 
 ### Fixed
 
@@ -66,7 +181,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed "edited" is shown in the wrong place in `TimelineElementMetadataViewModel`
 - Send button is only active after the second char in the input field
 - Canceled or completed user verifications are shown correctly in the timeline (**Breaking change**: user verification
-  end states (canceled or done) have separate timeline view models now 
+  end states (canceled or done) have separate timeline view models now
   (MessageTimelineElementViewModel.VerificationCancel, MessageTimelineElementViewModel.VerificationDone))
 - Fixed AvatarCutter ignoring alignment/rotation metadata
 

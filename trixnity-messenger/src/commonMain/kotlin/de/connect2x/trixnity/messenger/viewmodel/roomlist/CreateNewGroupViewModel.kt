@@ -81,8 +81,8 @@ open class CreateNewGroupViewModelImpl(
         HistoryVisibilityEventContent.HistoryVisibility.entries
     override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
         MutableStateFlow(null)
-    override val optionalRoomName = TextFieldViewModelImpl()
-    override var optionalGroupTopic = TextFieldViewModelImpl()
+    override val optionalRoomName = TextFieldViewModelImpl(maxLength = 1_000)
+    override var optionalGroupTopic = TextFieldViewModelImpl(maxLength = 20_000)
 
     override val groupUsers = createNewRoomViewModel.searchHandler.selectedUsers
     override val canCreateNewGroup: StateFlow<Boolean> = combine(isPrivate, isEncrypted) { private, encrypted ->
@@ -209,8 +209,8 @@ class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
         MutableStateFlow(null)
     override val canCreateNewGroup: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
-    override val optionalRoomName = TextFieldViewModelImpl()
-    override val optionalGroupTopic = TextFieldViewModelImpl()
+    override val optionalRoomName = TextFieldViewModelImpl(maxLength = 1_000)
+    override val optionalGroupTopic = TextFieldViewModelImpl(maxLength = 20_000)
 
     override fun onUserClick(user: SearchUserElement) {
     }

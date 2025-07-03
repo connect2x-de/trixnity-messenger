@@ -45,6 +45,7 @@ import org.koin.dsl.module
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
@@ -106,10 +107,16 @@ class SendAttachmentViewModelTest {
         assertTrue { cut.error.value != null }
     }
 
+    @Test
+    fun `should not treat SVG as image`() = runTestWithCoroutineScope {
+        val cut = sendAttachmentViewModel(fileSize = 60.mb(), contentType = ContentType.Image.SVG)
+        assertFalse { cut.isImage }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `should send correct image size metadata after processing image`() = runTestWithCoroutineScope {
-        val image = byteArrayOf(0,1,2,3,4,5,6,7,8,9).toByteArrayFlow()
+        val image = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9).toByteArrayFlow()
         val fileContent = object : FileDescriptor {
             override val fileName: String = "numbers.jpg"
             override val fileSize: Long? = 10
@@ -135,7 +142,8 @@ class SendAttachmentViewModelTest {
 
     private fun TestScope.sendAttachmentViewModel(
         content: FileDescriptor? = null,
-        fileSize: Long
+        fileSize: Long,
+        contentType: ContentType = ContentType.Any
     ): SendAttachmentViewModelImpl = SendAttachmentViewModelImpl(
         viewModelContext = MatrixClientViewModelContextImpl(
             componentContext = DefaultComponentContext(LifecycleRegistry()),
@@ -159,7 +167,7 @@ class SendAttachmentViewModelTest {
             override val content: ByteArrayFlow = ByteArray(fileSize.toInt()) { it.toByte() }.toByteArrayFlow()
             override val fileName: String = "test.txt"
             override val fileSize: Long = fileSize
-            override val mimeType: ContentType = ContentType.Any
+            override val mimeType: ContentType = contentType
         },
         selectedRoomId = roomId,
         onCloseAttachmentSendView = {},

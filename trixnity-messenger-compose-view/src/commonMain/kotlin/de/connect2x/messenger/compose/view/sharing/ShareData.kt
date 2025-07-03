@@ -231,7 +231,7 @@ private fun ShareFilesLazyRow(files: List<FileDescriptor>) {
 
 @Composable
 private fun ShareFileCard(file: FileDescriptor) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val fileSize = "(" + (file.fileSize?.let { size -> formatSize(size) } ?: i18n.commonUnknown()) + ")"
     val isImage = file.mimeType?.match("image/*") == true
     val isVideo = file.mimeType?.match("video/*") == true

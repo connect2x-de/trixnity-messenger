@@ -56,7 +56,7 @@ class UiaStepRegistrationTokenViewModelImpl(
     private val onCancel: () -> Unit,
     private val onError: (MatrixServerException) -> Unit,
 ) : ViewModelContext by viewModelContext, UiaStepRegistrationTokenViewModel {
-    override val registrationToken = TextFieldViewModelImpl()
+    override val registrationToken = TextFieldViewModelImpl(maxLength = 1_000)
     override val error = MutableStateFlow<String?>(null)
     override val isSubmitting: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
@@ -102,7 +102,7 @@ class UiaStepRegistrationTokenViewModelImpl(
 }
 
 class UiaStepRegistrationTokenViewModelPreview(mode: PreviewMode = BLANK) : UiaStepRegistrationTokenViewModel {
-    override val registrationToken = TextFieldViewModelImpl(if (mode == FILLED) "12345678" else "")
+    override val registrationToken = TextFieldViewModelImpl(maxLength = 1_000, if (mode == FILLED) "12345678" else "")
     override val error = MutableStateFlow(if (mode == ERROR) "Error!" else null)
     override val isSubmitting = MutableStateFlow(mode == SUBMITTING)
     override fun submit() {}

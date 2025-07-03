@@ -8,7 +8,6 @@ import net.folivo.trixnity.utils.ByteArrayFlow
 import net.folivo.trixnity.utils.toByteReadChannel
 import org.koin.core.module.Module
 import org.koin.dsl.module
-import java.io.IOException
 import javax.imageio.ImageIO
 
 actual fun platformGetImageDimensionsModule(): Module = module {
@@ -25,7 +24,7 @@ suspend fun getImageDimensions(byteArrayFlow: ByteArrayFlow, maxMediaSize: Long,
         try {
             val image = ImageIO.read(inputStream)
             image.width to image.height
-        } catch (ioException: IOException) {
+        } catch (_: Exception) {
             null to null
         }
     }

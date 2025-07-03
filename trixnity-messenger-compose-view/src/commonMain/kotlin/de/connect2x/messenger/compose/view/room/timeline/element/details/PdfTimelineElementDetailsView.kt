@@ -54,12 +54,14 @@ import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.common.DownloadProgress
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -71,6 +73,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
 
+private val log = KotlinLogging.logger {}
 
 class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.File> {
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.File> =
@@ -138,15 +141,17 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
             offset.value = offset.value + offsetChange.times(zoom.value)
         }
         val viewSize = remember { MutableStateFlow(IntSize.Zero) }
-        val i18n = DI.current.get<I18nView>()
+        val i18n = DI.get<I18nView>()
         val dpi = remember { mutableStateOf<Float?>(null) }
         val pageCacheSize = remember { mutableStateOf(max(2f, min(16f, 8f / zoom.value)).toInt()) }
 
-        LaunchedEffect(Unit) {
-            element.downloadMedia()
+        LaunchedEffect(media) {
+            if (media == null) { // if the pdf is opened a second time there's no need to re-download it
+                element.downloadMedia()
+            }
         }
-        LaunchedEffect(Unit) {
-            element.downloadMediaError.collect { setError(it) }
+        LaunchedEffect(element.downloadMediaError) {
+            element.downloadMediaError.collect { if (it != null) setError(i18n.fileCouldNotBeLoaded()) }
         }
         FileBasedDetailsDialog(
             element,
@@ -157,7 +162,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
             Column {
                 Box(
                     Modifier
-                        .background(color = if (media == null) MaterialTheme.colorScheme.background else Color.Black)
+                        .background(color = Color.Black)
                         .fillMaxSize()
                         .focusRequester(focusRequester)
                         .focusable()
@@ -168,6 +173,22 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                         .zoomModifier(focusRequester, canZoom, zoom, minZoom, maxZoom),
                 ) {
                     when {
+                        error != null -> {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxSize().padding(32.dp),
+                            ) {
+                                Icon(
+                                    MaterialTheme.messengerIcons.typeFile,
+                                    i18n.commonFile(),
+                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally),
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                                Text(error, color = Color.White)
+                            }
+                        }
+
                         progress != null && media == null -> {
                             DownloadProgress(progress, element::cancelDownloadMedia)
                         }
@@ -177,7 +198,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                             val reader = remember { mutableStateOf<PDFReader?>(null) }
                             LaunchedEffect(Unit) {
                                 reader.value =
-                                    getPlatformPDFReader(media) { setError(it ?: i18n.fileCouldNotBeLoaded()) }
+                                    getPlatformPDFReader(media) { setError(i18n.fileCouldNotBeLoaded()) }
                             }
                             DisposableEffect(Unit) {
                                 onDispose {
@@ -273,22 +294,6 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                                     lazyListState,
                                     false
                                 )
-                            }
-                        }
-
-                        error != null -> {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxSize().padding(32.dp),
-                            ) {
-                                Icon(
-                                    MaterialTheme.messengerIcons.typeFile,
-                                    i18n.commonFile(),
-                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally),
-                                    tint = MaterialTheme.colorScheme.onBackground
-                                )
-                                Text(error, color = MaterialTheme.colorScheme.onBackground)
                             }
                         }
 

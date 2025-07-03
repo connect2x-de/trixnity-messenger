@@ -7,7 +7,6 @@ import co.touchlab.skie.configuration.SuspendInterop
 import de.connect2x.conventions.isCI
 import de.connect2x.conventions.registerCoverageTask
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackRule
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -106,6 +105,7 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 implementation(libs.trixnity.client.repository.room)
+                implementation(libs.androidx.sqlite3mc.bundled)
                 api(libs.trixnity.client.media.okio)
             }
         }
@@ -114,7 +114,6 @@ kotlin {
             kotlin.srcDirs("src/icu4j/kotlin")
             dependencies {
                 implementation(libs.bundles.jna)
-                implementation(libs.androidx.sqlite3mc.bundled)
                 implementation(libs.icu4j)
             }
         }
@@ -124,7 +123,6 @@ kotlin {
                 implementation(libs.androidx.activity)
                 implementation(libs.androidx.security.crypto)
                 implementation(libs.androidx.browser)
-                implementation(libs.androidx.sqlite3.bundled)
             }
         }
         nativeMain {
@@ -134,7 +132,6 @@ kotlin {
             dependencies {
                 // since with iOS projects, we cannot include the engine, we select it here
                 implementation(libs.ktor.client.darwin)
-                implementation(libs.androidx.sqlite3.bundled)
             }
         }
         jsMain {

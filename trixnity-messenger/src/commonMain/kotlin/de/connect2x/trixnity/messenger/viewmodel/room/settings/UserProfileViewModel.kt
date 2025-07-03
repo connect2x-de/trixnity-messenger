@@ -106,8 +106,10 @@ interface UserProfileViewModel {
     val blockingInProgress: StateFlow<Boolean>
     val presence: StateFlow<Presence>
     val openingChat: StateFlow<Boolean>
-    val verifying: StateFlow<Boolean>
+    val verificationIsRunning: StateFlow<Boolean>
+    val verificationIsRunningInThisRoom: StateFlow<Boolean>
     val canOpenChat: StateFlow<Boolean>
+    val canVerifyUser: StateFlow<Boolean>
 
     fun openKickUserWarning()
     fun closeKickUserWarning()
@@ -128,6 +130,7 @@ interface UserProfileViewModel {
 
     fun openChat()
     fun startVerification(closeSettingsAfterStart: Boolean = false)
+    fun openVerificationRoom()
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -188,7 +191,7 @@ class UserProfileViewModelImpl(
     private val _membershipChanging = MutableStateFlow(false)
     override val membershipChanging: StateFlow<Boolean> = _membershipChanging
 
-    override val kickUserReason = TextFieldViewModelImpl()
+    override val kickUserReason = TextFieldViewModelImpl(maxLength = 1_000)
 
     override val iHavePowerToKickUser =
         combine(
@@ -204,7 +207,7 @@ class UserProfileViewModelImpl(
         ) { inRoom, canBan -> inRoom && canBan }
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
-    override val banUserReason = TextFieldViewModelImpl()
+    override val banUserReason = TextFieldViewModelImpl(maxLength = 20_000)
 
     override val iHavePowerToUnbanUser: StateFlow<Boolean> =
         combine(
@@ -213,7 +216,7 @@ class UserProfileViewModelImpl(
         ) { inRoom, canUnBan -> inRoom && canUnBan }
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
-    override val unbanUserReason = TextFieldViewModelImpl()
+    override val unbanUserReason = TextFieldViewModelImpl(maxLength = 20_000)
 
     private val isKnocking: SharedFlow<Boolean> =
         membership.map { it == Membership.KNOCK }.shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
@@ -433,10 +436,7 @@ class UserProfileViewModelImpl(
                     error.value = null
                 },
                 onFailure = {
-                    if (it is CancellationException) {
-                        return@launch
-                    }
-
+                    if (it is CancellationException) return@launch
                     log.error(it) { "cannot unban user $roomUserId from $selectedRoomId: ${it.message}" }
                     error.value = i18n.settingsRoomMemberUnbanUserError()
                 }
@@ -446,27 +446,35 @@ class UserProfileViewModelImpl(
 
     override fun blockUser() {
         coroutineScope.launch {
-            try {
-                blockingInProgress.value = true
-                userBlocking.blockUser(matrixClient, userId) {
+            blockingInProgress.value = true
+            userBlocking.blockUser(
+                matrixClient = matrixClient,
+                userToBlock = userId,
+                onSuccess = {
+                    blockingInProgress.value = false
+                },
+                onFailure = {
                     error.value = i18n.blockUserError(userId.full)
+                    blockingInProgress.value = false
                 }
-            } finally {
-                blockingInProgress.value = false
-            }
+            )
         }
     }
 
     override fun unblockUser() {
         coroutineScope.launch {
-            try {
-                blockingInProgress.value = true
-                userBlocking.unblockUser(matrixClient, userId) {
+            blockingInProgress.value = true
+            userBlocking.unblockUser(
+                matrixClient = matrixClient,
+                userToUnblock = userId,
+                onSuccess = {
+                    blockingInProgress.value = false
+                },
+                onFailure = {
                     error.value = i18n.settingsUnblockUserError(userId.full)
+                    blockingInProgress.value = false
                 }
-            } finally {
-                blockingInProgress.value = false
-            }
+            )
         }
     }
 
@@ -528,21 +536,47 @@ class UserProfileViewModelImpl(
         }
     }
 
-    override val verifying = MutableStateFlow(false)
+    override val verificationIsRunning =
+        matrixClient.verification.activeUserVerifications.map { activeVerifications -> activeVerifications.any { it.theirUserId == userId } }
+            .stateIn(
+                coroutineScope,
+                SharingStarted.Eagerly,
+                false
+            )
+
+    override val verificationIsRunningInThisRoom: StateFlow<Boolean> =
+        matrixClient.verification.activeUserVerifications.map { activeUserVerifications -> activeUserVerifications.any { it.theirUserId == userId && it.roomId == selectedRoomId } }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+
+    override val canVerifyUser: StateFlow<Boolean> =
+        userTrustLevel.map {
+            it is UserTrustLevel.CrossSigned && !it.verified || it is UserTrustLevel.NotAllDevicesCrossSigned && !it.verified
+        }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override fun startVerification(closeSettingsAfterStart: Boolean) {
+        log.debug { "starting user verification" }
         if (isMyself) {
             log.warn { "cannot verify yourself" }
             return
         }
-        if (verifying.compareAndSet(expect = false, update = true)) {
+        if (!verificationIsRunning.value && canVerifyUser.value) {
             coroutineScope.launch {
                 val req = matrixClient.verification.createUserVerificationRequest(userId)
                     .fold(
                         onSuccess = {
                             it.also {
+                                if (it.roomId != selectedRoomId) {
+                                    log.debug { "go to room ${it.roomId}, since the verification takes place there" }
+                                    onOpenRoom(matrixClient.userId, it.roomId)
+                                } else {
+                                    log.debug { "stay in room $selectedRoomId as the verification takes place here" }
+                                }
                                 if (closeSettingsAfterStart) {
+                                    log.debug { "closing the settings" }
                                     onCloseSettings()
+                                } else {
+                                    log.debug { "keep settings open" }
                                 }
                             }
                         },
@@ -554,12 +588,25 @@ class UserProfileViewModelImpl(
                     )
 
                 req.state.first(::isVerificationStateFinished)
-            }.invokeOnCompletion {
-                verifying.update { false }
             }
+        } else {
+            log.warn { "cannot verify other user as preconditions are not met" }
         }
-
     }
+
+    override fun openVerificationRoom() {
+        val room =
+            matrixClient.verification.activeUserVerifications.value.firstOrNull { it.theirUserId == userId }?.roomId
+        if (room != null && room != selectedRoomId) {
+            log.debug { "go to room ${room}, since the running verification takes place there" }
+            onOpenRoom(matrixClient.userId, room)
+        } else if (room == null) {
+            log.debug { "found no active verification room to navigate to" }
+        } else {
+            log.debug { "stay in room $selectedRoomId as the running verification takes place here" }
+        }
+    }
+
 
     private fun isVerificationStateFinished(verificationState: ActiveVerificationState) = when (verificationState) {
         ActiveVerificationState.Done,
