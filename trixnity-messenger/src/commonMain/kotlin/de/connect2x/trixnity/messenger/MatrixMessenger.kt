@@ -45,7 +45,7 @@ interface MatrixMessenger : AutoCloseable {
      * This will wait for the cancel() operations of child CoroutineScopes. Use this, when the app goes into the
      * background to be sure that every operation in Trixnity Messenger is finished.
      */
-    suspend fun closeAndWait()
+    suspend fun closeSuspending()
 }
 
 class MatrixMessengerImpl private constructor(
@@ -64,9 +64,9 @@ class MatrixMessengerImpl private constructor(
             val coroutineScope =
                 CoroutineScope(
                     coroutineContext
-                        + CoroutineName("trixnity-messenger-global")
-                        + SupervisorJob(coroutineContext[Job])
-                        + exceptionHandler
+                            + CoroutineName("trixnity-messenger-global")
+                            + SupervisorJob(coroutineContext[Job])
+                            + exceptionHandler
                 )
             val di = koinApplication {
                 modules(module {
@@ -114,7 +114,7 @@ class MatrixMessengerImpl private constructor(
         di.close()
     }
 
-    override suspend fun closeAndWait() {
+    override suspend fun closeSuspending() {
         val job = di.get<CoroutineScope>().coroutineContext.job
         close()
         job.join()

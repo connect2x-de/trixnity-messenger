@@ -52,7 +52,7 @@ class ProfileManagerImpl(
 
     override suspend fun closeProfile() {
         log.debug { "close current profile ${activeProfile.value}" }
-        activeMatrixMessenger.value?.closeAndWait()
+        activeMatrixMessenger.value?.closeSuspending()
         settingsHolder.update<MatrixMultiMessengerSettingsBase> { it.copy(activeProfile = null) }
     }
 

@@ -100,7 +100,7 @@ class MultiMessengerIT {
             recoveryKey = recoveryKey,
         )
         messenger.verifyAccountsArePresent("user1", "user2")
-        multiMessenger.closeAndWait()
+        multiMessenger.closeSuspending()
 
         DebugProbes.dumpCoroutinesInfo() shouldHaveSize 1 // only the coroutine of this test should still be active
     }
