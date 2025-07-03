@@ -68,7 +68,6 @@ fun CoroutineScope.messengerApp(
             height = min(1000.dp, height.dp)
         )
         var windowIsFocused by remember { mutableStateOf(false) }
-        val notifications = mutableStateListOf<ComposeNotification>()
 
         Window(
             onCloseRequest = ::exitApplication,
@@ -85,7 +84,6 @@ fun CoroutineScope.messengerApp(
                             log.debug { "window is focused" }
                             windowIsFocused = true
                             lifecycle.resume()
-                            notifications.clear()
                         }
 
                         override fun windowLostFocus(e: WindowEvent?) {

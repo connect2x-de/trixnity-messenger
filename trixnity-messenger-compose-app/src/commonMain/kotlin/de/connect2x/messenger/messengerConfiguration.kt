@@ -1,6 +1,7 @@
 package de.connect2x.messenger
 
 import de.connect2x.messenger.compose.view.composeViewModule
+import de.connect2x.messenger.compose.view.globalNotificationsModule
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
@@ -23,6 +24,7 @@ fun messengerConfiguration(
     urlProtocol = BuildConfig.appId
     modulesFactories += listOf(
         { composeViewModule(null) },
+        { globalNotificationsModule(this) },
         // TODO this needs to be removed and fixed, as there is no MatrixMessengerSettingsHolderImpl at MultiMessenger level!
         ::platformMatrixMessengerSettingsHolderModule,
         // TODO there should be a more clean way for I18n
@@ -51,10 +53,7 @@ fun messengerConfiguration(
 
     // MatrixMessengerConfiguration flavors
     messengerConfiguration {
-        modulesFactories += listOf(
-            { composeViewModule(this) },
-        )
-
+        modulesFactories += listOf { composeViewModule(this) }
         downloadsDisabled = BuildConfig.downloadsDisabled
         when (BuildConfig.flavor) {
             Flavor.PROD -> {}
