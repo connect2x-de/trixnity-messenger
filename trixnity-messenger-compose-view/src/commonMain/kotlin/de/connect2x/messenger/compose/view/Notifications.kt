@@ -38,7 +38,6 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.roomIdOrNull
 import net.folivo.trixnity.core.model.events.senderOrNull
 import net.folivo.trixnity.core.model.push.PushAction
-import org.koin.dsl.module
 
 private val log = KotlinLogging.logger { }
 
@@ -53,24 +52,12 @@ fun createNotificationHandler(config: MatrixMultiMessengerConfiguration): Notifi
 @Composable
 fun Notifications(
     matrixMessenger: MatrixMessenger,
-    activationCallback: (Notification) -> Unit
+    initCallback: NotificationHandler.() -> Unit = {}
 ) {
     val i18n = DI.get<I18nView>()
-    val config = matrixMessenger.di.get<MatrixMessengerConfiguration>()
-
     LaunchedEffect(Unit) {
-        val notificationHandler = withContext(currentImmediateDispatcher()) {
-            NotificationHandler(
-                name = "${config.appName} Notifications",
-                id = config.appId,
-                isDebugEnabled = config.notificationsDebugEnabled,
-            )
-        }
-        registerActivationHandler(notificationHandler, activationCallback)
-        matrixMessenger.di.loadModules(listOf(module {
-            single<NotificationHandler> { notificationHandler }
-        }))
-
+        val notificationHandler = matrixMessenger.di.get<NotificationHandler>()
+        notificationHandler.initCallback()
         matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
             .map { it.base.accounts }
             .distinctUntilChanged()

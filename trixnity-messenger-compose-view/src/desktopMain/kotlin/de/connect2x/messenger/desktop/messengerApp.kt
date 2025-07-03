@@ -3,7 +3,6 @@ package de.connect2x.messenger.desktop
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,11 +31,9 @@ import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
-import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.sysnotify.withActivationHandler
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
-import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.defaultDragAndDropHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -49,7 +46,6 @@ import java.awt.Taskbar
 import java.awt.dnd.DropTarget
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
-import androidx.compose.ui.window.Notification as ComposeNotification
 
 
 private val log = KotlinLogging.logger {}
@@ -136,10 +132,12 @@ fun CoroutineScope.messengerApp(
                             Client(rootViewModel)
                         }
 
-                        Notifications(matrixMessenger) { notification ->
-                            // First bring up the window manually since desktop doesn't handle this consistently
-                            window.state = Frame.NORMAL
-                            window.requestFocus()
+                        Notifications(matrixMessenger) {
+                            withActivationHandler { notification ->
+                                // First bring up the window manually since desktop doesn't handle this consistently
+                                window.state = Frame.NORMAL
+                                window.requestFocus()
+                            }
                         }
                     }
                 },
