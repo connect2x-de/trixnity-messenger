@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +39,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFil
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
+import de.connect2x.messenger.compose.view.util.ifNotBlank
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Image
@@ -63,11 +65,14 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<Image> {
             holder,
             element,
             overlay = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        "${shortenFileName(element)} ${element.size}",
+                        "${shortenFileName(element)}${element.size.ifNotBlank { " $it" }}",
+                        Modifier.basicMarquee(),
                         color = MaterialTheme.messengerColors.metaDataPreview,
-                        maxLines = 1,
+                        maxLines = 1
                     )
                 }
             },

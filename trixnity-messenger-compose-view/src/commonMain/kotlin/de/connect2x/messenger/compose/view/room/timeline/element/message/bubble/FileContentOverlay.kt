@@ -21,7 +21,7 @@ import de.connect2x.messenger.compose.view.theme.messengerColors
 
 
 @Composable
-fun BoxScope.MessageBubbleContentOverlay(
+fun BoxScope.FileContentOverlay(
     hoverMessage: State<Boolean>,
     overlay: (@Composable BoxScope.() -> Unit)?,
 ) {
@@ -35,7 +35,7 @@ fun BoxScope.MessageBubbleContentOverlay(
         )
         Box(
             Modifier
-                .align(Alignment.BottomStart)
+                .align(Alignment.BottomEnd)
                 .alpha(boxAlpha)
                 .padding(5.dp)
         ) {
