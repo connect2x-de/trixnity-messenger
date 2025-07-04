@@ -12,10 +12,10 @@ import de.connect2x.messenger.compose.view.richtext.BlockContent
 import de.connect2x.messenger.compose.view.richtext.InlineContent
 import de.connect2x.messenger.compose.view.richtext.RichText
 import de.connect2x.messenger.compose.view.richtext.RichTextContext
-import io.github.windedge.table.ColumnBuilder
-import io.github.windedge.table.DataTable
-import io.github.windedge.table.RowBuilderImpl
-import io.github.windedge.table.RowsBuilder
+import de.connect2x.messenger.compose.view.richtext.table.ColumnBuilder
+import de.connect2x.messenger.compose.view.richtext.table.DataTable
+import de.connect2x.messenger.compose.view.richtext.table.RowBuilderImpl
+import de.connect2x.messenger.compose.view.richtext.table.RowsBuilder
 
 @Composable
 internal fun DataTable(

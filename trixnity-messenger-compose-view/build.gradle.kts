@@ -77,7 +77,6 @@ kotlin {
                 implementation(libs.stately.collections)
                 implementation(libs.ksoup.html)
                 implementation(libs.highlights)
-                implementation(libs.table.m3)
             }
         }
         val desktopAndAndroidMain by creating {
