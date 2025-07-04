@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import de.connect2x.messenger.compose.view.room.timeline.element.message.FileRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.ImageRoomMessageTimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.TextBasedRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.TextRoomMessageTimelineElementView
 import de.connect2x.messenger.previews.util.InitMessengerPreview
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -59,7 +59,7 @@ fun TextMessageBubblePreview() {
         override fun openMention(timelineElementMention: TimelineElementMention) {}
     }
     InitMessengerPreview {
-        TextBasedRoomMessageTimelineElementView(
+        TextRoomMessageTimelineElementView(
             holder,
             element,
             isPreview = false,
@@ -92,6 +92,7 @@ fun ImageMessageBubblePreview() {
         override val description: String? = null
         override val size: String? = "465kb"
         override val mimeType: String? = "image/png"
+        override val showCaption: Boolean = true
         override val loadMediaResult: StateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
         override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
         override val loadMediaError: StateFlow<String?> = MutableStateFlow(null)
@@ -103,6 +104,13 @@ fun ImageMessageBubblePreview() {
         override val downloadMediaError: StateFlow<String?> = MutableStateFlow(null)
         override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit) {}
         override fun cancelDownloadMedia() {}
+        override val body: String = "Ein Kiwi :D"
+        override val formattedBody: String? = null
+        override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>> = emptyMap()
+        override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention?>>? = emptyMap()
+
+        override fun openMention(mention: TimelineElementMention) {
+        }
     }
     InitMessengerPreview {
         ImageRoomMessageTimelineElementView().createInTimeline(
@@ -130,6 +138,7 @@ fun FileMessageBubblePreview() {
         override val description: String? = "A file."
         override val size: String? = "465kb"
         override val mimeType: String? = "text/plain"
+        override val showCaption: Boolean = true
         override val loadMediaResult: StateFlow<ByteArray?> = MutableStateFlow("Kiwi".toByteArray())
         override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
         override val loadMediaError: StateFlow<String?> = MutableStateFlow(null)
@@ -143,6 +152,13 @@ fun FileMessageBubblePreview() {
         override val downloadMediaError: StateFlow<String?> = MutableStateFlow(null)
         override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit) {}
         override fun cancelDownloadMedia() {}
+        override val body: String = "Ein Kiwi :D"
+        override val formattedBody: String? = null
+        override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>> = emptyMap()
+        override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention?>>? = emptyMap()
+
+        override fun openMention(mention: TimelineElementMention) {
+        }
     }
     InitMessengerPreview {
         FileRoomMessageTimelineElementView().createInTimeline(

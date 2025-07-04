@@ -19,6 +19,8 @@ interface UnknownRoomMessageTimelineElementViewModelFactory : TimelineElementVie
         UnknownRoomMessageTimelineElementViewModelImpl(
             viewModelContext,
             content,
+            roomId,
+            onOpenMention,
         )
 
     override val supports: KClass<Unknown>
@@ -30,6 +32,10 @@ interface UnknownRoomMessageTimelineElementViewModelFactory : TimelineElementVie
 class UnknownRoomMessageTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: Unknown,
-) : RoomMessageTimelineElementViewModel.Unknown, MatrixClientViewModelContext by viewModelContext {
+    roomId: RoomId,
+    onOpenMention: OpenMentionCallback
+) : RoomMessageTimelineElementViewModel.Unknown,
+    RoomMessageTimelineElementViewModelImpl<Unknown>(viewModelContext, content, roomId, onOpenMention),
+    MatrixClientViewModelContext by viewModelContext {
     override val fallbackBody: String = content.body
 }

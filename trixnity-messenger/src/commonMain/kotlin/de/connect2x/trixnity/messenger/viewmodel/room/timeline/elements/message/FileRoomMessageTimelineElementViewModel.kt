@@ -20,6 +20,9 @@ interface FileRoomMessageTimelineElementViewModelFactory : TimelineElementViewMo
         FileRoomMessageTimelineElementViewModelImpl(
             viewModelContext,
             content,
+            roomId,
+            eventIdOrTransactionId,
+            onOpenMention,
         )
 
     override val supports: KClass<FileBased.File>
@@ -31,5 +34,13 @@ interface FileRoomMessageTimelineElementViewModelFactory : TimelineElementViewMo
 class FileRoomMessageTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: FileBased.File,
-) : RoomMessageTimelineElementViewModel.FileBased.File,
-    FileBasedRoomMessageTimelineElementViewModel<FileBased.File>(viewModelContext, content)
+    roomId: RoomId,
+    eventIdOrTransactionId: EventIdOrTransactionId,
+    onOpenMention: OpenMentionCallback,
+) : RoomMessageTimelineElementViewModel.FileBased.File, FileBasedRoomMessageTimelineElementViewModel<FileBased.File>(
+    viewModelContext,
+    content,
+    roomId,
+    eventIdOrTransactionId,
+    onOpenMention,
+)

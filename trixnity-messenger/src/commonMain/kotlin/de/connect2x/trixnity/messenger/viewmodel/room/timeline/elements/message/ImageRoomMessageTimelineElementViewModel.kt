@@ -29,6 +29,9 @@ interface ImageRoomMessageTimelineElementViewModelFactory : TimelineElementViewM
         ImageRoomMessageTimelineElementViewModelImpl(
             viewModelContext,
             content,
+            roomId,
+            eventIdOrTransactionId,
+            onOpenMention,
         )
 
     override val supports: KClass<FileBased.Image>
@@ -40,8 +43,16 @@ interface ImageRoomMessageTimelineElementViewModelFactory : TimelineElementViewM
 class ImageRoomMessageTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: FileBased.Image,
-) : RoomMessageTimelineElementViewModel.FileBased.Image,
-    FileBasedRoomMessageTimelineElementViewModel<FileBased.Image>(viewModelContext, content) {
+    roomId: RoomId,
+    eventIdOrTransactionId: EventIdOrTransactionId,
+    onOpenMention: OpenMentionCallback,
+) : RoomMessageTimelineElementViewModel.FileBased.Image, FileBasedRoomMessageTimelineElementViewModel<FileBased.Image>(
+    viewModelContext,
+    content,
+    roomId,
+    eventIdOrTransactionId,
+    onOpenMention,
+) {
 
     private val thumbnails = get<Thumbnails>()
 

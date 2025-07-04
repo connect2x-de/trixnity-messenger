@@ -44,7 +44,7 @@ filekit = "0.8.8" # https://github.com/vinceglb/FileKit/releases
 firebase = "33.13.0" # https://firebase.google.com/support/release-notes/android
 googleServices = "4.4.2" # https://developers.google.com/android/guides/google-services-plugin
 
-androidGradle = "8.9.2" # https://developer.android.com/reference/tools/gradle-api
+androidGradle = "8.8.0-alpha05" # https://developer.android.com/reference/tools/gradle-api
 androidCompileSDK = "35"
 androidMinimalSDK = "28"
 androidTargetSDK = "34"

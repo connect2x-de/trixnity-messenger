@@ -44,9 +44,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import io.ktor.http.Url
 
 @Composable
-fun TextBasedRoomMessageTimelineElementView(
+fun TextRoomMessageTimelineElementView(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.TextBased<*>,
+    element: RoomMessageTimelineElementViewModel<*>,
     isPreview: Boolean,
 ) {
     MessageBubble(
@@ -68,7 +68,7 @@ fun TextBasedRoomMessageTimelineElementView(
 @Composable
 private fun MessageTextContent(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.TextBased<*>,
+    element: RoomMessageTimelineElementViewModel<*>,
     showActionMenu: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()

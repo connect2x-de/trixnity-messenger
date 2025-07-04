@@ -19,6 +19,8 @@ interface LocationRoomMessageTimelineElementViewModelFactory : TimelineElementVi
         LocationRoomMessageTimelineElementViewModelImpl(
             viewModelContext,
             content,
+            roomId,
+            onOpenMention
         )
 
     override val supports: KClass<Location>
@@ -30,7 +32,11 @@ interface LocationRoomMessageTimelineElementViewModelFactory : TimelineElementVi
 class LocationRoomMessageTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: Location,
-) : RoomMessageTimelineElementViewModel.Location, MatrixClientViewModelContext by viewModelContext {
+    roomId: RoomId,
+    onOpenMention: OpenMentionCallback,
+) : RoomMessageTimelineElementViewModel.Location,
+    RoomMessageTimelineElementViewModelImpl<Location>(viewModelContext, content, roomId, onOpenMention),
+    MatrixClientViewModelContext by viewModelContext {
     override val name: String = content.body
     override val geoUri: String = content.geoUri
 }

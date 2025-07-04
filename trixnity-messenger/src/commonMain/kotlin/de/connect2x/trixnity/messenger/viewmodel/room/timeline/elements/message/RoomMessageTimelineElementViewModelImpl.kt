@@ -35,12 +35,12 @@ import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import net.folivo.trixnity.core.model.events.m.room.formattedBodyWithoutFallback
 import org.koin.core.component.get
 
-abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEventContent.TextBased>(
+abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventContent>(
     private val viewModelContext: MatrixClientViewModelContext,
     content: C,
     private val roomId: RoomId,
     private val onOpenMention: OpenMentionCallback,
-) : RoomMessageTimelineElementViewModel.TextBased<C>, MatrixClientViewModelContext by viewModelContext {
+) : RoomMessageTimelineElementViewModel<C>, MatrixClientViewModelContext by viewModelContext {
     private val initials = get<Initials>()
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     override val body: String = content.bodyWithoutFallback

@@ -127,7 +127,13 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
         overlay,
         isPreview = isPreview,
     ) { showActionMenu ->
-        FileBasedView(holder, element, onSave, showActionMenu, displayProgressOverElement, content)
+        Column {
+            FileBasedView(holder, element, onSave, showActionMenu, displayProgressOverElement, content)
+            // if (element.showCaption) {
+                //  Text("Hii")
+                // TextRoomMessageTimelineElementView(holder, element as RoomMessageTimelineElementViewModel<*>, isPreview)
+            // }
+        }
     }
 }
 

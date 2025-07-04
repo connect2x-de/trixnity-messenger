@@ -11,32 +11,32 @@ import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C> {
-    interface TextBased<C : RoomMessageEventContent.TextBased> : RoomMessageTimelineElementViewModel<C> {
-        /**
-         * This event's message (stripped of any fallbacks for rich replies).
-         */
-        val body: String
+    /**
+     * This event's message (stripped of any fallbacks for rich replies).
+     */
+    val body: String
 
-        /**
-         * The HTML version of the message, if present. [spec](https://spec.matrix.org/v1.7/client-server-api/#mroommessage-msgtypes)
-         */
-        val formattedBody: String?
+    /**
+     * The HTML version of the message, if present. [spec](https://spec.matrix.org/v1.7/client-server-api/#mroommessage-msgtypes)
+     */
+    val formattedBody: String?
 
-        /**
-         * Users, Events and Room mentioned in the event's message
-         */
-        val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>>
+    /**
+     * Users, Events and Room mentioned in the event's message
+     */
+    val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>>
 
-        /**
-         * Users, Events and Room mentioned in the event's formatted body
-         */
-        val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention?>>?
+    /**
+     * Users, Events and Room mentioned in the event's formatted body
+     */
+    val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention?>>?
 
-        /**
-         * Open the mention in the UI
-         */
-        fun openMention(mention: TimelineElementMention)
+    /**
+     * Open the mention in the UI
+     */
+    fun openMention(mention: TimelineElementMention)
 
+    interface TextBased<C : RoomMessageEventContent> : RoomMessageTimelineElementViewModel<C> {
         interface Text : TextBased<RoomMessageEventContent.TextBased.Text>
         interface Notice : TextBased<RoomMessageEventContent.TextBased.Notice>
         interface Emote : TextBased<RoomMessageEventContent.TextBased.Emote>
@@ -47,6 +47,7 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         val description: String?
         val size: String?
         val mimeType: String?
+        val showCaption: Boolean
 
         val loadMediaResult: StateFlow<ByteArray?>
         val loadMediaProgress: StateFlow<FileTransferProgressElement?>

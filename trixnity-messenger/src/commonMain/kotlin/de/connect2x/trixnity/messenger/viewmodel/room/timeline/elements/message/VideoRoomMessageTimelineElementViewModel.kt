@@ -29,6 +29,9 @@ interface VideoRoomMessageTimelineElementViewModelFactory : TimelineElementViewM
         VideoRoomMessageTimelineElementViewModelImpl(
             viewModelContext,
             content,
+            roomId,
+            eventIdOrTransactionId,
+            onOpenMention,
         )
 
     override val supports: KClass<FileBased.Video>
@@ -40,8 +43,16 @@ interface VideoRoomMessageTimelineElementViewModelFactory : TimelineElementViewM
 class VideoRoomMessageTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: FileBased.Video,
-) : RoomMessageTimelineElementViewModel.FileBased.Video,
-    FileBasedRoomMessageTimelineElementViewModel<FileBased.Video>(viewModelContext, content) {
+    roomId: RoomId,
+    eventIdOrTransactionId: EventIdOrTransactionId,
+    onOpenMention: OpenMentionCallback,
+) : RoomMessageTimelineElementViewModel.FileBased.Video, FileBasedRoomMessageTimelineElementViewModel<FileBased.Video>(
+    viewModelContext,
+    content,
+    roomId,
+    eventIdOrTransactionId,
+    onOpenMention,
+) {
 
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     private val thumbnails = get<Thumbnails>()
