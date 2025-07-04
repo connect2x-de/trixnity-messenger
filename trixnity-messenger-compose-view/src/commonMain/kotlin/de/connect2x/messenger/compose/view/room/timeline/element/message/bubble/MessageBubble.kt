@@ -33,7 +33,6 @@ interface MessageBubbleView {
         holder: BaseTimelineElementHolderViewModel,
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
-        overlay: (@Composable BoxScope.() -> Unit)? = null,
         isPreview: Boolean,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     )
@@ -44,12 +43,11 @@ fun MessageBubble(
     holder: BaseTimelineElementHolderViewModel,
     needsMaxWidth: Boolean,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
-    overlay: (@Composable BoxScope.() -> Unit)? = null,
     isPreview: Boolean,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     DI.get<MessageBubbleView>()
-        .create(holder, needsMaxWidth, additionalContextActions, overlay, isPreview, content)
+        .create(holder, needsMaxWidth, additionalContextActions, isPreview, content)
 }
 
 class MessageBubbleViewImpl : MessageBubbleView {
@@ -58,7 +56,6 @@ class MessageBubbleViewImpl : MessageBubbleView {
         holder: BaseTimelineElementHolderViewModel,
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
-        overlay: (@Composable BoxScope.() -> Unit)?,
         isPreview: Boolean,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     ) {
@@ -96,7 +93,6 @@ class MessageBubbleViewImpl : MessageBubbleView {
                         reactionsOpen = reactionsOpen,
                         additionalContextActions = additionalContextActions,
                         isPreview = isPreview,
-                        overlay = overlay,
                         content = content,
                     )
                 }
