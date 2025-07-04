@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Captions for Media messages
+
 ### Changed
 
 - Move to room with active verification, when verification with user is already running
@@ -21,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Show correct error message on corrupt files
+- Big overlay adding wide border to image message bubbles
 
 ### Security
 
