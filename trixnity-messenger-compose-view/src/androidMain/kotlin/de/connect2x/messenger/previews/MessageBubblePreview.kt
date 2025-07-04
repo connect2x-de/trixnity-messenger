@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import de.connect2x.messenger.compose.view.room.timeline.element.message.FileRoomMessageTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.ImageRoomMessageTimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.TextRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.TextBasedRoomMessageTimelineElementView
 import de.connect2x.messenger.previews.util.InitMessengerPreview
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -59,7 +59,7 @@ fun TextMessageBubblePreview() {
         override fun openMention(timelineElementMention: TimelineElementMention) {}
     }
     InitMessengerPreview {
-        TextRoomMessageTimelineElementView(
+        TextBasedRoomMessageTimelineElementView(
             holder,
             element,
             isPreview = false,

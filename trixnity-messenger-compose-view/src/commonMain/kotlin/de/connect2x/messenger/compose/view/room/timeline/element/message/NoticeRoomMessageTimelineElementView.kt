@@ -20,7 +20,7 @@ class NoticeRoomMessageTimelineElementView : TimelineElementView<Notice> {
         holder: BaseTimelineElementHolderViewModel,
         element: Notice,
     ) {
-        TextRoomMessageTimelineElementView(holder, element, isPreview = false)
+        TextBasedRoomMessageTimelineElementView(holder, element, isPreview = false)
     }
 
     @Composable
@@ -28,7 +28,7 @@ class NoticeRoomMessageTimelineElementView : TimelineElementView<Notice> {
         holder: TimelineElementHolderViewModel,
         element: Notice,
     ) {
-        TextRoomMessageTimelineElementView(holder, element, isPreview = true)
+        TextBasedRoomMessageTimelineElementView(holder, element, isPreview = true)
     }
 
     @Composable

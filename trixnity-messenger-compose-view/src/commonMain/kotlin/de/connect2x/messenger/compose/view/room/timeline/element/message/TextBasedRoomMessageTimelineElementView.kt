@@ -44,9 +44,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import io.ktor.http.Url
 
 @Composable
-fun TextRoomMessageTimelineElementView(
+fun TextBasedRoomMessageTimelineElementView(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel<*>,
+    element: RoomMessageTimelineElementViewModel.TextBased<*>,
     isPreview: Boolean,
 ) {
     MessageBubble(
@@ -54,14 +54,23 @@ fun TextRoomMessageTimelineElementView(
         needsMaxWidth = false,
         isPreview = isPreview
     ) { showActionMenu ->
-        // on Desktop and Web, it makes sense to select text and copy it;
-        // on Android, this will consume long tap events, which we use for the context menu
-        when (Platform.current) {
-            PlatformType.DESKTOP, PlatformType.WEB -> SelectionContainer {
-                MessageTextContent(holder, element, showActionMenu)
-            }
-            PlatformType.ANDROID -> MessageTextContent(holder, element, showActionMenu)
+        TextRoomMessageTimelineElementView(holder, element, showActionMenu)
+    }
+}
+
+@Composable
+fun TextRoomMessageTimelineElementView(
+    holder: BaseTimelineElementHolderViewModel,
+    element: RoomMessageTimelineElementViewModel<*>,
+    showActionMenu: () -> Unit,
+) {
+    // on Desktop and Web, it makes sense to select text and copy it;
+    // on Android, this will consume long tap events, which we use for the context menu
+    when (Platform.current) {
+        PlatformType.DESKTOP, PlatformType.WEB -> SelectionContainer {
+            MessageTextContent(holder, element, showActionMenu)
         }
+        PlatformType.ANDROID -> MessageTextContent(holder, element, showActionMenu)
     }
 }
 

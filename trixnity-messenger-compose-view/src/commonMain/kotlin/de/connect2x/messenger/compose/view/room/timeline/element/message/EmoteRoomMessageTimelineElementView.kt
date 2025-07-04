@@ -20,7 +20,7 @@ class EmoteRoomMessageTimelineElementView : TimelineElementView<Emote> {
         holder: BaseTimelineElementHolderViewModel,
         element: Emote,
     ) {
-        TextRoomMessageTimelineElementView(holder, element, isPreview = false)
+        TextBasedRoomMessageTimelineElementView(holder, element, isPreview = false)
     }
 
     @Composable
@@ -28,7 +28,7 @@ class EmoteRoomMessageTimelineElementView : TimelineElementView<Emote> {
         holder: TimelineElementHolderViewModel,
         element: Emote,
     ) {
-        TextRoomMessageTimelineElementView(holder, element, isPreview = true)
+        TextBasedRoomMessageTimelineElementView(holder, element, isPreview = true)
     }
 
     @Composable
