@@ -42,7 +42,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Image
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.decodeToImageBitmap
 import kotlin.reflect.KClass
 
 
@@ -221,15 +220,30 @@ internal fun ImageReplyElement(holder: TimelineElementHolderViewModel, element: 
     ReferencedMessagePill(
         holder = holder,
         content = {
-            element.thumbnail.collectAsState().value
-                ?.let { image ->
+            val image = element.thumbnail.collectAsState().value
+            val thumbnailWidth = element.thumbnailWidth ?: element.width
+            val thumbnailHeight = element.thumbnailHeight ?: element.height
+            val thumbnailLoading = element.thumbnailLoading.collectAsState().value
+            val bitmap = remember(image) {
+                image?.toImageBitmap()
+                    ?: if (thumbnailWidth != null && thumbnailHeight != null && thumbnailLoading) {
+                        ImageBitmap(thumbnailWidth, thumbnailHeight)
+                    } else null
+            }
+
+            if (bitmap != null) {
+                Box {
                     Image(
-                        image.decodeToImageBitmap(),
+                        bitmap,
                         "",
-                        Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)),
+                        Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)).align(Alignment.Center),
                         contentScale = ContentScale.Fit
                     )
-                } ?: run {
+                    if (thumbnailLoading) {
+                        LoadingSpinner(Modifier.align(Alignment.Center))
+                    }
+                }
+            } else {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(10.dp)) {
                     Icon(
                         MaterialTheme.messengerIcons.typeImage,
