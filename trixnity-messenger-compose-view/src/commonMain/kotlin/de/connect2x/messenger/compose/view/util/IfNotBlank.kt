@@ -1,3 +1,3 @@
 package de.connect2x.messenger.compose.view.util
 
-fun String?.ifNotBlank(defaultValue: String = "", builder: (String) -> String): String = if (this?.isNotBlank() == true) builder(this) else defaultValue
+fun <T> T?.ifNotNull(defaultValue: String = "", builder: (T) -> String): String = if (this != null) builder(this) else defaultValue

@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,6 +38,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFil
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
+import de.connect2x.messenger.compose.view.util.ifNotNull
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Video
@@ -62,13 +64,7 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<Video> {
             holder,
             element,
             overlay = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${shortenFileName(element)}, ${element.duration?.let { formatDuration(it.milliseconds) }} ${element.size}",
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                        maxLines = 1,
-                    )
-                }
+                VideoMessageElementOverlay(element)
             }
         ) { showMenuAction, onSave ->
             VideoMessageContent(holder, element, showMenuAction, onSave)
@@ -85,13 +81,7 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<Video> {
             element,
             isPreview = true,
             overlay = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${shortenFileName(element)}, ${element.duration?.let { formatDuration(it.milliseconds) }} ${element.size}",
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                        maxLines = 1,
-                    )
-                }
+                VideoMessageElementOverlay(element)
             },
         ) { openActionMenu, saveAttachment ->
             VideoMessageContent(holder, element, openActionMenu, saveAttachment)
@@ -117,15 +107,14 @@ class VideoRoomMessageTimelineElementView : TimelineElementView<Video> {
 
 @Composable
 internal fun VideoMessageElementOverlay(element: Video) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
-            "${shortenFileName(element)}, ${
-                element.duration?.let {
-                    formatDuration(it.milliseconds)
-                }
-            } ${element.size}",
+            "${shortenFileName(element)}${element.duration.ifNotNull { ", ${formatDuration(it.milliseconds)}" }}${element.size.ifNotNull { " $it" }}",
+            Modifier.basicMarquee(),
             color = MaterialTheme.messengerColors.metaDataPreview,
-            maxLines = 1,
+            maxLines = 1
         )
     }
 }

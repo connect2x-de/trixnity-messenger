@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +35,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElement
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.theme.messengerColors
+import de.connect2x.messenger.compose.view.util.ifNotNull
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.File
@@ -57,13 +59,7 @@ class FileRoomMessageTimelineElementView : TimelineElementView<File> {
         FileBasedRoomMessageTimelineElement(
             holder, element,
             overlay = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${shortenFileName(element)}, ${element.size}",
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                        maxLines = 1,
-                    )
-                }
+                FileMessageElementOverlay(element)
             }
         ) { showActionMenu, onSave ->
             MessageFile(element, showActionMenu, onSave)
@@ -79,13 +75,7 @@ class FileRoomMessageTimelineElementView : TimelineElementView<File> {
             holder, element,
             isPreview = true,
             overlay = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${shortenFileName(element)}, ${element.size}",
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                        maxLines = 1,
-                    )
-                }
+                FileMessageElementOverlay(element)
             }
         ) { showActionMenu, onSave ->
             MessageFile(element, showActionMenu, onSave)
@@ -106,6 +96,20 @@ class FileRoomMessageTimelineElementView : TimelineElementView<File> {
         element: File,
     ) {
         FileReplyElement(holder, element)
+    }
+}
+
+@Composable
+internal fun FileMessageElementOverlay(element: File) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            "${shortenFileName(element)}${element.size.ifNotNull { ", $it" }}",
+            Modifier.basicMarquee(),
+            color = MaterialTheme.messengerColors.metaDataPreview,
+            maxLines = 1
+        )
     }
 }
 

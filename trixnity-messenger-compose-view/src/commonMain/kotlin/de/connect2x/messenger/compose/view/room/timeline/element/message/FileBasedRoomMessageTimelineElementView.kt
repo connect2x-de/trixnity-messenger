@@ -34,7 +34,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.FileContentOverlay
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
-import de.connect2x.messenger.compose.view.util.ifNotBlank
+import de.connect2x.messenger.compose.view.util.ifNotNull
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
@@ -114,10 +114,10 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
         additionalContextActions = { onClose ->
             // name
             Tooltip(
-                { TooltipText("${element.name}${element.size.ifNotBlank { " $it" }}") } // full name
+                { TooltipText("${element.name}${element.size.ifNotNull { " $it" }}") } // full name
             ) {
                 Text(
-                    "${shortenFileName(element)}${element.size.ifNotBlank { " $it" }}", // shortened name
+                    "${shortenFileName(element)}${element.size.ifNotNull { " $it" }}", // shortened name
                     modifier = Modifier.padding(5.dp),
                     maxLines = 1,
                 )

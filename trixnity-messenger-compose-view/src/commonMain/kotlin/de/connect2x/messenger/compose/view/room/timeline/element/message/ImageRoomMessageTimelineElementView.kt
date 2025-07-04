@@ -39,7 +39,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFil
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
-import de.connect2x.messenger.compose.view.util.ifNotBlank
+import de.connect2x.messenger.compose.view.util.ifNotNull
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Image
@@ -65,16 +65,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<Image> {
             holder,
             element,
             overlay = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "${shortenFileName(element)}${element.size.ifNotBlank { " $it" }}",
-                        Modifier.basicMarquee(),
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                        maxLines = 1
-                    )
-                }
+                ImageMessageElementOverlay(element)
             },
             displayProgressOverElement = true
         ) { showActionMenu, onSave ->
@@ -93,13 +84,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<Image> {
             isPreview = true,
             displayProgressOverElement = true,
             overlay = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${shortenFileName(element)} ${element.size}",
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                        maxLines = 1,
-                    )
-                }
+                ImageMessageElementOverlay(element)
             },
         ) { showActionMenu, onSave ->
             MessageImage(element, showActionMenu, onSave)
@@ -119,11 +104,14 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<Image> {
 
 @Composable
 internal fun ImageMessageElementOverlay(element: Image) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
-            "${shortenFileName(element)} ${element.size}",
+            "${shortenFileName(element)}${element.size.ifNotNull { " $it" }}",
+            Modifier.basicMarquee(),
             color = MaterialTheme.messengerColors.metaDataPreview,
-            maxLines = 1,
+            maxLines = 1
         )
     }
 }
