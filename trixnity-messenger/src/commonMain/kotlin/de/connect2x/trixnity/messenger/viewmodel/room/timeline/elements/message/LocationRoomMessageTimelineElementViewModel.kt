@@ -35,8 +35,7 @@ class LocationRoomMessageTimelineElementViewModelImpl(
     roomId: RoomId,
     onOpenMention: OpenMentionCallback,
 ) : RoomMessageTimelineElementViewModel.Location,
-    RoomMessageTimelineElementViewModelImpl<Location>(viewModelContext, content, roomId, onOpenMention),
-    MatrixClientViewModelContext by viewModelContext {
+    RoomMessageTimelineElementViewModelImpl<Location>(viewModelContext, content, roomId, onOpenMention) {
     override val name: String = content.body
     override val geoUri: String = content.geoUri
 }

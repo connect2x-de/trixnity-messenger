@@ -22,7 +22,6 @@ import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
 import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
@@ -33,11 +32,8 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     private val roomId: RoomId,
     private val eventIdOrTransactionId: EventIdOrTransactionId,
     private val onOpenMention: OpenMentionCallback,
-) :
-    RoomMessageTimelineElementViewModel.FileBased<C>,
-    RoomMessageTimelineElementViewModelImpl<C>(viewModelContext, content, roomId, onOpenMention),
-    MatrixClientViewModelContext by viewModelContext
-{
+) : RoomMessageTimelineElementViewModel.FileBased<C>,
+    RoomMessageTimelineElementViewModelImpl<C>(viewModelContext, content, roomId, onOpenMention) {
     override val name: String = content.fileName ?: content.body
     override val description: String? = if (content.fileName != null) content.body else null
     override val size: String? = content.info?.size?.let { " (${formatSize(it.toLong())})" } ?: ""

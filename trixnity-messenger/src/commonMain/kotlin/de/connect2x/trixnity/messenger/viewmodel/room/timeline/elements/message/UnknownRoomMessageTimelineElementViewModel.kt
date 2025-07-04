@@ -35,7 +35,6 @@ class UnknownRoomMessageTimelineElementViewModelImpl(
     roomId: RoomId,
     onOpenMention: OpenMentionCallback
 ) : RoomMessageTimelineElementViewModel.Unknown,
-    RoomMessageTimelineElementViewModelImpl<Unknown>(viewModelContext, content, roomId, onOpenMention),
-    MatrixClientViewModelContext by viewModelContext {
+    RoomMessageTimelineElementViewModelImpl<Unknown>(viewModelContext, content, roomId, onOpenMention) {
     override val fallbackBody: String = content.body
 }

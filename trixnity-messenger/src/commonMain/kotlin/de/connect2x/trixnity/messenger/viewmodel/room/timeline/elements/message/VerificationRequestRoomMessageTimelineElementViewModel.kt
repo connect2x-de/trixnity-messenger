@@ -48,10 +48,8 @@ class VerificationRequestRoomMessageTimelineElementViewModelImpl(
     private val eventId: EventId,
     content: VerificationRequest,
     onOpenMention: OpenMentionCallback,
-) :
-    RoomMessageTimelineElementViewModel.VerificationRequest,
-    RoomMessageTimelineElementViewModelImpl<VerificationRequest>(viewModelContext, content, roomId, onOpenMention),
-    MatrixClientViewModelContext by viewModelContext {
+) : RoomMessageTimelineElementViewModel.VerificationRequest,
+    RoomMessageTimelineElementViewModelImpl<VerificationRequest>(viewModelContext, content, roomId, onOpenMention) {
     private val activeVerifications = get<ActiveVerifications>()
 
     override val isActive: MutableStateFlow<Boolean> = MutableStateFlow(true)
