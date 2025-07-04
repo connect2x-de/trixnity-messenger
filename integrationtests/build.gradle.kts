@@ -24,6 +24,7 @@ kotlin {
                 implementation(libs.bundles.testcontainers)
                 implementation(libs.logback.classic)
                 implementation(libs.okio.fakefilesystem)
+                implementation(libs.kotlinx.coroutines.debug)
             }
         }
     }

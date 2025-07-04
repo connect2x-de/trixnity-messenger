@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- More features in the iOS UI
-
 ### Changed
 
 - Send correct image size when uploading images on web
@@ -18,6 +16,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 ### Removed
+
+### Fixed
+
+### Security
+
+## 3.6.11
+
+### Added
+
+- More features in the iOS UI
+- MatrixMultiMessenger.closeSuspending() to wait for every operation in Trixnity Messenger to be finished (in comparison
+  to close() which will fire and forget and thus could give the impression that all operations are finished which might
+  not be the case)
+
+### Changed
+
+- Rename observeAsSate to observeAsState
+- Update Trixnity from 4.16.8 to 4.16.9
 
 ### Fixed
 
@@ -29,25 +45,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reopening PDF details view does not trigger download again
 - Remove timeline flickering due to switching between image fallback and thumbnail in reply elements
 
-### Security
-
 ## 3.6.10
-
-### Added
 
 ### Changed
 
 - Updated Trixnity from 4.16.7 to 4.16.8
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Update room database to support iOS shared storage
-
-### Security
 
 ## 3.6.9
 

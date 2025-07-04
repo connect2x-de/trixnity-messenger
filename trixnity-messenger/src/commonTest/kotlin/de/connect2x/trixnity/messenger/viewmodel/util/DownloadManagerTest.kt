@@ -126,7 +126,7 @@ class DownloadManagerTest {
 
     @Test
     fun `stop tracking progress of download when download is cancelled`() = runTest {
-        val cut = DownloadManagerImpl(coroutineContext)
+        val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
         val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> = MutableStateFlow(null)
         everySuspend {
             mediaServiceMock.getMedia(
