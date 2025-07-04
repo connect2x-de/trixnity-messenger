@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Remove timeline flickering due to switching between image fallback and thumbnail in reply elements
+
 ### Security
 
 ## 3.6.11
@@ -42,7 +44,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Image detail view now displays image the first time it is opened
 - PDF details view displays valid PDFs again
 - Reopening PDF details view does not trigger download again
-- Remove timeline flickering due to switching between image fallback and thumbnail in reply elements
 
 ## 3.6.10
 
