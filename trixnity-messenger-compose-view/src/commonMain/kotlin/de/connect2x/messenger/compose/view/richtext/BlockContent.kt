@@ -44,7 +44,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.common.HorizontalScrollableMeasurePolicy
-import de.connect2x.messenger.compose.view.richtext.html.DataTable
+import de.connect2x.messenger.compose.view.richtext.html.TableContent
 import de.connect2x.messenger.compose.view.richtext.html.ListScope
 import net.folivo.trixnity.core.model.Mention
 
@@ -152,7 +152,7 @@ fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextContext) {
             }
         }
 
-        "#root", "html", "body", "div", "p" -> {
+        "#root", "html", "body", "div", "p", "thead", "tbody", "tfoot", "tr", "th", "td" -> {
             Column(verticalArrangement = Arrangement.spacedBy(1.em)) {
                 Children(node, context)
             }
@@ -222,26 +222,7 @@ fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextContext) {
         }
 
         "table" -> {
-            Surface(
-                tonalElevation = 8.dp,
-                shadowElevation = 2.dp,
-                shape = MaterialTheme.shapes.small,
-            ) {
-                val scrollState = rememberScrollState()
-                Layout(
-                    content = {
-                        DataTable(
-                            node,
-                            context,
-                            modifier = Modifier
-                                .horizontalScroll(scrollState)
-                                .padding(8.dp)
-                        )
-                        HorizontalScrollbar(Modifier, scrollState)
-                    },
-                    measurePolicy = HorizontalScrollableMeasurePolicy
-                )
-            }
+            TableContent(node, context)
         }
 
         "caption" -> {
