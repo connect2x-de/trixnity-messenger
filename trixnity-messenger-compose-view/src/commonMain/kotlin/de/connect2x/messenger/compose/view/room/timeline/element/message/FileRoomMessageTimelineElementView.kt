@@ -173,6 +173,9 @@ internal fun FileReplyElement(holder: TimelineElementHolderViewModel, element: F
                     tint = Color.DarkGray,
                 )
                 FileName(element.name)
+                if (element.showCaption) {
+                    TextReply(element, maxLines = 2)
+                }
             }
         }
     )

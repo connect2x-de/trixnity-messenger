@@ -93,6 +93,7 @@ class ImageRoomMessageTimelineElementView : TimelineElementView<Image> {
 
     @Composable
     override fun createReplyInTimeline(holder: TimelineElementHolderViewModel, element: Image) {
+
         ImageReplyElement(holder, element)
     }
 
@@ -214,22 +215,27 @@ internal fun ImageReplyElement(holder: TimelineElementHolderViewModel, element: 
     ReferencedMessagePill(
         holder = holder,
         content = {
-            element.thumbnail.collectAsState().value
-                ?.let { image ->
-                    Image(
-                        image.decodeToImageBitmap(),
-                        "",
-                        Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Fit
-                    )
-                } ?: run {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(10.dp)) {
-                    Icon(
-                        MaterialTheme.messengerIcons.typeImage,
-                        i18n.commonImage(),
-                        modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp)
-                    )
-                    FileName(element.name)
+            Column {
+                element.thumbnail.collectAsState().value
+                    ?.let { image ->
+                        Image(
+                            image.decodeToImageBitmap(),
+                            "",
+                            Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Fit
+                        )
+                    } ?: run {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(10.dp)) {
+                        Icon(
+                            MaterialTheme.messengerIcons.typeImage,
+                            i18n.commonImage(),
+                            modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp)
+                        )
+                        FileName(element.name)
+                    }
+                }
+                if (element.showCaption) {
+                    TextReply(element, maxLines = 2)
                 }
             }
         }

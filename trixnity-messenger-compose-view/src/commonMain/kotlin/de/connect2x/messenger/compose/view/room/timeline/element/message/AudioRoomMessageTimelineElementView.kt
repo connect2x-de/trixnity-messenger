@@ -175,6 +175,9 @@ internal fun ReplyMessageAudio(holder: TimelineElementHolderViewModel, element: 
                     tint = Color.DarkGray,
                 )
                 FileName(element.name)
+                if (element.showCaption) {
+                    TextReply(element, maxLines = 2)
+                }
             }
         }
     )

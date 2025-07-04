@@ -188,29 +188,34 @@ internal fun VideoReplyElement(holder: TimelineElementHolderViewModel, element: 
     ReferencedMessagePill(
         holder = holder,
         content = {
-            videoImage?.toImageBitmap()?.let { videoImage ->
-                Box {
-                    Image(
-                        videoImage,
-                        "",
-                        Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Fit,
-                    )
-                    Icon(
-                        MaterialTheme.messengerIcons.typeVideo,
-                        i18n.commonVideo(),
-                        Modifier.size(25.dp).align(Alignment.Center),
-                        tint = Color.DarkGray,
-                    )
+            Column {
+                videoImage?.toImageBitmap()?.let { videoImage ->
+                    Box {
+                        Image(
+                            videoImage,
+                            "",
+                            Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Fit,
+                        )
+                        Icon(
+                            MaterialTheme.messengerIcons.typeVideo,
+                            i18n.commonVideo(),
+                            Modifier.size(25.dp).align(Alignment.Center),
+                            tint = Color.DarkGray,
+                        )
+                    }
+                } ?: run {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            MaterialTheme.messengerIcons.typeVideo,
+                            i18n.commonVideo(),
+                            modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp),
+                        )
+                        FileName(element.name)
+                    }
                 }
-            } ?: run {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        MaterialTheme.messengerIcons.typeVideo,
-                        i18n.commonVideo(),
-                        modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp),
-                    )
-                    FileName(element.name)
+                if (element.showCaption) {
+                    TextReply(element, maxLines = 2)
                 }
             }
         }

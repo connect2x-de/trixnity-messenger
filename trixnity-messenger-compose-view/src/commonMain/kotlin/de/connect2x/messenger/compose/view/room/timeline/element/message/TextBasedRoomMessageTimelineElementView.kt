@@ -278,7 +278,7 @@ fun TextReplyInSendMessage(
 }
 
 @Composable
-private fun TextReply(element: RoomMessageTimelineElementViewModel.TextBased<*>, maxLines: Int) {
+fun TextReply(element: RoomMessageTimelineElementViewModel<*>, maxLines: Int) {
     Text(
         text = element.body,
         fontStyle = FontStyle.Italic,
