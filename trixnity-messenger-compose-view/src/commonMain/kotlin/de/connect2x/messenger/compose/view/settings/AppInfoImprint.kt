@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.richtext.RichTextDisplay
 import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogScrollContent
 import de.connect2x.messenger.compose.view.theme.components.ThemedAdaptiveDialog
@@ -32,8 +33,7 @@ class AppInfoImprintViewImpl : AppInfoImprintView {
                     Text(i18n.appInfoImprint())
                 }
                 AdaptiveDialogScrollContent {
-                    // TODO
-                    Text(imprint)
+                    RichTextDisplay(imprint)
                 }
             }
         }
