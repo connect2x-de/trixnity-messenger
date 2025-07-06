@@ -5,7 +5,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
@@ -87,7 +89,7 @@ class AdditionalAccountSetupWizardStepImpl() : AdditionalAccountSetupWizardStep 
 fun AccountSetupWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountSetup) {
     val di = DI.current
     val i18n = di.get<I18nView>()
-
+    val handleBackPress = remember { mutableStateOf(true) }
     val viewModel = showAccountBootstrapWrapper.viewModel
     val list = di.get<AccountSetupWizardStepList>().steps
     val steps = remember {
@@ -120,7 +122,8 @@ fun AccountSetupWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountSetup) {
                         wizardStepVerification(
                             viewModel,
                             it,
-                            i18n
+                            i18n,
+                            handleBackPress
                         )
                     )
 
@@ -129,7 +132,7 @@ fun AccountSetupWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountSetup) {
             }
         }
     }
-    Wizard(steps)
+    Wizard(steps, handleBackPress)
 }
 
 private fun wizardStepExplanation(
@@ -234,19 +237,22 @@ private fun wizardStepPrivacy(
 private fun wizardStepVerification(
     viewModel: AccountSetupViewModel,
     step: AccountSetupWizardStep,
-    i18n: I18nView
+    i18n: I18nView,
+    handleBackPress: MutableState<Boolean>
 ): WizardStep {
     val completedVerification = viewModel.completedVerification
     return WizardStep(
         id = step.stepId,
         title = { i18n.deviceVerification() },
         content = {
+            handleBackPress.value = false
             viewModel.startVerification()
         },
         nextButton = {
             Custom {
                 val completedVerification = completedVerification.collectAsState().value
                 if (completedVerification == true) {
+                    handleBackPress.value = true
                     viewModel.completedVerification.value = null
                     nextStep?.let { currentStepId.value = it }
                 }
@@ -256,6 +262,7 @@ private fun wizardStepVerification(
             Custom {
                 val completedVerification = completedVerification.collectAsState().value
                 if (completedVerification == false) {
+                    handleBackPress.value = true
                     viewModel.completedVerification.value = null
                     previousStep?.let { currentStepId.value = it }
                 }

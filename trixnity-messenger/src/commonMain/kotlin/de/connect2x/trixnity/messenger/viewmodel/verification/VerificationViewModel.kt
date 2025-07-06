@@ -161,8 +161,6 @@ open class VerificationViewModelImpl(
         childFactory = ::createChild
     )
 
-    val backCallback = BackCallback { cancel() }
-
     private fun createChild(
         config: Config,
         componentContext: ComponentContext
@@ -246,7 +244,7 @@ open class VerificationViewModelImpl(
 
 
     init {
-        backHandler.register(backCallback)
+        backHandler.register(BackCallback { cancel() })
         coroutineScope.launch {
             if (timelineEventId == null) {
                 matrixClient.verification.activeDeviceVerification
