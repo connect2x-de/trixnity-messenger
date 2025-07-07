@@ -92,7 +92,7 @@ data class WizardStep(
 
 @Composable
 fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
-    val currentStepId = remember { mutableStateOf(wizardSteps.getOrNull(0)?.id ?: "unknown") }
+    val currentStepId = remember(wizardSteps) { mutableStateOf(wizardSteps.getOrNull(0)?.id ?: "unknown") }
 
     val wizardStep = wizardSteps.find { it.id == currentStepId.value }
     val previousStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) - 1)?.id
@@ -100,12 +100,12 @@ fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
         val onBack = rememberUpdatedState {
             previousStep?.let { currentStepId.value = it }
         }
-        val callback = remember {
+        val callback = remember(onBack) {
             BackCallback(priority = 1) {
                 onBack.value()
             }
         }
-        DisposableEffect(backHandler) {
+        DisposableEffect(backHandler, callback) {
             backHandler.register(callback)
             onDispose {
                 backHandler.unregister(callback)
@@ -125,7 +125,7 @@ fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
             ) {
                 // this is necessary to have a scroll position saved on every step, but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
                 val savableStateHolder = rememberSaveableStateHolder()
-                savableStateHolder.SaveableStateProvider(key = wizardStep.id) {
+                savableStateHolder.SaveableStateProvider(key = currentStepId) {
                     val scrollState = rememberScrollState()
                     WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
                 }
