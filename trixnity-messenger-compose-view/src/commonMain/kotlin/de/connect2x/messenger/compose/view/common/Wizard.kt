@@ -56,24 +56,18 @@ sealed interface WizardNavigationButton {
     data class Custom(val button: @Composable CustomButtonScope.() -> Unit) : WizardNavigationButton
 }
 
-interface WizardScope {
+interface CustomButtonScope : RowScope {
     val currentStepId: MutableState<StepId>
     val nextStep: StepId?
     val previousStep: StepId?
 }
 
-private data class WizardScopeImpl(
+private data class CustomButtonScopeImpl(
+    val rowScope: RowScope,
     override val currentStepId: MutableState<StepId>,
     override val nextStep: StepId? = null,
     override val previousStep: StepId? = null,
-) : WizardScope
-
-interface CustomButtonScope : RowScope, WizardScope
-
-private data class CustomButtonScopeImpl(
-    val rowScope: RowScope,
-    val wizardScope: WizardScope,
-) : RowScope by rowScope, WizardScope by wizardScope, CustomButtonScope
+) : RowScope by rowScope, CustomButtonScope
 
 sealed interface WizardButtons {
     data object NextButton : WizardButtons
@@ -99,6 +93,7 @@ data class WizardStep(
 @Composable
 fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
     val currentStepId = remember { mutableStateOf(wizardSteps.getOrNull(0)?.id ?: "unknown") }
+
     val wizardStep = wizardSteps.find { it.id == currentStepId.value }
     val previousStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) - 1)?.id
     if (backHandler != null) {
@@ -263,7 +258,7 @@ private fun RowScope.NextButton(
         is WizardNavigationButton.None -> {}
 
         is Custom -> {
-            nextButton.button(CustomButtonScopeImpl(this, WizardScopeImpl(currentStep, nextStep = nextStep)))
+            nextButton.button(CustomButtonScopeImpl(this, currentStep, nextStep = nextStep))
         }
     }
 }
@@ -299,7 +294,7 @@ private fun RowScope.BackButton(wizardStep: WizardStep, currentStep: MutableStat
         is WizardNavigationButton.None -> {}
 
         is Custom -> {
-            backButton.button(CustomButtonScopeImpl(this, WizardScopeImpl(currentStep, previousStep = previousStep)))
+            backButton.button(CustomButtonScopeImpl(this, currentStep, previousStep = previousStep))
         }
     }
 }
@@ -351,6 +346,3 @@ private fun getCorrespondingButton(
         }
     }
 }
-
-@Composable
-expect fun WizardScope.handleBackPresses(enabled: MutableState<Boolean>)

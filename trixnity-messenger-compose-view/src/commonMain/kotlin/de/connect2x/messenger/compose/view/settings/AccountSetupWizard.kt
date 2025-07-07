@@ -89,7 +89,7 @@ class AdditionalAccountSetupWizardStepImpl() : AdditionalAccountSetupWizardStep 
 fun AccountSetupWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountSetup) {
     val di = DI.current
     val i18n = di.get<I18nView>()
-    val handleBackPress = remember { mutableStateOf(true) }
+
     val viewModel = showAccountBootstrapWrapper.viewModel
     val list = di.get<AccountSetupWizardStepList>().steps
     val steps = remember {
@@ -122,8 +122,7 @@ fun AccountSetupWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountSetup) {
                         wizardStepVerification(
                             viewModel,
                             it,
-                            i18n,
-                            handleBackPress
+                            i18n
                         )
                     )
 
@@ -237,22 +236,19 @@ private fun wizardStepPrivacy(
 private fun wizardStepVerification(
     viewModel: AccountSetupViewModel,
     step: AccountSetupWizardStep,
-    i18n: I18nView,
-    handleBackPress: MutableState<Boolean>
+    i18n: I18nView
 ): WizardStep {
     val completedVerification = viewModel.completedVerification
     return WizardStep(
         id = step.stepId,
         title = { i18n.deviceVerification() },
         content = {
-            handleBackPress.value = false
             viewModel.startVerification()
         },
         nextButton = {
             Custom {
                 val completedVerification = completedVerification.collectAsState().value
                 if (completedVerification == true) {
-                    handleBackPress.value = true
                     viewModel.completedVerification.value = null
                     nextStep?.let { currentStepId.value = it }
                 }
@@ -262,7 +258,6 @@ private fun wizardStepVerification(
             Custom {
                 val completedVerification = completedVerification.collectAsState().value
                 if (completedVerification == false) {
-                    handleBackPress.value = true
                     viewModel.completedVerification.value = null
                     previousStep?.let { currentStepId.value = it }
                 }
