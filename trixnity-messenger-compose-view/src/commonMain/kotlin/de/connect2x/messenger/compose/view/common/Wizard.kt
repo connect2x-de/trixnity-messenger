@@ -20,16 +20,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
+import com.arkivanov.essenty.backhandler.BackCallback
+import com.arkivanov.essenty.backhandler.BackHandler
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.WizardButtons.NextButton
@@ -93,12 +97,26 @@ data class WizardStep(
 )
 
 @Composable
-fun Wizard(wizardSteps: List<WizardStep>, handleBackPresses: MutableState<Boolean> = mutableStateOf(false)) {
+fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
     val currentStepId = remember { mutableStateOf(wizardSteps.getOrNull(0)?.id ?: "unknown") }
     val wizardStep = wizardSteps.find { it.id == currentStepId.value }
-    val nextStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) + 1)?.id
     val previousStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) - 1)?.id
-    WizardScopeImpl(currentStepId, nextStep, previousStep).handleBackPresses(handleBackPresses)
+    if (backHandler != null) {
+        val onBack = rememberUpdatedState {
+            previousStep?.let { currentStepId.value = it }.also { println("Invoked backHandler") }
+        }
+        val callback = remember {
+            BackCallback(priority = 1) {
+                onBack.value()
+            }
+        }
+        DisposableEffect(backHandler) {
+            backHandler.register(callback).also{println("Registered callback")}
+            onDispose {
+                backHandler.unregister(callback)
+            }
+        }
+    }
     if (wizardStep != null) {
         Surface(
             Modifier

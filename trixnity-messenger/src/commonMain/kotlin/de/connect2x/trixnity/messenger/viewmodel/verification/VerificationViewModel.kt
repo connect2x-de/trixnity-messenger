@@ -244,7 +244,7 @@ open class VerificationViewModelImpl(
 
 
     init {
-        backHandler.register(BackCallback { cancel() })
+        backHandler.register(BackCallback(priority = 1) { cancel() })
         coroutineScope.launch {
             if (timelineEventId == null) {
                 matrixClient.verification.activeDeviceVerification

@@ -270,7 +270,7 @@ open class SelfVerificationViewModelImpl(
         onCloseSelfVerification(!showVerificationHelp.value)
     }
 
-    private val backCallback = BackCallback {
+    private val backCallback = BackCallback(priority = 1) {
         log.info { "Invoking verification back handler" }
         when {
             showVerificationHelp.value -> close()
