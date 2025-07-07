@@ -269,7 +269,7 @@ open class SelfVerificationViewModelImpl(
         onCloseSelfVerification(!showVerificationHelp.value)
     }
 
-    private val backCallback = BackCallback(priority = 1) {
+    private val backCallback = BackCallback(priority = if (isSetup.value) 1 else 0) {
         when {
             showVerificationHelp.value -> close()
             (showResetRecoveryWarning.value || showPassphraseMethod.value != null || showRecoveryKeyMethod.value != null) -> backToChoose()
