@@ -3,3 +3,5 @@ scan:
     - .gradle
     - integrationtests
     - emojis
+  scanners:
+    - vuln

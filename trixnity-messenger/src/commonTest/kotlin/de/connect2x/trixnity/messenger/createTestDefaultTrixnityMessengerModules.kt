@@ -12,13 +12,14 @@ import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.test.TestScope
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -53,7 +54,11 @@ fun TestScope.createTestDefaultTrixnityMessengerModules(
 ) = createTrixnityMessengerDefaultModuleFactories().map { it.invoke() } + module {
     single<TimeZone> { TimeZone.of("CET") }
     single<CoroutineScope> {
-        backgroundScope + ImmediateDispatcherElement(testDispatcher)
+        CoroutineScope(
+            backgroundScope.coroutineContext
+                + ImmediateDispatcherElement(testDispatcher)
+                + SupervisorJob(backgroundScope.coroutineContext[Job])
+        )
     }
     single<MatrixMessengerConfiguration> { MatrixMessengerConfiguration() }.bind<MatrixMessengerBaseConfiguration>()
     single<MatrixMessengerSettingsHolder> { settings }

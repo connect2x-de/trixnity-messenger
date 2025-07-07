@@ -21,11 +21,11 @@ const val ROOM_LIST_WEIGHT = 0.27f
 const val ROOM_WEIGHT = 1f - ROOM_LIST_WEIGHT
 
 enum class PlatformType {
-    DESKTOP, WEB, ANDROID;
+    DESKTOP, WEB, ANDROID, IOS;
 }
 
 val PlatformType.isMobile
-    get() = this == PlatformType.ANDROID
+    get() = this == PlatformType.ANDROID || this == PlatformType.IOS
 
 val PlatformType.isWeb
     get() = this == PlatformType.WEB
