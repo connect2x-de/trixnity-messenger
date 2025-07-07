@@ -245,7 +245,7 @@ open class VerificationViewModelImpl(
 
     init {
         val setupRunning =
-            get<MatrixMessengerSettingsHolder>().value.base.accounts.values.any { it.base.accountSetupFinished }
+            get<MatrixMessengerSettingsHolder>().value.base.accounts.values.any { !it.base.accountSetupFinished }
         //Necessary to handle back button presses while in the setup, whose back callback has a higher priority because of the underlying viewModel backHandlers
         backHandler.register(BackCallback(priority = if (setupRunning) 1 else 0) { cancel() })
         coroutineScope.launch {

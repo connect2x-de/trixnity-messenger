@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Remove timeline flickering due to switching between image fallback and thumbnail in reply elements
+- Back Button doesn't work in BlockedContacts view, when focussing a pdf and in the Wizards
 
 ### Security
 

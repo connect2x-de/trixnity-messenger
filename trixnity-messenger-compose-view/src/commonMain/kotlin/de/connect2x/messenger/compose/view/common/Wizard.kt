@@ -98,7 +98,7 @@ fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
     val previousStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) - 1)?.id
     if (backHandler != null) {
         val onBack = rememberUpdatedState {
-            previousStep?.let { currentStepId.value = it }.also { println("Invoked backHandler") }
+            previousStep?.let { currentStepId.value = it }
         }
         val callback = remember {
             BackCallback(priority = 1) {
@@ -106,7 +106,7 @@ fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
             }
         }
         DisposableEffect(backHandler) {
-            backHandler.register(callback).also{println("Registered callback")}
+            backHandler.register(callback)
             onDispose {
                 backHandler.unregister(callback)
             }
