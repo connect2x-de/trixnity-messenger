@@ -140,8 +140,7 @@ kotlin {
                 api(libs.trixnity.client.media.opfs)
                 api(libs.trixnity.client.media.indexeddb)
                 api(npm("@js-joda/timezone", libs.versions.jsJoda.get()))
-                implementation(npm("@zip.js/zip.js", libs.versions.zipjs.get()))
-                implementation(npm("pdfjs-dist", libs.versions.pdfjs.get()))
+                implementation(project(":wrappers-zipjs"))
                 implementation(project.dependencies.platform(libs.kotlin.wrappers.bom))
                 implementation(libs.kotlin.browser)
                 implementation(libs.ktor.client.js) // since there is only 1 engine in web, we select it here

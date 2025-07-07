@@ -1,10 +1,10 @@
 package de.connect2x.messenger.compose.view.files
 
 import androidx.compose.ui.graphics.ImageBitmap
-import externals.pdfjs.GetViewportParameters
-import externals.pdfjs.PDFDocumentProxy
-import externals.pdfjs.RenderParameters
-import externals.pdfjs.getDocument
+import pdfjs.GetViewportParameters
+import pdfjs.PDFDocumentProxy
+import pdfjs.RenderParameters
+import pdfjs.getDocument
 import io.github.oshai.kotlinlogging.KotlinLogging
 import js.typedarrays.Uint8Array
 import js.typedarrays.toByteArray

@@ -21,7 +21,7 @@
     "unused", "NOTHING_TO_INLINE", "DuplicatedCode", "KDocUnresolvedReference",
 )
 
-package externals.pdfjs
+package pdfjs
 
 import js.array.Tuple2
 import js.buffer.ArrayBufferLike
@@ -34,6 +34,7 @@ import js.promise.Promise
 import js.symbol.Symbol
 import js.typedarrays.Uint8Array
 import js.typedarrays.Uint8ClampedArray
+import seskar.js.JsAsync
 import web.canvas.CanvasRenderingContext2D
 import web.dom.Element
 import web.html.HTMLCanvasElement
@@ -420,7 +421,7 @@ open external class PDFDocumentLoadingTask {
     /**
      * Abort all network requests and destroy the worker.
      */
-    @JsName("destroy")
+    @JsAsync
     suspend fun destroy()
 
     @JsName("destroy")
@@ -431,7 +432,7 @@ open external class PDFDocumentLoadingTask {
      *  - An exception was thrown during document initialization.
      *  - An `onPassword` callback is delaying initialization.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun getData(): Uint8Array<out ArrayBufferLike>
 
     @JsName("getData")
@@ -586,13 +587,13 @@ open external class PDFDocumentProxy {
      */
     val allXfaHtml: Any?
 
-    @JsName("getPage")
+    @JsAsync
     suspend fun getPage(pageNumber: Number): PDFPageProxy
 
     @JsName("getPage")
     fun getPageAsync(pageNumber: Number): Promise<PDFPageProxy>
 
-    @JsName("getPageIndex")
+    @JsAsync
     suspend fun getPageIndex(ref: RefProxy): Number
 
     @JsName("getPageIndex")
@@ -603,7 +604,7 @@ open external class PDFDocumentProxy {
      *
      * This can be slow for large documents. Use `getDestination` instead.
      */
-    @JsName("getDestinations")
+    @JsAsync
     suspend fun getDestinations(): Json
 
     @JsName("getDestinations")
@@ -613,7 +614,7 @@ open external class PDFDocumentProxy {
      * Returns all information of the given named destination,
      * or `null` when the named destination is not present in the PDF file.
      */
-    @JsName("getDestination")
+    @JsAsync
     suspend fun getDestination(id: String): Array<Any?>?
     fun getDestinationAsync(id: String): Array<Any?>?
 
@@ -621,7 +622,7 @@ open external class PDFDocumentProxy {
      * Returns an {Array} containing the page labels that correspond to the page
      * indexes, or `null` when no page labels are present in the PDF file.
      */
-    @JsName("getPageLabels")
+    @JsAsync
     suspend fun getPageLabels(): Array<String>?
 
     @JsName("getPageLabels")
@@ -630,7 +631,7 @@ open external class PDFDocumentProxy {
     /**
      * Returns the page layout name.
      */
-    @JsName("getPageLayout")
+    @JsAsync
     suspend fun getPageLayout(): String
 
     @JsName("getPageLayout")
@@ -639,7 +640,7 @@ open external class PDFDocumentProxy {
     /**
      * Returns the page mode name
      */
-    @JsName("getPageMode")
+    @JsAsync
     suspend fun getPageMode(): String
 
     @JsName("getPageMode")
@@ -649,7 +650,7 @@ open external class PDFDocumentProxy {
      * Returns an {Object} containing the viewer preferences,
      * or `null` when no viewer preferences are present in the PDF file.
      */
-    @JsName("getViewerPreferences")
+    @JsAsync
     suspend fun getViewerPreferences(): Json?
 
     @JsName("getViewerPreferences")
@@ -659,7 +660,7 @@ open external class PDFDocumentProxy {
      * Returns an {Array} containing the destination,
      * or `null` when no open action is present in the PDF.
      */
-    @JsName("getOpenAction")
+    @JsAsync
     suspend fun getOpenAction(): Array<Any?>?
 
     @JsName("getOpenAction")
@@ -668,7 +669,7 @@ open external class PDFDocumentProxy {
     /**
      * Returns a lookup table for mapping named attachments to their content.
      */
-    @JsName("getAttachments")
+    @JsAsync
     suspend fun getAttachments(): Json
 
     @JsName("getAttachments")
@@ -680,7 +681,7 @@ open external class PDFDocumentProxy {
      *   - from A or AA entries in the catalog dictionary.
      * or `null` if no JavaScript exists.
      */
-    @JsName("getJSActions")
+    @JsAsync
     suspend fun getJSActions(): Json?
 
     @JsName("getJSActions")
@@ -705,7 +706,7 @@ open external class PDFDocumentProxy {
     /**
      * Returns a tree outline (if it has one) of the PDF file.
      */
-    @JsName("getOutline")
+    @JsAsync
     suspend fun getOutline(): Array<OutlineNode>
 
     @JsName("getOutline")
@@ -714,7 +715,7 @@ open external class PDFDocumentProxy {
     /**
      * Returns all the optional content groups (assuming that the document has any).
      */
-    @JsName("getOptionalContentConfig")
+    @JsAsync
     suspend fun getOptionalContentConfig(
         params: GetOptionalContentConfigParameters = definedExternally
     ): OptionalContentConfig
@@ -728,7 +729,7 @@ open external class PDFDocumentProxy {
      * Returns the permission flags for the PDF document,
      * or `null` when no permissions are present in the PDF file.
      */
-    @JsName("getPermissions")
+    @JsAsync
     suspend fun getPermissions(): Array<Number>?
 
     @JsName("getPermissions")
@@ -745,7 +746,7 @@ open external class PDFDocumentProxy {
         val metadata: Metadata
     }
 
-    @JsName("getMetadata")
+    @JsAsync
     suspend fun getMetadata(): MetadataInfo
 
     @JsName("getMetadata")
@@ -764,7 +765,7 @@ open external class PDFDocumentProxy {
      * Returns the MarkInfo flags for the PDF document,
      * or `null` when no MarkInfo values are present in the PDF file.
      */
-    @JsName("getMarkInfo")
+    @JsAsync
     suspend fun getMarkInfo(): MarkInfo?
 
     @JsName("getMarkInfo")
@@ -773,7 +774,7 @@ open external class PDFDocumentProxy {
     /**
      * Returns the raw data of the PDF document.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun getData(): Uint8ClampedArray<out ArrayBufferLike>
 
     @JsName("getData")
@@ -782,7 +783,7 @@ open external class PDFDocumentProxy {
     /**
      * Returns the full data of the saved document.
      */
-    @JsName("saveDocument")
+    @JsAsync
     suspend fun saveDocument(): Uint8ClampedArray<out ArrayBufferLike>
 
     @JsName("saveDocument")
@@ -797,7 +798,7 @@ open external class PDFDocumentProxy {
     /**
      * Returns when the document's data is loaded.
      */
-    @JsName("getDownloadInfo")
+    @JsAsync
     suspend fun getDownloadInfo(): DownloadInfo
 
     @JsName("getDownloadInfo")
@@ -810,7 +811,7 @@ open external class PDFDocumentProxy {
      * NOTE: Do not, under any circumstances, call this method when rendering is
      * currently ongoing since that may lead to rendering errors.
      */
-    @JsName("cleanup")
+    @JsAsync
     suspend fun cleanup(keepLoadedFonts: Boolean = definedExternally)
 
     @JsName("cleanup")
@@ -836,7 +837,7 @@ open external class PDFDocumentProxy {
      * Returns an {Object} containing /AcroForm field data for the JS sandbox,
      * or `null` when no field data is present in the PDF file.
      */
-    @JsName("getFieldObjects")
+    @JsAsync
     suspend fun getFieldObjects(): Json
 
     @JsName("getFieldObjects")
@@ -845,7 +846,7 @@ open external class PDFDocumentProxy {
     /**
      * Returns `true` if some /AcroForm fields have JavaScript actions.
      */
-    @JsName("hasJSActions")
+    @JsAsync
     suspend fun hasJSActions(): Boolean
 
     @JsName("hasJSActions")
@@ -855,7 +856,7 @@ open external class PDFDocumentProxy {
      * Returns IDs of annotations that have a calculation action,
      * or `null` when no such annotations are present in the PDF file.
      */
-    @JsName("getCalculationOrderIds")
+    @JsAsync
     suspend fun getCalculationOrderIds(): Array<String>?
 
     @JsName("getCalculationOrderIds")
@@ -1241,7 +1242,7 @@ open external class PDFPageProxy {
      * @returns {Promise<Array<any>>} A promise that is resolved with an
      *   {Array} of the annotation objects.
      */
-    @JsName("getAnnotations")
+    @JsAsync
     suspend fun getAnnotations(params: GetAnnotationsParameters = definedExternally): Array<Any?>
 
     @JsName("getAnnotations")
@@ -1251,7 +1252,7 @@ open external class PDFPageProxy {
      * @returns {Promise<Object>} A promise that is resolved with an
      *   {Object} with JS actions.
      */
-    @JsName("getJSActions")
+    @JsAsync
     suspend fun getJSActions(): Any?
 
     @JsName("getJSActions")
@@ -1273,7 +1274,7 @@ open external class PDFPageProxy {
      *   value and children, very similar to a HTML DOM tree),
      *   or `null` if no XFA exists.
      */
-    @JsName("getXfa")
+    @JsAsync
     suspend fun getXfa(): Any?
 
     @JsName("getXfa")
@@ -1294,7 +1295,7 @@ open external class PDFPageProxy {
      * @returns an [PDFOperatorList] object that represents the
      *   page's operator list.
      */
-    @JsName("getOperatorList")
+    @JsAsync
     suspend fun getOperatorList(params: GetOperatorListParameters): PDFOperatorList
 
     @JsName("getOperatorList")
@@ -1316,7 +1317,7 @@ open external class PDFPageProxy {
      * @param [GetTextContentParameters] params - getTextContent parameters.
      * @returns a [TextContent] object that represents the page's text content.
      */
-    @JsName("getTextContent")
+    @JsAsync
     suspend fun getTextContent(params: GetTextContentParameters): TextContent
 
     @JsName("getTextContent")
@@ -1326,7 +1327,7 @@ open external class PDFPageProxy {
      * @returns a [StructTreeNode] object that represents the page's structure
      * tree, or `null` when no structure tree is present for the current page.
      */
-    @JsName("getStructTree")
+    @JsAsync
     suspend fun getStructTree(): StructTreeNode
 
     @JsName("getStructTree")
@@ -1704,7 +1705,7 @@ external class MessageHandler {
      * @param {Array} [transfers] - List of transfers/ArrayBuffers.
      * @returns {Promise} Promise to be resolved with response data.
      */
-    @JsName("sendWithPromise")
+    @JsAsync
     suspend fun sendWithPromise(actionName: String, data: Json, transfers: Array<ArrayBufferLike>): Any?
 
     /**

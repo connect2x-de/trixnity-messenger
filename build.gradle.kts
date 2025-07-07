@@ -21,6 +21,7 @@ plugins {
     alias(libs.plugins.compose.multiplatform) apply false
     alias(libs.plugins.google.services) apply false
     alias(libs.plugins.dokka)
+    alias(libs.plugins.seskar) apply false
     `maven-publish`
     alias(libs.plugins.c2xConventions)
 }
