@@ -36,7 +36,9 @@ allprojects {
 }
 
 subprojects {
-    if (project.name.startsWith("trixnity-") && !project.name.endsWith("app")) {
+    val isTrixnityProject = project.name.startsWith("trixnity-") && !project.name.endsWith("app")
+    val isJsWrapper = project.name.startsWith("wrappers-")
+    if (isTrixnityProject || isJsWrapper) {
         apply(plugin = "org.jetbrains.dokka")
         apply(plugin = "maven-publish")
 
