@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.multi
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerImpl
 import de.connect2x.trixnity.messenger.util.RootPath
+import kotlinx.coroutines.CoroutineScope
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -15,8 +16,9 @@ fun matrixMessengerFactoryModule(): Module = module {
         val configuration = get<MatrixMultiMessengerConfiguration>().messengerWithBase
         val copyMultiMessengerSingletons = getAll<CopyMultiMessengerSingletons>()
         val rootPath = get<RootPath>().path
+        val coroutineContext = get<CoroutineScope>().coroutineContext
         MatrixMessengerFactory { profileId ->
-            MatrixMessengerImpl {
+            MatrixMessengerImpl(coroutineContext) {
                 configuration()
                 modulesFactories += {
                     module {

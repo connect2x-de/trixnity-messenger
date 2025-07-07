@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Support for building for iOS x64
+
 ### Changed
+
+- Send correct image size when uploading images on web
 
 ### Deprecated
 
@@ -17,7 +21,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Remove timeline flickering due to switching between image fallback and thumbnail in reply elements
+
 ### Security
+
+## 3.6.11
+
+### Added
+
+- More features in the iOS UI
+- MatrixMultiMessenger.closeSuspending() to wait for every operation in Trixnity Messenger to be finished (in comparison
+  to close() which will fire and forget and thus could give the impression that all operations are finished which might
+  not be the case)
+
+### Changed
+
+- Rename observeAsSate to observeAsState
+- Update Trixnity from 4.16.8 to 4.16.9
+
+### Fixed
+
+- Show error to user when room list element action failed
+- Forgetting room when declining invite to deleted room
+- Image detail view now displays image the first time it is opened
+- PDF details view displays valid PDFs again
+- Reopening PDF details view does not trigger download again
+
+## 3.6.10
+
+### Changed
+
+- Updated Trixnity from 4.16.7 to 4.16.8
+
+### Fixed
+
+- Update room database to support iOS shared storage
+
+## 3.6.9
+
+### Fixed
+
+- Don't block opening room database
 
 ## 3.6.8
 

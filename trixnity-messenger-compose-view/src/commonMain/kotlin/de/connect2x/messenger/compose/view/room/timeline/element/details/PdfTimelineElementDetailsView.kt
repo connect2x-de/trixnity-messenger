@@ -62,6 +62,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndica
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -73,6 +74,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
 
+private val log = KotlinLogging.logger {}
 
 class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.File> {
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.File> =
@@ -151,11 +153,14 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
         val i18n = DI.get<I18nView>()
         val dpi = remember { mutableStateOf<Float?>(null) }
         val pageCacheSize = remember { mutableStateOf(max(2f, min(16f, 8f / zoom.value)).toInt()) }
-        LaunchedEffect(Unit) {
-            element.downloadMedia()
+
+        LaunchedEffect(media) {
+            if (media == null) { // if the pdf is opened a second time there's no need to re-download it
+                element.downloadMedia()
+            }
         }
-        LaunchedEffect(Unit) {
-            element.downloadMediaError.collect { setError(i18n.fileCouldNotBeLoaded()) }
+        LaunchedEffect(element.downloadMediaError) {
+            element.downloadMediaError.collect { if (it != null) setError(i18n.fileCouldNotBeLoaded()) }
         }
         FileBasedDetailsDialog(
             element,
