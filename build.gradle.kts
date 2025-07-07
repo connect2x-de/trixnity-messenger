@@ -21,6 +21,7 @@ plugins {
     alias(libs.plugins.compose.multiplatform) apply false
     alias(libs.plugins.google.services) apply false
     alias(libs.plugins.dokka)
+    alias(libs.plugins.seskar) apply false
     `maven-publish`
     alias(libs.plugins.c2xConventions)
 }
@@ -35,7 +36,9 @@ allprojects {
 }
 
 subprojects {
-    if (project.name.startsWith("trixnity-") && !project.name.endsWith("app")) {
+    val isTrixnityProject = project.name.startsWith("trixnity-") && !project.name.endsWith("app")
+    val isJsWrapper = project.name.startsWith("wrappers-")
+    if (isTrixnityProject || isJsWrapper) {
         apply(plugin = "org.jetbrains.dokka")
         apply(plugin = "maven-publish")
 
