@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import com.arkivanov.essenty.backhandler.BackHandler
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
@@ -38,6 +38,7 @@ interface AccountSetupViewModel {
     val appearanceSettingsViewModel: AppearanceSettingsViewModel
     val privacySettingsViewModel: PrivacySettingsSingleAccountViewModel
     val notificationSettingsViewModel: NotificationSettingsSingleAccountViewModel
+    val backHandler: BackHandler
 }
 
 class AccountSetupViewModelImpl(
@@ -79,4 +80,5 @@ class AccountSetupViewModelImpl(
         verificationInProgress.value = false
     }
 
+    override val backHandler: BackHandler = viewModelContext.backHandler
 }
