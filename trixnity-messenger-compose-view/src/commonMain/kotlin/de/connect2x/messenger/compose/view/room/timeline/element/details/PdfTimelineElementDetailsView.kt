@@ -168,7 +168,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                         .focusable()
                         .onKeyEvent { keyEvent ->
                             canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
-                            true
+                            false
                         }
                         .zoomModifier(focusRequester, canZoom, zoom, minZoom, maxZoom),
                 ) {

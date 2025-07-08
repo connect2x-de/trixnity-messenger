@@ -354,6 +354,10 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             backButton = {
                 Custom {
+                    val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
+                    if (showHelp) {
+                        currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardHelp.stepId
+                    }
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = {
@@ -557,7 +561,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
         step: SelfVerificationWizardStep,
         i18n: I18nView
     ): WizardStep {
-        val checked = mutableStateOf<Boolean>(false)
+        val checked = mutableStateOf(false)
         return WizardStep(
             id = step.stepId, title = { i18n.deviceVerification() },
             content = {
@@ -580,6 +584,11 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             backButton = {
                 Custom {
+                    val showResetStep = selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
+                    if (!showResetStep) {
+                        currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardMethods.stepId
+
+                    }
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = {
