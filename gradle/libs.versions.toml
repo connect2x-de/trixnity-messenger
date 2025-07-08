@@ -2,22 +2,24 @@
 jvmTarget = "17"
 c2xConventions = "43109500" # https://gitlab.com/connect2x/c2x-conventions/-/packages
 
-trixnityMessenger = "3.6.10"
+trixnityMessenger = "3.6.12"
 trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
 
 kotlin = "2.1.21" # https://github.com/JetBrains/kotlin/releases
 kotlinWrappers = "2025.6.9" # https://github.com/JetBrains/kotlin-wrappers/releases (should be same as in Trixnity)
+seskar = "4.9.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
 kotlinxCoroutines = "1.10.2" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinxSerialization = "1.8.1" # https://github.com/Kotlin/kotlinx.serialization/releases
 kotlinxDatetime = "0.6.2" # https://github.com/Kotlin/kotlinx-datetime/releases
 kotlinxKover = "0.9.1" # https://github.com/Kotlin/kotlinx-kover/releases
 
-trixnity = "4.16.7" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.16.9" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
 decompose = "3.3.0" # https://github.com/arkivanov/Decompose/releases
+essenty = "2.5.0" # https://github.com/arkivanov/Essenty/releases
 koin = "4.1.0" # https://github.com/InsertKoinIO/koin/tags
 ktor = "3.1.3" # https://github.com/ktorio/ktor/releases
 mokkery = "2.8.0" # https://github.com/lupuuss/Mokkery/releases
@@ -53,7 +55,7 @@ androidxBrowser = "1.8.0" # https://developer.android.com/jetpack/androidx/relea
 androidxCrypto = "1.1.0-beta01" # https://developer.android.com/jetpack/androidx/releases/security
 androidxActivity = "1.10.1" # https://developer.android.com/jetpack/androidx/releases/activity
 androidxSqlite3 = "2.5.2" # https://developer.android.com/jetpack/androidx/releases/sqlite
-androidxSqlite3mc = "2.5.2-1" # https://gitlab.com/connect2x/androidx/-/releases
+androidxSqlite3mc = "2.5.2-3" # https://gitlab.com/connect2x/androidx/-/tags
 androidxWorkManager = "2.10.2" # https://developer.android.com/jetpack/androidx/releases/work
 androidxLiveData = "2.9.1" # https://developer.android.com/jetpack/androidx/releases/lifecycle
 androidxAppCompat = "1.7.1" # https://developer.android.com/jetpack/androidx/releases/appcompat
@@ -72,6 +74,7 @@ kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotl
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinxCoroutines" }
+kotlinx-coroutines-debug = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-debug", version.ref = "kotlinxCoroutines" }
 kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 
@@ -111,6 +114,7 @@ logback-android = { module = "com.github.tony19:logback-android", version.ref = 
 
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
 decompose-extensions = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
+essenty-lifecycle = { module = "com.arkivanov.essenty:lifecycle", version.ref = "essenty" }
 
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
@@ -171,3 +175,4 @@ skie = { id = "co.touchlab.skie", version.ref = "skie" }
 kmmbridge = { id = "co.touchlab.kmmbridge.gitlab", version.ref = "kmmBridge" }
 mokkery = { id = "dev.mokkery", version.ref = "mokkery" }
 aboutlibraries-plugin = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }
+seskar = { id = "io.github.turansky.seskar", version.ref = "seskar" }

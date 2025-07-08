@@ -184,7 +184,7 @@ class SearchGroupViewModelTest {
                     )
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = coroutineContext,
+                coroutineContext = backgroundScope.coroutineContext,
             ),
             onGroupJoined = onGroupJoinedMock,
             onGroupKnocked = onGroupKnockedMock,

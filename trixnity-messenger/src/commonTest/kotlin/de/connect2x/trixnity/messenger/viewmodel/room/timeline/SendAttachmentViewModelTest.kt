@@ -72,7 +72,7 @@ class SendAttachmentViewModelTest {
 
     }
     private val getImageDimensionsMock = object : GetImageDimensions {
-        override suspend fun invoke(byteArrayFlow: ByteArrayFlow, maxMediaSize: Long): Pair<Int?, Int?> {
+        override suspend fun invoke(byteArrayFlow: ByteArrayFlow, maxMediaSize: Long, mimeType: ContentType?): Pair<Int?, Int?> {
             return 0 to 0
         }
     }

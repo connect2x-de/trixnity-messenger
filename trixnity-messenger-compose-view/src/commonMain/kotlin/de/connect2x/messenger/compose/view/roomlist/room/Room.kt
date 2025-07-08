@@ -15,8 +15,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MapsUgc
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,9 +31,15 @@ import de.connect2x.messenger.compose.view.common.icons.PublicIcon
 import de.connect2x.messenger.compose.view.common.placeholder
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.AvatarContentIcon
 import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedAvatar
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
@@ -39,6 +48,24 @@ import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 interface RoomListElementView {
     @Composable
     fun create(roomListViewModel: RoomListViewModel, roomListElementViewModel: RoomListElementViewModel)
+}
+
+@Composable
+private fun ErrorModalDialog(error: String, onDismiss: () -> Unit) {
+    val i18n = DI.get<I18nView>()
+    ThemedModalDialog(onDismissRequest = onDismiss) {
+        ModalDialogHeader {
+            Text(i18n.commonError())
+        }
+        ModalDialogContent {
+            Text(error)
+        }
+        ModalDialogFooter {
+            ThemedButton(style = MaterialTheme.components.primaryButton, onClick = onDismiss) {
+                Text(i18n.commonClose())
+            }
+        }
+    }
 }
 
 @Composable
@@ -56,6 +83,8 @@ class RoomListElementViewImpl : RoomListElementView {
         val isLeave = roomListElementViewModel.isLeave.collectAsState().value
         val isLoaded = roomListElementViewModel.isLoaded.collectAsState().value
         val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
+        val error by roomListElementViewModel.error.collectAsState()
+        error?.let { ErrorModalDialog(it, roomListElementViewModel::clearError) }
 
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
             MatrixClientColor(roomListElementViewModel)

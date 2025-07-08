@@ -89,12 +89,26 @@ kotlin {
         }
         binaries.executable()
     }
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            export(libs.decompose)
+            export(libs.essenty.lifecycle)
+            baseName = "TrixnityMessengerUI"
+            isStatic = true
+        }
+    }
 
     sourceSets {
         commonMain {
             dependencies {
                 implementation(projects.trixnityMessengerComposeView)
                 implementation(compose.components.resources)
+                api(libs.decompose) // needed for export to iOS
+                api(libs.essenty.lifecycle) // needed for export to iOS
             }
         }
         val desktopMain by getting {
