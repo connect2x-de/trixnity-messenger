@@ -53,6 +53,6 @@ class CSVFileBasedExportRoomSinkConverter(
     }
 
     private fun List<String>.asCsvLine() =
-        joinToString(separator = properties.delimiter) { "\"" + it.replace("\"", "\"\"") + "\"" } +
+        joinToString(separator = properties.delimiter) { "\"'" + it.replace("\"", "\"\"") + "\"" } +
                 "\r\n"
 }
