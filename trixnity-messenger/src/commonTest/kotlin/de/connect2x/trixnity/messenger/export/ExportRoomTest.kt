@@ -123,7 +123,7 @@ class ExportRoomTest {
             roomId,
             fakeProperties,
             matrixClientMock,
-            canDownloadMedia = true,
+            includeMedia = true,
             timeZone = TimeZone.of("CET")
         ) shouldBe ExportRoomResult.Success()
 
@@ -151,7 +151,7 @@ class ExportRoomTest {
             fakeProperties,
             matrixClientMock,
             buffer = 15,
-            canDownloadMedia = true,
+            includeMedia = true,
             timeZone = TimeZone.of("CET")
         ) shouldBe ExportRoomResult.Success()
 
@@ -179,7 +179,7 @@ class ExportRoomTest {
             fakeProperties,
             matrixClientMock,
             buffer = 15,
-            canDownloadMedia = false,
+            includeMedia = false,
             timeZone = TimeZone.of("CET")
         ) shouldBe ExportRoomResult.Success()
 
@@ -198,7 +198,7 @@ class ExportRoomTest {
             fakeProperties,
             matrixClientMock,
             progress = progress,
-            canDownloadMedia = true,
+            includeMedia = true,
             timeZone = TimeZone.of("CET")
         ) shouldBe ExportRoomResult.Success()
 
@@ -213,7 +213,7 @@ class ExportRoomTest {
             roomId,
             fakeProperties,
             matrixClientMock,
-            canDownloadMedia = true,
+            includeMedia = true,
             rangeStartCondition = { it.eventId == EventId("5") },
             rangeEndCondition = { it.eventId == EventId("15") },
             timeZone = TimeZone.of("CET"),
@@ -246,7 +246,7 @@ class ExportRoomTest {
             roomIdWithErrors,
             fakeProperties,
             matrixClientMock,
-            canDownloadMedia = true,
+            includeMedia = true,
             timeZone = TimeZone.of("CET")
         ) shouldBe ExportRoomResult.Success(
             missingMedia = listOf(

@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.export
 
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.DecryptionFailed
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.MissingMedia
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
@@ -27,7 +26,6 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.firstWithContent
@@ -70,7 +68,7 @@ interface ExportRoom {
         roomId: RoomId,
         properties: ExportRoomSinkProperties,
         matrixClient: MatrixClient,
-        canDownloadMedia: Boolean,
+        includeMedia: Boolean,
         rangeStartCondition: ExportRoomRangeStartCondition = ExportRoomRangeStartCondition.firstEvent(),
         rangeEndCondition: ExportRoomRangeEndCondition = ExportRoomRangeEndCondition.lastEvent(),
         progress: MutableStateFlow<ExportRoomProgress> = MutableStateFlow(ExportRoomProgress()),
@@ -88,7 +86,7 @@ class ExportRoomImpl(
         roomId: RoomId,
         properties: ExportRoomSinkProperties,
         matrixClient: MatrixClient,
-        canDownloadMedia: Boolean,
+        includeMedia: Boolean,
         rangeStartCondition: ExportRoomRangeStartCondition,
         rangeEndCondition: ExportRoomRangeEndCondition,
         progress: MutableStateFlow<ExportRoomProgress>,
@@ -164,12 +162,12 @@ class ExportRoomImpl(
                                         null
                                     }
                             val media = when {
-                                mediaUrl != null && canDownloadMedia -> matrixClient.media.getMedia(
+                                mediaUrl != null && includeMedia -> matrixClient.media.getMedia(
                                     mediaUrl,
                                     saveToCache = false
                                 )
 
-                                mediaFile != null && canDownloadMedia -> matrixClient.media.getEncryptedMedia(
+                                mediaFile != null && includeMedia -> matrixClient.media.getEncryptedMedia(
                                     mediaFile,
                                     saveToCache = false
                                 )
