@@ -155,7 +155,7 @@ class ExportRoomViewModelImpl(
                 val result = exportRoom(
                     roomId = roomId,
                     properties = properties,
-                    canDownloadMedia = !messengerConfiguration.downloadsDisabled,
+                    includeMedia = !messengerConfiguration.downloadsDisabled,
                     rangeStartCondition = rangeStartCondition.value ?: ExportRoomRangeStartCondition.firstEvent(),
                     rangeEndCondition = rangeEndCondition.value ?: ExportRoomRangeEndCondition.lastEvent(),
                     matrixClient = matrixClient,
