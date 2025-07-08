@@ -105,6 +105,7 @@ kotlin {
                 implementation(libs.kotlin.browser)
                 implementation(libs.sysnotify.js)
                 implementation(libs.filekit.core)
+                implementation(project(":wrappers-pdfjs"))
             }
         }
 
