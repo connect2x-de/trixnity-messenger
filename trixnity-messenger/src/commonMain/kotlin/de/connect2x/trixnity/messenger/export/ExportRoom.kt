@@ -70,7 +70,7 @@ interface ExportRoom {
         roomId: RoomId,
         properties: ExportRoomSinkProperties,
         matrixClient: MatrixClient,
-        configuration: MatrixMessengerConfiguration,
+        canDownloadMedia: Boolean,
         rangeStartCondition: ExportRoomRangeStartCondition = ExportRoomRangeStartCondition.firstEvent(),
         rangeEndCondition: ExportRoomRangeEndCondition = ExportRoomRangeEndCondition.lastEvent(),
         progress: MutableStateFlow<ExportRoomProgress> = MutableStateFlow(ExportRoomProgress()),
@@ -88,7 +88,7 @@ class ExportRoomImpl(
         roomId: RoomId,
         properties: ExportRoomSinkProperties,
         matrixClient: MatrixClient,
-        configuration: MatrixMessengerConfiguration,
+        canDownloadMedia: Boolean,
         rangeStartCondition: ExportRoomRangeStartCondition,
         rangeEndCondition: ExportRoomRangeEndCondition,
         progress: MutableStateFlow<ExportRoomProgress>,
@@ -142,12 +142,6 @@ class ExportRoomImpl(
                     .collect { timelineEvent ->
                         val content = timelineEvent.content?.getOrNull()
                         if (content is RoomMessageEventContent.FileBased) {
-                            if (configuration.downloadsDisabled) {
-                                log.debug { "Messenger is not allowed to export media from room, ignoring..." }
-                                progress.update { it.copy(processed = (it.processed ?: 0) + 1) }
-                                return@collect
-                            }
-
                             val mediaUrl = content.url
                             val mediaFile = content.file
                             val fileName =
@@ -170,8 +164,12 @@ class ExportRoomImpl(
                                         null
                                     }
                             val media = when {
-                                mediaUrl != null -> matrixClient.media.getMedia(mediaUrl, saveToCache = false)
-                                mediaFile != null -> matrixClient.media.getEncryptedMedia(
+                                mediaUrl != null && canDownloadMedia -> matrixClient.media.getMedia(
+                                    mediaUrl,
+                                    saveToCache = false
+                                )
+
+                                mediaFile != null && canDownloadMedia -> matrixClient.media.getEncryptedMedia(
                                     mediaFile,
                                     saveToCache = false
                                 )
