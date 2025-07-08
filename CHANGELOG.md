@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Remove timeline flickering due to switching between image fallback and thumbnail in reply elements
+- Fix root lifecycle not starting
 
 ### Security
 
