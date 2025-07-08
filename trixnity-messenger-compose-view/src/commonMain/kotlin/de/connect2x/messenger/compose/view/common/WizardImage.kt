@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.common
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,10 +15,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.theme.CurrentThemeSettings
+import de.connect2x.messenger.compose.view.theme.ExperimentalThemingApi
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
+@OptIn(ExperimentalThemingApi::class)
 @Composable
 fun ColumnScope.WizardImage(
     drawableResource: DrawableResource,
@@ -30,7 +32,7 @@ fun ColumnScope.WizardImage(
     Image(
         painterResource(drawableResource),
         contentDescription = contentDescription,
-        colorFilter = ColorFilter.tint(if (isSystemInDarkTheme()) Color.White else Color.Black),
+        colorFilter = ColorFilter.tint(if (CurrentThemeSettings.isDarkMode()) Color.White else Color.Black),
         modifier = Modifier
             .padding(
                 horizontal =
@@ -44,6 +46,7 @@ fun ColumnScope.WizardImage(
     )
 }
 
+@OptIn(ExperimentalThemingApi::class)
 @Composable
 fun WizardImage(
     drawableResource: DrawableResource,
@@ -54,7 +57,7 @@ fun WizardImage(
     Image(
         painterResource(drawableResource),
         contentDescription = contentDescription,
-        colorFilter = ColorFilter.tint(if (isSystemInDarkTheme()) Color.White else Color.Black),
+        colorFilter = ColorFilter.tint(if (CurrentThemeSettings.isDarkMode()) Color.White else Color.Black),
         modifier = Modifier
             .width(width)
             .height(height)
