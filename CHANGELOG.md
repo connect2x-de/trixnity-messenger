@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Boostrap wizard graphics are not inverted and have visible background
 - Don't block opening room database
 - Remove timeline flickering due to switching between image fallback and thumbnail in reply elements
+- Back Button doesn't work in BlockedContacts view, when focussing a pdf and in the Wizards
 - Export not working in web
 
 ### Security
