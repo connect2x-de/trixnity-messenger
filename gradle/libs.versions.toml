@@ -9,6 +9,7 @@ appId = "de.connect2x.messenger"
 
 kotlin = "2.1.21" # https://github.com/JetBrains/kotlin/releases
 kotlinWrappers = "2025.6.9" # https://github.com/JetBrains/kotlin-wrappers/releases (should be same as in Trixnity)
+seskar = "4.9.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
 kotlinxCoroutines = "1.10.2" # https://github.com/Kotlin/kotlinx.coroutines/releases
 kotlinxSerialization = "1.8.1" # https://github.com/Kotlin/kotlinx.serialization/releases
@@ -174,3 +175,4 @@ skie = { id = "co.touchlab.skie", version.ref = "skie" }
 kmmbridge = { id = "co.touchlab.kmmbridge.gitlab", version.ref = "kmmBridge" }
 mokkery = { id = "dev.mokkery", version.ref = "mokkery" }
 aboutlibraries-plugin = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }
+seskar = { id = "io.github.turansky.seskar", version.ref = "seskar" }

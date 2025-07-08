@@ -13,13 +13,14 @@
 @file:JsNonModule
 @file:Suppress("unused", "PropertyName", "KDocUnresolvedReference")
 
-package externals.zipjs
+package zipjs
 
 import js.buffer.ArrayBufferLike
 import js.core.Void
 import js.generator.AsyncGenerator
 import js.promise.Promise
 import js.typedarrays.Uint8Array
+import seskar.js.JsAsync
 import web.abort.AbortSignal
 import web.blob.Blob
 import web.compression.CompressionStream
@@ -202,7 +203,7 @@ external interface DataHandler {
 /**
  * Terminates all the web workers
  */
-@JsName("terminateWorkers")
+@JsAsync
 external suspend fun terminateWorkers()
 
 @JsName("terminateWorkers")
@@ -340,7 +341,7 @@ open external class Reader<T> : ReadableReader<T> {
     /**
      * Initializes the instance asynchronously
      */
-    @JsName("init")
+    @JsAsync
     suspend fun init()
 
     @JsName("init")
@@ -353,7 +354,7 @@ open external class Reader<T> : ReadableReader<T> {
      * @param length The length of the data to read in bytes.
      * @returns A promise resolving to a chunk of data.
      */
-    @JsName("readCompatibleUint8Array")
+    @JsAsync
     suspend fun readCompatibleUint8Array(index: Number, length: Number): Uint8Array<out ArrayBufferLike>
 
     @JsName("readCompatibleUint8Array")
@@ -575,7 +576,7 @@ open external class Writer<T> : WritableWriter<T> {
     /**
      * Initializes the instance asynchronously
      */
-    @JsName("init")
+    @JsAsync
     suspend fun init()
 
     @JsName("init")
@@ -586,7 +587,7 @@ open external class Writer<T> : WritableWriter<T> {
      *
      * @param array The chunk data to append.
      */
-    @JsName("writeCompatibleUint8Array")
+    @JsAsync
     suspend fun writeCompatibleUint8Array(array: Uint8Array<out ArrayBufferLike>)
 
     @JsName("writeCompatibleUint8Array")
@@ -597,7 +598,7 @@ open external class Writer<T> : WritableWriter<T> {
      *
      * @returns A promise resolving to the written data.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun getData(): T
 
     @JsName("getData")
@@ -628,7 +629,7 @@ external class BlobWriter : WritableWriter<Blob> {
     /**
      * Initializes the instance asynchronously
      */
-    @JsName("init")
+    @JsAsync
     suspend fun init()
 
     @JsName("init")
@@ -646,7 +647,7 @@ external class BlobWriter : WritableWriter<Blob> {
      *
      * @returns A promise resolving to the written data.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun getData(): Blob
 
     @JsName("getData")
@@ -707,7 +708,7 @@ open external class SplitDataWriter : WritableWriter<dynamic> {
     /**
      * Initializes the instance asynchronously
      */
-    @JsName("init")
+    @JsAsync
     suspend fun init()
 
     @JsName("init")
@@ -840,7 +841,7 @@ external class ZipReader<T> {
      * @param options The options.
      * @returns A promise resolving to an `array` of [Entry] instances.
      */
-    @JsName("getEntries")
+    @JsAsync
     suspend fun getEntries(options: ZipReaderGetEntriesOptions? = definedExternally): Array<Entry>
 
     @JsName("getEntries")
@@ -859,7 +860,7 @@ external class ZipReader<T> {
     /**
      * Closes the zip file
      */
-    @JsName("close")
+    @JsAsync
     suspend fun close(): Void
 
     @JsName("close")
@@ -1150,7 +1151,7 @@ external interface Entry : EntryMetaData {
      * @param options The options.
      * @returns A promise resolving to the type to data associated to `writer`.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun <T> getData(writer: Writer<T>, options: EntryGetDataCheckPasswordOptions? = definedExternally): T
 
     @JsName("getData")
@@ -1163,7 +1164,7 @@ external interface Entry : EntryMetaData {
      * @param options The options.
      * @returns A promise resolving to the type to data associated to `writer`.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun <T> getData(
         writer: WritableWriter<T>,
         options: EntryGetDataCheckPasswordOptions? = definedExternally
@@ -1182,7 +1183,7 @@ external interface Entry : EntryMetaData {
      * @param options The options.
      * @returns A promise resolving to the type to data associated to `writer`.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun <T> getData(
         writer: WritableStream<T>,
         options: EntryGetDataCheckPasswordOptions? = definedExternally
@@ -1201,7 +1202,7 @@ external interface Entry : EntryMetaData {
      * @param options The options.
      * @returns A promise resolving to the type to data associated to `writer`.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun <T> getData(
         writer: AsyncGenerator<Writer<T>, Boolean, dynamic>,
         options: EntryGetDataCheckPasswordOptions? = definedExternally
@@ -1220,7 +1221,7 @@ external interface Entry : EntryMetaData {
      * @param options The options.
      * @returns A promise resolving to the type to data associated to `writer`.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun <T> getData(
         writer: AsyncGenerator<WritableWriter<T>, Boolean, dynamic>,
         options: EntryGetDataCheckPasswordOptions? = definedExternally
@@ -1239,7 +1240,7 @@ external interface Entry : EntryMetaData {
      * @param options The options.
      * @returns A promise resolving to the type to data associated to `writer`.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun <T> getData(
         writer: AsyncGenerator<WritableStream<T>, Boolean, dynamic>,
         options: EntryGetDataCheckPasswordOptions? = definedExternally
@@ -1306,7 +1307,7 @@ external class ZipWriterStream {
      * @param options The options.
      * @returns The content of the zip file.
      */
-    @JsName("close")
+    @JsAsync
     suspend fun close(
         comment: Uint8Array<out ArrayBufferLike>? = definedExternally,
         options: ZipWriterCloseOptions? = definedExternally,
@@ -1410,7 +1411,7 @@ external class ZipWriter<T> {
      * @param options The options.
      * @returns A promise resolving to an . instance.
      */
-    @JsName("add")
+    @JsAsync
     suspend fun <O> add(
         filename: String,
         reader: Reader<O>? = definedExternally,
@@ -1432,7 +1433,7 @@ external class ZipWriter<T> {
      * @param options The options.
      * @returns A promise resolving to an . instance.
      */
-    @JsName("add")
+    @JsAsync
     suspend fun <O> add(
         filename: String,
         reader: ReadableReader<O>? = definedExternally,
@@ -1454,7 +1455,7 @@ external class ZipWriter<T> {
      * @param options The options.
      * @returns A promise resolving to an . instance.
      */
-    @JsName("add")
+    @JsAsync
     suspend fun <O> add(
         filename: String,
         reader: ReadableStream<O>? = definedExternally,
@@ -1476,7 +1477,7 @@ external class ZipWriter<T> {
      * @param options The options.
      * @returns A promise resolving to an . instance.
      */
-    @JsName("add")
+    @JsAsync
     suspend fun <O> add(
         filename: String,
         reader: Array<Reader<O>>? = definedExternally,
@@ -1498,7 +1499,7 @@ external class ZipWriter<T> {
      * @param options The options.
      * @returns A promise resolving to an . instance.
      */
-    @JsName("add")
+    @JsAsync
     suspend fun <O> add(
         filename: String,
         reader: Array<ReadableReader<O>>? = definedExternally,
@@ -1520,7 +1521,7 @@ external class ZipWriter<T> {
      * @param options The options.
      * @returns A promise resolving to an . instance.
      */
-    @JsName("add")
+    @JsAsync
     suspend fun <O> add(
         filename: String,
         reader: Array<ReadableStream<O>>? = definedExternally,
@@ -1541,7 +1542,7 @@ external class ZipWriter<T> {
      * @param options The options.
      * @returns The content of the zip file.
      */
-    @JsName("close")
+    @JsAsync
     suspend fun close(
         comment: Uint8Array<out ArrayBufferLike>? = definedExternally,
         options: ZipWriterCloseOptions? = definedExternally
@@ -1941,7 +1942,7 @@ open external class ZipEntry {
     /**
      * Tests the password on the entry and all children if any, returns `true` if the entry is not password protected
      */
-    @JsName("checkPassword")
+    @JsAsync
     suspend fun checkPassword(
         password: String,
         options: EntryGetDataOptions? = definedExternally,
@@ -2001,7 +2002,7 @@ external class ZipFileEntry<R, W> : ZipEntry {
      * @param options The options.
      * @returns A promise resolving to a `string`.
      */
-    @JsName("getText")
+    @JsAsync
     suspend fun getText(
         encoding: String? = definedExternally,
         options: EntryGetDataOptions? = definedExternally
@@ -2020,7 +2021,7 @@ external class ZipFileEntry<R, W> : ZipEntry {
      * @param options The options.
      * @returns A promise resolving to a `Blob` instance.
      */
-    @JsName("getBlob")
+    @JsAsync
     suspend fun getBlob(
         mimeType: String? = definedExternally,
         options: EntryGetDataOptions? = definedExternally
@@ -2039,7 +2040,7 @@ external class ZipFileEntry<R, W> : ZipEntry {
      * @param options The options.
      * @returns A promise resolving to a Data URI `string` encoded in Base64.
      */
-    @JsName("getData64URI")
+    @JsAsync
     suspend fun getData64URI(
         mimeType: String? = definedExternally,
         options: EntryGetDataOptions? = definedExternally,
@@ -2057,7 +2058,7 @@ external class ZipFileEntry<R, W> : ZipEntry {
      * @param options The options.
      * @returns A promise resolving to a `Uint8Array` instance.
      */
-    @JsName("getCompatibleUint8Array")
+    @JsAsync
     suspend fun getCompatibleUint8Array(options: EntryGetDataOptions? = definedExternally): Uint8Array<out ArrayBufferLike>
 
     @JsName("getCompatibleUint8Array")
@@ -2070,7 +2071,7 @@ external class ZipFileEntry<R, W> : ZipEntry {
      * @param options The options.
      * @returns A promise resolving to the `WritableStream` instance.
      */
-    @JsName("getWritable")
+    @JsAsync
     suspend fun getWritable(
         writable: WritableStream<W>? = definedExternally,
         options: EntryGetDataOptions? = definedExternally
@@ -2089,7 +2090,7 @@ external class ZipFileEntry<R, W> : ZipEntry {
      * @param options The options.
      * @returns A promise resolving to data associated to the . instance.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun getData(writer: Writer<W>, options: EntryGetDataOptions? = definedExternally): dynamic
 
     @JsName("getData")
@@ -2102,7 +2103,7 @@ external class ZipFileEntry<R, W> : ZipEntry {
      * @param options The options.
      * @returns A promise resolving to data associated to the . instance.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun getData(writer: WritableWriter<W>, options: EntryGetDataOptions? = definedExternally): dynamic
 
     @JsName("getData")
@@ -2115,7 +2116,7 @@ external class ZipFileEntry<R, W> : ZipEntry {
      * @param options The options.
      * @returns A promise resolving to data associated to the . instance.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun getData(writer: WritableStream<W>, options: EntryGetDataOptions? = definedExternally): dynamic
 
     @JsName("getData")
@@ -2128,7 +2129,7 @@ external class ZipFileEntry<R, W> : ZipEntry {
      * @param options The options.
      * @returns A promise resolving to data associated to the . instance.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun getData(
         writer: AsyncGenerator<Writer<W>, dynamic, dynamic>,
         options: EntryGetDataOptions? = definedExternally
@@ -2147,7 +2148,7 @@ external class ZipFileEntry<R, W> : ZipEntry {
      * @param options The options.
      * @returns A promise resolving to data associated to the . instance.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun getData(
         writer: AsyncGenerator<WritableWriter<W>, dynamic, dynamic>,
         options: EntryGetDataOptions? = definedExternally
@@ -2166,7 +2167,7 @@ external class ZipFileEntry<R, W> : ZipEntry {
      * @param options The options.
      * @returns A promise resolving to data associated to the . instance.
      */
-    @JsName("getData")
+    @JsAsync
     suspend fun getData(
         writer: AsyncGenerator<WritableStream<W>, dynamic, dynamic>,
         options: EntryGetDataOptions? = definedExternally
@@ -2334,7 +2335,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param options The options.
      * @returns A promise resolving to a . or a . instance.
      */
-    @JsName("addFile")
+    @JsAsync
     suspend fun addFile(
         file: File,
         options: ZipWriterAddDataOptions? = definedExternally,
@@ -2353,7 +2354,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param options The options.
      * @returns A promise resolving to an array of . or a . instances.
      */
-    @JsName("addFileSystemEntry")
+    @JsAsync
     suspend fun addFileSystemEntry(
         fileSystemEntry: FileSystemEntryLike,
         options: ZipWriterAddDataOptions? = definedExternally,
@@ -2372,7 +2373,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param options The options.
      * @returns A promise resolving to an array of . or a . instances.
      */
-    @JsName("addFileSystemHandle")
+    @JsAsync
     suspend fun addFileSystemHandle(
         fileSystemHandle: FileSystemHandleLike,
         options: ZipWriterAddDataOptions? = definedExternally,
@@ -2390,7 +2391,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param blob The `Blob` instance.
      * @param options  The options.
      */
-    @JsName("importBlob")
+    @JsAsync
     suspend fun importBlob(
         blob: Blob,
         options: ZipReaderConstructorOptions? = definedExternally,
@@ -2408,7 +2409,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param dataURI The Data URI `string` encoded in Base64.
      * @param options  The options.
      */
-    @JsName("importData64URI")
+    @JsAsync
     suspend fun importData64URI(
         dataURI: String,
         options: ZipReaderConstructorOptions? = definedExternally,
@@ -2426,7 +2427,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param array The `Uint8Array` instance.
      * @param options  The options.
      */
-    @JsName("importCompatibleUint8Array")
+    @JsAsync
     suspend fun importCompatibleUint8Array(
         array: Uint8Array<out ArrayBufferLike>,
         options: ZipReaderConstructorOptions? = definedExternally,
@@ -2444,7 +2445,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param url The URL.
      * @param options  The options.
      */
-    @JsName("importHttpContent")
+    @JsAsync
     suspend fun importHttpContent(
         url: String,
         options: ZipDirectoryEntryImportHttpOptions? = definedExternally,
@@ -2462,7 +2463,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param readable The `ReadableStream` instance.
      * @param options  The options.
      */
-    @JsName("importReadable")
+    @JsAsync
     suspend fun <T> importReadable(
         readable: ReadableStream<T>,
         options: ZipReaderConstructorOptions? = definedExternally,
@@ -2480,7 +2481,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param reader The . instance.
      * @param options  The options.
      */
-    @JsName("importZip")
+    @JsAsync
     suspend fun <T> importZip(
         reader: Reader<T>,
         options: ZipReaderConstructorOptions? = definedExternally
@@ -2498,7 +2499,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param reader The . instance.
      * @param options  The options.
      */
-    @JsName("importZip")
+    @JsAsync
     suspend fun <T> importZip(
         reader: ReadableReader<T>,
         options: ZipReaderConstructorOptions? = definedExternally
@@ -2516,7 +2517,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param reader The . instance.
      * @param options  The options.
      */
-    @JsName("importZip")
+    @JsAsync
     suspend fun <T> importZip(
         reader: ReadableStream<T>,
         options: ZipReaderConstructorOptions? = definedExternally
@@ -2534,7 +2535,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param reader The . instance.
      * @param options  The options.
      */
-    @JsName("importZip")
+    @JsAsync
     suspend fun <T> importZip(
         reader: Array<Reader<T>>,
         options: ZipReaderConstructorOptions? = definedExternally
@@ -2552,7 +2553,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param reader The . instance.
      * @param options  The options.
      */
-    @JsName("importZip")
+    @JsAsync
     suspend fun <T> importZip(
         reader: Array<ReadableReader<T>>,
         options: ZipReaderConstructorOptions? = definedExternally
@@ -2570,7 +2571,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param reader The . instance.
      * @param options  The options.
      */
-    @JsName("importZip")
+    @JsAsync
     suspend fun <T> importZip(
         reader: Array<ReadableStream<T>>,
         options: ZipReaderConstructorOptions? = definedExternally
@@ -2588,7 +2589,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param options  The options.
      * @returns A promise resolving to the `Blob` instance.
      */
-    @JsName("exportBlob")
+    @JsAsync
     suspend fun exportBlob(
         options: ZipDirectoryEntryExportOptions? = definedExternally
     ): Blob
@@ -2604,7 +2605,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param options  The options.
      * @returns A promise resolving to the Data URI `string` encoded in Base64.
      */
-    @JsName("exportData64URI")
+    @JsAsync
     suspend fun exportData64URI(
         options: ZipDirectoryEntryExportOptions? = definedExternally
     ): String
@@ -2620,7 +2621,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param options  The options.
      * @returns A promise resolving to the `Uint8Array` instance.
      */
-    @JsName("exportCompatibleUint8Array")
+    @JsAsync
     suspend fun exportCompatibleUint8Array(
         options: ZipDirectoryEntryExportOptions? = definedExternally,
     ): Uint8Array<out ArrayBufferLike>
@@ -2637,7 +2638,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param options  The options.
      * @returns A promise resolving to the `Uint8Array` instance.
      */
-    @JsName("exportWritable")
+    @JsAsync
     suspend fun <T> exportWritable(
         writable: WritableStream<T>? = definedExternally,
         options: ZipDirectoryEntryExportOptions? = definedExternally,
@@ -2656,7 +2657,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param options  The options.
      * @returns A promise resolving to the data.
      */
-    @JsName("exportZip")
+    @JsAsync
     suspend fun <T> exportZip(
         writer: Writer<T>,
         options: ZipDirectoryEntryExportOptions? = definedExternally
@@ -2675,7 +2676,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param options  The options.
      * @returns A promise resolving to the data.
      */
-    @JsName("exportZip")
+    @JsAsync
     suspend fun <T> exportZip(
         writer: WritableWriter<T>,
         options: ZipDirectoryEntryExportOptions? = definedExternally
@@ -2694,7 +2695,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param options  The options.
      * @returns A promise resolving to the data.
      */
-    @JsName("exportZip")
+    @JsAsync
     suspend fun <T> exportZip(
         writer: WritableStream<T>,
         options: ZipDirectoryEntryExportOptions? = definedExternally
@@ -2713,7 +2714,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param options  The options.
      * @returns A promise resolving to the data.
      */
-    @JsName("exportZip")
+    @JsAsync
     suspend fun <T> exportZip(
         writer: AsyncGenerator<Writer<T>, dynamic, dynamic>,
         options: ZipDirectoryEntryExportOptions? = definedExternally
@@ -2732,7 +2733,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param options  The options.
      * @returns A promise resolving to the data.
      */
-    @JsName("exportZip")
+    @JsAsync
     suspend fun <T> exportZip(
         writer: AsyncGenerator<WritableWriter<T>, dynamic, dynamic>,
         options: ZipDirectoryEntryExportOptions? = definedExternally
@@ -2751,7 +2752,7 @@ open external class ZipDirectoryEntry : ZipEntry {
      * @param options  The options.
      * @returns A promise resolving to the data.
      */
-    @JsName("exportZip")
+    @JsAsync
     suspend fun <T> exportZip(
         writer: AsyncGenerator<WritableStream<T>, dynamic, dynamic>,
         options: ZipDirectoryEntryExportOptions? = definedExternally

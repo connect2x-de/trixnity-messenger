@@ -51,7 +51,7 @@ kotlin {
         generateTypeScriptDefinitions()
     }
     listOf(
-//        iosX64(),
+        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     )
@@ -105,6 +105,7 @@ kotlin {
                 implementation(libs.kotlin.browser)
                 implementation(libs.sysnotify.js)
                 implementation(libs.filekit.core)
+                implementation(project(":wrappers-pdfjs"))
             }
         }
 

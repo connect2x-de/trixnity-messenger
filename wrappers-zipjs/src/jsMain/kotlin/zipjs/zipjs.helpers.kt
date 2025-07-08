@@ -1,41 +1,20 @@
+/**
+ * zip.js is a JavaScript open-source library (BSD-3-Clause license) for
+ * compressing and decompressing zip files. It has been designed to handle large amounts
+ * of data. It supports notably multi-core compression, native compression with
+ * compression streams, archives larger than 4GB with Zip64, split zip files and data
+ * encryption.
+ *
+ * @author Gildas Lormeau
+ * @license BSD-3-Clause
+ */
+
 @file:OptIn(ExperimentalJsExport::class)
 @file:Suppress("unused", "PropertyName", "KDocUnresolvedReference")
 
-import externals.zipjs.Configuration
-import externals.zipjs.EntryDataOnprogressOptions
-import externals.zipjs.EntryExtraField
-import externals.zipjs.EntryGetDataCheckPasswordOptions
-import externals.zipjs.EntryGetDataOptions
-import externals.zipjs.EntryMetaData
-import externals.zipjs.EntryOnprogressOptions
-import externals.zipjs.EventBasedZipLibrary
-import externals.zipjs.FsConstants
-import externals.zipjs.GetEntriesOptions
-import externals.zipjs.HttpOptions
-import externals.zipjs.HttpRangeOptions
-import externals.zipjs.ReadableReader
-import externals.zipjs.Reader
-import externals.zipjs.URLString
-import externals.zipjs.WorkerConfiguration
-import externals.zipjs.WorkerScripts
-import externals.zipjs.WritableWriter
-import externals.zipjs.Writer
-import externals.zipjs.ZipDirectoryEntryExportOptions
-import externals.zipjs.ZipDirectoryEntryImportHttpOptions
-import externals.zipjs.ZipLibrary
-import externals.zipjs.ZipReaderConstructorOptions
-import externals.zipjs.ZipReaderGetEntriesOptions
-import externals.zipjs.ZipReaderOptions
-import externals.zipjs.ZipWriterAddDataOptions
-import externals.zipjs.ZipWriterAddHttpOptions
-import externals.zipjs.ZipWriterCloseOptions
-import externals.zipjs.ZipWriterConstructorOptions
-import externals.zipjs.ZipWriterStream
-import js.generator.AsyncGenerator
+package zipjs
+
 import js.objects.unsafeJso
-import web.streams.ReadableStream
-import web.streams.WritableStream
-import web.url.URL
 
 @JsExport.Ignore
 inline fun Configuration(

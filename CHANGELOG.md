@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Support for building for iOS x64
+
 ### Changed
 
 - Send correct image size when uploading images on web
@@ -19,8 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Boostrap wizard graphics are not inverted and have visible background
+- Don't block opening room database
 - Remove timeline flickering due to switching between image fallback and thumbnail in reply elements
 - Fix root lifecycle not starting
+- Export not working in web
 
 ### Security
 

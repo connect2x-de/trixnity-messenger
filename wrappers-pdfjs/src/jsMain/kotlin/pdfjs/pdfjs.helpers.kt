@@ -4,7 +4,7 @@
     "unused", "NOTHING_TO_INLINE", "DuplicatedCode",
 )
 
-package externals.pdfjs
+package pdfjs
 
 import js.buffer.BufferSource
 import js.objects.unsafeJso
