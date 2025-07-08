@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.export
 
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.DecryptionFailed
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.MissingMedia
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
@@ -26,6 +27,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.firstWithContent
@@ -68,6 +70,7 @@ interface ExportRoom {
         roomId: RoomId,
         properties: ExportRoomSinkProperties,
         matrixClient: MatrixClient,
+        configuration: MatrixMessengerConfiguration,
         rangeStartCondition: ExportRoomRangeStartCondition = ExportRoomRangeStartCondition.firstEvent(),
         rangeEndCondition: ExportRoomRangeEndCondition = ExportRoomRangeEndCondition.lastEvent(),
         progress: MutableStateFlow<ExportRoomProgress> = MutableStateFlow(ExportRoomProgress()),
@@ -85,6 +88,7 @@ class ExportRoomImpl(
         roomId: RoomId,
         properties: ExportRoomSinkProperties,
         matrixClient: MatrixClient,
+        configuration: MatrixMessengerConfiguration,
         rangeStartCondition: ExportRoomRangeStartCondition,
         rangeEndCondition: ExportRoomRangeEndCondition,
         progress: MutableStateFlow<ExportRoomProgress>,
@@ -94,7 +98,6 @@ class ExportRoomImpl(
     ): ExportRoomResult {
         log.info { "export of $roomId started" }
         progress.value = ExportRoomProgress()
-
         val sink = sinkFactories.firstNotNullOfOrNull { it.create(roomId, properties) }
             ?: return ExportRoomResult.PropertiesNotSupported(properties::class)
         val lastEventId = matrixClient.room.getById(roomId).firstOrNull()?.lastEventId
@@ -139,6 +142,12 @@ class ExportRoomImpl(
                     .collect { timelineEvent ->
                         val content = timelineEvent.content?.getOrNull()
                         if (content is RoomMessageEventContent.FileBased) {
+                            if (configuration.downloadsDisabled) {
+                                log.debug { "Messenger is not allowed to export media from room, ignoring..." }
+                                progress.update { it.copy(processed = (it.processed ?: 0) + 1) }
+                                return@collect
+                            }
+
                             val mediaUrl = content.url
                             val mediaFile = content.file
                             val fileName =

@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't block opening room database
 - Remove timeline flickering due to switching between image fallback and thumbnail in reply elements
 - Export not working in web
+- Don't export media when downloads are disabled
 
 ### Security
 
