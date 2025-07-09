@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.export.ExportRoom
 import de.connect2x.trixnity.messenger.export.ExportRoomProgress
 import de.connect2x.trixnity.messenger.export.ExportRoomRangeEndCondition
@@ -91,7 +92,7 @@ class ExportRoomViewModelImpl(
     private val roomId: RoomId,
     private val onBack: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, ExportRoomViewModel {
-
+    private val messengerConfiguration: MatrixMessengerConfiguration = get()
 
     private val backCallback = BackCallback {
         back()
@@ -154,6 +155,7 @@ class ExportRoomViewModelImpl(
                 val result = exportRoom(
                     roomId = roomId,
                     properties = properties,
+                    includeMedia = !messengerConfiguration.downloadsDisabled,
                     rangeStartCondition = rangeStartCondition.value ?: ExportRoomRangeStartCondition.firstEvent(),
                     rangeEndCondition = rangeEndCondition.value ?: ExportRoomRangeEndCondition.lastEvent(),
                     matrixClient = matrixClient,
