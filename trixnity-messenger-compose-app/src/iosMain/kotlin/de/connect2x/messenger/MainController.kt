@@ -12,6 +12,7 @@ import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.pause
 import com.arkivanov.essenty.lifecycle.resume
+import com.arkivanov.essenty.lifecycle.start
 import com.arkivanov.essenty.lifecycle.stop
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
@@ -55,11 +56,11 @@ fun MainViewController(lifecycle: LifecycleRegistry): UIViewController {
                 val notificationCenter = NSNotificationCenter.defaultCenter()
                 notificationCenter.addObserverForName(UIApplicationDidEnterBackgroundNotification, null, null) { _ ->
                     isFocused = false
-                    lifecycle.pause()
+                    lifecycle.stop()
                 }
                 notificationCenter.addObserverForName(UIApplicationWillEnterForegroundNotification, null, null) { _ ->
                     isFocused = true
-                    lifecycle.resume()
+                    lifecycle.start()
                 }
             },
             activeMessenger = { matrixMessenger, rootViewModel ->

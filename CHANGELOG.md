@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove timeline flickering due to switching between image fallback and thumbnail in reply elements
 - Fix root lifecycle not starting
 - Back Button doesn't work in BlockedContacts view, when focussing a pdf and in the Wizards
-- Add lifecycle pause/resume when moving app to background/foreground
+- Add lifecycle stop/start when moving iOS app to background/foreground
 - Export not working in web
 - Escape CSV export with additional '
 
