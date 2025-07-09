@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## 3.6.13
+
+### Changed
+
+- Timeline element and details views are now based on interfaces and thus can be replaced
+
 ## 3.6.12
 
 ### Added
