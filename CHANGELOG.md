@@ -9,15 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.6.12
+
+### Added
+
 - Support for building for iOS x64
 
 ### Changed
 
 - Send correct image size when uploading images on web
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -29,8 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Export not working in web
 - Don't export media when downloads are disabled
 - Escape CSV export with additional '
-
-### Security
 
 ## 3.6.11
 
