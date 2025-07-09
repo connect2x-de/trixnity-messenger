@@ -177,15 +177,17 @@ open class I18n(
         DE - "$username hat $groupOrChat verlassen"
     }
 
-    open fun eventChangeBan(target: String, moderator: String, groupOrChat: String, reason: String? = null) = translate {
-        EN - "$target was banned from $groupOrChat by $moderator${if (reason == null) "" else " because \"$reason\""}"
-        DE - "$target wurde von $moderator aus $groupOrChat verbannt${if (reason == null) "" else ", da \"$reason\""}"
-    }
+    open fun eventChangeBan(target: String, moderator: String, groupOrChat: String, reason: String? = null) =
+        translate {
+            EN - "$target was banned from $groupOrChat by $moderator${if (reason == null) "" else " because \"$reason\""}"
+            DE - "$target wurde von $moderator aus $groupOrChat verbannt${if (reason == null) "" else ", da \"$reason\""}"
+        }
 
-    open fun eventChangeKick(target: String, moderator: String, groupOrChat: String, reason: String? = null) = translate {
-        EN - "$target was removed from $groupOrChat by $moderator${if (reason == null) "" else " because \"$reason\""}"
-        DE - "$target wurde von $moderator aus $groupOrChat entfernt${if (reason == null) "" else ", da \"$reason\""}"
-    }
+    open fun eventChangeKick(target: String, moderator: String, groupOrChat: String, reason: String? = null) =
+        translate {
+            EN - "$target was removed from $groupOrChat by $moderator${if (reason == null) "" else " because \"$reason\""}"
+            DE - "$target wurde von $moderator aus $groupOrChat entfernt${if (reason == null) "" else ", da \"$reason\""}"
+        }
 
     open fun eventChangeKnock(username: String, groupOrChat: String, reason: String? = null) = translate {
         EN - "$username requested to join $groupOrChat${if (reason == null) "" else " because \"$reason\""}. Check the room settings to manage the Request"
@@ -350,14 +352,29 @@ open class I18n(
         DE - "keine Übereinstimmung"
     }
 
-    open fun createNewChatError() = translate {
-        EN - "Cannot create new chat."
-        DE - "Neuer Chat kann nicht angelegt werden."
+    open fun createNewRoomError(isChat: Boolean) = translate {
+        EN - "Cannot create new ${if (isChat) "chat" else "group"}."
+        DE - "${if (isChat) "Neuer Chat" else "Neue Gruppe"} kann nicht angelegt werden."
     }
 
-    open fun createNewGroupError() = translate {
-        EN - "Cannot create new group"
-        DE - "Neue Gruppe kann nicht angelegt werden."
+    open fun createNewRoomBadJson(isChat: Boolean) = translate {
+        EN - "Cannot create new ${if (isChat) "chat" else "group"}: bad JSON."
+        DE - "${if (isChat) "Neuer Chat" else "Neue Gruppe"} kann nicht angelegt werden: JSON Fehler."
+    }
+
+    open fun createNewRoomRoomInUse(isChat: Boolean) = translate {
+        EN - "Cannot create new ${if (isChat) "chat" else "group"}: alias already in use."
+        DE - "${if (isChat) "Neuer Chat" else "Neue Gruppe"} kann nicht angelegt werden: Alias wird bereits verwendet."
+    }
+
+    open fun createNewRoomInvalidState(isChat: Boolean) = translate {
+        EN - "Cannot create new ${if (isChat) "chat" else "group"}: invalid state (may be caused by bad power levels)."
+        DE - "${if (isChat) "Neuer Chat" else "Neue Gruppe"} kann nicht angelegt werden: ungültiger Zustand (evtl. sind die Berechtigungslevel falsch)."
+    }
+
+    open fun createNewRoomInvalidRoomVersion(isChat: Boolean) = translate {
+        EN - "Cannot create new ${if (isChat) "chat" else "group"}: the room version is invalid."
+        DE - "${if (isChat) "Neuer Chat" else "Neue Gruppe"} kann nicht angelegt werden: die Raumversion ist veraltet."
     }
 
     open fun roomListYou() = translate {

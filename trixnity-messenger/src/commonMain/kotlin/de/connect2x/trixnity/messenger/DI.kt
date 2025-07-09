@@ -100,6 +100,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thu
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomErrorHandling
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomErrorHandlingImpl
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
@@ -239,6 +241,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<UserBlocking> { UserBlockingImpl() }
             single<EnterRoom> { EnterRoomImpl() }
             single<LeaveRoom> { LeaveRoomImpl() }
+            single<CreateNewRoomErrorHandling> { CreateNewRoomErrorHandlingImpl(get()) }
 
             single<DownloadManager> { DownloadManagerImpl(get<CoroutineScope>().coroutineContext) }
             single<Thumbnails> { ThumbnailsImpl() }

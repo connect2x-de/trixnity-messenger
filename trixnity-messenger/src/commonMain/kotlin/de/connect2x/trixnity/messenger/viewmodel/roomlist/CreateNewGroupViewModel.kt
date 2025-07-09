@@ -5,7 +5,6 @@ import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
-import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,6 +20,7 @@ import net.folivo.trixnity.clientserverapi.model.rooms.DirectoryVisibility
 import net.folivo.trixnity.core.model.events.InitialStateEvent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import org.koin.core.component.get
 
 
 private val log = KotlinLogging.logger {}
@@ -51,6 +51,7 @@ interface CreateNewGroupViewModel {
     val optionalGroupTopic: TextFieldViewModel
     val canCreateNewGroup: StateFlow<Boolean>
     val error: StateFlow<String?>
+    val errorDetails: StateFlow<String?>
 
     fun onUserClick(user: SearchUserElement)
     fun back()
@@ -73,6 +74,8 @@ open class CreateNewGroupViewModelImpl(
     private val onBack: () -> Unit,
 ) : CreateNewGroupViewModel,
     MatrixClientViewModelContext by viewModelContext {
+    val createNewRoomErrorHandling = get<CreateNewRoomErrorHandling>()
+
     override val isPrivate = MutableStateFlow(true)
     override val isEncrypted = MutableStateFlow(true)
     private val _isCreating = MutableStateFlow(false)
@@ -90,6 +93,7 @@ open class CreateNewGroupViewModelImpl(
     }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val error: StateFlow<String?> = createNewRoomViewModel.error.asStateFlow()
+    override val errorDetails: StateFlow<String?> = createNewRoomViewModel.errorDetails.asStateFlow()
 
     private val backCallback = BackCallback {
         back()
@@ -143,7 +147,9 @@ open class CreateNewGroupViewModelImpl(
                 },
                 onFailure = {
                     log.error(it) { "Cannot create a group." }
-                    createNewRoomViewModel.error.value = i18n.createNewGroupError()
+                    createNewRoomViewModel.error.value = createNewRoomErrorHandling.error(it, isChat = false)
+                    createNewRoomViewModel.errorDetails.value =
+                        createNewRoomErrorHandling.errorDetails(it, isChat = false)
                 }
             )
         }.invokeOnCompletion { _isCreating.value = false }
@@ -209,6 +215,7 @@ class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
         MutableStateFlow(null)
     override val canCreateNewGroup: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val errorDetails: MutableStateFlow<String?> = MutableStateFlow(null)
     override val optionalRoomName = TextFieldViewModelImpl(maxLength = 1_000)
     override val optionalGroupTopic = TextFieldViewModelImpl(maxLength = 20_000)
 

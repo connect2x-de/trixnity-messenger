@@ -25,6 +25,7 @@ interface CreateNewRoomViewModel {
     val searchHandler: UserSearchHandler
     val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>>
     val error: MutableStateFlow<String?>
+    val errorDetails: MutableStateFlow<String?>
     val onRoomCreated: (UserId, RoomId) -> Unit
 }
 
@@ -36,11 +37,13 @@ open class CreateNewRoomViewModelImpl(
         DefaultUserSearchHandler(coroutineScope, get<Search>(), matrixClient)
     override val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>> = MutableStateFlow(emptyMap())
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val errorDetails: MutableStateFlow<String?> = MutableStateFlow(null)
 }
 
 class PreviewCreateNewRoomViewModel : CreateNewRoomViewModel {
     override val searchHandler: UserSearchHandler = PreviewUserSearchHandler
     override val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>> = MutableStateFlow(emptyMap())
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val errorDetails: MutableStateFlow<String?> = MutableStateFlow(null)
     override val onRoomCreated: (UserId, RoomId) -> Unit = { _, _ -> }
 }

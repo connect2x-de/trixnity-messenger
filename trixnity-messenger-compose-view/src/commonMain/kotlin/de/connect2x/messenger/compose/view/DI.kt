@@ -277,6 +277,7 @@ import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWiza
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardView
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardViewImpl
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named
@@ -477,7 +478,7 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
 }
 
 fun timelineElementDetailsViewsModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {
-    timelineElementDetailsView<ImageTimelineElementDetailsView> { ImageTimelineElementDetailsView() }
+    timelineElementDetailsView<TimelineElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.Image>> { ImageTimelineElementDetailsView() }
     if (messengerConfiguration?.features?.enablePdfReader == true) {
         timelineElementDetailsView<PdfTimelineElementDetailsView> {
             PdfTimelineElementDetailsView()
