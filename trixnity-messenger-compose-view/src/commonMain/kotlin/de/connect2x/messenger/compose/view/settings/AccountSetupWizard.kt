@@ -129,7 +129,7 @@ fun AccountSetupWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountSetup) {
             }
         }
     }
-    Wizard(steps)
+    Wizard(steps, viewModel.backHandler)
 }
 
 private fun wizardStepExplanation(

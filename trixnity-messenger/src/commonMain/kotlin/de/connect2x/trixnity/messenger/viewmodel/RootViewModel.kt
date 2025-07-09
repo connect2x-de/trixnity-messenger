@@ -5,6 +5,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaRouter
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.koin.core.Koin
 import kotlin.coroutines.CoroutineContext
@@ -17,6 +18,7 @@ interface RootViewModelFactory {
     ): RootViewModel = RootViewModelImpl(
         componentContext = componentContext,
         di = di,
+        coroutineContext = di.get<CoroutineScope>().coroutineContext
     )
 
     companion object : RootViewModelFactory

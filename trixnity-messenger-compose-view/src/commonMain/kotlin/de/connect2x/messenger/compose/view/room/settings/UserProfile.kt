@@ -537,7 +537,7 @@ fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
 
 @Composable
 fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     var banUserReason by userProfileViewModel.banUserReason.collectAsTextFieldValueState()
 
     ThemedModalDialog({ userProfileViewModel.closeBanUserWarning() }) {
@@ -576,7 +576,7 @@ fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
 
 @Composable
 fun UnbanUserWarning(userProfileViewModel: UserProfileViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     var unbanUserReason by userProfileViewModel.unbanUserReason.collectAsTextFieldValueState()
 
     ThemedModalDialog({ userProfileViewModel.closeUnbanUserWarning() }) {

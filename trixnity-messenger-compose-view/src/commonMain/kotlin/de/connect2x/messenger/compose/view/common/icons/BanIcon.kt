@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 
 enum class BanIconType {
@@ -22,7 +23,7 @@ enum class BanIconType {
 
 @Composable
 fun BanIcon(type: BanIconType = BanIconType.Default, size: Dp = 24.dp) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     Tooltip(tooltip = {
         when (type) {
             BanIconType.NotUnbannable -> i18n.notUnbannable()

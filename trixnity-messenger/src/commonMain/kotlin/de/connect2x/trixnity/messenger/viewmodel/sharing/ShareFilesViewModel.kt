@@ -120,7 +120,8 @@ class SharedDataViewModelImpl(
                         val size = file.fileSize
                         val (width, height) = if (size == null || size <= maxMediaSizeInMemory) get<GetImageDimensions>().invoke(
                             file.content,
-                            maxMediaSizeInMemory
+                            maxMediaSizeInMemory,
+                            file.mimeType
                         ) else Pair(null, null)
                         image(
                             body = file.fileName,

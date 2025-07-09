@@ -21,6 +21,9 @@ contact us at [contact@connect2x.de](mailto:contact@connect2x.de).
 If you are just interested in the UI and white labelling it, have a look at
 this [Readme](trixnity-messenger-compose-view/README.md).
 
+## iOS Client
+Trixnity Messenger also has support for iOS devices. Warning: The implementation is partly incomplete and experimental. If bugs occur, please report them.
+
 ## MVVM
 
 Trixnity Messenger follows the MVVM pattern, in particular it represents the view model (VM) part. Trixnity is the
@@ -149,6 +152,8 @@ val matrixMessenger = MatrixMessenger.create {
     // ... more config ...
 }
 ```
+
+Some configuration options for the Matrix Messenger can also be changed via properties at build time, e.g. `tm_disable_downloads` to prohibit the download of files from the Messenger.
 
 ### MatrixClientConfiguration
 

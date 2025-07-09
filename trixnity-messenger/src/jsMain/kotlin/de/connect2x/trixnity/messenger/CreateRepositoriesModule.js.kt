@@ -10,9 +10,7 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
     single<CreateRepositoriesModule> {
         val rootPath = get<RootPath>()
         object : CreateRepositoriesModule {
-            override suspend fun generateDatabaseKey(): ByteArray =
-                throw IllegalStateException("cannot encrypt database on web")
-
+            override suspend fun generateDatabaseKey(): ByteArray? = null
             override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module = createInternal(userId)
             override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module = createInternal(userId)
 

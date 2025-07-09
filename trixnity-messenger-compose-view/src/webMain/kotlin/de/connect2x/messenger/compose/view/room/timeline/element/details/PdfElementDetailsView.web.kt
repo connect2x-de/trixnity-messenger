@@ -4,7 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import de.connect2x.messenger.compose.view.files.PdfReaderWeb
-import externals.pdfjs.GlobalWorkerOptions
+import pdfjs.GlobalWorkerOptions
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow

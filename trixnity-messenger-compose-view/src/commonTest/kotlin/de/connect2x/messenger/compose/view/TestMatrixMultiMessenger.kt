@@ -49,9 +49,7 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
                         object : CreateRepositoriesModule {
                             val modules: MutableMap<UserId, Module> = HashMap()
 
-                            override suspend fun generateDatabaseKey(): ByteArray =
-                                throw IllegalStateException("cannot create database key")
-
+                            override suspend fun generateDatabaseKey(): ByteArray? = null
                             override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module {
                                 val module = createInMemoryRepositoriesModule()
                                 modules += (userId to module)

@@ -24,8 +24,6 @@ data class MatrixMessengerConfiguration(
     override var appId: String = "de.connect2x.messenger",
     override var appVersion: String? = null,
 
-    var encryptLocalData: Boolean = true,
-
     override var urlProtocol: String = appId,
     override var urlHost: String = "localhost",
     var ssoRedirectPath: String = "sso",
@@ -98,6 +96,8 @@ data class MatrixMessengerConfiguration(
     override var licenses: String? = null,
 
     override var pushUrl: String? = null,
+
+    var downloadsDisabled: Boolean = false,
 
     /**
      * Specify a [HttpClientEngine]. It is highly recommended to set it and share it within an application.

@@ -50,6 +50,11 @@ kotlin {
         binaries.library()
         generateTypeScriptDefinitions()
     }
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    )
 
     sourceSets {
         commonMain {
@@ -100,6 +105,7 @@ kotlin {
                 implementation(libs.kotlin.browser)
                 implementation(libs.sysnotify.js)
                 implementation(libs.filekit.core)
+                implementation(project(":wrappers-pdfjs"))
             }
         }
 

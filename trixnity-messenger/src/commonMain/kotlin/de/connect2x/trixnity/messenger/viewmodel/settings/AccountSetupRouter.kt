@@ -26,7 +26,7 @@ class AccountSetupRouter(
 
 
     val navigation = StackNavigation<Config>()
-    val stack = viewModelContext.childStack(
+    val stack = viewModelContext.childContext("accountSetupViewModel").childStack(
         source = navigation,
         serializer = Config.serializer(),
         initialConfiguration = Config.None,

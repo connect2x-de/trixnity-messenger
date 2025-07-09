@@ -35,6 +35,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.util.ifNotNull
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
@@ -107,7 +108,9 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
     overlay: @Composable BoxScope.() -> Unit,
     content: @Composable ColumnScope.(() -> Unit, () -> Unit) -> Unit
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
+    val configuration = DI.get<MatrixMessengerConfiguration>()
+
     MessageBubble(
         holder,
         needsMaxWidth = true,
@@ -126,6 +129,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
             // download action
             BaseTimelineElementHolderContextMenuAction(
                 label = i18n.downloadMessage(),
+                isEnabled = !configuration.downloadsDisabled,
                 action = onSave,
             ).render(onClose)
         },

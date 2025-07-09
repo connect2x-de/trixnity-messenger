@@ -21,46 +21,62 @@ val appId = libs.versions.appId.get()
 
 enum class BuildFlavor { PROD, DEV }
 
-val buildFlavor = BuildFlavor.valueOf(System.getenv("MESSENGER_BUILD_FLAVOR") ?: if (isCI) "PROD" else "DEV")
+val buildFlavor = BuildFlavor.valueOf(
+    project.properties["tm_build_flavor"] as? String
+        ?: System.getenv("TM_BUILD_FLAVOR")
+        ?: if (isCI) "PROD" else "DEV"
+)
+
+val downloadsDisabled = when (
+    project.properties["tm_disable_downloads"] as? String
+        ?: System.getenv("TM_DISABLE_DOWNLOADS")
+        ?: "false"
+) {
+    "true" -> true
+    "false" -> false
+    else -> throw IllegalArgumentException("Unknown TIM disable downloads option, expected true or false")
+}
 
 registerMultiplatformLicensesTasks { licenseTask, target, variant ->
     // TODO: move this into c2x-conventions eventually
     val targetName = target.targetName
-    val buildConfigTask =
-        tasks.register("generateBuildConfig${targetName.capitalized()}${variant.capitalized()}") {
-            dependsOn(licenseTask)
-            group = "build config"
-            val generatedSrc =
-                layout.buildDirectory.dir("generatedSrc/${targetName}Main/kotlin")
-            doLast {
-                val outputFile = generatedSrc.get()
-                    .dir(appId.replace(".", "/"))
-                    .file("BuildConfig.kt")
-                val quotes = "\"\"\""
-                val licencesString = licenseTask.get().outputFile.get().asFile.readText()
-                    .replace("$", "\${'$'}")
-                    .replace(quotes, "")
+    val buildConfigTask = tasks.register("generateBuildConfig${targetName.capitalized()}${variant.capitalized()}") {
+        dependsOn(licenseTask)
+        group = "build config"
+        inputs.property("tm_build_flavor", buildFlavor)
+        inputs.property("tm_disable_downloads", downloadsDisabled)
+        val generatedSrc =
+            layout.buildDirectory.dir("generatedSrc/${targetName}Main/kotlin")
+        doLast {
+            val outputFile = generatedSrc.get()
+                .dir(appId.replace(".", "/"))
+                .file("BuildConfig.kt")
+            val quotes = "\"\"\""
+            val licencesString = licenseTask.get().outputFile.get().asFile.readText()
+                .replace("$", "\${'$'}")
+                .replace(quotes, "")
 
-                val buildConfigString =
-                    """
-            package $appId
-
+            val buildConfigString =
+                """
+            package $appId            
+            
             actual val BuildConfig: CommonBuildConfig = object : CommonBuildConfig {
                 override val version: String = "$version"
                 override val flavor: Flavor = Flavor.valueOf("$buildFlavor")
                 override val appName: String = "$appName"
                 override val appId: String = "$appId"
                 override val licenses: String = $quotes$licencesString$quotes
+                override val downloadsDisabled: Boolean = $downloadsDisabled
             }
         """.trimIndent()
-                outputFile.asFile.apply {
-                    ensureParentDirsCreated()
-                    createNewFile()
-                    writeText(buildConfigString)
-                }
+            outputFile.asFile.apply {
+                ensureParentDirsCreated()
+                createNewFile()
+                writeText(buildConfigString)
             }
-            outputs.dirs(generatedSrc)
         }
+        outputs.dirs(generatedSrc)
+    }
     kotlin.sourceSets.named("${targetName}Main") {
         kotlin.srcDir(buildConfigTask.map { it.outputs })
     }
@@ -87,12 +103,26 @@ kotlin {
         }
         binaries.executable()
     }
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            export(libs.decompose)
+            export(libs.essenty.lifecycle)
+            baseName = "TrixnityMessengerUI"
+            isStatic = true
+        }
+    }
 
     sourceSets {
         commonMain {
             dependencies {
                 implementation(projects.trixnityMessengerComposeView)
                 implementation(compose.components.resources)
+                api(libs.decompose) // needed for export to iOS
+                api(libs.essenty.lifecycle) // needed for export to iOS
             }
         }
         val desktopMain by getting {

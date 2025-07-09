@@ -41,8 +41,7 @@ import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerIcons
-import de.connect2x.trixnity.messenger.util.BMP
-import de.connect2x.trixnity.messenger.util.Webp
+import de.connect2x.trixnity.messenger.util.SupportedMimeTypes
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.ktor.http.*
 import kotlinx.coroutines.delay
@@ -55,15 +54,8 @@ class ImageTimelineElementDetailsView :
         RoomMessageTimelineElementViewModel.FileBased.Image::class
 
     // JPEG, PNG, BMP, WEBP (based on decodeToImageBitmap())
-    override fun supportsMimeType(mimeType: ContentType): Boolean {
-        return listOf(
-            ContentType.Image.JPEG,
-            ContentType.Image.PNG,
-            ContentType.Image.BMP,
-            ContentType.Image.Webp,
-            ContentType.Image.GIF // gifs can be rendered statically (first frame)
-        ).any { it.match(mimeType) }
-    }
+    override fun supportsMimeType(mimeType: ContentType): Boolean =
+        SupportedMimeTypes.isSupportedImage(mimeType)
 
     @OptIn(ExperimentalResourceApi::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
     @Composable
@@ -97,7 +89,7 @@ class ImageTimelineElementDetailsView :
             val focusRequester = remember { FocusRequester() }
             BoxWithConstraints(Modifier.zIndex(0.0f)) {
                 with(LocalDensity.current) {
-                    val bitmap = remember {
+                    val bitmap = remember(media) {
                         media?.toImageBitmap(
                             width = this@BoxWithConstraints.maxWidth.roundToPx(),
                             height = this@BoxWithConstraints.maxHeight.roundToPx(),

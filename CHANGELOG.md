@@ -13,19 +13,102 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Move to room with active verification, when verification with user is already running
-- Disable start user verification option when one is already running
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
-- Show correct error message on corrupt files
 - Big overlay adding wide border to image message bubbles
 
 ### Security
+
+## 3.6.12
+
+### Added
+
+- Support for building for iOS x64
+
+### Changed
+
+- Send correct image size when uploading images on web
+
+### Fixed
+
+- Boostrap wizard graphics are not inverted and have visible background
+- Don't block opening room database
+- Remove timeline flickering due to switching between image fallback and thumbnail in reply elements
+- Fix root lifecycle not starting
+- Back Button doesn't work in BlockedContacts view, when focussing a pdf and in the Wizards
+- Export not working in web
+- Don't export media when downloads are disabled
+- Escape CSV export with additional '
+
+## 3.6.11
+
+### Added
+
+- More features in the iOS UI
+- MatrixMultiMessenger.closeSuspending() to wait for every operation in Trixnity Messenger to be finished (in comparison
+  to close() which will fire and forget and thus could give the impression that all operations are finished which might
+  not be the case)
+
+### Changed
+
+- Rename observeAsSate to observeAsState
+- Update Trixnity from 4.16.8 to 4.16.9
+
+### Fixed
+
+- Show error to user when room list element action failed
+- Forgetting room when declining invite to deleted room
+- Image detail view now displays image the first time it is opened
+- PDF details view displays valid PDFs again
+- Reopening PDF details view does not trigger download again
+
+## 3.6.10
+
+### Changed
+
+- Updated Trixnity from 4.16.7 to 4.16.8
+
+### Fixed
+
+- Update room database to support iOS shared storage
+
+## 3.6.9
+
+### Fixed
+
+- Don't block opening room database
+
+## 3.6.8
+
+### Added
+
+- Disable downloads by build environment variable
+
+### Changed
+
+- Updated Trixnity from 4.16.5 to 4.16.7
+- Updated various dependencies (important: kotlin-wrappers updated to 2025.6.9)
+
+### Fixed
+
+- Unsupported image mime types are treated as images
+- link colour in privacy and imprint page
+
+## 3.6.7
+
+### Changed
+
+- Move to room with active verification, when verification with user is already running
+- Disable start user verification option when one is already running
+
+### Fixed
+
+- Show correct error message on corrupt files
+- Fix database encryption problem when app was in background mode
 
 ## 3.6.6
 

@@ -251,8 +251,7 @@ class TimelineElementHolderViewModelImpl(
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
     override val isReplaced: StateFlow<Boolean> =
-        if (!ignoreReplacedEvents) MutableStateFlow(false).asStateFlow()
-        else combine(
+        combine(
             newContentIfReplaced,
             matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId)
         ) { newContentIfReplaced, replaceAggregation ->

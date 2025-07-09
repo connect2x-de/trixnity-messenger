@@ -18,7 +18,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -42,7 +41,7 @@ import net.folivo.trixnity.core.model.events.m.key.verification.VerificationMeth
 fun BoxScope.DeviceVerificationWizardStepSwitch(
     viewModel: VerificationViewModel
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val selectedVerificationMethod =
         remember { mutableStateOf<VerificationMethod?>(null) }
     val child = viewModel.stack.subscribeAsState().value.active.instance

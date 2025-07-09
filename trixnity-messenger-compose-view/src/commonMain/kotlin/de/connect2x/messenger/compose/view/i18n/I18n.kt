@@ -26,9 +26,19 @@ open class I18nView(
         DE - "Archiviert"
     }
 
+    open fun commonError() = translate {
+        EN - "Error"
+        DE - "Fehler"
+    }
+
     open fun commonContextMenu() = translate {
         EN - "context menu"
         DE - "Kontextmenü"
+    }
+
+    open fun commonButtonDisabled() = translate {
+        EN - "This option is deactivated"
+        DE - "Diese Option ist deaktiviert"
     }
 
     open fun commonInactive() = translate {
