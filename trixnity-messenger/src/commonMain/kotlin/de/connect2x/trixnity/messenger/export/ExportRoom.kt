@@ -68,6 +68,7 @@ interface ExportRoom {
         roomId: RoomId,
         properties: ExportRoomSinkProperties,
         matrixClient: MatrixClient,
+        includeMedia: Boolean,
         rangeStartCondition: ExportRoomRangeStartCondition = ExportRoomRangeStartCondition.firstEvent(),
         rangeEndCondition: ExportRoomRangeEndCondition = ExportRoomRangeEndCondition.lastEvent(),
         progress: MutableStateFlow<ExportRoomProgress> = MutableStateFlow(ExportRoomProgress()),
@@ -85,6 +86,7 @@ class ExportRoomImpl(
         roomId: RoomId,
         properties: ExportRoomSinkProperties,
         matrixClient: MatrixClient,
+        includeMedia: Boolean,
         rangeStartCondition: ExportRoomRangeStartCondition,
         rangeEndCondition: ExportRoomRangeEndCondition,
         progress: MutableStateFlow<ExportRoomProgress>,
@@ -94,7 +96,6 @@ class ExportRoomImpl(
     ): ExportRoomResult {
         log.info { "export of $roomId started" }
         progress.value = ExportRoomProgress()
-
         val sink = sinkFactories.firstNotNullOfOrNull { it.create(roomId, properties) }
             ?: return ExportRoomResult.PropertiesNotSupported(properties::class)
         val lastEventId = matrixClient.room.getById(roomId).firstOrNull()?.lastEventId
@@ -161,8 +162,12 @@ class ExportRoomImpl(
                                         null
                                     }
                             val media = when {
-                                mediaUrl != null -> matrixClient.media.getMedia(mediaUrl, saveToCache = false)
-                                mediaFile != null -> matrixClient.media.getEncryptedMedia(
+                                mediaUrl != null && includeMedia -> matrixClient.media.getMedia(
+                                    mediaUrl,
+                                    saveToCache = false
+                                )
+
+                                mediaFile != null && includeMedia -> matrixClient.media.getEncryptedMedia(
                                     mediaFile,
                                     saveToCache = false
                                 )

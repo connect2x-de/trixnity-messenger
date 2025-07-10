@@ -153,7 +153,7 @@ val matrixMessenger = MatrixMessenger.create {
 }
 ```
 
-Some configuration options for the Matrix Messenger can also be changed via properties at build time, e.g. `TM_DISABLE_DOWNLOADS` to prohibit the download of files from the Messenger.
+Some configuration options for the Matrix Messenger can also be changed via properties at build time, e.g. `tm_disable_downloads` to prohibit the download of files from the Messenger.
 
 ### MatrixClientConfiguration
 
