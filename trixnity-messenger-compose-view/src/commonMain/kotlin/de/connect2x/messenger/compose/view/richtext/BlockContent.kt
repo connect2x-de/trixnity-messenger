@@ -44,19 +44,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.common.HorizontalScrollableMeasurePolicy
-import de.connect2x.messenger.compose.view.richtext.html.TableContent
 import de.connect2x.messenger.compose.view.richtext.html.ListScope
-import net.folivo.trixnity.core.model.Mention
+import de.connect2x.messenger.compose.view.richtext.html.TableContent
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
+import kotlinx.coroutines.flow.StateFlow
 
 data class RichTextContext(
     val listScope: ListScope? = null,
     val preformatted: Boolean = false,
     val textLinkStyles: TextLinkStyles? = null,
     val spoilerStyles: TextLinkStyles? = null,
-    var mentions: MutableSet<String> = mutableSetOf(),
+    val mentions: StateFlow<Map<String, TimelineElementMention?>>? = null,
     val onCopy: (String) -> Unit = {},
     val onLinkClick: (String) -> Unit = {},
-    val onMentionClick: (Mention) -> Unit = {},
+    val onMentionClick: (TimelineElementMention) -> Unit = {},
 )
 
 @Composable

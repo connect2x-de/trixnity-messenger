@@ -87,6 +87,7 @@ data class ComponentStyles(
     val secondaryChip: ChipStyle,
     val commonChip: ChipStyle,
     val destructiveChip: ChipStyle,
+    val mentionChip: ChipStyle,
 )
 
 internal val LocalComponentStyles = staticCompositionLocalOf<ComponentStyles> { error("compositionLocal not defined") }

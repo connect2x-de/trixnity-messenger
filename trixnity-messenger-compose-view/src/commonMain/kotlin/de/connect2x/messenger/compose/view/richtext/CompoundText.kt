@@ -26,7 +26,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import kotlin.math.roundToInt
 
-const val INLINE_CONTENT_TAG = "de.connect2x.messenger.compose.view.richtext.inlineContent"
+// This must match exactly
+internal const val INLINE_CONTENT_TAG = "androidx.compose.foundation.text.inlineContent"
 
 @Immutable
 internal data class CompoundTextContext(
@@ -65,26 +66,36 @@ internal data class CompoundTextContext(
 internal fun CompoundText(
     modifier: Modifier = Modifier,
     content: AnnotatedString,
-    onMeasure: CompoundTextContext.(String) -> Placeholder,
+    onMeasure: CompoundTextContext.(String) -> Placeholder?,
     onRender: @Composable (String) -> Unit,
 ) {
     val replaceables = remember(content) {
         content.getStringAnnotations(INLINE_CONTENT_TAG, 0, content.length)
     }
+
     val density = LocalDensity.current
     val textStyle = LocalTextStyle.current
     val layoutDirection = LocalLayoutDirection.current
     val measurer = rememberTextMeasurer()
+
     val context = remember(density, textStyle, layoutDirection, measurer) {
         CompoundTextContext(density, textStyle, layoutDirection, measurer)
     }
-    val inlineContent = remember(replaceables, context) {
-        replaceables.associate {
-            it.item to InlineTextContent(context.onMeasure(it.item), {})
+    val inlineContent = remember(replaceables, context, onMeasure) {
+        mutableMapOf<String, InlineTextContent>().apply {
+            for (replaceable in replaceables) {
+                val measurement = context.onMeasure(replaceable.item)
+                if (measurement != null) {
+                    put(replaceable.item, InlineTextContent(measurement, {}))
+                }
+            }
         }
     }
     val placeholders = remember(inlineContent, content) {
         content.resolveInlineContent(inlineContent)
+    }
+    val policy = remember(content, placeholders, context) {
+        MentionMeasurePolicy(content, placeholders, context)
     }
     if (content.isNotBlank()) {
         Box(modifier) {
@@ -94,7 +105,7 @@ internal fun CompoundText(
             )
             if (placeholders.isNotEmpty()) {
                 Layout(
-                    measurePolicy = MentionMeasurePolicy(content, placeholders, context),
+                    measurePolicy = policy,
                     content = {
                         for (index in placeholders.indices) {
                             onRender(placeholders[index].first)

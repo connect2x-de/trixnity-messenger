@@ -12,7 +12,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.style.TextDecoration
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
-import net.folivo.trixnity.core.model.Mention
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
+import kotlinx.coroutines.flow.StateFlow
 
 data class RichTextColors(
     val linkColor: Color,
@@ -33,18 +34,20 @@ data class RichTextColors(
 @Composable
 fun RichTextDisplay(
     document: HtmlNode.HtmlElement,
+    mentions: StateFlow<Map<String, TimelineElementMention?>>? = null,
     modifier: Modifier = Modifier.Companion,
     colors: RichTextColors = RichTextColors.default(),
     onCopy: (String) -> Unit = {},
     onLinkClick: (String) -> Unit = {},
-    onMentionClick: (Mention) -> Unit = {},
+    onMentionClick: (TimelineElementMention) -> Unit = {},
 ) {
-    val richText = remember(document) { RichTextVisitor.process(document) }
+    val richText = remember(document) { RichTextVisitor().process(document) }
 
     val textColor = LocalTextStyle.current.color
 
     val context = remember(colors.linkColor) {
         RichTextContext(
+            mentions = mentions,
             onCopy = onCopy,
             onLinkClick = onLinkClick,
             onMentionClick = onMentionClick,

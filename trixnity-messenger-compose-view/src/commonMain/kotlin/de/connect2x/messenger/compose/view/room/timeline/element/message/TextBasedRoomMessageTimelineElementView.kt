@@ -93,7 +93,8 @@ private fun MessageTextContent(
         }
 
         RichTextDisplay(
-            bodyContent,
+            document = bodyContent,
+            mentions = element.mentionsInFormattedBody,
             modifier = Modifier.padding(16.dp)
                 .pointerInput(Unit) {
                     detectTapGestures(

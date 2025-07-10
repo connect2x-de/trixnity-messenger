@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -143,20 +144,24 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
             }
         }
 
+    private suspend fun findRoomAlias(roomAliasId: RoomAliasId): RoomId? =
+        matrixClient.room.getAll().first().firstNotNullOfOrNull { (roomId, _) ->
+            val aliasEvent = matrixClient.room.getState<CanonicalAliasEventContent>(roomId).first()?.content
+                ?: return@firstNotNullOfOrNull null
+
+            if (aliasEvent.alias == roomAliasId || aliasEvent.aliases?.contains(roomAliasId) == true) roomId
+            else null
+        }
+
+    private suspend fun lookupRoomAlias(roomAliasId: RoomAliasId): RoomId? =
+        matrixClient.api.room.getRoomAlias(roomAliasId).getOrNull()?.roomId
+
     private suspend fun parseRoom(
         roomAliasId: RoomAliasId,
         matrixClient: MatrixClient,
         initials: Initials,
     ): Flow<RoomInfoElement?> {
-        val foundRoomId = matrixClient.room.getAll().first()
-            .firstNotNullOfOrNull { (roomId, _) ->
-                val aliasEvent = matrixClient.room.getState<CanonicalAliasEventContent>(roomId).first()?.content
-                    ?: return@firstNotNullOfOrNull null
-
-                if (aliasEvent.alias == roomAliasId || aliasEvent.aliases?.contains(roomAliasId) == true) roomId
-                else null
-            } ?: matrixClient.api.room.getRoomAlias(roomAliasId).getOrNull()?.roomId ?: return flowOf(null)
-        return parseRoom(foundRoomId, matrixClient, initials, roomAliasId)
+        val roomId = findRoomAlias(roomAliasId) ?: lookupRoomAlias(roomAliasId) ?: return flowOf(null)
+        return parseRoom(roomId, matrixClient, initials, roomAliasId)
     }
-
 }
