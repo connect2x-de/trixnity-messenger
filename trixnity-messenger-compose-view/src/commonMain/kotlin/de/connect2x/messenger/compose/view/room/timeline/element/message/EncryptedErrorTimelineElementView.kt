@@ -18,7 +18,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.EncryptedErrorTimelineElementViewModel
 import kotlin.reflect.KClass
 
-class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTimelineElementViewModel> {
+interface EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTimelineElementViewModel>
+
+class EncryptedErrorTimelineElementViewImpl : EncryptedErrorTimelineElementView {
     override val supports: KClass<EncryptedErrorTimelineElementViewModel> =
         EncryptedErrorTimelineElementViewModel::class
 
@@ -70,7 +72,8 @@ class EncryptedErrorTimelineElementView : TimelineElementView<EncryptedErrorTime
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
-        element: EncryptedErrorTimelineElementViewModel) {
+        element: EncryptedErrorTimelineElementViewModel
+    ) {
         ReferencedMessagePill(
             holder = holder,
             content = {

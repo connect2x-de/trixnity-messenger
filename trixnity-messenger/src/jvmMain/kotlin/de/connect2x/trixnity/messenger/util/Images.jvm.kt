@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
+import io.ktor.http.ContentType
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -11,13 +12,13 @@ import javax.imageio.ImageIO
 
 actual fun platformGetImageDimensionsModule(): Module = module {
     single<GetImageDimensions> {
-        GetImageDimensions { byteArrayFlow, maxSize ->
-            getImageDimensions(byteArrayFlow, maxSize)
+        GetImageDimensions { byteArrayFlow, maxSize, mimeType ->
+            getImageDimensions(byteArrayFlow, maxSize, mimeType)
         }
     }
 }
 
-suspend fun getImageDimensions(byteArrayFlow: ByteArrayFlow, maxMediaSize: Long): Pair<Int?, Int?> {
+suspend fun getImageDimensions(byteArrayFlow: ByteArrayFlow, maxMediaSize: Long, mimeType: ContentType?): Pair<Int?, Int?> {
     val inputStream = byteArrayFlow.toByteReadChannel().toInputStream()
     return withContext(Dispatchers.IO) {
         try {

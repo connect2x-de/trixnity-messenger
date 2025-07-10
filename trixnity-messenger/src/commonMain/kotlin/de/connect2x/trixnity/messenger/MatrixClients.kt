@@ -270,7 +270,7 @@ class MatrixClientsImpl(
             log.info { "delete account data on this machine" }
             val matrixClient = matrixClients.value[userId]
             val coroutineScope = matrixClient?.di?.get<CoroutineScope>()
-            matrixClient?.close()
+            matrixClient?.closeSuspending()
             coroutineScope?.coroutineContext?.job?.join()
 
             settings.delete(userId)

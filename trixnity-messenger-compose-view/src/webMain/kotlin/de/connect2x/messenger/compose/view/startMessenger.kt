@@ -1,29 +1,20 @@
 package de.connect2x.messenger.compose.view
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.CanvasBasedWindow
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.decompose.InternalDecomposeApi
-import com.arkivanov.decompose.lifecycle.MergedLifecycle
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import com.arkivanov.essenty.lifecycle.destroy
+import de.connect2x.messenger.compose.view.profiles.rememberRootViewModel
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
-import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
-import de.connect2x.trixnity.messenger.createRoot
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.create
 import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
-import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.KotlinLoggingConfiguration
 import io.github.oshai.kotlinlogging.Level
@@ -122,8 +113,10 @@ suspend fun startMessenger(
                         CompositionLocalProvider(
                             DI provides matrixMessenger.di,
                         ) {
-                            MessengerTheme {
-                                Client(rootViewModel)
+                            if (rootViewModel != null) {
+                                MessengerTheme {
+                                    Client(rootViewModel)
+                                }
                             }
                             Notifications(matrixMessenger) {
                                 // TODO: make URI call to open chat
@@ -141,24 +134,6 @@ suspend fun startMessenger(
             throw e
         }
     }
-}
-
-@OptIn(InternalDecomposeApi::class)
-@Composable
-private fun rememberRootViewModel(
-    matrixMessenger: MatrixMessenger,
-    deviceLifecycle: LifecycleRegistry
-): RootViewModel {
-    val ownLifecycle = remember(matrixMessenger) { LifecycleRegistry() }
-    val rootViewModel = remember(matrixMessenger) {
-        matrixMessenger.createRoot(DefaultComponentContext(MergedLifecycle(ownLifecycle, deviceLifecycle)))
-    }
-    DisposableEffect(matrixMessenger) {
-        onDispose {
-            ownLifecycle.destroy()
-        }
-    }
-    return rootViewModel
 }
 
 private fun LifecycleRegistry.updateState(visible: Boolean, focused: Boolean) {

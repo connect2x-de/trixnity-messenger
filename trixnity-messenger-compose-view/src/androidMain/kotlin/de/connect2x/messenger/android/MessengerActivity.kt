@@ -117,7 +117,7 @@ class MessengerActivity : AppCompatActivity() {
                         activeMessengerOnce = { _, _ -> },
                         activeMessenger = { matrixMessenger, rootViewModel ->
                             val lifeCycleState =
-                                androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
+                                androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsState()
                             val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
                             CompositionLocalProvider(
                                 Platform provides PlatformType.ANDROID,
@@ -142,7 +142,7 @@ class MessengerActivity : AppCompatActivity() {
                     ) { existingProfiles ->
                         val showProfileCreation = remember { mutableStateOf(false) }
                         val lifeCycleState =
-                            androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
+                            androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsState()
                         val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
                         CompositionLocalProvider(
                             Platform provides PlatformType.ANDROID,
@@ -245,15 +245,15 @@ class MessengerActivity : AppCompatActivity() {
 }
 
 @Composable
-fun Lifecycle.observeAsSate(): State<Lifecycle.Event> {
+fun Lifecycle.observeAsState(): State<Lifecycle.Event> {
     val state = remember { mutableStateOf(Lifecycle.Event.ON_ANY) }
     DisposableEffect(this) {
         val observer = LifecycleEventObserver { _, event ->
             state.value = event
         }
-        this@observeAsSate.addObserver(observer)
+        this@observeAsState.addObserver(observer)
         onDispose {
-            this@observeAsSate.removeObserver(observer)
+            this@observeAsState.removeObserver(observer)
         }
     }
     return state

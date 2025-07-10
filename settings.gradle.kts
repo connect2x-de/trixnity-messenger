@@ -4,6 +4,8 @@ include(
     "trixnity-messenger",
     "integrationtests",
     "emojis",
+    "wrappers-zipjs",
+    "wrappers-pdfjs",
     "trixnity-messenger-compose-view",
     "trixnity-messenger-compose-app",
 )

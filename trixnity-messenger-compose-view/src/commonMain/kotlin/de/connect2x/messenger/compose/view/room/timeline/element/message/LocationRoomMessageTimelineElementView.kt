@@ -19,8 +19,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.Location
 import kotlin.reflect.KClass
 
+interface LocationRoomMessageTimelineElementView : TimelineElementView<Location>
 
-class LocationRoomMessageTimelineElementView : TimelineElementView<Location> {
+class LocationRoomMessageTimelineElementViewImpl : LocationRoomMessageTimelineElementView {
     override val supports: KClass<Location> =
         Location::class
 
@@ -70,12 +71,12 @@ fun LocationMessageElement(
         isPreview = isPreview,
     ) { showMenuAction ->
         // on Desktop and Web, it makes sense to select text and copy it;
-        // on Android, this will consume long tap events, which we use for the context menu
+        // on Android and iOS, this will consume long tap events, which we use for the context menu
         when (Platform.current) {
+            PlatformType.ANDROID, PlatformType.IOS -> LocationMessageContent(element, showMenuAction)
             PlatformType.DESKTOP, PlatformType.WEB -> SelectionContainer {
                 LocationMessageContent(element, showMenuAction)
             }
-            PlatformType.ANDROID -> LocationMessageContent(element, showMenuAction)
         }
     }
 }

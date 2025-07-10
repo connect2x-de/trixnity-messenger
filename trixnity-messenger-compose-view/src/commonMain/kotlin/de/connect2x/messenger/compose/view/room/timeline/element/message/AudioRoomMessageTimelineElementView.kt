@@ -39,7 +39,9 @@ import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
-class AudioRoomMessageTimelineElementView : TimelineElementView<Audio> {
+interface AudioRoomMessageTimelineElementView : TimelineElementView<Audio>
+
+class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementView {
     override val supports: KClass<Audio> =
         Audio::class
 

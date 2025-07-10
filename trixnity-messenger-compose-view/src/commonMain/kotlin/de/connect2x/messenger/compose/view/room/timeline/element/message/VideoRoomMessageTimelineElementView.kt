@@ -45,7 +45,9 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
-class VideoRoomMessageTimelineElementView : TimelineElementView<Video> {
+interface VideoRoomMessageTimelineElementView : TimelineElementView<Video>
+
+class VideoRoomMessageTimelineElementViewImpl : VideoRoomMessageTimelineElementView {
     override val supports: KClass<Video> =
         Video::class
 

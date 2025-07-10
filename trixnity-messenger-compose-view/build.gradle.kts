@@ -49,6 +49,11 @@ kotlin {
         binaries.library()
         generateTypeScriptDefinitions()
     }
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    )
 
     sourceSets {
         val commonMain by getting {
@@ -101,6 +106,7 @@ kotlin {
                 implementation(project.dependencies.platform(libs.kotlin.wrappers.bom))
                 implementation(libs.kotlin.browser)
                 implementation(libs.filekit.core)
+                implementation(project(":wrappers-pdfjs"))
             }
         }
 
