@@ -39,7 +39,7 @@ fun RichTextDisplay(
     onLinkClick: (String) -> Unit = {},
     onMentionClick: (Mention) -> Unit = {},
 ) {
-    val richText = rememberRichText(document)
+    val richText = remember(document) { RichTextVisitor.process(document) }
 
     val textColor = LocalTextStyle.current.color
 
