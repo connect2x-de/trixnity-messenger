@@ -1,7 +1,7 @@
 package de.connect2x.messenger
 
+import de.connect2x.messenger.compose.view.notifications.NotificationHandlerProvider
 import de.connect2x.messenger.compose.view.composeViewModule
-import de.connect2x.messenger.compose.view.createNotificationHandler
 import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -15,7 +15,7 @@ import org.koin.dsl.module
 
 fun messengerConfiguration(
     customConfig: MatrixMultiMessengerConfiguration.() -> Unit = {},
-): MatrixMultiMessengerConfiguration.() -> Unit = {
+): MatrixMultiMessengerConfiguration.() -> Unit = configScope@{
     appName = BuildConfig.appName
     appId = BuildConfig.appId
     privacyInfo = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
@@ -24,12 +24,22 @@ fun messengerConfiguration(
     sendLogsEmailAddress = null
     urlProtocol = BuildConfig.appId
 
-    val notificationHandler = createNotificationHandler(this)
+    val notificationHandlerProvider = NotificationHandlerProvider.lazy { subId ->
+        NotificationHandler(
+            name = appName,
+            id = "$appId.$subId",
+            appId = appId,
+            isDebugEnabled = notificationsDebugEnabled
+        )
+    }
+
     modulesFactories += listOf(
         { composeViewModule(null) },
-        { module {
-            single<NotificationHandler> { notificationHandler }
-        } },
+        {
+            module {
+                single<NotificationHandlerProvider> { notificationHandlerProvider }
+            }
+        },
         // TODO this needs to be removed and fixed, as there is no MatrixMessengerSettingsHolderImpl at MultiMessenger level!
         ::platformMatrixMessengerSettingsHolderModule,
         // TODO there should be a more clean way for I18n
@@ -60,9 +70,11 @@ fun messengerConfiguration(
     messengerConfiguration {
         modulesFactories += listOf(
             { composeViewModule(this) },
-            { module {
-                single<NotificationHandler> { notificationHandler }
-            } }
+            {
+                module {
+                    single<NotificationHandlerProvider> { notificationHandlerProvider }
+                }
+            }
         )
         downloadsDisabled = BuildConfig.downloadsDisabled
         when (BuildConfig.flavor) {

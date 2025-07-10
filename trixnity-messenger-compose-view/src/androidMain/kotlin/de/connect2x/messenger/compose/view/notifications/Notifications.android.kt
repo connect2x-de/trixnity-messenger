@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view
+package de.connect2x.messenger.compose.view.notifications
 
 import de.connect2x.sysnotify.Notification
 import de.connect2x.sysnotify.NotificationHandler

@@ -7,6 +7,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.CanvasBasedWindow
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.messenger.compose.view.notifications.Notifications
 import de.connect2x.messenger.compose.view.profiles.rememberRootViewModel
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
@@ -118,7 +119,7 @@ suspend fun startMessenger(
                                     Client(rootViewModel)
                                 }
                             }
-                            Notifications(matrixMessenger) {
+                            Notifications(matrixMessenger, matrixMultiMessenger.activeProfile.value ?: "default") {
                                 // TODO: make URI call to open chat
                             }
                         }

@@ -24,7 +24,7 @@ import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
-import de.connect2x.messenger.compose.view.Notifications
+import de.connect2x.messenger.compose.view.notifications.Notifications
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
 import de.connect2x.messenger.compose.view.profiles.Profiles
@@ -132,7 +132,7 @@ fun CoroutineScope.messengerApp(
                             Client(rootViewModel)
                         }
 
-                        Notifications(matrixMessenger) {
+                        Notifications(matrixMessenger, matrixMultiMessenger.activeProfile.value ?: "default") {
                             withActivationHandler { notification ->
                                 // First bring up the window manually since desktop doesn't handle this consistently
                                 window.state = Frame.NORMAL

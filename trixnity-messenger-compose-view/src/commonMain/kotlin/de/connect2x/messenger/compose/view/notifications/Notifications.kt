@@ -1,7 +1,10 @@
-package de.connect2x.messenger.compose.view
+package de.connect2x.messenger.compose.view.notifications
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.IsFocused
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.util.decodeImageRGBA8888
 import de.connect2x.sysnotify.Notification
@@ -12,7 +15,6 @@ import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.currentImmediateDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -41,22 +43,16 @@ import net.folivo.trixnity.core.model.push.PushAction
 
 private val log = KotlinLogging.logger { }
 
-fun createNotificationHandler(config: MatrixMultiMessengerConfiguration): NotificationHandler {
-    return NotificationHandler(
-        name = config.appName,
-        id = config.appId,
-        isDebugEnabled = config.notificationsDebugEnabled
-    )
-}
-
 @Composable
 fun Notifications(
     matrixMessenger: MatrixMessenger,
+    profileId: String,
     initCallback: NotificationHandler.() -> Unit = {}
 ) {
     val i18n = DI.get<I18nView>()
     LaunchedEffect(Unit) {
-        val notificationHandler = matrixMessenger.di.get<NotificationHandler>()
+        val notificationHandlerProvider = matrixMessenger.di.get<NotificationHandlerProvider>()
+        val notificationHandler = notificationHandlerProvider(profileId)
         notificationHandler.initCallback()
         matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
             .map { it.base.accounts }
@@ -79,7 +75,7 @@ fun Notifications(
         withContext(currentImmediateDispatcher()) {
             log.debug { "window is focused: $windowIsFocused" }
             val roomNameComputation = matrixMessenger.di.get<RoomName>()
-            val notificationHandler = matrixMessenger.di.get<NotificationHandler>()
+            val notificationHandler = matrixMessenger.di.get<NotificationHandlerProvider>()(profileId)
             whenSyncIsRunning(matrixMessenger, windowIsFocused, roomNameComputation, notificationHandler, i18n)
         }
     }
