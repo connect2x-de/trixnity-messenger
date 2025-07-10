@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.style.TextDecoration
-import de.connect2x.messenger.compose.view.richtext.html.rememberHtml
+import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import net.folivo.trixnity.core.model.Mention
 
 data class RichTextColors(
@@ -32,14 +32,13 @@ data class RichTextColors(
 
 @Composable
 fun RichTextDisplay(
-    text: String,
+    document: HtmlNode.HtmlElement,
     modifier: Modifier = Modifier.Companion,
     colors: RichTextColors = RichTextColors.default(),
     onCopy: (String) -> Unit = {},
     onLinkClick: (String) -> Unit = {},
     onMentionClick: (Mention) -> Unit = {},
 ) {
-    val document = rememberHtml(text)
     val richText = rememberRichText(document)
 
     val textColor = LocalTextStyle.current.color

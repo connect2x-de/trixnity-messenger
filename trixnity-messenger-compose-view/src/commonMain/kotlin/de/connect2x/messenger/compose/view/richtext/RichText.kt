@@ -2,7 +2,7 @@ package de.connect2x.messenger.compose.view.richtext
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import de.connect2x.messenger.compose.view.richtext.html.HtmlNode
+import de.connect2x.trixnity.messenger.util.html.HtmlNode
 
 sealed interface RichText {
     data class Block(
@@ -18,11 +18,12 @@ sealed interface RichText {
             val tag: String,
             val attributes: Map<String, String>,
             val children: List<Inline>,
+            val rawContent: String? = null,
         ) : Inline
 
         data class Text(
-            val fullContent: String,
             val content: String,
+            val rawContent: String? = null,
         ) : Inline
     }
 
@@ -79,11 +80,12 @@ internal fun parseInline(html: HtmlNode.HtmlElement): RichText.Inline.Block =
     RichText.Inline.Block(
         tag = html.tag.lowercase(),
         attributes = html.attributes,
-        children = html.children.map { parseInline(it) }
+        children = html.children.map { parseInline(it) },
+        rawContent = html.rawContent,
     )
 
 internal fun parseInline(html: HtmlNode.TextContent): RichText.Inline.Text =
     RichText.Inline.Text(
-        fullContent = html.fullContent,
         content = html.content,
+        rawContent = html.rawContent,
     )

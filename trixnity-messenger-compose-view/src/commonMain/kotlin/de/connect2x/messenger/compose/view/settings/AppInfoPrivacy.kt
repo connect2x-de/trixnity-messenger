@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.settings
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -10,6 +11,7 @@ import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogScrollContent
 import de.connect2x.messenger.compose.view.theme.components.ThemedAdaptiveDialog
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 
 interface AppInfoPrivacyView {
@@ -28,12 +30,13 @@ class AppInfoPrivacyViewImpl : AppInfoPrivacyView {
         val i18n = DI.get<I18nView>()
         val privacyInfo = DI.get<MatrixMessengerConfiguration>().privacyInfo
         if (privacyInfo != null) {
+            val content = remember(privacyInfo) { HtmlVisitor.process(privacyInfo) }
             ThemedAdaptiveDialog({ appInfoViewModel.showPrivacy.value = false }) {
                 AdaptiveDialogHeader(onClose = { appInfoViewModel.showPrivacy.value = false }) {
                     Text(i18n.appInfoPrivacy())
                 }
                 AdaptiveDialogScrollContent {
-                    RichTextDisplay(privacyInfo)
+                    RichTextDisplay(content)
                 }
             }
         }

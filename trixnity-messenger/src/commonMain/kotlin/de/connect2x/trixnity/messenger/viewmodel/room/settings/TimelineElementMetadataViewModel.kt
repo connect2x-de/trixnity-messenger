@@ -4,6 +4,7 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
+import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel1
@@ -224,9 +225,9 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                     element.value = object : RoomMessageTimelineElementViewModel.TextBased.Text {
                         override val body: String = "Edit 1"
                         override val formattedBody: String? = null
+                        override val formattedBodyContent: HtmlNode.HtmlElement? = null
                         override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-                        override val mentionsInFormattedBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> =
-                            mapOf()
+                        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
 
                         override fun openMention(mention: TimelineElementMention) {}
                     }
@@ -236,9 +237,9 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                     element.value = object : RoomMessageTimelineElementViewModel.TextBased.Text {
                         override val body: String = "Edit 2"
                         override val formattedBody: String? = null
+                        override val formattedBodyContent: HtmlNode.HtmlElement? = null
                         override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-                        override val mentionsInFormattedBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> =
-                            mapOf()
+                        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
 
                         override fun openMention(mention: TimelineElementMention) {}
                     }
@@ -248,9 +249,9 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                     element.value = object : RoomMessageTimelineElementViewModel.TextBased.Text {
                         override val body: String = "Edit 3"
                         override val formattedBody: String? = null
+                        override val formattedBodyContent: HtmlNode.HtmlElement? = null
                         override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-                        override val mentionsInFormattedBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> =
-                            mapOf()
+                        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
 
                         override fun openMention(mention: TimelineElementMention) {}
                     }
@@ -263,8 +264,9 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
             element.value = object : RoomMessageTimelineElementViewModel.TextBased.Text {
                 override val body: String = "Edit 4"
                 override val formattedBody: String? = null
+                override val formattedBodyContent: HtmlNode.HtmlElement? = null
                 override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-                override val mentionsInFormattedBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
+                override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
                 override fun openMention(mention: TimelineElementMention) {}
             }
             sender.value = UserInfoElement(

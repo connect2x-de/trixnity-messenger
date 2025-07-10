@@ -30,6 +30,7 @@ import de.connect2x.messenger.compose.view.richtext.RichTextDisplay
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.messenger.compose.view.theme.messengerColors
+import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
@@ -66,6 +67,16 @@ private fun MessageTextContent(
 ) {
     val i18n = DI.get<I18nView>()
 
+    val bodyContent = remember(element.formattedBodyContent, element.body) {
+        element.formattedBodyContent ?: HtmlNode.HtmlElement(
+            "body",
+            attributes = emptyMap(),
+            children = listOf(
+                HtmlNode.TextContent(element.body, element.body)
+            )
+        )
+    }
+
     Column(Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)) {
         if (element is RoomMessageTimelineElementViewModel.TextBased.Notice) {
             Row {
@@ -82,7 +93,7 @@ private fun MessageTextContent(
         }
 
         RichTextDisplay(
-            element.formattedBody ?: element.body,
+            bodyContent,
             modifier = Modifier.padding(16.dp)
                 .pointerInput(Unit) {
                     detectTapGestures(

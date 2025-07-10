@@ -31,10 +31,9 @@ import net.folivo.trixnity.core.MatrixRegex
 @Composable
 internal fun InlineContent(content: RichText.InlineSpan, context: RichTextContext, first: Boolean) {
     val content = remember(content.children) {
-        val annotatedContent = buildAnnotatedString {
+        buildAnnotatedString {
             Children(content, context, first)
         }
-        autoLinkify(annotatedContent, context)
     }
 
     // TODO
@@ -95,8 +94,11 @@ internal fun AnnotatedString.Builder.inlineContent(
     context: RichTextContext,
     first: Boolean
 ) {
-    val content = if (context.preformatted) node.fullContent else node.content
-    append(if (first) content.trimStart() else content)
+    if (context.preformatted && node.rawContent != null) {
+        append(node.rawContent)
+    } else {
+        append(if (first) node.content.trimStart() else node.content)
+    }
 }
 
 internal fun AnnotatedString.Builder.inlineContent(

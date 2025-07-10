@@ -35,7 +35,12 @@ fun rememberHighlightedCode(node: RichText.Block): HighlightedCode? {
             ?.removePrefix("language-")
     }
     val inlineContent = remember(inlineBlock) {
-        inlineBlock?.children?.singleOrNull() as? RichText.Inline.Text
+        inlineBlock?.rawContent ?: inlineBlock?.children?.singleOrNull()?.let {
+            when (it) {
+                is RichText.Inline.Block -> it.rawContent
+                is RichText.Inline.Text -> it.rawContent
+            }
+        }
     }
 
     val highlightedCode = remember { mutableStateOf<AnnotatedString?>(null) }
@@ -64,7 +69,7 @@ fun rememberHighlightedCode(node: RichText.Block): HighlightedCode? {
 
         if (syntaxLanguage != null && inlineContent != null) {
             try {
-                val content = inlineContent.fullContent.trimEnd()
+                val content = inlineContent.trimEnd()
                 val highlights = Highlights.Builder()
                     .code(content)
                     .theme(SyntaxThemes.darcula())
@@ -93,7 +98,7 @@ fun rememberHighlightedCode(node: RichText.Block): HighlightedCode? {
     return HighlightedCode(
         language = language ?: "Unknown",
         content = highlightedCode.value
-            ?: inlineContent?.fullContent?.let(::AnnotatedString)
+            ?: inlineContent?.let(::AnnotatedString)
             ?: return null
     )
 }

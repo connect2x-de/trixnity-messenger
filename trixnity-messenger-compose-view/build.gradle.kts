@@ -75,7 +75,6 @@ kotlin {
                 implementation(libs.sysnotify)
                 implementation(libs.stately.common)
                 implementation(libs.stately.collections)
-                implementation(libs.ksoup.html)
                 implementation(libs.highlights)
             }
         }
