@@ -4,6 +4,8 @@ import de.connect2x.sysnotify.NotificationHandler
 
 fun interface NotificationHandlerProvider {
     companion object {
+        const val GLOBAL: String = "global" // The subId of the global NotificationHandler instance
+
         inline fun lazy(crossinline block: (String) -> NotificationHandler): NotificationHandlerProvider {
             return object : NotificationHandlerProvider {
                 private var instance: NotificationHandler? = null
