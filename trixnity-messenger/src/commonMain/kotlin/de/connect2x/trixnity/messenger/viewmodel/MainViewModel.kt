@@ -445,7 +445,10 @@ open class MainViewModelImpl(
             }
 
             is TimelineElementMention.Event -> {
+                log.debug { "Opening Room ${timelineElementMention.room.roomId}" }
+                val roomId = timelineElementMention.room.roomId
                 val eventId = timelineElementMention.event.eventId
+                onRoomSelected(userId, roomId)
                 // TODO: implement and open event view
                 log.warn { "EventView to display $eventId not implemented yet" }
             }

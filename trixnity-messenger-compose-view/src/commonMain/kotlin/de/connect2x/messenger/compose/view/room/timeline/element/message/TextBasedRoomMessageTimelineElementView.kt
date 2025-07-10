@@ -30,6 +30,7 @@ import de.connect2x.messenger.compose.view.richtext.RichTextDisplay
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.messenger.compose.view.theme.messengerColors
+import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -66,6 +67,7 @@ private fun MessageTextContent(
     showActionMenu: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
+    val uriCaller = DI.get<UriCaller>()
 
     val bodyContent = remember(element.formattedBodyContent, element.body) {
         element.formattedBodyContent ?: HtmlNode.HtmlElement(
@@ -110,14 +112,8 @@ private fun MessageTextContent(
                 // TODO
                 println("Copy: $it")
             },
-            onLinkClick = {
-                // TODO
-                println("Link: $it")
-            },
-            onMentionClick = {
-                // TODO
-                println("Mention: $it")
-            }
+            onLinkClick = { uriCaller.invoke(it, true) },
+            onMentionClick = element::openMention
         )
     }
 }
