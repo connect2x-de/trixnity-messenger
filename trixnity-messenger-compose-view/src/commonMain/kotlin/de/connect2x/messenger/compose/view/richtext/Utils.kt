@@ -6,21 +6,21 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 
-val Double.em: Dp
+internal val Double.em: Dp
     @Stable
     @Composable
     get() = with (LocalDensity.current) {
         LocalTextStyle.current.fontSize.times(this@em).toDp()
     }
 
-val Float.em: Dp
+internal val Float.em: Dp
     @Stable
     @Composable
     get() = with (LocalDensity.current) {
         LocalTextStyle.current.fontSize.times(this@em).toDp()
     }
 
-val Int.em: Dp
+internal val Int.em: Dp
     @Stable
     @Composable
     get() = with (LocalDensity.current) {

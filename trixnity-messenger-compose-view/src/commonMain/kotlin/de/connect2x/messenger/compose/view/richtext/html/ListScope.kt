@@ -1,6 +1,6 @@
 package de.connect2x.messenger.compose.view.richtext.html
 
-sealed interface ListScope {
+internal sealed interface ListScope {
     fun render(): String
 
     data class OrderedList(

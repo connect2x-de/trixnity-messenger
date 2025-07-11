@@ -2,7 +2,7 @@ package de.connect2x.messenger.compose.view.richtext.html
 
 import de.connect2x.messenger.compose.view.richtext.RichText
 
-data class TableContent(
+internal data class TableContent(
     val headers: List<RichText>,
     val rows: List<List<RichText>>,
     val captions: List<RichText>,

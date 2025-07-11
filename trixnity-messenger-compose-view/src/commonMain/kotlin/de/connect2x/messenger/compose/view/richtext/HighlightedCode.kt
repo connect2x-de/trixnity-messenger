@@ -16,13 +16,13 @@ import dev.snipme.highlights.model.SyntaxLanguage
 import dev.snipme.highlights.model.SyntaxThemes
 
 @Immutable
-data class HighlightedCode(
+internal data class HighlightedCode(
     val language: String,
     val content: AnnotatedString,
 )
 
 @Composable
-fun rememberHighlightedCode(node: RichText.Block): HighlightedCode? {
+internal fun rememberHighlightedCode(node: RichText.Block): HighlightedCode? {
     val inlineSpan = remember(node) {
         node.children.singleOrNull() as? RichText.InlineSpan
     }

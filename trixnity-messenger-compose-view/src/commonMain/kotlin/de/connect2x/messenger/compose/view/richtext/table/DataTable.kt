@@ -38,7 +38,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 
 @Composable
-fun Divider(
+internal fun Divider(
     modifier: Modifier = Modifier,
     thickness: Dp = 1.dp,
     color: Color = Color.LightGray
@@ -57,7 +57,7 @@ fun Divider(
 }
 
 @Composable
-fun DataTable(
+internal fun DataTable(
     columns: ColumnBuilder.() -> Unit,
     modifier: Modifier = Modifier,
     cellPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 5.dp),
@@ -194,13 +194,13 @@ fun DataTable(
     }
 }
 
-data class TableCell(
+internal data class TableCell(
     val composable: @Composable BoxScope.() -> Unit,
     val modifier: Modifier = Modifier,
     val contentAlignment: Alignment = Alignment.CenterStart,
 )
 
-class ColumnBuilderImpl : ColumnBuilder {
+internal class ColumnBuilderImpl : ColumnBuilder {
     val columns = mutableListOf<TableCell>()
     var headerBackground: @Composable (() -> Unit) = @Composable {}
 
@@ -218,7 +218,7 @@ class ColumnBuilderImpl : ColumnBuilder {
 }
 
 @Composable
-fun RowLayout(composable: @Composable () -> Unit) {
+internal fun RowLayout(composable: @Composable () -> Unit) {
     Layout(composable, modifier = Modifier.fillMaxSize()) { measurables, constraints ->
         val placeable = measurables.map { it.measure(constraints) }.first()
         layout(constraints.maxWidth, constraints.maxHeight) {
@@ -228,7 +228,7 @@ fun RowLayout(composable: @Composable () -> Unit) {
 }
 
 
-class RowBuilderImpl(val build: RowBuilderImpl.() -> Unit, val modifier: Modifier = Modifier) : RowBuilder {
+internal class RowBuilderImpl(val build: RowBuilderImpl.() -> Unit, val modifier: Modifier = Modifier) : RowBuilder {
     val cells = mutableListOf<TableCell>()
 
     override fun cell(
@@ -241,7 +241,7 @@ class RowBuilderImpl(val build: RowBuilderImpl.() -> Unit, val modifier: Modifie
 }
 
 
-class RowsBuilderImpl : RowsBuilder {
+internal class RowsBuilderImpl : RowsBuilder {
     val rows = mutableListOf<RowBuilderImpl>()
 
     override fun row(modifier: Modifier, content: RowBuilderImpl.() -> Unit) {

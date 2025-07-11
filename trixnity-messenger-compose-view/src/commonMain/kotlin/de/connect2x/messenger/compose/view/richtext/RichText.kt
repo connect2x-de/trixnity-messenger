@@ -1,6 +1,6 @@
 package de.connect2x.messenger.compose.view.richtext
 
-sealed interface RichText {
+internal sealed interface RichText {
     data class Block(
         val tag: String,
         val attributes: Map<String, String>,

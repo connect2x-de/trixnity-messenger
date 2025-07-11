@@ -29,10 +29,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @DslMarker
-annotation class TableDslBuilder
+internal annotation class TableDslBuilder
 
 @TableDslBuilder
-interface ColumnBuilder {
+internal interface ColumnBuilder {
     fun column(
         modifier: Modifier = Modifier,
         contentAlignment: Alignment = Alignment.CenterStart,
@@ -43,12 +43,12 @@ interface ColumnBuilder {
 }
 
 @TableDslBuilder
-interface RowsBuilder {
+internal interface RowsBuilder {
     fun row(modifier: Modifier = Modifier, content: RowBuilderImpl.() -> Unit)
 }
 
 @TableDslBuilder
-interface RowBuilder {
+internal interface RowBuilder {
     fun cell(
         modifier: Modifier = Modifier,
         contentAlignment: Alignment = Alignment.CenterStart,

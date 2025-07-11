@@ -6,7 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.text.TextLinkStyles
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 
-data class InlineRichTextContext(
+internal data class InlineRichTextContext(
     val preformatted: Boolean = false,
     val textLinkStyles: TextLinkStyles? = null,
     val spoilerStyles: TextLinkStyles? = null,

@@ -2,7 +2,7 @@ package de.connect2x.messenger.compose.view.richtext
 
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 
-class RichTextVisitor {
+internal class RichTextVisitor {
     private val taskQueue = mutableListOf<Task>()
 
     private sealed interface Task {

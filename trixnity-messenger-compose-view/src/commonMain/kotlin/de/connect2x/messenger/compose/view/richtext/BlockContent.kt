@@ -49,7 +49,7 @@ import de.connect2x.messenger.compose.view.richtext.html.TableContent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import kotlinx.coroutines.flow.StateFlow
 
-data class RichTextContext(
+internal data class RichTextContext(
     val listScope: ListScope? = null,
     val preformatted: Boolean = false,
     val textLinkStyles: TextLinkStyles? = null,
@@ -72,7 +72,7 @@ internal fun ColumnScope.Children(node: RichText.Block, context: RichTextContext
 }
 
 @Composable
-fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextContext) {
+internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextContext) {
     when (node.tag) {
         "mx-reply", "head" -> Unit
 
