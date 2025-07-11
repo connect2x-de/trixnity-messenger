@@ -16,6 +16,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.IntrinsicMeasurable
+import androidx.compose.ui.layout.IntrinsicMeasureScope
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.ui.layout.MeasurePolicy
+import androidx.compose.ui.layout.MeasureResult
+import androidx.compose.ui.layout.MeasureScope
+import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
@@ -27,6 +36,87 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
+
+private object MessageBubbleMeasurePolicy : MeasurePolicy {
+    val spacing = 10.dp
+
+    enum class LayoutId {
+        MESSAGE,
+        TIMESTAMP
+    }
+
+    override fun MeasureScope.measure(
+        measurables: List<Measurable>,
+        constraints: Constraints,
+    ): MeasureResult {
+        val spacing = spacing.roundToPx()
+        val message = measurables.firstOrNull { it.layoutId == LayoutId.MESSAGE }?.measure(constraints)
+        requireNotNull(message) { "Cannot layout message bubble without message content" }
+        val date = measurables.firstOrNull { it.layoutId == LayoutId.TIMESTAMP }?.measure(constraints)
+        return date?.let {
+            if (message.width + spacing + date.width < constraints.maxWidth) {
+                // add extra padding to bottom that is missing otherwise
+                val height = message.height + 10.dp.roundToPx()
+                layout(
+                    width = message.width + spacing + date.width,
+                    height = height,
+                ) {
+                    message.place(0, 0)
+                    date.place(
+                        message.width + spacing,
+                        height - date.height
+                    )
+                }
+            } else {
+                layout(
+                    width = constraints.maxWidth,
+                    height = message.height + date.height
+                ) {
+                    message.place(0, 0)
+                    date.place(
+                        constraints.maxWidth - date.width,
+                        message.height
+                    )
+                }
+            }
+        } ?: layout(
+            message.width,
+            message.height
+        ) {
+            message.place(0, 0)
+        }
+    }
+
+    override fun IntrinsicMeasureScope.minIntrinsicWidth(
+        measurables: List<IntrinsicMeasurable>,
+        height: Int
+    ): Int {
+        val spacing = (spacing + 1.dp).roundToPx() // to be _just_ big enough for one line
+        return measurables.sumOf { it.minIntrinsicWidth(height) } + spacing
+    }
+
+    override fun IntrinsicMeasureScope.maxIntrinsicWidth(
+        measurables: List<IntrinsicMeasurable>,
+        height: Int
+    ): Int {
+        val spacing = (spacing + 1.dp).roundToPx() // to be _just_ big enough for one line
+        return measurables.sumOf { it.maxIntrinsicWidth(height) } + spacing
+    }
+
+    override fun IntrinsicMeasureScope.minIntrinsicHeight(
+        measurables: List<IntrinsicMeasurable>,
+        width: Int
+    ): Int {
+        return measurables.sumOf { it.minIntrinsicHeight(width) }
+    }
+
+    override fun IntrinsicMeasureScope.maxIntrinsicHeight(
+        measurables: List<IntrinsicMeasurable>,
+        width: Int
+    ): Int {
+        return measurables.sumOf { it.maxIntrinsicHeight(width) }
+    }
+}
 
 @Composable
 fun MessageBubbleContent(
@@ -83,12 +173,31 @@ fun MessageBubbleContent(
             RepliedElement(holder)
 
             // the hasRepliedElement is needed to avoid layouting already layouted elements which leads to this: "Asking for intrinsic measurements of SubcomposeLayout layouts is not supported."
-            content(showActionMenu)
-            Row(
-                Modifier.align(Alignment.End).padding(5.dp),
-                verticalAlignment = Alignment.Bottom
-            ) {
-                MessageBubbleContentInfo(isReplaced, holder)
+            if (needsMaxWidth || hasRepliedElement) {
+                content(showActionMenu)
+                Row(
+                    Modifier.align(Alignment.End).padding(5.dp),
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    MessageBubbleContentInfo(isReplaced, holder)
+                }
+            } else {
+                Layout(
+                    content = {
+                        Box(Modifier.layoutId(MessageBubbleMeasurePolicy.LayoutId.MESSAGE)) {
+                            content(showActionMenu)
+                        }
+                        Row(
+                            modifier = Modifier
+                                .layoutId(MessageBubbleMeasurePolicy.LayoutId.TIMESTAMP)
+                                .padding(start = 5.dp, end = 5.dp, bottom = 5.dp),
+                            verticalAlignment = Alignment.Bottom,
+                        ) {
+                            MessageBubbleContentInfo(isReplaced, holder)
+                        }
+                    },
+                    measurePolicy = MessageBubbleMeasurePolicy,
+                )
             }
 
             if (sendError != null) {

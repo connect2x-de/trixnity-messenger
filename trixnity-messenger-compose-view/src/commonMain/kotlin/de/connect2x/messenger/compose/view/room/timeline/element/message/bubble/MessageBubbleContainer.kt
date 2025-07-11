@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -43,6 +44,9 @@ fun MessageBubbleContainer(
     val showActionMenu = remember { mutableStateOf(false) }
     val hoverMessage = remember { mutableStateOf(false) }
 
+    val messagePadding = remember(holder.isByMe) {
+        if (holder.isByMe) Modifier else Modifier.padding(start = 8.dp)
+    }
     val messageBubbleStyle = when {
         sendError != null -> MaterialTheme.components.messageBubbleError
         holder.isByMe -> MaterialTheme.components.messageBubbleOwn
@@ -69,13 +73,15 @@ fun MessageBubbleContainer(
         ) {
             ThemedSurface(
                 style = messageBubbleStyle,
-                modifier = Modifier.drawWithCache {
-                    onDrawBehind {
-                        if (isFirstInUserSequence) {
-                            drawChatEdge(holder.isByMe, messageBubbleStyle.color)
+                modifier = Modifier
+                    .then(messagePadding)
+                    .drawWithCache {
+                        onDrawBehind {
+                            if (isFirstInUserSequence) {
+                                drawChatEdge(holder.isByMe, messageBubbleStyle.color)
+                            }
                         }
-                    }
-                },
+                    },
             ) {
                 MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = true }, content)
                 if (!isPreview) {

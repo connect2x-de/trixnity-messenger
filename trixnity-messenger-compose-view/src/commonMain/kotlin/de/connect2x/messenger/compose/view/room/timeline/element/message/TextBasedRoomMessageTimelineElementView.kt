@@ -97,7 +97,7 @@ private fun MessageTextContent(
         RichTextDisplay(
             document = bodyContent,
             mentions = element.mentionsInFormattedBody,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onLongPress = { showActionMenu() }
