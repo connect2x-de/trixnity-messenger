@@ -48,8 +48,10 @@ import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import kotlin.reflect.KClass
 
-class ImageTimelineElementDetailsView :
-    TimelineElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.Image> {
+interface ImageTimelineElementDetailsView :
+    TimelineElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.Image>
+
+class ImageTimelineElementDetailsViewImpl : ImageTimelineElementDetailsView {
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.Image> =
         RoomMessageTimelineElementViewModel.FileBased.Image::class
 

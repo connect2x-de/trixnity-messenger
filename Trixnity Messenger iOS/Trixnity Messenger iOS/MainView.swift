@@ -3,7 +3,7 @@ import SwiftUI
 import TrixnityMessengerUI
 
 struct MainView: UIViewControllerRepresentable {
-    let lifecycle: Lifecycle
+    let lifecycle: LifecycleRegistry
 
     func makeUIViewController(context: Context) -> UIViewController {
         return MainControllerKt.MainViewController(lifecycle: lifecycle)

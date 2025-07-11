@@ -29,7 +29,9 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlin.reflect.KClass
 
-class RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementViewModel> {
+interface RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementViewModel>
+
+class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
     override val supports: KClass<RedactedTimelineElementViewModel> = RedactedTimelineElementViewModel::class
 
     override suspend fun waitFor(element: RedactedTimelineElementViewModel) {
