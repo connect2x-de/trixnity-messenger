@@ -23,7 +23,7 @@ fun messengerConfiguration(
     licenses = BuildConfig.licenses
     sendLogsEmailAddress = null
     urlProtocol = BuildConfig.appId
-    notificationsDebugEnabled = BuildConfig.flavor == Flavor.DEV
+    notificationsDebugEnabled = false
 
     val notificationHandlerProvider = NotificationHandlerProvider.lazy { subId ->
         NotificationHandler(
