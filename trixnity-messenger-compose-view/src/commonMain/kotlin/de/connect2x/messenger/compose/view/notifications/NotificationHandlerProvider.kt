@@ -1,6 +1,6 @@
 package de.connect2x.messenger.compose.view.notifications
 
-import co.touchlab.stately.collections.ConcurrentMutableMap
+import co.touchlab.stately.collections.SharedHashMap
 import de.connect2x.sysnotify.NotificationHandler
 
 interface NotificationHandlerProvider {
@@ -9,7 +9,7 @@ interface NotificationHandlerProvider {
 
         inline fun lazy(crossinline block: (String) -> NotificationHandler): NotificationHandlerProvider {
             return object : NotificationHandlerProvider {
-                private val instances: ConcurrentMutableMap<String, NotificationHandler> = ConcurrentMutableMap()
+                private val instances: SharedHashMap<String, NotificationHandler> = SharedHashMap()
                 override fun invoke(subId: String): NotificationHandler {
                     return instances.getOrPut(subId) { block(subId) }
                 }
