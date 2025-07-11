@@ -74,6 +74,8 @@ kotlin {
                 implementation(libs.compose.richeditor)
                 implementation(libs.androidx.annotation)
                 implementation(libs.sysnotify)
+                implementation(libs.stately.common)
+                implementation(libs.stately.collections)
             }
         }
         val desktopAndAndroidMain by creating {

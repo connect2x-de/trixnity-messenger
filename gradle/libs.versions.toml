@@ -18,6 +18,7 @@ kotlinxKover = "0.9.1" # https://github.com/Kotlin/kotlinx-kover/releases
 
 trixnity = "4.16.9" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "1.9.0" # https://gitlab.com/connect2x/sysnotify/-/packages
+stately = "2.1.0" # https://github.com/touchlab/Stately/releases
 decompose = "3.3.0" # https://github.com/arkivanov/Decompose/releases
 essenty = "2.5.0" # https://github.com/arkivanov/Essenty/releases
 koin = "4.1.0" # https://github.com/InsertKoinIO/koin/tags
@@ -88,6 +89,8 @@ trixnity-client-media-opfs = { module = "net.folivo:trixnity-client-media-opfs",
 trixnity-client-media-indexeddb = { module = "net.folivo:trixnity-client-media-indexeddb", version.ref = "trixnity" }
 
 sysnotify = { module = "de.connect2x:sysnotify", version.ref = "sysnotify" }
+stately-common = { module = "co.touchlab:stately-common", version.ref = "stately" }
+stately-collections = { module = "co.touchlab:stately-collections", version.ref = "stately" }
 
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
