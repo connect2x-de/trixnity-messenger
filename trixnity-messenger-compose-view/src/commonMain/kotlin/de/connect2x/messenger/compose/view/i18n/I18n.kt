@@ -2862,6 +2862,11 @@ open class I18nView(
         DE - "Warum möchtest du beitreten? (Optional)"
     }
 
+    open fun mentionEventInRoom(roomName: String) = translate {
+        EN - "Message in $roomName"
+        DE - "Nachricht in $roomName"
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)

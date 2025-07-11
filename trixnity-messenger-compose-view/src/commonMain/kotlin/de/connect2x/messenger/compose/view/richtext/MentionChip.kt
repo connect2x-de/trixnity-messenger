@@ -25,8 +25,8 @@ import de.connect2x.messenger.compose.view.theme.components.ChipStyle
 import de.connect2x.messenger.compose.view.theme.components.ThemedSuggestionChip
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 
-fun mentionLabel(i18n: I18nView, mention: TimelineElementMention): String = when (mention) {
-    is TimelineElementMention.Event -> "Message in ${mention.room.name}"
+internal fun mentionLabel(i18n: I18nView, mention: TimelineElementMention): String = when (mention) {
+    is TimelineElementMention.Event -> i18n.mentionEventInRoom(mention.room.name)
     is TimelineElementMention.Room -> mention.room.name
     is TimelineElementMention.User -> mention.user.name
 }
@@ -35,7 +35,7 @@ fun mentionLabel(i18n: I18nView, mention: TimelineElementMention): String = when
 private val iconModifier = Modifier.requiredSize(SuggestionChipDefaults.IconSize)
 
 @Composable
-fun MentionChip(
+internal fun MentionChip(
     mention: TimelineElementMention,
     i18n: I18nView,
     style: ChipStyle = MaterialTheme.components.mentionChip,
