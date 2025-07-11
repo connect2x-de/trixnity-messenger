@@ -5,7 +5,7 @@ import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
 
 
-internal class CreateNewRoomErrorFormatter(private val i18n: I18n) {
+class CreateNewRoomErrorFormatter(private val i18n: I18n) {
     fun error(
         throwable: Throwable,
         isChat: Boolean
