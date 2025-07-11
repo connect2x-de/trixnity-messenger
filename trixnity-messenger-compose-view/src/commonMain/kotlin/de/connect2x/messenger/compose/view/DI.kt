@@ -25,7 +25,7 @@ import de.connect2x.messenger.compose.view.connecting.ServerDiscoveryStateViewIm
 import de.connect2x.messenger.compose.view.connecting.ServerInputFieldView
 import de.connect2x.messenger.compose.view.connecting.ServerInputFieldViewImpl
 import de.connect2x.messenger.compose.view.i18n.i18nViewModule
-import de.connect2x.messenger.compose.view.notifications.NotificationHandlerProvider
+import de.connect2x.messenger.compose.view.notifications.noopNotificationsModule
 import de.connect2x.messenger.compose.view.profiles.ProfileCreationView
 import de.connect2x.messenger.compose.view.profiles.ProfileCreationViewImpl
 import de.connect2x.messenger.compose.view.profiles.ProfileSelectionView
@@ -302,8 +302,6 @@ import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWiza
 import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWizardViewImpl
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardView
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardViewImpl
-import de.connect2x.sysnotify.NotificationHandler
-import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
@@ -334,24 +332,9 @@ fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Mo
         userSearchViewModule(),
         settingsViewModule(),
         verificationViewModule(),
-        uiaViewModule()
+        uiaViewModule(),
+        noopNotificationsModule()
     )
-}
-
-fun notificationsModule(
-    config: MatrixMessengerBaseConfiguration,
-    isDebugEnabled: Boolean
-): Module = module {
-    single<NotificationHandlerProvider> {
-        NotificationHandlerProvider.lazy { subId ->
-            NotificationHandler(
-                name = config.appName,
-                id = "$it.$subId",
-                appId = config.appId,
-                isDebugEnabled = isDebugEnabled
-            )
-        }
-    }
 }
 
 fun themeViewModule(): Module = module {

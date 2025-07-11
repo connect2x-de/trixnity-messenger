@@ -73,6 +73,7 @@ kotlin {
                 implementation(compose.uiUtil)
                 implementation(libs.compose.richeditor)
                 implementation(libs.androidx.annotation)
+                implementation(libs.sysnotify)
             }
         }
         val desktopAndAndroidMain by creating {

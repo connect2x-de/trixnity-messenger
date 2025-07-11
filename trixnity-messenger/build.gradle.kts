@@ -84,7 +84,6 @@ kotlin {
                 api(libs.logging)
                 api(libs.koin.core)
                 api(libs.kotlinx.serialization)
-                api(libs.sysnotify)
                 implementation(libs.okio)
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kim)
