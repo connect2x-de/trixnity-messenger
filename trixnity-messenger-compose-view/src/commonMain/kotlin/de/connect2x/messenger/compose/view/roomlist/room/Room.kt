@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -90,7 +91,7 @@ class RoomListElementViewImpl : RoomListElementView {
             MatrixClientColor(roomListElementViewModel)
             Row(
                 Modifier
-                    .height(72.dp)
+                    .heightIn(min = 72.dp)
                     .padding(top = 10.dp, bottom = 10.dp, end = 10.dp)
                     .placeholder(
                         visible = !isLoaded,
