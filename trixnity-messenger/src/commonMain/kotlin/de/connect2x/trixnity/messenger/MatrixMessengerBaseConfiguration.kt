@@ -12,11 +12,6 @@ interface MatrixMessengerBaseConfiguration {
     var urlHost: String
     var sendLogsEmailAddress: String?
     /**
-     * Set this to `true` to activate debugging mode for notifications; should be set to `true` in macOS/iOS for local
-     * builds as a NotificationCenter cannot be obtained.
-     */
-    var notificationsDebugEnabled: Boolean
-    /**
      * The privacy info of the application in a Markdown format
      */
     var privacyInfo: String?

@@ -120,5 +120,4 @@ data class MatrixMessengerConfiguration(
      * ```
      */
     var modulesFactories: List<ModuleFactory> = createTrixnityMessengerDefaultModuleFactories(),
-    override var notificationsDebugEnabled: Boolean = false,
 ) : MatrixMessengerBaseConfiguration
