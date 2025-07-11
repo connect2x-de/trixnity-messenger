@@ -4,13 +4,9 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
 
-interface CreateNewRoomErrorHandling {
-    fun error(throwable: Throwable, isChat: Boolean): String
-    fun errorDetails(throwable: Throwable, isChat: Boolean): String?
-}
 
-class CreateNewRoomErrorHandlingImpl(private val i18n: I18n) : CreateNewRoomErrorHandling {
-    override fun error(
+internal class CreateNewRoomErrorFormatter(private val i18n: I18n) {
+    fun error(
         throwable: Throwable,
         isChat: Boolean
     ): String {
@@ -27,7 +23,7 @@ class CreateNewRoomErrorHandlingImpl(private val i18n: I18n) : CreateNewRoomErro
         }
     }
 
-    override fun errorDetails(throwable: Throwable, isChat: Boolean): String? {
+    fun errorDetails(throwable: Throwable): String? {
         return if (throwable is MatrixServerException) {
             throwable.errorResponse.error
         } else throwable.message

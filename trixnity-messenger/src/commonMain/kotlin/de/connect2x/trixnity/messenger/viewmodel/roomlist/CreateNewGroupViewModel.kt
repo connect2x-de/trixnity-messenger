@@ -74,7 +74,7 @@ open class CreateNewGroupViewModelImpl(
     private val onBack: () -> Unit,
 ) : CreateNewGroupViewModel,
     MatrixClientViewModelContext by viewModelContext {
-    val createNewRoomErrorHandling = get<CreateNewRoomErrorHandling>()
+    private val createNewRoomErrorFormatter = CreateNewRoomErrorFormatter(get())
 
     override val isPrivate = MutableStateFlow(true)
     override val isEncrypted = MutableStateFlow(true)
@@ -147,9 +147,8 @@ open class CreateNewGroupViewModelImpl(
                 },
                 onFailure = {
                     log.error(it) { "Cannot create a group." }
-                    createNewRoomViewModel.error.value = createNewRoomErrorHandling.error(it, isChat = false)
-                    createNewRoomViewModel.errorDetails.value =
-                        createNewRoomErrorHandling.errorDetails(it, isChat = false)
+                    createNewRoomViewModel.error.value = createNewRoomErrorFormatter.error(it, isChat = false)
+                    createNewRoomViewModel.errorDetails.value = createNewRoomErrorFormatter.errorDetails(it)
                 }
             )
         }.invokeOnCompletion { _isCreating.value = false }

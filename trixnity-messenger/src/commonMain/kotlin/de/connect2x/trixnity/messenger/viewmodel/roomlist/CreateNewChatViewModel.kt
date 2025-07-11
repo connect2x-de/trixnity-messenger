@@ -68,7 +68,7 @@ open class CreateNewChatViewModelImpl(
     private val onCancel: () -> Unit,
 ) : CreateNewChatViewModel,
     MatrixClientViewModelContext by viewModelContext {
-    val createNewRoomErrorHandling = get<CreateNewRoomErrorHandling>()
+    private val createNewRoomErrorFormatter = CreateNewRoomErrorFormatter(get())
 
     override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
         HistoryVisibilityEventContent.HistoryVisibility.entries - HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
@@ -165,8 +165,8 @@ open class CreateNewChatViewModelImpl(
             },
             onFailure = {
                 log.error(it) { "Cannot create room." }
-                createNewRoomViewModel.error.value = createNewRoomErrorHandling.error(it, isChat = true)
-                createNewRoomViewModel.errorDetails.value = createNewRoomErrorHandling.errorDetails(it, isChat = true)
+                createNewRoomViewModel.error.value = createNewRoomErrorFormatter.error(it, isChat = true)
+                createNewRoomViewModel.errorDetails.value = createNewRoomErrorFormatter.errorDetails(it)
             }
         )
 
