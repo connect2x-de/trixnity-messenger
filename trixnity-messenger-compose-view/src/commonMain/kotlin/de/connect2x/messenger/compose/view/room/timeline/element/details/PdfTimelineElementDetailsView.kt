@@ -76,7 +76,9 @@ import kotlin.reflect.KClass
 
 private val log = KotlinLogging.logger {}
 
-class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.File> {
+interface PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.File>
+
+class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased.File> =
         RoomMessageTimelineElementViewModel.FileBased.File::class
 
@@ -177,7 +179,7 @@ class PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTime
                         .focusable()
                         .onKeyEvent { keyEvent ->
                             canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
-                            true
+                            false
                         }
                         .zoomModifier(focusRequester, canZoom, zoom, minZoom, maxZoom, state, scope, viewSize),
                 ) {

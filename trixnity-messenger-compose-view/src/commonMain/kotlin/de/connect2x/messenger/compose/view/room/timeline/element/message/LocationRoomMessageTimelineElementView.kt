@@ -19,8 +19,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.Location
 import kotlin.reflect.KClass
 
+interface LocationRoomMessageTimelineElementView : TimelineElementView<Location>
 
-class LocationRoomMessageTimelineElementView : TimelineElementView<Location> {
+class LocationRoomMessageTimelineElementViewImpl : LocationRoomMessageTimelineElementView {
     override val supports: KClass<Location> =
         Location::class
 

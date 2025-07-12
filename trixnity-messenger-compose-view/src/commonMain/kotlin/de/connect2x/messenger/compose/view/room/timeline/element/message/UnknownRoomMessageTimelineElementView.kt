@@ -16,8 +16,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.Unknown
 import kotlin.reflect.KClass
 
+interface UnknownRoomMessageTimelineElementView : TimelineElementView<Unknown>
 
-class UnknownRoomMessageTimelineElementView : TimelineElementView<Unknown> {
+class UnknownRoomMessageTimelineElementViewImpl : UnknownRoomMessageTimelineElementView {
     override val supports: KClass<Unknown> =
         Unknown::class
 

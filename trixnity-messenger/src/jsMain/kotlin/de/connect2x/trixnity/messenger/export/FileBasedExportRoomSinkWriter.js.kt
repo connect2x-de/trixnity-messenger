@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.export
 
-import ZipWriterConstructorOptions
-import externals.zipjs.BlobReader
-import externals.zipjs.ZipWriter
+import zipjs.ZipWriterConstructorOptions
+import zipjs.BlobReader
+import zipjs.ZipWriter
 import js.typedarrays.toUint8Array
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope

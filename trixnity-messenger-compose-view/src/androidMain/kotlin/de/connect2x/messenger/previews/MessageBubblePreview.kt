@@ -3,8 +3,8 @@ package de.connect2x.messenger.previews
 import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import de.connect2x.messenger.compose.view.room.timeline.element.message.FileRoomMessageTimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.ImageRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.FileRoomMessageTimelineElementViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.message.ImageRoomMessageTimelineElementViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.message.TextBasedRoomMessageTimelineElementView
 import de.connect2x.messenger.previews.util.InitMessengerPreview
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
@@ -105,7 +105,7 @@ fun ImageMessageBubblePreview() {
         override fun cancelDownloadMedia() {}
     }
     InitMessengerPreview {
-        ImageRoomMessageTimelineElementView().createInTimeline(
+        ImageRoomMessageTimelineElementViewImpl().createInTimeline(
             holder,
             element,
         )
@@ -145,7 +145,7 @@ fun FileMessageBubblePreview() {
         override fun cancelDownloadMedia() {}
     }
     InitMessengerPreview {
-        FileRoomMessageTimelineElementView().createInTimeline(
+        FileRoomMessageTimelineElementViewImpl().createInTimeline(
             holder,
             element,
         )

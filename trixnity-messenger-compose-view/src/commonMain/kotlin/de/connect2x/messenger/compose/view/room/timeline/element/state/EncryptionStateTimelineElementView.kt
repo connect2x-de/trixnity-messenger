@@ -14,8 +14,9 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlin.reflect.KClass
 
+interface EncryptionStateTimelineElementView : TimelineElementView<EncryptionStateTimelineElementViewModel>
 
-class EncryptionStateTimelineElementView : TimelineElementView<EncryptionStateTimelineElementViewModel> {
+class EncryptionStateTimelineElementViewImpl : EncryptionStateTimelineElementView {
     override val supports: KClass<EncryptionStateTimelineElementViewModel> =
         EncryptionStateTimelineElementViewModel::class
 
