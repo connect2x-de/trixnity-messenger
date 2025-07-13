@@ -22,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -48,9 +47,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
@@ -67,9 +64,10 @@ import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -94,11 +92,11 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
 
     private fun removeOldElements(pageCacheSize: Int, lazyListState: LazyListState) {
         val visibleItems = lazyListState.layoutInfo.visibleItemsInfo.map { itemInfo -> itemInfo.index }
-        val creationOrderedList = cache.toList().sortedBy { it.second.value?.creationTime }.filter { !visibleItems.contains(it.first) && it.second.value != null }
-            creationOrderedList.subList(0, (cache.size - pageCacheSize).coerceIn(0, creationOrderedList.size)).also { println("list is $it with visible items $visibleItems") }
+        val creationOrderedList = cache.toList().sortedBy { it.second.value?.creationTime }
+            .filter { !visibleItems.contains(it.first) && it.second.value != null }
+        creationOrderedList.subList(0, (cache.size - pageCacheSize).coerceIn(0, creationOrderedList.size))
             .forEach {
                 cache.remove(it.first)
-                println("Removing ${it.first}")
             }
     }
 
@@ -108,12 +106,18 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
 
     private val mutex = Mutex()
 
-    private fun getCacheElement(cacheKey: Int): StateFlow<PDFCacheEntry?> {
+    private fun getCacheElement(cacheKey: Int, scope: CoroutineScope): StateFlow<PDFCacheEntry?> {
         return cache[cacheKey] ?: run {
-            return MutableStateFlow<PDFCacheEntry?>(null).also { cache[cacheKey] = it }
+            return MutableStateFlow<PDFCacheEntry?>(null).also {
+                cache[cacheKey] = it
+                scope.launch {
+                    queue.emit(cacheKey)
+                }
+            }
         }
     }
 
+    val queue = MutableSharedFlow<Int>()
 
     private suspend fun loadImageWithDpi(
         reader: PDFReader,
@@ -122,11 +126,11 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         pageCacheSize: Int,
         lazyListState: LazyListState
     ) = mutex.withLock {
-        println("Locked mutex for loading page $pageId")
         val element = cache[pageId]
         if (element?.value?.dpi != dpi.toInt()) {
             removeOldElements(pageCacheSize, lazyListState)
-            element?.value = PDFCacheEntry(Clock.System.now().toEpochMilliseconds(), reader.getPage(pageId, dpi), dpi.toInt())
+            element?.value =
+                PDFCacheEntry(Clock.System.now().toEpochMilliseconds(), reader.getPage(pageId, dpi), dpi.toInt())
         }
     }
 
@@ -255,7 +259,20 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                 val numOfPages = reader.value?.numOfPages?.value
                                 val reader = reader.value
                                 val dpi = dpi.value
+
                                 if (reader != null && numOfPages != null && dpi != null) {
+                                    LaunchedEffect(Unit) {
+                                        queue.collect {
+                                            pageCacheSize.value = max(3f, min(16f, 8f / zoom.value)).toInt()
+                                            loadImageWithDpi(
+                                                reader,
+                                                it,
+                                                dpi,
+                                                pageCacheSize.value,
+                                                lazyListState
+                                            )
+                                        }
+                                    }
                                     LazyColumn(
                                         modifier = Modifier
                                             .horizontalScroll(state = horizontalScroll, enabled = canZoom.value.not())
@@ -268,22 +285,10 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                         userScrollEnabled = canZoom.value.not(),
                                         content = {
                                             items(count = numOfPages, key = { it }) { pageId ->
-                                                val image = getCacheElement(pageId).collectAsState().value?.page
+                                                val image = getCacheElement(pageId, scope).collectAsState().value?.page
                                                 LaunchedEffect(dpi) {
-                                                    println("Start loading $pageId with cache $cache")
-                                                    pageCacheSize.value = max(2f, min(16f, 8f / zoom.value)).toInt()
-                                                    loadImageWithDpi(
-                                                        reader,
-                                                        pageId,
-                                                        dpi,
-                                                        pageCacheSize.value,
-                                                        lazyListState
-                                                    )
-                                                    if (!cache.containsKey(pageId)) {
-                                                        log.debug { "PDF page $pageId is not in cache -> something went wrong" }
-                                                    }
+                                                    queue.emit(pageId)
                                                 }
-
                                                 if (image != null) {
                                                     imageSize.value = IntSize(image.width, image.height)
                                                     Image(
