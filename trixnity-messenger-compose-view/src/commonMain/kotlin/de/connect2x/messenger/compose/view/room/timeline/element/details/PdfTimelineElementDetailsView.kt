@@ -55,6 +55,7 @@ import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.common.DownloadProgress
+import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -104,8 +105,6 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
     private val cache =
         mutableStateMapOf<Int, MutableStateFlow<PDFCacheEntry?>>()
 
-    private val mutex = Mutex()
-
     private fun getCacheElement(cacheKey: Int, scope: CoroutineScope): StateFlow<PDFCacheEntry?> {
         return cache[cacheKey] ?: run {
             return MutableStateFlow<PDFCacheEntry?>(null).also {
@@ -125,7 +124,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         dpi: Float,
         pageCacheSize: Int,
         lazyListState: LazyListState
-    ) = mutex.withLock {
+    ) {
         val element = cache[pageId]
         if (element?.value?.dpi != dpi.toInt()) {
             removeOldElements(pageCacheSize, lazyListState)
@@ -305,7 +304,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                                             .width(viewSize.value.width.dp / density * zoom.value - MaterialTheme.messengerDpConstants.middle * 2),
                                                         contentAlignment = Alignment.Center
                                                     ) {
-                                                        Text(text = "$pageId", color = Color.Red, fontSize = 40.sp)
+                                                        LoadingSpinner()
                                                     }
                                                 }
                                             }
