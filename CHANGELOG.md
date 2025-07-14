@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Correctly indicate overflows in room invite name or matrix ids
+
 ### Security
 
 ## 3.6.13
