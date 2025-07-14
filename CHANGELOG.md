@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- more explicit error messages on room creation
+- Room list elements now show multiple lines when the font size is large
+- More explicit error messages on room creation
 
 ### Deprecated
 
