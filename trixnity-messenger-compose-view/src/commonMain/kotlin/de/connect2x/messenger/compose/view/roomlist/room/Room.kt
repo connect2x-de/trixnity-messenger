@@ -157,7 +157,7 @@ fun RoomImage(roomElementViewModel: RoomListElementViewModel) {
             }
         } else {
             Box {
-                ThemedUserAvatar(roomImageInitials, roomImage) {
+                ThemedUserAvatar(roomImageInitials, roomImage, presence) {
                     AvatarPresenceBadge(presence)
                 }
                 if (isPublic) PublicIcon()

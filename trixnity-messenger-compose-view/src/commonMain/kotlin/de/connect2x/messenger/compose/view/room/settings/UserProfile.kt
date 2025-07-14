@@ -143,9 +143,10 @@ class UserProfileViewImpl : UserProfileView {
                         BoxWithConstraints(Modifier.fillMaxWidth()) {
                             Box(Modifier.align(Alignment.Center)) {
                                 ThemedUserAvatar(
-                                    userInfoElement.initials,
-                                    image,
-                                    this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)
+                                    initials = userInfoElement.initials,
+                                    image = image,
+                                    presence = null,
+                                    size = this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)
                                 )
                             }
                         }
@@ -367,9 +368,11 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
                 }
             } else {
                 Tooltip(enabled = verificationIsRunning, tooltip = { TooltipText(i18n.verificationAlreadyRunning()) }) {
-                    MenuElement(Modifier.buttonPointerModifier(!verificationIsRunning).clickable(enabled = !verificationIsRunning) {
-                        userProfileViewModel.startVerification(isSinglePane)
-                    }) {
+                    MenuElement(
+                        Modifier.buttonPointerModifier(!verificationIsRunning)
+                            .clickable(enabled = !verificationIsRunning) {
+                                userProfileViewModel.startVerification(isSinglePane)
+                            }) {
                         Icon(
                             Icons.AutoMirrored.Filled.Wysiwyg,
                             i18n.userVerification(),
