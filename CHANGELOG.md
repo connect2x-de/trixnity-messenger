@@ -11,13 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated SysNotify to 1.8.0 and commonized desktop and web notification handling
+- Updated SysNotify to 1.9.0 and commonized desktop and web notification handling
+- Room list elements now show multiple lines when the font size is large
+- Presence icons for users are now distinguishable by color and shape
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- Correctly indicate overflows in room invite name or matrix ids
 
 ### Security
 
@@ -43,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove timeline flickering due to switching between image fallback and thumbnail in reply elements
 - Fix root lifecycle not starting
 - Back Button doesn't work in BlockedContacts view, when focussing a pdf and in the Wizards
+- Add lifecycle stop/start when moving iOS app to background/foreground
 - Export not working in web
 - Don't export media when downloads are disabled
 - Escape CSV export with additional '

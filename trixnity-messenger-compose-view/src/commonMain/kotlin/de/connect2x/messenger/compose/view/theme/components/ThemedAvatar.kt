@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
@@ -29,6 +32,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.common.MoonShape
+import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -53,9 +58,9 @@ data class AvatarStyle(
             color: Color = MaterialTheme.colorScheme.primaryContainer,
             contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
             outerBorder: BorderStroke = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-            innerBorder: BorderStroke = BorderStroke(1.dp, MaterialTheme.colorScheme.surface),
+            innerBorder: BorderStroke = BorderStroke(2.dp, MaterialTheme.colorScheme.surface),
             shape: Shape = CircleShape,
-            badgeSize: Dp = 10.dp,
+            badgeSize: Dp = 12.dp,
             badgeShape: Shape = CircleShape,
         ) = AvatarStyle(
             color = color,
@@ -73,13 +78,27 @@ data class AvatarStyle(
 fun ThemedUserAvatar(
     initials: String,
     image: ByteArray? = null,
+    presence: Presence? = null,
     size: Dp = avatarSize().dp,
     style: AvatarStyle = MaterialTheme.components.avatar,
     modifier: Modifier = Modifier,
     overlay: @Composable () -> Unit = {},
 ) {
+    val i18n = DI.get<I18nView>()
     val bitmap = remember(image) { image?.toImageBitmap() }
-    ThemedAvatar(size, modifier, style, overlay) {
+
+    val tooltip = presenceText(presence)
+    tooltip?.let {
+        Tooltip({ TooltipText(tooltip) }) {
+            ThemedAvatar(size, modifier, style, overlay) {
+                if (bitmap != null) {
+                    AvatarContentImage(bitmap, size)
+                } else {
+                    AvatarContentText(initials, size)
+                }
+            }
+        }
+    } ?: ThemedAvatar(size, modifier, style, overlay) {
         if (bitmap != null) {
             AvatarContentImage(bitmap, size)
         } else {
@@ -154,7 +173,15 @@ fun AvatarPresenceBadge(
 ) {
     if (presence == null) return
 
-    val i18n = DI.get<I18nView>()
+    val shape = when (presence) {
+        Presence.UNAVAILABLE -> MoonShape()
+        else -> style.badgeShape
+    }
+
+    val icon = when (presence) {
+        Presence.OFFLINE -> Icons.Outlined.Close
+        else -> null
+    }
 
     val color = when (presence) {
         Presence.ONLINE -> MaterialTheme.messengerColors.presenceOnline
@@ -162,17 +189,33 @@ fun AvatarPresenceBadge(
         Presence.UNAVAILABLE -> MaterialTheme.messengerColors.presenceUnavailable
     }
 
-    val tooltip = when (presence) {
+    Box(
+        Modifier.size(style.badgeSize)
+            .background(color, shape)
+            .border(style.innerBorder, shape)
+    ) {
+        if (icon != null) {
+            val brush = style.innerBorder.brush
+            val color = if (brush is SolidColor) brush.value else MaterialTheme.colorScheme.surface
+            Icon(
+                icon,
+                contentDescription = presenceText(presence),
+                modifier = Modifier.align(Alignment.Center).size(style.badgeSize * 0.75f),
+                tint = color,
+            )
+        }
+    }
+}
+
+@Composable
+private fun presenceText(
+    presence: Presence?,
+): String? {
+    val i18n = DI.get<I18nView>()
+    return when (presence) {
         Presence.ONLINE -> i18n.presenceOnline()
         Presence.OFFLINE -> i18n.presenceOffline()
         Presence.UNAVAILABLE -> i18n.presenceUnavailable()
-    }
-
-    Tooltip({ Text(tooltip) }) {
-        Box(
-            Modifier.size(style.badgeSize)
-                .background(color, shape = style.badgeShape)
-                .border(style.innerBorder, style.badgeShape)
-        )
+        null -> null
     }
 }

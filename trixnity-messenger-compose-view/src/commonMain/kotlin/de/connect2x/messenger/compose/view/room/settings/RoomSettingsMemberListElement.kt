@@ -86,7 +86,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (isMemberElementLoading) LoadingSpinner() else {
-                        ThemedUserAvatar(memberElement.initials, image) {
+                        ThemedUserAvatar(initials = memberElement.initials, image = image, presence = presence) {
                             AvatarPresenceBadge(presence)
                         }
                         Spacer(Modifier.size(5.dp))
