@@ -20,7 +20,7 @@ class ThemeDarkMessengerColorsImpl : ThemeDarkMessengerColors {
         return MessengerColors(
             success = messenger_theme_dark_success,
             presenceOnline = messenger_theme_dark_success,
-            presenceUnavailable = messenger_theme_dark_error,
+            presenceUnavailable = messenger_theme_dark_warning,
             presenceOffline = messenger_theme_dark_neutral,
             verificationTrusted = messenger_theme_dark_success,
             verificationUntrusted = messenger_theme_dark_error,
