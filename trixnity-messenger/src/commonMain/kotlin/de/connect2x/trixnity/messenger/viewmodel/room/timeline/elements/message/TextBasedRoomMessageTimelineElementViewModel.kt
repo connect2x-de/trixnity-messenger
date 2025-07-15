@@ -52,10 +52,12 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     override val body: String = content.bodyWithoutFallback
     override val formattedBody: String? = content.formattedBodyWithoutFallback
-    override val formattedBodyContent: HtmlNode.HtmlElement? =
+    override val formattedBodyContent: HtmlNode.HtmlElement =
         content.formattedBodyWithoutFallback
             ?.let(HtmlVisitor::process)
             ?.let(AutoLinkifyVisitor::process)
+            ?: HtmlNode.HtmlElement("#root", emptyMap(), listOf(HtmlNode.TextContent(content.body)))
+                .let(AutoLinkifyVisitor::process)
 
     override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>> by lazy {
         MatrixMentions.findInText(body)
@@ -64,10 +66,9 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
     private val mentionFlowsInFormattedBody =
         formattedBodyContent
-            ?.let(MatrixMentions::findInHtml)
-            ?.mapValues { (_, mention) -> processMention(mention) }
-            ?.map { (key, flow) -> flow.map { Pair(key, it) } }
-            .orEmpty()
+            .let(MatrixMentions::findInHtml)
+            .mapValues { (_, mention) -> processMention(mention) }
+            .map { (key, flow) -> flow.map { Pair(key, it) } }
 
     override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
         combine(mentionFlowsInFormattedBody) { it.toMap() }

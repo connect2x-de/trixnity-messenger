@@ -68,16 +68,7 @@ private fun MessageTextContent(
 ) {
     val i18n = DI.get<I18nView>()
     val uriCaller = DI.get<UriCaller>()
-
-    val bodyContent = remember(element.formattedBodyContent, element.body) {
-        element.formattedBodyContent ?: HtmlNode.HtmlElement(
-            "body",
-            attributes = emptyMap(),
-            children = listOf(
-                HtmlNode.TextContent(element.body, element.body)
-            )
-        )
-    }
+    val content = element.formattedBodyContent
 
     Column(Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)) {
         if (element is RoomMessageTimelineElementViewModel.TextBased.Notice) {
@@ -94,128 +85,28 @@ private fun MessageTextContent(
             Spacer(Modifier.size(5.dp))
         }
 
-        RichTextDisplay(
-            document = bodyContent,
-            mentions = element.mentionsInFormattedBody,
-            modifier = Modifier
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onLongPress = { showActionMenu() }
-                    )
+        if (content != null) {
+            RichTextDisplay(
+                document = content,
+                mentions = element.mentionsInFormattedBody,
+                modifier = Modifier
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onLongPress = { showActionMenu() }
+                        )
+                    },
+                colors = RichTextColors.default(
+                    linkColor =
+                        if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
+                        else MaterialTheme.messengerColors.link
+                ),
+                onCopy = {
+                    // TODO
+                    println("Copy: $it")
                 },
-            colors = RichTextColors.default(
-                linkColor =
-                    if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
-                    else MaterialTheme.messengerColors.link
-            ),
-            onCopy = {
-                // TODO
-                println("Copy: $it")
-            },
-            onLinkClick = { uriCaller.invoke(it, true) },
-            onMentionClick = element::openMention
-        )
-    }
-}
-
-// TODO
-@Composable
-private fun formatMessage(
-    message: String,
-    mentions: List<Pair<IntRange, TimelineElementMention?>>,
-): String {
-    val i18n = DI.get<I18nView>()
-    return remember(message, mentions) {
-        message
-            .formatMentions(mentions, i18n::eventMentionPile)
-            .formatLinks()
-            .replace("\n", "<br>")
-    }
-}
-
-internal fun String.formatMentions(
-    mentions: List<Pair<IntRange, TimelineElementMention?>>,
-    eventPile: (String) -> String
-): String =
-    mentions.sortedByDescending { it.first.first }.foldIndexed(this) { index, currentText, (range, mention) ->
-        val isInsideHref = range.first > hrefPrefix.length
-                && range.last != currentText.length
-                && currentText.substring(range.first - hrefPrefix.length, range.first) == hrefPrefix
-                && currentText[range.last + 1] == '"'
-
-        val anchorContent = when (mention) {
-            is TimelineElementMention.Event -> eventPile(mention.room.name)
-            is TimelineElementMention.Room -> mention.room.name
-            is TimelineElementMention.User -> mention.user.name
-
-            null -> null
-        }
-
-        if (anchorContent == null) {
-            currentText
-        } else if (isInsideHref) {
-            currentText.replaceRange(
-                range,
-                "timmy-data:$index"
+                onLinkClick = { uriCaller.invoke(it, true) },
+                onMentionClick = element::openMention
             )
-        } else {
-            currentText.replaceRange(
-                range,
-                """<a href="timmy-data:$index">$anchorContent</a>"""
-            )
-        }
-    }
-
-
-// For normal text we could only use <space> as ending delimiter,
-// however as our text might include html `<a href="..."></a>` which
-// ends with a quote we need to use that as well.
-// A better way would be to use a proper html parser and then
-// only run the regex on normal text element with only the space.
-//
-// Instead of having a complicated url regex which lead to multiple problems
-// https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger/-/issues/440
-// https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger/-/issues/350
-// https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger/-/issues/296
-// we use the most basic regex to find potential links and then use ktor's url parser
-// to validate if it really was a proper Url.
-private val maybeUrlRegex =
-    Regex("""https?://[^\s"<]*""")
-
-private val commonPunctuation =
-    setOf('.', '!', '?', ':', ')')
-
-private val hrefPrefix =
-    "href=\""
-
-private fun String.isValidUrl() =
-    runCatching { Url(this) }.isSuccess
-
-internal fun String.formatLinks(): String {
-    fun MatchResult.isInsideHref(): Boolean {
-        val fullString = this@formatLinks
-
-        return range.first > hrefPrefix.length
-                && range.last != fullString.length
-                && fullString.substring(range.first - hrefPrefix.length, range.first) == hrefPrefix
-                && fullString[range.last + 1] == '"'
-    }
-
-    fun MatchResult.formatLinkAsHref(): String {
-        val end = if (value.last() in commonPunctuation) value.length - 1
-        else value.length
-
-        val withoutPunct = value.substring(0..<end)
-        val punct = value.substring(end..<value.length)
-
-        return "<a href=\"$withoutPunct\">$withoutPunct</a>$punct"
-    }
-
-    return replace(maybeUrlRegex) {
-        if (it.isInsideHref() || !it.value.isValidUrl()) {
-            it.value
-        } else {
-            it.formatLinkAsHref()
         }
     }
 }
