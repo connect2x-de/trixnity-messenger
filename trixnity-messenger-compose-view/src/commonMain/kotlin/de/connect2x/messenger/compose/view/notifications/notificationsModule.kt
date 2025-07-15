@@ -10,10 +10,14 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.core.module.Module
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 private val log: KLogger = KotlinLogging.logger {}
 
+@OptIn(ExperimentalUuidApi::class)
 fun notificationsModule(
     config: MatrixMessengerBaseConfiguration,
     isDebugEnabled: Boolean
@@ -27,12 +31,13 @@ fun notificationsModule(
         )
     }
     single<NotificationHandlerProvider> { provider }
+    val hookId = "NotificationHandlerProvider-${Uuid.random().toHexString()}"
     when (config) {
-        is MatrixMessengerConfiguration -> single<MatrixMessengerCloseHook> {
+        is MatrixMessengerConfiguration -> single<MatrixMessengerCloseHook>(named(hookId)) {
             MatrixMessengerCloseHook { provider.closeAll() }
         }
 
-        is MatrixMultiMessengerConfiguration -> single<MatrixMultiMessengerCloseHook> {
+        is MatrixMultiMessengerConfiguration -> single<MatrixMultiMessengerCloseHook>(named(hookId)) {
             MatrixMultiMessengerCloseHook { provider.closeAll() }
         }
     }
