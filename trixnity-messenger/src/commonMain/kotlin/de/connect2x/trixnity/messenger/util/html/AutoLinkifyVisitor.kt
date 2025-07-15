@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.util.html
 
+import net.folivo.trixnity.core.model.Mention
+
 class AutoLinkifyVisitor {
     private val taskQueue = mutableListOf<Task>()
 
@@ -43,12 +45,19 @@ class AutoLinkifyVisitor {
                 children = children,
             ))
             while (match != null) {
-                children.add(HtmlNode.TextContent(node.content.substring(index, match.result.range.start)))
-                children.add(linkElement(match))
-                index = match.result.range.last + 1
+                val previousContent = node.content.substring(index, match.result.range.first)
+                if (previousContent.isNotEmpty()) {
+                    children.add(HtmlNode.TextContent(previousContent))
+                }
+                val content = match.result.value.trimParens().trimEnd('.', '!', '?', ':')
+                children.add(linkElement(match.type, content))
+                index = match.result.range.first + content.length
                 match = matcher.next(index)
             }
-            children.add(HtmlNode.TextContent(node.content.substring(index)))
+            val previousContent = node.content.substring(index)
+            if (previousContent.isNotEmpty()) {
+                children.add(HtmlNode.TextContent(previousContent))
+            }
         }
     }
 
@@ -69,26 +78,46 @@ class AutoLinkifyVisitor {
         }
     }
 
-    private fun linkElement(match: LinkMatcher.Match): HtmlNode.HtmlElement = when (match.type) {
+    private fun linkElement(type: LinkMatcher.MatchType, content: String): HtmlNode.HtmlElement = when (type) {
         LinkMatcher.MatchType.URL ->
             HtmlNode.HtmlElement(
                 tag = "a",
-                attributes = mapOf("href" to match.result.value),
-                children = listOf(HtmlNode.TextContent(match.result.value)),
+                attributes = mapOf("href" to content),
+                children = listOf(HtmlNode.TextContent(
+                    when (val mention = MatrixMentionVisitor.parseLink(content)) {
+                        is Mention.Event -> content
+                        is Mention.Room -> mention.roomId.full
+                        is Mention.RoomAlias -> mention.roomAliasId.full
+                        is Mention.User -> mention.userId.full
+                        null -> content
+                    }
+                )),
             )
         LinkMatcher.MatchType.USER_ID ->
             HtmlNode.HtmlElement(
                 tag = "a",
-                attributes = mapOf("href" to "matrix:u/${match.result.value.trimStart('@')}"),
-                children = listOf(HtmlNode.TextContent(match.result.value)),
+                attributes = mapOf("href" to "matrix:u/${content.trimStart('@')}"),
+                children = listOf(HtmlNode.TextContent(content)),
             )
         LinkMatcher.MatchType.ROOM_ALIAS ->
             HtmlNode.HtmlElement(
                 tag = "a",
-                attributes = mapOf("href" to "matrix:r/${match.result.value.trimStart('#')}"),
-                children = listOf(HtmlNode.TextContent(match.result.value)),
+                attributes = mapOf("href" to "matrix:r/${content.trimStart('#')}"),
+                children = listOf(HtmlNode.TextContent(content)),
             )
     }
+
+    private fun String.trimParens(): String =
+        if (endsWith(')')) {
+            val trimmed = trimEnd(')')
+            val openingParens = trimmed.count { it == '(' }
+            val closingParens = trimmed.count { it == ')' }
+            val endingParens = length - trimmed.length
+            val openParens = openingParens - closingParens
+
+            val desiredParens = minOf(endingParens, openParens)
+            take(trimmed.length + desiredParens)
+        } else this
 
     companion object {
         fun process(document: HtmlNode.HtmlElement): HtmlNode.HtmlElement =

@@ -10,6 +10,6 @@ object MatrixMentions {
     @OptIn(ExperimentalCoroutinesApi::class)
     internal fun findInText(text: String): Map<IntRange, Mention> = MatrixRegex.findMentions(text)
 
-    internal fun findInHtml(content: HtmlNode): Map<String, Mention>? =
+    internal fun findInHtml(content: HtmlNode): Map<String, Mention> =
         MatrixMentionVisitor().process(content)
 }
