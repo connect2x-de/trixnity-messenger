@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Network availability check for iOS
+- Get dimension of image on iOS
+
 ### Changed
 
-- Room list elements now show multiple lines when the font size is large
 - More explicit error messages on room creation
 
 ### Deprecated
@@ -21,6 +23,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## 3.6.14
+
+### Changed
+
+- Room list elements now show multiple lines when the font size is large
+- Presence icons for users are now distinguishable by color and shape
+- Update Trixnity from 4.16.9 to 4.17.1
+
+### Fixed
+
+- Correctly indicate overflows in room invite name or matrix ids
 
 ## 3.6.13
 

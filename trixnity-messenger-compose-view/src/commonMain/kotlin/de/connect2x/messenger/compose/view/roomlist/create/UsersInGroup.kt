@@ -74,7 +74,12 @@ class UsersInGroupViewImpl : UsersInGroupView {
                                         } else Modifier),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    ThemedUserAvatar(groupUser.initials, groupUser.image) {
+                                    val presence = groupUser.presence.collectAsState().value
+                                    ThemedUserAvatar(
+                                        initials = groupUser.initials,
+                                        image = groupUser.image,
+                                        presence = presence,
+                                    ) {
                                         Tooltip({ Text(i18n.commonRemove()) }) {
                                             ThemedIconButton(
                                                 style = MaterialTheme.components.primaryIconButton,
