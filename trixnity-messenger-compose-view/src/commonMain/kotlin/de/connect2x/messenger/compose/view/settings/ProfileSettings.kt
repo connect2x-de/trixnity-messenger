@@ -144,7 +144,11 @@ fun ProfileAvatar(profileSingleViewModel: ProfileSingleViewModel) {
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         Box(Modifier.align(Alignment.Center)) {
-            ThemedUserAvatar(initials, avatar, this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)) {
+            ThemedUserAvatar(
+                initials = initials,
+                image = avatar,
+                size = this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)
+            ) {
                 Box(Modifier.padding(10.dp)) {
                     Tooltip({ Text(i18n.profileAvatarChange()) }) {
                         ThemedIconButton(

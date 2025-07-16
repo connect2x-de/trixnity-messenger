@@ -7,7 +7,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased.Notice
 import kotlin.reflect.KClass
 
-class NoticeRoomMessageTimelineElementView : TimelineElementView<Notice> {
+interface NoticeRoomMessageTimelineElementView : TimelineElementView<Notice>
+
+class NoticeRoomMessageTimelineElementViewImpl : NoticeRoomMessageTimelineElementView {
     override val supports: KClass<Notice> =
         Notice::class
 

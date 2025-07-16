@@ -46,8 +46,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import kotlin.reflect.KClass
 
+interface ImageRoomMessageTimelineElementView : TimelineElementView<Image>
 
-class ImageRoomMessageTimelineElementView : TimelineElementView<Image> {
+class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementView {
     override val supports: KClass<Image> =
         Image::class
 

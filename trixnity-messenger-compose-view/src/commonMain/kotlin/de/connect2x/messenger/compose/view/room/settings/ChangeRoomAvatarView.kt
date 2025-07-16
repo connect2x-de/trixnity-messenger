@@ -47,7 +47,12 @@ class ChangeRoomAvatarViewImpl : ChangeRoomAvatarView {
         val i18n = DI.get<I18nView>()
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             Box(Modifier.align(Alignment.Center)) {
-                ThemedUserAvatar(initials, avatar, this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)) {
+                ThemedUserAvatar(
+                    initials = initials,
+                    image = avatar,
+                    presence = null,
+                    size = this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp),
+                ) {
                     if (canChangeAvatar) {
                         Box(Modifier.padding(10.dp)) {
                             Tooltip({ Text(i18n.profileAvatarChange()) }) {
