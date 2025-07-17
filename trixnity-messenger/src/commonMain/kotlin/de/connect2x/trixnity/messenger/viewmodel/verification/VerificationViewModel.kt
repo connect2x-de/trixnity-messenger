@@ -314,7 +314,7 @@ open class VerificationViewModelImpl(
 
                     is ActiveVerificationState.Start -> {
                         verificationJob?.cancelAndJoin()
-                        verificationJob = launch {
+                        verificationJob = coroutineScope.launch {
                             when (val method = verificationState.method) {
                                 is ActiveSasVerificationMethod -> {
                                     method.state.collect { methodState ->
