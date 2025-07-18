@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Network availability check for iOS
+- Get dimension of image on iOS
+
 ### Changed
 
 - Updated SysNotify to 1.9.0 and commonized desktop and web notification handling
