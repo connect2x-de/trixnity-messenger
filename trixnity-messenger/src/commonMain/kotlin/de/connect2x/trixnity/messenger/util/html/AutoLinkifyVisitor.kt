@@ -32,9 +32,8 @@ class AutoLinkifyVisitor {
 
     private fun visit(node: HtmlNode.TextContent, acc: MutableList<HtmlNode>) {
         var index = 0
-        val matcher = LinkMatcher(node.content)
-        var match: LinkMatcher.Match? = matcher.next(index)
-        if (match == null) {
+        val matches = LinkMatcher(node.content).findAll()
+        if (matches.isEmpty()) {
             acc.add(node)
         } else {
             val children = mutableListOf<HtmlNode>()
@@ -44,15 +43,14 @@ class AutoLinkifyVisitor {
                 rawContent = node.rawContent,
                 children = children,
             ))
-            while (match != null) {
-                val previousContent = node.content.substring(index, match.result.range.first)
+            for (match in matches) {
+                val previousContent = node.content.substring(index, match.range.first)
                 if (previousContent.isNotEmpty()) {
                     children.add(HtmlNode.TextContent(previousContent))
                 }
-                val content = match.result.value.trimParens().trimEnd('.', '!', '?', ':')
-                children.add(linkElement(match.type, content))
-                index = match.result.range.first + content.length
-                match = matcher.next(index)
+                val content = node.content.substring(match.range).trimParens().trimEnd('.', '!', '?', ':')
+                children.add(linkElement(match, content))
+                index = match.range.first + content.length
             }
             val previousContent = node.content.substring(index)
             if (previousContent.isNotEmpty()) {
@@ -78,31 +76,30 @@ class AutoLinkifyVisitor {
         }
     }
 
-    private fun linkElement(type: LinkMatcher.MatchType, content: String): HtmlNode.HtmlElement = when (type) {
-        LinkMatcher.MatchType.URL ->
+    private fun linkElement(match: LinkMatcher.LinkMatch, content: String): HtmlNode.HtmlElement = when (match) {
+        is LinkMatcher.LinkMatch.UrlMatch ->
+            HtmlNode.HtmlElement(
+                tag = "a",
+                attributes = mapOf("href" to content),
+                children = listOf(HtmlNode.TextContent(content)),
+            )
+        is LinkMatcher.LinkMatch.LinkMentionMatch ->
             HtmlNode.HtmlElement(
                 tag = "a",
                 attributes = mapOf("href" to content),
                 children = listOf(HtmlNode.TextContent(
-                    when (val mention = MatrixMentionVisitor.parseLink(content)) {
+                    when (match.mention) {
                         is Mention.Event -> content
-                        is Mention.Room -> mention.roomId.full
-                        is Mention.RoomAlias -> mention.roomAliasId.full
-                        is Mention.User -> mention.userId.full
-                        null -> content
+                        is Mention.Room -> match.mention.roomId.full
+                        is Mention.RoomAlias -> match.mention.roomAliasId.full
+                        is Mention.User -> match.mention.userId.full
                     }
                 )),
             )
-        LinkMatcher.MatchType.USER_ID ->
+        is LinkMatcher.LinkMatch.IdMentionMatch ->
             HtmlNode.HtmlElement(
                 tag = "a",
-                attributes = mapOf("href" to "matrix:u/${content.trimStart('@')}"),
-                children = listOf(HtmlNode.TextContent(content)),
-            )
-        LinkMatcher.MatchType.ROOM_ALIAS ->
-            HtmlNode.HtmlElement(
-                tag = "a",
-                attributes = mapOf("href" to "matrix:r/${content.trimStart('#')}"),
+                attributes = mapOf("href" to match.mention.toLink()),
                 children = listOf(HtmlNode.TextContent(content)),
             )
     }

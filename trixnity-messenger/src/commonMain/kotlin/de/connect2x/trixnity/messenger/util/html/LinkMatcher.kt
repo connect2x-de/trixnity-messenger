@@ -2,45 +2,48 @@ package de.connect2x.trixnity.messenger.util.html
 
 import de.connect2x.trixnity.messenger.util.Patterns
 import net.folivo.trixnity.core.MatrixRegex
+import net.folivo.trixnity.core.model.Mention
+
 
 class LinkMatcher(private val content: String) {
-    private var url: Match? = null
-    private var matrixUrl: Match? = null
-    private var userId: Match? = null
-    private var roomAlias: Match? = null
+    sealed interface LinkMatch {
+        val range: IntRange
+        val content: String
 
-    data class Match(
-        val type: MatchType,
-        val result: MatchResult,
-    )
-
-    enum class MatchType {
-        URL,
-        USER_ID,
-        ROOM_ALIAS,
+        data class UrlMatch(override val range: IntRange, override val content: String): LinkMatch
+        data class IdMentionMatch(override val range: IntRange, override val content: String, val mention: Mention): LinkMatch
+        data class LinkMentionMatch(override val range: IntRange, override val content: String, val mention: Mention): LinkMatch
     }
 
-    fun next(index: Int): Match? {
-        if (url == null || url!!.result.range.start < index) {
-            url = Patterns.AUTOLINK_WEB_URL.find(content, index)
-                ?.let { Match(MatchType.URL, it) }
+    fun findAll(): List<LinkMatch> {
+        val idMentions = MatrixRegex.findIdMentions(content)
+            .map { (range, mention) -> LinkMatch.IdMentionMatch(range, content.substring(range), mention) }
+        val linkMentions = MatrixRegex.findLinkMentions(content)
+            .map { (range, mention) -> LinkMatch.LinkMentionMatch(range, content.substring(range), mention) }
+        val mentions = idMentions.plus(linkMentions).sortedBy { it.range.start }
+        return buildList {
+            if (mentions.isEmpty()) {
+                findUrls(0, content.length)
+            } else if (mentions.size == 1) {
+                val mention = mentions.single()
+                findUrls(0, mention.range.first)
+                add(mention)
+                findUrls(mention.range.last + 1, content.length)
+            } else {
+                findUrls(0, mentions.first().range.first)
+                for ((a, b) in mentions.windowed(2)) {
+                    add(a)
+                    findUrls(a.range.last + 1, a.range.first)
+                    add(b)
+                }
+                findUrls(mentions.last().range.last + 1, content.length)
+            }
         }
-        if (matrixUrl == null || matrixUrl!!.result.range.start < index) {
-            val match = MatrixRegex.userIdUri.find(content, index)
-                ?: MatrixRegex.userIdPermalink.find(content, index)
-                ?: MatrixRegex.roomAliasUri.find(content, index)
-                ?: MatrixRegex.roomAliasPermalink.find(content, index)
-            matrixUrl = match?.let { Match(MatchType.URL, it) }
+    }
+
+    fun MutableList<LinkMatch>.findUrls(from: Int, to: Int) {
+        for (match in Patterns.AUTOLINK_WEB_URL.findAll(content, from).takeWhile { it.range.last < to }) {
+            add(LinkMatch.UrlMatch(match.range, match.value))
         }
-        if (userId == null || userId!!.result.range.start < index) {
-            userId = MatrixRegex.userId.find(content, index)
-                ?.let { Match(MatchType.USER_ID, it) }
-        }
-        if (roomAlias == null || roomAlias!!.result.range.start < index) {
-            roomAlias = MatrixRegex.roomAlias.find(content, index)
-                ?.let { Match(MatchType.ROOM_ALIAS, it) }
-        }
-        return listOfNotNull(matrixUrl, url, userId, roomAlias)
-            .minByOrNull { it.result.range.start }
     }
 }

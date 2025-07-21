@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.util.html
 
-import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.Mention
+import net.folivo.trixnity.core.util.MatrixLinks
 
 class MatrixMentionVisitor {
     private val taskQueue = mutableListOf<HtmlNode>()
@@ -31,7 +31,7 @@ class MatrixMentionVisitor {
             val href = node.attributes["href"]
             if (href != null) {
                 if (!mentions.containsKey(href)) {
-                    val link = parseLink(href, innerText(node))
+                    val link = MatrixLinks.parse(href)
                     if (link != null) {
                         mentions.put(href, link)
                     }
@@ -47,11 +47,5 @@ class MatrixMentionVisitor {
     companion object {
         fun process(document: HtmlNode.HtmlElement): HtmlNode.HtmlElement =
             AutoLinkifyVisitor().process(document)
-
-        fun parseLink(link: String, label: String? = null) =
-            MatrixRegex.parseEventLink(link, label)
-                ?: MatrixRegex.parseUserLink(link, label)
-                ?: MatrixRegex.parseRoomIdLink(link, label)
-                ?: MatrixRegex.parseRoomAliasLink(link, label)
     }
 }
