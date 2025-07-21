@@ -16,13 +16,14 @@ private val log = KotlinLogging.logger { }
 interface SelectVerificationMethodViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
+        verificationContext: VerificationContext,
         verificationMethods: Set<VerificationMethod>,
         roomId: RoomId?,
         timelineEventId: EventId?,
         isDeviceVerification: Boolean,
     ): SelectVerificationMethodViewModel {
         return SelectVerificationMethodViewModelImpl(
-            viewModelContext, verificationMethods, roomId, timelineEventId, isDeviceVerification,
+            viewModelContext, verificationContext, verificationMethods, roomId, timelineEventId, isDeviceVerification,
         )
     }
 
@@ -37,6 +38,7 @@ interface SelectVerificationMethodViewModel {
 
 open class SelectVerificationMethodViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
+    private val verificationContext: VerificationContext,
     verificationMethods: Set<VerificationMethod>,
     private val roomId: RoomId?,
     private val timelineEventId: EventId?,
@@ -63,7 +65,7 @@ open class SelectVerificationMethodViewModelImpl(
     override val hasSelection = verificationMethods.size > 1
 
     override fun acceptVerificationMethod(verificationMethod: VerificationMethod) {
-        coroutineScope.launch {
+        verificationContext.coroutineScope.launch {
             activeVerifications.getActiveVerification(matrixClient, roomId, timelineEventId)
                 ?.let { activeVerification ->
                     val currentVerificationState = activeVerification.state.value

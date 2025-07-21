@@ -133,6 +133,7 @@ class SearchImpl(
                             }
                             .toList()
                             .awaitAll()
+                            .also { log.trace { "found users for $searchTerm: $it" } }
                     },
                     onFailure = {
                         log.error(it) { "search for users resulted in error" }
