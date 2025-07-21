@@ -95,6 +95,7 @@ private suspend fun searchForUser(username: String, searchHandler: UserSearchHan
         while (foundUser == null) {
             log.debug { "search for user '$username'" }
             searchHandler.searchTerm.update("")
+            delay(100.milliseconds) // for distinctUntilChanged() to recognize the change
             searchHandler.searchTerm.update(username)
             searchHandler.waitForUserResults.first { it }
             searchHandler.waitForUserResults.first { it.not() }
