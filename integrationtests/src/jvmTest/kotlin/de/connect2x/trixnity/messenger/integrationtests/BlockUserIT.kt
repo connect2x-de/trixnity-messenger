@@ -84,7 +84,6 @@ class BlockUserIT {
         )
         messenger2.verifyAccountsArePresent(user2)
         messenger1.verifyAccountsArePresent(user1)
-        delay(2.seconds) // give user search time to find the user
         val roomId = messenger1.createChatWithUser(user2).roomId
         messenger2.rejectTheInvitationToRoomAndBlock(roomId)
         delay(3.seconds) // wait for the block information to be distributed

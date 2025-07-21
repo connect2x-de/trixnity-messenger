@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Failing ITs with user search race condition that led to flaky tests
+
 ### Security
 
 ## 3.6.14
