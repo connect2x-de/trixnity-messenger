@@ -90,7 +90,7 @@ private sealed interface SubstringType {
                 is TrixnityMention.Event -> {
                     val roomId = mention.roomId ?: roomId
                     val matrixUri = "https://matrix.to/#/${roomId.full}/${mention.eventId.full}"
-                    val anchorContent = mention.label ?: matrixUri
+                    val anchorContent = matrixUri
 
                     """<a href="$matrixUri">$anchorContent</a>"""
                 }
@@ -103,14 +103,14 @@ private sealed interface SubstringType {
                     val matrixUri =
                         if (alias != null) "https://matrix.to/#/${alias.full}"
                         else "https://matrix.to/#/${roomId.full}"
-                    val anchorContent = mention.label ?: alias?.full ?: mention.roomId.full
+                    val anchorContent = alias?.full ?: mention.roomId.full
 
                     """<a href="$matrixUri">$anchorContent</a>"""
                 }
 
                 is TrixnityMention.RoomAlias -> {
                     val matrixUri = "https://matrix.to/#/${mention.roomAliasId.full}"
-                    val anchorContent = mention.label ?: mention.roomAliasId.full
+                    val anchorContent = mention.roomAliasId.full
 
                     """<a href="$matrixUri">$anchorContent</a>"""
                 }
@@ -119,7 +119,7 @@ private sealed interface SubstringType {
                     val userName =
                         matrixClient.user.getById(roomId, mention.userId).first()?.name
                     val matrixUri = "https://matrix.to/#/${mention.userId.full}"
-                    val anchorContent = mention.label ?: userName ?: mention.userId.full
+                    val anchorContent = userName ?: mention.userId.full
 
                     """<a href="$matrixUri">$anchorContent</a>"""
                 }
