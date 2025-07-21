@@ -49,7 +49,6 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.VerticalScrollbar
@@ -66,12 +65,11 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import net.folivo.trixnity.client.media.PlatformMedia
 import kotlin.math.max
@@ -149,15 +147,17 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         val offset = remember { mutableStateOf(Offset.Zero) }
         val canZoom = remember { mutableStateOf(false) }
         val viewSize = remember { mutableStateOf(IntSize.Zero) }
+        val lazyListState = rememberLazyListState()
+        val horizontalScroll = rememberScrollState()
 
         val state = rememberTransformableState { zoomChange, offsetChange, _ ->
             println("Zooming by $zoomChange with offset $offsetChange")
             zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, maxZoom)
             val zoomedOffsetChange = if (zoom.value * zoomChange in (minZoom..maxZoom)) Offset(
-                -viewSize.value.width / 2f * 2,
-                -viewSize.value.height / 2f * 2
-            ).times(zoomChange - 1) else Offset.Zero
-            offset.value = offset.value + offsetChange.times(zoom.value) + zoomedOffsetChange
+                -viewSize.value.width / 2f,
+                -viewSize.value.height / 2f
+            ) else Offset.Zero
+            offset.value = offset.value + offsetChange.times(zoom.value) //+ zoomedOffsetChange
         }
         val imageSize = remember { mutableStateOf(IntSize(0, 0)) }
 
@@ -227,15 +227,11 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                     cache.clear()
                                 }
                             }
-                            val lazyListState = rememberLazyListState()
-                            val horizontalScroll = rememberScrollState()
 
                             LaunchedEffect(offset.value) {
-                                println("Updating offset to ${offset.value}")
                                 lazyListState.scrollBy(-offset.value.y)
                                 horizontalScroll.scrollBy(-offset.value.x)
                                 offset.value = Offset.Zero
-                                println("Done updating offset")
                             }
                             LaunchedEffect(
                                 reader.value?.documentWidth?.value,
@@ -263,6 +259,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                     LaunchedEffect(Unit) {
                                         queue.collect {
                                             pageCacheSize.value = max(3f, min(16f, 8f / zoom.value)).toInt()
+                                            println("Rendering $it at dpi $dpi")
                                             loadImageWithDpi(
                                                 reader,
                                                 it,
@@ -286,6 +283,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                             items(count = numOfPages, key = { it }) { pageId ->
                                                 val image = getCacheElement(pageId, scope).collectAsState().value?.page
                                                 LaunchedEffect(dpi) {
+                                                    delay(200)
                                                     queue.emit(pageId)
                                                 }
                                                 if (image != null) {
