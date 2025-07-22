@@ -16,11 +16,12 @@ private val log = KotlinLogging.logger { }
 interface AcceptSasStartViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
+        verificationContext: VerificationContext,
         roomId: RoomId?,
         timelineEventId: EventId?,
     ): AcceptSasStartViewModel {
         return AcceptSasStartViewModelImpl(
-            viewModelContext, roomId, timelineEventId,
+            viewModelContext, verificationContext, roomId, timelineEventId,
         )
     }
 
@@ -33,6 +34,7 @@ interface AcceptSasStartViewModel {
 
 open class AcceptSasStartViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
+    private val verificationContext: VerificationContext,
     private val roomId: RoomId?,
     private val timelineEventId: EventId?,
 ) : MatrixClientViewModelContext by viewModelContext, AcceptSasStartViewModel {
@@ -41,7 +43,7 @@ open class AcceptSasStartViewModelImpl(
 
     override fun accept() {
         log.debug { "user accepted SAS start" }
-        coroutineScope.launch {
+        verificationContext.coroutineScope.launch {
             activeVerifications.getActiveVerification(matrixClient, roomId, timelineEventId)
                 ?.let { activeVerification ->
                     log.debug { "start accepting SAS start, active verification: $activeVerification" }

@@ -156,7 +156,7 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
 @Composable
 fun DeviceVerificationWizardRequest(verificationStepRequestViewModel: VerificationStepRequestViewModel) {
     val i18n = DI.get<I18nView>()
-    val deviceDisplayName = verificationStepRequestViewModel.ourDeviceDisplayName.collectAsState().value
+    val deviceDisplayName = verificationStepRequestViewModel.theirDeviceDisplayName.collectAsState().value
     val theirDisplayName = verificationStepRequestViewModel.theirDisplayName.collectAsState().value
 
     Column {
