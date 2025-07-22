@@ -102,7 +102,7 @@ private sealed interface SubstringType {
                             ?.content?.run { alias ?: aliases?.firstOrNull() }
                     val matrixUri =
                         if (alias != null) "https://matrix.to/#/${alias.full}"
-                        else "https://matrix.to/#/${roomId.full}"
+                        else "https://matrix.to/#/${mention.roomId.full}"
                     val anchorContent = alias?.full ?: mention.roomId.full
 
                     """<a href="$matrixUri">$anchorContent</a>"""
