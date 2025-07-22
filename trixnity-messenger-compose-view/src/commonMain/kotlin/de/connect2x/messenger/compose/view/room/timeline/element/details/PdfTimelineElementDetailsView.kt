@@ -38,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.key.isCtrlPressed
@@ -144,24 +143,19 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         val progress = element.downloadMediaProgress.collectAsState().value
         val (error, setError) = remember { mutableStateOf<String?>(null) }
         val zoom = remember { mutableStateOf(1.0f) }
-        val offset = remember { mutableStateOf(Offset.Zero) }
         val canZoom = remember { mutableStateOf(false) }
-        val viewSize = remember { mutableStateOf(IntSize.Zero) }
+        val scope = rememberCoroutineScope()
         val lazyListState = rememberLazyListState()
         val horizontalScroll = rememberScrollState()
-
         val state = rememberTransformableState { zoomChange, offsetChange, _ ->
-            println("Zooming by $zoomChange with offset $offsetChange")
             zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, maxZoom)
-            val zoomedOffsetChange = if (zoom.value * zoomChange in (minZoom..maxZoom)) Offset(
-                -viewSize.value.width / 2f,
-                -viewSize.value.height / 2f
-            ) else Offset.Zero
-            offset.value = offset.value + offsetChange.times(zoom.value) //+ zoomedOffsetChange
+            val offset = offsetChange * zoom.value
+            scope.launch {
+                lazyListState.scrollBy(-offset.y)
+                horizontalScroll.scrollBy(-offset.x)
+            }
         }
-        val imageSize = remember { mutableStateOf(IntSize(0, 0)) }
-
-        val scope = rememberCoroutineScope()
+        val viewSize = remember { mutableStateOf(IntSize.Zero) }
         val i18n = DI.get<I18nView>()
         val dpi = remember { mutableStateOf<Float?>(null) }
         val pageCacheSize = remember { mutableStateOf(max(2f, min(16f, 8f / zoom.value)).toInt()) }
@@ -227,12 +221,6 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                     cache.clear()
                                 }
                             }
-
-                            LaunchedEffect(offset.value) {
-                                lazyListState.scrollBy(-offset.value.y)
-                                horizontalScroll.scrollBy(-offset.value.x)
-                                offset.value = Offset.Zero
-                            }
                             LaunchedEffect(
                                 reader.value?.documentWidth?.value,
                                 viewSize.value,
@@ -259,7 +247,6 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                     LaunchedEffect(Unit) {
                                         queue.collect {
                                             pageCacheSize.value = max(3f, min(16f, 8f / zoom.value)).toInt()
-                                            println("Rendering $it at dpi $dpi")
                                             loadImageWithDpi(
                                                 reader,
                                                 it,
@@ -287,7 +274,6 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                                     queue.emit(pageId)
                                                 }
                                                 if (image != null) {
-                                                    imageSize.value = IntSize(image.width, image.height)
                                                     Image(
                                                         bitmap = image,
                                                         contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),

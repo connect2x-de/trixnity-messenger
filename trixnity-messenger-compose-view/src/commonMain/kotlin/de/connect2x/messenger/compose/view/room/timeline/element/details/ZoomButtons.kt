@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntSize
@@ -56,8 +55,6 @@ fun Modifier.zoomModifier(
                                     scope.launch {
                                         state.transform {
                                             val deltaMultiplier = 1 + delta
-                                            val minScale = minScale ?: 1f
-                                            val maxScale = maxScale ?: 2f
                                             this.transformBy(
                                                 deltaMultiplier,
                                             )

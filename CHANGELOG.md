@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Verification getting stuck after app lost focus
 - Failing ITs with user search race condition that led to flaky tests
+- Various issues in regard to PDF reader page loading and zooming
 
 ### Security
 
