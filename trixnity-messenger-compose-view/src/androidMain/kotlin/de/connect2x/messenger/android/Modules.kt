@@ -10,7 +10,8 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.sysnotify.SysNotifyIntent
-import de.connect2x.sysnotify.create
+import de.connect2x.sysnotify.withActivationFactory
+import de.connect2x.sysnotify.withContext
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -30,14 +31,14 @@ fun MatrixMultiMessengerConfiguration.notificationModule() = module {
     }
     single<NotificationHandler> {
         log.debug { "Creating default notification handler" }
-        NotificationHandler.create(
+        NotificationHandler(
             name = appName,
-            id = getDefaultChannelId(appName),
-            contextGetter = { get() },
-            activationIntent = { context, notification ->
+            id = getDefaultChannelId(appName)
+        )
+            .withContext { get() }
+            .withActivationFactory { context, notification ->
                 SysNotifyIntent(context, MessengerActivity::class.java, notification)
             }
-        )
     }
 }
 

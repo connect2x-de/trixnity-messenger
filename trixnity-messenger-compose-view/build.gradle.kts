@@ -2,7 +2,6 @@ import de.connect2x.conventions.registerCoverageTask
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -55,9 +54,9 @@ kotlin {
         iosArm64(),
         iosSimulatorArm64()
     )
-
+    applyDefaultHierarchyTemplate()
     sourceSets {
-        commonMain {
+        val commonMain by getting {
             dependencies {
                 api(projects.trixnityMessenger)
                 api(compose.runtime)
@@ -73,11 +72,17 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
                 implementation(compose.uiUtil)
                 implementation(libs.compose.richeditor)
-                implementation(libs.sysnotify)
                 implementation(libs.androidx.annotation)
+                implementation(libs.sysnotify)
+                implementation(libs.stately.common)
+                implementation(libs.stately.collections)
             }
         }
+        val desktopAndAndroidMain by creating {
+            dependsOn(commonMain)
+        }
         val desktopMain by getting {
+            dependsOn(desktopAndAndroidMain)
             dependencies {
                 implementation(libs.filekit.compose)
                 implementation(libs.ktor.client.okhttp)
@@ -85,6 +90,7 @@ kotlin {
             }
         }
         androidMain {
+            dependsOn(desktopAndAndroidMain)
             dependencies {
                 implementation(compose.uiTooling)
                 implementation(libs.bundles.android.common)
@@ -93,7 +99,6 @@ kotlin {
                 implementation(libs.ktor.client.okhttp)
                 implementation(project.dependencies.platform(libs.firebase.bom))
                 implementation(libs.firebase.messaging.ktx)
-                implementation(libs.sysnotify.android)
                 // for Previews:
                 implementation(libs.slf4j.api)
             }
@@ -103,7 +108,6 @@ kotlin {
                 implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
                 implementation(project.dependencies.platform(libs.kotlin.wrappers.bom))
                 implementation(libs.kotlin.browser)
-                implementation(libs.sysnotify.js)
                 implementation(libs.filekit.core)
                 implementation(project(":wrappers-pdfjs"))
             }
@@ -131,9 +135,6 @@ kotlin {
 dependencies {
     androidTestImplementation(libs.ui.test.junit4.android)
     debugImplementation(libs.ui.test.android.manifest)
-    implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-windows-x64") })
-    implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-linux-x64") })
-    implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-macos-x64") })
 }
 
 android {

@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated SysNotify to 1.9.0 and commonized desktop and web notification handling
+- Room list elements now show multiple lines when the font size is large
+- Presence icons for users are now distinguishable by color and shape
 -  Adapted to new mention regex
 
 ### Deprecated
@@ -21,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+
+- Verification getting stuck after app lost focus
+- Failing ITs with user search race condition that led to flaky tests
 
 ### Security
 
