@@ -71,7 +71,7 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                                 value = newAlias,
                                 placeholder = { Text(i18n.newAlias()) },
                                 onValueChange = {
-                                    if (it.text.isEmpty() || MatrixRegex.roomAlias.matchEntire("#${it.text}:${viewModel.domain}") != null) {
+                                    if (it.text.isEmpty() || MatrixRegex.isValidRoomAliasId("#${it.text}:${viewModel.domain}")) {
                                         newAlias = it
                                     }
                                 },

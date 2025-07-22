@@ -170,7 +170,12 @@ internal fun String.formatMentions(
     mentions: List<Pair<IntRange, TimelineElementMention?>>,
     eventPile: (String) -> String
 ): String =
-    mentions.foldIndexed(this) { index, currentText, (range, mention) ->
+    mentions.sortedByDescending { it.first.first }.foldIndexed(this) { index, currentText, (range, mention) ->
+        val isInsideHref = range.first > hrefPrefix.length
+                && range.last != currentText.length
+                && currentText.substring(range.first - hrefPrefix.length, range.first) == hrefPrefix
+                && currentText[range.last + 1] == '"'
+
         val anchorContent = when (mention) {
             is TimelineElementMention.Event -> eventPile(mention.room.name)
             is TimelineElementMention.Room -> mention.room.name
@@ -181,6 +186,11 @@ internal fun String.formatMentions(
 
         if (anchorContent == null) {
             currentText
+        } else if (isInsideHref) {
+            currentText.replaceRange(
+                range,
+                "timmy-data:$index"
+            )
         } else {
             currentText.replaceRange(
                 range,

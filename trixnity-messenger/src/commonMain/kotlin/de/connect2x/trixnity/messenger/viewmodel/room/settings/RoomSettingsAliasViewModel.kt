@@ -128,7 +128,7 @@ class RoomSettingsAliasViewModelImpl(
                     return@launch
                 }
 
-                if (!MatrixRegex.roomAlias.matches(currentNewAlias)) {
+                if (!MatrixRegex.isValidRoomAliasId(currentNewAlias)) {
                     newAliasError.value = i18n.settingsRoomAliasAddAliasInvalid()
                     return@launch
                 }
