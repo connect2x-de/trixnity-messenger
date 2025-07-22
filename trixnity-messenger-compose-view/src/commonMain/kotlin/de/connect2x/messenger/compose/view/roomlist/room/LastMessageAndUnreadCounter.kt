@@ -15,6 +15,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
@@ -23,22 +25,24 @@ fun LastMessageAndUnreadMessagesCounter(roomListElementViewModel: RoomListElemen
     val usersTyping = roomListElementViewModel.usersTyping.collectAsState().value
     val unreadMessages = roomListElementViewModel.unreadMessages.collectAsState().value
 
-    Row(modifier = Modifier.fillMaxWidth()) {
-        Box(Modifier.fillMaxWidth().weight(1.0f, false).alignByBaseline()) {
-            LastMessage(lastMessage, usersTyping)
-        }
-        if (unreadMessages != null) {
-            Surface(
-                shape = CircleShape,
-                modifier = Modifier.alignByBaseline(),
-                color = MaterialTheme.colorScheme.primary,
-            ) {
-                Text(
-                    unreadMessages,
-                    Modifier.padding(horizontal = 4.dp),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.labelMedium,
-                )
+    Tooltip({ TooltipText(usersTyping ?: lastMessage ?: " ") }) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Box(Modifier.fillMaxWidth().weight(1.0f, false).alignByBaseline()) {
+                LastMessage(lastMessage, usersTyping)
+            }
+            if (unreadMessages != null) {
+                Surface(
+                    shape = CircleShape,
+                    modifier = Modifier.alignByBaseline(),
+                    color = MaterialTheme.colorScheme.primary,
+                ) {
+                    Text(
+                        unreadMessages,
+                        Modifier.padding(horizontal = 4.dp),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                }
             }
         }
     }

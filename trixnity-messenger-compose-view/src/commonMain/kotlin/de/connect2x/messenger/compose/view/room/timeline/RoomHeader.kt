@@ -46,7 +46,6 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
-import de.connect2x.messenger.compose.view.theme.components.ThemedInfoChip
 import de.connect2x.messenger.compose.view.theme.components.ThemedLabel
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
@@ -117,7 +116,11 @@ class RoomHeaderViewImpl : RoomHeaderView {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Box {
-                                    ThemedUserAvatar(roomHeaderElement.roomImageInitials, roomHeaderElement.roomImage) {
+                                    ThemedUserAvatar(
+                                        initials = roomHeaderElement.roomImageInitials,
+                                        image = roomHeaderElement.roomImage,
+                                        presence = roomHeaderElement.presence,
+                                    ) {
                                         AvatarPresenceBadge(roomHeaderElement.presence)
                                     }
                                     if (roomHeaderElement.isPublic) {

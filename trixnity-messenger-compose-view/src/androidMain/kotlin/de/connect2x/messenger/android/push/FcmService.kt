@@ -28,6 +28,7 @@ class FcmService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        log.debug { "Received FCM message" }
         val shouldBeRunning = baseContext.backgroundSyncShouldBeRunning
         if (shouldBeRunning) {
             val roomId = remoteMessage.data["room_id"].orEmpty()

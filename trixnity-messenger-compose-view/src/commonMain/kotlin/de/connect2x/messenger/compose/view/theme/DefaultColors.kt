@@ -1,11 +1,7 @@
 package de.connect2x.messenger.compose.view.theme
 
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
-import de.connect2x.messenger.compose.view.common.deriveFromHue
-import de.connect2x.messenger.compose.view.common.hue
 
 // Light theme template (mostly used for lightness/saturation)
 internal val md_theme_light_onPrimary = Color(0xFF040404)
@@ -45,7 +41,7 @@ internal val md_theme_light_surfaceContainerHigh = Color(0xFFEBE7E7)
 internal val md_theme_light_surfaceContainerHighest = Color(0xFFE5E2E1)
 
 internal val messenger_theme_light_success = Color(0xFF519325)
-internal val messenger_theme_light_warning = Color(0xFFeedc82)
+internal val messenger_theme_light_warning = Color(0xFFF6BE00)
 internal val messenger_theme_light_error = Color(0xFFFB5607)
 internal val messenger_theme_light_neutral = Color(0xFF777777)
 internal val messenger_theme_light_preview_content = Color.Companion.White.copy(alpha = 0.7f)
@@ -77,6 +73,7 @@ internal val md_theme_dark_tertiary = Color(0xFFE6E6E6)
 internal val md_theme_dark_onTertiary = Color(0xFF101010)
 internal val md_theme_dark_tertiaryContainer = Color(0xFF555555)
 internal val md_theme_dark_onTertiaryContainer = Color(0xFFE6E6E6)
+
 // TODO: use https://material-foundation.github.io/material-theme-builder/
 internal val md_theme_dark_error = Color(0x66FFFFFF).compositeOver(md_theme_light_error)
 internal val md_theme_dark_errorContainer = Color(0xFFFFDAD6)
@@ -104,7 +101,7 @@ internal val md_theme_dark_surfaceContainerHigh = Color(0xFF2A2A2A)
 internal val md_theme_dark_surfaceContainerHighest = Color(0xFF353534)
 
 internal val messenger_theme_dark_success = Color(0xFF51CC25)
-internal val messenger_theme_dark_warning = Color(0xFFeedc82)
+internal val messenger_theme_dark_warning = Color(0xFFF6BE00)
 internal val messenger_theme_dark_error = Color(0xFFFB5607)
 internal val messenger_theme_dark_neutral = Color(0xFF777777)
 internal val messenger_theme_dark_preview_content = Color.Companion.White.copy(alpha = 0.7f)

@@ -19,7 +19,6 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
@@ -29,7 +28,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
-import kotlin.time.Duration.Companion.seconds
 
 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 @Testcontainers
@@ -85,7 +83,6 @@ class UserVerificationIT {
             password = passwordUser2,
             recoveryKey = recoveryKey,
         )
-        delay(2.seconds) // give user search time to find the user
         val roomId = messenger1.createChatWithUser(user2).roomId
         messenger2.acceptInvitationToRoom(roomId)
         messenger1.di.get<MatrixClients>().value.forEach { it.value.syncOnce() }
