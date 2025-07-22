@@ -10,11 +10,13 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontStyle
@@ -86,24 +88,27 @@ private fun MessageTextContent(
         }
 
         if (content != null) {
-            RichTextDisplay(
-                document = content,
-                mentions = element.mentionsInFormattedBody,
-                modifier = Modifier
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onLongPress = { showActionMenu() }
-                        )
-                    },
-                colors = RichTextColors.default(
-                    linkColor =
-                        if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
-                        else MaterialTheme.messengerColors.link
+            CompositionLocalProvider(
+                LocalTextStyle provides MaterialTheme.typography.bodyMedium.copy(color = LocalContentColor.current)) {
+                RichTextDisplay(
+                    document = content,
+                    mentions = element.mentionsInFormattedBody,
+                    modifier = Modifier
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onLongPress = { showActionMenu() }
+                            )
+                        },
+                    colors = RichTextColors.default(
+                        linkColor =
+                            if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
+                            else MaterialTheme.messengerColors.link
                 ),
                 onCopy = null,
                 onLinkClick = { uriCaller.invoke(it, true) },
-                onMentionClick = element::openMention
-            )
+                    onMentionClick = element::openMention
+                )
+            }
         }
     }
 }
