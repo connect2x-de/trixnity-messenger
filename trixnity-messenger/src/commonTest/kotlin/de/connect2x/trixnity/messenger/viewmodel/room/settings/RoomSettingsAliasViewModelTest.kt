@@ -90,7 +90,7 @@ class RoomSettingsAliasViewModelTest {
                 Result.success(
                     GetRoomAlias.Response(it, listOf("127.0.0.1"))
                 )
-            } ?: if (MatrixRegex.roomAlias.matches((it.args[0] as RoomAliasId).full)) {
+            } ?: if (MatrixRegex.isValidRoomAliasId((it.args[0] as RoomAliasId).full)) {
                 Result.failure(
                     MatrixServerException(
                         HttpStatusCode.NotFound, ErrorResponse.NotFound("")
