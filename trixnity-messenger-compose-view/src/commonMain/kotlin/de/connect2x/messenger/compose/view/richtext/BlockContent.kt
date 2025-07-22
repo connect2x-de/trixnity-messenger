@@ -55,7 +55,7 @@ internal data class RichTextContext(
     val textLinkStyles: TextLinkStyles? = null,
     val spoilerStyles: TextLinkStyles? = null,
     val mentions: StateFlow<Map<String, TimelineElementMention?>>? = null,
-    val onCopy: (String) -> Unit = {},
+    val onCopy: ((String) -> Unit)? = null,
     val onLinkClick: (String) -> Unit = {},
     val onMentionClick: (TimelineElementMention) -> Unit = {},
 )
@@ -258,18 +258,20 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
                             ) {
                                 Text(highlightedCode.language)
                                 Spacer(Modifier.weight(1f))
-                                IconButton(
-                                    onClick = {
-                                        context.onCopy(highlightedCode.content.text)
-                                    },
-                                    modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
-                                ) {
-                                    Icon(
-                                        Icons.Default.ContentCopy,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(20.dp),
-                                    )
+                                if (context.onCopy != null) {
+                                    IconButton(
+                                        onClick = {
+                                            context.onCopy(highlightedCode.content.text)
+                                        },
+                                        modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.ContentCopy,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(20.dp),
+                                        )
+                                    }
                                 }
                             }
                         }

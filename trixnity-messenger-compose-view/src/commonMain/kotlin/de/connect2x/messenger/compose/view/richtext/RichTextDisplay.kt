@@ -37,7 +37,7 @@ fun RichTextDisplay(
     mentions: StateFlow<Map<String, TimelineElementMention?>>? = null,
     modifier: Modifier = Modifier.Companion,
     colors: RichTextColors = RichTextColors.default(),
-    onCopy: (String) -> Unit = {},
+    onCopy: ((String) -> Unit)? = null,
     onLinkClick: (String) -> Unit = {},
     onMentionClick: (TimelineElementMention) -> Unit = {},
 ) {

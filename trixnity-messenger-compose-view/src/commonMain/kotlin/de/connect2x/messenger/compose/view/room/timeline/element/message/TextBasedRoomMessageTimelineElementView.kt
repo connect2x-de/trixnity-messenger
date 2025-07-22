@@ -100,10 +100,7 @@ private fun MessageTextContent(
                         if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
                         else MaterialTheme.messengerColors.link
                 ),
-                onCopy = {
-                    // TODO
-                    println("Copy: $it")
-                },
+                onCopy = null,
                 onLinkClick = { uriCaller.invoke(it, true) },
                 onMentionClick = element::openMention
             )

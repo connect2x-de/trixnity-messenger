@@ -11,7 +11,7 @@ internal data class InlineRichTextContext(
     val textLinkStyles: TextLinkStyles? = null,
     val spoilerStyles: TextLinkStyles? = null,
     val mentions: Map<String, TimelineElementMention?>?,
-    val onCopy: (String) -> Unit = {},
+    val onCopy: ((String) -> Unit)? = null,
     val onLinkClick: (String) -> Unit = {},
     val onMentionClick: (TimelineElementMention) -> Unit = {},
 )
