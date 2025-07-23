@@ -48,9 +48,8 @@ class AutoLinkifyVisitor {
                 if (previousContent.isNotEmpty()) {
                     children.add(HtmlNode.TextContent(previousContent))
                 }
-                val content = node.content.substring(match.range).trimParens().trimEnd('.', '!', '?', ':')
-                children.add(linkElement(match, content))
-                index = match.range.first + content.length
+                children.add(linkElement(match, match.content))
+                index = match.range.last + 1
             }
             val previousContent = node.content.substring(index)
             if (previousContent.isNotEmpty()) {
@@ -103,18 +102,6 @@ class AutoLinkifyVisitor {
                 children = listOf(HtmlNode.TextContent(content)),
             )
     }
-
-    private fun String.trimParens(): String =
-        if (endsWith(')')) {
-            val trimmed = trimEnd(')')
-            val openingParens = trimmed.count { it == '(' }
-            val closingParens = trimmed.count { it == ')' }
-            val endingParens = length - trimmed.length
-            val openParens = openingParens - closingParens
-
-            val desiredParens = minOf(endingParens, openParens)
-            take(trimmed.length + desiredParens)
-        } else this
 
     companion object {
         fun process(document: HtmlNode.HtmlElement): HtmlNode.HtmlElement =

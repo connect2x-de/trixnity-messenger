@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.util.html
 
-import de.connect2x.trixnity.messenger.util.Patterns
 import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.Mention
 
@@ -42,8 +41,8 @@ class LinkMatcher(private val content: String) {
     }
 
     fun MutableList<LinkMatch>.findUrls(from: Int, to: Int) {
-        for (match in Patterns.AUTOLINK_WEB_URL.findAll(content, from).takeWhile { it.range.last < to }) {
-            add(LinkMatch.UrlMatch(match.range, match.value))
+        for ((range, match) in MatrixRegex.findLinks(content, from, to)) {
+            add(LinkMatch.UrlMatch(range, match))
         }
     }
 }
