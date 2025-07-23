@@ -528,7 +528,7 @@ class UserProfileViewModelImpl(
                 getOrCreateRoom()?.also { roomId ->
                     onOpenRoom(matrixClient.userId, roomId)
                 } ?: run {
-                    error.value = i18n.createNewChatError()
+                    error.value = i18n.createNewRoomError(isChat = true)
                 }
             }.invokeOnCompletion {
                 openingChat.update { false }
