@@ -35,10 +35,10 @@ internal fun InlineContent(
     CompoundText(
         content = content,
         onMeasure = measurer,
-    ) { url ->
+    ) { url, constraints ->
         val mention = inlineContext.mentions?.get(url)
         if (mention != null) {
-            MentionChip(mention, i18n, onMentionClick = context.onMentionClick)
+            MentionChip(mention, i18n, constraints, onMentionClick = context.onMentionClick)
         }
     }
 }

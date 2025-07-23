@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.richtext
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubble
@@ -16,8 +17,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.coerceAtMost
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -38,13 +43,22 @@ private val iconModifier = Modifier.requiredSize(SuggestionChipDefaults.IconSize
 internal fun MentionChip(
     mention: TimelineElementMention,
     i18n: I18nView,
+    constraints: Constraints,
     style: ChipStyle = MaterialTheme.components.mentionChip,
     onMentionClick: (TimelineElementMention) -> Unit,
 ) {
+    val density = LocalDensity.current
+    val maxWidth = with(density) { constraints.maxWidth.toDp() }
     DisableSelection {
         ThemedSuggestionChip(
             style = style,
-            label = { Text(mentionLabel(i18n, mention)) },
+            label = {
+                Text(
+                    mentionLabel(i18n, mention),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            },
             icon = {
                 when (mention) {
                     is TimelineElementMention.Event ->
@@ -56,7 +70,10 @@ internal fun MentionChip(
                 }
             },
             onClick = { onMentionClick(mention) },
-            modifier = Modifier.pointerHoverIcon(PointerIcon.Hand).padding(all = 1.dp),
+            modifier = Modifier
+                .requiredWidthIn(max = maxWidth)
+                .pointerHoverIcon(PointerIcon.Hand)
+                .padding(all = 1.dp),
         )
     }
 }
@@ -69,7 +86,7 @@ internal fun MentionChip(
 internal fun rememberMentionChipMeasurer(
     context: InlineRichTextContext,
     i18n: I18nView,
-): (CompoundTextContext.(String) -> Placeholder?) {
+): (CompoundTextContext.(String, Constraints) -> Placeholder?) {
     val textStyle = MaterialTheme.typography.labelLarge
     return remember(context, i18n, textStyle) {
         val chipMinHeight = SuggestionChipDefaults.Height
@@ -77,11 +94,14 @@ internal fun rememberMentionChipMeasurer(
         val horizontalElementsPadding = 8.dp
         val margin = 1.dp
 
-        { url ->
+        { url, constraints ->
             context.mentions?.get(url)
                 ?.let { measure(mentionLabel(i18n, it), textStyle) }
                 ?.let {
+                    val maxWidth = with(density) { constraints.maxWidth.toDp() }
+                    val horizontalPadding = (horizontalElementsPadding * 4) + leadingIconSize + (margin * 2)
                     val labelPlaceableWidth = with(density) { it.size.width.toDp() }
+                        .coerceAtMost(maxWidth - horizontalPadding)
                     val labelPlaceableHeight = with(density) { it.size.height.toDp() }
 
                     val width = (horizontalElementsPadding * 4) + leadingIconSize + labelPlaceableWidth + (margin * 2)

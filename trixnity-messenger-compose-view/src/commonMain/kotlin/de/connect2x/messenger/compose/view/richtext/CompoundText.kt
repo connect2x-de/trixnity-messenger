@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.richtext
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
@@ -66,8 +67,8 @@ internal data class CompoundTextContext(
 internal fun CompoundText(
     modifier: Modifier = Modifier,
     content: AnnotatedString,
-    onMeasure: CompoundTextContext.(String) -> Placeholder?,
-    onRender: @Composable (String) -> Unit,
+    onMeasure: CompoundTextContext.(String, Constraints) -> Placeholder?,
+    onRender: @Composable (String, Constraints) -> Unit,
 ) {
     val replaceables = remember(content) {
         content.getStringAnnotations(INLINE_CONTENT_TAG, 0, content.length)
@@ -81,37 +82,42 @@ internal fun CompoundText(
     val context = remember(density, textStyle, layoutDirection, measurer) {
         CompoundTextContext(density, textStyle, layoutDirection, measurer)
     }
-    val inlineContent = remember(replaceables, context, onMeasure) {
-        mutableMapOf<String, InlineTextContent>().apply {
-            for (replaceable in replaceables) {
-                val measurement = context.onMeasure(replaceable.item)
-                if (measurement != null) {
-                    put(replaceable.item, InlineTextContent(measurement, {}))
+
+    BoxWithConstraints {
+        val containerConstraints = constraints
+
+        val inlineContent = remember(replaceables, context, onMeasure, containerConstraints) {
+            mutableMapOf<String, InlineTextContent>().apply {
+                for (replaceable in replaceables) {
+                    val measurement = context.onMeasure(replaceable.item, containerConstraints)
+                    if (measurement != null) {
+                        put(replaceable.item, InlineTextContent(measurement, {}))
+                    }
                 }
             }
         }
-    }
-    val placeholders = remember(inlineContent, content) {
-        content.resolveInlineContent(inlineContent)
-    }
-    val policy = remember(content, placeholders, context) {
-        MentionMeasurePolicy(content, placeholders, context)
-    }
-    if (content.isNotBlank()) {
-        Box(modifier) {
-            Text(
-                text = content,
-                inlineContent = inlineContent,
-            )
-            if (placeholders.isNotEmpty()) {
-                Layout(
-                    measurePolicy = policy,
-                    content = {
-                        for (index in placeholders.indices) {
-                            onRender(placeholders[index].first)
-                        }
-                    },
+        val placeholders = remember(inlineContent, content) {
+            content.resolveInlineContent(inlineContent)
+        }
+        val policy = remember(content, placeholders, context) {
+            MentionMeasurePolicy(content, placeholders, context)
+        }
+        if (content.isNotBlank()) {
+            Box(modifier) {
+                Text(
+                    text = content,
+                    inlineContent = inlineContent,
                 )
+                if (placeholders.isNotEmpty()) {
+                    Layout(
+                        measurePolicy = policy,
+                        content = {
+                            for (index in placeholders.indices) {
+                                onRender(placeholders[index].first, containerConstraints)
+                            }
+                        },
+                    )
+                }
             }
         }
     }
