@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.richtext
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -66,9 +65,7 @@ fun RichTextDisplay(
         )
     }
 
-    SelectionContainer(modifier) {
-        Column {
-            BlockContent(richText, context)
-        }
+    Column(modifier) {
+        BlockContent(richText, context)
     }
 }
