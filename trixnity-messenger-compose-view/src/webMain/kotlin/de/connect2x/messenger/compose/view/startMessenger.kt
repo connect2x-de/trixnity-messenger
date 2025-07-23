@@ -33,16 +33,24 @@ import web.prompts.alert
 import web.uievents.BLUR
 import web.uievents.FOCUS
 import web.uievents.FocusEvent
+import web.url.URL
 import web.window.window
 
 private val log = KotlinLogging.logger {}
+
+private fun getLogLevel(): Level {
+    val levelName = URL(window.location.href).searchParams.get("loglevel")
+    return Level.entries.find {
+        it.name.equals(levelName, ignoreCase = true)
+    } ?: Level.INFO
+}
 
 @OptIn(ExperimentalComposeUiApi::class)
 suspend fun startMessenger(
     configuration: MatrixMultiMessengerConfiguration.() -> Unit,
 ) {
     log.info { "Starting client" }
-    KotlinLoggingConfiguration.logLevel = Level.DEBUG
+    KotlinLoggingConfiguration.logLevel = getLogLevel()
 
     val matrixMultiMessenger = MatrixMultiMessenger.create(configuration = configuration)
     val config = matrixMultiMessenger.di.get<MatrixMessengerBaseConfiguration>()
