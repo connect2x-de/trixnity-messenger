@@ -39,8 +39,9 @@ import web.window.window
 private val log = KotlinLogging.logger {}
 
 private fun getLogLevel(): Level {
+    val levelName = URL(window.location.href).searchParams.get("loglevel")
     return Level.entries.find {
-        it.name.equals(URL(window.location.href).searchParams.get("loglevel"), true)
+        it.name.equals(levelName, ignoreCase = true)
     } ?: Level.INFO
 }
 
