@@ -2,9 +2,9 @@ package de.connect2x.messenger.compose.view.richtext
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
@@ -22,9 +22,11 @@ import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.TextUnit
 import kotlin.math.roundToInt
 
 // This must match exactly
@@ -75,7 +77,9 @@ internal fun CompoundText(
     }
 
     val density = LocalDensity.current
-    val textStyle = LocalTextStyle.current
+    val textStyle = LocalTextStyle.current.copy(
+        lineHeight = TextUnit.Unspecified,
+    )
     val layoutDirection = LocalLayoutDirection.current
     val measurer = rememberTextMeasurer()
 
@@ -87,7 +91,7 @@ internal fun CompoundText(
         val containerConstraints = constraints
 
         val inlineContent = remember(replaceables, context, onMeasure, containerConstraints) {
-            mutableMapOf<String, InlineTextContent>().apply {
+            buildMap {
                 for (replaceable in replaceables) {
                     val measurement = context.onMeasure(replaceable.item, containerConstraints)
                     if (measurement != null) {
@@ -104,9 +108,15 @@ internal fun CompoundText(
         }
         if (content.isNotBlank()) {
             Box(modifier) {
-                Text(
+                BasicText(
                     text = content,
                     inlineContent = inlineContent,
+                    style = textStyle,
+                    onTextLayout = null,
+                    overflow = TextOverflow.Clip,
+                    softWrap = true,
+                    maxLines = Int.MAX_VALUE,
+                    minLines = 1,
                 )
                 if (placeholders.isNotEmpty()) {
                     Layout(
