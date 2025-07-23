@@ -44,10 +44,12 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
     val i18n = DI.get<I18nView>()
     val selectedVerificationMethod =
         remember { mutableStateOf<VerificationMethod?>(null) }
-    val child = viewModel.stack.subscribeAsState().value.active.instance
+    val childState = viewModel.stack.subscribeAsState()
     val step = WizardStep(
-        id = "DEVICE_VERIFICATION_WIZARD", title = { i18n.deviceVerification() }, content = {
-            when (child) {
+        id = "DEVICE_VERIFICATION_WIZARD",
+        title = { i18n.deviceVerification() },
+        content = {
+            when (val child = childState.value.active.instance) {
                 is Wrapper.Request -> DeviceVerificationWizardRequest(child.viewModel)
                 is Wrapper.Wait -> DeviceVerificationWizardWaitForOther()
                 is Wrapper.SelectVerificationMethod -> DeviceVerificationWizardSelectVerificationMethod(
@@ -62,13 +64,14 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
                 is Wrapper.Rejected -> DeviceVerificationWizardRejected()
                 is Wrapper.Timeout -> DeviceVerificationWizardTimeout()
                 is Wrapper.Cancelled -> DeviceVerificationWizardCancelled()
-                is Wrapper.AcceptedByOtherClient -> Box {} // not applicable for device verifications
-                is Wrapper.None -> Box {}
-            }.let {}
+                // not applicable for device verifications
+                is Wrapper.AcceptedByOtherClient -> Unit
+                is Wrapper.None -> Unit
+            }
         },
         nextButton = {
             Custom {
-                when (child) {
+                when (val child = childState.value.active.instance) {
                     is Wrapper.Request ->
                         ThemedButton(
                             style = MaterialTheme.components.primaryButton,
@@ -91,7 +94,7 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
             }
         },
         additionalButton = {
-            when (child) {
+            when (val child = childState.value.active.instance) {
                 is Wrapper.Wait ->
                     ThemedButton(
                         style = MaterialTheme.components.primaryButton,
@@ -128,13 +131,12 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
                     OkButton(child.viewModel::ok)
                 }
 
-                else -> null
+                else -> Unit
             }
-
         },
         backButton = {
             Custom {
-                when (child) {
+                when (val child = childState.value.active.instance) {
                     is Wrapper.CompareEmojisOrNumbers ->
                         ThemedButton(
                             style = MaterialTheme.components.destructiveButton,
@@ -144,7 +146,7 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
                             Text(i18n.verificationNotMatch())
                         }
 
-                    else -> {}
+                    else -> Unit
                 }
             }
         }

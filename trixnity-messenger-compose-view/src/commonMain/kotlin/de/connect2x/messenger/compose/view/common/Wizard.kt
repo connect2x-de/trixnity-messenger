@@ -22,7 +22,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.ReusableComposeNode
+import androidx.compose.runtime.ReusableContentHost
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -93,6 +97,7 @@ data class WizardStep(
 @Composable
 fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
     val currentStepId = remember(wizardSteps) { mutableStateOf(wizardSteps.getOrNull(0)?.id ?: "unknown") }
+    val savableStateHolder = rememberSaveableStateHolder()
 
     val wizardStep = wizardSteps.find { it.id == currentStepId.value }
     val previousStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) - 1)?.id
@@ -112,22 +117,23 @@ fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
             }
         }
     }
-    if (wizardStep != null) {
-        Surface(
-            Modifier
-                .fillMaxSize(),
-            color = MaterialTheme.colorScheme.background,
-        ) {
-            BoxWithConstraints(
-                Modifier
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                // this is necessary to have a scroll position saved on every step, but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
-                val savableStateHolder = rememberSaveableStateHolder()
-                savableStateHolder.SaveableStateProvider(key = currentStepId) {
-                    val scrollState = rememberScrollState()
-                    WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
+
+    key(wizardStep) {
+        if (wizardStep != null) {
+            // this is necessary to have a scroll position saved on every step,
+            // but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
+            savableStateHolder.SaveableStateProvider(key = wizardStep.id) {
+                val scrollState = rememberScrollState()
+                Surface(
+                    Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background,
+                ) {
+                    BoxWithConstraints(
+                        Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
+                    }
                 }
             }
         }
