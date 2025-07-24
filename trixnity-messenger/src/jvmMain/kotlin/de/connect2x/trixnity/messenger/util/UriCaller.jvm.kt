@@ -16,10 +16,18 @@ actual fun platformUriCallerModule(): Module = module {
             if (!external) log.debug { "does not support internal uri calling yet" }
             val desktop = Desktop.getDesktop()
             if (desktop.isSupported(Desktop.Action.BROWSE)) {
-                desktop.browse(safeUri)
+                try {
+                    desktop.browse(safeUri)
+                } catch (exc: Exception) {
+                    log.error(exc) { "cannot open uri '$safeUri'" }
+                }
             } else when (getOs()) {
                 OS.LINUX -> {
-                    Runtime.getRuntime().exec(arrayOf("xdg-open", safeUri.toString()))
+                    try {
+                        Runtime.getRuntime().exec(arrayOf("xdg-open", safeUri.toString()))
+                    } catch (exc: Exception) {
+                        log.error(exc) { "cannot open uri '$safeUri'" }
+                    }
                 }
 
                 else -> throw UnsupportedOperationException("AWT does not support the BROWSE action on this platform")
