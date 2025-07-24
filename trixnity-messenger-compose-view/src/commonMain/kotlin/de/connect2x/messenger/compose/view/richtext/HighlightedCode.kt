@@ -1,10 +1,12 @@
 package de.connect2x.messenger.compose.view.richtext
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -45,6 +47,8 @@ internal fun rememberHighlightedCode(node: RichText.Block): HighlightedCode? {
 
     val highlightedCode = remember { mutableStateOf<AnnotatedString?>(null) }
 
+    val isDarkMode = MaterialTheme.colorScheme.onSurface.luminance() > 0.5
+
     remember(language, inlineContent) {
         val syntaxLanguage = when (language) {
             "c" -> SyntaxLanguage.C
@@ -72,7 +76,7 @@ internal fun rememberHighlightedCode(node: RichText.Block): HighlightedCode? {
                 val content = inlineContent.trimEnd()
                 val highlights = Highlights.Builder()
                     .code(content)
-                    .theme(SyntaxThemes.darcula())
+                    .theme(SyntaxThemes.darcula(darkMode = isDarkMode))
                     .language(syntaxLanguage)
                     .build()
                     .getHighlights()

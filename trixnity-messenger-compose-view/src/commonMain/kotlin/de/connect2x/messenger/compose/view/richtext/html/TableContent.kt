@@ -39,8 +39,9 @@ internal fun TableContent(
     if (table != null) {
         val scrollState = rememberScrollState()
         Surface(
-            tonalElevation = 8.dp,
+            tonalElevation = 4.dp,
             shadowElevation = 2.dp,
+            contentColor = MaterialTheme.colorScheme.onSurface,
             shape = MaterialTheme.shapes.small,
         ) {
             Layout(

@@ -52,12 +52,13 @@ fun DetailsSummaryLayout(
         measurePolicy = DetailsSummaryMeasurePolicy,
         content = {
             Surface(
-                tonalElevation = 16.dp,
+                tonalElevation = 4.dp,
                 shadowElevation = 2.dp,
                 modifier = Modifier
                     .layoutId(DetailsSummaryMeasurePolicy.LayoutId.SUMMARY)
                     .clickable { expanded.targetState = !expanded.targetState }
                     .buttonPointerModifier(),
+                contentColor = MaterialTheme.colorScheme.onSurface,
             ) {
                 Row(
                     Modifier.height(48.dp).padding(start = 16.dp, end = 4.dp),

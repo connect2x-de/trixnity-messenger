@@ -135,9 +135,10 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
         "blockquote" -> {
             val borderColor = MaterialTheme.colorScheme.outlineVariant
             Surface(
-                tonalElevation = 8.dp,
+                tonalElevation = 4.dp,
                 shadowElevation = 2.dp,
                 shape = MaterialTheme.shapes.small,
+                contentColor = MaterialTheme.colorScheme.onSurface,
             ) {
                 Column(
                     Modifier.drawBehind {
@@ -236,23 +237,28 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
             val highlightedCode = rememberHighlightedCode(node)
 
             Surface(
-                tonalElevation = 8.dp,
+                tonalElevation = 4.dp,
                 shadowElevation = 2.dp,
                 shape = MaterialTheme.shapes.small,
+                contentColor = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.width(IntrinsicSize.Max)
             ) {
                 Column {
                     highlightedCode?.let {
                         Surface(
-                            tonalElevation = 16.dp,
+                            tonalElevation = 4.dp,
                             shadowElevation = 2.dp,
                             modifier = Modifier.fillMaxWidth(),
+                            contentColor = MaterialTheme.colorScheme.onSurface,
                         ) {
                             Row(
                                 Modifier.height(48.dp).padding(start = 16.dp, end = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(highlightedCode.language)
+                                Text(
+                                    highlightedCode.language,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
                                 Spacer(Modifier.weight(1f))
                                 if (context.onCopy != null) {
                                     IconButton(
@@ -285,6 +291,7 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
                                         it,
                                         fontFamily = FontFamily.Monospace,
                                         softWrap = false,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                     )
                                 } ?: Children(
                                     node,
@@ -304,9 +311,10 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
             val children = node.children.filter { it != summary }
 
             Surface(
-                tonalElevation = 8.dp,
+                tonalElevation = 4.dp,
                 shadowElevation = 2.dp,
                 shape = MaterialTheme.shapes.small,
+                contentColor = MaterialTheme.colorScheme.onSurface,
             ) {
                 DetailsSummaryLayout(
                     summary = {
