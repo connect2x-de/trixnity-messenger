@@ -176,6 +176,15 @@ val matrixMessenger = MatrixMessenger.create configScope@{
 
 For more information about the `notificationsDebugEnabled` flag, see [the according Sysnotify documentation](https://gitlab.com/connect2x/sysnotify/-/blob/main/sysnotify/src/commonMain/kotlin/de/connect2x/sysnotify/NotificationHandler.kt?ref_type=heads#L211).
 
+### Adjusting the log level
+
+Currently the log level can be adjusted using environment variables and config files
+employed by the underlying logging implementation.
+
+An exception to this being the Web client, where the log level may be adjusted using
+the `?loglevel=LEVEL` query parameter, where `LEVEL` can be one of the constants described
+in Kotlin Logging's `Level` enum.
+
 ### MatrixClientConfiguration
 
 If you want to change the underlying `MatrixClientConfiguration`, you can register a

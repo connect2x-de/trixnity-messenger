@@ -9,6 +9,7 @@ import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
 import de.connect2x.messenger.compose.view.composeViewModule
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
@@ -53,6 +54,7 @@ internal fun InitMessengerPreview(
     CompositionLocalProvider(
         Platform provides PlatformType.ANDROID,
         IsFocused provides true,
+        IsSinglePane provides false,
         DI provides koinApplication.koin,
     ) {
         MessengerTheme(typography = MaterialTheme.typography) { // TODO we have to disable our own typography here, since there is a bug in compose resources (https://github.com/JetBrains/compose-multiplatform/pull/4965)
