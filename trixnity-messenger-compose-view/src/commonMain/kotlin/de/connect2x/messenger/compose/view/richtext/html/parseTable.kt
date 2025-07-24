@@ -35,6 +35,7 @@ internal fun parseTableRows(node: RichText): List<List<RichText>> =
 
 internal fun parseTableRows(node: RichText.Block): List<List<RichText>> {
     return when (node.tag) {
+        "thead", "tfoot" -> emptyList()
         "tr" -> listOf(parseTableRow(node))
         else -> node.children.flatMap {
             parseTableRows(it)
