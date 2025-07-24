@@ -11,20 +11,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- More explicit error messages on room creation
-- Upgraded Gradle to 8.14.3
-- Downgraded to Java 17
-- Upgraded Sysnotify from 1.9.0 to 2.0.0
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
-- Hardcoded log level in Web is not adjustable
-
 ### Security
+
+## 3.6.16
+
+### Changed
+
+- More explicit error messages on room creation
+- Upgraded Gradle to 8.14.3
+- Downgraded to Java 17
+- Upgraded Sysnotify from 1.9.0 to 2.0.0
+
+### Fixed
+
+- Hardcoded log level in Web is not adjustable
 
 ## 3.6.15
 
