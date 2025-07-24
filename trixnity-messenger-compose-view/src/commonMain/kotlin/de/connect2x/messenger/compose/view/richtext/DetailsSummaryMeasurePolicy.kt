@@ -14,14 +14,15 @@ internal object DetailsSummaryMeasurePolicy : MeasurePolicy {
     ): MeasureResult {
         val summary = measurables.first { it.layoutId == LayoutId.SUMMARY }
         val details = measurables.firstOrNull { it.layoutId == LayoutId.DETAILS }
-        val summaryPlaceable = summary.measure(constraints)
         val detailsPlaceable = details?.measure(constraints)
 
         return if (detailsPlaceable == null) {
+            val summaryPlaceable = summary.measure(constraints)
             layout(summaryPlaceable.width, summaryPlaceable.height) {
                 summaryPlaceable.placeRelative(0, 0)
             }
         } else {
+            val summaryPlaceable = summary.measure(constraints.copy(minWidth = detailsPlaceable.width))
             val width = maxOf(summaryPlaceable.width, detailsPlaceable.width)
             val height = summaryPlaceable.height + detailsPlaceable.height
 

@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.richtext
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,8 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,7 +25,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,7 +33,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -308,60 +303,29 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
             val summary = node.children.filterIsInstance<RichText.Block>().firstOrNull { it.tag == "summary" }
             val children = node.children.filter { it != summary }
 
-            val expanded = remember { mutableStateOf(false) }
-
             Surface(
                 tonalElevation = 8.dp,
                 shadowElevation = 2.dp,
                 shape = MaterialTheme.shapes.small,
             ) {
-                DetailsSummaryLayout {
-                    Surface(
-                        tonalElevation = 16.dp,
-                        shadowElevation = 2.dp,
-                        modifier = Modifier.layoutId(DetailsSummaryMeasurePolicy.LayoutId.SUMMARY),
-                    ) {
-                        Row(
-                            Modifier.height(48.dp).padding(start = 16.dp, end = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                if (summary != null) {
-                                    BlockContent(summary, context)
-                                } else {
-                                    Text("Details without summary.")
-                                }
-                            }
-                            Spacer(Modifier.weight(1f, fill = false))
-                            IconButton(
-                                onClick = { expanded.value = !expanded.value },
-                                modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
-                            ) {
-                                Icon(
-                                    if (expanded.value) Icons.Default.ExpandLess
-                                    else Icons.Default.ExpandMore,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp),
-                                )
+                DetailsSummaryLayout(
+                    summary = {
+                        if (summary != null) {
+                            BlockContent(summary, context)
+                        } else {
+                            Text("Details")
+                        }
+                    },
+                    details = {
+                        for (index in children.indices) {
+                            val child = children[index]
+                            when (child) {
+                                is RichText.Block -> BlockContent(child, context)
+                                is RichText.InlineSpan -> InlineContent(child, context, first = index == 0)
                             }
                         }
                     }
-                    AnimatedVisibility(
-                        expanded.value,
-                        modifier = Modifier.layoutId(DetailsSummaryMeasurePolicy.LayoutId.DETAILS)
-                    ) {
-                        Column(Modifier.padding(8.dp)) {
-                            for (index in children.indices) {
-                                val child = children[index]
-                                when (child) {
-                                    is RichText.Block -> BlockContent(child, context)
-                                    is RichText.InlineSpan -> InlineContent(child, context, first = index == 0)
-                                }
-                            }
-                        }
-                    }
-                }
+                )
             }
         }
 
