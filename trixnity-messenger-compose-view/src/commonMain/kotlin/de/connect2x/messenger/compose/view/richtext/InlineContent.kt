@@ -92,7 +92,7 @@ internal fun AnnotatedString.Builder.inlineContent(
 
             "a" -> {
                 val href = node.attributes["href"] ?: ""
-                if (context.mentions?.contains(href) == true) {
+                if (context.mentions?.get(href) != null) {
                     pushStringAnnotation(INLINE_CONTENT_TAG, href)
                     Children(node, context, first)
                     pop()

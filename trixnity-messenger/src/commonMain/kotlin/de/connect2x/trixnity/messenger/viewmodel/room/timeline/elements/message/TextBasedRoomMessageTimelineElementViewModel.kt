@@ -98,7 +98,7 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
             is Mention.Room -> parseRoom(mention.roomId, matrixClient, initials)
                 .map { info ->
-                    info?.let { TimelineElementMention.Room(info) }
+                    TimelineElementMention.Room(info)
                 }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
             is Mention.RoomAlias ->
@@ -112,9 +112,8 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                 }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
             is Mention.Event -> parseRoom(mention.roomId ?: roomId, matrixClient, initials)
-                .flatMapLatest { roomInfo ->
-                    if (roomInfo == null) flowOf(null)
-                    else flowOf(TimelineElementMention.Event(EventInfoElement(mention.eventId), roomInfo))
+                .map { roomInfo ->
+                    TimelineElementMention.Event(EventInfoElement(mention.eventId), roomInfo)
                 }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
         }
 
@@ -123,7 +122,7 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
         matrixClient: MatrixClient,
         initials: Initials,
         forceAlias: RoomAliasId? = null
-    ): Flow<RoomInfoElement?> =
+    ): Flow<RoomInfoElement> =
         combine(
             matrixClient.room.getById(roomId),
             roomName.getRoomName(roomId, matrixClient),
@@ -142,7 +141,12 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                     roomImageInitials = initials.compute(forceAlias.full),
                     roomImage = null,
                 )
-            }
+            } ?: RoomInfoElement(
+                roomName,
+                roomId,
+                initials.compute(roomName),
+                null,
+            )
         }
 
     private suspend fun findRoomAlias(roomAliasId: RoomAliasId): RoomId? =
