@@ -1049,6 +1049,18 @@ open class I18nView(
         DE - "Bisher keine Nachrichtsinteraktionen"
     }
 
+    // Eigenname, daher keine Übersetzung
+    open fun timelineElementMetadataBody() = translate {
+        EN - "Body"
+        DE - "Body"
+    }
+
+    // Eigenname, daher keine Übersetzung
+    open fun timelineElementMetadataFormattedBody() = translate {
+        EN - "Formatted Body"
+        DE - "Formatted Body"
+    }
+
     open fun timelineJumpToEnd() = translate {
         EN - "Jump to the end"
         DE - "Ans Ende springen"
