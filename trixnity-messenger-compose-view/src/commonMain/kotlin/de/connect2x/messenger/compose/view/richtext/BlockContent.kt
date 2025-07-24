@@ -37,6 +37,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -313,13 +314,12 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
                 tonalElevation = 8.dp,
                 shadowElevation = 2.dp,
                 shape = MaterialTheme.shapes.small,
-                modifier = Modifier.width(IntrinsicSize.Max)
             ) {
-                Column {
+                DetailsSummaryLayout {
                     Surface(
                         tonalElevation = 16.dp,
                         shadowElevation = 2.dp,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.layoutId(DetailsSummaryMeasurePolicy.LayoutId.SUMMARY),
                     ) {
                         Row(
                             Modifier.height(48.dp).padding(start = 16.dp, end = 4.dp),
@@ -332,7 +332,7 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
                                     Text("Details without summary.")
                                 }
                             }
-                            Spacer(Modifier.weight(1f))
+                            Spacer(Modifier.weight(1f, fill = false))
                             IconButton(
                                 onClick = { expanded.value = !expanded.value },
                                 modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
@@ -347,7 +347,10 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
                             }
                         }
                     }
-                    AnimatedVisibility(expanded.value) {
+                    AnimatedVisibility(
+                        expanded.value,
+                        modifier = Modifier.layoutId(DetailsSummaryMeasurePolicy.LayoutId.DETAILS)
+                    ) {
                         Column(Modifier.padding(8.dp)) {
                             for (index in children.indices) {
                                 val child = children[index]
