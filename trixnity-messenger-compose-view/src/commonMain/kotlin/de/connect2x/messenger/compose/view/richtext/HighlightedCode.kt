@@ -11,11 +11,16 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.i18n.I18nView
 import dev.snipme.highlights.Highlights
 import dev.snipme.highlights.model.BoldHighlight
 import dev.snipme.highlights.model.ColorHighlight
 import dev.snipme.highlights.model.SyntaxLanguage
 import dev.snipme.highlights.model.SyntaxThemes
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+private val log = KotlinLogging.logger { }
 
 @Immutable
 internal data class HighlightedCode(
@@ -25,6 +30,7 @@ internal data class HighlightedCode(
 
 @Composable
 internal fun rememberHighlightedCode(node: RichText.Block): HighlightedCode? {
+    val i18n = DI.current.get<I18nView>()
     val inlineSpan = remember(node) {
         node.children.singleOrNull() as? RichText.InlineSpan
     }
@@ -94,13 +100,13 @@ internal fun rememberHighlightedCode(node: RichText.Block): HighlightedCode? {
                     }
                 }
             } catch (e: Exception) {
-                println("Highlights error: $e")
+                log.error(e) { "unable to syntax highlight code" }
             }
         }
     }
 
     return HighlightedCode(
-        language = language ?: "Unknown",
+        language = language ?: i18n.commonUnknown(),
         content = highlightedCode.value
             ?: inlineContent?.let(::AnnotatedString)
             ?: return null
