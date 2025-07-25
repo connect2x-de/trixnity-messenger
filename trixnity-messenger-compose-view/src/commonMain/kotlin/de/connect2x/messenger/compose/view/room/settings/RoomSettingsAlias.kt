@@ -69,7 +69,6 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                         ) {
                             OutlinedTextField(
                                 value = newAlias,
-                                placeholder = { Text(i18n.newAlias()) },
                                 onValueChange = {
                                     if (it.text.isEmpty() || MatrixRegex.isValidRoomAliasId("#${it.text}:${viewModel.domain}")) {
                                         newAlias = it
