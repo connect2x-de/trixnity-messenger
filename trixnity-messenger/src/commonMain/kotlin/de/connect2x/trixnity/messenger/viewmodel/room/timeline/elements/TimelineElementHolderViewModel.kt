@@ -4,6 +4,8 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.html.HtmlNode
+import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -27,7 +29,6 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -587,8 +588,9 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
             override val body: String = "Hello everyone!"
             override val formattedBody: String = "Hello <b/>everyone!"
+            override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
             override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-            override val mentionsInFormattedBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
+            override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
             override fun openMention(mention: TimelineElementMention) {}
         })
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -637,8 +639,9 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
             override val body: String = "Hello!"
             override val formattedBody: String = "Hello!"
+            override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
             override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
-            override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
+            override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
             override fun openMention(mention: TimelineElementMention) {}
         })
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)

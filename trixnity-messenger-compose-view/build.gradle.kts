@@ -71,11 +71,11 @@ kotlin {
                 implementation(libs.okio)
                 implementation(libs.kotlinx.datetime)
                 implementation(compose.uiUtil)
-                implementation(libs.compose.richeditor)
                 implementation(libs.androidx.annotation)
                 implementation(libs.sysnotify)
                 implementation(libs.stately.common)
                 implementation(libs.stately.collections)
+                implementation(libs.highlights)
             }
         }
         val desktopAndAndroidMain by creating {

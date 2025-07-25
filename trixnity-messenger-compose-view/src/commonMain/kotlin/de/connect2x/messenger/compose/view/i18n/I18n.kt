@@ -1055,6 +1055,18 @@ open class I18nView(
         DE - "Bisher keine Nachrichtsinteraktionen"
     }
 
+    // Eigenname, daher keine Übersetzung
+    open fun timelineElementMetadataBody() = translate {
+        EN - "Body"
+        DE - "Body"
+    }
+
+    // Eigenname, daher keine Übersetzung
+    open fun timelineElementMetadataFormattedBody() = translate {
+        EN - "Formatted Body"
+        DE - "Formatted Body"
+    }
+
     open fun timelineJumpToEnd() = translate {
         EN - "Jump to the end"
         DE - "Ans Ende springen"
@@ -2866,6 +2878,11 @@ open class I18nView(
     open fun knockLabel() = translate {
         EN - "Why do you wish to join? (Optional)"
         DE - "Warum möchtest du beitreten? (Optional)"
+    }
+
+    open fun mentionEventInRoom(roomName: String) = translate {
+        EN - "Message in $roomName"
+        DE - "Nachricht in $roomName"
     }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)
