@@ -55,7 +55,7 @@ fun Modifier.zoomModifier(
 }
 
 /**
- * Overload to be used with a [TransformableState] that manages that the zoom inputs are relayed to
+ * Overload to be used with a [TransformableState] that the zoom inputs are relayed to
  */
 fun Modifier.zoomModifier(
     focusRequester: FocusRequester,
