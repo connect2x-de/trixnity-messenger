@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
@@ -56,6 +57,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
         val i18n = DI.get<I18nView>()
         val isCreating by createNewChatViewModel.isCreating.collectAsState()
         val error = createNewChatViewModel.error.collectAsState().value
+        val errorDetails = createNewChatViewModel.errorDetails.collectAsState().value
 
         Box(Modifier.fillMaxSize()) {
             Box {
@@ -66,6 +68,13 @@ class CreateNewChatViewImpl : CreateNewChatView {
                         }
                         ModalDialogContent {
                             Text(error)
+                            if (errorDetails != null) {
+                                MoreInfo(
+                                    title = i18n.errorDetails(),
+                                ) {
+                                    Text(errorDetails, modifier = Modifier.padding(20.dp))
+                                }
+                            }
                         }
                         ModalDialogFooter {
                             ThemedButton(
@@ -107,8 +116,8 @@ fun AddOrSearchGroup(createNewChatViewModel: CreateNewChatViewModel) {
     ) {
         Box(
             Modifier.weight(1.0f, fill = true)
-            .clickable(enabled = !isCreating) { createNewChatViewModel.createGroup() }
-            .buttonPointerModifier()
+                .clickable(enabled = !isCreating) { createNewChatViewModel.createGroup() }
+                .buttonPointerModifier()
         ) {
             Row(
                 Modifier.padding(horizontal = 10.dp, vertical = 20.dp),

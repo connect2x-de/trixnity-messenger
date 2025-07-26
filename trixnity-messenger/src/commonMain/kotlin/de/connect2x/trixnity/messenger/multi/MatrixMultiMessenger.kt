@@ -92,6 +92,7 @@ class MatrixMultiMessengerImpl private constructor(
     }
 
     override fun close() {
+        di.getAll<MatrixMultiMessengerCloseHook>().forEach { it(this) }
         di.get<CoroutineScope>().apply {
             cancel("stopped MatrixMultiMessenger")
         }

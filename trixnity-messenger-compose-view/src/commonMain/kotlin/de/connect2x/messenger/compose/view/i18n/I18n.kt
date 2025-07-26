@@ -600,6 +600,7 @@ open class I18nView(
         EN - "There is already a verification process with this user in another room"
         DE - "Es läuft bereits ein Verifikationsprozess mit diesem Nutzer in einem anderen Raum"
     }
+    
     open fun dehydratedDevice() = translate {
         EN - "This virtual (so called dehydrated) device is used to decrypt messages when no other device is online."
         DE - "Dieses virtuelle (sogenannte dehydrierte) Gerät wird verwendet um Nachrichten zu entschlüsseln, wenn kein anderes Gerät online ist."
@@ -608,6 +609,11 @@ open class I18nView(
     open fun anErrorHasOccurred() = translate {
         EN - "An error has occurred."
         DE - "Ein Fehler ist aufgetreten."
+    }
+
+    open fun errorDetails() = translate {
+        EN - "Error Details"
+        DE - "Fehlerdetails"
     }
 
     open fun closeApp(appName: String) = translate {
@@ -1047,6 +1053,18 @@ open class I18nView(
     open fun timelineElementMetadataReadersAndReactionsNone() = translate {
         EN - "No message interactions yet."
         DE - "Bisher keine Nachrichtsinteraktionen"
+    }
+
+    // Eigenname, daher keine Übersetzung
+    open fun timelineElementMetadataBody() = translate {
+        EN - "Body"
+        DE - "Body"
+    }
+
+    // Eigenname, daher keine Übersetzung
+    open fun timelineElementMetadataFormattedBody() = translate {
+        EN - "Formatted Body"
+        DE - "Formatted Body"
     }
 
     open fun timelineJumpToEnd() = translate {
@@ -2860,6 +2878,11 @@ open class I18nView(
     open fun knockLabel() = translate {
         EN - "Why do you wish to join? (Optional)"
         DE - "Warum möchtest du beitreten? (Optional)"
+    }
+
+    open fun mentionEventInRoom(roomName: String) = translate {
+        EN - "Message in $roomName"
+        DE - "Nachricht in $roomName"
     }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)

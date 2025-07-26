@@ -3,7 +3,6 @@ package de.connect2x.messenger.desktop
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -12,7 +11,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
-import androidx.compose.ui.window.Notification
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -26,12 +24,14 @@ import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
+import de.connect2x.messenger.compose.view.notifications.Notifications
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
 import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
+import de.connect2x.sysnotify.withActivationHandler
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.UrlHandler
@@ -40,6 +40,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import okio.FileSystem
+import java.awt.Frame
 import java.awt.GraphicsEnvironment
 import java.awt.Taskbar
 import java.awt.dnd.DropTarget
@@ -52,7 +53,7 @@ private val log = KotlinLogging.logger {}
 fun CoroutineScope.messengerApp(
     matrixMultiMessenger: MatrixMultiMessenger,
     lifecycle: LifecycleRegistry,
-    urlHandler: UrlHandler,
+    urlHandler: UrlHandler
 ) {
     application {
         val gd = GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice
@@ -63,7 +64,6 @@ fun CoroutineScope.messengerApp(
             height = min(1000.dp, height.dp)
         )
         var windowIsFocused by remember { mutableStateOf(false) }
-        val notifications = mutableStateListOf<Notification>()
 
         Window(
             onCloseRequest = ::exitApplication,
@@ -80,7 +80,6 @@ fun CoroutineScope.messengerApp(
                             log.debug { "window is focused" }
                             windowIsFocused = true
                             lifecycle.resume()
-                            notifications.clear()
                         }
 
                         override fun windowLostFocus(e: WindowEvent?) {
@@ -133,10 +132,13 @@ fun CoroutineScope.messengerApp(
                             Client(rootViewModel)
                         }
 
-                        Notifications(
-                            matrixMessenger,
-                            trayState,
-                        )
+                        Notifications(matrixMessenger, matrixMultiMessenger.activeProfile.value ?: "default") {
+                            withActivationHandler { notification ->
+                                // First bring up the window manually since desktop doesn't handle this consistently
+                                window.state = Frame.NORMAL
+                                window.requestFocus()
+                            }
+                        }
                     }
                 },
                 nonActiveMessenger = { existingProfiles ->

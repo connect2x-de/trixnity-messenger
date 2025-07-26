@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
+import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.Message
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
@@ -23,6 +24,11 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         val formattedBody: String?
 
         /**
+         * The HTML version of the message as tree of HTML nodes, if present.
+         */
+        val formattedBodyContent: HtmlNode.HtmlElement?
+
+        /**
          * Users, Events and Room mentioned in the event's message
          */
         val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>>
@@ -30,7 +36,7 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         /**
          * Users, Events and Room mentioned in the event's formatted body
          */
-        val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention?>>?
+        val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>>
 
         /**
          * Open the mention in the UI

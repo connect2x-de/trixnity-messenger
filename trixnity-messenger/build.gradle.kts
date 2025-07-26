@@ -88,6 +88,7 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kim)
                 implementation(libs.markdown)
+                implementation(libs.ksoup.html)
                 implementation(libs.skie.annotations)
             }
         }

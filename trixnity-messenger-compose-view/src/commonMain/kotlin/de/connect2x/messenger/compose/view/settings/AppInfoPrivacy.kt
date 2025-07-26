@@ -3,17 +3,20 @@ package de.connect2x.messenger.compose.view.settings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import com.mohamedrejeb.richeditor.ui.material.RichText
+import androidx.compose.runtime.remember
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.richtext.RichTextColors
+import de.connect2x.messenger.compose.view.richtext.RichTextDisplay
 import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogScrollContent
 import de.connect2x.messenger.compose.view.theme.components.ThemedAdaptiveDialog
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.UriCaller
+import de.connect2x.trixnity.messenger.util.html.AutoLinkifyVisitor
+import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 
 interface AppInfoPrivacyView {
@@ -30,20 +33,24 @@ class AppInfoPrivacyViewImpl : AppInfoPrivacyView {
     @Composable
     override fun create(appInfoViewModel: AppInfoViewModel) {
         val i18n = DI.get<I18nView>()
+        val uriCaller = DI.get<UriCaller>()
         val privacyInfo = DI.get<MatrixMessengerConfiguration>().privacyInfo
         if (privacyInfo != null) {
-            val richTextState = rememberRichTextState()
-            richTextState.config.linkColor = MaterialTheme.messengerColors.link
-            LaunchedEffect(Unit) {
-                richTextState.setMarkdown(privacyInfo)
+            val content = remember(privacyInfo) {
+                AutoLinkifyVisitor.process(
+                    HtmlVisitor.process(privacyInfo)
+                )
             }
-
             ThemedAdaptiveDialog({ appInfoViewModel.showPrivacy.value = false }) {
                 AdaptiveDialogHeader(onClose = { appInfoViewModel.showPrivacy.value = false }) {
                     Text(i18n.appInfoPrivacy())
                 }
                 AdaptiveDialogScrollContent {
-                    RichText(richTextState)
+                    RichTextDisplay(
+                        content,
+                        colors = RichTextColors.default(linkColor = MaterialTheme.messengerColors.link),
+                        onLinkClick = { uriCaller.invoke(it, external = true) },
+                    )
                 }
             }
         }
