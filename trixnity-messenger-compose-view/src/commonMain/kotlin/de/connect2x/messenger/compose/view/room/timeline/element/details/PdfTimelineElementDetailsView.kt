@@ -185,7 +185,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                             canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
                             false
                         }
-                        .zoomModifier(focusRequester, canZoom, zoom, minZoom, maxZoom, state, scope, viewSize),
+                        .zoomModifier(focusRequester, canZoom, state, scope),
                 ) {
                     when {
                         error != null -> {

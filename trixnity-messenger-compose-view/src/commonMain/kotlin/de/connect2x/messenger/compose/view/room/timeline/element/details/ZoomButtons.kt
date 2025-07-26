@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.IntSize
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -34,10 +33,7 @@ fun Modifier.zoomModifier(
     canZoom: MutableState<Boolean>,
     zoom: MutableState<Float>,
     minScale: Float? = 0.2f,
-    maxScale: Float? = 4f,
-    state: TransformableState? = null,
-    scope: CoroutineScope? = null,
-    viewSize: MutableState<IntSize>? = null
+    maxScale: Float? = 4f
 ): Modifier {
     return this.then(
         Modifier.pointerInput(Unit) {
@@ -49,16 +45,40 @@ fun Modifier.zoomModifier(
                             focusRequester.requestFocus() // otherwise, key events will be lost
                             if (canZoom.value) {
                                 val delta = 0.1f * -it.scrollDelta.y
-                                if (state == null || scope == null || viewSize == null) {
-                                    zoom.value = (zoom.value + delta).coerceIn(minScale, maxScale)
-                                } else if (it.scrollDelta.y.toInt() != 0) {
-                                    scope.launch {
-                                        state.transform {
-                                            val deltaMultiplier = 1 + delta
-                                            this.transformBy(
-                                                deltaMultiplier,
-                                            )
-                                        }
+                                zoom.value = (zoom.value + delta).coerceIn(minScale, maxScale)
+                            }
+                        }
+                }
+            }
+        }
+    )
+}
+
+/**
+ * Overload to be used with a [TransformableState] that manages that the zoom inputs are relayed to
+ */
+fun Modifier.zoomModifier(
+    focusRequester: FocusRequester,
+    canZoom: MutableState<Boolean>,
+    state: TransformableState,
+    scope: CoroutineScope
+): Modifier {
+    return this.then(
+        Modifier.pointerInput(Unit) {
+            awaitPointerEventScope {
+                while (true) {
+                    awaitPointerEvent(pass = PointerEventPass.Final)
+                        .changes
+                        .forEach {
+                            focusRequester.requestFocus() // otherwise, key events will be lost
+                            if (it.scrollDelta.y.toInt() != 0 && canZoom.value) {
+                                val delta = 0.1f * -it.scrollDelta.y
+                                scope.launch {
+                                    state.transform {
+                                        val deltaMultiplier = 1 + delta
+                                        this.transformBy(
+                                            deltaMultiplier,
+                                        )
                                     }
                                 }
                             }
