@@ -6,7 +6,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import com.arkivanov.decompose.ComponentContext
-import com.arkivanov.decompose.InternalDecomposeApi
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.createRoot
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
@@ -16,7 +15,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val log = KotlinLogging.logger { }
 
-@OptIn(InternalDecomposeApi::class)
 @Composable
 internal fun rememberRootViewModel(
     matrixMessenger: MatrixMessenger?,
