@@ -2,7 +2,7 @@
 jvmTarget = "17"
 c2xConventions = "43109500" # https://gitlab.com/connect2x/c2x-conventions/-/packages
 
-trixnityMessenger = "3.6.14"
+trixnityMessenger = "3.6.17"
 trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
@@ -16,8 +16,9 @@ kotlinxSerialization = "1.8.1" # https://github.com/Kotlin/kotlinx.serialization
 kotlinxDatetime = "0.6.2" # https://github.com/Kotlin/kotlinx-datetime/releases
 kotlinxKover = "0.9.1" # https://github.com/Kotlin/kotlinx-kover/releases
 
-trixnity = "4.17.1" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "1.4.0-DEV-24475435" # https://gitlab.com/connect2x/sysnotify/-/packages
+trixnity = "4.18.1-DEV-49299257" # https://gitlab.com/trixnity/trixnity/-/releases
+sysnotify = "2.0.0" # https://gitlab.com/connect2x/sysnotify/-/packages
+stately = "2.1.0" # https://github.com/touchlab/Stately/releases
 decompose = "3.3.0" # https://github.com/arkivanov/Decompose/releases
 essenty = "2.5.0" # https://github.com/arkivanov/Essenty/releases
 koin = "4.1.0" # https://github.com/InsertKoinIO/koin/tags
@@ -37,9 +38,10 @@ pdfjs = "5.3.31" # https://www.npmjs.com/package/pdfjs-dist
 pdfbox = "3.0.5" # https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox
 icu4j = "77.1" # https://github.com/unicode-org/icu/releases
 testContainers = "1.21.2" # https://github.com/testcontainers/testcontainers-java/releases
-composeMultiplatform = "1.7.3" # https://github.com/JetBrains/compose-multiplatform/releases
-richeditor = "1.0.0-rc11" # https://github.com/MohamedRejeb/compose-rich-editor/releases
-aboutLibraries = "12.0.0" # https://github.com/mikepenz/AboutLibraries/releases
+composeMultiplatform = "1.8.1" # https://github.com/JetBrains/compose-multiplatform/releases
+ksoup = "0.2.4" # https://github.com/fleeksoft/ksoup/releases
+highlights = "1.0.0" # https://github.com/SnipMeDev/Highlights/releases
+aboutLibraries = "12.2.4" # https://github.com/mikepenz/AboutLibraries/releases
 copyWebpackPlugin = "13.0.0" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
 composeUiTest = "1.7.8" # https://mvnrepository.com/artifact/androidx.compose.ui/ui-test-junit4
 filekit = "0.8.8" # https://github.com/vinceglb/FileKit/releases
@@ -88,8 +90,8 @@ trixnity-client-media-opfs = { module = "net.folivo:trixnity-client-media-opfs",
 trixnity-client-media-indexeddb = { module = "net.folivo:trixnity-client-media-indexeddb", version.ref = "trixnity" }
 
 sysnotify = { module = "de.connect2x:sysnotify", version.ref = "sysnotify" }
-sysnotify-android = { module = "de.connect2x:sysnotify-android", version.ref = "sysnotify" }
-sysnotify-js = { module = "de.connect2x:sysnotify-js", version.ref = "sysnotify" }
+stately-common = { module = "co.touchlab:stately-common", version.ref = "stately" }
+stately-collections = { module = "co.touchlab:stately-collections", version.ref = "stately" }
 
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
@@ -143,9 +145,11 @@ pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu4j" }
 mokkery-coroutines = { module = "dev.mokkery:mokkery-coroutines", version.ref = "mokkery" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
-compose-richeditor = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richeditor" }
 aboutlibraries = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 kotest-assertion-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+
+ksoup-html = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
+highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
 
 [bundles]
 jna = ["jna", "jna-platform"]

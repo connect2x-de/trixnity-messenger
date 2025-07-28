@@ -7,6 +7,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.CanvasBasedWindow
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.pause
+import com.arkivanov.essenty.lifecycle.resume
+import de.connect2x.messenger.compose.view.notifications.Notifications
 import de.connect2x.messenger.compose.view.profiles.rememberRootViewModel
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
@@ -32,16 +35,24 @@ import web.prompts.alert
 import web.uievents.BLUR
 import web.uievents.FOCUS
 import web.uievents.FocusEvent
+import web.url.URL
 import web.window.window
 
 private val log = KotlinLogging.logger {}
+
+private fun getLogLevel(): Level {
+    val levelName = URL(window.location.href).searchParams.get("loglevel")
+    return Level.entries.find {
+        it.name.equals(levelName, ignoreCase = true)
+    } ?: Level.INFO
+}
 
 @OptIn(ExperimentalComposeUiApi::class)
 suspend fun startMessenger(
     configuration: MatrixMultiMessengerConfiguration.() -> Unit,
 ) {
     log.info { "Starting client" }
-    KotlinLoggingConfiguration.logLevel = Level.DEBUG
+    KotlinLoggingConfiguration.logLevel = getLogLevel()
 
     val matrixMultiMessenger = MatrixMultiMessenger.create(configuration = configuration)
     val config = matrixMultiMessenger.di.get<MatrixMessengerBaseConfiguration>()
@@ -118,7 +129,9 @@ suspend fun startMessenger(
                                     Client(rootViewModel)
                                 }
                             }
-                            Notifications(matrixMessenger)
+                            Notifications(matrixMessenger, matrixMultiMessenger.activeProfile.value ?: "default") {
+                                // TODO: make URI call to open chat
+                            }
                         }
                     }
                 }
@@ -135,24 +148,9 @@ suspend fun startMessenger(
 }
 
 private fun LifecycleRegistry.updateState(visible: Boolean, focused: Boolean) {
-    val target = when {
-        visible && focused -> Lifecycle.State.RESUMED
-        visible -> Lifecycle.State.STARTED
-        else -> Lifecycle.State.CREATED
-    }
-    if (state != target) {
-        log.debug { "Application State changing from $state to $target" }
-        while (state < target) when (state) {
-            Lifecycle.State.INITIALIZED -> onCreate()
-            Lifecycle.State.CREATED -> onStart()
-            Lifecycle.State.STARTED -> onResume()
-            else -> Unit
-        }
-        while (state > target) when (state) {
-            Lifecycle.State.RESUMED -> onPause()
-            Lifecycle.State.STARTED -> onStop()
-            Lifecycle.State.CREATED -> onDestroy()
-            else -> Unit
-        }
+    if (visible || focused) {
+        resume()
+    } else {
+        pause()
     }
 }

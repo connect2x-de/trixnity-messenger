@@ -683,6 +683,7 @@ class MainViewModelTest {
                                         override val initialSyncFinished: StateFlow<Boolean> = MutableStateFlow(true)
                                         override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
                                         override val searchTerm = TextFieldViewModelImpl(maxLength = 100, "")
+                                        override val searchResultsEmpty: StateFlow<Boolean> = MutableStateFlow(false)
                                         override val canCreateNewRoomWithAccount: StateFlow<Boolean> =
                                             MutableStateFlow(true)
                                         override val unverifiedAccounts: StateFlow<List<UserId>> =

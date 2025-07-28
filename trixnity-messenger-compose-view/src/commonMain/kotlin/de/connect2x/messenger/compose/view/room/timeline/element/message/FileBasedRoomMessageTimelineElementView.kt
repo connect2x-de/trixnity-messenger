@@ -135,7 +135,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
         },
         isPreview = isPreview,
     ) { showActionMenu ->
-        Column(Modifier.width(IntrinsicSize.Min)) {
+        Column {
             FileBasedView(
                 holder,
                 element,

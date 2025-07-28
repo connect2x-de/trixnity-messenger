@@ -42,7 +42,7 @@ class AppInfoLicensesViewImpl : AppInfoLicensesView {
             val lazyListState = rememberLazyListState()
             var openLibrary by remember { mutableStateOf<Library?>(null) }
 
-            ThemedAdaptiveDialog({ appInfoViewModel.showLicenses.value = false },) {
+            ThemedAdaptiveDialog({ appInfoViewModel.showLicenses.value = false }) {
                 AdaptiveDialogHeader(onClose = { appInfoViewModel.showLicenses.value = false }) {
                     Text(i18n.appInfoLicenses())
                 }
@@ -56,10 +56,10 @@ class AppInfoLicensesViewImpl : AppInfoLicensesView {
                             nameMaxLines = 10,
                             versionMaxLines = 2
                         ),
-                        licenseDialogBody = { library ->
-                            Text(library.licenses.firstOrNull()?.licenseContent ?: "")
+                        licenseDialogBody = { library, modifier ->
+                            Text(library.licenses.firstOrNull()?.licenseContent ?: "", modifier)
                         },
-                        onLibraryClick = { openLibrary = it}
+                        onLibraryClick = { openLibrary = it }
                     )
                 }
             }

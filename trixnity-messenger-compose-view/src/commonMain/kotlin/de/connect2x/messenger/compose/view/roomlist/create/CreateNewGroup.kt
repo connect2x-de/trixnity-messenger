@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -59,6 +60,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
         val i18n = DI.get<I18nView>()
         val canCreateNewGroup = createNewGroupViewModel.canCreateNewGroup.collectAsState()
         val error = createNewGroupViewModel.error.collectAsState().value
+        val errorDetails = createNewGroupViewModel.errorDetails.collectAsState().value
         val isPrivate by createNewGroupViewModel.isPrivate.collectAsState()
         val isEncrypted by createNewGroupViewModel.isEncrypted.collectAsState()
         val isCreating by createNewGroupViewModel.isCreating.collectAsState()
@@ -85,6 +87,13 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                     }
                     ModalDialogContent {
                         Text(error)
+                        if (errorDetails != null) {
+                            MoreInfo(
+                                title = i18n.errorDetails(),
+                            ) {
+                                Text(errorDetails, modifier = Modifier.padding(20.dp))
+                            }
+                        }
                     }
                     ModalDialogFooter {
                         ThemedButton(
@@ -161,7 +170,7 @@ fun OptionalRoomNameInput(
     OutlinedTextField(
         value = value.value,
         onValueChange = { value.value = it },
-        placeholder = { Text(i18n.optionalGroupNamePlaceholder()) },
+        label = { Text(i18n.optionalGroupNameLabel()) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp),
@@ -177,7 +186,7 @@ fun OptionalRoomTopicInput(
     OutlinedTextField(
         value = value.value,
         onValueChange = { value.value = it },
-        placeholder = { Text(i18n.optionalGroupTopicPlaceholder()) },
+        label = { Text(i18n.optionalGroupTopicLabel()) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp),

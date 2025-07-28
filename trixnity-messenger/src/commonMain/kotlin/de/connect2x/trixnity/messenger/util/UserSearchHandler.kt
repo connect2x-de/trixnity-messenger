@@ -74,7 +74,7 @@ class DefaultUserSearchHandler(
             .distinctUntilChanged()
             .debounce(debounceDuration)
             .map {
-                if (MatrixRegex.userId.matches(it.lowercase())) {
+                if (MatrixRegex.isValidUserId(it.lowercase())) {
                     log.trace { "found matrix id" }
                     it.lowercase()
                 } else it

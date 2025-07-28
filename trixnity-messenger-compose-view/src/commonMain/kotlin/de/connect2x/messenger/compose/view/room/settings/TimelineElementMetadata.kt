@@ -1,6 +1,10 @@
 package de.connect2x.messenger.compose.view.room.settings
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,8 +24,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +42,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +55,7 @@ import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
+import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
@@ -57,6 +69,7 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
@@ -92,6 +105,8 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
         var elementHistory by remember { mutableStateOf(listOf<TimelineElementHolderViewModel>()) }
         val firstElement = elementHistory.firstOrNull()
         var lastElement by remember { mutableStateOf<TimelineElementHolderViewModel?>(null) }
+        val messageElement = lastElement?.element?.collectAsState()?.value
+                as? RoomMessageTimelineElementViewModel.TextBased<*>
         val sender = lastElement?.sender?.collectAsState()?.value
         val reactions = firstElement?.reactions?.collectAsState()?.value
         val readers = firstElement?.readers?.collectAsState()?.value
@@ -145,12 +160,69 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                             MessageContentHistorySwitch(it, elementHistory)
                         }
                         SmallSpacer()
+                        messageElement?.body?.let { content ->
+                            ExpandableSection(i18n.timelineElementMetadataBody(), Icons.Default.Code) {
+                                SelectableText(content)
+                            }
+                            SmallSpacer()
+                        }
+                        messageElement?.formattedBody?.let { content ->
+                            ExpandableSection(i18n.timelineElementMetadataFormattedBody(), Icons.Default.Code) {
+                                SelectableText(content)
+                            }
+                            SmallSpacer()
+                        }
                         HorizontalDivider()
                         MiddleSpacer()
                         ReadersAndReactions(reactions, readers, viewModel::openUserProfile)
                         SmallSpacer()
                     }
                     VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ColumnScope.ExpandableSection(
+    heading: String,
+    icon: ImageVector,
+    content: @Composable () -> Unit,
+) {
+    val expanded = remember { mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val rotateState by animateFloatAsState(if (expanded.value) 180F else 0F)
+
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .clickable(interactionSource, LocalIndication.current) {
+                        expanded.value = !expanded.value
+                    }.buttonPointerModifier(true)
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(icon, contentDescription = null)
+                Spacer(Modifier.size(10.dp))
+                Text(heading, style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.weight(1F).padding(end = 10.dp))
+                Icon(
+                    Icons.Default.ArrowDropDown, contentDescription = null,
+                    modifier = Modifier.rotate(rotateState)
+                )
+            }
+            AnimatedVisibility(expanded.value) {
+                Box(Modifier.padding(8.dp)) {
+                    content()
                 }
             }
         }

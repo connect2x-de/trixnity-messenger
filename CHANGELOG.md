@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Network availability check for iOS
-- Get dimension of image on iOS
 - Captions for Media messages
 
 ### Changed
+
+- New rich text renderer
+- Show correct feedback when getting no search results in the room list
+- Labels for text fields are always on
+
 
 ### Deprecated
 
@@ -21,7 +24,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Web client: sync is not stopped when tab or browser loses focus
+
 ### Security
+
+## 3.6.16
+
+### Changed
+
+- More explicit error messages on room creation
+- Upgraded Gradle to 8.14.3
+- Downgraded to Java 17
+- Upgraded Sysnotify from 1.9.0 to 2.0.0
+
+### Fixed
+
+- Hardcoded log level in Web is not adjustable
+
+## 3.6.15
+
+### Added
+
+- Network availability check for iOS
+- Get dimension of image on iOS
+
+### Changed
+
+- Updated SysNotify to 1.9.0 and commonized desktop and web notification handling
+- Room list elements now show multiple lines when the font size is large
+- Presence icons for users are now distinguishable by color and shape
+- Adapted to new mention regex
+- Update Trixnity from 4.17.1 to 4.18.0
+
+### Fixed
+
+- Verification getting stuck after app lost focus
+- Failing ITs with user search race condition that led to flaky tests
+- Various issues in regard to PDF reader page loading and zooming
 
 ## 3.6.14
 

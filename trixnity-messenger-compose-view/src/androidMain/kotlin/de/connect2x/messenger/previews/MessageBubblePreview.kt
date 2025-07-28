@@ -8,6 +8,8 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.ImageRo
 import de.connect2x.messenger.compose.view.room.timeline.element.message.TextBasedRoomMessageTimelineElementView
 import de.connect2x.messenger.previews.util.InitMessengerPreview
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
+import de.connect2x.trixnity.messenger.util.html.HtmlNode
+import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel1
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
@@ -54,8 +56,9 @@ fun TextMessageBubblePreview() {
     val element = object : RoomMessageTimelineElementViewModel.TextBased.Text {
         override val body: String = "Hello everyone!"
         override val formattedBody: String = "Hello <b/>everyone!"
-        override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
-        override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
+        override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
+        override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
+        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
         override fun openMention(timelineElementMention: TimelineElementMention) {}
     }
     InitMessengerPreview {

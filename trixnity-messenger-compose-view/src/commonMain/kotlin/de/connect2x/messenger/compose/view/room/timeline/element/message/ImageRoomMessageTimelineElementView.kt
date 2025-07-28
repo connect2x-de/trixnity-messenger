@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -152,7 +151,6 @@ internal fun ColumnScope.MessageImageImpl(
             Modifier
                 .align(Alignment.Center)
                 .padding(3.dp)
-                .fillMaxWidth()
                 .heightIn(
                     50.dp,
                     with(LocalDensity.current) { 300.dp })
@@ -185,8 +183,7 @@ internal fun ColumnScope.MessageImageFallback(
     val i18n = DI.get<I18nView>()
     Column(
         modifier = Modifier
-            .padding(10.dp)
-            .fillMaxWidth(),
+            .padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
