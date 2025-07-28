@@ -72,6 +72,10 @@ class ThemeComponentsImpl : ThemeComponents {
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ),
             textStyle = MaterialTheme.typography.labelLarge,
+            focusedBorder = BorderStroke(
+                width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                color = MaterialTheme.colorScheme.onPrimary,
+            ),
         ),
         secondaryButton = ButtonStyle.filled(
             colors = ButtonDefaults.buttonColors(
@@ -79,21 +83,37 @@ class ThemeComponentsImpl : ThemeComponents {
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             ),
             textStyle = MaterialTheme.typography.labelLarge,
+            focusedBorder = BorderStroke(
+                width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            ),
         ),
         commonButton = ButtonStyle.outlined(
             textStyle = MaterialTheme.typography.labelLarge,
+            focusedBorder = BorderStroke(
+                width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                color = MaterialTheme.colorScheme.onPrimary,
+            ),
         ),
         destructiveButton = ButtonStyle.filled(
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer,
             ),
             textStyle = MaterialTheme.typography.labelLarge,
+            focusedBorder = BorderStroke(
+                width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                color = MaterialTheme.colorScheme.onError,
+            ),
         ),
         primaryIconButton = IconButtonStyle.filled(
             colors = IconButtonDefaults.filledIconToggleButtonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
+            ),
+            focusedBorder = BorderStroke(
+                width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                color = MaterialTheme.colorScheme.onPrimary,
             ),
         ),
         secondaryIconButton = IconButtonStyle.filled(
@@ -101,27 +121,44 @@ class ThemeComponentsImpl : ThemeComponents {
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.onSecondary,
             ),
+            focusedBorder = BorderStroke(
+                width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                color = MaterialTheme.colorScheme.onSecondary,
+            ),
         ),
         commonIconButton = IconButtonStyle.default(
             colors = IconButtonDefaults.iconToggleButtonColors(
                 contentColor = Color.LocalContent,
+            ),
+            focusedBorder = BorderStroke(
+                width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                color = MaterialTheme.colorScheme.onPrimary,
             ),
         ),
         destructiveIconButton = IconButtonStyle.default(
             colors = IconButtonDefaults.iconToggleButtonColors(
                 contentColor = MaterialTheme.colorScheme.error,
             ),
+            focusedBorder = BorderStroke(
+                width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            ),
         ),
         floatingActionButton = FloatingActionButtonStyle.default(
             size = 40.dp,
             containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp)
+            elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
+            focusedBorder = BorderStroke(
+                width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            ),
         ),
         floatingActionButtonDisabled = FloatingActionButtonStyle.default(
             size = 40.dp,
             containerColor = Color.LightGray,
-            elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp)
+            elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
+            focusedBorder = null, // needs no focus
         ),
         reactionButton = ButtonStyle.outlined(
             iconSize = 18.dp,
@@ -129,7 +166,11 @@ class ThemeComponentsImpl : ThemeComponents {
             contentPadding = PaddingValues(12.dp, 4.dp),
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            ),
+            focusedBorder = BorderStroke(
+                width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
         ),
         selectedReactionButton = ButtonStyle.filledTonal(
             iconSize = 18.dp,
@@ -140,6 +181,10 @@ class ThemeComponentsImpl : ThemeComponents {
                 contentColor = MaterialTheme.colorScheme.onSecondary,
                 disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                 disabledContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            ),
+            focusedBorder = BorderStroke(
+                width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                color = MaterialTheme.colorScheme.onSecondary,
             ),
         ),
         // other inputs

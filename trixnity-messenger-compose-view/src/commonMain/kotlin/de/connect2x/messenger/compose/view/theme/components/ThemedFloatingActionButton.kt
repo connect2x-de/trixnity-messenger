@@ -1,7 +1,8 @@
 package de.connect2x.messenger.compose.view.theme.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.FloatingActionButtonElevation
@@ -9,7 +10,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
@@ -25,6 +29,7 @@ data class FloatingActionButtonStyle(
     val containerColor: Color,
     val contentColor: Color,
     val elevation: FloatingActionButtonElevation,
+    val focusedBorder: BorderStroke?,
 ) {
     companion object {
         @Composable
@@ -34,12 +39,14 @@ data class FloatingActionButtonStyle(
             containerColor: Color = FloatingActionButtonDefaults.containerColor,
             contentColor: Color = contentColorFor(containerColor),
             elevation: FloatingActionButtonElevation = FloatingActionButtonDefaults.elevation(),
+            focusedBorder: BorderStroke? = BorderStroke(3.dp, MaterialTheme.colorScheme.onPrimaryContainer),
         ) = FloatingActionButtonStyle(
             size = size,
             shape = shape,
             containerColor = containerColor,
             contentColor = contentColor,
             elevation = elevation,
+            focusedBorder = focusedBorder,
         )
     }
 }
@@ -52,16 +59,28 @@ fun ThemedFloatingActionButton(
     modifier: Modifier = Modifier,
     expanded: Boolean = false,
     enabled: Boolean = true,
-    style: FloatingActionButtonStyle = if (enabled) MaterialTheme.components.floatingActionButton
-    else MaterialTheme.components.floatingActionButtonDisabled,
+    style: FloatingActionButtonStyle =
+        if (enabled) MaterialTheme.components.floatingActionButton
+        else MaterialTheme.components.floatingActionButtonDisabled,
     interactionSource: MutableInteractionSource? = null,
 ) {
+    val hasFocus = remember { mutableStateOf(false) }
+    val border = style.focusedBorder?.let { borderStroke ->
+        if (enabled && hasFocus.value) Modifier.border(borderStroke, shape = style.shape)
+        else Modifier
+    } ?: Modifier
+
     Tooltip(tooltip = text, enabled = !expanded) {
         ExtendedFloatingActionButton(
             text = text,
             icon = icon,
-            onClick = if (enabled) onClick else {{}},
-            modifier = modifier.buttonPointerModifier(enabled = enabled),
+            onClick = if (enabled) onClick else {
+                {}
+            },
+            modifier = modifier
+                .buttonPointerModifier(enabled = enabled)
+                .onFocusEvent { focusState -> hasFocus.value = focusState.isFocused }
+                .then(border),
             expanded = expanded,
             shape = style.shape,
             containerColor = style.containerColor,
