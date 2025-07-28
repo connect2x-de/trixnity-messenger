@@ -2,13 +2,14 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.FileName
+import de.connect2x.messenger.compose.view.common.FileInfo
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
@@ -59,9 +61,6 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
-            overlay = {
-                AudioMessageElementOverlay(element)
-            }
         ) { showActionMenu, onSave ->
             MessageAudio(element, showActionMenu, onSave)
         }
@@ -76,9 +75,6 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
             holder,
             element,
             isPreview = true,
-            overlay = {
-                AudioMessageElementOverlay(element)
-            }
         ) { showActionMenu, onSave ->
             MessageAudio(element, showActionMenu, onSave)
         }
@@ -133,9 +129,8 @@ internal fun MessageAudio(
     ) {
         Row {
             Column(
-                verticalArrangement = Arrangement.Center,
+                Modifier.width(IntrinsicSize.Max).padding(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(start = 30.dp),
             ) {
                 Icon(
                     MaterialTheme.messengerIcons.typeAudio, i18n.commonAudio(),
@@ -147,8 +142,9 @@ internal fun MessageAudio(
                                 onLongPress = { showActionMenu() },
                             )
                         }
-                        .buttonPointerModifier())
-                FileName(element.name)
+                        .buttonPointerModifier()
+                )
+                FileInfo(element)
             }
             if (downloadSuccessful.value == true) {
                 Spacer(Modifier.size(10.dp))

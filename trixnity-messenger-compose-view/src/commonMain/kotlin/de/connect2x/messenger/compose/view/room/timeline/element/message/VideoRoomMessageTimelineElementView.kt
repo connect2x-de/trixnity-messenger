@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.FileName
-import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -157,12 +156,8 @@ internal fun ColumnScope.VideoMessageContent(
                     .size(64.dp)
                     .openVideoOnTouch(element, onSave, showMenuAction)
                     .buttonPointerModifier(),
-                tint = Color.DarkGray,
             )
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                FileName(element.name)
-                SmallSpacer()
-            }
+            FileName(element.name)
         }
     }
 }

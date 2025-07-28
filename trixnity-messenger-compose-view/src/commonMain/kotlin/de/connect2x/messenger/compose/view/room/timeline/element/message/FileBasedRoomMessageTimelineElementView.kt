@@ -50,7 +50,7 @@ interface FileBasedRoomMessageTimelineElementView {
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
         isPreview: Boolean,
         displayProgressOverElement: Boolean,
-        overlay: @Composable BoxScope.() -> Unit,
+        overlay: (@Composable BoxScope.() -> Unit)? = null,
         content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     )
 }
@@ -61,7 +61,7 @@ fun FileBasedRoomMessageTimelineElement(
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     isPreview: Boolean = false,
     displayProgressOverElement: Boolean = false,
-    overlay: @Composable BoxScope.() -> Unit,
+    overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
 ) {
     DI.get<FileBasedRoomMessageTimelineElementView>()
@@ -75,7 +75,7 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
         isPreview: Boolean,
         displayProgressOverElement: Boolean,
-        overlay: @Composable BoxScope.() -> Unit,
+        overlay: (@Composable BoxScope.() -> Unit)?,
         content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     ) {
         val error = element.downloadMediaError.collectAsState().value
@@ -105,7 +105,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
     onSave: () -> Unit,
     isPreview: Boolean = false,
     displayProgressOverElement: Boolean,
-    overlay: @Composable BoxScope.() -> Unit,
+    overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.(() -> Unit, () -> Unit) -> Unit
 ) {
     val i18n = DI.get<I18nView>()

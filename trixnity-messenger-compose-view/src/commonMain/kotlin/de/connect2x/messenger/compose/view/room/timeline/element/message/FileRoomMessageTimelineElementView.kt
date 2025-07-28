@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Attachment
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -22,11 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.FileName
+import de.connect2x.messenger.compose.view.common.FileInfo
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
@@ -54,7 +52,6 @@ class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementVie
     ) {
         FileBasedRoomMessageTimelineElement(
             holder, element,
-            overlay = {}
         ) { showActionMenu, onSave ->
             MessageFile(element, showActionMenu, onSave)
         }
@@ -68,7 +65,6 @@ class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementVie
         FileBasedRoomMessageTimelineElement(
             holder, element,
             isPreview = true,
-            overlay = {}
         ) { showActionMenu, onSave ->
             MessageFile(element, showActionMenu, onSave)
         }
@@ -117,12 +113,8 @@ internal fun MessageFile(
             Icon(Icons.Default.Attachment, i18n.commonAttachment(), Modifier.padding(10.dp))
         }
         Spacer(Modifier.size(10.dp))
-        Text(
-            buildAnnotatedString {
-                append(element.name)
-                pushStyle(SpanStyle(Color.Gray))
-                append(element.size)
-            },
+        FileInfo(
+            element,
             Modifier.align(Alignment.CenterVertically)
         )
         if (downloadSuccessful.value) {
