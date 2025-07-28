@@ -12,7 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - New rich text renderer
+- Show correct feedback when getting no search results in the room list
 - Labels for text fields are always on
+
 
 ### Deprecated
 
