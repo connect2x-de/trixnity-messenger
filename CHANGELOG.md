@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - New rich text renderer
+- Bump Compose to 1.8.2
+- Bump FileKit to 0.10.0-beta04
 
 ### Deprecated
 

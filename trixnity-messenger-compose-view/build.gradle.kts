@@ -76,6 +76,10 @@ kotlin {
                 implementation(libs.stately.common)
                 implementation(libs.stately.collections)
                 implementation(libs.highlights)
+
+                // FileKit
+                implementation(libs.filekit.core)
+                implementation(libs.filekit.compose)
             }
         }
         val desktopAndAndroidMain by creating {
@@ -84,7 +88,6 @@ kotlin {
         val desktopMain by getting {
             dependsOn(desktopAndAndroidMain)
             dependencies {
-                implementation(libs.filekit.compose)
                 implementation(libs.ktor.client.okhttp)
                 implementation(libs.pdfbox)
             }
@@ -108,7 +111,6 @@ kotlin {
                 implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
                 implementation(project.dependencies.platform(libs.kotlin.wrappers.bom))
                 implementation(libs.kotlin.browser)
-                implementation(libs.filekit.core)
                 implementation(project(":wrappers-pdfjs"))
             }
         }
