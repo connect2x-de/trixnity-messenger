@@ -1045,6 +1045,80 @@ class RoomListViewModelTest {
         )
     }
 
+    @Test
+    fun `update search results empty information when no rooms exist`() = runTest {
+        val cut = roomListViewModel(matrixClients = mapOf(user1 to matrixClientMock))
+        every { matrixClientMock.di } returns koinApplication {
+            modules(
+                module {
+                    single { roomServiceMock }
+                    single { userServiceMock }
+                    single { keyServiceMock }
+                }
+            )
+        }.koin
+        every { roomServiceMock.getAll() } returns flowOf(mapOf())
+        subscribe(cut)
+        delay(10)
+        cut.elements.value.size shouldBe 0
+        cut.searchResultsEmpty.value shouldBe false
+
+        cut.showSearch.value = true
+        cut.searchTerm.update("KeinErgebnis")
+        delay(600)
+        cut.searchResultsEmpty.value shouldBe false
+    }
+
+    @Test
+    fun `update search results empty information when rooms were found`() = runTest {
+        val cut = roomListViewModel(matrixClients = mapOf(user1 to matrixClientMock))
+        every { matrixClientMock.di } returns koinApplication {
+            modules(
+                module {
+                    single { roomServiceMock }
+                    single { userServiceMock }
+                    single { keyServiceMock }
+                }
+            )
+        }.koin
+        every { roomServiceMock.getAll() } returns flowOf(mapOf(roomId1 to flowOf(Room(roomId1))))
+        every { roomServiceMock.getById(roomId1) } returns flowOf()
+        subscribe(cut)
+        delay(10)
+        cut.elements.value.size shouldBe 1
+        cut.searchResultsEmpty.value shouldBe false
+
+        cut.showSearch.value = true
+        cut.searchTerm.update("room1")
+        delay(600)
+        cut.searchResultsEmpty.value shouldBe false
+    }
+
+    @Test
+    fun `update search results empty information when rooms exist but none fulfill the search criteria`() = runTest {
+        val cut = roomListViewModel(matrixClients = mapOf(user1 to matrixClientMock))
+        every { matrixClientMock.di } returns koinApplication {
+            modules(
+                module {
+                    single { roomServiceMock }
+                    single { userServiceMock }
+                    single { keyServiceMock }
+                }
+            )
+        }.koin
+        every { roomServiceMock.getAll() } returns flowOf(mapOf(roomId1 to flowOf(Room(roomId1))))
+        every { roomServiceMock.getById(roomId1) } returns flowOf(Room(roomId1))
+        subscribe(cut)
+        delay(10)
+        cut.elements.value.size shouldBe 1
+        cut.searchResultsEmpty.value shouldBe false
+
+        cut.showSearch.value = true
+        cut.searchTerm.update("KeinErgebnis")
+        delay(600)
+        cut.searchResultsEmpty.value shouldBe true
+    }
+
     private fun TestScope.subscribe(cut: RoomListViewModel) = backgroundScope.launch {
         launch { cut.selectedRoomId.collect(::println) }
         launch { cut.error.collect(::println) }
@@ -1053,6 +1127,7 @@ class RoomListViewModelTest {
         launch { cut.initialSyncFinished.collect(::println) }
         launch { cut.showSearch.collect(::println) }
         launch { cut.searchTerm.collect(::println) }
+        launch { cut.searchResultsEmpty.collect(::println) }
     }
 
     private fun TestScope.roomListViewModel(

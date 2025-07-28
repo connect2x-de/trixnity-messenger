@@ -1472,6 +1472,11 @@ open class I18nView(
         DE - "Sie haben noch keine Chats oder Gruppen."
     }
 
+    open fun roomListNoSearchResults() = translate {
+        EN - "No chats or groups found."
+        DE - "Keine Chats oder Gruppen gefunden."
+    }
+
     open fun roomListCreateRoom() = translate {
         EN - "Create a new chat or group"
         DE - "Neuen Chat oder Gruppe anlegen"
