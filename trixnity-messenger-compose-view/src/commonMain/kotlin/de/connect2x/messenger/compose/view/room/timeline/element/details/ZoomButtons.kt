@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.details
 
+import androidx.compose.foundation.gestures.TransformableState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ZoomIn
 import androidx.compose.material.icons.outlined.ZoomOut
@@ -12,6 +13,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun ZoomButtons(scale: MutableState<Float>, minScale: Float = 0.2f, maxScale: Float = 4.0f) {
@@ -43,6 +46,41 @@ fun Modifier.zoomModifier(
                             if (canZoom.value) {
                                 val delta = 0.1f * -it.scrollDelta.y
                                 zoom.value = (zoom.value + delta).coerceIn(minScale, maxScale)
+                            }
+                        }
+                }
+            }
+        }
+    )
+}
+
+/**
+ * Overload to be used with a [TransformableState] that the zoom inputs are relayed to
+ */
+fun Modifier.zoomModifier(
+    focusRequester: FocusRequester,
+    canZoom: MutableState<Boolean>,
+    state: TransformableState,
+    scope: CoroutineScope
+): Modifier {
+    return this.then(
+        Modifier.pointerInput(Unit) {
+            awaitPointerEventScope {
+                while (true) {
+                    awaitPointerEvent(pass = PointerEventPass.Final)
+                        .changes
+                        .forEach {
+                            focusRequester.requestFocus() // otherwise, key events will be lost
+                            if (it.scrollDelta.y.toInt() != 0 && canZoom.value) {
+                                val delta = 0.1f * -it.scrollDelta.y
+                                scope.launch {
+                                    state.transform {
+                                        val deltaMultiplier = 1 + delta
+                                        this.transformBy(
+                                            deltaMultiplier,
+                                        )
+                                    }
+                                }
                             }
                         }
                 }
