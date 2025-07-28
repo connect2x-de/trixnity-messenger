@@ -51,7 +51,7 @@ fun MessageReport(
                 minLines = 3,
                 maxLines = 5,
                 textStyle = MaterialTheme.typography.bodyMedium,
-                placeholder = { Text(i18n.reportMessageLabel()) }
+                label = { Text(i18n.reportMessageLabel()) }
             )
         }
         ModalDialogFooter {

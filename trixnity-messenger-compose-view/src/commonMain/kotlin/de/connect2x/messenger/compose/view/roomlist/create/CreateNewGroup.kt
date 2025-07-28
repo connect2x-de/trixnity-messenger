@@ -170,7 +170,7 @@ fun OptionalRoomNameInput(
     OutlinedTextField(
         value = value.value,
         onValueChange = { value.value = it },
-        placeholder = { Text(i18n.optionalGroupNamePlaceholder()) },
+        label = { Text(i18n.optionalGroupNameLabel()) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp),
@@ -186,7 +186,7 @@ fun OptionalRoomTopicInput(
     OutlinedTextField(
         value = value.value,
         onValueChange = { value.value = it },
-        placeholder = { Text(i18n.optionalGroupTopicPlaceholder()) },
+        label = { Text(i18n.optionalGroupTopicLabel()) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp),
