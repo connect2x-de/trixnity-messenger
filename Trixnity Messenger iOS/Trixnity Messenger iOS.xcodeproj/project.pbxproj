@@ -10,9 +10,22 @@
 		21A1B0502D806E4300623456 /* Trixnity Messenger iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Trixnity Messenger iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		43B071022E37A27200CA9EE0 /* Exceptions for "Trixnity Messenger iOS" folder in "Trixnity Messenger iOS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Trixnity-Messenger-iOS-Info.plist",
+			);
+			target = 21A1B04F2D806E4300623456 /* Trixnity Messenger iOS */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		21A1B0522D806E4300623456 /* Trixnity Messenger iOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				43B071022E37A27200CA9EE0 /* Exceptions for "Trixnity Messenger iOS" folder in "Trixnity Messenger iOS" target */,
+			);
 			path = "Trixnity Messenger iOS";
 			sourceTree = "<group>";
 		};
@@ -276,6 +289,7 @@
 				DEVELOPMENT_TEAM = C6CHAMK5QZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Trixnity-Messenger-iOS-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -306,6 +320,7 @@
 				DEVELOPMENT_TEAM = C6CHAMK5QZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Trixnity-Messenger-iOS-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
