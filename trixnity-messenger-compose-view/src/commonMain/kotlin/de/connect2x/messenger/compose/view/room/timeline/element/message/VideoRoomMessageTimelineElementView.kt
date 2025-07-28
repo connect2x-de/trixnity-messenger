@@ -3,14 +3,15 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -131,36 +132,34 @@ internal fun ColumnScope.VideoMessageContent(
     val i18n = DI.get<I18nView>()
     val thumbnail = element.thumbnail.collectAsState().value
 
-    Box(Modifier.padding(top = 10.dp)) {
-        Row {
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                //Uncomment this once video thumbnails are supported
-                thumbnail?.toImageBitmap()?.let {
-                    Image(
-                        it,
-                        "",
-                        Modifier
-                            .heightIn(64.dp, 400.dp)
-                            .widthIn(64.dp, 400.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .openVideoOnTouch(element, onSave, showMenuAction)
-                            .buttonPointerModifier(),
-                        contentScale = ContentScale.Fit
-                    )
-                } ?: run {
-                    Icon(
-                        MaterialTheme.messengerIcons.typeVideo,
-                        i18n.commonVideo(),
-                        Modifier
-                            .size(64.dp)
-                            .openVideoOnTouch(element, onSave, showMenuAction)
-                            .buttonPointerModifier(),
-                        tint = Color.DarkGray,
-                    )
-                }
+    Box {
+        thumbnail?.toImageBitmap()?.let {
+            Image(
+                it,
+                "",
+                Modifier
+                    .heightIn(64.dp, 400.dp)
+                    .widthIn(64.dp, 400.dp)
+                    .padding(3.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .openVideoOnTouch(element, onSave, showMenuAction)
+                    .buttonPointerModifier(),
+                contentScale = ContentScale.Fit
+            )
+        } ?: Column(
+            Modifier.width(IntrinsicSize.Max).padding(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                MaterialTheme.messengerIcons.typeVideo,
+                i18n.commonVideo(),
+                Modifier
+                    .size(64.dp)
+                    .openVideoOnTouch(element, onSave, showMenuAction)
+                    .buttonPointerModifier(),
+                tint = Color.DarkGray,
+            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 FileName(element.name)
                 SmallSpacer()
             }
