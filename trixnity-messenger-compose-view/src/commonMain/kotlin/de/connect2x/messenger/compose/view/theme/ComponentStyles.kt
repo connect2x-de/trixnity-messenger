@@ -55,6 +55,7 @@ data class ComponentStyles(
     val horizontalDivider: DividerStyle?,
     val verticalDivider: DividerStyle?,
     // room list
+    val roomListFocused: SurfaceStyle,
     val roomListSelection: SurfaceStyle,
     val roomListElement: SurfaceStyle,
     val roomListDivider: DividerStyle?,

@@ -245,6 +245,12 @@ class ThemeComponentsImpl : ThemeComponents {
             color = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onBackground,
         ),
+        roomListFocused = SurfaceStyle.default(
+            border = BorderStroke(
+                width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                color = MaterialTheme.colorScheme.onPrimary,
+            )
+        ),
         roomListDivider = DividerStyle.default(
             padding = PaddingValues(horizontal = 10.dp),
         ),

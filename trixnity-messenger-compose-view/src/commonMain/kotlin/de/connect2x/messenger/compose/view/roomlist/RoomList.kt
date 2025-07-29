@@ -17,7 +17,6 @@ import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,7 +36,6 @@ import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContaine
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
-import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -73,7 +71,11 @@ class RoomListViewImpl : RoomListView {
                                 style = MaterialTheme.components.commonButton,
                                 onClick = { roomListViewModel.createNewRoom() },
                             ) {
-                                Icon(Icons.AutoMirrored.Filled.Chat, i18n.accountCreateNewRoom(), modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize))
+                                Icon(
+                                    Icons.AutoMirrored.Filled.Chat,
+                                    i18n.accountCreateNewRoom(),
+                                    modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize),
+                                )
                                 Spacer(Modifier.size(MaterialTheme.components.primaryButton.iconSpacing))
                                 Text(i18n.roomListCreateRoom())
                             }
