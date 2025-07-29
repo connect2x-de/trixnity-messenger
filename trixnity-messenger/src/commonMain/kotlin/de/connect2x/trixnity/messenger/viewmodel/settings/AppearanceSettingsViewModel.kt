@@ -28,6 +28,7 @@ interface AppearanceSettingsViewModelFactory {
 interface AppearanceSettingsViewModel {
     val themeMode: StateFlow<ThemeMode>
     val isHighContrast: StateFlow<Boolean>
+    val isA11yMode: StateFlow<Boolean>
     val accentColor: StateFlow<Long?>
     val fontSize: StateFlow<Float?>
     val displaySize: StateFlow<Float?>
@@ -35,6 +36,7 @@ interface AppearanceSettingsViewModel {
 
     fun setThemeMode(themeMode: ThemeMode)
     fun toggleHighContrast()
+    fun toggleA11yMode()
     fun setAccentColor(accentColor: Long?)
     fun setFontSize(fontSize: Float?)
     fun setDisplaySize(controlsSize: Float?)
@@ -55,6 +57,9 @@ class AppearanceSettingsViewModelImpl(
     override val isHighContrast: StateFlow<Boolean> =
         settings.mapLatest { it.base.isHighContrast }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.isHighContrast)
+    override val isA11yMode: StateFlow<Boolean> =
+        settings.mapLatest { it.base.isA11yMode }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.isA11yMode)
     override val accentColor: StateFlow<Long?> =
         settings.mapLatest { it.base.accentColor }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.accentColor)
@@ -88,6 +93,14 @@ class AppearanceSettingsViewModelImpl(
         coroutineScope.launch {
             settings.update<MatrixMessengerSettingsBase> {
                 it.copy(isHighContrast = !it.isHighContrast)
+            }
+        }
+    }
+
+    override fun toggleA11yMode() {
+        coroutineScope.launch {
+            settings.update<MatrixMessengerSettingsBase> {
+                it.copy(isA11yMode = !it.isA11yMode)
             }
         }
     }

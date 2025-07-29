@@ -15,6 +15,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
@@ -31,6 +32,7 @@ import de.connect2x.messenger.compose.view.R
 import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
+import de.connect2x.messenger.compose.view.theme.IsA11yMode
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.sysnotify.handlePermissionRequest
@@ -119,10 +121,14 @@ class MessengerActivity : AppCompatActivity() {
                             val lifeCycleState =
                                 androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsState()
                             val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
+                            val isA11yMode =
+                                matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
+                                    .collectAsState().value.base.isA11yMode
                             CompositionLocalProvider(
                                 Platform provides PlatformType.ANDROID,
                                 IsFocused provides isFocused,
                                 DI provides matrixMessenger.di,
+                                IsA11yMode provides isA11yMode,
                             ) {
                                 MessengerTheme {
                                     Client(rootViewModel)

@@ -600,7 +600,7 @@ open class I18nView(
         EN - "There is already a verification process with this user in another room"
         DE - "Es läuft bereits ein Verifikationsprozess mit diesem Nutzer in einem anderen Raum"
     }
-    
+
     open fun dehydratedDevice() = translate {
         EN - "This virtual (so called dehydrated) device is used to decrypt messages when no other device is online."
         DE - "Dieses virtuelle (sogenannte dehydrierte) Gerät wird verwendet um Nachrichten zu entschlüsseln, wenn kein anderes Gerät online ist."
@@ -2691,6 +2691,16 @@ open class I18nView(
     open fun appearanceHighContrastExplanation() = translate {
         EN - "Increases the overall contrast between background and foreground elements to make them easier to discern"
         DE - "Erhöht den Gesamtkontrast zwischen Vorder- und Hintergrund-Elemente um diese besser erkennbar zu machen"
+    }
+
+    open fun appearanceA11yModeHeading() = translate {
+        EN - "A11y Mode"
+        DE - "Barrierefreiheit"
+    }
+
+    open fun appearanceA11yModeExplanation() = translate {
+        EN - "Enables better visibility for focused elements."
+        DE - "Fokussierte Elemente werden stärker hervorgehoben."
     }
 
     open fun appearanceAccentColorHeading() = translate {

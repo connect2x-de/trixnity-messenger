@@ -46,6 +46,7 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
         val defaultAccentColor = DI.get<DefaultAccentColor>().value
         val isHighContrast by appearanceSettingsViewModel.isHighContrast.collectAsState()
         val packedAccentColor by appearanceSettingsViewModel.accentColor.collectAsState()
+        val a11yMode by appearanceSettingsViewModel.isA11yMode.collectAsState()
         val accentColor = packedAccentColor?.let { Color(it.toULong()) } ?: defaultAccentColor
 
         Box(Modifier.fillMaxSize()) {
@@ -70,6 +71,13 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
                                 value = isHighContrast
                             ) {
                                 appearanceSettingsViewModel.toggleHighContrast()
+                            }
+                            Setting(
+                                text = i18n.appearanceA11yModeHeading(),
+                                explanation = i18n.appearanceA11yModeExplanation(),
+                                value = a11yMode,
+                            ) {
+                                appearanceSettingsViewModel.toggleA11yMode()
                             }
                         }
                         SettingsCard(title = i18n.appearanceAccessibilityTitle(), icon = Icons.Filled.FormatSize) {

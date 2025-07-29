@@ -65,7 +65,7 @@ sealed interface IconButtonStyle {
     ) : IconButtonStyle {
         fun border(enabled: Boolean, hasFocus: Boolean) =
             when {
-                enabled && hasFocus -> focusedBorder
+                enabled && hasFocus -> focusedBorder ?: enabledBorder
                 enabled -> enabledBorder
                 else -> disabledBorder
             }
@@ -75,7 +75,7 @@ sealed interface IconButtonStyle {
         @Composable
         fun default(
             size: Dp = 40.dp,
-            focusedBorder: BorderStroke? = BorderStroke(2.dp, MaterialTheme.colorScheme.onSurface),
+            focusedBorder: BorderStroke? = null,
             colors: IconToggleButtonColors = IconButtonDefaults.iconToggleButtonColors(
                 contentColor = MaterialTheme.colorScheme.onSurface,
             ),
@@ -88,7 +88,7 @@ sealed interface IconButtonStyle {
         @Composable
         fun filled(
             size: Dp = 40.dp,
-            focusedBorder: BorderStroke? = BorderStroke(2.dp, MaterialTheme.colorScheme.onSurface),
+            focusedBorder: BorderStroke? = null,
             shape: Shape = IconButtonDefaults.filledShape,
             colors: IconToggleButtonColors = IconButtonDefaults.filledIconToggleButtonColors(),
         ) = Filled(
@@ -101,7 +101,7 @@ sealed interface IconButtonStyle {
         @Composable
         fun filledTonal(
             size: Dp = 40.dp,
-            focusedBorder: BorderStroke? = BorderStroke(2.dp, MaterialTheme.colorScheme.onSurface),
+            focusedBorder: BorderStroke? = null,
             shape: Shape = IconButtonDefaults.filledShape,
             colors: IconToggleButtonColors = IconButtonDefaults.filledTonalIconToggleButtonColors(),
         ) = Filled(
@@ -114,7 +114,7 @@ sealed interface IconButtonStyle {
         @Composable
         fun outlined(
             size: Dp = 40.dp,
-            focusedBorder: BorderStroke? = IconButtonDefaults.outlinedIconButtonBorder(true).copy(width = 2.dp),
+            focusedBorder: BorderStroke? = null,
             shape: Shape = IconButtonDefaults.outlinedShape,
             colors: IconToggleButtonColors = IconButtonDefaults.outlinedIconToggleButtonColors(
                 contentColor = MaterialTheme.colorScheme.onSurface,

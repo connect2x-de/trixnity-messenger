@@ -8,10 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.ComposeUIViewController
 import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import com.arkivanov.essenty.lifecycle.pause
-import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.start
 import com.arkivanov.essenty.lifecycle.stop
 import de.connect2x.messenger.compose.view.Client
@@ -22,11 +19,12 @@ import de.connect2x.messenger.compose.view.PlatformType
 import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
+import de.connect2x.messenger.compose.view.theme.IsA11yMode
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.create
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import platform.Foundation.NSNotificationCenter
 import platform.UIKit.UIApplicationDidEnterBackgroundNotification
@@ -64,10 +62,13 @@ fun MainViewController(lifecycle: LifecycleRegistry): UIViewController {
                 }
             },
             activeMessenger = { matrixMessenger, rootViewModel ->
+                val isA11yMode =
+                    matrixMessenger.di.get<MatrixMessengerSettingsHolder>().collectAsState().value.base.isA11yMode
                 CompositionLocalProvider(
                     Platform provides PlatformType.IOS,
                     IsFocused provides isFocused,
                     DI provides matrixMessenger.di,
+                    IsA11yMode provides isA11yMode,
                 ) {
                     MessengerTheme {
                         Client(rootViewModel)
@@ -81,6 +82,7 @@ fun MainViewController(lifecycle: LifecycleRegistry): UIViewController {
                     IsFocused provides isFocused,
                     DI provides matrixMultiMessenger.di,
                     ShowProfileCreation provides showProfileCreation,
+                    IsA11yMode provides false,
                 ) {
                     MessengerTheme {
                         Profiles(matrixMultiMessenger, existingProfiles)

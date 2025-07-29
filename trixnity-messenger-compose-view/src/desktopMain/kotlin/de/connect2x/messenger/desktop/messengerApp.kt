@@ -24,14 +24,16 @@ import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
-import de.connect2x.messenger.compose.view.notifications.Notifications
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
+import de.connect2x.messenger.compose.view.notifications.Notifications
 import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
+import de.connect2x.messenger.compose.view.theme.IsA11yMode
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.sysnotify.withActivationHandler
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.UrlHandler
@@ -123,10 +125,13 @@ fun CoroutineScope.messengerApp(
                         }
                     }
 
+                    val isA11yMode =
+                        matrixMessenger.di.get<MatrixMessengerSettingsHolder>().collectAsState().value.base.isA11yMode
                     CompositionLocalProvider(
                         Platform provides PlatformType.DESKTOP,
                         IsFocused provides windowIsFocused,
                         DI provides matrixMessenger.di,
+                        IsA11yMode provides isA11yMode,
                     ) {
                         MessengerTheme {
                             Client(rootViewModel)
@@ -148,6 +153,7 @@ fun CoroutineScope.messengerApp(
                         IsFocused provides windowIsFocused,
                         DI provides matrixMultiMessenger.di,
                         ShowProfileCreation provides showProfileCreation,
+                        IsA11yMode provides false, // FIXME do we need this here, too?
                     ) {
                         MessengerTheme {
                             Profiles(matrixMultiMessenger, existingProfiles)

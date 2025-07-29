@@ -20,7 +20,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.theme.components
 
@@ -37,19 +36,21 @@ data class ButtonStyle(
     val iconSize: Dp,
     val iconSpacing: Dp,
 ) {
-    fun border(enabled: Boolean, hasFocus: Boolean) =
-        when {
-            enabled && hasFocus -> focusedBorder
+    fun border(enabled: Boolean, hasFocus: Boolean): BorderStroke? {
+        println("=== $enabled, $hasFocus, $focusedBorder, $enabledBorder")
+        return when {
+            enabled && hasFocus -> focusedBorder ?: enabledBorder
             enabled -> enabledBorder
             else -> disabledBorder
         }
+    }
 
     companion object {
         @Composable
         fun text(
             shape: Shape = ButtonDefaults.textShape,
             colors: ButtonColors = ButtonDefaults.textButtonColors(),
-            focusedBorder: BorderStroke? = ButtonDefaults.outlinedButtonBorder(true).copy(width = 2.dp),
+            focusedBorder: BorderStroke? = null,
             contentPadding: PaddingValues = ButtonDefaults.TextButtonContentPadding,
             textStyle: TextStyle? = MaterialTheme.typography.labelLarge,
             iconSize: Dp = ButtonDefaults.IconSize,
@@ -73,7 +74,7 @@ data class ButtonStyle(
             colors: ButtonColors = ButtonDefaults.outlinedButtonColors(),
             enabledBorder: BorderStroke? = ButtonDefaults.outlinedButtonBorder(true),
             disabledBorder: BorderStroke? = ButtonDefaults.outlinedButtonBorder(false),
-            focusedBorder: BorderStroke? = ButtonDefaults.outlinedButtonBorder(true).copy(width = 2.dp),
+            focusedBorder: BorderStroke? = null,
             contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
             textStyle: TextStyle? = MaterialTheme.typography.labelLarge,
             iconSize: Dp = ButtonDefaults.IconSize,
@@ -95,7 +96,7 @@ data class ButtonStyle(
         fun filled(
             shape: Shape = ButtonDefaults.shape,
             colors: ButtonColors = ButtonDefaults.buttonColors(),
-            focusedBorder: BorderStroke? = ButtonDefaults.outlinedButtonBorder(true).copy(width = 2.dp),
+            focusedBorder: BorderStroke? = null,
             elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
             contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
             textStyle: TextStyle? = MaterialTheme.typography.labelLarge,
@@ -118,7 +119,7 @@ data class ButtonStyle(
         fun filledTonal(
             shape: Shape = ButtonDefaults.filledTonalShape,
             colors: ButtonColors = ButtonDefaults.filledTonalButtonColors(),
-            focusedBorder: BorderStroke? = ButtonDefaults.outlinedButtonBorder(true).copy(width = 2.dp),
+            focusedBorder: BorderStroke? = null,
             elevation: ButtonElevation? = ButtonDefaults.filledTonalButtonElevation(),
             contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
             textStyle: TextStyle? = MaterialTheme.typography.labelLarge,
@@ -141,7 +142,7 @@ data class ButtonStyle(
         fun elevated(
             shape: Shape = ButtonDefaults.elevatedShape,
             colors: ButtonColors = ButtonDefaults.elevatedButtonColors(),
-            focusedBorder: BorderStroke? = ButtonDefaults.outlinedButtonBorder(true).copy(width = 2.dp),
+            focusedBorder: BorderStroke? = null,
             elevation: ButtonElevation? = ButtonDefaults.elevatedButtonElevation(),
             contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
             textStyle: TextStyle? = MaterialTheme.typography.labelLarge,

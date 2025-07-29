@@ -39,7 +39,7 @@ data class FloatingActionButtonStyle(
             containerColor: Color = FloatingActionButtonDefaults.containerColor,
             contentColor: Color = contentColorFor(containerColor),
             elevation: FloatingActionButtonElevation = FloatingActionButtonDefaults.elevation(),
-            focusedBorder: BorderStroke? = BorderStroke(3.dp, MaterialTheme.colorScheme.onPrimaryContainer),
+            focusedBorder: BorderStroke? = null,
         ) = FloatingActionButtonStyle(
             size = size,
             shape = shape,
