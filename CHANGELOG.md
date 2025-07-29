@@ -11,21 +11,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- New rich text renderer
-- Show correct feedback when getting no search results in the room list
-- Labels for text fields are always on
-- Adapt to trixnity References-API changes
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
+### Security
+
+## 3.6.17
+
+### Changed
+
+- New rich text renderer
+- Show correct feedback when getting no search results in the room list
+- Labels for text fields are always on
+- Adapt to trixnity References-API changes
+
+### Fixed
+
 - Web client: sync is not stopped when tab or browser loses focus
 - Fix OOM gradle dependencies tasks
-
-### Security
 
 ## 3.6.16
 
