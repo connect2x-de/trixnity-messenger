@@ -51,7 +51,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class ShareFilesViewModelTest {
 
     private val ourUserId = UserId("me", "localhost")
-    private val ourRoomId = RoomId("myroom", "localhost")
+    private val ourRoomId = RoomId("!myroom")
     private val ourRoom = Room(roomId = ourRoomId, unreadMessageCount = 0L)
 
     val matrixClientMock = mock<MatrixClient>()

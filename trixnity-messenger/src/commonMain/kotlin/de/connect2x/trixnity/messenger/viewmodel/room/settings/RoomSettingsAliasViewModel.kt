@@ -21,7 +21,6 @@ import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.RoomAliasId
 import net.folivo.trixnity.core.model.RoomId
@@ -128,7 +127,7 @@ class RoomSettingsAliasViewModelImpl(
                     return@launch
                 }
 
-                if (!MatrixRegex.isValidRoomAliasId(currentNewAlias)) {
+                if (!RoomAliasId.isValid(currentNewAlias)) {
                     newAliasError.value = i18n.settingsRoomAliasAddAliasInvalid()
                     return@launch
                 }
@@ -441,7 +440,7 @@ class PreviewRoomSettingsAliasViewModel : RoomSettingsAliasViewModel {
     override val domain: String = "example.org"
     override val moreAliases: MutableStateFlow<Set<String>> = MutableStateFlow(emptySet())
     override val isUpdating: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val newAlias = TextFieldViewModelImpl(maxLength = 1_000, )
+    override val newAlias = TextFieldViewModelImpl(maxLength = 1_000)
 
     override fun addNewAlias(onlyLocalpart: Boolean) {
     }

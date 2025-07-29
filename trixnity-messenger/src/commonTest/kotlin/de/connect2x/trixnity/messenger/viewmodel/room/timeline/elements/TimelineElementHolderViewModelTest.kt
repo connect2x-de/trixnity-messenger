@@ -45,6 +45,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.MessageEventContent
+import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.Mentions
@@ -55,13 +56,14 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 
 class TimelineElementHolderViewModelTest {
-    private val roomId = RoomId("room1", "localhost")
+    private val roomId = RoomId("!room1")
     private val eventId = EventId("event")
 
     private val us = UserId("mimi", "localhost")
@@ -106,7 +108,7 @@ class TimelineElementHolderViewModelTest {
                 })
         }.koin
         every { matrixClientMock.userId } returns us
-        every { userServiceMock.canSendEvent(roomId, any()) } returns flowOf(true)
+        every { userServiceMock.canSendEvent(roomId, any<KClass<out RoomEventContent>>()) } returns flowOf(true)
         every { userServiceMock.getById(roomId, any()) } calls { params ->
             val userId = params.args[1] as UserId
             flowOf(

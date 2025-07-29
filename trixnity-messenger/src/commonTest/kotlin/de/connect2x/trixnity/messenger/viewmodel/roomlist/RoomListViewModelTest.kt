@@ -78,13 +78,13 @@ class RoomListViewModelTest {
 
     private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry()
 
-    private val roomId1 = RoomId("room1", "localhost")
-    private val roomId2 = RoomId("room2", "localhost")
-    private val roomId3 = RoomId("room3", "localhost")
-    private val roomId4 = RoomId("room4", "localhost")
-    private val roomId5 = RoomId("room5", "localhost")
-    private val spaceId1 = RoomId("space1", "localhost")
-    private val spaceId2 = RoomId("space2", "localhost")
+    private val roomId1 = RoomId("!room1")
+    private val roomId2 = RoomId("!room2")
+    private val roomId3 = RoomId("!room3")
+    private val roomId4 = RoomId("!room4")
+    private val roomId5 = RoomId("!room5")
+    private val spaceId1 = RoomId("!space1")
+    private val spaceId2 = RoomId("!space2")
 
     private val user1 = UserId("user1", "server")
     private val user2 = UserId("user2", "server")
@@ -771,10 +771,10 @@ class RoomListViewModelTest {
 
     @Test
     fun `only show rooms and direct chats of selected account`() = runTest {
-        val roomId21 = RoomId("room21", "localhost") // direct room
-        val roomId22 = RoomId("room22", "localhost") // group
-        val roomId23 = RoomId("room23", "localhost") // group
-        val spaceId21 = RoomId("space21", "localhost") // space with room23
+        val roomId21 = RoomId("!room21") // direct room
+        val roomId22 = RoomId("!room22") // group
+        val roomId23 = RoomId("!room23") // group
+        val spaceId21 = RoomId("!space21") // space with room23
         every { matrixClientMock2.di } returns koinApplication {
             modules(
                 module {
@@ -1179,7 +1179,7 @@ class RoomListViewModelTest {
                 di = koin,
                 coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
             ),
-            selectedRoomId = MutableStateFlow(RoomId("roomId", "localhost")),
+            selectedRoomId = MutableStateFlow(RoomId("!roomId")),
             onRoomSelected = onRoomSelectedMock,
             onCreateNewRoom = mock(),
             onUserSettingsSelected = mock(),

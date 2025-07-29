@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.util.html
 
-import net.folivo.trixnity.core.model.Mention
+import net.folivo.trixnity.core.util.Reference
+import net.folivo.trixnity.core.util.References
 
 class AutoLinkifyVisitor {
     private val taskQueue = mutableListOf<Task>()
@@ -32,24 +33,26 @@ class AutoLinkifyVisitor {
 
     private fun visit(node: HtmlNode.TextContent, acc: MutableList<HtmlNode>) {
         var index = 0
-        val matches = LinkMatcher(node.content).findAll()
+        val matches = References.findReferences(node.content)
         if (matches.isEmpty()) {
             acc.add(node)
         } else {
             val children = mutableListOf<HtmlNode>()
-            acc.add(HtmlNode.HtmlElement(
-                tag = "span",
-                attributes = mapOf(),
-                rawContent = node.rawContent,
-                children = children,
-            ))
+            acc.add(
+                HtmlNode.HtmlElement(
+                    tag = "span",
+                    attributes = mapOf(),
+                    rawContent = node.rawContent,
+                    children = children,
+                )
+            )
             for (match in matches) {
-                val previousContent = node.content.substring(index, match.range.first)
+                val previousContent = node.content.substring(index, match.key.first)
                 if (previousContent.isNotEmpty()) {
                     children.add(HtmlNode.TextContent(previousContent))
                 }
-                children.add(linkElement(match, match.content))
-                index = match.range.last + 1
+                children.add(linkElement(match.value))
+                index = match.key.last + 1
             }
             val previousContent = node.content.substring(index)
             if (previousContent.isNotEmpty()) {
@@ -75,33 +78,22 @@ class AutoLinkifyVisitor {
         }
     }
 
-    private fun linkElement(match: LinkMatcher.LinkMatch, content: String): HtmlNode.HtmlElement = when (match) {
-        is LinkMatcher.LinkMatch.UrlMatch ->
-            HtmlNode.HtmlElement(
-                tag = "a",
-                attributes = mapOf("href" to content),
-                children = listOf(HtmlNode.TextContent(content)),
-            )
-        is LinkMatcher.LinkMatch.LinkMentionMatch ->
-            HtmlNode.HtmlElement(
-                tag = "a",
-                attributes = mapOf("href" to content),
-                children = listOf(HtmlNode.TextContent(
-                    when (match.mention) {
-                        is Mention.Event -> content
-                        is Mention.Room -> match.mention.roomId.full
-                        is Mention.RoomAlias -> match.mention.roomAliasId.full
-                        is Mention.User -> match.mention.userId.full
+    private fun linkElement(match: Reference): HtmlNode.HtmlElement =
+        HtmlNode.HtmlElement(
+            tag = "a",
+            attributes = mapOf("href" to (match.uri ?: match.toLink())),
+            children = listOf(
+                HtmlNode.TextContent(
+                    when (match) {
+                        is Reference.Event -> match.eventId.full
+                        is Reference.Room -> match.roomId.full
+                        is Reference.RoomAlias -> match.roomAliasId.full
+                        is Reference.User -> match.userId.full
+                        is Reference.Link -> match.uri
                     }
-                )),
-            )
-        is LinkMatcher.LinkMatch.IdMentionMatch ->
-            HtmlNode.HtmlElement(
-                tag = "a",
-                attributes = mapOf("href" to match.mention.toLink()),
-                children = listOf(HtmlNode.TextContent(content)),
-            )
-    }
+                )
+            ),
+        )
 
     companion object {
         fun process(document: HtmlNode.HtmlElement): HtmlNode.HtmlElement =

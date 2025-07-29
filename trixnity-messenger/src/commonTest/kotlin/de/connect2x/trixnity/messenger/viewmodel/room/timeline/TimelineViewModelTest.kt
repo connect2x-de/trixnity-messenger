@@ -26,8 +26,6 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
-import dev.mokkery.verify
-import dev.mokkery.verify.VerifyMode
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -60,16 +58,16 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.MessageEventContent
+import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.reflect.KClass
 import kotlin.test.AfterTest
 import kotlin.test.DefaultAsserter.fail
 import kotlin.test.Test
@@ -80,7 +78,7 @@ class TimelineViewModelTest {
 
     private var lifecycleRegistry: LifecycleRegistry
 
-    private val roomId = RoomId("room1", "localhost")
+    private val roomId = RoomId("!room1")
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
@@ -146,7 +144,7 @@ class TimelineViewModelTest {
         }
 
         every { userServiceMock.canRedactEvent(any(), any()) } returns flowOf(true)
-        every { userServiceMock.canSendEvent(any(), any()) } returns flowOf(true)
+        every { userServiceMock.canSendEvent(any(), any<KClass<out RoomEventContent>>()) } returns flowOf(true)
         every { userServiceMock.getReceiptsById(any(), any()) } returns flowOf(null)
 
         every { roomServiceMock.getTimelineEvent(any(), any(), any()) } returns dummyEvent
@@ -249,7 +247,7 @@ class TimelineViewModelTest {
         outboxMessagesFlow.value = listOf(
             RoomOutboxMessage(
                 transactionId = "1",
-                roomId = RoomId("not this room", "localhost"),
+                roomId = RoomId("not this room"),
                 content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
                 createdAt = Instant.fromEpochMilliseconds(0)
             ), RoomOutboxMessage(
@@ -259,7 +257,7 @@ class TimelineViewModelTest {
                 createdAt = Instant.fromEpochMilliseconds(1)
             ), RoomOutboxMessage(
                 transactionId = "3",
-                roomId = RoomId("totally not this room", "localhost"),
+                roomId = RoomId("totally not this room"),
                 content = RoomMessageEventContent.TextBased.Text(body = "from outer space"),
                 createdAt = Instant.fromEpochMilliseconds(2)
             )

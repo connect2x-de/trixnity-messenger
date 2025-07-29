@@ -74,7 +74,7 @@ class UserProfileViewModelTest {
     private val bob = UserId("bob", "localhost")
     private val carol = UserId("carol", "localhost")
 
-    private val roomId = RoomId("room", "localhost")
+    private val roomId = RoomId("!room")
 
     private val memberElementAlice = UserInfoElement(alice, "Alice", "A", null)
 
@@ -424,7 +424,7 @@ class UserProfileViewModelTest {
             userServiceMock.getPowerLevel(roomId, any())
         } returns MutableStateFlow(50)
 
-        val verificationRoom = RoomId("verificationRoom", "localhost")
+        val verificationRoom = RoomId("verificationRoom")
         everySuspend { verificationServiceMock.createUserVerificationRequest(alice) } returns Result.success(
             activeVerificationMock
         )
@@ -504,7 +504,7 @@ class UserProfileViewModelTest {
             userServiceMock.getPowerLevel(roomId, any())
         } returns MutableStateFlow(50)
 
-        val verificationRoom = RoomId("verificationRoom", "localhost")
+        val verificationRoom = RoomId("verificationRoom")
         everySuspend { verificationServiceMock.createUserVerificationRequest(alice) } returns Result.success(
             activeVerificationMock
         )

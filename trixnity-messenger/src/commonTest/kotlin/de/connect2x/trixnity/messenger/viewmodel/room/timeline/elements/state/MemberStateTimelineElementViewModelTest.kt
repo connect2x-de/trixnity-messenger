@@ -37,7 +37,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @Suppress("NonAsciiCharacters")
 class MemberStateTimelineElementViewModelTest {
 
-    val roomId = RoomId("room", "server")
+    val roomId = RoomId("!room")
     val sender = UserId("user", "server")
     val bob = UserId("bob", "localhost")
     val eventId = EventId("event")
@@ -77,7 +77,7 @@ class MemberStateTimelineElementViewModelTest {
             userServiceMock.getById(any(), eq(UserId("bob", "localhost")))
         } returns MutableStateFlow(
             RoomUser(
-                roomId = RoomId("room1", "localhost"),
+                roomId = RoomId("!room1"),
                 userId = UserId("bob", "localhost"),
                 name = "Bob",
                 event = ClientEvent.RoomEvent.StateEvent(
@@ -94,7 +94,7 @@ class MemberStateTimelineElementViewModelTest {
             userServiceMock.getById(any(), eq(UserId("mallory", "localhost")))
         } returns MutableStateFlow(
             RoomUser(
-                roomId = RoomId("room1", "localhost"),
+                roomId = RoomId("!room1"),
                 userId = UserId("mallory", "localhost"),
                 name = "Mallory",
                 event = ClientEvent.RoomEvent.StateEvent(
