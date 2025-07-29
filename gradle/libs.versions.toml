@@ -7,7 +7,7 @@ trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
 
-kotlin = "2.1.20" # https://github.com/JetBrains/kotlin/releases
+kotlin = "2.1.21" # https://github.com/JetBrains/kotlin/releases
 kotlinWrappers = "2025.6.9" # https://github.com/JetBrains/kotlin-wrappers/releases (should be same as in Trixnity)
 seskar = "4.9.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 

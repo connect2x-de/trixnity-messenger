@@ -15,18 +15,14 @@ import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.PathFileDescriptor
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.dialogs.openFileSaver
-import io.github.vinceglb.filekit.path
+import io.github.vinceglb.filekit.write
 import net.folivo.trixnity.client.media.PlatformMedia
-import net.folivo.trixnity.utils.write
-import okio.FileSystem
-import okio.Path.Companion.toPath
 
 private val log = KotlinLogging.logger {}
 
@@ -59,16 +55,18 @@ actual fun SaveFileDialog(
         }
     }
     LaunchedEffect(hasError) {
-        if (!hasError) downloadFile {
-            val file = FileKit.openFileSaver(
+        if (!hasError) downloadFile { file ->
+            val savedFile = FileKit.openFileSaver(
                 suggestedName = fileName.substringBeforeLast("."),
                 extension = fileName.substringAfterLast("."),
                 // TODO: set initialDirectory to OS dependent default pictures directory
             )
             try {
-                val path = file?.path?.toPath()
-                if (path != null) FileSystem.SYSTEM.write(path, it)
-                else log.warn { "no valid path selected" }
+                savedFile?.let {
+                    file.toByteArray()?.let { bytes ->
+                        savedFile.write(bytes)
+                    }
+                } ?: log.warn { "No valid path selected" }
             } finally {
                 onCloseSaveFileDialog()
             }
@@ -83,7 +81,6 @@ actual fun LoadFileDialog(
     onCloseLoadFileDialog: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-    val fileSystem = DI.get<FileSystem>()
     val launcher = rememberFilePickerLauncher(
         type = when {
             availableTypes.size == 1 && availableTypes.first() == FilePickerType.IMAGE_FILE -> FileKitType.Image
@@ -94,7 +91,9 @@ actual fun LoadFileDialog(
         title = i18n.fileDialogTitleLoad()
     ) { file ->
         file?.let {
-            onFileSelect(PathFileDescriptor(file.path.toPath(), fileSystem))
+            // We don't use the default PathFileDescriptor here because requires some special behaviour and to prevent
+            // a crash when selecting a file.
+            onFileSelect(FileKitFileDescriptor(file))
         }
         onCloseLoadFileDialog()
     }
