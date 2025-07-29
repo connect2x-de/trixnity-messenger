@@ -31,12 +31,13 @@ import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
+import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
 
 class VerificationRequestRoomMessageTimelineElementViewModelTest {
-    private val thisRoom = RoomId("room", "localhost")
+    private val thisRoom = RoomId("!room:localhost")
     private val timelineEventId = EventId("event-0")
     private val me = UserId("test", "localhost")
 
@@ -147,6 +148,12 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
             ),
             roomId = thisRoom,
             eventId = timelineEventId,
+            onOpenMention = { _, _ -> },
+            content = RoomMessageEventContent.VerificationRequest(
+                fromDevice = "amazing-phone",
+                to = UserId("otherguy", "localhost"),
+                methods = emptySet()
+            )
         )
     }
 

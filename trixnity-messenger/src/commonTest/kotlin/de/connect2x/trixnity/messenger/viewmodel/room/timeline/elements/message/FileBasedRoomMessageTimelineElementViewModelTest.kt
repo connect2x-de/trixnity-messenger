@@ -6,6 +6,7 @@ import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
@@ -19,10 +20,11 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.MediaService
+import net.folivo.trixnity.core.model.EventId
+import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.utils.toByteArray
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
@@ -126,7 +128,10 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
                 "",
                 fileName = "test.pdf",
                 url = "mxc://localhost/unencrypted123456",
-                file = EncryptedFile(url = "mxc://localhost/123456", key = EncryptedFile.JWK(""), "", mapOf())
+                file = EncryptedFile(url = "mxc://localhost/123456", key = EncryptedFile.JWK(""), "", mapOf()),
             ),
+            roomId = RoomId("!testpdf:server"),
+            eventIdOrTransactionId = EventIdOrTransactionId.EventIdOrTransactionId(EventId("\$very1demure1event")),
+            onOpenMention = { _, _ -> }
         ) {}
 }

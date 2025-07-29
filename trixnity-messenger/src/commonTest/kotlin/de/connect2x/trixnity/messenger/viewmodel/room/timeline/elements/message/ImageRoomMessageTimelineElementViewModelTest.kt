@@ -4,6 +4,7 @@ import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -19,6 +20,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.core.model.EventId
+import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.koinApplication
@@ -106,6 +109,9 @@ class ImageRoomMessageTimelineElementViewModelTest {
                 userId = UserId("test", "server"),
             ),
             content = RoomMessageEventContent.FileBased.Image(""),
+            roomId = RoomId("!testimage:server"),
+            eventIdOrTransactionId = EventIdOrTransactionId.EventIdOrTransactionId(EventId("\$very1demure1event")),
+            onOpenMention = { _, _ -> }
         )
     }
 }

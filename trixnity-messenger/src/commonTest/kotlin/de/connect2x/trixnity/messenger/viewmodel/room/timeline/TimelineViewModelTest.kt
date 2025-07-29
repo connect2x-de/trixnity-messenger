@@ -18,7 +18,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.TextBasedRoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -26,8 +26,6 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
-import dev.mokkery.verify
-import dev.mokkery.verify.VerifyMode
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -60,10 +58,8 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -76,11 +72,12 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
+@Suppress("NonAsciiCharacters")
 class TimelineViewModelTest {
 
     private var lifecycleRegistry: LifecycleRegistry
 
-    private val roomId = RoomId("room1", "localhost")
+    private val roomId = RoomId("!room1:localhost")
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
@@ -249,7 +246,7 @@ class TimelineViewModelTest {
         outboxMessagesFlow.value = listOf(
             RoomOutboxMessage(
                 transactionId = "1",
-                roomId = RoomId("not this room", "localhost"),
+                roomId = RoomId("!not this room:localhost"),
                 content = RoomMessageEventContent.TextBased.Text(body = "Hello"),
                 createdAt = Instant.fromEpochMilliseconds(0)
             ), RoomOutboxMessage(
@@ -259,7 +256,7 @@ class TimelineViewModelTest {
                 createdAt = Instant.fromEpochMilliseconds(1)
             ), RoomOutboxMessage(
                 transactionId = "3",
-                roomId = RoomId("totally not this room", "localhost"),
+                roomId = RoomId("!totally not this room:localhost"),
                 content = RoomMessageEventContent.TextBased.Text(body = "from outer space"),
                 createdAt = Instant.fromEpochMilliseconds(2)
             )
@@ -372,7 +369,7 @@ class TimelineViewModelTest {
         cut.elements.first().lastOrNull()?.key shouldBe "${roomId.full}-replace-2"
         eventually(2.seconds) {
             val elementViewModel = cut.elements.first().firstOrNull()?.element?.value
-            if (elementViewModel is TextBasedRoomMessageTimelineElementViewModel) {
+            if (elementViewModel is RoomMessageTimelineElementViewModel<*>) {
                 elementViewModel.body shouldBe "Hello!!!"
             } else fail("")
             cut.elements.first().getOrNull(1)?.element?.value shouldBe TimelineElementViewModel.Empty
