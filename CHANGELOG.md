@@ -16,12 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New rich text renderer
 - Bump Compose to 1.8.2
 - Bump FileKit to 0.10.0-beta04
+- Show correct feedback when getting no search results in the room list
+- Labels for text fields are always on
+- Add file save and load dialogs on iOS
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- Web client: sync is not stopped when tab or browser loses focus
+- Fix OOM gradle dependencies tasks
 
 ### Security
 
@@ -57,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Verification getting stuck after app lost focus
 - Failing ITs with user search race condition that led to flaky tests
+- Various issues in regard to PDF reader page loading and zooming
 
 ## 3.6.14
 
