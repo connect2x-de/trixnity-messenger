@@ -785,7 +785,10 @@ class InputAreaViewModelTest {
         cut.sendMessage()
 
         eventually(300.milliseconds) {
-            formattedBody shouldBe "<p>Hiii <a href=\"https://matrix.to/#/${aliceUserId.full}\">${aliceRoomUser.name}</a> " + "und <a href=\"https://matrix.to/#/${alvinUserId.full}\">${alvinRoomUser.name}</a>\n" + "und <a href=\"https://matrix.to/#/${alvin2UserId.full}\">${alvin2RoomUser.name}</a> " + "und <a href=\"https://matrix.to/#/${alvinUserId.full}\">${alvinRoomUser.name}</a> zusammen!</p>"
+            formattedBody shouldBe """
+                <p>Hiii <a href="matrix:u/alice:hallo.com">Alice</a> und <a href="matrix:u/alvin:example.org">Alvin</a>
+                und <a href="matrix:u/alvin:example.orgg">Alvina</a> und <a href="matrix:u/alvin:example.org">Alvin</a> zusammen!</p>
+            """.trimIndent()
         }
     }
 
@@ -803,7 +806,7 @@ class InputAreaViewModelTest {
         cut.sendMessage()
 
         eventually(300.milliseconds) {
-            formattedBody shouldBe "<p><a href=\"https://matrix.to/#/${aliceUserId.full}\">${aliceRoomUser.name}</a></p>"
+            formattedBody shouldBe """<p><a href="matrix:u/alice:hallo.com">Alice</a></p>"""
         }
     }
 
@@ -821,7 +824,7 @@ class InputAreaViewModelTest {
         cut.sendMessage()
 
         eventually(300.milliseconds) {
-            formattedBody shouldBe "<p><a href=\"https://matrix.to/#/${aliceUserId.full}\">${aliceRoomUser.name}</a> " + "<a href=\"https://matrix.to/#/${alvinUserId.full}\">${alvinRoomUser.name}</a> hii!</p>"
+            formattedBody shouldBe """<p><a href="matrix:u/alice:hallo.com">Alice</a> <a href="matrix:u/alvin:example.org">Alvin</a> hii!</p>"""
         }
     }
 
@@ -839,7 +842,7 @@ class InputAreaViewModelTest {
         cut.sendMessage()
 
         eventually(300.milliseconds) {
-            formattedBody shouldBe "<p>Hi <a href=\"https://matrix.to/#/${aliceUserId.full}\">${aliceRoomUser.name}</a></p>"
+            formattedBody shouldBe """<p>Hi <a href="matrix:u/alice:hallo.com">Alice</a></p>"""
         }
     }
 

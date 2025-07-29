@@ -306,7 +306,7 @@ open class InputAreaViewModelImpl(
                 val userReferences =
                     references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
                 val formattedReferences =
-                    references.entries.withIndex()
+                    references.filterValues { it !is TrixnityReference.Link }.entries.withIndex()
                         .windowed(
                             size = 2,
                             partialWindows = true
