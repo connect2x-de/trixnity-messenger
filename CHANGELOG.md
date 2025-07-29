@@ -18,7 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump FileKit to 0.10.0-beta04
 - Show correct feedback when getting no search results in the room list
 - Labels for text fields are always on
-- Add file save and load dialogs on iOS
 
 ### Deprecated
 
