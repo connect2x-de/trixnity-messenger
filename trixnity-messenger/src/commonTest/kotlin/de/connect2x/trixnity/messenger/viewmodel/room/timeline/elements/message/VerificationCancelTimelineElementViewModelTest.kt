@@ -51,7 +51,7 @@ class VerificationCancelTimelineElementViewModelTest {
 
     private val userId = UserId("test", "server")
     private val otherUserId = UserId("other", "server")
-    private val roomId = RoomId("room", "localhost")
+    private val roomId = RoomId("!room")
 
     init {
         resetMocks(matrixClientMock)

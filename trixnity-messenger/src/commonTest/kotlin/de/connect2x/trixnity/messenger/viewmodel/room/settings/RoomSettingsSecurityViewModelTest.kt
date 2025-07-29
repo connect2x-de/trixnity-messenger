@@ -38,7 +38,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class RoomSettingsSecurityViewModelTest {
-    private val roomId = RoomId("room", "localhost")
+    private val roomId = RoomId("!room")
     private val me = UserId("user1", "localhost")
 
     val matrixClientMock = mock<MatrixClient>()

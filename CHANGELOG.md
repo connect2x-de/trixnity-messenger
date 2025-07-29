@@ -13,11 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- New rich text renderer
 - Bump Compose to 1.8.2
 - Bump FileKit to 0.10.0-beta04
-- Show correct feedback when getting no search results in the room list
-- Labels for text fields are always on
+- Move startMessenger logic for the iOS client in separate function
 
 ### Deprecated
 
@@ -25,10 +23,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 3.6.17
+
+### Changed
+
+- New rich text renderer
+- Show correct feedback when getting no search results in the room list
+- Labels for text fields are always on
+- Adapt to trixnity References-API changes
+
+### Fixed
+
 - Web client: sync is not stopped when tab or browser loses focus
 - Fix OOM gradle dependencies tasks
-
-### Security
 
 ## 3.6.16
 
