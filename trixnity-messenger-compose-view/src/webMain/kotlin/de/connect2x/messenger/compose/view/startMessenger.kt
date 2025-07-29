@@ -5,7 +5,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.CanvasBasedWindow
-import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.pause
@@ -120,7 +119,7 @@ suspend fun startMessenger(
                         IsFocused provides windowIsFocused.collectAsState(false).value,
                     ) {
                         val matrixMessenger by matrixMessengerFlow.collectAsState()
-                        val rootViewModel = rememberRootViewModel(matrixMessenger, DefaultComponentContext(lifecycleRegistry))
+                        val rootViewModel = rememberRootViewModel(matrixMessenger, lifecycleRegistry)
 
                         CompositionLocalProvider(
                             DI provides matrixMessenger.di,
