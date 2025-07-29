@@ -27,6 +27,7 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.RunningText
 import de.connect2x.messenger.compose.view.get
@@ -180,7 +181,8 @@ fun ExportRoomProperties(exportRoomViewModel: ExportRoomViewModel) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { selectedIndex = 0 },
+                .clickable { selectedIndex = 0 }
+                .buttonPointerModifier(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -196,7 +198,8 @@ fun ExportRoomProperties(exportRoomViewModel: ExportRoomViewModel) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { selectedIndex = 1 },
+                .clickable { selectedIndex = 1 }
+                .buttonPointerModifier(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(

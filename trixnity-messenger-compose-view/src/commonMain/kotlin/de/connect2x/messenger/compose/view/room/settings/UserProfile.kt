@@ -332,9 +332,12 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
             )
         }
         if (canOpenChat) {
-            MenuElement(Modifier.clickable {
-                userProfileViewModel.openChat()
-            }) {
+            MenuElement(
+                Modifier.clickable {
+                    userProfileViewModel.openChat()
+                }
+                    .buttonPointerModifier()
+            ) {
                 Icon(
                     Icons.AutoMirrored.Filled.Send,
                     i18n.contact(),
@@ -393,9 +396,11 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
 
 @Composable
 private fun ChangePowerLevelSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
-    MenuElement(Modifier.clickable {
-        userProfileViewModel.changePowerLevelViewModel.openChangingPowerLevelDialog()
-    }) {
+    MenuElement(
+        Modifier.clickable {
+            userProfileViewModel.changePowerLevelViewModel.openChangingPowerLevelDialog()
+        }.buttonPointerModifier()
+    ) {
         Icon(
             Icons.Filled.Verified,
             i18n.userProfileChangePowerLevel(),
@@ -433,9 +438,12 @@ private fun BanUserSection(userProfileViewModel: UserProfileViewModel, i18n: I18
 
 @Composable
 private fun KickUserSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
-    MenuElement(Modifier.clickable {
-        userProfileViewModel.openKickUserWarning()
-    }) {
+    MenuElement(
+        Modifier.clickable {
+            userProfileViewModel.openKickUserWarning()
+        }
+            .buttonPointerModifier()
+    ) {
         Icon(
             Icons.Filled.PersonOff,
             i18n.userProfileRemoveUser(),
@@ -448,9 +456,12 @@ private fun KickUserSection(userProfileViewModel: UserProfileViewModel, i18n: I1
 
 @Composable
 private fun AcceptKnockSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
-    MenuElement(Modifier.clickable {
-        userProfileViewModel.acceptKnock()
-    }) {
+    MenuElement(
+        Modifier.clickable {
+            userProfileViewModel.acceptKnock()
+        }
+            .buttonPointerModifier()
+    ) {
         Icon(
             Icons.Filled.DoorSliding,
             i18n.userProfileAcceptKnock(),
