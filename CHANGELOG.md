@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Move startMessenger logic for the iOS client in separate function
+
 ### Deprecated
 
 ### Removed
