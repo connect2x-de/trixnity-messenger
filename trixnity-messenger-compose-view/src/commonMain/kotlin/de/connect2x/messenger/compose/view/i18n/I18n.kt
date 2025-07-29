@@ -600,7 +600,7 @@ open class I18nView(
         EN - "There is already a verification process with this user in another room"
         DE - "Es läuft bereits ein Verifikationsprozess mit diesem Nutzer in einem anderen Raum"
     }
-    
+
     open fun dehydratedDevice() = translate {
         EN - "This virtual (so called dehydrated) device is used to decrypt messages when no other device is online."
         DE - "Dieses virtuelle (sogenannte dehydrierte) Gerät wird verwendet um Nachrichten zu entschlüsseln, wenn kein anderes Gerät online ist."
@@ -1472,6 +1472,11 @@ open class I18nView(
         DE - "Sie haben noch keine Chats oder Gruppen."
     }
 
+    open fun roomListNoSearchResults() = translate {
+        EN - "No chats or groups found."
+        DE - "Keine Chats oder Gruppen gefunden."
+    }
+
     open fun roomListCreateRoom() = translate {
         EN - "Create a new chat or group"
         DE - "Neuen Chat oder Gruppe anlegen"
@@ -2328,12 +2333,12 @@ open class I18nView(
         DE - "Verschlüsselung: "
     }
 
-    open fun optionalGroupNamePlaceholder() = translate {
+    open fun optionalGroupNameLabel() = translate {
         EN - "Optional group name"
         DE - "Optionaler Gruppenname"
     }
 
-    open fun optionalGroupTopicPlaceholder() = translate {
+    open fun optionalGroupTopicLabel() = translate {
         EN - "Optional group topic"
         DE - "Optionales Gruppenthema"
     }

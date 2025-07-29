@@ -8,6 +8,8 @@ import androidx.compose.ui.window.CanvasBasedWindow
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.pause
+import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.messenger.compose.view.notifications.Notifications
 import de.connect2x.messenger.compose.view.profiles.rememberRootViewModel
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
@@ -147,24 +149,9 @@ suspend fun startMessenger(
 }
 
 private fun LifecycleRegistry.updateState(visible: Boolean, focused: Boolean) {
-    val target = when {
-        visible && focused -> Lifecycle.State.RESUMED
-        visible -> Lifecycle.State.STARTED
-        else -> Lifecycle.State.CREATED
-    }
-    if (state != target) {
-        log.debug { "Application State changing from $state to $target" }
-        while (state < target) when (state) {
-            Lifecycle.State.INITIALIZED -> onCreate()
-            Lifecycle.State.CREATED -> onStart()
-            Lifecycle.State.STARTED -> onResume()
-            else -> Unit
-        }
-        while (state > target) when (state) {
-            Lifecycle.State.RESUMED -> onPause()
-            Lifecycle.State.STARTED -> onStop()
-            Lifecycle.State.CREATED -> onDestroy()
-            else -> Unit
-        }
+    if (visible || focused) {
+        resume()
+    } else {
+        pause()
     }
 }
