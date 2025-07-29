@@ -36,7 +36,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class EnterRoomTest {
     private val cut = EnterRoomImpl()
 
-    private val roomId = RoomId("room1", "localhost")
+    private val roomId = RoomId("!room1")
     private val room = Room(roomId)
 
     private val matrixClientMock = mock<MatrixClient>()

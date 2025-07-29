@@ -44,19 +44,21 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class InputAreaViewModelTest {
 
-    private val roomId = RoomId("room1", "localhost")
+    private val roomId = RoomId("!room1")
     private val ourUserId = UserId("bob", "localhost")
 
     val matrixClientMock = mock<MatrixClient>()
@@ -124,7 +126,7 @@ class InputAreaViewModelTest {
         every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
 
         canSendEventMocker = every {
-            userServiceMock.canSendEvent(any(), any())
+            userServiceMock.canSendEvent(any(), any<KClass<out RoomEventContent>>())
         }
 
         canSendEventMocker returns flowOf(true)

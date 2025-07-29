@@ -42,7 +42,7 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
 class SearchGroupViewModelTest {
-    private val roomId = RoomId("room1", "localhost")
+    private val roomId = RoomId("!room1")
     private val room = Room(roomId)
 
     private val matrixClientMock = mock<MatrixClient>()

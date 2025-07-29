@@ -29,7 +29,7 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
 class RoomSettingsNotificationsViewModelTest {
-    private val roomId = RoomId("room", "localhost")
+    private val roomId = RoomId("!room")
 
     private val me = UserId("user1", "localhost")
 
@@ -77,7 +77,7 @@ class RoomSettingsNotificationsViewModelTest {
                             actions = setOf(PushAction.Notify),
                             enabled = true,
                             default = false,
-                            roomId = RoomId("!room:localhost"),
+                            roomId = RoomId("!room"),
                         ),
                     ),
                 )
@@ -103,7 +103,7 @@ class RoomSettingsNotificationsViewModelTest {
                             actions = setOf(),
                             enabled = true,
                             default = false,
-                            roomId = RoomId("!room:localhost"),
+                            roomId = RoomId("!room"),
                         ),
                     ),
                 )
@@ -127,10 +127,10 @@ class RoomSettingsNotificationsViewModelTest {
                     override = listOf(
                         PushRule.Override(
                             actions = setOf(),
-                            conditions = setOf(PushCondition.EventMatch("room_id", "!room:localhost")),
+                            conditions = setOf(PushCondition.EventMatch("room_id", "!room")),
                             enabled = true,
                             default = false,
-                            ruleId = "!room:localhost",
+                            ruleId = "!room",
                         ),
                     ),
                 )
