@@ -36,7 +36,7 @@ interface AppearanceSettingsViewModel {
 
     fun setThemeMode(themeMode: ThemeMode)
     fun toggleHighContrast()
-    fun toggleA11yMode()
+    fun toggleFocusHighlighting()
     fun setAccentColor(accentColor: Long?)
     fun setFontSize(fontSize: Float?)
     fun setDisplaySize(controlsSize: Float?)
@@ -97,7 +97,7 @@ class AppearanceSettingsViewModelImpl(
         }
     }
 
-    override fun toggleA11yMode() {
+    override fun toggleFocusHighlighting() {
         coroutineScope.launch {
             settings.update<MatrixMessengerSettingsBase> {
                 it.copy(isFocusHighlighting = !it.isFocusHighlighting)

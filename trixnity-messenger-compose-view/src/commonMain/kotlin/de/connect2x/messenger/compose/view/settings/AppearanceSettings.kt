@@ -46,7 +46,7 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
         val defaultAccentColor = DI.get<DefaultAccentColor>().value
         val isHighContrast by appearanceSettingsViewModel.isHighContrast.collectAsState()
         val packedAccentColor by appearanceSettingsViewModel.accentColor.collectAsState()
-        val a11yMode by appearanceSettingsViewModel.isFocusHighlighting.collectAsState()
+        val isFocusHighlighting by appearanceSettingsViewModel.isFocusHighlighting.collectAsState()
         val accentColor = packedAccentColor?.let { Color(it.toULong()) } ?: defaultAccentColor
 
         Box(Modifier.fillMaxSize()) {
@@ -78,9 +78,9 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
                             Setting(
                                 text = i18n.appearanceFocusHighlightingHeading(),
                                 explanation = i18n.appearanceFocusHighlightingExplanation(),
-                                value = a11yMode,
+                                value = isFocusHighlighting,
                             ) {
-                                appearanceSettingsViewModel.toggleA11yMode()
+                                appearanceSettingsViewModel.toggleFocusHighlighting()
                             }
                         }
                     }
