@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Highlight mode of focused elements for better a11y
+
 ### Changed
 
 - Move startMessenger logic for the iOS client in separate function
