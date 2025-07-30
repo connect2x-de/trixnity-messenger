@@ -80,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Correctly indicate overflows in room invite name or matrix ids
+- Fix Android back button closing the app instead of returning to previous view
 
 ## 3.6.13
 
