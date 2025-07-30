@@ -28,7 +28,7 @@ interface AppearanceSettingsViewModelFactory {
 interface AppearanceSettingsViewModel {
     val themeMode: StateFlow<ThemeMode>
     val isHighContrast: StateFlow<Boolean>
-    val isA11yMode: StateFlow<Boolean>
+    val isFocusHighlighting: StateFlow<Boolean>
     val accentColor: StateFlow<Long?>
     val fontSize: StateFlow<Float?>
     val displaySize: StateFlow<Float?>
@@ -57,9 +57,9 @@ class AppearanceSettingsViewModelImpl(
     override val isHighContrast: StateFlow<Boolean> =
         settings.mapLatest { it.base.isHighContrast }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.isHighContrast)
-    override val isA11yMode: StateFlow<Boolean> =
-        settings.mapLatest { it.base.isA11yMode }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.isA11yMode)
+    override val isFocusHighlighting: StateFlow<Boolean> =
+        settings.mapLatest { it.base.isFocusHighlighting }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.isFocusHighlighting)
     override val accentColor: StateFlow<Long?> =
         settings.mapLatest { it.base.accentColor }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.accentColor)
@@ -100,7 +100,7 @@ class AppearanceSettingsViewModelImpl(
     override fun toggleA11yMode() {
         coroutineScope.launch {
             settings.update<MatrixMessengerSettingsBase> {
-                it.copy(isA11yMode = !it.isA11yMode)
+                it.copy(isFocusHighlighting = !it.isFocusHighlighting)
             }
         }
     }

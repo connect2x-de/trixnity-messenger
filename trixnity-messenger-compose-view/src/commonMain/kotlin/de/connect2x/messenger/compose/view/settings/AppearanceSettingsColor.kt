@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.settings
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -38,12 +37,10 @@ import de.connect2x.messenger.compose.view.common.hue
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.DefaultAccentColor
-import de.connect2x.messenger.compose.view.theme.IsA11yMode
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedSlider
-import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
 
 interface AppearanceSettingsColorView {
     @Composable
@@ -126,11 +123,6 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                         it.copy(colors = it.colors.copy(thumbColor = currentColor))
                     },
                     track = { HueSliderTrack(defaultAccentColor) },
-                    focusedBorder = if (IsA11yMode.current)
-                        BorderStroke(
-                            width = MaterialTheme.messengerFocusIndicator.borderWidth,
-                            color = currentColor,
-                        ) else null,
                 )
                 Spacer(Modifier.width(10.dp))
                 Tooltip({ Text(i18n.appearanceAccentColorDefault()) }) {

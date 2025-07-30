@@ -46,7 +46,7 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
         val defaultAccentColor = DI.get<DefaultAccentColor>().value
         val isHighContrast by appearanceSettingsViewModel.isHighContrast.collectAsState()
         val packedAccentColor by appearanceSettingsViewModel.accentColor.collectAsState()
-        val a11yMode by appearanceSettingsViewModel.isA11yMode.collectAsState()
+        val a11yMode by appearanceSettingsViewModel.isFocusHighlighting.collectAsState()
         val accentColor = packedAccentColor?.let { Color(it.toULong()) } ?: defaultAccentColor
 
         Box(Modifier.fillMaxSize()) {
@@ -64,6 +64,9 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
                             ) {
                                 appearanceSettingsViewModel.setAccentColor(it.value.toLong())
                             }
+                        }
+                        SettingsCard(title = i18n.appearanceAccessibilityTitle(), icon = Icons.Filled.FormatSize) {
+                            AppearanceSettingsSize(appearanceSettingsViewModel)
                             Spacer(Modifier.height(15.dp))
                             Setting(
                                 text = i18n.appearanceHighContrastHeading(),
@@ -73,15 +76,12 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
                                 appearanceSettingsViewModel.toggleHighContrast()
                             }
                             Setting(
-                                text = i18n.appearanceA11yModeHeading(),
-                                explanation = i18n.appearanceA11yModeExplanation(),
+                                text = i18n.appearanceFocusHighlightingHeading(),
+                                explanation = i18n.appearanceFocusHighlightingExplanation(),
                                 value = a11yMode,
                             ) {
                                 appearanceSettingsViewModel.toggleA11yMode()
                             }
-                        }
-                        SettingsCard(title = i18n.appearanceAccessibilityTitle(), icon = Icons.Filled.FormatSize) {
-                            AppearanceSettingsSize(appearanceSettingsViewModel)
                         }
                     }
                     VerticalScrollbar(

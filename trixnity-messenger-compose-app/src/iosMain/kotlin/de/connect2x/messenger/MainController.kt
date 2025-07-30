@@ -19,7 +19,7 @@ import de.connect2x.messenger.compose.view.PlatformType
 import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
-import de.connect2x.messenger.compose.view.theme.IsA11yMode
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
@@ -62,13 +62,14 @@ fun MainViewController(lifecycle: LifecycleRegistry): UIViewController {
                 }
             },
             activeMessenger = { matrixMessenger, rootViewModel ->
-                val isA11yMode =
-                    matrixMessenger.di.get<MatrixMessengerSettingsHolder>().collectAsState().value.base.isA11yMode
+                val isFocusHighlighting =
+                    matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
+                        .collectAsState().value.base.isFocusHighlighting
                 CompositionLocalProvider(
                     Platform provides PlatformType.IOS,
                     IsFocused provides isFocused,
                     DI provides matrixMessenger.di,
-                    IsA11yMode provides isA11yMode,
+                    IsFocusHighlighting provides isFocusHighlighting,
                 ) {
                     MessengerTheme {
                         Client(rootViewModel)
@@ -82,7 +83,7 @@ fun MainViewController(lifecycle: LifecycleRegistry): UIViewController {
                     IsFocused provides isFocused,
                     DI provides matrixMultiMessenger.di,
                     ShowProfileCreation provides showProfileCreation,
-                    IsA11yMode provides false,
+                    IsFocusHighlighting provides false,
                 ) {
                     MessengerTheme {
                         Profiles(matrixMultiMessenger, existingProfiles)

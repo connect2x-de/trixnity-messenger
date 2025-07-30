@@ -32,7 +32,7 @@ import de.connect2x.messenger.compose.view.R
 import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
-import de.connect2x.messenger.compose.view.theme.IsA11yMode
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.sysnotify.handlePermissionRequest
@@ -121,14 +121,14 @@ class MessengerActivity : AppCompatActivity() {
                             val lifeCycleState =
                                 androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsState()
                             val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
-                            val isA11yMode =
+                            val isFocusHighlighting =
                                 matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
-                                    .collectAsState().value.base.isA11yMode
+                                    .collectAsState().value.base.isFocusHighlighting
                             CompositionLocalProvider(
                                 Platform provides PlatformType.ANDROID,
                                 IsFocused provides isFocused,
                                 DI provides matrixMessenger.di,
-                                IsA11yMode provides isA11yMode,
+                                IsFocusHighlighting provides isFocusHighlighting,
                             ) {
                                 MessengerTheme {
                                     Client(rootViewModel)

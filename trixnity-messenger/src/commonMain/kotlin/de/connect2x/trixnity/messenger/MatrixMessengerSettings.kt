@@ -42,8 +42,15 @@ data class MatrixMessengerSettingsBase(
     val ssoState: SSOState? = null,
 
     val themeMode: ThemeMode = ThemeMode.DEFAULT,
+    /**
+     * The high contrast mode is an a11y option to have fewer colors and more contrast on all UI elements to improve
+     * readability.
+     */
     val isHighContrast: Boolean = false,
-    val isA11yMode: Boolean = false,
+    /**
+     * Focused elements are highlighted more to enable better keyboard navigation.
+     */
+    val isFocusHighlighting: Boolean = false,
     val accentColor: Long? = null,
     val fontSize: Float? = null,
     val displaySize: Float? = null,

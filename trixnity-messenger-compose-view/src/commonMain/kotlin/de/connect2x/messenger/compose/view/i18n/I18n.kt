@@ -2693,12 +2693,12 @@ open class I18nView(
         DE - "Erhöht den Gesamtkontrast zwischen Vorder- und Hintergrund-Elemente um diese besser erkennbar zu machen"
     }
 
-    open fun appearanceA11yModeHeading() = translate {
-        EN - "A11y Mode"
-        DE - "Barrierefreiheit"
+    open fun appearanceFocusHighlightingHeading() = translate {
+        EN - "Focus Highlighting"
+        DE - "Fokus Hervorhebung"
     }
 
-    open fun appearanceA11yModeExplanation() = translate {
+    open fun appearanceFocusHighlightingExplanation() = translate {
         EN - "Enables better visibility for focused elements."
         DE - "Fokussierte Elemente werden stärker hervorgehoben."
     }

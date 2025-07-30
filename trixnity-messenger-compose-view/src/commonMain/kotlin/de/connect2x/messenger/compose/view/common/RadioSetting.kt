@@ -25,7 +25,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
-import de.connect2x.messenger.compose.view.theme.IsA11yMode
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
 
 internal data class RadioSettingOption(
@@ -93,7 +93,7 @@ private fun <T> RadioSettingOption(
 ) {
     val hasFocus = remember { mutableStateOf(false) }
     val focusBorder =
-        if (IsA11yMode.current && hasFocus.value) {
+        if (IsFocusHighlighting.current && hasFocus.value) {
             Modifier.border(
                 width = MaterialTheme.messengerFocusIndicator.borderWidth,
                 color = MaterialTheme.colorScheme.onBackground,

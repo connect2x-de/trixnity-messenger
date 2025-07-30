@@ -30,7 +30,7 @@ import de.connect2x.messenger.compose.view.notifications.Notifications
 import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
-import de.connect2x.messenger.compose.view.theme.IsA11yMode
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.sysnotify.withActivationHandler
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
@@ -125,13 +125,14 @@ fun CoroutineScope.messengerApp(
                         }
                     }
 
-                    val isA11yMode =
-                        matrixMessenger.di.get<MatrixMessengerSettingsHolder>().collectAsState().value.base.isA11yMode
+                    val isFocusHighlighting =
+                        matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
+                            .collectAsState().value.base.isFocusHighlighting
                     CompositionLocalProvider(
                         Platform provides PlatformType.DESKTOP,
                         IsFocused provides windowIsFocused,
                         DI provides matrixMessenger.di,
-                        IsA11yMode provides isA11yMode,
+                        IsFocusHighlighting provides isFocusHighlighting,
                     ) {
                         MessengerTheme {
                             Client(rootViewModel)
@@ -153,7 +154,7 @@ fun CoroutineScope.messengerApp(
                         IsFocused provides windowIsFocused,
                         DI provides matrixMultiMessenger.di,
                         ShowProfileCreation provides showProfileCreation,
-                        IsA11yMode provides false, // FIXME do we need this here, too?
+                        IsFocusHighlighting provides false, // FIXME do we need this here, too?
                     ) {
                         MessengerTheme {
                             Profiles(matrixMultiMessenger, existingProfiles)

@@ -37,7 +37,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.theme.IsA11yMode
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
 
 @Composable
@@ -108,7 +108,7 @@ private fun ColumnScope.MoreInfo(
             if (enabled) CardDefaults.cardColors()
             else CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
         border =
-            if (IsA11yMode.current && hasFocus) BorderStroke(
+            if (IsFocusHighlighting.current && hasFocus) BorderStroke(
                 width = MaterialTheme.messengerFocusIndicator.borderWidth,
                 color = MaterialTheme.colorScheme.onSurface,
             )

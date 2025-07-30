@@ -9,7 +9,7 @@ import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.messenger.compose.view.notifications.Notifications
 import de.connect2x.messenger.compose.view.profiles.rememberRootViewModel
-import de.connect2x.messenger.compose.view.theme.IsA11yMode
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
@@ -120,13 +120,13 @@ suspend fun startMessenger(
                     ) {
                         val matrixMessenger by matrixMessengerFlow.collectAsState()
                         val rootViewModel = rememberRootViewModel(matrixMessenger, lifecycleRegistry)
-                        val isA11yMode =
+                        val isFocusHighlighting =
                             matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
-                                .collectAsState().value.base.isA11yMode
+                                .collectAsState().value.base.isFocusHighlighting
 
                         CompositionLocalProvider(
                             DI provides matrixMessenger.di,
-                            IsA11yMode provides isA11yMode,
+                            IsFocusHighlighting provides isFocusHighlighting,
                         ) {
                             if (rootViewModel != null) {
                                 MessengerTheme {

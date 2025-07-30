@@ -17,7 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import de.connect2x.messenger.compose.view.theme.IsA11yMode
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
 
@@ -40,7 +40,7 @@ fun Setting(
             }
             .focusable(interactionSource = interactionSource)
             .then(
-                if (IsA11yMode.current && hasFocus) Modifier.border(
+                if (IsFocusHighlighting.current && hasFocus) Modifier.border(
                     width = MaterialTheme.messengerFocusIndicator.borderWidth,
                     color = MaterialTheme.colorScheme.onBackground,
                 )
