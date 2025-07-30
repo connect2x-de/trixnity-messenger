@@ -37,7 +37,6 @@ data class ButtonStyle(
     val iconSpacing: Dp,
 ) {
     fun border(enabled: Boolean, hasFocus: Boolean): BorderStroke? {
-        println("=== $enabled, $hasFocus, $focusedBorder, $enabledBorder")
         return when {
             enabled && hasFocus -> focusedBorder ?: enabledBorder
             enabled -> enabledBorder

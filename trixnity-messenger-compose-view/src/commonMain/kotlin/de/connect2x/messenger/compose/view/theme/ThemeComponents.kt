@@ -81,7 +81,7 @@ class ThemeComponentsImpl : ThemeComponents {
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ),
             textStyle = MaterialTheme.typography.labelLarge,
-            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimary),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
         secondaryButton = ButtonStyle.filled(
             colors = ButtonDefaults.buttonColors(
@@ -93,7 +93,7 @@ class ThemeComponentsImpl : ThemeComponents {
         ),
         commonButton = ButtonStyle.outlined(
             textStyle = MaterialTheme.typography.labelLarge,
-            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimary),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
         destructiveButton = ButtonStyle.filled(
             colors = ButtonDefaults.buttonColors(
@@ -121,7 +121,7 @@ class ThemeComponentsImpl : ThemeComponents {
             colors = IconButtonDefaults.iconToggleButtonColors(
                 contentColor = Color.LocalContent,
             ),
-            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimary),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
         ),
         destructiveIconButton = IconButtonStyle.default(
             colors = IconButtonDefaults.iconToggleButtonColors(
@@ -222,7 +222,7 @@ class ThemeComponentsImpl : ThemeComponents {
             contentColor = MaterialTheme.colorScheme.onBackground,
         ),
         roomListFocused = SurfaceStyle.default(
-            border = focusedBorder(MaterialTheme.colorScheme.onPrimary),
+            border = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
         roomListDivider = DividerStyle.default(
             padding = PaddingValues(horizontal = 10.dp),
