@@ -1,7 +1,7 @@
 package de.connect2x.messenger.compose.view
 
-import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -14,8 +14,11 @@ import com.arkivanov.essenty.lifecycle.stop
 import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.create
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.runBlocking
@@ -56,10 +59,14 @@ fun startMessenger(
                 }
             },
             activeMessenger = { matrixMessenger, rootViewModel ->
+                val isFocusHighlighting =
+                    matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
+                        .collectAsState().value.base.isFocusHighlighting
                 CompositionLocalProvider(
                     Platform provides PlatformType.IOS,
                     IsFocused provides isFocused,
                     DI provides matrixMessenger.di,
+                    IsFocusHighlighting provides isFocusHighlighting,
                 ) {
                     MessengerTheme {
                         Client(rootViewModel)
