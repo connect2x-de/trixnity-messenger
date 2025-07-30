@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- New rich text renderer
+- Move startMessenger logic for the iOS client in separate function
 
 ### Deprecated
 
@@ -20,6 +20,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## 3.6.17
+
+### Changed
+
+- New rich text renderer
+- Show correct feedback when getting no search results in the room list
+- Labels for text fields are always on
+- Adapt to trixnity References-API changes
+
+### Fixed
+
+- Web client: sync is not stopped when tab or browser loses focus
+- Fix OOM gradle dependencies tasks
 
 ## 3.6.16
 
@@ -53,6 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Verification getting stuck after app lost focus
 - Failing ITs with user search race condition that led to flaky tests
+- Various issues in regard to PDF reader page loading and zooming
 
 ## 3.6.14
 
@@ -65,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Correctly indicate overflows in room invite name or matrix ids
+- Fix Android back button closing the app instead of returning to previous view
 
 ## 3.6.13
 

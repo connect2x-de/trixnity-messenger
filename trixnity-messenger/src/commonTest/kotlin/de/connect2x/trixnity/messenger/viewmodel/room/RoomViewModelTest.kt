@@ -61,6 +61,7 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
@@ -81,7 +82,7 @@ class RoomViewModelTest {
     private var lifecycle: LifecycleRegistry
     private val backPressedHandler = BackDispatcher()
 
-    private val roomId = RoomId("room", "localhost")
+    private val roomId = RoomId("!room")
     private val myUserId = UserId("user1", "localhost")
     private val myDeviceId = "deviceId"
     private val roomsFlow = MutableStateFlow(emptyMap<RoomId, StateFlow<Room?>>())
@@ -195,7 +196,7 @@ class RoomViewModelTest {
         every { userServiceMock.getAccountData(PushRulesEventContent::class, "") } returns
                 MutableStateFlow(null)
         every { userServiceMock.getPowerLevel(any(), any()) } returns MutableStateFlow(50)
-        every { userServiceMock.canSendEvent(any(), any()) } returns flowOf(true)
+        every { userServiceMock.canSendEvent(any(), any<KClass<out RoomEventContent>>()) } returns flowOf(true)
         every { userServiceMock.getReceiptsById(any(), any()) } returns flowOf(null)
         every { minimizeMessengerMock.invoke() } returns Unit
     }

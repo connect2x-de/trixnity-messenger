@@ -416,7 +416,7 @@ open class RoomListElementViewModelImpl(
 
 class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     @Suppress("DEPRECATION") // TODO: Adjust this for Room version 12 eventually
-    private val roomId1 = RoomId("1", "localhost")
+    private val roomId1 = RoomId("1")
     override val account: UserId = UserId("user", "server")
     override val roomId: RoomId = roomId1
     override val isLoaded: MutableStateFlow<Boolean> = MutableStateFlow(true)
@@ -449,7 +449,7 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
 
 class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     @Suppress("DEPRECATION") // TODO: Adjust this for Room version 12 eventually
-    private val roomId2 = RoomId("2", "localhost")
+    private val roomId2 = RoomId("2")
     override val account: UserId = UserId("0", "server")
     override val roomId: RoomId = roomId2
     override val isLoaded: MutableStateFlow<Boolean> = MutableStateFlow(true)
@@ -483,7 +483,7 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
 
 class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     @Suppress("DEPRECATION") // TODO: Adjust this for Room version 12 eventually
-    private val roomId3 = RoomId("3", "localhost")
+    private val roomId3 = RoomId("3")
     override val account: UserId = UserId("1", "server")
     override val roomId: RoomId = roomId3
     override val isLoaded: MutableStateFlow<Boolean> = MutableStateFlow(true)
@@ -517,7 +517,7 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
 
 class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     @Suppress("DEPRECATION") // TODO: Adjust this for Room version 12 eventually
-    private val roomId3 = RoomId("4", "localhost")
+    private val roomId3 = RoomId("4")
     override val account: UserId = UserId("1", "server")
     override val roomId: RoomId = roomId3
     override val isLoaded: MutableStateFlow<Boolean> = MutableStateFlow(true)

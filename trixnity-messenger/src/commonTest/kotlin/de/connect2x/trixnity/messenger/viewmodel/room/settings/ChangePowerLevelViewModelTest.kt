@@ -56,7 +56,7 @@ class ChangePowerLevelViewModelTest {
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
     private val testUser = UserId("test", "server")
-    private val roomId = RoomId("room", "localhost")
+    private val roomId = RoomId("!room")
 
     private val roomUserAlice = RoomUser(
         roomId, alice, "Alice", StateEvent(

@@ -40,7 +40,7 @@ class GetEventReactionsTest {
     private val user1 = UserId("user1", "localhost")
     private val user2 = UserId("user2", "localhost")
     private val user3 = UserId("user3", "localhost")
-    private val roomId = RoomId("roomId", "localhost")
+    private val roomId = RoomId("!roomId")
     private val eventId = EventId("1")
     private val annotation1 = EventId("annotation1")
     private val annotation2 = EventId("annotation2")

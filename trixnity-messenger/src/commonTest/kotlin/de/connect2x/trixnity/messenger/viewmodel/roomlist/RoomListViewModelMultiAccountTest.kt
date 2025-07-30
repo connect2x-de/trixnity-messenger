@@ -74,13 +74,13 @@ class RoomListViewModelMultiAccountTest {
 
     private var lifecycleRegistry = LifecycleRegistry()
 
-    private val roomId1 = RoomId("room1", "localhost")
-    private val roomId2 = RoomId("room2", "localhost")
-    private val roomId3 = RoomId("room3", "localhost")
-    private val roomId4 = RoomId("room4", "localhost")
-    private val roomId5 = RoomId("room5", "localhost")
-    private val spaceId1 = RoomId("space1", "localhost")
-    private val spaceId2 = RoomId("space2", "localhost")
+    private val roomId1 = RoomId("!room1")
+    private val roomId2 = RoomId("!room2")
+    private val roomId3 = RoomId("!room3")
+    private val roomId4 = RoomId("!room4")
+    private val roomId5 = RoomId("!room5")
+    private val spaceId1 = RoomId("!space1")
+    private val spaceId2 = RoomId("!space2")
 
     private val me1 = UserId("test1", "server")
     private val me2 = UserId("test2", "server")
@@ -836,7 +836,7 @@ class RoomListViewModelMultiAccountTest {
                 userId = UserId("test1", "server"),
                 coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
             ),
-            selectedRoomId = MutableStateFlow(RoomId("roomId", "localhost")),
+            selectedRoomId = MutableStateFlow(RoomId("!roomId")),
             onRoomSelected = onRoomSelectedMock,
             onCreateNewRoom = mock(),
             onUserSettingsSelected = mock(),

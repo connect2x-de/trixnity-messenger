@@ -48,7 +48,7 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
 class AddMembersViewModelTest {
-    private val roomId = RoomId("room", "localhost")
+    private val roomId = RoomId("!room")
 
     private val userId1 = UserId("user1", "localhost")
     private val userId2 = UserId("user2", "localhost")

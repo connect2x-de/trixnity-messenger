@@ -42,7 +42,6 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModel
-import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.RoomAliasId
 
 
@@ -69,9 +68,8 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                         ) {
                             OutlinedTextField(
                                 value = newAlias,
-                                placeholder = { Text(i18n.newAlias()) },
                                 onValueChange = {
-                                    if (it.text.isEmpty() || MatrixRegex.isValidRoomAliasId("#${it.text}:${viewModel.domain}")) {
+                                    if (it.text.isEmpty() || RoomAliasId.isValid("#${it.text}:${viewModel.domain}")) {
                                         newAlias = it
                                     }
                                 },

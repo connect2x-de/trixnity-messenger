@@ -53,7 +53,7 @@ class MemberListElementViewModelTest {
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
 
-    private val roomId = RoomId("room", "localhost")
+    private val roomId = RoomId("!room")
 
     private val memberElementAlice = MemberListElementViewModel.MemberElement(null, "Alice", alice.full, "A")
 

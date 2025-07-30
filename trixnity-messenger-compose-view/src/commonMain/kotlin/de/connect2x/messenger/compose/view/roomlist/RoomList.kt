@@ -58,10 +58,11 @@ class RoomListViewImpl : RoomListView {
         val initialSyncFinished = roomListViewModel.initialSyncFinished.collectAsState().value
         val allRooms = roomListViewModel.elements.collectAsState().value
         val canCreateNewRoomWithAccount = roomListViewModel.canCreateNewRoomWithAccount.collectAsState().value
+        val searchResultsEmpty = roomListViewModel.searchResultsEmpty.collectAsState().value
         val i18n = DI.get<I18nView>()
         Box(Modifier.fillMaxSize()) {
             log.debug { "rendering room list items" }
-            if (allRooms.isEmpty() && canCreateNewRoomWithAccount) {
+            if (allRooms.isEmpty() && canCreateNewRoomWithAccount && !searchResultsEmpty) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(Modifier.padding(horizontal = 20.dp)) {
                         Text(i18n.roomListNoRoom())
@@ -74,12 +75,18 @@ class RoomListViewImpl : RoomListView {
                                 Icon(
                                     Icons.AutoMirrored.Filled.Chat,
                                     i18n.accountCreateNewRoom(),
-                                    modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize),
+                                    modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize)
                                 )
                                 Spacer(Modifier.size(MaterialTheme.components.primaryButton.iconSpacing))
                                 Text(i18n.roomListCreateRoom())
                             }
                         }
+                    }
+                }
+            } else if (searchResultsEmpty) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(Modifier.padding(horizontal = 20.dp)) {
+                        Text(i18n.roomListNoSearchResults())
                     }
                 }
             } else {
