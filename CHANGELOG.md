@@ -17,14 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show correct feedback when getting no search results in the room list
 - Labels for text fields are always on
 
-
 ### Deprecated
 
 ### Removed
 
+- Overlay on all file-timeline-elements except Videos and Images
+
 ### Fixed
 
 - Web client: sync is not stopped when tab or browser loses focus
+- UI spacing for file-timeline-elements
 
 ### Security
 
