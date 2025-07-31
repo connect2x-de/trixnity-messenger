@@ -1,11 +1,9 @@
 package de.connect2x.messenger.compose.view.files
 
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import de.connect2x.messenger.compose.view.DI
@@ -22,7 +20,6 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.vinceglb.filekit.FileKit
-import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.compressImage
 import io.github.vinceglb.filekit.dialogs.FileKitCameraType
 import io.github.vinceglb.filekit.dialogs.FileKitMode
@@ -31,8 +28,10 @@ import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.dialogs.openCameraPicker
 import io.github.vinceglb.filekit.dialogs.openFileSaver
 import io.github.vinceglb.filekit.path
+import io.github.vinceglb.filekit.sink
 import io.github.vinceglb.filekit.utils.toPath
-import io.github.vinceglb.filekit.write
+import kotlinx.coroutines.flow.map
+import kotlinx.io.Buffer
 import net.folivo.trixnity.client.media.PlatformMedia
 
 private val log = KotlinLogging.logger {}
@@ -74,8 +73,15 @@ actual fun SaveFileDialog(
             )
             try {
                 savedFile?.let {
-                    file.toByteArray()?.let { bytes ->
-                        savedFile.write(bytes)
+                    // We couldn't use the ByteArrayFlowOkioExtensions from Trixnity because the API is exposing
+                    // kotlinx.io's API. We create a buffer because kotlinx.io doesn't expose a function allowing
+                    // to write a bytearray directly.
+                    savedFile.sink().use { sink ->
+                        file.map { data -> Buffer().also { it.write(data) } }.collect { data ->
+                            data.use { buffer ->
+                                sink.write(buffer, buffer.size)
+                            }
+                        }
                     }
                 } ?: log.warn { "No valid path selected" }
             } finally {
