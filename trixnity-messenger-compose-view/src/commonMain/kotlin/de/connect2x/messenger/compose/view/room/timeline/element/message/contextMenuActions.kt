@@ -1,10 +1,8 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +19,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
+import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenuItem
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -120,7 +119,7 @@ class BaseTimelineElementHolderContextMenuAction(
                 TooltipText { i18n.commonButtonDisabled() }
             }
         ) {
-            DropdownMenuItem(
+            ThemedDropdownMenuItem(
                 enabled = isEnabled,
                 text = {
                     Text(
@@ -136,7 +135,6 @@ class BaseTimelineElementHolderContextMenuAction(
                     onClose()
                     action()
                 },
-                contentPadding = PaddingValues(horizontal = 10.dp),
             )
         }
     }

@@ -10,6 +10,7 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TooltipDefaults
@@ -23,6 +24,7 @@ import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.ChipStyle
 import de.connect2x.messenger.compose.view.theme.components.DialogStyle
 import de.connect2x.messenger.compose.view.theme.components.DividerStyle
+import de.connect2x.messenger.compose.view.theme.components.DropdownMenuItemStyle
 import de.connect2x.messenger.compose.view.theme.components.FloatingActionButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
@@ -393,5 +395,17 @@ class ThemeComponentsImpl : ThemeComponents {
             ),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
         ),
+        // dropdown
+        dropdownMenu = SurfaceStyle.default(
+            color = MenuDefaults.containerColor,
+            tonalElevation = MenuDefaults.TonalElevation,
+            shadowElevation = MenuDefaults.ShadowElevation,
+            shape = MenuDefaults.shape,
+            border = focusedBorder(MaterialTheme.colorScheme.onSurface),
+        ),
+        dropdownMenuItem = DropdownMenuItemStyle.default(
+            contentPadding = PaddingValues(horizontal = 10.dp),
+            focusBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
+        )
     )
 }

@@ -8,6 +8,7 @@ import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.ChipStyle
 import de.connect2x.messenger.compose.view.theme.components.DialogStyle
 import de.connect2x.messenger.compose.view.theme.components.DividerStyle
+import de.connect2x.messenger.compose.view.theme.components.DropdownMenuItemStyle
 import de.connect2x.messenger.compose.view.theme.components.FloatingActionButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
@@ -89,6 +90,9 @@ data class ComponentStyles(
     val commonChip: ChipStyle,
     val destructiveChip: ChipStyle,
     val mentionChip: ChipStyle,
+    // dropdown
+    val dropdownMenu: SurfaceStyle,
+    val dropdownMenuItem: DropdownMenuItemStyle,
 )
 
 internal val LocalComponentStyles = staticCompositionLocalOf<ComponentStyles> { error("compositionLocal not defined") }

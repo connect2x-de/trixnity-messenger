@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,6 +34,7 @@ import de.connect2x.messenger.compose.view.roomlist.header.SelectAccountHeader
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementContainer
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenu
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -144,7 +144,7 @@ fun BoxScope.CreateRoomFloatingButton(roomListViewModel: RoomListViewModel) {
             icon = { Icon(Icons.AutoMirrored.Filled.Chat, i18n.accountCreateNewRoom()) },
         )
 
-        DropdownMenu(
+        ThemedDropdownMenu(
             expanded = selectActiveAccount.value,
             onDismissRequest = { selectActiveAccount.value = false },
         ) {
