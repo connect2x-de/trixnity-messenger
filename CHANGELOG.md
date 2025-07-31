@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- File Load and Save dialogs on iOS targets
+- File load and save dialogs on iOS targets
 
 ### Changed
 
