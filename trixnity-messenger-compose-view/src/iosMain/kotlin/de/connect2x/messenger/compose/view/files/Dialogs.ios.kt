@@ -23,12 +23,15 @@ import de.connect2x.trixnity.messenger.util.FileDescriptor
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.compressImage
 import io.github.vinceglb.filekit.dialogs.FileKitCameraType
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.dialogs.openCameraPicker
 import io.github.vinceglb.filekit.dialogs.openFileSaver
+import io.github.vinceglb.filekit.path
+import io.github.vinceglb.filekit.utils.toPath
 import io.github.vinceglb.filekit.write
 import net.folivo.trixnity.client.media.PlatformMedia
 
@@ -98,15 +101,6 @@ actual fun LoadFileDialog(
         FilePickerTypeSelection(availableTypes, { selectedPickerType.value = it }, onCloseLoadFileDialog)
     }
 
-    fun handleFile(file: PlatformFile?) {
-        file?.let {
-            // We don't use the default PathFileDescriptor here because requires some special behaviour and to prevent
-            // a crash when selecting a file.
-            onFileSelect(FileKitFileDescriptor(file))
-        }
-        onCloseLoadFileDialog()
-    }
-
     when (selectedPickerType.value) {
         FilePickerType.IMAGE_FILE, FilePickerType.IMAGE_AND_VIDEO_FILE, FilePickerType.ATTACHMENT_FILE -> {
             val i18n = DI.get<I18nView>()
@@ -118,7 +112,12 @@ actual fun LoadFileDialog(
                 },
                 mode = FileKitMode.Single,
                 title = i18n.fileDialogTitleLoad(),
-                onResult = ::handleFile
+                onResult = {
+                    it?.let {
+                        onFileSelect(FileKitFileDescriptor(it))
+                    }
+                    onCloseLoadFileDialog()
+                }
             )
 
             LaunchedEffect(Unit) {
@@ -127,9 +126,13 @@ actual fun LoadFileDialog(
         }
         FilePickerType.PHOTO_CAPTURE, FilePickerType.VIDEO_CAPTURE -> {
             LaunchedEffect(Unit) {
-                handleFile(FileKit.openCameraPicker(
-                    type = FileKitCameraType.Photo // TODO: Use video camera picker when FileKit supports it
-                ))
+                // TODO: Use video camera picker when FileKit supports it
+                val file = FileKit.openCameraPicker(type = FileKitCameraType.Photo)
+                file?.let {
+                    val compressed = FileKit.compressImage(file = file, quality = 70)
+                    onFileSelect(ByteArrayFileDescriptor(it.path.toPath(), compressed))
+                }
+                onCloseLoadFileDialog()
             }
         }
         null -> {
