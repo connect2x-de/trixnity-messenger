@@ -1,6 +1,8 @@
 package de.connect2x.messenger.compose.view.settings
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
@@ -25,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -95,13 +99,16 @@ fun Item(text: String, action: (() -> Unit)? = null, icon: @Composable () -> Uni
 
 @Composable
 fun Item(content: @Composable () -> Unit, action: (() -> Unit)? = null, icon: @Composable () -> Unit) {
-    Box(Modifier
+    val interactionSource = remember { MutableInteractionSource() }
+    Box(
+        Modifier
         .fillMaxWidth()
-        .clickable {
+        .clickable(interactionSource, LocalIndication.current) {
             if (action != null) {
                 action()
             }
         }
+        .focusHighlighting(interactionSource)
         .buttonPointerModifier()
     ) {
         Row(

@@ -1,6 +1,8 @@
 package de.connect2x.messenger.compose.view.room.settings
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -30,6 +32,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.RunningText
+import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -176,12 +179,14 @@ fun ExportRoomProperties(exportRoomViewModel: ExportRoomViewModel) {
     )
     var selectedIndex by remember { mutableStateOf(0) }
     val selectedTarget = targets.getOrNull(selectedIndex)
+    val interactionSource = remember { MutableInteractionSource() }
 
     Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { selectedIndex = 0 }
+                .clickable(interactionSource, LocalIndication.current) { selectedIndex = 0 }
+                .focusHighlighting(interactionSource)
                 .buttonPointerModifier(),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -198,7 +203,8 @@ fun ExportRoomProperties(exportRoomViewModel: ExportRoomViewModel) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { selectedIndex = 1 }
+                .clickable(interactionSource, LocalIndication.current) { selectedIndex = 1 }
+                .focusHighlighting(interactionSource)
                 .buttonPointerModifier(),
             verticalAlignment = Alignment.CenterVertically
         ) {

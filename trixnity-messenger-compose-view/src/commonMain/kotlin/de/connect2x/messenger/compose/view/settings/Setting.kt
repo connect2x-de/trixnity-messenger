@@ -1,8 +1,7 @@
 package de.connect2x.messenger.compose.view.settings
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
@@ -17,9 +16,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
+import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
-import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
 
 @Composable
 fun Setting(
@@ -35,17 +33,10 @@ fun Setting(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
-            .clickable(interactionSource = interactionSource, indication = null) {
+            .clickable(interactionSource = interactionSource, indication = LocalIndication.current) {
                 if (enabled) toggle(!value) // Only allow this if the setting is enabled
             }
-            .focusable(interactionSource = interactionSource)
-            .then(
-                if (IsFocusHighlighting.current && hasFocus) Modifier.border(
-                    width = MaterialTheme.messengerFocusIndicator.borderWidth,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-                else Modifier
-            )
+            .focusHighlighting(interactionSource)
     ) {
         Column(Modifier.weight(1f, fill = true)) {
             Text(text = text, style = MaterialTheme.typography.titleMedium)
