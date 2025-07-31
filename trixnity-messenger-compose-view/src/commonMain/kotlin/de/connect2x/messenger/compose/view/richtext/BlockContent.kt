@@ -33,6 +33,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -298,7 +299,7 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
                                     context.copy(preformatted = true)
                                 )
                             }
-                            HorizontalScrollbar(Modifier, scrollState)
+                            HorizontalScrollbar(Modifier.layoutId(HorizontalScrollableMeasurePolicy.ScrollbarLayoutId), scrollState)
                         },
                         measurePolicy = HorizontalScrollableMeasurePolicy
                     )
