@@ -110,14 +110,14 @@ class ThemeComponentsImpl : ThemeComponents {
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ),
-            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimary),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
         secondaryIconButton = IconButtonStyle.filled(
             colors = IconButtonDefaults.filledIconToggleButtonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.onSecondary,
             ),
-            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSecondary),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSecondaryContainer),
         ),
         commonIconButton = IconButtonStyle.default(
             colors = IconButtonDefaults.iconToggleButtonColors(
