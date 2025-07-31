@@ -21,9 +21,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -127,7 +125,7 @@ abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventConte
             matrixClient.room.getById(roomId),
             roomName.getRoomName(roomId, matrixClient),
             matrixClient.room.getState<CanonicalAliasEventContent>(roomId).map { it?.content },
-        ) { room, roomName, aliases ->
+        ) { room, roomName, _ ->
             room?.toRoomInfoElement(
                 coroutineScope,
                 initials,

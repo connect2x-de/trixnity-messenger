@@ -53,7 +53,6 @@ class ImageRoomMessageTimelineElementViewModelImpl(
     eventIdOrTransactionId,
     onOpenMention,
 ) {
-
     private val thumbnails = get<Thumbnails>()
 
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)

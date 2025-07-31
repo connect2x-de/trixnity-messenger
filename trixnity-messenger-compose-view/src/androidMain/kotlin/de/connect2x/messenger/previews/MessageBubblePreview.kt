@@ -109,8 +109,9 @@ fun ImageMessageBubblePreview() {
         override fun cancelDownloadMedia() {}
         override val body: String = "Ein Kiwi :D"
         override val formattedBody: String? = null
+        override val formattedBodyContent: HtmlNode.HtmlElement? = null
         override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>> = emptyMap()
-        override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention?>>? = emptyMap()
+        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(emptyMap())
 
         override fun openMention(mention: TimelineElementMention) {
         }
@@ -157,8 +158,9 @@ fun FileMessageBubblePreview() {
         override fun cancelDownloadMedia() {}
         override val body: String = "Ein Kiwi :D"
         override val formattedBody: String? = null
+        override val formattedBodyContent: HtmlNode.HtmlElement? = null
         override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>> = emptyMap()
-        override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention?>>? = emptyMap()
+        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(emptyMap())
 
         override fun openMention(mention: TimelineElementMention) {
         }
