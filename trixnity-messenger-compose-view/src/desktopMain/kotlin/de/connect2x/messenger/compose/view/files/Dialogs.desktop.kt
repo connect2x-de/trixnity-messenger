@@ -20,12 +20,12 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.PathFileDescriptor
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
-import io.github.vinceglb.filekit.core.FileKit
-import io.github.vinceglb.filekit.core.PickerMode
-import io.github.vinceglb.filekit.core.PickerType
-import io.github.vinceglb.filekit.core.PickerType.Image
-import io.github.vinceglb.filekit.core.PickerType.ImageAndVideo
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.dialogs.openFileSaver
+import io.github.vinceglb.filekit.path
 import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.utils.write
 import okio.FileSystem
@@ -64,8 +64,8 @@ actual fun SaveFileDialog(
     }
     LaunchedEffect(hasError) {
         if (!hasError) downloadFile {
-            val file = FileKit.saveFile(
-                baseName = fileName.substringBeforeLast("."),
+            val file = FileKit.openFileSaver(
+                suggestedName = fileName.substringBeforeLast("."),
                 extension = fileName.substringAfterLast("."),
                 // TODO: set initialDirectory to OS dependent default pictures directory
             )
@@ -90,19 +90,17 @@ actual fun LoadFileDialog(
     val fileSystem = DI.get<FileSystem>()
     val launcher = rememberFilePickerLauncher(
         type = when {
-            availableTypes.size == 1 && availableTypes.first() == IMAGE_FILE -> Image
-            availableTypes.size == 1 && availableTypes.first() == IMAGE_AND_VIDEO_FILE -> ImageAndVideo
-            else -> PickerType.File()
+            availableTypes.size == 1 && availableTypes.first() == IMAGE_FILE -> FileKitType.Image
+            availableTypes.size == 1 && availableTypes.first() == IMAGE_AND_VIDEO_FILE -> FileKitType.ImageAndVideo
+            else -> FileKitType.File()
         },
-        mode = PickerMode.Single,
+        mode = FileKitMode.Single,
         title = i18n.fileDialogTitleLoad(),
         // TODO: set initialDirectory to OS dependent default pictures directory
     ) { file ->
         log.debug { "selected file: $file" }
         file?.let {
-            file.path?.toPath()
-                ?.let { onFileSelect(PathFileDescriptor(it, fileSystem)) }
-                ?: run { log.error { "can't resolve path for selected file: $file" } }
+            onFileSelect(PathFileDescriptor(file.path.toPath(), fileSystem))
         }
         onCloseLoadFileDialog()
     }
