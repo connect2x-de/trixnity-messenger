@@ -53,7 +53,7 @@ class VideoRoomMessageTimelineElementViewModelTest {
         val cut = videoRoomMessageTimelineElementViewModel()
         backgroundScope.launch { cut.thumbnail.collect {} }
 
-        delay(500.milliseconds)
+        delay(100.milliseconds)
         cut.thumbnail.value shouldBe "thumbnail".encodeToByteArray()
     }
 
@@ -91,7 +91,7 @@ class VideoRoomMessageTimelineElementViewModelTest {
         val cut = videoRoomMessageTimelineElementViewModel()
         backgroundScope.launch { cut.thumbnail.collect {} }
 
-        delay(500.milliseconds)
+        delay(100.milliseconds)
         cut.thumbnail.value shouldBe null
     }
 

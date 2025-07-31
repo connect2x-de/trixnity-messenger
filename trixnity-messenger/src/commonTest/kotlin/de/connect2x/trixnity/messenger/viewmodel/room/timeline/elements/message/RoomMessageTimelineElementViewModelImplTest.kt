@@ -99,6 +99,7 @@ class RoomMessageTimelineElementViewModelImplTest {
             cut.mentionsInBody[4..17]?.collect {}
         }
 
+        delay(100.milliseconds)
         cut.mentionsInBody[4..17]?.value shouldBe TimelineElementMention.User(meUserInfoElement)
 
         job.cancel()
@@ -113,6 +114,7 @@ class RoomMessageTimelineElementViewModelImplTest {
             cut.mentionsInBody[7..22]?.collect {}
         }
 
+        delay(100.milliseconds)
         cut.mentionsInBody[7..22]?.value shouldBe TimelineElementMention.Room(roomInfoElement)
 
         job.cancel()
