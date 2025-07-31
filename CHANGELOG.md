@@ -9,8 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- File Load and Save dialogs on iOS targets
+
 ### Changed
 
+- Bump Compose to 1.8.2
+- Bump FileKit to 0.10.0-beta04
 - Move startMessenger logic for the iOS client in separate function
 
 ### Deprecated

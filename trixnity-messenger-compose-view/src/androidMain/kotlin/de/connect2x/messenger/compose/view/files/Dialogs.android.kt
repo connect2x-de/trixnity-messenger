@@ -138,8 +138,8 @@ actual fun SaveFileDialog(
                     }
                 }.getOrElse {
                     // Don't leave an orphan entry in the MediaStore
-                    uri?.let {
-                        context.contentResolver.delete(it, null, null)
+                    uri?.let { uri ->
+                        context.contentResolver.delete(uri, null, null)
                     }
 
                     throw it
