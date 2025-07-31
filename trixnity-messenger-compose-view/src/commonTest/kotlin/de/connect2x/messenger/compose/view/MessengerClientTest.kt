@@ -11,6 +11,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import kotlinx.coroutines.test.runTest
@@ -38,6 +39,7 @@ class MessengerClientTest {
                             IsFocused provides true,
                             DI provides matrixMultiMessenger.di,
                             ShowProfileCreation provides showProfileCreation,
+                            IsFocusHighlighting provides false,
                         ) {
                             MessengerTheme {
                                 Profiles(matrixMultiMessenger, existingProfiles)
@@ -49,6 +51,7 @@ class MessengerClientTest {
                             Platform provides platformType(),
                             IsFocused provides false,
                             DI provides matrixMessenger.di,
+                            IsFocusHighlighting provides false,
                         ) {
                             MessengerTheme {
                                 Client(rootViewModel)

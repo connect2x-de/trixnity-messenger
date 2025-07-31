@@ -80,6 +80,7 @@ fun startMessenger(
                     IsFocused provides isFocused,
                     DI provides matrixMultiMessenger.di,
                     ShowProfileCreation provides showProfileCreation,
+                    IsFocusHighlighting provides false,
                 ) {
                     MessengerTheme {
                         Profiles(matrixMultiMessenger, existingProfiles)
