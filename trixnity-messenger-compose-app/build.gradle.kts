@@ -165,11 +165,17 @@ kotlin {
     }
 }
 
+val jdk24Launcher = javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(24)
+    vendor = JvmVendorSpec.ADOPTIUM
+}
+
 compose {
     desktop {
         application {
             mainClass = "$appId.desktop.MainKt"
             jvmArgs("-Xmx1G", "-XX:+HeapDumpOnOutOfMemoryError")
+            javaHome = jdk24Launcher.get().metadata.installationPath.asFile.absolutePath
             buildTypes.release.proguard {
                 isEnabled = false
             }
