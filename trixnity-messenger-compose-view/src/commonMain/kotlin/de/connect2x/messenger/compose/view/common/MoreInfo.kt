@@ -101,7 +101,6 @@ private fun ColumnScope.MoreInfo(
     Card(
         modifier = modifier
             .clickable(interactionSource, indication = null, onClick = {
-                println("--- ONCLICK")
                 if (enabled) expanded = expanded.not()
             })
             .buttonPointerModifier(),
