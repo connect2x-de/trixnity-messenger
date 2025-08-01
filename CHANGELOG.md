@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-- Support room version 12
+- Support room version 12 (lead to minor breaking changes)
 
 ## 3.6.17
 
