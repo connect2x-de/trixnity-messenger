@@ -165,7 +165,7 @@ kotlin {
     }
 }
 
-val distributionJavaHome = System.getProperty("distributionJavaHome") ?: javaToolchains.launcherFor {
+val distributionJavaHome = System.getenv("DIST_JAVA_HOME") ?: javaToolchains.launcherFor {
     languageVersion = JavaLanguageVersion.of(sharedLibs.versions.distributionJvm.get().toInt())
     vendor = JvmVendorSpec.ADOPTIUM
 }.get().metadata.installationPath.asFile.absolutePath
