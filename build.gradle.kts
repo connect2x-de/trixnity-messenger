@@ -1,26 +1,25 @@
 import de.connect2x.conventions.authenticatedPackageRegistry
 import de.connect2x.conventions.c2xOrganization
-import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.defaultDependencyLocking
 import de.connect2x.conventions.isCI
 import de.connect2x.conventions.withVersionSuffix
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform) apply false
-    alias(libs.plugins.kotlin.jvm) apply false
-    alias(libs.plugins.kotlin.serialization) apply false
-    alias(libs.plugins.kotlin.parcelize) apply false
-    alias(libs.plugins.kotlinx.kover) apply false
-    alias(libs.plugins.android.library) apply false
-    alias(libs.plugins.android.application) apply false
-    alias(libs.plugins.aboutlibraries.plugin) apply false
-    alias(libs.plugins.kotest) apply false
-    alias(libs.plugins.mokkery) apply false
-    alias(libs.plugins.skie) apply false
-    alias(libs.plugins.kmmbridge) apply false
-    alias(libs.plugins.compose.multiplatform) apply false
+    alias(sharedLibs.plugins.kotlin.multiplatform) apply false
+    alias(sharedLibs.plugins.kotlin.jvm) apply false
+    alias(sharedLibs.plugins.kotlin.serialization) apply false
+    alias(sharedLibs.plugins.kotlin.parcelize) apply false
+    alias(sharedLibs.plugins.kotlinx.kover) apply false
+    alias(sharedLibs.plugins.android.library) apply false
+    alias(sharedLibs.plugins.android.application) apply false
+    alias(sharedLibs.plugins.aboutLibraries.plugin) apply false
+    alias(sharedLibs.plugins.kotest) apply false
+    alias(sharedLibs.plugins.mokkery) apply false
+    alias(sharedLibs.plugins.skie) apply false
+    alias(sharedLibs.plugins.kmmBridge) apply false
+    alias(sharedLibs.plugins.compose.multiplatform) apply false
+    alias(sharedLibs.plugins.dokka)
     alias(libs.plugins.google.services) apply false
-    alias(libs.plugins.dokka)
     alias(libs.plugins.seskar) apply false
     `maven-publish`
     alias(libs.plugins.c2xConventions)
@@ -29,7 +28,6 @@ plugins {
 allprojects {
     group = "de.connect2x"
     version = withVersionSuffix(rootProject.libs.versions.trixnityMessenger)
-    configureJava(rootProject.libs.versions.jvmTarget)
     if (System.getenv("WITH_LOCK")?.toBoolean() == true) {
         defaultDependencyLocking()
     }

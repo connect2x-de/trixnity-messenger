@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.settings
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,14 +15,18 @@ import androidx.compose.material.icons.automirrored.outlined.Wysiwyg
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
@@ -39,6 +44,9 @@ interface AppInfoView {
 fun AppInfo(appInfoViewModel: AppInfoViewModel) {
     DI.get<AppInfoView>().create(appInfoViewModel)
 }
+
+@Composable
+expect fun PlatformAppInfo()
 
 class AppInfoViewImpl : AppInfoView {
     @Composable
@@ -59,6 +67,8 @@ class AppInfoViewImpl : AppInfoView {
                 PrivacyLink(appInfoViewModel)
                 ImprintLink(appInfoViewModel)
                 LicensesLink(appInfoViewModel)
+                Spacer(Modifier.weight(1F))
+                PlatformAppInfo()
             }
         }
 
