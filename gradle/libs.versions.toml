@@ -1,6 +1,6 @@
 [versions]
 
-c2xConventions = "0.0.0" # https://gitlab.com/connect2x/c2x-conventions/-/packages
+c2xConventions = "49969555" # https://gitlab.com/connect2x/c2x-conventions/-/packages
 
 trixnityMessenger = "3.6.18"
 trixnityMessengerApp = "1.0.0"
@@ -10,7 +10,7 @@ appId = "de.connect2x.messenger"
 seskar = "4.9.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
 trixnity = "4.19.0" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "2.0.1-LOCAL" # https://gitlab.com/connect2x/sysnotify/-/packages
+sysnotify = "2.0.1" # https://gitlab.com/connect2x/sysnotify/-/packages
 
 okio = "3.13.0" # https://square.github.io/okio/changelog
 jsJoda = "2.22.0" # https://www.npmjs.com/package/@js-joda/timezone
