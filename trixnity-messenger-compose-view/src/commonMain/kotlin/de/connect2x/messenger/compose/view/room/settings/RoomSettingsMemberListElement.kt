@@ -125,7 +125,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
 
 fun getRoomSettingsMemberRoleName(role: Role, i18n: I18nView): String {
     return when (role) {
-        Role.CREATOR -> i18n.userProfileRoleAdministrator()
+        Role.CREATOR -> i18n.userProfileRoleCreator()
         Role.ADMIN -> i18n.userProfileRoleAdministrator()
         Role.MODERATOR -> i18n.userProfileRoleModerator()
         Role.USER -> i18n.userProfileRoleUser()
