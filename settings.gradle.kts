@@ -75,6 +75,12 @@ dependencyResolutionManagement {
         maven("https://oss.sonatype.org/content/repositories/snapshots")
         google()
     }
+
+    versionCatalogs {
+        create("sharedLibs") {
+            from("de.connect2x.conventions:c2x-shared-catalog:0.0.0")
+        }
+    }
 }
 
 plugins {

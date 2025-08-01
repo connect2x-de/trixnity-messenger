@@ -1,13 +1,18 @@
+import de.connect2x.conventions.configureJava
+
 plugins {
     application
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.kotlin.serialization)
+    alias(sharedLibs.plugins.kotlin.jvm)
+    alias(sharedLibs.plugins.kotlin.serialization)
 }
+
+configureJava(sharedLibs.versions.targetJvm)
 
 application {
     mainClass = "EmojisKt"
 }
 
 dependencies {
-    implementation(libs.kotlinx.serialization)
+    implementation(sharedLibs.kotlinx.serialization.core)
+    implementation(sharedLibs.kotlinx.serialization.json)
 }
