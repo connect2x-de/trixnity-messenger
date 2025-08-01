@@ -1,6 +1,6 @@
 [versions]
 
-c2xConventions = "0.0.0" # https://gitlab.com/connect2x/c2x-conventions/-/packages
+c2xConventions = "49969555" # https://gitlab.com/connect2x/c2x-conventions/-/packages
 
 trixnityMessenger = "3.6.18"
 trixnityMessengerApp = "1.0.0"
