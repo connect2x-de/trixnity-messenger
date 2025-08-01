@@ -7,11 +7,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.MenuItemColors
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.mutableStateOf
@@ -53,18 +49,18 @@ fun ThemedDropdownMenu(
 data class DropdownMenuItemStyle(
     val colors: MenuItemColors,
     val contentPadding: PaddingValues,
-    val focusBorder: BorderStroke?,
+    val focusedBorder: BorderStroke?,
 ) {
     companion object {
         @Composable
         fun default(
             colors: MenuItemColors = MenuDefaults.itemColors(),
             contentPadding: PaddingValues = MenuDefaults.DropdownMenuItemContentPadding,
-            focusBorder: BorderStroke? = null,
+            focusedBorder: BorderStroke? = null,
         ) = DropdownMenuItemStyle(
             colors = colors,
             contentPadding = contentPadding,
-            focusBorder = focusBorder,
+            focusedBorder = focusedBorder,
         )
     }
 }
@@ -81,7 +77,7 @@ fun ThemedDropdownMenuItem(
     style: DropdownMenuItemStyle = MaterialTheme.components.dropdownMenuItem,
 ) {
     val hasFocus = remember { mutableStateOf(false) }
-    val border = style.focusBorder?.let { borderStroke ->
+    val border = style.focusedBorder?.let { borderStroke ->
         if (hasFocus.value) Modifier.border(borderStroke) else Modifier
     } ?: Modifier
 

@@ -405,7 +405,7 @@ class ThemeComponentsImpl : ThemeComponents {
         ),
         dropdownMenuItem = DropdownMenuItemStyle.default(
             contentPadding = PaddingValues(horizontal = 10.dp),
-            focusBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
         )
     )
 }

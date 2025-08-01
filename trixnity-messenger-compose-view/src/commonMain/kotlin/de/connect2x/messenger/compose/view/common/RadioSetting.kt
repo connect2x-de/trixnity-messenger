@@ -92,7 +92,7 @@ private fun <T> RadioSettingOption(
     enabled: Boolean,
 ) {
     val hasFocus = remember { mutableStateOf(false) }
-    val focusBorder =
+    val focusedBorder =
         if (IsFocusHighlighting.current && hasFocus.value) {
             Modifier.border(
                 width = MaterialTheme.messengerFocusIndicator.borderWidth,
@@ -106,7 +106,7 @@ private fun <T> RadioSettingOption(
         modifier = Modifier
             .padding(10.dp)
             .onFocusChanged { hasFocus.value = it.hasFocus }
-            .then(focusBorder)
+            .then(focusedBorder)
             .clickable { set(key) }
             .buttonPointerModifier(enabled)
     ) {
