@@ -450,7 +450,7 @@ class ChangePowerLevelViewModelTest {
     private operator fun PowerLevel.minus(other: Long): PowerLevel =
         when (this) {
             is PowerLevel.Creator -> PowerLevel.User(Long.MAX_VALUE)
-            is PowerLevel.User -> PowerLevel.User(level - 1)
+            is PowerLevel.User -> PowerLevel.User(level - other)
         }
 
     private fun PowerLevel.toLong(): Long? =
