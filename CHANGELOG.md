@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed crash due to scrollbar measuring policy on Android
+
 ### Security
 
 ## 3.6.17
