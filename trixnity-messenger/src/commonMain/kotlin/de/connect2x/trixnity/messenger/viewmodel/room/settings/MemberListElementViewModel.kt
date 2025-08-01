@@ -25,6 +25,7 @@ import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.originalName
 import net.folivo.trixnity.client.user
+import net.folivo.trixnity.client.user.PowerLevel
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.Presence
@@ -59,7 +60,7 @@ interface MemberListElementViewModel {
     val membership: StateFlow<Membership?>
     val iHavePowerToUnbanUser: StateFlow<Boolean>
     val role: StateFlow<Role>
-    val powerLevel: StateFlow<Long>
+    val powerLevel: StateFlow<PowerLevel?>
     val showRole: StateFlow<Boolean>
     val showPowerLevel: StateFlow<Boolean>
     val iHavePowerToBlockUser: Boolean
@@ -124,7 +125,7 @@ class MemberListElementViewModelImpl(
     override val role = MutableStateFlow(Role.USER)
     override val showRole = MutableStateFlow(false)
     override val powerLevel = matrixClient.user.getPowerLevel(selectedRoomId, memberUserId)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), 0)
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val showPowerLevel = MutableStateFlow(false)
 
     override val iHavePowerToUnbanUser: StateFlow<Boolean> =
@@ -183,7 +184,7 @@ class MemberListElementViewModelImpl(
         }
     }
 
-    private fun getPowerRole(powerLevel: Long): Role {
+    private fun getPowerRole(powerLevel: PowerLevel): Role {
         return when {
             powerLevel >= Role.ADMIN.getMinPowerLevel() -> Role.ADMIN
             powerLevel >= Role.MODERATOR.getMinPowerLevel() -> Role.MODERATOR

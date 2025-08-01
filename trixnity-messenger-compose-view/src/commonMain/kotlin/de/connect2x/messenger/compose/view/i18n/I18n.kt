@@ -841,6 +841,11 @@ open class I18nView(
         DE - "Diese Aktion kann eventuell nicht mehr rückgängig gemacht werden."
     }
 
+    open fun userProfileRoleCreator() = translate {
+        EN - "creator"
+        DE - "Ersteller"
+    }
+
     open fun userProfileRoleAdministrator() = translate {
         EN - "administrator"
         DE - "Administrator"

@@ -43,6 +43,7 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.UserPresence
+import net.folivo.trixnity.client.user.PowerLevel
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.client.verification.ActiveUserVerification
 import net.folivo.trixnity.client.verification.ActiveVerificationState
@@ -160,7 +161,7 @@ class UserProfileViewModelTest {
         every { userServiceMock.canKickUser(eq(roomId), any()) } returns MutableStateFlow(true)
         every { userServiceMock.canBanUser(eq(roomId), any()) } returns MutableStateFlow(true)
         every { userServiceMock.canUnbanUser(eq(roomId), any()) } returns MutableStateFlow(true)
-        every { userServiceMock.getPowerLevel(eq(roomId), eq(alice)) } returns MutableStateFlow(50)
+        every { userServiceMock.getPowerLevel(eq(roomId), eq(alice)) } returns MutableStateFlow(PowerLevel.User(50))
         every { userServiceMock.getAccountData<DirectEventContent>(any()) } returns MutableStateFlow(
             DirectEventContent(
                 mapOf()
@@ -168,7 +169,7 @@ class UserProfileViewModelTest {
         )
         every {
             userServiceMock.canSetPowerLevelToMax(eq(roomId), any())
-        } returns MutableStateFlow(100)
+        } returns MutableStateFlow(PowerLevel.User(100))
         every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) } returns flowOf(
             IgnoredUserListEventContent(emptyMap())
         )
@@ -213,7 +214,7 @@ class UserProfileViewModelTest {
     @Test
     fun `initially do not create MemberElement before subscription`() = runTest {
 
-        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(50)
+        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(PowerLevel.User(50))
 
         val cut = userProfileViewModel(alice)
 
@@ -223,7 +224,7 @@ class UserProfileViewModelTest {
     @Test
     fun `Create MemberElement after subscription`() = runTest {
 
-        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(50)
+        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(PowerLevel.User(50))
 
         val cut = userProfileViewModel(alice)
         backgroundScope.launch { cut.userInfo.collect() }
@@ -234,7 +235,7 @@ class UserProfileViewModelTest {
 
     @Test
     fun `Fetch Profile from users not in room`() = runTest {
-        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(50)
+        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(PowerLevel.User(50))
 
         val cut = userProfileViewModel(carol)
         backgroundScope.launch { cut.userInfo.collect() }
@@ -251,7 +252,7 @@ class UserProfileViewModelTest {
     fun setupKickingAUser() {
         every {
             userServiceMock.getPowerLevel(eq(roomId), any())
-        } returns MutableStateFlow(50)
+        } returns MutableStateFlow(PowerLevel.User(50))
     }
 
     @Test
@@ -311,11 +312,11 @@ class UserProfileViewModelTest {
     fun setupRoleComputationForTheMemberList() {
         every {
             userServiceMock.getPowerLevel(eq(roomId), eq(alice))
-        } returns MutableStateFlow(50)
+        } returns MutableStateFlow(PowerLevel.User(50))
 
         every {
             userServiceMock.getPowerLevel(eq(roomId), eq(me))
-        } returns MutableStateFlow(50)
+        } returns MutableStateFlow(PowerLevel.User(50))
     }
 
 
@@ -324,7 +325,7 @@ class UserProfileViewModelTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
-        } returns MutableStateFlow(100)
+        } returns MutableStateFlow(PowerLevel.User(100))
         val cut = userProfileViewModel(bob)
         cut.role.first { it != Role.USER } shouldBe Role.ADMIN
     }
@@ -334,7 +335,7 @@ class UserProfileViewModelTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
-        } returns MutableStateFlow(100)
+        } returns MutableStateFlow(PowerLevel.User(100))
         val cut = userProfileViewModel(bob)
         cut.showRole.first { it } shouldBe true
     }
@@ -345,7 +346,7 @@ class UserProfileViewModelTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
-        } returns MutableStateFlow(50)
+        } returns MutableStateFlow(PowerLevel.User(50))
         val cut = userProfileViewModel(bob)
         cut.role.first { it != Role.USER } shouldBe Role.MODERATOR
     }
@@ -355,7 +356,7 @@ class UserProfileViewModelTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
-        } returns MutableStateFlow(50)
+        } returns MutableStateFlow(PowerLevel.User(50))
         val cut = userProfileViewModel(bob)
         cut.showRole.first { it } shouldBe true
     }
@@ -366,7 +367,7 @@ class UserProfileViewModelTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
-        } returns MutableStateFlow(0)
+        } returns MutableStateFlow(PowerLevel.User(0))
         val cut = userProfileViewModel(bob)
         cut.role.value shouldBe Role.USER
     }
@@ -376,7 +377,7 @@ class UserProfileViewModelTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
-        } returns MutableStateFlow(0)
+        } returns MutableStateFlow(PowerLevel.User(0))
         val cut = userProfileViewModel(bob)
         cut.showRole.value shouldBe false
     }
@@ -384,7 +385,7 @@ class UserProfileViewModelTest {
     fun setupMembershipHandlingForKnockTest() {
         everySuspend { roomsApiClientMock.kickUser(eq(roomId), any(), any(), any()) } returns Result.success(Unit)
         everySuspend { roomsApiClientMock.inviteUser(eq(roomId), any(), any(), any()) } returns Result.success(Unit)
-        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(50)
+        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(PowerLevel.User(50))
     }
 
     @Test
@@ -422,7 +423,7 @@ class UserProfileViewModelTest {
     fun `open the room where the user verification is started`() = runTest {
         every {
             userServiceMock.getPowerLevel(roomId, any())
-        } returns MutableStateFlow(50)
+        } returns MutableStateFlow(PowerLevel.User(50))
 
         val verificationRoom = RoomId("verificationRoom")
         everySuspend { verificationServiceMock.createUserVerificationRequest(alice) } returns Result.success(
@@ -444,7 +445,7 @@ class UserProfileViewModelTest {
     fun `do not call onOpenRoom when the user verification is done in the same room`() = runTest {
         every {
             userServiceMock.getPowerLevel(roomId, any())
-        } returns MutableStateFlow(50)
+        } returns MutableStateFlow(PowerLevel.User(50))
 
         everySuspend { verificationServiceMock.createUserVerificationRequest(alice) } returns Result.success(
             activeVerificationMock
@@ -466,7 +467,7 @@ class UserProfileViewModelTest {
     fun `don't send user verification request when user is already verified`() = runTest {
         every {
             userServiceMock.getPowerLevel(roomId, any())
-        } returns MutableStateFlow(50)
+        } returns MutableStateFlow(PowerLevel.User(50))
 
         val cut = userProfileViewModel(alice)
         every { matrixClientMock.key.getTrustLevel(any()) } returns MutableStateFlow(UserTrustLevel.CrossSigned(true))
@@ -479,7 +480,7 @@ class UserProfileViewModelTest {
     fun `don't start verification when one has already been started in the same room`() = runTest {
         every {
             userServiceMock.getPowerLevel(roomId, any())
-        } returns MutableStateFlow(50)
+        } returns MutableStateFlow(PowerLevel.User(50))
 
         everySuspend { verificationServiceMock.createUserVerificationRequest(alice) } returns Result.success(
             activeVerificationMock
@@ -502,7 +503,7 @@ class UserProfileViewModelTest {
     fun `don't start verification when one has already been started in another room`() = runTest {
         every {
             userServiceMock.getPowerLevel(roomId, any())
-        } returns MutableStateFlow(50)
+        } returns MutableStateFlow(PowerLevel.User(50))
 
         val verificationRoom = RoomId("verificationRoom")
         everySuspend { verificationServiceMock.createUserVerificationRequest(alice) } returns Result.success(

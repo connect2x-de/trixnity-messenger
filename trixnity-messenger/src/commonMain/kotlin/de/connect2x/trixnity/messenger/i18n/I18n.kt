@@ -1105,7 +1105,7 @@ open class I18n(
         DE - "Raumaliase wurden zu $aliases geändert"
     }
 
-    open fun exportRoomCreate(federate: Boolean, roomType: String?) = translate {
+    open fun exportRoomCreate(federate: Boolean?, roomType: String?) = translate {
         EN - "room has been created (federation=$federate, type=$roomType)"
         DE - "Raum wurde erstellt (Föderation=$federate, Typ=$roomType)"
     }

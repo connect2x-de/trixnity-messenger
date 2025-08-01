@@ -27,11 +27,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomUser
+import net.folivo.trixnity.client.user.PowerLevel
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
@@ -92,7 +94,7 @@ class ChangePowerLevelViewModelTest {
     private lateinit var syncStateMocker: BlockingAnsweringScope<StateFlow<SyncState>>
 
     private val canSetAlicePowerLevelToMax = MutableStateFlow<Long?>(null)
-    private val aliceTargetPowerLevel = MutableStateFlow<Long>(0)
+    private val aliceTargetPowerLevel = MutableStateFlow<PowerLevel>(PowerLevel.User(0))
 
     @BeforeTest
     fun setup() {
@@ -136,7 +138,7 @@ class ChangePowerLevelViewModelTest {
 
         every {
             userServiceMock.canSetPowerLevelToMax(roomId, alice)
-        } returns canSetAlicePowerLevelToMax
+        } returns canSetAlicePowerLevelToMax.map { it?.let { PowerLevel.User(it) } }
         every {
             userServiceMock.getPowerLevel(roomId, alice)
         } returns aliceTargetPowerLevel
@@ -148,7 +150,7 @@ class ChangePowerLevelViewModelTest {
             canSetAlicePowerLevelToMax.value = 100
             every {
                 userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(testUser))
-            } returns MutableStateFlow(100L)
+            } returns MutableStateFlow(PowerLevel.User(100))
 
             everySuspend {
                 roomsApiClientMock.sendStateEvent(
@@ -180,7 +182,7 @@ class ChangePowerLevelViewModelTest {
             canSetAlicePowerLevelToMax.value = 100
             every {
                 userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(testUser))
-            } returns MutableStateFlow(100L)
+            } returns MutableStateFlow(PowerLevel.User(100L))
 
             syncStateMocker returns MutableStateFlow(SyncState.ERROR)
 
@@ -197,7 +199,7 @@ class ChangePowerLevelViewModelTest {
             canSetAlicePowerLevelToMax.value = 100
             every {
                 userServiceMock.canSetPowerLevelToMax(roomId, testUser)
-            } returns MutableStateFlow(100L)
+            } returns MutableStateFlow(PowerLevel.User(100L))
 
             everySuspend {
                 roomsApiClientMock.sendStateEvent(
@@ -317,7 +319,7 @@ class ChangePowerLevelViewModelTest {
         runTestWithCoroutineScope { coroutineScope ->
             every {
                 userServiceMock.canSetPowerLevelToMax(roomId, alice)
-            } returns MutableStateFlow(100)
+            } returns MutableStateFlow(PowerLevel.User(100))
 
             val cut = changePowerLevelViewModel(backgroundScope, alice)
             coroutineScope.launch { cut.changingPowerLevelDialogError.collect() }
@@ -335,11 +337,11 @@ class ChangePowerLevelViewModelTest {
         runTestWithCoroutineScope { coroutineScope ->
             every {
                 userServiceMock.canSetPowerLevelToMax(roomId, alice)
-            } returns MutableStateFlow(56)
+            } returns MutableStateFlow(PowerLevel.User(56))
 
             every {
                 userServiceMock.getPowerLevel(roomId, alice)
-            } returns MutableStateFlow(56)
+            } returns MutableStateFlow(PowerLevel.User(56))
 
             val cut = changePowerLevelViewModel(backgroundScope, alice)
             coroutineScope.launch { cut.changingPowerLevelDialogError.collect() }
@@ -397,7 +399,7 @@ class ChangePowerLevelViewModelTest {
             coroutineScope.launch { cut.canSetRoleToUser.collect() } // subscribe all internal flows
             for (role in ChangePowerLevelViewModel.Role.entries) {
                 withClue(role) {
-                    canSetAlicePowerLevelToMax.value = role.getMinPowerLevel() - 1
+                    canSetAlicePowerLevelToMax.value = role.getMinPowerLevel().toLong()?.minus(1)
                     aliceTargetPowerLevel.value = role.getMinPowerLevel() - 1
                     delay(10.milliseconds)
                     cut.canSetPowerLevelToRole(role).first() shouldBe false
@@ -410,12 +412,14 @@ class ChangePowerLevelViewModelTest {
         runTestWithCoroutineScope { coroutineScope ->
             val cut = changePowerLevelViewModel(backgroundScope, alice)
             coroutineScope.launch { cut.canSetRoleToUser.collect() } // subscribe all internal flows
-            for (role in ChangePowerLevelViewModel.Role.entries) {
-                withClue(role) {
-                    canSetAlicePowerLevelToMax.value = role.getMinPowerLevel()
-                    aliceTargetPowerLevel.value = role.getMinPowerLevel() - 1
+            for (role in (ChangePowerLevelViewModel.Role.entries)) {
+                val canSetAlicePowerLevelToMaxValue = role.getMinPowerLevel().toLong()
+                val aliceTargetPowerLevelValue = role.getMinPowerLevel() - 1
+                withClue("role=$role, canSetAlicePowerLevelToMaxValue=$canSetAlicePowerLevelToMaxValue, aliceTargetPowerLevelValue=$aliceTargetPowerLevelValue") {
+                    canSetAlicePowerLevelToMax.value = canSetAlicePowerLevelToMaxValue
+                    aliceTargetPowerLevel.value = aliceTargetPowerLevelValue
                     delay(10.milliseconds)
-                    cut.canSetPowerLevelToRole(role).first() shouldBe true
+                    cut.canSetPowerLevelToRole(role).first() shouldBe (role != ChangePowerLevelViewModel.Role.CREATOR)
                 }
             }
         }
@@ -442,4 +446,16 @@ class ChangePowerLevelViewModelTest {
             selectedRoomId = roomId,
         )
     }
+
+    private operator fun PowerLevel.minus(other: Long): PowerLevel =
+        when (this) {
+            is PowerLevel.Creator -> PowerLevel.User(Long.MAX_VALUE)
+            is PowerLevel.User -> PowerLevel.User(level - 1)
+        }
+
+    private fun PowerLevel.toLong(): Long? =
+        when (this) {
+            is PowerLevel.Creator -> null
+            is PowerLevel.User -> level
+        }
 }

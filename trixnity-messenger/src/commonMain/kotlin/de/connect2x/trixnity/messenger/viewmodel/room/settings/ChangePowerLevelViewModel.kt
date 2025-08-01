@@ -20,6 +20,8 @@ import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.user
+import net.folivo.trixnity.client.user.PowerLevel
+import net.folivo.trixnity.client.user.PowerLevel.Companion.compareTo
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -76,16 +78,19 @@ interface ChangePowerLevelViewModel {
 
     enum class Role {
         USER {
-            override fun getMinPowerLevel() = 0L
+            override fun getMinPowerLevel() = PowerLevel.User(0L)
         },
         MODERATOR {
-            override fun getMinPowerLevel() = 50L
+            override fun getMinPowerLevel() = PowerLevel.User(50L)
         },
         ADMIN {
-            override fun getMinPowerLevel() = 100L
+            override fun getMinPowerLevel() = PowerLevel.User(100L)
+        },
+        CREATOR {
+            override fun getMinPowerLevel() = PowerLevel.Creator
         };
 
-        abstract fun getMinPowerLevel(): Long
+        abstract fun getMinPowerLevel(): PowerLevel
     }
 }
 
@@ -98,6 +103,7 @@ open class ChangePowerLevelViewModelImpl(
 
     override val canSetPowerLevelToMax =
         matrixClient.user.canSetPowerLevelToMax(selectedRoomId, targetUser)
+            .map { it?.level }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val combineSetPowerLevelToMaxAndCurrentPowerLevel =
@@ -111,7 +117,8 @@ open class ChangePowerLevelViewModelImpl(
     internal fun canSetPowerLevelToRole(role: Role) = // internal for test only
         combineSetPowerLevelToMaxAndCurrentPowerLevel.map { (canSetPowerLevelToMax, currentPowerLevel) ->
             log.trace { "role=$role canSetPowerLevelToMax=$canSetPowerLevelToMax currentPowerLevel=$currentPowerLevel" }
-            canSetPowerLevelToMax != null &&
+            currentPowerLevel is PowerLevel.User &&
+                    canSetPowerLevelToMax != null &&
                     currentPowerLevel != role.getMinPowerLevel() &&
                     canSetPowerLevelToMax >= role.getMinPowerLevel()
         }
@@ -123,7 +130,6 @@ open class ChangePowerLevelViewModelImpl(
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val canSetRoleToAdmin = canSetPowerLevelToRole(Role.ADMIN)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
-
 
     override val changingRoleWarningDialogOpen =
         MutableStateFlow<Role?>(null)
@@ -159,7 +165,7 @@ open class ChangePowerLevelViewModelImpl(
     override fun setRoleToAdmin() =
         setUserToPowerLevel(Role.ADMIN.getMinPowerLevel())
 
-    override fun setPowerLevelTo(level: Long) = setUserToPowerLevel(level)
+    override fun setPowerLevelTo(level: Long) = setUserToPowerLevel(PowerLevel.User(level))
 
     override fun openChangingRoleWarningDialog(role: Role) {
         changingRoleWarningDialogOpen.value = role
@@ -185,7 +191,8 @@ open class ChangePowerLevelViewModelImpl(
         showPowerLevelHelp.value = false
     }
 
-    private fun setUserToPowerLevel(powerLevel: Long) {
+    private fun setUserToPowerLevel(powerLevel: PowerLevel) {
+        if (powerLevel !is PowerLevel.User) return
         coroutineScope.launch {
             if (matrixClient.syncState.value == SyncState.ERROR) {
                 error.value = i18n.settingsRoomMemberListChangePowerLevelErrorOffline()
@@ -195,7 +202,7 @@ open class ChangePowerLevelViewModelImpl(
                         roomId = selectedRoomId,
                         stateKey = ""
                     ).first()?.content ?: PowerLevelsEventContent()
-                val newUsers = oldPowerLevelsEventContent.users.plus(targetUser to powerLevel)
+                val newUsers = oldPowerLevelsEventContent.users.plus(targetUser to powerLevel.level)
 
                 matrixClient.api.room.sendStateEvent(
                     roomId = selectedRoomId,

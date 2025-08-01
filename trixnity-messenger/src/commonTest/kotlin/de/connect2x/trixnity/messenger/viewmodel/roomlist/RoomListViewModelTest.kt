@@ -122,8 +122,8 @@ class RoomListViewModelTest {
     var syncStateMocker: BlockingAnsweringScope<StateFlow<SyncState>>
     var roomName3Mocker: BlockingAnsweringScope<Flow<String>>
 
-    private val roomCreateEventContent = CreateEventContent(creator = user1, type = RoomType.Room)
-    private val spaceCreateEventContent = CreateEventContent(creator = user1, type = RoomType.Space)
+    private val roomCreateEventContent = CreateEventContent(type = RoomType.Room)
+    private val spaceCreateEventContent = CreateEventContent(type = RoomType.Space)
 
     init {
         lifecycleRegistry.resume()
@@ -299,7 +299,7 @@ class RoomListViewModelTest {
         } returns
                 flowOf(
                     StateEvent(
-                        CreateEventContent(user2),
+                        CreateEventContent(),
                         EventId("\$event-a"),
                         user2,
                         roomId5,
@@ -828,7 +828,7 @@ class RoomListViewModelTest {
             )
         } returns flowOf(
             StateEvent(
-                content = CreateEventContent(creator = user1),
+                content = CreateEventContent(),
                 id = EventId(""),
                 sender = user1,
                 roomId = roomId1,
@@ -909,7 +909,6 @@ class RoomListViewModelTest {
                 flowOf(
                     StateEvent(
                         CreateEventContent(
-                            creator = user1,
                             federate = false,
                             roomVersion = "",
                             type = RoomType.Space,
@@ -921,7 +920,6 @@ class RoomListViewModelTest {
                 flowOf(
                     StateEvent(
                         CreateEventContent(
-                            creator = user1,
                             federate = false,
                             roomVersion = "",
                             type = RoomType.Space,

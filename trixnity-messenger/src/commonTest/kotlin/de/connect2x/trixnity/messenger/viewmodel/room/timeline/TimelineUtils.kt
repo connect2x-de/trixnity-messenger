@@ -476,9 +476,7 @@ fun stateEvent(
 class StateEventBuilder {
     var content: StateEventContent? = null
     fun createEvent(): CreateEventContent {
-        val result = CreateEventContent(
-            creator = UserId("Creator"),
-        )
+        val result = CreateEventContent()
         content = result
         return result
     }

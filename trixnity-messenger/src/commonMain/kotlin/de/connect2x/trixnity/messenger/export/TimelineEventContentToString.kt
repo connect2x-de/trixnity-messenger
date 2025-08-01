@@ -75,7 +75,7 @@ class TimelineEventContentToStringImpl(private val i18n: I18n) : TimelineEventCo
                         is StateEventContent -> when (content) {
                             is AvatarEventContent -> i18n.exportRoomAvatar(content.url)
                             is CanonicalAliasEventContent -> i18n.exportRoomCanonicalAlias(listOfNotNull(content.alias) + content.aliases.orEmpty())
-                            is CreateEventContent -> i18n.exportRoomCreate(content.federate, content.type.name)
+                            is CreateEventContent -> i18n.exportRoomCreate(content.federate, content.type?.name)
                             is JoinRulesEventContent -> i18n.exportRoomJoinRule(content.joinRule.name)
                             is MemberEventContent -> i18n.exportRoomMember(
                                 userId = timelineEvent.event.stateKeyOrNull,
