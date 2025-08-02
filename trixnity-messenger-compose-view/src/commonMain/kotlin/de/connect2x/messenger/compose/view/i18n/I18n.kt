@@ -971,7 +971,7 @@ open class I18nView(
     }
 
     open fun settingsRoomMemberListKnocking() = translate {
-        EN - "Kocking"
+        EN - "Knocking"
         DE - "Klopfend"
     }
 
@@ -986,12 +986,12 @@ open class I18nView(
     }
 
     open fun unbannable() = translate {
-        EN - "unbanable"
+        EN - "remove ban"
         DE - "entbannbar"
     }
 
     open fun notUnbannable() = translate {
-        EN - "not unbannable"
+        EN - "cannot remove ban"
         DE - "nicht entbannbar"
     }
 
@@ -1011,7 +1011,7 @@ open class I18nView(
     }
 
     open fun roomHeaderUserIsBlocked() = translate {
-        EN - "This user is blocked by you."
+        EN - "This user was blocked by you."
         DE - "Dieser Nutzer wird von Ihnen geblockt."
     }
 
