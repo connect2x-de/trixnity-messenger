@@ -1557,6 +1557,16 @@ open class I18nView(
         DE - "Ausloggen"
     }
 
+    open fun appInfoJvmPlatform(runtime: String, host: String) = translate {
+        EN - "$runtime on $host"
+        DE - "$runtime auf $host"
+    }
+
+    open fun appInfoAndroidPlatform(version: String, apiLevel: String) = translate {
+        EN - "Android $version with API level $apiLevel"
+        DE - "Android $version mit API Level $apiLevel"
+    }
+
     open fun appInfoVersion(versionNumber: String) = translate {
         EN - "Version $versionNumber"
         DE - "Version $versionNumber"

@@ -1,3 +1,4 @@
+
 rootProject.name = "trixnity-messenger-root"
 
 include(
@@ -74,6 +75,12 @@ dependencyResolutionManagement {
         maven("https://gitlab.com/api/v4/projects/65231927/packages/maven") // kmp-jni
         maven("https://oss.sonatype.org/content/repositories/snapshots")
         google()
+    }
+
+    versionCatalogs {
+        create("sharedLibs") {
+            from("de.connect2x.conventions:c2x-shared-catalog:49969555")
+        }
     }
 }
 
