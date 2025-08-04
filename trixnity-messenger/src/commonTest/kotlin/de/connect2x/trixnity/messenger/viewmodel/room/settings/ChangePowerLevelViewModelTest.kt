@@ -315,7 +315,7 @@ class ChangePowerLevelViewModelTest {
         }
 
     @Test
-    fun `changing the power level input should show an error message if input is less than 0 or greater than 100`() =
+    fun `changing the power level input should show an error message if input is greater than own`() =
         runTestWithCoroutineScope { coroutineScope ->
             every {
                 userServiceMock.canSetPowerLevelToMax(roomId, alice)
@@ -324,9 +324,6 @@ class ChangePowerLevelViewModelTest {
             val cut = changePowerLevelViewModel(backgroundScope, alice)
             coroutineScope.launch { cut.changingPowerLevelDialogError.collect() }
 
-            cut.changingPowerLevelDialogInput.update("-56")
-            delay(10.milliseconds)
-            cut.changingPowerLevelDialogError.value shouldNotBe null
             cut.changingPowerLevelDialogInput.update("124")
             delay(10.milliseconds)
             cut.changingPowerLevelDialogError.value shouldNotBe null

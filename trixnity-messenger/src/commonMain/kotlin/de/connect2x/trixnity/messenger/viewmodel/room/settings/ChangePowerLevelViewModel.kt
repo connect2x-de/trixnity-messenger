@@ -10,6 +10,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -101,10 +102,13 @@ open class ChangePowerLevelViewModelImpl(
     private val targetUser: UserId,
 ) : MatrixClientViewModelContext by viewModelContext, ChangePowerLevelViewModel {
 
-    override val canSetPowerLevelToMax =
+    private val _canSetPowerLevelToMax =
         matrixClient.user.canSetPowerLevelToMax(selectedRoomId, targetUser)
             .map { it?.level }
-            .stateIn(coroutineScope, SharingStarted.Eagerly, null)
+            .shareIn(coroutineScope, Eagerly, 1)
+    override val canSetPowerLevelToMax =
+        _canSetPowerLevelToMax
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val combineSetPowerLevelToMaxAndCurrentPowerLevel =
         combine(
@@ -192,9 +196,12 @@ open class ChangePowerLevelViewModelImpl(
     }
 
     private fun setUserToPowerLevel(powerLevel: PowerLevel) {
-        val canSetPowerLevelToMax = canSetPowerLevelToMax.value ?: return
-        if (powerLevel !is PowerLevel.User || canSetPowerLevelToMax <= powerLevel.level) return
         coroutineScope.launch {
+            val canSetPowerLevelToMax = _canSetPowerLevelToMax.first() ?: return@launch
+            if (powerLevel !is PowerLevel.User || powerLevel.level > canSetPowerLevelToMax) {
+                log.warn { "cannot set powerlevel of user $targetUser to $powerLevel in room $selectedRoomId because the power level is too high (max=$canSetPowerLevelToMax)" }
+                return@launch
+            }
             if (matrixClient.syncState.value == SyncState.ERROR) {
                 error.value = i18n.settingsRoomMemberListChangePowerLevelErrorOffline()
             } else {
