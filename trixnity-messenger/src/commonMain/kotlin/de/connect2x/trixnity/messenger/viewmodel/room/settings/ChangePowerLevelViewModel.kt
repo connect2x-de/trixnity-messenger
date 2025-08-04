@@ -104,7 +104,7 @@ open class ChangePowerLevelViewModelImpl(
     override val canSetPowerLevelToMax =
         matrixClient.user.canSetPowerLevelToMax(selectedRoomId, targetUser)
             .map { it?.level }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, null)
 
     private val combineSetPowerLevelToMaxAndCurrentPowerLevel =
         combine(
@@ -192,7 +192,8 @@ open class ChangePowerLevelViewModelImpl(
     }
 
     private fun setUserToPowerLevel(powerLevel: PowerLevel) {
-        if (powerLevel !is PowerLevel.User) return
+        val canSetPowerLevelToMax = canSetPowerLevelToMax.value ?: return
+        if (powerLevel !is PowerLevel.User || canSetPowerLevelToMax <= powerLevel.level) return
         coroutineScope.launch {
             if (matrixClient.syncState.value == SyncState.ERROR) {
                 error.value = i18n.settingsRoomMemberListChangePowerLevelErrorOffline()
@@ -229,11 +230,11 @@ open class ChangePowerLevelViewModelImpl(
         maxPowerLevel: Long?,
         i18n: I18n
     ): String? {
-        val powerLevel = input.toIntOrNull()
+        val powerLevel = input.toLongOrNull()
         return when {
             maxPowerLevel == null -> i18n.settingsRoomMemberListChangePowerLevelInputValidationNotEntitled()
 
-            powerLevel == null || powerLevel < 0 || powerLevel > 100 ->
+            powerLevel == null ->
                 i18n.settingsRoomMemberListChangePowerLevelInputValidationShouldBeNumber(maxPowerLevel)
 
             powerLevel > maxPowerLevel ->
