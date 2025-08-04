@@ -45,7 +45,7 @@ import org.koin.dsl.module
 import kotlin.test.Test
 
 class RoomSettingsViewModelTest {
-    private val roomId = RoomId("room", "localhost")
+    private val roomId = RoomId("!room")
     private val me = UserId("user1", "localhost")
 
     private val roomUserMe = RoomUser(

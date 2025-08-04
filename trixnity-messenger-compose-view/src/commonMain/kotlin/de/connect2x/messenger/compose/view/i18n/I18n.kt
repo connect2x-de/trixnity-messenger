@@ -971,7 +971,7 @@ open class I18nView(
     }
 
     open fun settingsRoomMemberListKnocking() = translate {
-        EN - "Kocking"
+        EN - "Knocking"
         DE - "Klopfend"
     }
 
@@ -986,12 +986,12 @@ open class I18nView(
     }
 
     open fun unbannable() = translate {
-        EN - "unbanable"
+        EN - "remove ban"
         DE - "entbannbar"
     }
 
     open fun notUnbannable() = translate {
-        EN - "not unbannable"
+        EN - "cannot remove ban"
         DE - "nicht entbannbar"
     }
 
@@ -1011,7 +1011,7 @@ open class I18nView(
     }
 
     open fun roomHeaderUserIsBlocked() = translate {
-        EN - "This user is blocked by you."
+        EN - "This user was blocked by you."
         DE - "Dieser Nutzer wird von Ihnen geblockt."
     }
 
@@ -1550,6 +1550,16 @@ open class I18nView(
     open fun accountsOverviewLogout() = translate {
         EN - "Logout"
         DE - "Ausloggen"
+    }
+
+    open fun appInfoJvmPlatform(runtime: String, host: String) = translate {
+        EN - "$runtime on $host"
+        DE - "$runtime auf $host"
+    }
+
+    open fun appInfoAndroidPlatform(version: String, apiLevel: String) = translate {
+        EN - "Android $version with API level $apiLevel"
+        DE - "Android $version mit API Level $apiLevel"
     }
 
     open fun appInfoVersion(versionNumber: String) = translate {

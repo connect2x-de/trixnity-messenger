@@ -1,13 +1,13 @@
 package de.connect2x.trixnity.messenger.util.html
 
-import net.folivo.trixnity.core.model.Mention
-import net.folivo.trixnity.core.util.MatrixLinks
+import net.folivo.trixnity.core.util.Reference
+import net.folivo.trixnity.core.util.References
 
 class MatrixMentionVisitor {
     private val taskQueue = mutableListOf<HtmlNode>()
-    private val mentions = mutableMapOf<String, Mention>()
+    private val mentions = mutableMapOf<String, Reference>()
 
-    fun process(node: HtmlNode): Map<String, Mention> {
+    fun process(node: HtmlNode): Map<String, Reference> {
         visit(node)
         var task: HtmlNode? = taskQueue.removeFirstOrNull()
         while (task != null) {
@@ -31,7 +31,7 @@ class MatrixMentionVisitor {
             val href = node.attributes["href"]
             if (href != null) {
                 if (!mentions.containsKey(href)) {
-                    val link = MatrixLinks.parse(href)
+                    val link = References.findLinkReferences(href).values.firstOrNull()
                     if (link != null) {
                         mentions.put(href, link)
                     }

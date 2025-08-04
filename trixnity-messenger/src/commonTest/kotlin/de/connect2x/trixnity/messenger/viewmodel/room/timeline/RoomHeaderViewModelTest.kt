@@ -53,7 +53,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @Suppress("NonAsciiCharacters")
 class RoomHeaderViewModelTest {
-    private val roomId = RoomId("room1", "localhost")
+    private val roomId = RoomId("!room1")
 
     private val me = UserId("bob", "localhost")
     private val meRoomUser = RoomUser(

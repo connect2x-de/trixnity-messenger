@@ -48,7 +48,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class OutboxElementHolderViewModelTest {
 
-    private val roomId = RoomId("room1", "localhost")
+    private val roomId = RoomId("!room1")
     private val eventId = EventId("event")
 
     private val us = UserId("mimi", "localhost")

@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.export
 
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.DecryptionFailed
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
@@ -40,8 +39,8 @@ import kotlin.test.Test
 
 class ExportRoomTest {
 
-    val roomId = RoomId("room1", "localhost")
-    val roomIdWithErrors = RoomId("roomWithErrors", "localhost")
+    val roomId = RoomId("!room1")
+    val roomIdWithErrors = RoomId("!roomWithErrors")
     val alice = UserId("alice", "localhost")
     val fakeProperties = object : ExportRoomSinkProperties {}
     val timeline = (0..9).map { timelineEvent(it.toLong()) } + (10..19).map { timelineEventWithMedia(it.toLong()) }

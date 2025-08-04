@@ -1,16 +1,9 @@
-import co.touchlab.skie.configuration.DefaultArgumentInterop
-import co.touchlab.skie.configuration.EnumInterop
-import co.touchlab.skie.configuration.FlowInterop
-import co.touchlab.skie.configuration.FunctionInterop
-import co.touchlab.skie.configuration.SealedInterop
-import co.touchlab.skie.configuration.SuspendInterop
-import de.connect2x.conventions.isCI
 import de.connect2x.conventions.registerCoverageTask
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.dokka)
+    alias(sharedLibs.plugins.kotlin.multiplatform)
+    alias(sharedLibs.plugins.dokka)
     alias(libs.plugins.seskar)
     `maven-publish`
 }
@@ -44,8 +37,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(npm("pdfjs-dist", libs.versions.pdfjs.get()))
-                implementation(project.dependencies.platform(libs.kotlin.wrappers.bom))
-                api(libs.kotlin.browser)
+                implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))
+                api(sharedLibs.kotlin.browser)
             }
         }
     }

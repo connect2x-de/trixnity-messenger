@@ -51,7 +51,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 
 class SendAttachmentViewModelTest {
-    private val roomId = RoomId("room1", "localhost")
+    private val roomId = RoomId("!room1")
     private val me = UserId("bob", "localhost")
 
     private val matrixClientMock: MatrixClient = mock()
@@ -72,7 +72,11 @@ class SendAttachmentViewModelTest {
 
     }
     private val getImageDimensionsMock = object : GetImageDimensions {
-        override suspend fun invoke(byteArrayFlow: ByteArrayFlow, maxMediaSize: Long, mimeType: ContentType?): Pair<Int?, Int?> {
+        override suspend fun invoke(
+            byteArrayFlow: ByteArrayFlow,
+            maxMediaSize: Long,
+            mimeType: ContentType?
+        ): Pair<Int?, Int?> {
             return 0 to 0
         }
     }

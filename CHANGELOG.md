@@ -9,26 +9,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- File load and save dialogs on iOS targets
+- PDF reader support on iOS
 - Captions for Media messages
+
+### Changed
+
+- Bump Compose to 1.8.2
+- Bump FileKit to 0.10.0-beta04
+- Move startMessenger logic for the iOS client in separate function
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Fixed crash due to scrollbar measuring policy on Android
+- Fixed several translation issues
+- UI spacing for file-timeline-elements
+
+### Security
+
+## 3.6.17
 
 ### Changed
 
 - New rich text renderer
 - Show correct feedback when getting no search results in the room list
 - Labels for text fields are always on
-
-### Deprecated
-
-### Removed
+- Adapt to trixnity References-API changes
 
 - Overlay on all file-timeline-elements except Videos and Images
 
 ### Fixed
 
 - Web client: sync is not stopped when tab or browser loses focus
-- UI spacing for file-timeline-elements
-
-### Security
+- Fix OOM gradle dependencies tasks
 
 ## 3.6.16
 
@@ -75,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Correctly indicate overflows in room invite name or matrix ids
+- Fix Android back button closing the app instead of returning to previous view
 
 ## 3.6.13
 

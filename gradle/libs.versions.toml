@@ -1,84 +1,39 @@
 [versions]
-jvmTarget = "17"
-c2xConventions = "43109500" # https://gitlab.com/connect2x/c2x-conventions/-/packages
 
-trixnityMessenger = "3.6.17"
+c2xConventions = "49969555" # https://gitlab.com/connect2x/c2x-conventions/-/packages
+
+trixnityMessenger = "3.6.18"
 trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
 
-kotlin = "2.1.21" # https://github.com/JetBrains/kotlin/releases
-kotlinWrappers = "2025.6.9" # https://github.com/JetBrains/kotlin-wrappers/releases (should be same as in Trixnity)
 seskar = "4.9.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
-kotlinxCoroutines = "1.10.2" # https://github.com/Kotlin/kotlinx.coroutines/releases
-kotlinxSerialization = "1.8.1" # https://github.com/Kotlin/kotlinx.serialization/releases
-kotlinxDatetime = "0.6.2" # https://github.com/Kotlin/kotlinx-datetime/releases
-kotlinxKover = "0.9.1" # https://github.com/Kotlin/kotlinx-kover/releases
+trixnity = "4.19.0" # https://gitlab.com/trixnity/trixnity/-/releases
+sysnotify = "2.0.1" # https://gitlab.com/connect2x/sysnotify/-/packages
 
-trixnity = "4.18.1-DEV-49299257" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "2.0.0" # https://gitlab.com/connect2x/sysnotify/-/packages
-stately = "2.1.0" # https://github.com/touchlab/Stately/releases
-decompose = "3.3.0" # https://github.com/arkivanov/Decompose/releases
-essenty = "2.5.0" # https://github.com/arkivanov/Essenty/releases
-koin = "4.1.0" # https://github.com/InsertKoinIO/koin/tags
-ktor = "3.1.3" # https://github.com/ktorio/ktor/releases
-mokkery = "2.8.0" # https://github.com/lupuuss/Mokkery/releases
-kotest = "6.0.0.M2" # https://github.com/kotest/kotest/releases
-jna = "5.17.0" # https://github.com/java-native-access/jna/tags
 okio = "3.13.0" # https://square.github.io/okio/changelog
-dokka = "2.0.0" # https://github.com/Kotlin/dokka/releases"
 jsJoda = "2.22.0" # https://www.npmjs.com/package/@js-joda/timezone
 zipjs = "2.7.62" # https://www.npmjs.com/package/@zip.js/zip.js
-skie = "0.10.4" # https://github.com/touchlab/SKIE/releases
-kmmBridge = "1.2.1" # https://github.com/touchlab/KMMBridge/releases
 kim = "0.25" # https://github.com/Ashampoo/kim/releases
 markdown = "0.7.3" # https://github.com/JetBrains/markdown
 pdfjs = "5.3.31" # https://www.npmjs.com/package/pdfjs-dist
 pdfbox = "3.0.5" # https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox
 icu4j = "77.1" # https://github.com/unicode-org/icu/releases
 testContainers = "1.21.2" # https://github.com/testcontainers/testcontainers-java/releases
-composeMultiplatform = "1.8.1" # https://github.com/JetBrains/compose-multiplatform/releases
 ksoup = "0.2.4" # https://github.com/fleeksoft/ksoup/releases
 highlights = "1.0.0" # https://github.com/SnipMeDev/Highlights/releases
-aboutLibraries = "12.2.4" # https://github.com/mikepenz/AboutLibraries/releases
 copyWebpackPlugin = "13.0.0" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
 composeUiTest = "1.7.8" # https://mvnrepository.com/artifact/androidx.compose.ui/ui-test-junit4
-filekit = "0.8.8" # https://github.com/vinceglb/FileKit/releases
+filekit = "0.10.0-beta04" # https://github.com/vinceglb/FileKit/releases
 firebase = "33.13.0" # https://firebase.google.com/support/release-notes/android
 googleServices = "4.4.2" # https://developers.google.com/android/guides/google-services-plugin
-
-androidGradle = "8.9.3" # https://developer.android.com/reference/tools/gradle-api
-androidCompileSDK = "35"
-androidMinimalSDK = "28"
-androidTargetSDK = "34"
-
-androidxBrowser = "1.8.0" # https://developer.android.com/jetpack/androidx/releases/browser
-androidxCrypto = "1.1.0-beta01" # https://developer.android.com/jetpack/androidx/releases/security
-androidxActivity = "1.10.1" # https://developer.android.com/jetpack/androidx/releases/activity
-androidxSqlite3 = "2.5.2" # https://developer.android.com/jetpack/androidx/releases/sqlite
-androidxSqlite3mc = "2.5.2-3" # https://gitlab.com/connect2x/androidx/-/tags
-androidxWorkManager = "2.10.2" # https://developer.android.com/jetpack/androidx/releases/work
-androidxLiveData = "2.9.1" # https://developer.android.com/jetpack/androidx/releases/lifecycle
-androidxAppCompat = "1.7.1" # https://developer.android.com/jetpack/androidx/releases/appcompat
-androidxAnnotation = "1.9.1" # https://developer.android.com/jetpack/androidx/releases/annotation
-
 kotlinLogging = "7.0.7" # https://github.com/MicroUtils/kotlin-logging/releases
 slf4j = "2.0.17" # https://github.com/qos-ch/slf4j/tags
 logback = "1.5.18" # https://github.com/qos-ch/logback/tags
 logbackAndroid = "3.0.0" # https://github.com/tony19/logback-android/releases
 
 [libraries]
-kotlin-wrappers-bom = { module = "org.jetbrains.kotlin-wrappers:kotlin-wrappers-bom", version.ref = "kotlinWrappers" }
-kotlin-browser = { module = "org.jetbrains.kotlin-wrappers:kotlin-browser" }
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-
-kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
-kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
-kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinxCoroutines" }
-kotlinx-coroutines-debug = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-debug", version.ref = "kotlinxCoroutines" }
-kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
-kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 
 trixnity-client = { module = "net.folivo:trixnity-client", version.ref = "trixnity" }
 trixnity-crypto-core = { module = "net.folivo:trixnity-crypto-core", version.ref = "trixnity" }
@@ -90,93 +45,34 @@ trixnity-client-media-opfs = { module = "net.folivo:trixnity-client-media-opfs",
 trixnity-client-media-indexeddb = { module = "net.folivo:trixnity-client-media-indexeddb", version.ref = "trixnity" }
 
 sysnotify = { module = "de.connect2x:sysnotify", version.ref = "sysnotify" }
-stately-common = { module = "co.touchlab:stately-common", version.ref = "stately" }
-stately-collections = { module = "co.touchlab:stately-collections", version.ref = "stately" }
-
-ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
-ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
-ktor-client-java = { module = "io.ktor:ktor-client-java", version.ref = "ktor" }
-ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
-ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
-
-androidx-activity = { module = "androidx.activity:activity-ktx", version.ref = "androidxActivity" }
-androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "androidxCrypto" }
-androidx-sqlite3-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "androidxSqlite3" }
-androidx-sqlite3mc-bundled = { module = "androidx.sqlite:sqlite3mc-bundled", version.ref = "androidxSqlite3mc" }
-androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
-androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidxBrowser" }
-androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppCompat" }
-androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "androidxWorkManager" }
-androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "androidxLiveData" }
-androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
 
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logback-android = { module = "com.github.tony19:logback-android", version.ref = "logbackAndroid" }
-
-decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
-decompose-extensions = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
-essenty-lifecycle = { module = "com.arkivanov.essenty:lifecycle", version.ref = "essenty" }
-
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
-
-jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
-jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
-
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
 firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging-ktx", version = "" }
-
-filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekit" }
+filekit-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
-
 ui-test-junit4-android = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "composeUiTest" }
 ui-test-android-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "composeUiTest" }
-
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testContainers" }
-
-skie-annotations = { module = "co.touchlab.skie:configuration-annotations", version.ref = "skie" }
 logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlinLogging" }
-koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 kim = { module = "com.ashampoo:kim", version.ref = "kim" }
 markdown = { module = "org.jetbrains:markdown", version.ref = "markdown" }
 pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu4j" }
-mokkery-coroutines = { module = "dev.mokkery:mokkery-coroutines", version.ref = "mokkery" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
-aboutlibraries = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
-kotest-assertion-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
-
 ksoup-html = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
 highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
 
 [bundles]
-jna = ["jna", "jna-platform"]
+
 testcontainers = ["testcontainers", "testcontainers-junit-jupiter"]
-android-common = ["androidx-appcompat", "androidx-work-runtime-ktx", "androidx-lifecycle-livedata-ktx", "androidx-activity-compose", "logback-android"]
 
 [plugins]
+
 c2xConventions = { id = "de.connect2x.conventions.c2x-conventions", version.ref = "c2xConventions" }
-
-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
-kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kotlinxKover" }
-
-android-library = { id = "com.android.library", version.ref = "androidGradle" }
-android-application = { id = "com.android.application", version.ref = "androidGradle" }
-
-compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
-kotest = { id = "io.kotest.multiplatform", version.ref = "kotest" }
-
-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
-skie = { id = "co.touchlab.skie", version.ref = "skie" }
-kmmbridge = { id = "co.touchlab.kmmbridge.gitlab", version.ref = "kmmBridge" }
-mokkery = { id = "dev.mokkery", version.ref = "mokkery" }
-aboutlibraries-plugin = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }
 seskar = { id = "io.github.turansky.seskar", version.ref = "seskar" }

@@ -15,7 +15,7 @@ stages:
   - kmmPublish
 
 variables:
-  GRADLE_OPTS: -Dorg.gradle.daemon=false
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx1g
   GRADLE_USER_HOME: $CI_PROJECT_DIR/.gradle
   KONAN_DATA_DIR: $CI_PROJECT_DIR/.konan
   KOTLIN_DATA_DIR: $CI_PROJECT_DIR/.kotlin
@@ -50,6 +50,7 @@ variables:
       path: trixnity-messenger/build/reports/kover/reportJvm.xml
 
 .docker-variables: &docker-variables
+  DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   DOCKER_HOST: tcp://docker:2376
   DOCKER_TLS_CERTDIR: "/certs"
   DOCKER_TLS_VERIFY: 1
@@ -100,6 +101,8 @@ build:linux:
     - *cache
   rules:
     - *if-merge-request-or-main
+  variables:
+    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - ./gradlew
       compileKotlin{Jvm,Js}
@@ -136,6 +139,8 @@ test:linux:
   artifacts: *artifact-reports
   rules:
     - *if-merge-request-or-main
+  variables:
+    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - ./gradlew
       {jvm,js}Test :trixnity-messenger:testCoverage -x :integrationtests:jvmTest
@@ -154,6 +159,8 @@ test:smoketest-desktop-linux:
   artifacts: *artifact-reports
   rules:
     - *if-merge-request-or-main
+  variables:
+    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - ./gradlew
       :trixnity-messenger-compose-view:desktopTest
@@ -173,6 +180,8 @@ test:smoketest-web:
   artifacts: *artifact-reports
   rules:
     - *if-merge-request-or-main
+  variables:
+    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - ./gradlew
       :trixnity-messenger-compose-view:webBrowserFirefoxTest
@@ -246,7 +255,7 @@ security:dependencies:
     reports:
       dependency_scanning: report.json
   script:
-    - ./gradlew dependenciesForAll --write-locks --no-parallel > dependencies.txt
+    - ./gradlew dependenciesForAll --write-locks > dependencies.txt
     - trivy repo ./ --exit-code 0
     - trivy repo ./ --exit-code 0 --format template --template "@/usr/local/share/trivy/templates/gitlab.tpl" --output report.json
     - trivy repo ./ --exit-code 1 --severity CRITICAL
@@ -293,6 +302,8 @@ publish:linux:
     - *if-not-scheduled
     - *if-main
     - *if-release
+  variables:
+    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - ./gradlew
       publish{KotlinMultiplatform,Jvm,Js,AndroidRelease,Desktop,Web}PublicationToGitlabRepository
@@ -313,6 +324,8 @@ staging:web:
     paths:
       - public
     expire_in: 7d
+  variables:
+    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - ./gradlew
       :trixnity-messenger-compose-app:webBrowserDistribution

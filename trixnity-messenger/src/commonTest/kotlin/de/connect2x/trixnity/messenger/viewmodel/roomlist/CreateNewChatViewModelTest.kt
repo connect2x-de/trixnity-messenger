@@ -135,7 +135,7 @@ class CreateNewChatViewModelTest {
                 )
             )
         )
-        val roomId = RoomId("room1", "localhost")
+        val roomId = RoomId("!room1")
         every {
             userServiceMock.getAccountData(DirectEventContent::class, any())
         } returns MutableStateFlow(
@@ -218,7 +218,7 @@ class CreateNewChatViewModelTest {
         everySuspend { usersApiClientMock.searchUsers(any(), any(), any(), eqNull()) } returns Result.success(
             SearchUsers.Response(false, listOf())
         )
-        val roomId = RoomId("room1", "localhost")
+        val roomId = RoomId("!room1")
         everySuspend {
             roomsApiClientMock.createRoom(
                 visibility = any(),
@@ -248,7 +248,7 @@ class CreateNewChatViewModelTest {
 
     @Test
     fun `create a new room if a direct room can be found but not in the room list`() = runTest {
-        val roomId = RoomId("room1", "localhost")
+        val roomId = RoomId("!room1")
         var createRoomCalled = false
         everySuspend {
             roomsApiClientMock.createRoom(
@@ -326,8 +326,8 @@ class CreateNewChatViewModelTest {
 
     @Test
     fun `create a new room if a direct room can be found but other user already left`() = runTest {
-        val roomId = RoomId("room1", "localhost")
-        val existingRoomId = RoomId("existingRoom", "localhost")
+        val roomId = RoomId("!room1")
+        val existingRoomId = RoomId("!existingRoom")
         everySuspend {
             roomsApiClientMock.createRoom(
                 visibility = any(),
@@ -421,8 +421,8 @@ class CreateNewChatViewModelTest {
 
     @Test
     fun `create a new room if the users are in a direct chat already but another user is also part of it`() = runTest {
-        val roomId = RoomId("room1", "localhost")
-        val existingRoomId = RoomId("existingRoom", "localhost")
+        val roomId = RoomId("!room1")
+        val existingRoomId = RoomId("!existingRoom")
         everySuspend {
             roomsApiClientMock.createRoom(
                 visibility = any(),
@@ -566,9 +566,9 @@ class CreateNewChatViewModelTest {
     @Test
     fun `multiple direct rooms exist and one has only the other user so directly jump to this room`() = runTest {
         var createRoomCalled = false
-        val roomId = RoomId("room1", "localhost")
-        val existingRoom1Id = RoomId("existingRoom1", "localhost")
-        val existingRoom2Id = RoomId("existingRoom2", "localhost")
+        val roomId = RoomId("!room1")
+        val existingRoom1Id = RoomId("!existingRoom1")
+        val existingRoom2Id = RoomId("!existingRoom2")
         everySuspend {
             roomsApiClientMock.createRoom(
                 visibility = any(),
@@ -746,8 +746,8 @@ class CreateNewChatViewModelTest {
     @Test
     fun `do not reuse existing direct room with other user if this user is not part of it anymore but there are still 2 users in it`() =
         runTest {
-            val roomId = RoomId("room1", "localhost")
-            val existingRoomId = RoomId("existingRoom", "localhost")
+            val roomId = RoomId("!room1")
+            val existingRoomId = RoomId("!existingRoom")
             everySuspend {
                 roomsApiClientMock.createRoom(
                     visibility = any(),
@@ -890,8 +890,8 @@ class CreateNewChatViewModelTest {
 
     @Test
     fun `ignore direct rooms we have left`() = runTest {
-        val roomId = RoomId("room1", "localhost")
-        val existingRoomId = RoomId("existingRoom", "localhost")
+        val roomId = RoomId("!room1")
+        val existingRoomId = RoomId("!existingRoom")
         everySuspend {
             roomsApiClientMock.createRoom(
                 visibility = any(),
@@ -1019,7 +1019,7 @@ class CreateNewChatViewModelTest {
                 HttpStatusCode.Forbidden, ErrorResponse.Forbidden("403")
             )
         )
-        every { roomServiceMock.getById(any()) } returns MutableStateFlow(Room(RoomId("a", "local")))
+        every { roomServiceMock.getById(any()) } returns MutableStateFlow(Room(RoomId("!a")))
 
         val cut = createNewChatViewModel()
         val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
