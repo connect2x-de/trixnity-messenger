@@ -771,8 +771,8 @@ open class I18n(
     }
 
     open fun settingsRoomMemberListChangePowerLevelInputValidationShouldBeNumber(maximum: Long) = translate {
-        EN - "Please enter a valid number between 0 and $maximum."
-        DE - "Bitte geben Sie eine gültige Zahl zwischen 0 und $maximum ein."
+        EN - "Please enter a valid number, up to a maximum of $maximum."
+        DE - "Bitte geben Sie eine gültige Zahl ein, maximal jedoch $maximum."
     }
 
     open fun settingsRoomMemberListKickUserError() = translate {

@@ -124,6 +124,7 @@ class MemberListElementViewModelImpl(
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val role = MutableStateFlow(Role.USER)
     override val showRole = MutableStateFlow(false)
+
     override val powerLevel = matrixClient.user.getPowerLevel(selectedRoomId, memberUserId)
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val showPowerLevel = MutableStateFlow(false)
@@ -186,6 +187,7 @@ class MemberListElementViewModelImpl(
 
     private fun getPowerRole(powerLevel: PowerLevel): Role {
         return when {
+            powerLevel >= Role.CREATOR.getMinPowerLevel() -> Role.CREATOR
             powerLevel >= Role.ADMIN.getMinPowerLevel() -> Role.ADMIN
             powerLevel >= Role.MODERATOR.getMinPowerLevel() -> Role.MODERATOR
             else -> Role.USER

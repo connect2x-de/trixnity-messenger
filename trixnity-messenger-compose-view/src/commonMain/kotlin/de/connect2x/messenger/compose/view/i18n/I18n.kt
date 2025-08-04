@@ -842,8 +842,8 @@ open class I18nView(
     }
 
     open fun userProfileRoleCreator() = translate {
-        EN - "creator"
-        DE - "Ersteller"
+        EN - "room creator"
+        DE - "Raumersteller"
     }
 
     open fun userProfileRoleAdministrator() = translate {
