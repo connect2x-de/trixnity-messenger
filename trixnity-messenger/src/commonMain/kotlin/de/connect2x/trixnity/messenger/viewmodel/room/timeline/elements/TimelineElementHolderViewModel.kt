@@ -4,6 +4,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.i18n.getErrorMessage
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -252,7 +253,9 @@ class TimelineElementHolderViewModelImpl(
         outboxElementIfReplaced.map { (it?.content?.relatesTo as? RelatesTo.Replace)?.newContent }
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
-    override val errorIfReplaced = outboxElementIfReplaced.map { it?.sendError.toString() }.stateIn(coroutineScope, WhileSubscribed(), null)
+    override val errorIfReplaced = outboxElementIfReplaced.filterNotNull().map { outboxElement ->
+        outboxElement.sendError?.getErrorMessage(i18n)
+    }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val isReplaced: StateFlow<Boolean> =
         combine(
@@ -593,7 +596,9 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val formattedBody: String = "Hello <b/>everyone!"
             override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
             override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-            override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
+            override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
+                MutableStateFlow(mapOf())
+
             override fun openMention(mention: TimelineElementMention) {}
         })
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -645,7 +650,9 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
             override val formattedBody: String = "Hello!"
             override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
             override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
-            override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
+            override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
+                MutableStateFlow(mapOf())
+
             override fun openMention(mention: TimelineElementMention) {}
         })
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
