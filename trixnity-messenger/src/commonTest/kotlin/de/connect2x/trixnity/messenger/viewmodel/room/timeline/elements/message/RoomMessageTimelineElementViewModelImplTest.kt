@@ -41,14 +41,14 @@ class RoomMessageTimelineElementViewModelImplTest {
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
 
-    val roomId = RoomId("!bathroom:server")
-    val roomAliasId = RoomAliasId("bathroom", "server")
+    val roomId = RoomId("!bathroom:example.org") // change once Mentions fixed
+    val roomAliasId = RoomAliasId("bathroom", "example.org")
     val roomInfoElement = RoomInfoElement(
         roomAliasId.full, roomId, "#", null
     )
     val room = Room(roomId)
 
-    val meUserId = UserId("tester", "server")
+    val meUserId = UserId("tester", "example.org")
     val meName = "Tester"
     val meRoomUser = RoomUser(
         roomId, meUserId, meName, event = ClientEvent.RoomEvent.StateEvent(
