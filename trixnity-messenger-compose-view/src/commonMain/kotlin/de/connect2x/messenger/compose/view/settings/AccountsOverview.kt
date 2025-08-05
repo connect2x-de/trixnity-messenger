@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
@@ -93,17 +94,19 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                                         .background(if (displayColor != null) Color(displayColor) else Color.Transparent)
                                         .padding(end = 5.dp)
                                 )
-                                Row(Modifier.weight(1.0f, fill = true)) {
+                                Column(Modifier.weight(1.0f, fill = true)) {
                                     SelectableText(
                                         accountInfo.displayName,
                                         style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.padding(10.dp).weight(1.0f, fill = true),
+                                        modifier = Modifier.padding(horizontal = 10.dp),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.StartEllipsis
                                     )
 
                                     SelectableText(
                                         accountInfo.userId.full,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        modifier = Modifier.padding(10.dp).weight(1.0f, fill = true),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        modifier = Modifier.padding(horizontal = 10.dp),
                                     )
                                 }
 
