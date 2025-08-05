@@ -438,7 +438,7 @@ class InputAreaViewModelTest {
         cut.textField.update("Hello! @Alin", IntRange(12, 12))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value shouldBe emptyList()
+            cut.listOfMentions.value shouldBe null
         }
     }
 
@@ -463,7 +463,7 @@ class InputAreaViewModelTest {
         cut.textField.update("Hello! @Bo", IntRange(10, 10))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value shouldBe emptyList()
+            cut.listOfMentions.value shouldBe null
         }
     }
 

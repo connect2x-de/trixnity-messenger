@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed crash due to scrollbar measuring policy on Android
 - Fixed several translation issues
 - UI spacing for file-timeline-elements
+- Mentions List calculated even though mention was already selected
+- Crash when selecting mention if cursorPosition=0
 
 ### Security
 

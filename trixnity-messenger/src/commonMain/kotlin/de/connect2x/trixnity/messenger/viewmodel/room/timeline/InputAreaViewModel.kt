@@ -249,7 +249,7 @@ open class InputAreaViewModelImpl(
                 _listOfMentionsLoading.value = true
                 val listOfUsers = listOfUsers(userIdLocalPartBeforeCursor)
                 _listOfMentionsLoading.value = false
-                listOfUsers
+                listOfUsers.ifEmpty { null }
             } else null
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
@@ -289,7 +289,7 @@ open class InputAreaViewModelImpl(
     }
 
     private fun TextFieldViewModel.State.mentionBeforeCursor() =
-        if (text.isNotEmpty() && selection != null && selection.firstIsLast()) {
+        if (text.isNotEmpty() && selection != null && selection.firstIsLast() && selection.first != 0) {
             text.substring(0..(selection.last - 1).coerceIn(0..text.lastIndex))
                 .takeLast(50)
                 .takeIf { it.contains('@') }
