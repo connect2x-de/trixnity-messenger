@@ -9,9 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- File load and save dialogs on iOS targets
+- PDF reader support on iOS
+
 ### Changed
 
+- Bump Compose to 1.8.2
+- Bump FileKit to 0.10.0-beta04
 - Move startMessenger logic for the iOS client in separate function
+- Power Levels now use net.folivo.trixnity.client.user.PowerLevel instead of Long
+- Added Role.CREATOR
+- Change markdown to GFM
 
 ### Deprecated
 
@@ -19,7 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed crash due to scrollbar measuring policy on Android
+- Fixed several translation issues
+
 ### Security
+
+- Support room version 12
 
 ## 3.6.17
 
@@ -80,6 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Correctly indicate overflows in room invite name or matrix ids
+- Fix Android back button closing the app instead of returning to previous view
 
 ## 3.6.13
 

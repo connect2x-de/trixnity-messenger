@@ -767,7 +767,7 @@ class InputAreaViewModelTest {
 
         eventually(300.milliseconds) {
             body shouldBe "https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O."
-            formattedBody shouldBe "<p>https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O.</p>"
+            formattedBody shouldBe "<p><a href=\"https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O\">https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O</a>.</p>"
         }
     }
 

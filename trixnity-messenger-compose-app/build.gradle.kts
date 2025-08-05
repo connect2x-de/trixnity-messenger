@@ -1,3 +1,4 @@
+import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.isCI
 import de.connect2x.conventions.registerMultiplatformLicensesTasks
 import org.gradle.internal.extensions.stdlib.capitalized
@@ -6,14 +7,16 @@ import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.compose.multiplatform)
-    alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.aboutlibraries.plugin)
+    alias(sharedLibs.plugins.kotlin.multiplatform)
+    alias(sharedLibs.plugins.android.application)
+    alias(sharedLibs.plugins.compose.multiplatform)
+    alias(sharedLibs.plugins.compose.compiler)
+    alias(sharedLibs.plugins.aboutLibraries.plugin)
     // TODO active when you want to use google-services for notifications (needs google-services.json)
     // alias(libs.plugins.google.services)
 }
+
+configureJava(sharedLibs.versions.targetJvm)
 
 val version = libs.versions.trixnityMessengerApp.get()
 val appName = libs.versions.appName.get()
@@ -109,8 +112,8 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            export(libs.decompose)
-            export(libs.essenty.lifecycle)
+            export(sharedLibs.decompose)
+            export(sharedLibs.essenty.lifecycle)
             baseName = "TrixnityMessengerUI"
             isStatic = true
         }
@@ -121,8 +124,8 @@ kotlin {
             dependencies {
                 implementation(projects.trixnityMessengerComposeView)
                 implementation(compose.components.resources)
-                api(libs.decompose) // needed for export to iOS
-                api(libs.essenty.lifecycle) // needed for export to iOS
+                api(sharedLibs.decompose) // needed for export to iOS
+                api(sharedLibs.essenty.lifecycle) // needed for export to iOS
             }
         }
         val desktopMain by getting {
@@ -138,13 +141,17 @@ kotlin {
                     implementation(compose.desktop.currentOs)
                 }
                 implementation(libs.logback.classic)
-                implementation(libs.kotlinx.coroutines.swing)
+                implementation(sharedLibs.kotlinx.coroutines.swing)
             }
         }
         androidMain {
             dependencies {
                 implementation(compose.uiTooling)
-                implementation(libs.bundles.android.common)
+                implementation(sharedLibs.androidx.appcompat)
+                implementation(sharedLibs.androidx.work.runtime.ktx)
+                implementation(sharedLibs.androidx.lifecycle.livedata.ktx)
+                implementation(sharedLibs.androidx.activity.compose)
+                implementation(libs.logback.android)
                 implementation(libs.slf4j.api)
                 implementation(project.dependencies.platform(libs.firebase.bom))
                 implementation(libs.firebase.messaging.ktx)
@@ -158,11 +165,17 @@ kotlin {
     }
 }
 
+val distributionJavaHome = System.getenv("DIST_JAVA_HOME") ?: javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(sharedLibs.versions.distributionJvm.get().toInt())
+    vendor = JvmVendorSpec.ADOPTIUM
+}.get().metadata.installationPath.asFile.absolutePath
+
 compose {
     desktop {
         application {
             mainClass = "$appId.desktop.MainKt"
             jvmArgs("-Xmx1G", "-XX:+HeapDumpOnOutOfMemoryError")
+            javaHome = distributionJavaHome
             buildTypes.release.proguard {
                 isEnabled = false
             }
@@ -192,13 +205,12 @@ compose {
 
 android {
     namespace = appId
-    compileSdk = libs.versions.androidCompileSDK.get().toInt()
+    compileSdk = sharedLibs.versions.androidCompileSDK.get().toInt()
     buildFeatures {
         compose = true
     }
     defaultConfig {
-        minSdk = libs.versions.androidMinimalSDK.get().toInt()
-        targetSdk = libs.versions.androidTargetSDK.get().toInt()
+        minSdk = sharedLibs.versions.androidMinimalSDK.get().toInt()
         resValue("string", "app_name", appName)
         resValue("string", "scheme", appId)
     }

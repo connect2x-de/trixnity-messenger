@@ -20,11 +20,10 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.JsFileDescriptor
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.vinceglb.filekit.core.FileKit
-import io.github.vinceglb.filekit.core.PickerMode
-import io.github.vinceglb.filekit.core.PickerType
-import io.github.vinceglb.filekit.core.PickerType.Image
-import io.github.vinceglb.filekit.core.PickerType.ImageAndVideo
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.openFilePicker
 import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
 import net.folivo.trixnity.client.media.opfs.OpfsPlatformMedia
@@ -36,7 +35,6 @@ import web.url.URL
 import web.window.WindowTarget
 import kotlin.time.Duration.Companion.seconds
 
-
 private val log = KotlinLogging.logger {}
 
 /**
@@ -46,8 +44,8 @@ private val log = KotlinLogging.logger {}
  * then provides a `FileDescriptor` with the byte stream.
  * @param onCloseLoadFileDialog is invoked on completion or conclusion
  * of the file picker.
- * @param mode indicates to the file picker what type of file or media
- * is being considered for file selection.
+ * @param availableTypes indicates to the file picker which types of files
+ * or media are being considered for file selection.
  */
 @Composable
 actual fun LoadFileDialog(
@@ -57,18 +55,14 @@ actual fun LoadFileDialog(
 ) {
     val i18n = DI.get<I18nView>()
     LaunchedEffect(Unit) {
-        FileKit.pickFile(
+        FileKit.openFilePicker(
             type = when {
-                availableTypes.size == 1 && availableTypes.first() == IMAGE_FILE -> Image
-                availableTypes.size == 1 && availableTypes.first() == IMAGE_AND_VIDEO_FILE -> ImageAndVideo
-                else -> PickerType.File()
+                availableTypes.size == 1 && availableTypes.first() == IMAGE_FILE -> FileKitType.Image
+                availableTypes.size == 1 && availableTypes.first() == IMAGE_AND_VIDEO_FILE -> FileKitType.ImageAndVideo
+                else -> FileKitType.File()
             },
-            mode = PickerMode.Single,
-            title = i18n.fileDialogTitleLoad(),
-            initialDirectory = when {
-                availableTypes.size == 1 && availableTypes.first() == IMAGE_FILE -> "pictures"
-                else -> "downloads"
-            },
+            mode = FileKitMode.Single,
+            title = i18n.fileDialogTitleLoad()
         )?.let { file ->
             try {
                 val descriptor = JsFileDescriptor(file.file as File)
