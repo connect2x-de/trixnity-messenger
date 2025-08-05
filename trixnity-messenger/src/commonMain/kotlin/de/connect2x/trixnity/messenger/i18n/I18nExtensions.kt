@@ -11,6 +11,5 @@ fun RoomOutboxMessage.SendError.getErrorMessage(i18n: I18n) : String? {
         is RoomOutboxMessage.SendError.Unknown -> i18n.sendErrorUnknown(this.errorResponse?.error)
         RoomOutboxMessage.SendError.EncryptionAlgorithmNotSupported -> i18n.sendErrorUnknown(this.toString())
         is RoomOutboxMessage.SendError.EncryptionError -> i18n.sendErrorUnknown(this.reason)
-        null -> null
     }
 }
