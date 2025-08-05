@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Web client: sync is not stopped when tab or browser loses focus
 - Fix OOM gradle dependencies tasks
+- AccountsOverview glitching out on long MXIDs
 
 ## 3.6.16
 
