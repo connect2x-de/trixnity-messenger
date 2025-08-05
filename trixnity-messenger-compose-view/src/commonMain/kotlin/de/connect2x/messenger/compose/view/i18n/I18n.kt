@@ -841,6 +841,11 @@ open class I18nView(
         DE - "Diese Aktion kann eventuell nicht mehr rückgängig gemacht werden."
     }
 
+    open fun userProfileRoleCreator() = translate {
+        EN - "room creator"
+        DE - "Raumersteller"
+    }
+
     open fun userProfileRoleAdministrator() = translate {
         EN - "administrator"
         DE - "Administrator"
@@ -872,7 +877,7 @@ open class I18nView(
     }
 
     open fun userProfileNoteText() = translate {
-        EN - """Every user in a chat/group is given a value between 0 and 100.
+        EN - """Every user in a chat/group has a given power level (number).
             |This value determines the rights a user has in this chat or group.
             |
             |The higher the value, the more rights a user has.
@@ -880,7 +885,7 @@ open class I18nView(
             |
             |Standard values are: 0 (user), 50 (moderator) and 100 (administrator).
         """.trimMargin()
-        DE - """Jedem Nutzer in einem Chat/Gruppe wird ein Wert zwischen 0 und 100 zugewiesen.
+        DE - """Jedem Nutzer in einem Chat/Gruppe hat ein Berechtigungslevel (Zahl).
             |Dieser Wert bestimmt welche Rechte ein Nutzer in diesem Chat oder dieser Gruppe besitzt.
             |
             |Je höher dieser Wert ist, desto mehr Rechte besitzt der Nutzer.

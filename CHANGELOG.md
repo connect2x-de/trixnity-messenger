@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump Compose to 1.8.2
 - Bump FileKit to 0.10.0-beta04
 - Move startMessenger logic for the iOS client in separate function
+- Power Levels now use net.folivo.trixnity.client.user.PowerLevel instead of Long
+- Added Role.CREATOR
+- Change markdown to GFM
 
 ### Deprecated
 
@@ -28,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed several translation issues
 
 ### Security
+
+- Support room version 12
 
 ## 3.6.17
 

@@ -98,7 +98,7 @@ open class MemberListViewModelImpl(
                         }.thenByDescending { roomUser ->
                             matrixClient.user.getPowerLevel(
                                 roomUser.userId,
-                                createEvent.sender,
+                                createEvent,
                                 powerLevels
                             )
                         }

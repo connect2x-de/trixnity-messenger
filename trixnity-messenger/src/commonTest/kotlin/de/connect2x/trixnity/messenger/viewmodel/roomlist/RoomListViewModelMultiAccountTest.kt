@@ -126,8 +126,8 @@ class RoomListViewModelMultiAccountTest {
     private lateinit var di: Koin
     private lateinit var matrixClients: MutableStateFlow<Map<UserId, MatrixClient>>
 
-    private val roomCreateEventContent = CreateEventContent(creator = me1, type = RoomType.Room)
-    private val spaceCreateEventContent = CreateEventContent(creator = me1, type = RoomType.Space)
+    private val roomCreateEventContent = CreateEventContent(type = RoomType.Room)
+    private val spaceCreateEventContent = CreateEventContent(type = RoomType.Space)
 
     init {
         lifecycleRegistry.resume()
@@ -239,7 +239,7 @@ class RoomListViewModelMultiAccountTest {
             )
         } returns flowOf(
             StateEvent(
-                content = CreateEventContent(creator = me1),
+                content = CreateEventContent(),
                 id = EventId(""),
                 sender = me1,
                 roomId = roomId1,
@@ -253,7 +253,7 @@ class RoomListViewModelMultiAccountTest {
             )
         } returns flowOf(
             StateEvent(
-                content = CreateEventContent(creator = me2),
+                content = CreateEventContent(),
                 id = EventId(""),
                 sender = me2,
                 roomId = roomId1,
@@ -267,7 +267,7 @@ class RoomListViewModelMultiAccountTest {
             )
         } returns flowOf(
             StateEvent(
-                content = CreateEventContent(creator = me3),
+                content = CreateEventContent(),
                 id = EventId(""),
                 sender = me3,
                 roomId = roomId1,
@@ -417,7 +417,7 @@ class RoomListViewModelMultiAccountTest {
             roomServiceMock3.getState(roomId5, CreateEventContent::class, "")
         } returns flowOf(
             StateEvent(
-                CreateEventContent(user2),
+                CreateEventContent(),
                 EventId("\$event-a"),
                 user2,
                 roomId5,
@@ -735,7 +735,6 @@ class RoomListViewModelMultiAccountTest {
         every { roomServiceMock1.getState(spaceId1, CreateEventContent::class, "") } returns flowOf(
             StateEvent(
                 CreateEventContent(
-                    creator = me1,
                     federate = false,
                     roomVersion = "",
                     type = RoomType.Space,
