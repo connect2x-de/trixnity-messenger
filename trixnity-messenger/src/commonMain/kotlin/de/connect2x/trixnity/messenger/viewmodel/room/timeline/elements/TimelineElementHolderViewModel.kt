@@ -145,7 +145,6 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val canBeReactedTo: StateFlow<Boolean>
 
     val isReplaced: StateFlow<Boolean>
-    val errorIfReplaced: StateFlow<String?>
 
     val canBeEdited: StateFlow<Boolean>
     val canBeRedacted: StateFlow<Boolean>
@@ -253,7 +252,7 @@ class TimelineElementHolderViewModelImpl(
         outboxElementIfReplaced.map { (it?.content?.relatesTo as? RelatesTo.Replace)?.newContent }
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
-    override val errorIfReplaced = outboxElementIfReplaced.filterNotNull().map { outboxElement ->
+    override val sendError = outboxElementIfReplaced.filterNotNull().map { outboxElement ->
         outboxElement.sendError?.getErrorMessage(i18n)
     }.stateIn(coroutineScope, WhileSubscribed(), null)
 
@@ -618,7 +617,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val readers: MutableStateFlow<List<UserInfoElement>> = MutableStateFlow(listOf())
     override val canBeReactedTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val errorIfReplaced: StateFlow<String?> = MutableStateFlow(null)
+    override val sendError: StateFlow<String?> = MutableStateFlow(null)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -671,7 +670,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val readers: MutableStateFlow<List<UserInfoElement>> = MutableStateFlow(listOf())
     override val canBeReactedTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val errorIfReplaced: StateFlow<String?> = MutableStateFlow(null)
+    override val sendError: StateFlow<String?> = MutableStateFlow(null)
     override val isReply: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)

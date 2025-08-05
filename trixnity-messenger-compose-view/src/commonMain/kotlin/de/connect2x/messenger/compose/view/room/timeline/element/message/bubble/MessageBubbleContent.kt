@@ -35,8 +35,6 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
 private object MessageBubbleMeasurePolicy : MeasurePolicy {
     val spacing = 10.dp
@@ -127,10 +125,7 @@ fun MessageBubbleContent(
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     val highlight = holder.asTimelineElementHolder()?.highlight?.collectAsState()?.value == true
-    val sendError = when (holder) {
-        is OutboxElementHolderViewModel -> holder.sendError.collectAsState().value
-        is TimelineElementHolderViewModel -> holder.errorIfReplaced.collectAsState().value
-    }
+    val sendError = holder.sendError.collectAsState().value
     val showSender = holder.showSender.collectAsState().value == true
     val isReplaced = holder.asTimelineElementHolder()?.isReplaced?.collectAsState()?.value == true
     val hasRepliedElement = holder.isReply.collectAsState().value == true

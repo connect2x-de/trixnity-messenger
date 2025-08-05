@@ -731,9 +731,9 @@ class TimelineElementHolderViewModelTest {
         }
         val cut = cut(eventId = eventId)
 
-        cut.errorIfReplaced.launchIn(backgroundScope)
+        cut.sendError.launchIn(backgroundScope)
         eventually(100.milliseconds) {
-            cut.errorIfReplaced.value shouldNotBe null
+            cut.sendError.value shouldNotBe null
         }
 
     }

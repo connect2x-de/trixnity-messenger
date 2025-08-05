@@ -84,7 +84,6 @@ interface OutboxElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val transactionId: String
 
     val uploadProgress: StateFlow<FileTransferProgressElement?>
-    val sendError: StateFlow<String?>
 
     val canRetrySend: StateFlow<Boolean>
     val canAbortSend: StateFlow<Boolean>
