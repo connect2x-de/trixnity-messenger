@@ -22,7 +22,7 @@ plugins {
     alias(libs.plugins.google.services) apply false
     alias(libs.plugins.seskar) apply false
     `maven-publish`
-    alias(libs.plugins.c2xConventions)
+    alias(sharedLibs.plugins.c2xConventions)
 }
 
 allprojects {
