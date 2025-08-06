@@ -116,7 +116,7 @@ class MatrixClientsImpl(
                     password = password,
                     type = LoginType.Password,
                     initialDeviceDisplayName = initialDeviceDisplayName,
-                    refreshToken = true,
+                    refreshToken = config.useRefreshTokens,
                 ).getOrThrow().let { login ->
                     LoginInfo(
                         userId = login.userId,
@@ -144,7 +144,7 @@ class MatrixClientsImpl(
                     token = token,
                     type = LoginType.Token(),
                     initialDeviceDisplayName = initialDeviceDisplayName,
-                    refreshToken = true,
+                    refreshToken = config.useRefreshTokens,
                 ).getOrThrow().let { login ->
                     LoginInfo(
                         userId = login.userId,
