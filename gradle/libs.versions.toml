@@ -1,7 +1,5 @@
 [versions]
 
-c2xConventions = "49969555" # https://gitlab.com/connect2x/c2x-conventions/-/packages
-
 trixnityMessenger = "3.6.18"
 trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
@@ -73,6 +71,5 @@ testcontainers = ["testcontainers", "testcontainers-junit-jupiter"]
 
 [plugins]
 
-c2xConventions = { id = "de.connect2x.conventions.c2x-conventions", version.ref = "c2xConventions" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 seskar = { id = "io.github.turansky.seskar", version.ref = "seskar" }
