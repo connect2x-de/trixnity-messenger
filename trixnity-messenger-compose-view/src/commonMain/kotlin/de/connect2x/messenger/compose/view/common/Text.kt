@@ -29,6 +29,6 @@ fun SelectableText(
     color: Color = Color.Unspecified
     ) {
     SelectionContainer(modifier) {
-        Text(text, style = style, maxLines = maxLines, overflow = overflow, softWrap = softWrap, fontWeight = fontWeight)
+        Text(text, style = style, maxLines = maxLines, overflow = overflow, softWrap = softWrap, fontWeight = fontWeight, color = color)
     }
 }
