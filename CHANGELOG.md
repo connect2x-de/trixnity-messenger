@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - File load and save dialogs on iOS targets
 - PDF reader support on iOS
+- Tooltip for MXID and Username in Avatar Display Section
 
 ### Changed
 
@@ -25,10 +26,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Length Constraint for MXIDs in AccountsOverview and Profilepicker
+
 ### Fixed
 
 - Fixed crash due to scrollbar measuring policy on Android
 - Fixed several translation issues
+- AccountsOverview glitching out on long MXIDs
 
 ### Security
 
@@ -47,7 +51,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Web client: sync is not stopped when tab or browser loses focus
 - Fix OOM gradle dependencies tasks
-- AccountsOverview glitching out on long MXIDs
 
 ## 3.6.16
 
