@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed crash due to scrollbar measuring policy on Android
 - Fixed several translation issues
+- Show error messages when replacing events
 
 ### Security
 

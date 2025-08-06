@@ -1000,7 +1000,7 @@ open class I18n(
 
     open fun sendErrorUnknown(errorMessage: String?) = translate {
         EN - "There was an unexpected error sending the message${if (errorMessage == null) "." else ": $errorMessage"}"
-        DE - "Es gab einen unbekannten Fehler beim Absenden Ihrer Nachricht${if (errorMessage == null) "." else ": $errorMessage"}\""
+        DE - "Es gab einen unbekannten Fehler beim Absenden Ihrer Nachricht${if (errorMessage == null) "." else ": $errorMessage"}"
     }
 
     open fun attachmentSizeMaxSizeError(attachmentMaxSize: Long) = translate {
