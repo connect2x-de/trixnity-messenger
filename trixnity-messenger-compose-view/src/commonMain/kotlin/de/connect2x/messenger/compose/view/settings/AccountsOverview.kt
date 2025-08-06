@@ -41,6 +41,7 @@ import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.SelectableText
+import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -95,12 +96,19 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                                         .padding(end = 5.dp)
                                 )
                                 Column(Modifier.weight(1.0f, fill = true)) {
-                                    SelectableText(
-                                        accountInfo.displayName,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.padding(horizontal = 10.dp),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.StartEllipsis
+                                    Tooltip(
+                                        tooltip = {
+                                            TooltipText { accountInfo.displayName }
+                                        },
+                                        content = {
+                                            Text(
+                                                accountInfo.displayName,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                modifier = Modifier.padding(horizontal = 10.dp),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.StartEllipsis
+                                            )
+                                        }
                                     )
 
                                     SelectableText(

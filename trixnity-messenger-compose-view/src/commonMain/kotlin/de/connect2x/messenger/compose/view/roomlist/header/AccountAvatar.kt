@@ -120,17 +120,31 @@ fun AvatarArea(
         ThemedUserAvatar(accountInfo.initials, accountInfo.avatar)
         Spacer(Modifier.size(10.dp))
         Column {
-            Text(
-                accountInfo.displayName,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium,
+            Tooltip(
+                tooltip = {
+                    TooltipText { accountInfo.displayName }
+                },
+                content = {
+                    Text(
+                        accountInfo.displayName,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
             )
-            Text(
-                accountInfo.userId.full,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.labelMedium,
+            Tooltip(
+                tooltip = {
+                    TooltipText { accountInfo.userId.full }
+                },
+                content = {
+                    Text(
+                        accountInfo.userId.full,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                }
             )
         }
     }
@@ -234,16 +248,23 @@ fun AccountMenuItem(
                 ThemedUserAvatar(accountInfo.initials, accountInfo.avatar)
                 Spacer(Modifier.size(10.dp))
                 Column {
-                    Text(
-                        accountInfo.displayName,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        style = MaterialTheme.typography.titleMedium,
+                    Tooltip(
+                        tooltip = {
+                            TooltipText { accountInfo.displayName }
+                        },
+                        content = {
+                            Text(
+                                accountInfo.displayName,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        }
                     )
+
                     Text(
                         accountInfo.userId.full,
-                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         color = MaterialTheme.colorScheme.onBackground,
                         style = MaterialTheme.typography.labelMedium,

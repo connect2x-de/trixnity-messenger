@@ -26,6 +26,7 @@ fun SelectableText(
     overflow: TextOverflow = TextOverflow.Clip,
     softWrap: Boolean = true,
     fontWeight: FontWeight? = null,
+    color: Color = Color.Unspecified
     ) {
     SelectionContainer(modifier) {
         Text(text, style = style, maxLines = maxLines, overflow = overflow, softWrap = softWrap, fontWeight = fontWeight)
