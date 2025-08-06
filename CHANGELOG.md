@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Power Levels now use net.folivo.trixnity.client.user.PowerLevel instead of Long
 - Added Role.CREATOR
 - Change markdown to GFM
+- Bump c2x Conventions to 50375801
 
 ### Deprecated
 
