@@ -212,7 +212,6 @@ class RoomListElementViewModelTest {
                 roomId,
                 isDirect = false,
                 encrypted = true,
-                unreadMessageCount = 0,
                 membership = Membership.INVITE,
                 membersLoaded = false,
             )

@@ -52,7 +52,7 @@ class ShareFilesViewModelTest {
 
     private val ourUserId = UserId("me", "localhost")
     private val ourRoomId = RoomId("!myroom")
-    private val ourRoom = Room(roomId = ourRoomId, unreadMessageCount = 0L)
+    private val ourRoom = Room(roomId = ourRoomId)
 
     val matrixClientMock = mock<MatrixClient>()
 
