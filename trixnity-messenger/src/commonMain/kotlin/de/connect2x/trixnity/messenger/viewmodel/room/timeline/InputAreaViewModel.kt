@@ -64,7 +64,6 @@ import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-import net.folivo.trixnity.core.util.References
 import net.folivo.trixnity.utils.concurrentMutableMap
 import org.intellij.markdown.ast.ASTNode
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
@@ -302,7 +301,7 @@ open class InputAreaViewModelImpl(
             val text = textField.value.text
             textField.update("")
             coroutineScope.launch {
-                val references = References.findReferences(text)
+                val references = TrixnityReference.findReferences(text)
                 val userReferences =
                     references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
                 val formattedReferences =
