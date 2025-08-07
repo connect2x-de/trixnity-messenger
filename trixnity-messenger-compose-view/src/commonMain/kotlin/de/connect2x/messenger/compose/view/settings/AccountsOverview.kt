@@ -106,7 +106,7 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                                                 style = MaterialTheme.typography.titleMedium,
                                                 modifier = Modifier.padding(horizontal = 10.dp),
                                                 maxLines = 1,
-                                                overflow = TextOverflow.StartEllipsis
+                                                overflow = TextOverflow.Ellipsis
                                             )
                                         }
                                     )

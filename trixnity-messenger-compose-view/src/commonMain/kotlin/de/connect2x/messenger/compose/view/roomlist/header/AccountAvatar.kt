@@ -265,7 +265,6 @@ fun AccountMenuItem(
 
                     Text(
                         accountInfo.userId.full,
-                        overflow = TextOverflow.Ellipsis,
                         color = MaterialTheme.colorScheme.onBackground,
                         style = MaterialTheme.typography.labelMedium,
                     )
