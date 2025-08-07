@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change markdown to GFM
 - Don't use refresh tokens by default
 - Bump c2x Conventions to 50375801
+- Improved Reference/Link parsing
 
 ### Deprecated
 
