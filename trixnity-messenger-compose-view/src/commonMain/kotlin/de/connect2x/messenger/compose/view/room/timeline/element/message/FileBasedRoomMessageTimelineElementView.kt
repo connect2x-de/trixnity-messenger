@@ -50,7 +50,7 @@ interface FileBasedRoomMessageTimelineElementView {
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
         isPreview: Boolean,
         displayProgressOverElement: Boolean,
-        overlay: (@Composable BoxScope.() -> Unit)? = null,
+        overlay: (@Composable BoxScope.() -> Unit)?,
         content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     )
 }
