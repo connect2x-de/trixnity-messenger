@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - File load and save dialogs on iOS targets
 - PDF reader support on iOS
+- MatrixMessengerConfiguration for toggling refresh tokens
 - Captions for Media messages
 
 ### Changed
@@ -18,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump Compose to 1.8.2
 - Bump FileKit to 0.10.0-beta04
 - Move startMessenger logic for the iOS client in separate function
+- Power Levels now use net.folivo.trixnity.client.user.PowerLevel instead of Long
+- Added Role.CREATOR
+- Change markdown to GFM
+- Don't use refresh tokens by default
+- Bump c2x Conventions to 50375801
+- Improved Reference/Link parsing
 
 ### Deprecated
 
@@ -27,11 +34,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed crash due to scrollbar measuring policy on Android
 - Fixed several translation issues
+- Show error messages when replacing events
 - UI spacing for file-timeline-elements
 - Mentions List calculated even though mention was already selected
 - Crash when selecting mention if cursorPosition=0
 
 ### Security
+
+- Support room version 12
 
 ## 3.6.17
 
@@ -41,8 +51,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show correct feedback when getting no search results in the room list
 - Labels for text fields are always on
 - Adapt to trixnity References-API changes
-
-- Overlay on all file-timeline-elements except Videos and Images
 
 ### Fixed
 

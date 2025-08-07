@@ -1,7 +1,5 @@
 [versions]
 
-c2xConventions = "49969555" # https://gitlab.com/connect2x/c2x-conventions/-/packages
-
 trixnityMessenger = "3.6.18"
 trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
@@ -9,7 +7,7 @@ appId = "de.connect2x.messenger"
 
 seskar = "4.9.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
-trixnity = "4.19.0" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.20.0-DEV-50490399" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "2.0.1" # https://gitlab.com/connect2x/sysnotify/-/packages
 
 okio = "3.13.0" # https://square.github.io/okio/changelog
@@ -73,6 +71,5 @@ testcontainers = ["testcontainers", "testcontainers-junit-jupiter"]
 
 [plugins]
 
-c2xConventions = { id = "de.connect2x.conventions.c2x-conventions", version.ref = "c2xConventions" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 seskar = { id = "io.github.turansky.seskar", version.ref = "seskar" }

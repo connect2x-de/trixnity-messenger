@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.util.html
 
 import net.folivo.trixnity.core.util.Reference
-import net.folivo.trixnity.core.util.References
 
 class MatrixMentionVisitor {
     private val taskQueue = mutableListOf<HtmlNode>()
@@ -31,7 +30,7 @@ class MatrixMentionVisitor {
             val href = node.attributes["href"]
             if (href != null) {
                 if (!mentions.containsKey(href)) {
-                    val link = References.findLinkReferences(href).values.firstOrNull()
+                    val link = Reference.parseLink(href)
                     if (link != null) {
                         mentions.put(href, link)
                     }

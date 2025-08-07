@@ -53,6 +53,7 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.room.TimelineStateChange
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.user.PowerLevel
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -188,14 +189,14 @@ class RoomViewModelTest {
         every { userServiceMock.canKickUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canBanUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canUnbanUser(roomId, any()) } returns MutableStateFlow(false)
-        every { userServiceMock.canSetPowerLevelToMax(roomId, any()) } returns MutableStateFlow(0L)
+        every { userServiceMock.canSetPowerLevelToMax(roomId, any()) } returns MutableStateFlow(PowerLevel.User(0L))
         every { userServiceMock.getAccountData(DirectEventContent::class, "") } returns
                 MutableStateFlow(null)
         every { userServiceMock.getAccountData(IgnoredUserListEventContent::class, "") } returns
                 MutableStateFlow(null)
         every { userServiceMock.getAccountData(PushRulesEventContent::class, "") } returns
                 MutableStateFlow(null)
-        every { userServiceMock.getPowerLevel(any(), any()) } returns MutableStateFlow(50)
+        every { userServiceMock.getPowerLevel(any(), any()) } returns MutableStateFlow(PowerLevel.User(50))
         every { userServiceMock.canSendEvent(any(), any<KClass<out RoomEventContent>>()) } returns flowOf(true)
         every { userServiceMock.getReceiptsById(any(), any()) } returns flowOf(null)
         every { minimizeMessengerMock.invoke() } returns Unit

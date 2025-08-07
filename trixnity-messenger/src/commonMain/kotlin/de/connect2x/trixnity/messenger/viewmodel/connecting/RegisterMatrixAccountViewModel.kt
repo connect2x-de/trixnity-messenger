@@ -102,7 +102,7 @@ class RegisterMatrixAccountViewModelImpl(
                             username = username.textValue,
                             password = password.textValue,
                             initialDeviceDisplayName = getDefaultDeviceDisplayName(),
-                            refreshToken = true,
+                            refreshToken = get<MatrixMessengerConfiguration>().useRefreshTokens,
                         )
                     }
                 }

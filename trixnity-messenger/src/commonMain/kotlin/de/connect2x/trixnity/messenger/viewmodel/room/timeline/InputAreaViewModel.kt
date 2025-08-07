@@ -64,10 +64,9 @@ import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-import net.folivo.trixnity.core.util.References
 import net.folivo.trixnity.utils.concurrentMutableMap
 import org.intellij.markdown.ast.ASTNode
-import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
+import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.html.HtmlGenerator.TagRenderer
 import org.intellij.markdown.parser.MarkdownParser
@@ -201,7 +200,7 @@ open class InputAreaViewModelImpl(
     override val listOfMentionsLoading: StateFlow<Boolean> = _listOfMentionsLoading.asStateFlow()
 
     override val useMarkdown = MutableStateFlow(true)
-    private val markdownFlavourDescriptor = CommonMarkFlavourDescriptor()
+    private val markdownFlavourDescriptor = GFMFlavourDescriptor()
     private val markdownParser = MarkdownParser(markdownFlavourDescriptor)
 
     private class HtmlTagRenderer() : TagRenderer {
@@ -302,7 +301,7 @@ open class InputAreaViewModelImpl(
             val text = textField.value.text
             textField.update("")
             coroutineScope.launch {
-                val references = References.findReferences(text)
+                val references = TrixnityReference.findReferences(text)
                 val userReferences =
                     references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
                 val formattedReferences =

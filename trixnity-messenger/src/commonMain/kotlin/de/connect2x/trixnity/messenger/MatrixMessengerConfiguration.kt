@@ -100,6 +100,11 @@ data class MatrixMessengerConfiguration(
     var downloadsDisabled: Boolean = false,
 
     /**
+     * Whether the messenger uses refresh tokens or access tokens.
+     */
+    var useRefreshTokens: Boolean = false,
+
+    /**
      * Specify a [HttpClientEngine]. It is highly recommended to set it and share it within an application.
      */
     override var httpClientEngine: HttpClientEngine? = null,

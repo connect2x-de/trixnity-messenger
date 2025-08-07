@@ -27,6 +27,7 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
+import net.folivo.trixnity.client.user.PowerLevel
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
@@ -55,7 +56,7 @@ class RoomSettingsViewModelTest {
     )
 
     private val powerLevelsEventContent = PowerLevelsEventContent(users = mapOf(me to 100))
-    private val createEventContent = CreateEventContent(creator = me)
+    private val createEventContent = CreateEventContent()
 
     private val powerLevelEvent = StateEvent(
         powerLevelsEventContent,
@@ -128,7 +129,12 @@ class RoomSettingsViewModelTest {
 
         every { userServiceMock.canInvite(any()) } returns MutableStateFlow(true)
 
-        every { userServiceMock.canSetPowerLevelToMax(eq(roomId), any()) } returns MutableStateFlow(100)
+        every {
+            userServiceMock.canSetPowerLevelToMax(
+                eq(roomId),
+                any()
+            )
+        } returns MutableStateFlow(PowerLevel.User(100))
     }
 
     @Test
