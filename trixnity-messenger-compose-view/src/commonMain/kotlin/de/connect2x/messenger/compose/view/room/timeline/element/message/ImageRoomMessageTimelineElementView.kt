@@ -6,10 +6,12 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -153,7 +155,8 @@ internal fun ColumnScope.MessageImageImpl(
                 .padding(3.dp)
                 .heightIn(
                     50.dp,
-                    with(LocalDensity.current) { 300.dp })
+                    with(LocalDensity.current) { 300.dp }
+                )
                 .clip(
                     RoundedCornerShape(8.dp)
                 )
@@ -182,14 +185,14 @@ internal fun ColumnScope.MessageImageFallback(
 ) {
     val i18n = DI.get<I18nView>()
     Column(
-        modifier = Modifier
-            .padding(10.dp),
+        Modifier.width(IntrinsicSize.Max).padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
             MaterialTheme.messengerIcons.typeImage,
             i18n.commonImage(),
             Modifier
+                .size(64.dp)
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onTap = {
@@ -198,8 +201,7 @@ internal fun ColumnScope.MessageImageFallback(
                         onLongPress = { showActionMenu() },
                     )
                 }
-                .size(64.dp)
-                .buttonPointerModifier()
+                .buttonPointerModifier(),
         )
         FileName(element.name)
     }

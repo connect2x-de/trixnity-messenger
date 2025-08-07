@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -137,8 +137,10 @@ internal fun ColumnScope.VideoMessageContent(
                 it,
                 "",
                 Modifier
-                    .heightIn(64.dp, 400.dp)
-                    .widthIn(64.dp, 400.dp)
+                    .heightIn(
+                        50.dp,
+                        with(LocalDensity.current) { 300.dp }
+                    )
                     .padding(3.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .openVideoOnTouch(element, onSave, showMenuAction)
