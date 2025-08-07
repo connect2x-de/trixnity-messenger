@@ -133,7 +133,6 @@ class RoomNameTest {
             roomId = roomId,
             name = name,
             lastEventId = null,
-            unreadMessageCount = 0,
             membership = membership,
             membersLoaded = false,
         )
