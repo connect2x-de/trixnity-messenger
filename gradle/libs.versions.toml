@@ -1,6 +1,6 @@
 [versions]
 
-trixnityMessenger = "3.6.18"
+trixnityMessenger = "3.7.0"
 trixnityMessengerApp = "1.0.0"
 appName = "Trixnity Messenger"
 appId = "de.connect2x.messenger"
