@@ -40,14 +40,14 @@ class RoomMessageTimelineElementViewModelImplTest {
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
 
-    val roomId = RoomId("!bathroom:example.org") // change once Mentions fixed
-    val roomAliasId = RoomAliasId("bathroom", "example.org")
+    val roomId = RoomId("!bathroom:example")
+    val roomAliasId = RoomAliasId("bathroom", "example")
     val roomInfoElement = RoomInfoElement(
         roomAliasId.full, roomId, "#", null
     )
     val room = Room(roomId)
 
-    val meUserId = UserId("tester", "example.org")
+    val meUserId = UserId("tester", "example")
     val meName = "Tester"
     val meRoomUser = RoomUser(
         roomId, meUserId, meName, event = ClientEvent.RoomEvent.StateEvent(
@@ -92,23 +92,23 @@ class RoomMessageTimelineElementViewModelImplTest {
     @Test
     fun `mentions » find and process userid mention in the body`() = runTest {
         val cut = roomMessageTimelineElementViewModel(body = "Hii $meUserId!! :3")
-        cut.mentionsInBody.keys shouldBe setOf(4..22)
+        cut.mentionsInBody.keys shouldBe setOf(4..18)
 
-        cut.mentionsInBody[4..22]?.firstNotNullWithClue()
+        cut.mentionsInBody[4..18]?.firstNotNullWithClue()
 
         delay(100.milliseconds)
-        cut.mentionsInBody[4..22]?.value shouldBe TimelineElementMention.User(meUserInfoElement)
+        cut.mentionsInBody[4..18]?.value shouldBe TimelineElementMention.User(meUserInfoElement)
     }
 
     @Test
     fun `mentions » find and process roomalias mention in the body`() = runTest {
         val cut = roomMessageTimelineElementViewModel(body = "I'm in $roomAliasId, wbu?")
-        cut.mentionsInBody.keys shouldBe setOf(7..27)
+        cut.mentionsInBody.keys shouldBe setOf(7..23)
 
-        cut.mentionsInBody[7..27]?.firstNotNullWithClue()
+        cut.mentionsInBody[7..23]?.firstNotNullWithClue()
 
         delay(100.milliseconds)
-        cut.mentionsInBody[7..27]?.value shouldBe TimelineElementMention.Room(roomInfoElement)
+        cut.mentionsInBody[7..23]?.value shouldBe TimelineElementMention.Room(roomInfoElement)
     }
 
 
