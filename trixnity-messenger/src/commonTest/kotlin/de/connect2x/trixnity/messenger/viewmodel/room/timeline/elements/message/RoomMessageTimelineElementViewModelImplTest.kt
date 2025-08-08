@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.firstNotNullWithClue
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
@@ -9,11 +10,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
@@ -93,31 +92,23 @@ class RoomMessageTimelineElementViewModelImplTest {
     @Test
     fun `mentions » find and process userid mention in the body`() = runTest {
         val cut = roomMessageTimelineElementViewModel(body = "Hii $meUserId!! :3")
-        cut.mentionsInBody[4..17].shouldNotBeNull()
+        cut.mentionsInBody.keys shouldBe setOf(4..22)
 
-        val job = backgroundScope.launch {
-            cut.mentionsInBody[4..17]?.collect {}
-        }
+        cut.mentionsInBody[4..22]?.firstNotNullWithClue()
 
         delay(100.milliseconds)
-        cut.mentionsInBody[4..17]?.value shouldBe TimelineElementMention.User(meUserInfoElement)
-
-        job.cancel()
+        cut.mentionsInBody[4..22]?.value shouldBe TimelineElementMention.User(meUserInfoElement)
     }
 
     @Test
     fun `mentions » find and process roomalias mention in the body`() = runTest {
         val cut = roomMessageTimelineElementViewModel(body = "I'm in $roomAliasId, wbu?")
-        cut.mentionsInBody[7..22].shouldNotBeNull()
+        cut.mentionsInBody.keys shouldBe setOf(7..27)
 
-        val job = backgroundScope.launch {
-            cut.mentionsInBody[7..22]?.collect {}
-        }
+        cut.mentionsInBody[7..27]?.firstNotNullWithClue()
 
         delay(100.milliseconds)
-        cut.mentionsInBody[7..22]?.value shouldBe TimelineElementMention.Room(roomInfoElement)
-
-        job.cancel()
+        cut.mentionsInBody[7..27]?.value shouldBe TimelineElementMention.Room(roomInfoElement)
     }
 
 
