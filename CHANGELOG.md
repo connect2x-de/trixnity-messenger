@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.7.0
+
+### Added
+
 - File load and save dialogs on iOS targets
 - PDF reader support on iOS
 - MatrixMessengerConfiguration for toggling refresh tokens
@@ -24,10 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't use refresh tokens by default
 - Bump c2x Conventions to 50375801
 - Improved Reference/Link parsing
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
