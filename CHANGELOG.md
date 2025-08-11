@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated Sysnotify to 2.0.2
+
 ### Deprecated
 
 ### Removed
@@ -18,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Don't restart sync on presence change
+- Crash on startup to process file lock on some shared libraries
 
 ### Security
 
