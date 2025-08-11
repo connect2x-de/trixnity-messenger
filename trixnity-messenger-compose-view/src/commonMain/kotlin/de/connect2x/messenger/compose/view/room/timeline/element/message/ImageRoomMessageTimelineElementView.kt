@@ -49,6 +49,7 @@ import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.messenger.compose.view.util.BlurHashDecoder
 import de.connect2x.messenger.compose.view.util.animateImage
+import de.connect2x.messenger.compose.view.util.rememberComputation
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Image
@@ -250,7 +251,8 @@ private fun rememberFallbackPainter(element: Image): Painter? {
             IntSize(width, height)
         }
     }
-    return remember(element.blurhash, thumbnailSize) {
+
+    return rememberComputation(element.blurhash, thumbnailSize) {
         BlurHashDecoder.decode(element.blurhash, thumbnailSize)
             ?.let { BitmapPainter(it) }
     }
@@ -260,7 +262,7 @@ private fun rememberFallbackPainter(element: Image): Painter? {
 @Composable
 private fun rememberImagePainter(element: Image): Painter? {
     val thumbnail = element.thumbnail.collectAsState().value
-    return remember(thumbnail) {
+    return rememberComputation(thumbnail) {
         thumbnail?.toImageBitmap()?.let { BitmapPainter(it) }
     }
 }
