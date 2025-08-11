@@ -32,7 +32,7 @@ class AutoLinkifyVisitor {
 
     private fun visit(node: HtmlNode.TextContent, acc: MutableList<HtmlNode>) {
         var index = 0
-        val matches = Reference.findReferences(node.content)
+        val matches = Reference.findReferences(node.content).entries.sortedBy { it.key.first }
         if (matches.isEmpty()) {
             acc.add(node)
         } else {

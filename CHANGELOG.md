@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Don't restart sync on presence change
+- Crash due to AutoLinkifyVisitor processing Matches out of order
 
 ### Security
 
