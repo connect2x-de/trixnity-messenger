@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Don't restart sync on presence change
-- Crash on startup to process file lock on some shared libraries
+- Crash on startup due to process file lock on some shared libraries
 
 ### Security
 
