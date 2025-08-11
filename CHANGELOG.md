@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Timeline stuttering due to large images
+
 ### Security
 
 ## 3.7.1
