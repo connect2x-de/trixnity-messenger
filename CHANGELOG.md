@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Removed legacy key chain
+
 ### Fixed
 
 - Don't restart sync on presence change

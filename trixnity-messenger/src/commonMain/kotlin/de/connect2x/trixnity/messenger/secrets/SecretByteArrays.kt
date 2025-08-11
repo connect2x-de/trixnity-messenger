@@ -34,9 +34,6 @@ interface SecretByteArrays {
     )
 
     suspend fun getInputKeyAndExtra(providerId: String): GetInputKeyAndExtraResult
-
-    @Deprecated("for backwards compatibility") // TODO function can be removed in future
-    suspend fun getLegacy(secretByteArray: SecretByteArray): ByteArray
 }
 
 class SecretByteArraysImpl(
@@ -211,30 +208,6 @@ class SecretByteArraysImpl(
         return SecretByteArrays.GetInputKeyAndExtraResult(inputKey, extra)
     }
 
-    @Suppress("DEPRECATION")
-    @Deprecated("for backwards compatibility")
-    override suspend fun getLegacy(secretByteArray: SecretByteArray): ByteArray {
-        log.debug { "getLegacy SecretByteArray" }
-        return when (secretByteArray) {
-            is SecretByteArray.AesHmacSha2 -> {
-                val getSecretByteArrayKey =
-                    getLegacyKey()
-                        ?: throw SecretByteArrayException("getLegacy: could not find secret key")
-                decryptAesHmacSha2(
-                    content = AesHmacSha2EncryptedData(
-                        iv = secretByteArray.iv,
-                        ciphertext = secretByteArray.ciphertext,
-                        mac = secretByteArray.mac,
-                    ),
-                    key = getSecretByteArrayKey,
-                    name = "secret"
-                )
-            }
-
-            is SecretByteArray.Unencrypted -> secretByteArray.value
-        }
-    }
-
     private suspend fun getKey(size: Int): ByteArray? {
         val secretByteArraySettings = getSettingsOrInitialize()
         val secretByteArrayKeyInfos = secretByteArraySettings.keyInfo
@@ -270,35 +243,6 @@ class SecretByteArraysImpl(
             }
             provider
         }
-    }
-
-    @Suppress("DEPRECATION")
-    @Deprecated("for backwards compatibility")
-    private suspend fun getLegacyKey(): ByteArray? {
-        log.debug { "getLegacyKey" }
-        val secretByteArrayKeyFromSettings = settings.value.base.secretByteArrayKey ?: return null
-        val secretByteArrayKey = when (secretByteArrayKeyFromSettings) {
-            is LegacySecretByteArrayKey.AesHmacSha2 -> {
-                val secretByteArrayKeyKey =
-                    secretByteArrayKeyProviders.reversed().firstNotNullOfOrNull { secretByteArrayKeyProvider ->
-                        log.info { "try getLegacyKey from ${secretByteArrayKeyProvider.id}" }
-                        secretByteArrayKeyProvider.getLegacy()
-                    } ?: return null
-                decryptAesHmacSha2(
-                    content = AesHmacSha2EncryptedData(
-                        iv = secretByteArrayKeyFromSettings.iv,
-                        ciphertext = secretByteArrayKeyFromSettings.ciphertext,
-                        mac = secretByteArrayKeyFromSettings.mac,
-                    ),
-                    key = secretByteArrayKeyKey,
-                    name = "secret"
-                )
-            }
-
-            is LegacySecretByteArrayKey.Unencrypted -> secretByteArrayKeyFromSettings.value
-        }
-        rotateKeys(secretByteArrayKey, null, null)
-        return secretByteArrayKey
     }
 }
 
