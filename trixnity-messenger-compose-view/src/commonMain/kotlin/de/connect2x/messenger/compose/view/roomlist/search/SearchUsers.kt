@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.roomlist.search
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get

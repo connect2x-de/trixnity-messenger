@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
@@ -45,6 +47,13 @@ interface UserSearchResultListView {
         userSearchHandler: UserSearchHandler,
         shouldScroll: Boolean,
         userClickReaction: (SearchUserElement) -> Unit,
+    )
+
+    fun lazyListCreate(
+        userSearchHandler: UserSearchHandler,
+        userClickReaction: (SearchUserElement) -> Unit,
+        users: List<SearchUserElement>,
+        scope: LazyListScope
     )
 }
 
@@ -120,7 +129,57 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
             }
         }
     }
+
+
+    override fun lazyListCreate(
+        userSearchHandler: UserSearchHandler,
+        userClickReaction: (SearchUserElement) -> Unit,
+        users: List<SearchUserElement>,
+        scope: LazyListScope
+    ) {
+        with(scope) {
+            item("waitForResultsSpinner") {
+                val waitForResults = userSearchHandler.waitForUserResults.collectAsState().value
+                if (waitForResults) {
+                    LoadingSpinner()
+                }
+            }
+            item("emptySearchResultsList") {
+                val i18n = DI.get<I18nView>()
+
+                val searchWasApplied =
+                    remember { userSearchHandler.searchTerm.map { it.text.isNotBlank() } }.collectAsState(false).value
+                val waitForResults = userSearchHandler.waitForUserResults.collectAsState().value
+                val users = userSearchHandler.foundUsers.collectAsState().value
+
+                if (!waitForResults) {
+                    if (users.isEmpty()) {
+                        Box(
+                            Modifier.fillMaxSize().padding(horizontal = 10.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (searchWasApplied) {
+                                Text(
+                                    text = i18n.userSearchNotFound(),
+                                    fontStyle = FontStyle.Italic,
+                                    textAlign = TextAlign.Center,
+                                )
+                            } else {
+                                Text(
+                                    text = i18n.userSearchSearchPeople(),
+                                    fontStyle = FontStyle.Italic,
+                                    textAlign = TextAlign.Center,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            items(users) { user -> UserElement(user, onClick = { userClickReaction(user) }) }
+        }
+    }
 }
+
 
 @Composable
 private fun UserElement(
