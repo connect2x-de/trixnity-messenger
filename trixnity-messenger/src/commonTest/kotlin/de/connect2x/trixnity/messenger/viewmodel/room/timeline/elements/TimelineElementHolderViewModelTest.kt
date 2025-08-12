@@ -34,14 +34,17 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
+import net.folivo.trixnity.client.store.RoomDisplayName
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.TimelineEventRelation
 import net.folivo.trixnity.client.store.eventId
+import net.folivo.trixnity.client.store.joinedMemberCount
 import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user.UserService
+import net.folivo.trixnity.clientserverapi.model.sync.Sync
 import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -254,6 +257,64 @@ class TimelineElementHolderViewModelTest {
         val cut = cut(timelineEvent = ourTimelineEvent)
 
         backgroundScope.launch { cut.showSender.collect() }
+        eventually(100.milliseconds) {
+            cut.showSender.value shouldBe false
+        }
+    }
+
+    @Test
+    fun `showSender » be false when there are less than 2 other people`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        val timeline = timeline(roomServiceMock, roomId) {
+            +messageEvent(sender = us) {
+                text("Hello!")
+            }
+            +timelineEvent
+        }
+
+        timeline.room.update { it.copy(name = RoomDisplayName(
+            summary = Sync.Response.Rooms.JoinedRoom.RoomSummary(joinedMemberCount = 2)
+        )) }
+        val cut = cut()
+
+        backgroundScope.launch { cut.showSender.collect() }
+        eventually(100.milliseconds) {
+            cut.showSender.value shouldBe false
+        }
+
+        timeline.room.update { it.copy(name = RoomDisplayName(
+            summary = Sync.Response.Rooms.JoinedRoom.RoomSummary(joinedMemberCount = 3)
+        )) }
+        eventually(100.milliseconds) {
+            cut.showSender.value shouldBe true
+        }
+    }
+
+    @Test
+    fun `showSender » be true when there are at least 2 other people`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        val latestEvent = timelineEvent.copy(event = (timelineEvent.event as MessageEvent).copy(sender = bob))
+        val timeline = timeline(roomServiceMock, roomId) {
+            +messageEvent(sender = us) {
+                text("HELLOU")
+            }
+            +timelineEvent
+            +latestEvent
+        }
+
+        timeline.room.update { it.copy(name = RoomDisplayName(
+            summary = Sync.Response.Rooms.JoinedRoom.RoomSummary(joinedMemberCount = 3)
+        )) }
+        val cut = cut(timelineEvent = latestEvent)
+
+        backgroundScope.launch { cut.showSender.collect() }
+        eventually(100.milliseconds) {
+            cut.showSender.value shouldBe true
+        }
+
+        timeline.room.update { it.copy(name = RoomDisplayName(
+            summary = Sync.Response.Rooms.JoinedRoom.RoomSummary(joinedMemberCount = 2)
+        )) }
         eventually(100.milliseconds) {
             cut.showSender.value shouldBe false
         }
