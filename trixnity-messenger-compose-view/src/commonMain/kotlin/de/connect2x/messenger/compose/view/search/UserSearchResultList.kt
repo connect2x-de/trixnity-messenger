@@ -49,10 +49,10 @@ interface UserSearchResultListView {
         userClickReaction: (SearchUserElement) -> Unit,
     )
 
+    @Composable
     fun lazyListCreate(
         userSearchHandler: UserSearchHandler,
         userClickReaction: (SearchUserElement) -> Unit,
-        users: List<SearchUserElement>,
         scope: LazyListScope
     )
 }
@@ -130,11 +130,10 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
         }
     }
 
-
+    @Composable
     override fun lazyListCreate(
         userSearchHandler: UserSearchHandler,
         userClickReaction: (SearchUserElement) -> Unit,
-        users: List<SearchUserElement>,
         scope: LazyListScope
     ) {
         with(scope) {
@@ -175,6 +174,7 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
                     }
                 }
             }
+            val users = userSearchHandler.foundUsers.collectAsState().value
             items(users) { user -> UserElement(user, onClick = { userClickReaction(user) }) }
         }
     }

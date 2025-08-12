@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.roomlist.create
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -21,6 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
@@ -35,8 +37,7 @@ import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.search.UserSearchField
-import de.connect2x.messenger.compose.view.search.UserSearchResultListView
+import de.connect2x.messenger.compose.view.search.SearchUsersLocally
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
@@ -130,10 +131,11 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                         }
 
                         Spacer(Modifier.height(15.dp))
-                        val searchView = DI.get<UserSearchResultListView>()
+                        val scope = remember { mutableStateOf<LazyListScope?>(null) }
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                         ) {
+                            scope.value = this
                             item(key = "moreOptions") {
                                 MoreOptions(roomOptionsString, modifier = Modifier.padding(horizontal = 10.dp)) {
                                     CreateGroupOptions(createNewGroupViewModel)
@@ -150,20 +152,11 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             item(key = "usersInGroup") {
                                 UsersInGroup(createNewGroupViewModel)
                             }
-                            stickyHeader {
-                                Box(Modifier.background(MaterialTheme.colorScheme.background)) {
-                                    UserSearchField(
-                                        createNewGroupViewModel.createNewRoomViewModel.searchHandler
-                                    )
-                                }
-                            }
-                            searchView.lazyListCreate(
+                            SearchUsersLocally(
                                 createNewGroupViewModel.createNewRoomViewModel.searchHandler,
-                                userClickReaction = createNewGroupViewModel::onUserClick,
-                                users = users,
-                                this
+                                false,
+                                createNewGroupViewModel::onUserClick
                             )
-
                         }
                     }
                 }

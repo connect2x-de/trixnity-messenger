@@ -1,19 +1,21 @@
 package de.connect2x.messenger.compose.view.search
 
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Modifier
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
 
-@Composable
-fun ColumnScope.SearchUsersLocally(
+fun LazyListScope.SearchUsersLocally(
     searchHandler: UserSearchHandler,
     shouldScroll: Boolean = true,
     onUserClick: (Search.SearchUserElement) -> Unit,
 ) {
-    UserSearchField(searchHandler)
-    UserSearchResultList(searchHandler, shouldScroll) { searchUserElement ->
-        onUserClick(searchUserElement)
+    stickyHeader { Box(Modifier.background(MaterialTheme.colorScheme.background)) { UserSearchField(searchHandler) } }
+    item {
+        UserSearchResultList(searchHandler, shouldScroll, onUserClick)
     }
 }
 

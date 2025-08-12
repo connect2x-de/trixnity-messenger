@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.room.settings
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.DI
@@ -34,8 +33,8 @@ class SearchUsersSettingsViewImpl : SearchUsersSettingsView {
         shouldScroll: Boolean,
         onUserClick: (Search.SearchUserElement) -> Unit,
     ) {
-        Column {
-            SearchUsersLocally(potentialMembersViewModel.searchHandler, shouldScroll, onUserClick)
+        LazyColumn {
+            SearchUsersLocally(potentialMembersViewModel.searchHandler, false, onUserClick)
         }
     }
 }
