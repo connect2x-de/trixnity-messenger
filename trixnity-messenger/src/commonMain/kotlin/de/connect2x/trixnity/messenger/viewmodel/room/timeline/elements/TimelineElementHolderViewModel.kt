@@ -69,7 +69,6 @@ import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.m.ReactionEventContent
@@ -408,7 +407,7 @@ class TimelineElementHolderViewModelImpl(
         else -> matrixClient.room.getById(roomId)
             .filterNotNull()
             .mapNotNull { it.joinedMemberCount }
-            .map { it > 1L }
+            .map { it > 2L } // If there's more than 2 people, show names of others
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showBigGapBefore: StateFlow<Boolean?> =
