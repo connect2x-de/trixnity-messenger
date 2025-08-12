@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated Sysnotify to 2.0.2
+- Updated Sysnotify to 2.0.3
 
 ### Deprecated
 
