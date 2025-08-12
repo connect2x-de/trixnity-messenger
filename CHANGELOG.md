@@ -17,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+### Fixed
+
+### Security
+
+## 3.7.1
+
+### Removed
+
 - Removed legacy key chain
 
 ### Fixed
@@ -25,8 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crash on startup due to process file lock on some shared libraries
 - Crash due to AutoLinkifyVisitor processing Matches out of order
 - Usernames are not shown in groups which started as a direct chat
-
-### Security
 
 ## 3.7.0
 
