@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -57,6 +58,7 @@ import net.folivo.trixnity.client.room.message.react
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
+import net.folivo.trixnity.client.store.joinedMemberCount
 import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.roomId
@@ -405,13 +407,8 @@ class TimelineElementHolderViewModelImpl(
         senderUserId == userId -> flowOf(false)
         else -> matrixClient.room.getById(roomId)
             .filterNotNull()
-            .map { it.isDirect }
-            .flatMapLatest { isDirect ->
-                if (isDirect) flowOf(false)
-                else previousSupportedTimelineEvent.map { timelineEvent ->
-                    timelineEvent?.sender != senderUserId || timelineEvent.event is StateEvent
-                }
-            }
+            .mapNotNull { it.joinedMemberCount }
+            .map { it > 1L }
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showBigGapBefore: StateFlow<Boolean?> =
