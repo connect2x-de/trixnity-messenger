@@ -192,14 +192,14 @@ fun ColumnScope.PlatformNotificationAccountSettings(
         Setting(
             text = i18n.notificationsSettingsAccountActivityStatus(),
             value = settings.activity.status,
-            enabled = canChangeSettings && settings.defaultLevel >= NotificationSettings.DefaultLevel.NONE,
+            enabled = canChangeSettings && settings.defaultLevel > NotificationSettings.DefaultLevel.NONE,
             toggle = { viewModel.updateAccountSettings(settings.copy(activity = settings.activity.copy(status = !settings.activity.status))) }
         )
 
         Setting(
             text = i18n.notificationsSettingsAccountActivityNotice(),
             value = settings.activity.notice,
-            enabled = canChangeSettings && settings.defaultLevel >= NotificationSettings.DefaultLevel.NONE,
+            enabled = canChangeSettings && settings.defaultLevel > NotificationSettings.DefaultLevel.NONE,
             toggle = { viewModel.updateAccountSettings(settings.copy(activity = settings.activity.copy(notice = !settings.activity.notice))) }
         )
 
