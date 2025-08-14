@@ -10,12 +10,11 @@ import de.connect2x.trixnity.messenger.util.UserSearchHandler
 
 fun LazyListScope.SearchUsersLocally(
     searchHandler: UserSearchHandler,
-    shouldScroll: Boolean = true,
     onUserClick: (Search.SearchUserElement) -> Unit,
 ) {
     stickyHeader { Box(Modifier.background(MaterialTheme.colorScheme.background)) { UserSearchField(searchHandler) } }
     item {
-        UserSearchResultList(searchHandler, shouldScroll, onUserClick)
+        UserSearchResultList(searchHandler, onUserClick)
     }
 }
 

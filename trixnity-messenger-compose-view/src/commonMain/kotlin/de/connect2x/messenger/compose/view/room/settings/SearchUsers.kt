@@ -1,8 +1,14 @@
 package de.connect2x.messenger.compose.view.room.settings
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.search.SearchUsersLocally
 import de.connect2x.trixnity.messenger.util.Search
@@ -12,7 +18,6 @@ interface SearchUsersSettingsView {
     @Composable
     fun create(
         potentialMembersViewModel: PotentialMembersViewModel,
-        shouldScroll: Boolean,
         onUserClick: (Search.SearchUserElement) -> Unit,
     )
 }
@@ -20,21 +25,23 @@ interface SearchUsersSettingsView {
 @Composable
 fun SearchUsersSettings(
     potentialMembersViewModel: PotentialMembersViewModel,
-    shouldScroll: Boolean = true,
     onUserClick: (Search.SearchUserElement) -> Unit,
 ) {
-    DI.get<SearchUsersSettingsView>().create(potentialMembersViewModel, shouldScroll, onUserClick)
+    DI.get<SearchUsersSettingsView>().create(potentialMembersViewModel, onUserClick)
 }
 
 class SearchUsersSettingsViewImpl : SearchUsersSettingsView {
     @Composable
     override fun create(
         potentialMembersViewModel: PotentialMembersViewModel,
-        shouldScroll: Boolean,
         onUserClick: (Search.SearchUserElement) -> Unit,
     ) {
-        LazyColumn {
-            SearchUsersLocally(potentialMembersViewModel.searchHandler, false, onUserClick)
+        val listState = rememberLazyListState()
+        Box {
+            LazyColumn(state = listState) {
+                SearchUsersLocally(potentialMembersViewModel.searchHandler, onUserClick)
+            }
+            VerticalScrollbar(Modifier.fillMaxHeight().align(Alignment.CenterEnd), listState, false)
         }
     }
 }

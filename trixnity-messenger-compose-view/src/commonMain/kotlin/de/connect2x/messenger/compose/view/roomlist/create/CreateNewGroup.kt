@@ -4,12 +4,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -21,8 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
@@ -31,6 +30,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MoreInfo
@@ -122,7 +122,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             fontSize = 16.sp,
                         )
                     })
-                    Column {
+                    Box {
                         if (isCreating) {
                             ThemedProgressIndicator(
                                 Modifier.fillMaxWidth(),
@@ -131,16 +131,18 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                         }
 
                         Spacer(Modifier.height(15.dp))
-                        val scope = remember { mutableStateOf<LazyListScope?>(null) }
+                        val lazyListState = rememberLazyListState()
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
+                            state = lazyListState
                         ) {
-                            scope.value = this
                             item(key = "moreOptions") {
-                                MoreOptions(roomOptionsString, modifier = Modifier.padding(horizontal = 10.dp)) {
-                                    CreateGroupOptions(createNewGroupViewModel)
+                                Column {
+                                    MoreOptions(roomOptionsString, modifier = Modifier.padding(horizontal = 10.dp)) {
+                                        CreateGroupOptions(createNewGroupViewModel)
+                                    }
+                                    Spacer(Modifier.height(15.dp))
                                 }
-                                Spacer(Modifier.height(15.dp))
                             }
                             item(key = "roomNameInput") {
                                 OptionalRoomNameInput(optionalRoomName)
@@ -154,10 +156,10 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             }
                             SearchUsersLocally(
                                 createNewGroupViewModel.createNewRoomViewModel.searchHandler,
-                                false,
                                 createNewGroupViewModel::onUserClick
                             )
                         }
+                        VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), lazyListState, false)
                     }
                 }
             }
