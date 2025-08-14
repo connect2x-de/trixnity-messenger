@@ -31,128 +31,94 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.roomlist.search.SearchGroupResult
 import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
 import kotlinx.coroutines.flow.map
 
 interface UserSearchResultListView {
+    sealed interface SearchResultState {
+        object Loading : SearchResultState
+        object Placeholder : SearchResultState
+        data class Results(val users: List<SearchUserElement>): SearchResultState
+    }
+
     @Composable
+    fun remember(
+        userSearchHandler: UserSearchHandler,
+    ): SearchResultState
+
     fun create(
-        userSearchHandler: UserSearchHandler,
+        scope: LazyListScope,
+        state: SearchResultState,
         userClickReaction: (SearchUserElement) -> Unit,
     )
-
-    @Composable
-    fun lazyListCreate(
-        userSearchHandler: UserSearchHandler,
-        userClickReaction: (SearchUserElement) -> Unit,
-        scope: LazyListScope
-    )
-}
-
-@Composable
-fun UserSearchResultList(
-    userSearchHandler: UserSearchHandler,
-    userClickReaction: (SearchUserElement) -> Unit,
-) {
-    DI.get<UserSearchResultListView>().create(userSearchHandler, userClickReaction)
 }
 
 class UserSearchResultListViewImpl : UserSearchResultListView {
     @Composable
-    override fun create(
+    override fun remember(
         userSearchHandler: UserSearchHandler,
-        userClickReaction: (SearchUserElement) -> Unit,
-    ) {
-        val i18n = DI.get<I18nView>()
+    ): UserSearchResultListView.SearchResultState {
         val users = userSearchHandler.foundUsers.collectAsState().value
         val waitForResults = userSearchHandler.waitForUserResults.collectAsState().value
         val searchWasApplied =
             remember { userSearchHandler.searchTerm.map { it.text.isNotBlank() } }.collectAsState(false).value
+        return when {
+            waitForResults -> UserSearchResultListView.SearchResultState.Loading
+            users.isEmpty() && !searchWasApplied -> UserSearchResultListView.SearchResultState.Placeholder
+            else -> UserSearchResultListView.SearchResultState.Results(users)
+        }
+    }
 
-        if (waitForResults) {
-            LoadingSpinner()
-        } else {
-            Box {
-                Column {
-                    if (users.isEmpty()) {
+    override fun create(
+        scope: LazyListScope,
+        state: UserSearchResultListView.SearchResultState,
+        userClickReaction: (SearchUserElement) -> Unit,
+    ) {
+        with (scope) {
+            when (state) {
+                UserSearchResultListView.SearchResultState.Loading ->
+                    item(key="users-loading") { LoadingSpinner() }
+                UserSearchResultListView.SearchResultState.Placeholder ->
+                    item(key="users-placeholder") {
+                        val i18n = DI.get<I18nView>()
                         Box(
                             Modifier.fillMaxSize().padding(horizontal = 10.dp),
                             contentAlignment = Alignment.Center,
                         ) {
-                            if (searchWasApplied) {
+                            Text(
+                                text = i18n.userSearchSearchPeople(),
+                                fontStyle = FontStyle.Italic,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    }
+                is UserSearchResultListView.SearchResultState.Results -> {
+                    if (state.users.isEmpty()) {
+                        item(key="users-notfound") {
+                            val i18n = DI.get<I18nView>()
+                            Box(
+                                Modifier.fillMaxSize().padding(horizontal = 10.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
                                 Text(
                                     text = i18n.userSearchNotFound(),
                                     fontStyle = FontStyle.Italic,
                                     textAlign = TextAlign.Center,
                                 )
-                            } else {
-                                Text(
-                                    text = i18n.userSearchSearchPeople(),
-                                    fontStyle = FontStyle.Italic,
-                                    textAlign = TextAlign.Center,
-                                )
                             }
                         }
-                    }
-                    users.map { user ->
-                        key(user.userId) {
+                    } else {
+                        items(state.users, key = { it.userId }) { user ->
                             UserElement(user, onClick = { userClickReaction(user) })
                         }
                     }
                 }
             }
-        }
-    }
-
-    @Composable
-    override fun lazyListCreate(
-        userSearchHandler: UserSearchHandler,
-        userClickReaction: (SearchUserElement) -> Unit,
-        scope: LazyListScope
-    ) {
-        with(scope) {
-            item("waitForResultsSpinner") {
-                val waitForResults = userSearchHandler.waitForUserResults.collectAsState().value
-                if (waitForResults) {
-                    LoadingSpinner()
-                }
-            }
-            item("emptySearchResultsList") {
-                val i18n = DI.get<I18nView>()
-
-                val searchWasApplied =
-                    remember { userSearchHandler.searchTerm.map { it.text.isNotBlank() } }.collectAsState(false).value
-                val waitForResults = userSearchHandler.waitForUserResults.collectAsState().value
-                val users = userSearchHandler.foundUsers.collectAsState().value
-
-                if (!waitForResults) {
-                    if (users.isEmpty()) {
-                        Box(
-                            Modifier.fillMaxSize().padding(horizontal = 10.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            if (searchWasApplied) {
-                                Text(
-                                    text = i18n.userSearchNotFound(),
-                                    fontStyle = FontStyle.Italic,
-                                    textAlign = TextAlign.Center,
-                                )
-                            } else {
-                                Text(
-                                    text = i18n.userSearchSearchPeople(),
-                                    fontStyle = FontStyle.Italic,
-                                    textAlign = TextAlign.Center,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-            val users = userSearchHandler.foundUsers.collectAsState().value
-            items(users) { user -> UserElement(user, onClick = { userClickReaction(user) }) }
         }
     }
 }

@@ -1,16 +1,19 @@
 package de.connect2x.messenger.compose.view.roomlist.search
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.get
-import de.connect2x.messenger.compose.view.search.SearchUsersLocally
+import de.connect2x.messenger.compose.view.search.UserSearchField
+import de.connect2x.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomViewModel
 
@@ -37,9 +40,18 @@ class SearchUsersViewImpl : SearchUsersView {
         onUserClick: (Search.SearchUserElement) -> Unit,
     ) {
         val listState = rememberLazyListState()
+        val userSearch = DI.get<UserSearchResultListView>()
+        val userSearchResults = userSearch.remember(createNewRoomViewModel.searchHandler)
         Box {
             LazyColumn(state = listState) {
-                SearchUsersLocally(createNewRoomViewModel.searchHandler, onUserClick)
+                stickyHeader {
+                    Box(Modifier.background(MaterialTheme.colorScheme.background)) {
+                        UserSearchField(
+                            createNewRoomViewModel.searchHandler
+                        )
+                    }
+                }
+                userSearch.create(this, userSearchResults, onUserClick)
             }
             VerticalScrollbar(Modifier.fillMaxHeight().align(Alignment.CenterEnd), listState, false)
         }
