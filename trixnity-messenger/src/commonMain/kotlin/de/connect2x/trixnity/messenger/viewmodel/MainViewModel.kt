@@ -34,7 +34,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -329,13 +328,15 @@ open class MainViewModelImpl(
             this@MainViewModelImpl.matrixClients.scopedCollectLatest { namedMatrixClients ->
                 namedMatrixClients.forEach { (userId, matrixClient) ->
                     launch {
-                        messengerSettings[userId].filterNotNull().map { it.base.presenceIsPublic }.collect { isPublic ->
-                            val presence = if (isPublic) Presence.ONLINE else Presence.OFFLINE
-                            if (lifecycle.state >= Lifecycle.State.STARTED) {
-                                log.info { "the settings for `presenceIsPublic` have changed -> restart sync with $presence" }
-                                matrixClient.startSync(presence = presence)
+                        messengerSettings[userId].filterNotNull().map { it.base.presenceIsPublic }
+                            .distinctUntilChanged()
+                            .collect { isPublic ->
+                                val presence = if (isPublic) Presence.ONLINE else Presence.OFFLINE
+                                if (lifecycle.state >= Lifecycle.State.STARTED) {
+                                    log.info { "the settings for `presenceIsPublic` have changed -> restart sync with $presence" }
+                                    matrixClient.startSync(presence = presence)
+                                }
                             }
-                        }
                     }
                 }
             }

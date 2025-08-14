@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.util.html
 
 import net.folivo.trixnity.core.util.Reference
-import net.folivo.trixnity.core.util.References
 
 class AutoLinkifyVisitor {
     private val taskQueue = mutableListOf<Task>()
@@ -33,7 +32,7 @@ class AutoLinkifyVisitor {
 
     private fun visit(node: HtmlNode.TextContent, acc: MutableList<HtmlNode>) {
         var index = 0
-        val matches = References.findReferences(node.content)
+        val matches = Reference.findReferences(node.content).entries.sortedBy { it.key.first }
         if (matches.isEmpty()) {
             acc.add(node)
         } else {
@@ -81,7 +80,7 @@ class AutoLinkifyVisitor {
     private fun linkElement(match: Reference): HtmlNode.HtmlElement =
         HtmlNode.HtmlElement(
             tag = "a",
-            attributes = mapOf("href" to (match.uri ?: match.toLink())),
+            attributes = mapOf("href" to match.toLink()),
             children = listOf(
                 HtmlNode.TextContent(
                     when (match) {
@@ -89,7 +88,7 @@ class AutoLinkifyVisitor {
                         is Reference.Room -> match.roomId.full
                         is Reference.RoomAlias -> match.roomAliasId.full
                         is Reference.User -> match.userId.full
-                        is Reference.Link -> match.uri
+                        is Reference.Link -> match.url
                     }
                 )
             ),

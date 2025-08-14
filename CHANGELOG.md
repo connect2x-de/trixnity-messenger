@@ -9,8 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+- Updated Sysnotify to 2.0.3
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.7.1
+
+### Removed
+
+- Removed legacy key chain
+
+### Fixed
+
+- Don't restart sync on presence change
+- Crash on startup due to process file lock on some shared libraries
+- Crash due to AutoLinkifyVisitor processing Matches out of order
+
+## 3.7.0
+
+### Added
+
 - File load and save dialogs on iOS targets
 - PDF reader support on iOS
+- MatrixMessengerConfiguration for toggling refresh tokens
 
 ### Changed
 
@@ -20,16 +49,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Power Levels now use net.folivo.trixnity.client.user.PowerLevel instead of Long
 - Added Role.CREATOR
 - Change markdown to GFM
+- Don't use refresh tokens by default
 - Bump c2x Conventions to 50375801
-
-### Deprecated
-
-### Removed
+- Improved Reference/Link parsing
 
 ### Fixed
 
 - Fixed crash due to scrollbar measuring policy on Android
 - Fixed several translation issues
+- Show error messages when replacing events
 
 ### Security
 
