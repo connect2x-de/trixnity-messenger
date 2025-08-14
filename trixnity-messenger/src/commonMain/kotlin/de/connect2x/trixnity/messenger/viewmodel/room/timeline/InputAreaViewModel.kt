@@ -6,6 +6,7 @@ import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.html.toLink
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
@@ -56,7 +57,6 @@ import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
-import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -66,13 +66,13 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Text
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import net.folivo.trixnity.utils.concurrentMutableMap
 import org.intellij.markdown.ast.ASTNode
-import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
+import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.html.HtmlGenerator.TagRenderer
 import org.intellij.markdown.parser.MarkdownParser
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
-import net.folivo.trixnity.core.model.Mention as TrixnityMention
+import net.folivo.trixnity.core.util.Reference as TrixnityReference
 
 private val log = KotlinLogging.logger { }
 
@@ -84,46 +84,38 @@ private sealed interface SubstringType {
             this.text
     }
 
-    data class Mention(val mention: TrixnityMention) : SubstringType {
-        override suspend fun format(matrixClient: MatrixClient, roomId: RoomId): String =
-            when (val mention = this.mention) {
-                is TrixnityMention.Event -> {
-                    val roomId = mention.roomId ?: roomId
-                    val matrixUri = "https://matrix.to/#/${roomId.full}/${mention.eventId.full}"
-                    val anchorContent = matrixUri
-
-                    """<a href="$matrixUri">$anchorContent</a>"""
+    data class Reference(val reference: TrixnityReference) : SubstringType {
+        override suspend fun format(matrixClient: MatrixClient, roomId: RoomId): String {
+            val uri = reference.toLink()
+            return when (reference) {
+                is TrixnityReference.Event -> {
+                    """<a href="$uri">$uri</a>"""
                 }
 
-                is TrixnityMention.Room -> {
+                is TrixnityReference.Room -> {
                     val alias =
-                        matrixClient.room.getState<CanonicalAliasEventContent>(mention.roomId)
+                        matrixClient.room.getState<CanonicalAliasEventContent>(reference.roomId)
                             .first()
                             ?.content?.run { alias ?: aliases?.firstOrNull() }
-                    val matrixUri =
-                        if (alias != null) "https://matrix.to/#/${alias.full}"
-                        else "https://matrix.to/#/${mention.roomId.full}"
-                    val anchorContent = alias?.full ?: mention.roomId.full
-
-                    """<a href="$matrixUri">$anchorContent</a>"""
+                    val anchorContent = alias?.full ?: reference.roomId.full
+                    """<a href="$uri">$anchorContent</a>"""
                 }
 
-                is TrixnityMention.RoomAlias -> {
-                    val matrixUri = "https://matrix.to/#/${mention.roomAliasId.full}"
-                    val anchorContent = mention.roomAliasId.full
-
-                    """<a href="$matrixUri">$anchorContent</a>"""
+                is TrixnityReference.RoomAlias -> {
+                    """<a href="$uri">${reference.roomAliasId.full}</a>"""
                 }
 
-                is TrixnityMention.User -> {
-                    val userName =
-                        matrixClient.user.getById(roomId, mention.userId).first()?.name
-                    val matrixUri = "https://matrix.to/#/${mention.userId.full}"
-                    val anchorContent = userName ?: mention.userId.full
+                is TrixnityReference.User -> {
+                    val userName = matrixClient.user.getById(roomId, reference.userId).first()?.name
+                    val anchorContent = userName ?: reference.userId.full
+                    """<a href="$uri">$anchorContent</a>"""
+                }
 
-                    """<a href="$matrixUri">$anchorContent</a>"""
+                is TrixnityReference.Link -> {
+                    """<a href="$uri">$uri</a>"""
                 }
             }
+        }
     }
 }
 
@@ -208,7 +200,7 @@ open class InputAreaViewModelImpl(
     override val listOfMentionsLoading: StateFlow<Boolean> = _listOfMentionsLoading.asStateFlow()
 
     override val useMarkdown = MutableStateFlow(true)
-    private val markdownFlavourDescriptor = CommonMarkFlavourDescriptor()
+    private val markdownFlavourDescriptor = GFMFlavourDescriptor()
     private val markdownParser = MarkdownParser(markdownFlavourDescriptor)
 
     private class HtmlTagRenderer() : TagRenderer {
@@ -309,10 +301,11 @@ open class InputAreaViewModelImpl(
             val text = textField.value.text
             textField.update("")
             coroutineScope.launch {
-                val mentions = MatrixRegex.findMentions(text)
-                val mentionedUsers = mentions.values.filterIsInstance<TrixnityMention.User>().map { it.userId }.toSet()
-                val formattedMentions =
-                    mentions.entries.withIndex()
+                val references = TrixnityReference.findReferences(text)
+                val userReferences =
+                    references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
+                val formattedReferences =
+                    references.filterValues { it !is TrixnityReference.Link }.entries.withIndex()
                         .windowed(
                             size = 2,
                             partialWindows = true
@@ -323,7 +316,7 @@ open class InputAreaViewModelImpl(
                             listOfNotNull(
                                 if (first.index == 0) SubstringType.Text(text.substring(0 until first.value.key.first))
                                 else null,
-                                SubstringType.Mention(first.value.value),
+                                SubstringType.Reference(first.value.value),
                                 if (second == null) SubstringType.Text(text.substring(first.value.key.last + 1 until text.length))
                                 else SubstringType.Text(text.substring(first.value.key.last + 1 until second.value.key.start))
                             )
@@ -337,12 +330,12 @@ open class InputAreaViewModelImpl(
                     when (useMarkdown.value) {
                         true ->
                             HtmlGenerator(
-                                formattedMentions,
-                                markdownParser.buildMarkdownTreeFromString(formattedMentions),
+                                formattedReferences,
+                                markdownParser.buildMarkdownTreeFromString(formattedReferences),
                                 markdownFlavourDescriptor
                             ).generateHtml(HtmlTagRenderer())
 
-                        false -> formattedMentions
+                        false -> formattedReferences
                     }
 
                 val replacedEvent = currentReplace.value
@@ -359,7 +352,7 @@ open class InputAreaViewModelImpl(
                             reply(event)
                         }
                     }
-                    mentions(mentionedUsers)
+                    mentions(userReferences)
                     text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
                 }
                 currentReplace.value = null

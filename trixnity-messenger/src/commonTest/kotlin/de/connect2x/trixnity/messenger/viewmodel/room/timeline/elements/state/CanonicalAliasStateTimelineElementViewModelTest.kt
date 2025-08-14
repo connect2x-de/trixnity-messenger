@@ -45,7 +45,7 @@ class CanonicalAliasStateTimelineElementViewModelTest {
     val alias4 = RoomAliasId("alias4", "localhost")
     val alias5 = RoomAliasId("alias5", "localhost")
 
-    val roomId = RoomId("room", "server")
+    val roomId = RoomId("room")
     val userId = UserId("user", "server")
     val eventId = EventId("event")
     val matrixClientMock = mock<MatrixClient>()

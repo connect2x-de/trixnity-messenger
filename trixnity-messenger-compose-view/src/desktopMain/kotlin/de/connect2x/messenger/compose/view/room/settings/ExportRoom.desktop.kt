@@ -23,7 +23,9 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.export.Destination
 import de.connect2x.trixnity.messenger.export.FileBasedExportRoomProperties
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.vinceglb.filekit.compose.rememberDirectoryPickerLauncher
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
+import io.github.vinceglb.filekit.path
 import okio.Path.Companion.toPath
 
 private val log = KotlinLogging.logger { }
@@ -41,13 +43,11 @@ internal actual fun SelectExportDestination(
     // Due to compose life cycles the launcher needs to be set up even if launch() is skipped.
     val launcher = rememberDirectoryPickerLauncher(
         title = i18n.fileDialogTitleLoad(),
-        initialDirectory = initialDirectory(appName).toString()
+        directory = PlatformFile(initialDirectory(appName).toString())
     ) { file ->
         log.debug { "selected file: $file" }
         file?.let {
-            file.path?.toPath()
-                ?.let { result(it) }
-                ?: run { log.error { "can't resolve path for selected file: $file" } }
+            result(file.path.toPath())
         }
     }
     Row(verticalAlignment = Alignment.CenterVertically) {

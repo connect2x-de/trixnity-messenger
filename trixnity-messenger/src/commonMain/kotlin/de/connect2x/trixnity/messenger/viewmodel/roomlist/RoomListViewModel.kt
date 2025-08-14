@@ -115,6 +115,7 @@ interface RoomListViewModel {
     val allSyncError: StateFlow<Boolean>
 
     val showSearch: MutableStateFlow<Boolean>
+    val searchResultsEmpty: StateFlow<Boolean>
     val searchTerm: TextFieldViewModel
 
     val accountViewModel: AccountViewModel
@@ -189,6 +190,7 @@ class RoomListViewModelImpl(
 
     override val showSearch = MutableStateFlow(false)
     override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
+    override val searchResultsEmpty: StateFlow<Boolean>
 
     override val canCreateNewRoomWithAccount: StateFlow<Boolean>
 
@@ -377,6 +379,10 @@ class RoomListViewModelImpl(
                 }.toList()
             }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
+        searchResultsEmpty =
+            combine(elements, allRoomsFlow) { roomElements, allRooms -> allRooms.isNotEmpty() && roomElements.isEmpty() }
+                .stateIn(coroutineScope, WhileSubscribed(), false)
+
         _syncState = matrixClients.flatMapLatest { matrixClients ->
             combine(matrixClients.map { (userId, matrixClient) ->
                 matrixClient.syncState.map { userId to it }
@@ -555,6 +561,7 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override val initialSyncFinished: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
+    override val searchResultsEmpty: StateFlow<Boolean> = MutableStateFlow(false)
     override val accountViewModel: AccountViewModel = PreviewAccountViewModel()
     override val canCreateNewRoomWithAccount: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val unverifiedAccounts: StateFlow<List<UserId>> = MutableStateFlow(listOf())

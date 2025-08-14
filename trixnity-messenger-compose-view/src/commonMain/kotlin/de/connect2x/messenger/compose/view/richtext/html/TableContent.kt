@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAll
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
@@ -77,7 +78,7 @@ internal fun TableContent(
                             }
                         }
                     }
-                    HorizontalScrollbar(Modifier, scrollState)
+                    HorizontalScrollbar(Modifier.layoutId(HorizontalScrollableMeasurePolicy.ScrollbarLayoutId), scrollState)
                 },
                 measurePolicy = HorizontalScrollableMeasurePolicy
             )

@@ -34,7 +34,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class CreateStateTimelineElementViewModelTest {
 
-    val roomId = RoomId("room", "server")
+    val roomId = RoomId("!room")
     val sender = UserId("user", "server")
     val eventId = EventId("event")
     val matrixClientMock = mock<MatrixClient>()

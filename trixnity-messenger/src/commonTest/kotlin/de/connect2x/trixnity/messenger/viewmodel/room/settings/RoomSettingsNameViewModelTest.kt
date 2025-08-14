@@ -31,16 +31,18 @@ import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
 
 class RoomSettingsNameViewModelTest {
-    private val roomId = RoomId("room", "localhost")
+    private val roomId = RoomId("!room")
     private val me = UserId("user", "localhost")
 
     private val matrixClientMock = mock<MatrixClient>()
@@ -71,7 +73,7 @@ class RoomSettingsNameViewModelTest {
         roomGetById returns MutableStateFlow(room(""))
 
         canSendEventMocker = every {
-            userServiceMock.canSendEvent(any(), any())
+            userServiceMock.canSendEvent(any(), any<KClass<out RoomEventContent>>())
         }
         canSendEventMocker returns flowOf(true)
     }

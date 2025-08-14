@@ -53,6 +53,7 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.room.TimelineStateChange
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.user.PowerLevel
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -61,6 +62,7 @@ import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
@@ -81,7 +83,7 @@ class RoomViewModelTest {
     private var lifecycle: LifecycleRegistry
     private val backPressedHandler = BackDispatcher()
 
-    private val roomId = RoomId("room", "localhost")
+    private val roomId = RoomId("!room")
     private val myUserId = UserId("user1", "localhost")
     private val myDeviceId = "deviceId"
     private val roomsFlow = MutableStateFlow(emptyMap<RoomId, StateFlow<Room?>>())
@@ -187,15 +189,15 @@ class RoomViewModelTest {
         every { userServiceMock.canKickUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canBanUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canUnbanUser(roomId, any()) } returns MutableStateFlow(false)
-        every { userServiceMock.canSetPowerLevelToMax(roomId, any()) } returns MutableStateFlow(0L)
+        every { userServiceMock.canSetPowerLevelToMax(roomId, any()) } returns MutableStateFlow(PowerLevel.User(0L))
         every { userServiceMock.getAccountData(DirectEventContent::class, "") } returns
                 MutableStateFlow(null)
         every { userServiceMock.getAccountData(IgnoredUserListEventContent::class, "") } returns
                 MutableStateFlow(null)
         every { userServiceMock.getAccountData(PushRulesEventContent::class, "") } returns
                 MutableStateFlow(null)
-        every { userServiceMock.getPowerLevel(any(), any()) } returns MutableStateFlow(50)
-        every { userServiceMock.canSendEvent(any(), any()) } returns flowOf(true)
+        every { userServiceMock.getPowerLevel(any(), any()) } returns MutableStateFlow(PowerLevel.User(50))
+        every { userServiceMock.canSendEvent(any(), any<KClass<out RoomEventContent>>()) } returns flowOf(true)
         every { userServiceMock.getReceiptsById(any(), any()) } returns flowOf(null)
         every { minimizeMessengerMock.invoke() } returns Unit
     }

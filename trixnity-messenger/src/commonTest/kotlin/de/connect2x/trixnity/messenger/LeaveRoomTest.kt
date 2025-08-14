@@ -34,8 +34,8 @@ import kotlin.test.Test
 
 class LeaveRoomTest {
 
-    private val roomId = RoomId("room1", "localhost")
-    private val upgradedRoomId = RoomId("room0", "localhost")
+    private val roomId = RoomId("!room1")
+    private val upgradedRoomId = RoomId("!room0")
 
     private val room: MutableStateFlow<Room?> = MutableStateFlow(null)
     private val upgradedRoom: MutableStateFlow<Room?> = MutableStateFlow(null)

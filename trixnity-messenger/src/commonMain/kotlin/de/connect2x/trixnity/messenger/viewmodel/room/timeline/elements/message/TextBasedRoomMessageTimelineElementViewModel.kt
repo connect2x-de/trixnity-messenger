@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.util.MatrixMentions
+import de.connect2x.trixnity.messenger.util.MatrixReferences
 import de.connect2x.trixnity.messenger.util.html.AutoLinkifyVisitor
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
@@ -17,13 +17,12 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -32,13 +31,13 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.user
-import net.folivo.trixnity.core.model.Mention
 import net.folivo.trixnity.core.model.RoomAliasId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import net.folivo.trixnity.core.model.events.m.room.formattedBodyWithoutFallback
+import net.folivo.trixnity.core.util.Reference
 import org.koin.core.component.get
 
 abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEventContent.TextBased>(
@@ -60,13 +59,13 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                 .let(AutoLinkifyVisitor::process)
 
     override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>> by lazy {
-        MatrixMentions.findInText(body)
+        MatrixReferences.findInText(body)
             .mapValues { (_, mention) -> processMention(mention) }
     }
 
     private val mentionFlowsInFormattedBody =
         formattedBodyContent
-            .let(MatrixMentions::findInHtml)
+            .let(MatrixReferences::findInHtml)
             .mapValues { (_, mention) -> processMention(mention) }
             .map { (key, flow) -> flow.map { Pair(key, it) } }
 
@@ -79,9 +78,9 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun processMention(mention: Mention): StateFlow<TimelineElementMention?> =
-        when (mention) {
-            is Mention.User -> matrixClient.user.getById(roomId, mention.userId)
+    private fun processMention(reference: Reference): StateFlow<TimelineElementMention?> =
+        when (reference) {
+            is Reference.User -> matrixClient.user.getById(roomId, reference.userId)
                 .map {
                     TimelineElementMention.User(
                         // TODO call api.user.getProfile as fallback
@@ -89,32 +88,34 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                             coroutineScope,
                             matrixClient,
                             initials,
-                            mention.userId,
+                            reference.userId,
                             maxMediaSizeInMemory,
                         )
                     )
                 }
                 .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-            is Mention.Room -> parseRoom(mention.roomId, matrixClient, initials)
+            is Reference.Room -> parseRoom(reference.roomId, matrixClient, initials)
                 .map { info ->
                     TimelineElementMention.Room(info)
                 }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-            is Mention.RoomAlias ->
+            is Reference.RoomAlias ->
                 flow {
                     emitAll(
-                        parseRoom(mention.roomAliasId, matrixClient, initials)
+                        parseRoom(reference.roomAliasId, matrixClient, initials)
                             .map { info ->
                                 info?.let { TimelineElementMention.Room(info) }
                             }
                     )
                 }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-            is Mention.Event -> parseRoom(mention.roomId ?: roomId, matrixClient, initials)
+            is Reference.Event -> parseRoom(reference.roomId ?: roomId, matrixClient, initials)
                 .map { roomInfo ->
-                    TimelineElementMention.Event(EventInfoElement(mention.eventId), roomInfo)
+                    TimelineElementMention.Event(EventInfoElement(reference.eventId), roomInfo)
                 }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+
+            is Reference.Link -> MutableStateFlow(null)
         }
 
     private fun parseRoom(

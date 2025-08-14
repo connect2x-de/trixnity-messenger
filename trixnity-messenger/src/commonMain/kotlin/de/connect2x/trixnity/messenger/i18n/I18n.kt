@@ -771,8 +771,8 @@ open class I18n(
     }
 
     open fun settingsRoomMemberListChangePowerLevelInputValidationShouldBeNumber(maximum: Long) = translate {
-        EN - "Please enter a valid number between 0 and $maximum."
-        DE - "Bitte geben Sie eine gültige Zahl zwischen 0 und $maximum ein."
+        EN - "Please enter a valid number, up to a maximum of $maximum."
+        DE - "Bitte geben Sie eine gültige Zahl ein, maximal jedoch $maximum."
     }
 
     open fun settingsRoomMemberListKickUserError() = translate {
@@ -1000,7 +1000,7 @@ open class I18n(
 
     open fun sendErrorUnknown(errorMessage: String?) = translate {
         EN - "There was an unexpected error sending the message${if (errorMessage == null) "." else ": $errorMessage"}"
-        DE - "Es gab einen unbekannten Fehler beim Absenden Ihrer Nachricht${if (errorMessage == null) "." else ": $errorMessage"}\""
+        DE - "Es gab einen unbekannten Fehler beim Absenden Ihrer Nachricht${if (errorMessage == null) "." else ": $errorMessage"}"
     }
 
     open fun attachmentSizeMaxSizeError(attachmentMaxSize: Long) = translate {
@@ -1105,7 +1105,7 @@ open class I18n(
         DE - "Raumaliase wurden zu $aliases geändert"
     }
 
-    open fun exportRoomCreate(federate: Boolean, roomType: String?) = translate {
+    open fun exportRoomCreate(federate: Boolean?, roomType: String?) = translate {
         EN - "room has been created (federation=$federate, type=$roomType)"
         DE - "Raum wurde erstellt (Föderation=$federate, Typ=$roomType)"
     }

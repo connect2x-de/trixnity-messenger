@@ -5,8 +5,6 @@ import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.util.LeaveRoom
-import de.connect2x.trixnity.messenger.util.LeaveRoomImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
@@ -22,7 +20,6 @@ import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -97,11 +94,11 @@ class RoomListElementViewModelTest {
 
     private val onRoomSelectedMock = mock<Function0<Unit>>()
 
-    private val roomId = RoomId("room", "localhost")
-    private val roomId1 = RoomId("room1", "localhost")
-    private val roomId2 = RoomId("room2", "localhost")
-    private val roomId3 = RoomId("room3", "localhost")
-    private val roomId4 = RoomId("room4", "localhost")
+    private val roomId = RoomId("!room")
+    private val roomId1 = RoomId("!room1")
+    private val roomId2 = RoomId("!room2")
+    private val roomId3 = RoomId("!room3")
+    private val roomId4 = RoomId("!room4")
 
     private val me = UserId("test", "server")
     private val user2 = UserId("user2", "server")
@@ -215,7 +212,6 @@ class RoomListElementViewModelTest {
                 roomId,
                 isDirect = false,
                 encrypted = true,
-                unreadMessageCount = 0,
                 membership = Membership.INVITE,
                 membersLoaded = false,
             )
@@ -631,9 +627,13 @@ class RoomListElementViewModelTest {
 
         every {
             userServiceMock.getAccountData(IgnoredUserListEventContent::class)
-        } returns MutableStateFlow(IgnoredUserListEventContent(mapOf(
-            UserId("do_not_want", "localhost") to JsonObject(emptyMap()),
-        )))
+        } returns MutableStateFlow(
+            IgnoredUserListEventContent(
+                mapOf(
+                    UserId("do_not_want", "localhost") to JsonObject(emptyMap()),
+                )
+            )
+        )
 
         everySuspend {
             usersApiClientMock.setAccountData(
@@ -675,9 +675,13 @@ class RoomListElementViewModelTest {
 
         every {
             userServiceMock.getAccountData(IgnoredUserListEventContent::class)
-        } returns MutableStateFlow(IgnoredUserListEventContent(mapOf(
-            UserId("do_not_want", "localhost") to JsonObject(emptyMap()),
-        )))
+        } returns MutableStateFlow(
+            IgnoredUserListEventContent(
+                mapOf(
+                    UserId("do_not_want", "localhost") to JsonObject(emptyMap()),
+                )
+            )
+        )
 
         everySuspend {
             usersApiClientMock.setAccountData(

@@ -36,7 +36,7 @@ class RoomNameCalculationTest {
     private val user2 = UserId("user2", "server")
     private val user3 = UserId("user3", "server")
     private val user4 = UserId("user4", "server")
-    private val roomId = RoomId("room1", "server")
+    private val roomId = RoomId("!room1")
 
     val matrixClientMock = mock<MatrixClient>()
 
@@ -94,7 +94,7 @@ class RoomNameCalculationTest {
     @Test
     fun `return the room id when name field is empty`() = runTest {
         val cut = RoomNameImpl(i18n, roomInviterMock)
-        cut.calculateRoomName(roomId, null, matrixClientMock).first() shouldBe "!room1:server"
+        cut.calculateRoomName(roomId, null, matrixClientMock).first() shouldBe "!room1"
     }
 
     @Test
@@ -126,7 +126,7 @@ class RoomNameCalculationTest {
                 summary = RoomSummary(heroes = listOf())
             ),
             matrixClientMock,
-        ).first() shouldBe "!room1:server"
+        ).first() shouldBe "!room1"
     }
 
     @Test

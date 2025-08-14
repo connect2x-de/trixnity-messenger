@@ -2,37 +2,44 @@ package de.connect2x.trixnity.messenger.util.html
 
 import io.ktor.http.*
 import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.Mention
 import net.folivo.trixnity.core.model.RoomAliasId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.util.Reference
 
-fun Mention.toLink(): String = when (this) {
-    is Mention.Event -> buildString {
+fun Reference.toLink(): String = when (this) {
+    is Reference.Event -> buildString {
         append("matrix:")
-        if (roomId != null) {
+        val finalRoomId = roomId
+        if (finalRoomId != null) {
             append("roomid/")
-            append(roomId!!.full.trimStart(RoomId.sigilCharacter))
+            append(finalRoomId.full.trimStart(RoomId.sigilCharacter))
+            append("/")
         }
         append("e/")
         append(eventId.full.trimStart(EventId.sigilCharacter))
         appendParameters(parameters)
     }
-    is Mention.Room -> buildString {
+
+    is Reference.Room -> buildString {
         append("matrix:roomid/")
         append(roomId.full.trimStart(RoomId.sigilCharacter))
         appendParameters(parameters)
     }
-    is Mention.RoomAlias -> buildString {
+
+    is Reference.RoomAlias -> buildString {
         append("matrix:r/")
         append(roomAliasId.full.trimStart(RoomAliasId.sigilCharacter))
         appendParameters(parameters)
     }
-    is Mention.User -> buildString {
+
+    is Reference.User -> buildString {
         append("matrix:u/")
         append(userId.full.trimStart(UserId.sigilCharacter))
         appendParameters(parameters)
     }
+
+    is Reference.Link -> this.url
 }
 
 private fun StringBuilder.appendParameters(params: Parameters?) {

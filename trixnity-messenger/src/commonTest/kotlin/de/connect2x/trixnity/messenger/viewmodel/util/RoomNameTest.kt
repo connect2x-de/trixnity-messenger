@@ -34,7 +34,7 @@ import org.koin.dsl.module
 import kotlin.test.Test
 
 class RoomNameTest {
-    private val roomId = RoomId("Room", "localhost")
+    private val roomId = RoomId("Room")
 
     private val user1Id = UserId("user1", "localhost")
     private val user2Id = UserId("user2", "localhost")
@@ -133,7 +133,6 @@ class RoomNameTest {
             roomId = roomId,
             name = name,
             lastEventId = null,
-            unreadMessageCount = 0,
             membership = membership,
             membersLoaded = false,
         )

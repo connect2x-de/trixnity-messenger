@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated Sysnotify to 2.0.3
 - New rich text renderer
 - Improve accessibility of notification settings
 
@@ -21,6 +22,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## 3.7.1
+
+### Removed
+
+- Removed legacy key chain
+
+### Fixed
+
+- Don't restart sync on presence change
+- Crash on startup due to process file lock on some shared libraries
+- Crash due to AutoLinkifyVisitor processing Matches out of order
+
+## 3.7.0
+
+### Added
+
+- File load and save dialogs on iOS targets
+- PDF reader support on iOS
+- MatrixMessengerConfiguration for toggling refresh tokens
+
+### Changed
+
+- Bump Compose to 1.8.2
+- Bump FileKit to 0.10.0-beta04
+- Move startMessenger logic for the iOS client in separate function
+- Power Levels now use net.folivo.trixnity.client.user.PowerLevel instead of Long
+- Added Role.CREATOR
+- Change markdown to GFM
+- Don't use refresh tokens by default
+- Bump c2x Conventions to 50375801
+- Improved Reference/Link parsing
+
+### Fixed
+
+- Fixed crash due to scrollbar measuring policy on Android
+- Fixed several translation issues
+- Show error messages when replacing events
+
+### Security
+
+- Support room version 12
+
+## 3.6.17
+
+### Changed
+
+- New rich text renderer
+- Show correct feedback when getting no search results in the room list
+- Labels for text fields are always on
+- Adapt to trixnity References-API changes
+
+### Fixed
+
+- Web client: sync is not stopped when tab or browser loses focus
+- Fix OOM gradle dependencies tasks
 
 ## 3.6.16
 
@@ -54,6 +111,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Verification getting stuck after app lost focus
 - Failing ITs with user search race condition that led to flaky tests
+- Various issues in regard to PDF reader page loading and zooming
 
 ## 3.6.14
 
@@ -66,6 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Correctly indicate overflows in room invite name or matrix ids
+- Fix Android back button closing the app instead of returning to previous view
 
 ## 3.6.13
 

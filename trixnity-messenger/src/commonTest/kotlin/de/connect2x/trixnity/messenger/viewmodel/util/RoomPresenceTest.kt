@@ -30,7 +30,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class RoomPresenceTest {
-    private val room = RoomId("room", "localhost")
+    private val room = RoomId("!room")
     private val us = UserId("us", "localhost")
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")

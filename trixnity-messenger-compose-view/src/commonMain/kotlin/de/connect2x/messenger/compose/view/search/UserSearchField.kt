@@ -64,7 +64,7 @@ class UserSearchFieldViewImpl : UserSearchFieldView {
                     Modifier.clickable { userSearchTerm = TextFieldValue("") }.buttonPointerModifier()
                 )
             },
-            placeholder = { Text(i18n.userSearchNameOrMatrixId()) },
+            label = { Text(i18n.userSearchNameOrMatrixId()) },
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Search,
                 autoCorrectEnabled = false
