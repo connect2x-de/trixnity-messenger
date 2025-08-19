@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added support for displaying MSC2448 Blurhash as image placeholder
+
 ### Changed
 
 - Updated Sysnotify to 2.0.3
@@ -19,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+
+- Timeline stuttering due to large images
 
 ### Security
 
