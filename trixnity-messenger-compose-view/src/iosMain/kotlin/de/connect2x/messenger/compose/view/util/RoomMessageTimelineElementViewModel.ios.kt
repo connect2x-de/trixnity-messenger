@@ -6,5 +6,5 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 
 @Composable
 actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
-    TODO("Not yet implemented. See #564")
+    return null // TODO See #564 
 }
