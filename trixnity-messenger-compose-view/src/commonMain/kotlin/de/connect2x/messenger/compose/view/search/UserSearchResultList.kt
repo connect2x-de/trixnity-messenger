@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,10 +30,8 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.roomlist.search.SearchGroupResult
 import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
-import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
 import kotlinx.coroutines.flow.map
@@ -43,15 +40,15 @@ interface UserSearchResultListView {
     sealed interface SearchResultState {
         object Loading : SearchResultState
         object Placeholder : SearchResultState
-        data class Results(val users: List<SearchUserElement>): SearchResultState
+        data class Results(val users: List<SearchUserElement>) : SearchResultState
     }
 
     @Composable
-    fun remember(
+    fun collectUserSearchResult(
         userSearchHandler: UserSearchHandler,
     ): SearchResultState
 
-    fun create(
+    fun createLazyComposables(
         scope: LazyListScope,
         state: SearchResultState,
         userClickReaction: (SearchUserElement) -> Unit,
@@ -60,7 +57,7 @@ interface UserSearchResultListView {
 
 class UserSearchResultListViewImpl : UserSearchResultListView {
     @Composable
-    override fun remember(
+    override fun collectUserSearchResult(
         userSearchHandler: UserSearchHandler,
     ): UserSearchResultListView.SearchResultState {
         val users = userSearchHandler.foundUsers.collectAsState().value
@@ -74,20 +71,21 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
         }
     }
 
-    override fun create(
+    override fun createLazyComposables(
         scope: LazyListScope,
         state: UserSearchResultListView.SearchResultState,
         userClickReaction: (SearchUserElement) -> Unit,
     ) {
-        with (scope) {
+        with(scope) {
             when (state) {
                 UserSearchResultListView.SearchResultState.Loading ->
-                    item(key="users-loading") { LoadingSpinner() }
+                    item(key = "users-loading") { LoadingSpinner() }
+
                 UserSearchResultListView.SearchResultState.Placeholder ->
-                    item(key="users-placeholder") {
+                    item(key = "users-placeholder") {
                         val i18n = DI.get<I18nView>()
                         Box(
-                            Modifier.fillMaxSize().padding(horizontal = 10.dp),
+                            Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 20.dp),
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
@@ -97,12 +95,13 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
                             )
                         }
                     }
+
                 is UserSearchResultListView.SearchResultState.Results -> {
                     if (state.users.isEmpty()) {
-                        item(key="users-notfound") {
+                        item(key = "users-notfound") {
                             val i18n = DI.get<I18nView>()
                             Box(
-                                Modifier.fillMaxSize().padding(horizontal = 10.dp),
+                                Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 20.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(

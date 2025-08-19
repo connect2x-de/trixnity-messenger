@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.roomlist.create
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,7 +37,7 @@ import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.search.UserSearchField
+import de.connect2x.messenger.compose.view.search.SearchUsersLocally
 import de.connect2x.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
@@ -48,7 +47,6 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
-import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 
 interface CreateNewGroupView {
@@ -73,9 +71,9 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
         val isCreating by createNewGroupViewModel.isCreating.collectAsState()
         val optionalRoomName = createNewGroupViewModel.optionalRoomName.collectAsTextFieldValueState()
         val optionalRoomTopic = createNewGroupViewModel.optionalGroupTopic.collectAsTextFieldValueState()
-        val users = createNewGroupViewModel.createNewRoomViewModel.searchHandler.foundUsers.collectAsState().value
         val userSearch = DI.get<UserSearchResultListView>()
-        val userSearchResults = userSearch.remember(createNewGroupViewModel.createNewRoomViewModel.searchHandler)
+        val userSearchResults =
+            userSearch.collectUserSearchResult(createNewGroupViewModel.createNewRoomViewModel.searchHandler)
 
         val roomOptionsString = buildString {
             append(i18n.roomType())
@@ -159,14 +157,12 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             item(key = "usersInGroup") {
                                 UsersInGroup(createNewGroupViewModel)
                             }
-                            stickyHeader {
-                                Box(Modifier.background(MaterialTheme.colorScheme.background)) {
-                                    UserSearchField(createNewGroupViewModel.createNewRoomViewModel.searchHandler)
-                                }
-                            }
-                            userSearch.create(this, userSearchResults) {
-                                createNewGroupViewModel.onUserClick(it)
-                            }
+                            SearchUsersLocally(
+                                createNewGroupViewModel.createNewRoomViewModel.searchHandler,
+                                createNewGroupViewModel::onUserClick,
+                                userSearch,
+                                userSearchResults
+                            )
                         }
                         VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), lazyListState, false)
                     }
