@@ -7,7 +7,9 @@ import kotlinx.cinterop.allocArrayOf
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.usePinned
+import okio.Path
 import platform.Foundation.NSData
+import platform.Foundation.NSURL
 import platform.Foundation.create
 import platform.posix.memcpy
 
@@ -26,3 +28,5 @@ fun NSData.toByteArray(): ByteArray = ByteArray(this@toByteArray.length.toInt())
             memcpy(it.addressOf(0), this@toByteArray.bytes, this@toByteArray.length)
         }
 }
+
+fun Path.toNSUrl(): NSURL = NSURL.fileURLWithPath(this.toString())

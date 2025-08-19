@@ -10,6 +10,8 @@ import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.sysnotify.SysNotifyIntent
 import de.connect2x.sysnotify.create
 import de.connect2x.sysnotify.getNotificationIcon
+import de.connect2x.sysnotify.withActivationFactory
+import de.connect2x.sysnotify.withContext
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -24,18 +26,18 @@ class InitialSyncWorker(
         inputData.getString("userId")?.let(::UserId)
     ) { "Expected worker to have input data field 'userId" }
 
-    private val notificationHandler: NotificationHandler = NotificationHandler.create(
+    private val notificationHandler: NotificationHandler = NotificationHandler(
         name = AndroidI18n.notificationInitialSyncTitle(),
-        id = INITIAL_SYNC_CHANNEL_ID,
-        contextGetter = { applicationContext },
-        activationIntent = { context, notification ->
+        id = INITIAL_SYNC_CHANNEL_ID
+    )
+        .withContext { applicationContext }
+        .withActivationFactory { context, notification ->
             SysNotifyIntent(
                 context,
                 MessengerActivity::class.java,
                 notification
             )
         }
-    )
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
         return notificationHandler.create(
@@ -43,9 +45,9 @@ class InitialSyncWorker(
                 title = AndroidI18n.notificationInitialSyncContentTitle(userId),
                 description = AndroidI18n.notificationInitialSyncDescription(context.getString(R.string.app_name)),
                 dismissible = false,
-                icon = applicationContext.resources.getNotificationIcon(R.drawable.ic_logo)
+                icon = applicationContext.resources.getNotificationIcon(R.drawable.ic_logo),
             )
-        ).toForegroundInfo()
+        ) {}.toForegroundInfo()
     }
 
     override suspend fun doWork(): Result {

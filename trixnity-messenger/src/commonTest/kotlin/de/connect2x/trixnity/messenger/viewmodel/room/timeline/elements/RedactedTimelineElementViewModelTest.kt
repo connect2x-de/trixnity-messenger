@@ -33,7 +33,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 class RedactedTimelineElementViewModelTest {
 
-    private val roomId = RoomId("room1", "localhost")
+    private val roomId = RoomId("!room1")
     private val someUserId = UserId("bob", "localhost")
     private val ourUserId = UserId("jonas", "localhost")
     val eventId = EventId("0")

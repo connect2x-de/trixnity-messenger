@@ -35,6 +35,8 @@ import de.connect2x.messenger.compose.view.theme.SystemDensity
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedSlider
+import de.connect2x.trixnity.messenger.util.html.HtmlNode
+import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
@@ -195,8 +197,9 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
             override val body: String = "Hello everyone!"
             override val formattedBody: String = "Hello <b/>everyone!"
+            override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
             override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-            override val mentionsInFormattedBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
+            override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
             override fun openMention(mention: TimelineElementMention) {}
         })
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -214,6 +217,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override val isRead: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeReactedTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val sendError: StateFlow<String?> = MutableStateFlow(null)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -245,8 +249,9 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
             override val body: String = "Hello!"
             override val formattedBody: String = "Hello!"
-            override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
-            override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
+            override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
+            override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
+            override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
             override fun openMention(mention: TimelineElementMention) {}
         })
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -263,6 +268,7 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override val isRead: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeReactedTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val sendError: StateFlow<String?> = MutableStateFlow(null)
     override val isReply: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)

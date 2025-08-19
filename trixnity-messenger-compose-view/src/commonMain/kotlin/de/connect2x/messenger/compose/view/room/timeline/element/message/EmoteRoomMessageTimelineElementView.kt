@@ -9,7 +9,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased.Emote
 import kotlin.reflect.KClass
 
-class EmoteRoomMessageTimelineElementView : TimelineElementView<Emote> {
+interface EmoteRoomMessageTimelineElementView : TimelineElementView<Emote>
+
+class EmoteRoomMessageTimelineElementViewImpl : EmoteRoomMessageTimelineElementView {
     override val supports: KClass<Emote> =
         Emote::class
 

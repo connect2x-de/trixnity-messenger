@@ -81,6 +81,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel
+import net.folivo.trixnity.client.user.PowerLevel
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.crypto.key.UserTrustLevel
@@ -143,9 +144,10 @@ class UserProfileViewImpl : UserProfileView {
                         BoxWithConstraints(Modifier.fillMaxWidth()) {
                             Box(Modifier.align(Alignment.Center)) {
                                 ThemedUserAvatar(
-                                    userInfoElement.initials,
-                                    image,
-                                    this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)
+                                    initials = userInfoElement.initials,
+                                    image = image,
+                                    presence = null,
+                                    size = this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)
                                 )
                             }
                         }
@@ -367,9 +369,11 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
                 }
             } else {
                 Tooltip(enabled = verificationIsRunning, tooltip = { TooltipText(i18n.verificationAlreadyRunning()) }) {
-                    MenuElement(Modifier.buttonPointerModifier(!verificationIsRunning).clickable(enabled = !verificationIsRunning) {
-                        userProfileViewModel.startVerification(isSinglePane)
-                    }) {
+                    MenuElement(
+                        Modifier.buttonPointerModifier(!verificationIsRunning)
+                            .clickable(enabled = !verificationIsRunning) {
+                                userProfileViewModel.startVerification(isSinglePane)
+                            }) {
                         Icon(
                             Icons.AutoMirrored.Filled.Wysiwyg,
                             i18n.userVerification(),
@@ -537,7 +541,7 @@ fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
 
 @Composable
 fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     var banUserReason by userProfileViewModel.banUserReason.collectAsTextFieldValueState()
 
     ThemedModalDialog({ userProfileViewModel.closeBanUserWarning() }) {
@@ -576,7 +580,7 @@ fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
 
 @Composable
 fun UnbanUserWarning(userProfileViewModel: UserProfileViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     var unbanUserReason by userProfileViewModel.unbanUserReason.collectAsTextFieldValueState()
 
     ThemedModalDialog({ userProfileViewModel.closeUnbanUserWarning() }) {
@@ -670,8 +674,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                     ThemedSuggestionChip(
                         onClick = {
                             changePowerLevelInput = TextFieldValue(
-                                ChangePowerLevelViewModel.Role.USER
-                                    .getMinPowerLevel().toString()
+                                ChangePowerLevelViewModel.Role.USER.getMinPowerLevel().toLevelString()
                             )
                         },
                         label = {
@@ -683,8 +686,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                     ThemedSuggestionChip(
                         onClick = {
                             changePowerLevelInput = TextFieldValue(
-                                ChangePowerLevelViewModel.Role.MODERATOR
-                                    .getMinPowerLevel().toString()
+                                ChangePowerLevelViewModel.Role.MODERATOR.getMinPowerLevel().toLevelString()
                             )
                         },
                         label = {
@@ -696,8 +698,7 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                     ThemedSuggestionChip(
                         onClick = {
                             changePowerLevelInput = TextFieldValue(
-                                ChangePowerLevelViewModel.Role.ADMIN
-                                    .getMinPowerLevel().toString()
+                                ChangePowerLevelViewModel.Role.ADMIN.getMinPowerLevel().toLevelString()
                             )
                         },
                         label = {
@@ -757,3 +758,5 @@ private fun defaultColorForState(enabled: Boolean) =
     LocalContentColor.current.run {
         if (!enabled) copy(alpha = 0.6f) else this
     }
+
+private fun PowerLevel.toLevelString() = (this as? PowerLevel.User)?.level?.toString() ?: ""

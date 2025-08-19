@@ -36,7 +36,7 @@ import org.koin.dsl.module
 import kotlin.test.Test
 
 class VerificationRequestRoomMessageTimelineElementViewModelTest {
-    private val thisRoom = RoomId("room", "localhost")
+    private val thisRoom = RoomId("!room")
     private val timelineEventId = EventId("event-0")
     private val me = UserId("test", "localhost")
 

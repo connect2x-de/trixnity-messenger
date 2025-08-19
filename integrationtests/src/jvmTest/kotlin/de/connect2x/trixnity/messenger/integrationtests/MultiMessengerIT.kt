@@ -5,16 +5,20 @@ import de.connect2x.trixnity.messenger.integrationtests.messenger.createNewAccou
 import de.connect2x.trixnity.messenger.integrationtests.messenger.deleteAccount
 import de.connect2x.trixnity.messenger.integrationtests.messenger.login
 import de.connect2x.trixnity.messenger.integrationtests.messenger.verifyAccountsArePresent
-import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessengerFromMultiMessenger
+import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMultiMessenger
 import de.connect2x.trixnity.messenger.integrationtests.util.register
 import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
 import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
+import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.kotest.matchers.collections.shouldHaveSize
 import io.ktor.http.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.debug.DebugProbes
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
@@ -41,6 +45,9 @@ class MultiMessengerIT {
 
     @BeforeTest
     fun beforeEach(): Unit = runBlockingWithTimeout {
+        DebugProbes.enableCreationStackTraces = true
+        DebugProbes.install()
+
         singleThreadContext = newSingleThreadContext("main")
         Dispatchers.setMain(singleThreadContext) // this tricks Decompose into accepting a fake UI thread
 
@@ -57,12 +64,15 @@ class MultiMessengerIT {
     @AfterTest
     fun afterEach() {
         singleThreadContext.close()
-        messenger.close()
     }
 
     @Test
     fun shouldAddAnAccountAndRemoveAfterwardsOnMultiMatrixMessengerSingleMode(): Unit = runBlockingWithTimeout {
-        messenger = createTestMatrixMessengerFromMultiMessenger()
+        val multiMessenger = createTestMatrixMultiMessenger()
+        messenger = MatrixMessengerWithRoot(
+            multiMessenger.singleModeMatrixMessenger().first()
+        )
+
         log.info { "login as user1" }
         messenger.login(
             serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
@@ -90,5 +100,8 @@ class MultiMessengerIT {
             recoveryKey = recoveryKey,
         )
         messenger.verifyAccountsArePresent("user1", "user2")
+        multiMessenger.closeSuspending()
+
+        DebugProbes.dumpCoroutinesInfo() shouldHaveSize 1 // only the coroutine of this test should still be active
     }
 }

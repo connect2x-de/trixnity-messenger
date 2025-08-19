@@ -12,6 +12,7 @@ import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
 import de.connect2x.messenger.compose.view.common.WizardStep
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
@@ -85,51 +86,38 @@ class AdditionalAccountSetupWizardStepImpl() : AdditionalAccountSetupWizardStep 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountSetupWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountSetup) {
-    val di = DI.current
-    val i18n = di.get<I18nView>()
+    val i18n = DI.get<I18nView>()
 
     val viewModel = showAccountBootstrapWrapper.viewModel
-    val list = di.get<AccountSetupWizardStepList>().steps
-    val steps = remember {
-        mutableListOf<WizardStep>().apply {
-            list.forEach {
-                when (it) {
-                    is AccountSetupWizardStep.ExplanationStep -> add(wizardStepExplanation(viewModel, it, i18n))
+    val additionalAccountSetupWizardStep = DI.get<AdditionalAccountSetupWizardStep>()
+    val setupSteps = DI.get<AccountSetupWizardStepList>().steps
+    val wizardSteps = remember(viewModel, setupSteps, i18n) {
+        setupSteps.map {
+            when (it) {
+                is AccountSetupWizardStep.ExplanationStep ->
+                    wizardStepExplanation(viewModel, it, i18n)
 
-                    is AccountSetupWizardStep.AccessibilityStep -> add(wizardStepAccessibility(viewModel, it, i18n))
+                is AccountSetupWizardStep.AccessibilityStep ->
+                    wizardStepAccessibility(viewModel, it, i18n)
 
-                    is AccountSetupWizardStep.NotificationSettingsStep -> add(
-                        wizardStepNotification(
-                            viewModel,
-                            it,
-                            i18n
-                        )
-                    )
+                is AccountSetupWizardStep.NotificationSettingsStep ->
+                    wizardStepNotification(viewModel, it, i18n)
 
-                    is AccountSetupWizardStep.ConfirmationStep -> add(
-                        wizardStepConfirmation(
-                            viewModel,
-                            it,
-                            i18n
-                        )
-                    )
+                is AccountSetupWizardStep.ConfirmationStep ->
+                    wizardStepConfirmation(viewModel, it, i18n)
 
-                    is AccountSetupWizardStep.PrivacySettingsStep -> add(wizardStepPrivacy(viewModel, it, i18n))
+                is AccountSetupWizardStep.PrivacySettingsStep ->
+                    wizardStepPrivacy(viewModel, it, i18n)
 
-                    is AccountSetupWizardStep.VerificationStep -> add(
-                        wizardStepVerification(
-                            viewModel,
-                            it,
-                            i18n
-                        )
-                    )
+                is AccountSetupWizardStep.VerificationStep ->
+                    wizardStepVerification(viewModel, it, i18n)
 
-                    else -> add(di.get<AdditionalAccountSetupWizardStep>().create(viewModel, it))
-                }
+                else ->
+                    additionalAccountSetupWizardStep.create(viewModel, it)
             }
         }
     }
-    Wizard(steps)
+    Wizard(wizardSteps, viewModel.backHandler)
 }
 
 private fun wizardStepExplanation(

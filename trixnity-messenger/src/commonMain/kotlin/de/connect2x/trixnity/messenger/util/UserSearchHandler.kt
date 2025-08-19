@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.UserId
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
@@ -74,7 +73,7 @@ class DefaultUserSearchHandler(
             .distinctUntilChanged()
             .debounce(debounceDuration)
             .map {
-                if (MatrixRegex.userId.matches(it.lowercase())) {
+                if (UserId.isValid(it.lowercase())) {
                     log.trace { "found matrix id" }
                     it.lowercase()
                 } else it

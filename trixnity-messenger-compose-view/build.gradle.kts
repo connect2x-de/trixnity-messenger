@@ -1,17 +1,18 @@
+import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.registerCoverageTask
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.compose.multiplatform)
-    alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.kotlin.parcelize)
+    alias(sharedLibs.plugins.kotlin.multiplatform)
+    alias(sharedLibs.plugins.android.library)
+    alias(sharedLibs.plugins.compose.multiplatform)
+    alias(sharedLibs.plugins.compose.compiler)
+    alias(sharedLibs.plugins.kotlin.parcelize)
 }
 
+configureJava(sharedLibs.versions.targetJvm)
 registerCoverageTask()
 
 kotlin {
@@ -50,9 +51,14 @@ kotlin {
         binaries.library()
         generateTypeScriptDefinitions()
     }
-
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    )
+    applyDefaultHierarchyTemplate()
     sourceSets {
-        commonMain {
+        val commonMain by getting {
             dependencies {
                 api(projects.trixnityMessenger)
                 api(compose.runtime)
@@ -61,34 +67,47 @@ kotlin {
                 api(compose.material3)
                 api(compose.ui)
                 api(compose.materialIconsExtended)
-                api(libs.decompose)
-                api(libs.decompose.extensions)
-                api(libs.aboutlibraries)
+                api(sharedLibs.decompose)
+                api(sharedLibs.decompose.extensions)
+                api(sharedLibs.aboutLibraries.compose.m3)
+                implementation(sharedLibs.kotlinx.datetime)
+                implementation(sharedLibs.stately.common)
+                implementation(sharedLibs.stately.collections)
+                implementation(sharedLibs.androidx.annotation)
                 implementation(libs.okio)
-                implementation(libs.kotlinx.datetime)
                 implementation(compose.uiUtil)
-                implementation(libs.compose.richeditor)
                 implementation(libs.sysnotify)
-                implementation(libs.androidx.annotation)
+                implementation(libs.highlights)
+
+                // FileKit
+                implementation(libs.filekit.core)
+                implementation(libs.filekit.compose)
             }
         }
+        val desktopAndAndroidMain by creating {
+            dependsOn(commonMain)
+        }
         val desktopMain by getting {
+            dependsOn(desktopAndAndroidMain)
             dependencies {
-                implementation(libs.filekit.compose)
-                implementation(libs.ktor.client.okhttp)
+                implementation(sharedLibs.ktor.client.okhttp)
                 implementation(libs.pdfbox)
             }
         }
         androidMain {
+            dependsOn(desktopAndAndroidMain)
             dependencies {
                 implementation(compose.uiTooling)
-                implementation(libs.bundles.android.common)
+                implementation(sharedLibs.androidx.appcompat)
+                implementation(sharedLibs.androidx.work.runtime.ktx)
+                implementation(sharedLibs.androidx.lifecycle.livedata.ktx)
+                implementation(sharedLibs.androidx.activity.compose)
+                implementation(libs.logback.android)
                 implementation(compose.preview)
-                implementation(libs.androidx.security.crypto)
-                implementation(libs.ktor.client.okhttp)
+                implementation(sharedLibs.androidx.security.crypto)
+                implementation(sharedLibs.ktor.client.okhttp)
                 implementation(project.dependencies.platform(libs.firebase.bom))
                 implementation(libs.firebase.messaging.ktx)
-                implementation(libs.sysnotify.android)
                 // for Previews:
                 implementation(libs.slf4j.api)
             }
@@ -96,27 +115,26 @@ kotlin {
         val webMain by getting {
             dependencies {
                 implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
-                implementation(project.dependencies.platform(libs.kotlin.wrappers.bom))
-                implementation(libs.kotlin.browser)
-                implementation(libs.sysnotify.js)
-                implementation(libs.filekit.core)
+                implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))
+                implementation(sharedLibs.kotlin.browser)
+                implementation(project(":wrappers-pdfjs"))
             }
         }
 
         commonTest {
             dependencies {
-                implementation(libs.kotlin.test)
+                implementation(sharedLibs.kotlin.test)
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.uiTest)
                 implementation(libs.okio.fakefilesystem)
-                implementation(libs.kotlinx.coroutines.test)
+                implementation(sharedLibs.kotlinx.coroutines.test)
             }
         }
 
         val desktopTest by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
-                implementation(libs.kotlinx.coroutines.swing)
+                implementation(sharedLibs.kotlinx.coroutines.swing)
             }
         }
     }
@@ -125,21 +143,18 @@ kotlin {
 dependencies {
     androidTestImplementation(libs.ui.test.junit4.android)
     debugImplementation(libs.ui.test.android.manifest)
-    implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-windows-x64") })
-    implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-linux-x64") })
-    implementation(variantOf(libs.sysnotify) { classifier("jvm-natives-macos-x64") })
 }
 
 android {
     namespace = "${libs.versions.appId.get()}.compose.view"
-    compileSdk = libs.versions.androidCompileSDK.get().toInt()
+    compileSdk = sharedLibs.versions.androidCompileSDK.get().toInt()
     buildFeatures {
         compose = true
     }
     defaultConfig {
-        minSdk = libs.versions.androidMinimalSDK.get().toInt()
-        testOptions.targetSdk = libs.versions.androidTargetSDK.get().toInt()
-        lint.targetSdk = libs.versions.androidTargetSDK.get().toInt()
+        minSdk = sharedLibs.versions.androidMinimalSDK.get().toInt()
+        testOptions.targetSdk = sharedLibs.versions.androidTargetSDK.get().toInt()
+        lint.targetSdk = sharedLibs.versions.androidTargetSDK.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     sourceSets {

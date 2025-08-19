@@ -194,7 +194,7 @@ class TimelineViewImpl : TimelineView {
                             lastLoadedElement = timelineElementHolderViewModels.first().key,
                             windowIsFocused = isFocused,
                         ).also {
-                            log.debug { "viewState: $it" }
+                            log.trace { "viewState: $it" }
                         }
                     }
                 }

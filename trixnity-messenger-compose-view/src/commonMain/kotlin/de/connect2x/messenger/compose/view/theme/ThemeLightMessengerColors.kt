@@ -20,7 +20,7 @@ class ThemeLightMessengerColorsImpl : ThemeLightMessengerColors {
         return MessengerColors(
             success = messenger_theme_light_success,
             presenceOnline = messenger_theme_light_success,
-            presenceUnavailable = messenger_theme_light_error,
+            presenceUnavailable = messenger_theme_light_warning,
             presenceOffline = messenger_theme_light_neutral,
             verificationTrusted = messenger_theme_light_success,
             verificationUntrusted = messenger_theme_light_error,

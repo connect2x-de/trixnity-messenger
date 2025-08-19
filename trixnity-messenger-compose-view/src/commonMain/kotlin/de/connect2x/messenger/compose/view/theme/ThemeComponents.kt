@@ -348,5 +348,11 @@ class ThemeComponentsImpl : ThemeComponents {
                 selectedTrailingIconColor = MaterialTheme.colorScheme.onErrorContainer,
             ),
         ),
+        mentionChip = ChipStyle.elevated(
+            colors = ChipStyle.Colors.elevated(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            ),
+        ),
     )
 }

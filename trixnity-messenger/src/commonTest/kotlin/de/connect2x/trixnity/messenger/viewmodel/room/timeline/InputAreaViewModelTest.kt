@@ -44,19 +44,21 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.RoomEventContent
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class InputAreaViewModelTest {
 
-    private val roomId = RoomId("room1", "localhost")
+    private val roomId = RoomId("!room1")
     private val ourUserId = UserId("bob", "localhost")
 
     val matrixClientMock = mock<MatrixClient>()
@@ -124,7 +126,7 @@ class InputAreaViewModelTest {
         every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
 
         canSendEventMocker = every {
-            userServiceMock.canSendEvent(any(), any())
+            userServiceMock.canSendEvent(any(), any<KClass<out RoomEventContent>>())
         }
 
         canSendEventMocker returns flowOf(true)
@@ -765,7 +767,7 @@ class InputAreaViewModelTest {
 
         eventually(300.milliseconds) {
             body shouldBe "https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O."
-            formattedBody shouldBe "<p>https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O.</p>"
+            formattedBody shouldBe "<p><a href=\"https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O\">https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O</a>.</p>"
         }
     }
 
@@ -783,7 +785,10 @@ class InputAreaViewModelTest {
         cut.sendMessage()
 
         eventually(300.milliseconds) {
-            formattedBody shouldBe "<p>Hiii <a href=\"https://matrix.to/#/${aliceUserId.full}\">${aliceRoomUser.name}</a> " + "und <a href=\"https://matrix.to/#/${alvinUserId.full}\">${alvinRoomUser.name}</a>\n" + "und <a href=\"https://matrix.to/#/${alvin2UserId.full}\">${alvin2RoomUser.name}</a> " + "und <a href=\"https://matrix.to/#/${alvinUserId.full}\">${alvinRoomUser.name}</a> zusammen!</p>"
+            formattedBody shouldBe """
+                <p>Hiii <a href="matrix:u/alice:hallo.com">Alice</a> und <a href="matrix:u/alvin:example.org">Alvin</a>
+                und <a href="matrix:u/alvin:example.orgg">Alvina</a> und <a href="matrix:u/alvin:example.org">Alvin</a> zusammen!</p>
+            """.trimIndent()
         }
     }
 
@@ -801,7 +806,7 @@ class InputAreaViewModelTest {
         cut.sendMessage()
 
         eventually(300.milliseconds) {
-            formattedBody shouldBe "<p><a href=\"https://matrix.to/#/${aliceUserId.full}\">${aliceRoomUser.name}</a></p>"
+            formattedBody shouldBe """<p><a href="matrix:u/alice:hallo.com">Alice</a></p>"""
         }
     }
 
@@ -819,7 +824,7 @@ class InputAreaViewModelTest {
         cut.sendMessage()
 
         eventually(300.milliseconds) {
-            formattedBody shouldBe "<p><a href=\"https://matrix.to/#/${aliceUserId.full}\">${aliceRoomUser.name}</a> " + "<a href=\"https://matrix.to/#/${alvinUserId.full}\">${alvinRoomUser.name}</a> hii!</p>"
+            formattedBody shouldBe """<p><a href="matrix:u/alice:hallo.com">Alice</a> <a href="matrix:u/alvin:example.org">Alvin</a> hii!</p>"""
         }
     }
 
@@ -837,7 +842,7 @@ class InputAreaViewModelTest {
         cut.sendMessage()
 
         eventually(300.milliseconds) {
-            formattedBody shouldBe "<p>Hi <a href=\"https://matrix.to/#/${aliceUserId.full}\">${aliceRoomUser.name}</a></p>"
+            formattedBody shouldBe """<p>Hi <a href="matrix:u/alice:hallo.com">Alice</a></p>"""
         }
     }
 

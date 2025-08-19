@@ -1,16 +1,11 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message.bubble
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.requiredWidth
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -18,16 +13,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.pointerMoveFilter
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.theme.components
@@ -50,6 +44,9 @@ fun MessageBubbleContainer(
     val showActionMenu = remember { mutableStateOf(false) }
     val hoverMessage = remember { mutableStateOf(false) }
 
+    val messagePadding = remember(holder.isByMe) {
+        if (holder.isByMe) Modifier else Modifier.padding(start = 8.dp)
+    }
     val messageBubbleStyle = when {
         sendError != null -> MaterialTheme.components.messageBubbleError
         holder.isByMe -> MaterialTheme.components.messageBubbleOwn
@@ -74,43 +71,23 @@ fun MessageBubbleContainer(
                     size
                 }
         ) {
-            Row {
-                if (holder.isByMe.not()) {
-                    if (isFirstInUserSequence) {
-                        Box(
-                            Modifier
-                                .background(
-                                    messageBubbleStyle.color,
-                                    shape = ChatEdgeLeft(with(LocalDensity.current) { 8.dp.roundToPx() })
-                                )
-                                .requiredWidth(8.dp)
-                        )
-                    } else {
-                        Spacer(Modifier.requiredWidth(8.dp))
-                    }
-                }
-                ThemedSurface(
-                    style = messageBubbleStyle,
-                ) {
-                    Box(modifier = Modifier.width(IntrinsicSize.Max)) {
-                        MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = true }, content)
-                        if (!isPreview) {
-                            MessageBubbleContentOverlay(
-                                hoverMessage,
-                                overlay,
-                            )
+            ThemedSurface(
+                style = messageBubbleStyle,
+                modifier = Modifier
+                    .then(messagePadding)
+                    .drawWithCache {
+                        onDrawBehind {
+                            if (isFirstInUserSequence) {
+                                drawChatEdge(holder.isByMe, messageBubbleStyle.color)
+                            }
                         }
-                    }
-                }
-                if (holder.isByMe && isFirstInUserSequence) {
-                    Box(
-                        Modifier
-                            .background(
-                                messageBubbleStyle.color,
-                                shape = ChatEdgeRight(with(LocalDensity.current) { 8.dp.roundToPx() })
-                            )
-                            .zIndex(-1f)
-                        // no width and no padding, as really wide messages will push this to the max amount (we only use padding in the Timeline)
+                    },
+            ) {
+                MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = true }, content)
+                if (!isPreview) {
+                    MessageBubbleContentOverlay(
+                        hoverMessage,
+                        overlay,
                     )
                 }
             }
@@ -131,35 +108,23 @@ fun MessageBubbleContainer(
     }
 }
 
-
-class ChatEdgeRight(private val offset: Int) : Shape {
-
-    override fun createOutline(
-        size: Size,
-        layoutDirection: LayoutDirection,
-        density: Density
-    ): Outline {
-        val trianglePath = Path().apply {
-            moveTo(x = 0f - offset, y = 0f)
-            lineTo(x = 0f, y = 0f + offset)
-            lineTo(x = 0f + offset, y = 0f)
-        }
-        return Outline.Generic(path = trianglePath)
-    }
+private val ChatEdge = Path().apply {
+    moveTo(x = -1f, y = 0f)
+    lineTo(x = 0f, y = 1f)
+    lineTo(x = 1f, y = 0f)
+    close()
 }
 
-class ChatEdgeLeft(private val offset: Int) : Shape {
-
-    override fun createOutline(
-        size: Size,
-        layoutDirection: LayoutDirection,
-        density: Density
-    ): Outline {
-        val trianglePath = Path().apply {
-            moveTo(x = 0f + offset * 2, y = 0f)
-            lineTo(x = 0f + offset, y = 0f + offset)
-            lineTo(x = 0f, y = 0f)
+fun DrawScope.drawChatEdge(isByMe: Boolean, color: Color) {
+    if (isByMe) {
+        translate(left = size.width) {
+            scale(8.dp.toPx(), pivot = Offset.Zero) {
+                drawPath(ChatEdge, color)
+            }
         }
-        return Outline.Generic(path = trianglePath)
+    } else {
+        scale(8.dp.toPx(), pivot = Offset.Zero) {
+            drawPath(ChatEdge, color)
+        }
     }
 }

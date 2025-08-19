@@ -116,7 +116,7 @@ class MatrixClientsImpl(
                     password = password,
                     type = LoginType.Password,
                     initialDeviceDisplayName = initialDeviceDisplayName,
-                    refreshToken = true,
+                    refreshToken = config.useRefreshTokens,
                 ).getOrThrow().let { login ->
                     LoginInfo(
                         userId = login.userId,
@@ -144,7 +144,7 @@ class MatrixClientsImpl(
                     token = token,
                     type = LoginType.Token(),
                     initialDeviceDisplayName = initialDeviceDisplayName,
-                    refreshToken = true,
+                    refreshToken = config.useRefreshTokens,
                 ).getOrThrow().let { login ->
                     LoginInfo(
                         userId = login.userId,
@@ -270,7 +270,7 @@ class MatrixClientsImpl(
             log.info { "delete account data on this machine" }
             val matrixClient = matrixClients.value[userId]
             val coroutineScope = matrixClient?.di?.get<CoroutineScope>()
-            matrixClient?.close()
+            matrixClient?.closeSuspending()
             coroutineScope?.coroutineContext?.job?.join()
 
             settings.delete(userId)

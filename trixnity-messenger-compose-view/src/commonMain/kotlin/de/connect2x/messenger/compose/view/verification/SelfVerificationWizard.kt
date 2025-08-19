@@ -77,6 +77,17 @@ open class SelfVerificationMethodsListEntries {
 }
 
 class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
+    companion object {
+        private val stepList = listOf<SelfVerificationWizardStep>(
+            SelfVerificationWizardStep.SelfVerificationWizardHelp,
+            SelfVerificationWizardStep.SelfVerificationWizardMethods,
+            SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey,
+            SelfVerificationWizardStep.SelfVerificationWizardPassphrase,
+            SelfVerificationWizardStep.SelfVerificationWizardResetRecoveryKeyConfirmation,
+            SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation
+        )
+    }
+
     @Composable
     override fun create(selfVerificationViewModel: SelfVerificationViewModel, showHelpScreen: Boolean) {
         selfVerificationWizard(selfVerificationViewModel)
@@ -100,71 +111,56 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
 
     @Composable
     private fun selfVerificationWizard(selfVerificationViewModel: SelfVerificationViewModel) {
-        val stepList = listOf<SelfVerificationWizardStep>(
-            SelfVerificationWizardStep.SelfVerificationWizardHelp,
-            SelfVerificationWizardStep.SelfVerificationWizardMethods,
-            SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey,
-            SelfVerificationWizardStep.SelfVerificationWizardPassphrase,
-            SelfVerificationWizardStep.SelfVerificationWizardResetRecoveryKeyConfirmation,
-            SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation
-        )
         val i18n = DI.get<I18nView>()
 
-        val steps = remember {
-            mutableListOf<WizardStep>().apply {
-                stepList.forEach {
-                    when (it) {
-                        is SelfVerificationWizardStep.SelfVerificationWizardHelp -> this.add(
-                            selfVerificationWizardHelpStep(
-                                selfVerificationViewModel,
-                                SelfVerificationWizardStep.SelfVerificationWizardHelp,
-                                i18n
-                            )
-                        )
+        val steps = stepList.mapNotNull {
+            when (it) {
+                is SelfVerificationWizardStep.SelfVerificationWizardHelp ->
+                    selfVerificationWizardHelpStep(
+                        selfVerificationViewModel,
+                        SelfVerificationWizardStep.SelfVerificationWizardHelp,
+                        i18n
+                    )
 
-                        is SelfVerificationWizardStep.SelfVerificationWizardMethods -> this.add(
-                            selfVerificationWizardMethodStep(
-                                selfVerificationViewModel,
-                                SelfVerificationWizardStep.SelfVerificationWizardMethods,
-                                i18n
-                            )
-                        )
+                is SelfVerificationWizardStep.SelfVerificationWizardMethods ->
+                    selfVerificationWizardMethodStep(
+                        selfVerificationViewModel,
+                        SelfVerificationWizardStep.SelfVerificationWizardMethods,
+                        i18n
+                    )
 
-                        is SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey -> this.add(
-                            selfVerificationWizardRecoveryKeyStep(
-                                selfVerificationViewModel,
-                                SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey,
-                                i18n
-                            )
-                        )
+                is SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey ->
+                    selfVerificationWizardRecoveryKeyStep(
+                        selfVerificationViewModel,
+                        SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey,
+                        i18n
+                    )
 
-                        is SelfVerificationWizardStep.SelfVerificationWizardPassphrase -> this.add(
-                            selfVerificationWizardPassphraseStep(
-                                selfVerificationViewModel,
-                                SelfVerificationWizardStep.SelfVerificationWizardPassphrase,
-                                i18n
-                            )
-                        )
+                is SelfVerificationWizardStep.SelfVerificationWizardPassphrase ->
+                    selfVerificationWizardPassphraseStep(
+                        selfVerificationViewModel,
+                        SelfVerificationWizardStep.SelfVerificationWizardPassphrase,
+                        i18n
+                    )
 
-                        is SelfVerificationWizardStep.SelfVerificationWizardResetRecoveryKeyConfirmation -> this.add(
-                            selfVerificationWizardResetRecoveryKeyConfirmationStep(
-                                selfVerificationViewModel,
-                                SelfVerificationWizardStep.SelfVerificationWizardResetRecoveryKeyConfirmation,
-                                i18n
-                            )
-                        )
+                is SelfVerificationWizardStep.SelfVerificationWizardResetRecoveryKeyConfirmation ->
+                    selfVerificationWizardResetRecoveryKeyConfirmationStep(
+                        selfVerificationViewModel,
+                        SelfVerificationWizardStep.SelfVerificationWizardResetRecoveryKeyConfirmation,
+                        i18n
+                    )
 
-                        is SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation -> this.add(
-                            selfVerificationWizardVerificationConfirmationStep(
-                                selfVerificationViewModel,
-                                SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation,
-                                i18n
-                            )
-                        )
-                    }
-                }
+                is SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation ->
+                    selfVerificationWizardVerificationConfirmationStep(
+                        selfVerificationViewModel,
+                        SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation,
+                        i18n
+                    )
+
+                else -> null
             }
         }
+
         Wizard(steps)
     }
 
@@ -354,6 +350,10 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             backButton = {
                 Custom {
+                    val showHelp = selfVerificationViewModel.showVerificationHelp.collectAsState().value
+                    if (showHelp) {
+                        currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardHelp.stepId
+                    }
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = {
@@ -557,7 +557,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
         step: SelfVerificationWizardStep,
         i18n: I18nView
     ): WizardStep {
-        val checked = mutableStateOf<Boolean>(false)
+        val checked = mutableStateOf(false)
         return WizardStep(
             id = step.stepId, title = { i18n.deviceVerification() },
             content = {
@@ -580,6 +580,11 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             backButton = {
                 Custom {
+                    val showResetStep = selfVerificationViewModel.showResetRecoveryWarning.collectAsState().value
+                    if (!showResetStep) {
+                        currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardMethods.stepId
+
+                    }
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = {

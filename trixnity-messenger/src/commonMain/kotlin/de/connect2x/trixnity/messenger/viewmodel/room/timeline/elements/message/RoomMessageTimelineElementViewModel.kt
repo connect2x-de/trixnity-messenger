@@ -3,11 +3,13 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
+import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.Message
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import kotlinx.coroutines.flow.StateFlow
 import net.folivo.trixnity.client.media.PlatformMedia
+import net.folivo.trixnity.core.MSC2448
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C> {
@@ -23,6 +25,11 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         val formattedBody: String?
 
         /**
+         * The HTML version of the message as tree of HTML nodes, if present.
+         */
+        val formattedBodyContent: HtmlNode.HtmlElement?
+
+        /**
          * Users, Events and Room mentioned in the event's message
          */
         val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>>
@@ -30,7 +37,7 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         /**
          * Users, Events and Room mentioned in the event's formatted body
          */
-        val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention?>>?
+        val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>>
 
         /**
          * Open the mention in the UI
@@ -69,6 +76,8 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
             val height: Int?
             val thumbnailWidth: Int?
             val thumbnailHeight: Int?
+            @MSC2448
+            val blurhash: String?
         }
 
         interface Audio : FileBased<RoomMessageEventContent.FileBased.Audio> {

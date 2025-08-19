@@ -258,7 +258,7 @@
 //
 //@Composable
 //fun BoxScope.UserVerificationCompareEmojisOrNumbers(verificationStepCompareViewModel: VerificationStepCompareViewModel) {
-//    val i18n = DI.current.get<I18nView>()
+//    val i18n = DI.get<I18nView>()
 //    Column(Modifier.fillMaxWidth().align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
 //        Box {
 //            CompareEmojisOrNumbersContent(verificationStepCompareViewModel)

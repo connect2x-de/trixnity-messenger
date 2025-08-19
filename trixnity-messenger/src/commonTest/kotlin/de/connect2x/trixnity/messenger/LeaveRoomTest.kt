@@ -34,8 +34,8 @@ import kotlin.test.Test
 
 class LeaveRoomTest {
 
-    private val roomId = RoomId("room1", "localhost")
-    private val upgradedRoomId = RoomId("room0", "localhost")
+    private val roomId = RoomId("!room1")
+    private val upgradedRoomId = RoomId("!room0")
 
     private val room: MutableStateFlow<Room?> = MutableStateFlow(null)
     private val upgradedRoom: MutableStateFlow<Room?> = MutableStateFlow(null)
@@ -64,7 +64,7 @@ class LeaveRoomTest {
         every { roomService.getState(upgradedRoomId, CreateEventContent::class) } returns flowOf(null)
         every { roomService.getById(roomId) } returns room
         every { roomService.getById(upgradedRoomId) } returns upgradedRoom
-        everySuspend { roomService.forgetRoom(any()) } returns Unit
+        everySuspend { roomService.forgetRoom(any(), any()) } returns Unit
         every { matrixClientServerApiClient.room } returns roomApiClient
         every { matrixClient.api } returns matrixClientServerApiClient
         every { matrixClient.di } returns koinApplication {
@@ -123,7 +123,7 @@ class LeaveRoomTest {
         }
 
         LeaveRoomImpl().invoke(matrixClient, roomId, false).getOrThrow()
-        verifySuspend(VerifyMode.not) { roomApiClient.forgetRoom(any()) }
+        verifySuspend(VerifyMode.not) { roomApiClient.forgetRoom(roomId) }
     }
 
     @Test
@@ -133,7 +133,7 @@ class LeaveRoomTest {
         everySuspend { roomApiClient.leaveRoom(any()) } returns Result.success(Unit)
 
         LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
-        verifySuspend(VerifyMode.not) { roomApiClient.leaveRoom(any()) }
+        verifySuspend(VerifyMode.not) { roomApiClient.leaveRoom(roomId) }
     }
 
     @Test
@@ -151,7 +151,7 @@ class LeaveRoomTest {
         }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
-        verifySuspend { roomApiClient.forgetRoom(any()) }
+        verifySuspend { roomApiClient.forgetRoom(roomId) }
     }
 
     @Test
@@ -164,7 +164,7 @@ class LeaveRoomTest {
         }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).isSuccess shouldBe false
-        verifySuspend(VerifyMode.not) { roomApiClient.forgetRoom(any()) }
+        verifySuspend(VerifyMode.not) { roomApiClient.forgetRoom(roomId) }
     }
 
     @Test
@@ -182,7 +182,16 @@ class LeaveRoomTest {
         }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
-        verifySuspend { matrixClient.room.forgetRoom(any()) }
+        verifySuspend { matrixClient.room.forgetRoom(roomId, true) }
+    }
+
+    @Test
+    fun `should forget room locally when room is already deleted`() = runTestWithCoroutineScope {
+        room.value = Room(roomId, membership = Membership.INVITE)
+        everySuspend { roomApiClient.forgetRoom(any()) } returns Result.success(Unit)
+        everySuspend { roomApiClient.leaveRoom(any()) } returns Result.success(Unit)
+        LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
+        verifySuspend { matrixClient.room.forgetRoom(roomId, true) }
     }
 
     @Test
@@ -196,7 +205,7 @@ class LeaveRoomTest {
         }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).isSuccess shouldBe false
-        verifySuspend(VerifyMode.not) { matrixClient.room.forgetRoom(any()) }
+        verifySuspend(VerifyMode.not) { matrixClient.room.forgetRoom(roomId) }
     }
 
 

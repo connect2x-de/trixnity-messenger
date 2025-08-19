@@ -5,6 +5,8 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
@@ -22,6 +24,7 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewMo
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.Wait
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Wrapper
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
@@ -47,6 +50,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationMethod
 import org.koin.core.component.get
+import kotlin.jvm.JvmInline
 
 
 private val log = KotlinLogging.logger {}
@@ -142,6 +146,9 @@ interface VerificationViewModel {
     }
 }
 
+@JvmInline
+value class VerificationContext(val coroutineScope: CoroutineScope)
+
 open class VerificationViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val onCloseVerification: () -> Unit,
@@ -149,6 +156,7 @@ open class VerificationViewModelImpl(
     private val roomId: RoomId?,
     private val timelineEventId: EventId?,
 ) : MatrixClientViewModelContext by viewModelContext, VerificationViewModel {
+    private val verificationContext = VerificationContext(coroutineScope)
 
     private val activeVerification = MutableStateFlow<ActiveVerification?>(null)
 
@@ -157,7 +165,6 @@ open class VerificationViewModelImpl(
         source = navigation,
         serializer = Config.serializer(),
         initialConfiguration = None,
-        handleBackButton = true,
         childFactory = ::createChild
     )
 
@@ -181,6 +188,7 @@ open class VerificationViewModelImpl(
             is SelectVerificationMethod -> Wrapper.SelectVerificationMethod(
                 get<SelectVerificationMethodViewModelFactory>().create(
                     viewModelContext = childContext(componentContext),
+                    verificationContext,
                     verificationMethods = config.verificationMethods,
                     roomId = config.roomId,
                     timelineEventId = config.timelineEventId,
@@ -191,6 +199,7 @@ open class VerificationViewModelImpl(
             is AcceptSasStart -> Wrapper.AcceptSasStart(
                 get<AcceptSasStartViewModelFactory>().create(
                     viewModelContext = childContext(componentContext),
+                    verificationContext,
                     roomId = config.roomId,
                     timelineEventId = config.timelineEventId,
                 )
@@ -242,8 +251,11 @@ open class VerificationViewModelImpl(
             is AcceptedByOtherClient -> Wrapper.AcceptedByOtherClient
         }
 
-
     init {
+        val setupRunning =
+            get<MatrixMessengerSettingsHolder>().value.base.accounts.values.any { !it.base.accountSetupFinished }
+        //Necessary to handle back button presses while in the setup, whose back callback has a higher priority because of the underlying viewModel backHandlers
+        backHandler.register(BackCallback(priority = if (setupRunning) 1 else 0) { cancel() })
         coroutineScope.launch {
             if (timelineEventId == null) {
                 matrixClient.verification.activeDeviceVerification
@@ -310,7 +322,7 @@ open class VerificationViewModelImpl(
 
                     is ActiveVerificationState.Start -> {
                         verificationJob?.cancelAndJoin()
-                        verificationJob = launch {
+                        verificationJob = coroutineScope.launch {
                             when (val method = verificationState.method) {
                                 is ActiveSasVerificationMethod -> {
                                     method.state.collect { methodState ->

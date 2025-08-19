@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.i18n
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +22,7 @@ import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
+import org.koin.core.component.get
 
 
 private val log = KotlinLogging.logger {}
@@ -52,6 +52,7 @@ interface CreateNewChatViewModel {
     val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?>
     val isCreating: StateFlow<Boolean>
     val error: StateFlow<String?>
+    val errorDetails: StateFlow<String?>
     fun onUserClick(user: SearchUserElement)
     fun createGroup()
     fun searchGroup()
@@ -67,6 +68,7 @@ open class CreateNewChatViewModelImpl(
     private val onCancel: () -> Unit,
 ) : CreateNewChatViewModel,
     MatrixClientViewModelContext by viewModelContext {
+    private val createNewRoomErrorFormatter = CreateNewRoomErrorFormatter(get())
 
     override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
         HistoryVisibilityEventContent.HistoryVisibility.entries - HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
@@ -99,6 +101,7 @@ open class CreateNewChatViewModelImpl(
     }
 
     override val error: StateFlow<String?> = createNewRoomViewModel.error.asStateFlow()
+    override val errorDetails: StateFlow<String?> = createNewRoomViewModel.errorDetails.asStateFlow()
 
     override fun onUserClick(user: SearchUserElement) {
         val userId = user.userId
@@ -108,7 +111,7 @@ open class CreateNewChatViewModelImpl(
                 existingRoomIds?.isNotEmpty() == true &&
                 existingRoomIds.any {
                     val room = matrixClient.room.getById(it).first()
-                    room != null && (room.membership == Membership.JOIN ||room.membership == Membership.INVITE)
+                    room != null && (room.membership == Membership.JOIN || room.membership == Membership.INVITE)
                 }
             ) {
                 log.debug { "Check whether there is already existing room with $userId" }
@@ -162,7 +165,8 @@ open class CreateNewChatViewModelImpl(
             },
             onFailure = {
                 log.error(it) { "Cannot create room." }
-                createNewRoomViewModel.error.value = i18n.createNewChatError()
+                createNewRoomViewModel.error.value = createNewRoomErrorFormatter.error(it, isChat = true)
+                createNewRoomViewModel.errorDetails.value = createNewRoomErrorFormatter.errorDetails(it)
             }
         )
 
@@ -180,6 +184,7 @@ class PreviewCreateNewChatViewModel : CreateNewChatViewModel {
         MutableStateFlow(null)
     override val isCreating: StateFlow<Boolean> = MutableStateFlow(false)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val errorDetails: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override fun onUserClick(user: SearchUserElement) {}
     override fun createGroup() {}

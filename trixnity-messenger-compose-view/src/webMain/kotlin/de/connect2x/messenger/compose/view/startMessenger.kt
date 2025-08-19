@@ -1,29 +1,23 @@
 package de.connect2x.messenger.compose.view
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.CanvasBasedWindow
-import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.decompose.InternalDecomposeApi
-import com.arkivanov.decompose.lifecycle.MergedLifecycle
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import com.arkivanov.essenty.lifecycle.destroy
+import com.arkivanov.essenty.lifecycle.pause
+import com.arkivanov.essenty.lifecycle.resume
+import de.connect2x.messenger.compose.view.notifications.Notifications
+import de.connect2x.messenger.compose.view.profiles.rememberRootViewModel
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
-import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
-import de.connect2x.trixnity.messenger.createRoot
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.create
 import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
-import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.KotlinLoggingConfiguration
 import io.github.oshai.kotlinlogging.Level
@@ -35,19 +29,30 @@ import org.jetbrains.skiko.wasm.onWasmReady
 import web.dom.DocumentVisibilityState
 import web.dom.document
 import web.events.Event
+import web.events.VISIBILITY_CHANGE
 import web.events.addEventListener
 import web.prompts.alert
+import web.uievents.BLUR
+import web.uievents.FOCUS
 import web.uievents.FocusEvent
+import web.url.URL
 import web.window.window
 
 private val log = KotlinLogging.logger {}
+
+private fun getLogLevel(): Level {
+    val levelName = URL(window.location.href).searchParams.get("loglevel")
+    return Level.entries.find {
+        it.name.equals(levelName, ignoreCase = true)
+    } ?: Level.INFO
+}
 
 @OptIn(ExperimentalComposeUiApi::class)
 suspend fun startMessenger(
     configuration: MatrixMultiMessengerConfiguration.() -> Unit,
 ) {
     log.info { "Starting client" }
-    KotlinLoggingConfiguration.logLevel = Level.DEBUG
+    KotlinLoggingConfiguration.logLevel = getLogLevel()
 
     val matrixMultiMessenger = MatrixMultiMessenger.create(configuration = configuration)
     val config = matrixMultiMessenger.di.get<MatrixMessengerBaseConfiguration>()
@@ -119,12 +124,14 @@ suspend fun startMessenger(
                         CompositionLocalProvider(
                             DI provides matrixMessenger.di,
                         ) {
-                            MessengerTheme {
-                                Client(rootViewModel)
+                            if (rootViewModel != null) {
+                                MessengerTheme {
+                                    Client(rootViewModel)
+                                }
                             }
-                            Notifications(
-                                matrixMessenger,
-                            )
+                            Notifications(matrixMessenger, matrixMultiMessenger.activeProfile.value ?: "default") {
+                                // TODO: make URI call to open chat
+                            }
                         }
                     }
                 }
@@ -140,43 +147,10 @@ suspend fun startMessenger(
     }
 }
 
-@OptIn(InternalDecomposeApi::class)
-@Composable
-private fun rememberRootViewModel(
-    matrixMessenger: MatrixMessenger,
-    deviceLifecycle: LifecycleRegistry
-): RootViewModel {
-    val ownLifecycle = remember(matrixMessenger) { LifecycleRegistry() }
-    val rootViewModel = remember(matrixMessenger) {
-        matrixMessenger.createRoot(DefaultComponentContext(MergedLifecycle(ownLifecycle, deviceLifecycle)))
-    }
-    DisposableEffect(matrixMessenger) {
-        onDispose {
-            ownLifecycle.destroy()
-        }
-    }
-    return rootViewModel
-}
-
 private fun LifecycleRegistry.updateState(visible: Boolean, focused: Boolean) {
-    val target = when {
-        visible && focused -> Lifecycle.State.RESUMED
-        visible -> Lifecycle.State.STARTED
-        else -> Lifecycle.State.CREATED
-    }
-    if (state != target) {
-        log.debug { "Application State changing from $state to $target" }
-        while (state < target) when (state) {
-            Lifecycle.State.INITIALIZED -> onCreate()
-            Lifecycle.State.CREATED -> onStart()
-            Lifecycle.State.STARTED -> onResume()
-            else -> Unit
-        }
-        while (state > target) when (state) {
-            Lifecycle.State.RESUMED -> onPause()
-            Lifecycle.State.STARTED -> onStop()
-            Lifecycle.State.CREATED -> onDestroy()
-            else -> Unit
-        }
+    if (visible || focused) {
+        resume()
+    } else {
+        pause()
     }
 }

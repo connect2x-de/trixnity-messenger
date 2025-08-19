@@ -25,7 +25,7 @@ class RoomInviterTest {
 
     val roomServiceMock = mock<RoomService>()
 
-    private val roomId = RoomId("room", "localhost")
+    private val roomId = RoomId("!room")
     private val me = UserId("test", "localhost")
     private val inviter = UserId("inviter", "localhost")
 

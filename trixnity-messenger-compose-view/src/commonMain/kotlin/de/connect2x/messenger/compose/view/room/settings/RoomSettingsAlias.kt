@@ -37,17 +37,17 @@ import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.gesturesDisabled
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModel
-import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.model.RoomAliasId
 
 
 @Composable
 fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val mainAlias = viewModel.mainAlias.collectAsState().value
     val moreAliases = viewModel.moreAliases.collectAsState().value
     var newAlias by viewModel.newAlias.collectAsTextFieldValueState()
@@ -68,9 +68,8 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                         ) {
                             OutlinedTextField(
                                 value = newAlias,
-                                placeholder = { Text(i18n.newAlias()) },
                                 onValueChange = {
-                                    if (it.text.isEmpty() || MatrixRegex.roomAlias.matchEntire("#${it.text}:${viewModel.domain}") != null) {
+                                    if (it.text.isEmpty() || RoomAliasId.isValid("#${it.text}:${viewModel.domain}")) {
                                         newAlias = it
                                     }
                                 },

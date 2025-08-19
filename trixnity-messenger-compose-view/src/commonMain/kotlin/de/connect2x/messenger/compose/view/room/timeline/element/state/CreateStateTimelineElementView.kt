@@ -15,8 +15,9 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlin.reflect.KClass
 
+interface CreateStateTimelineElementView : TimelineElementView<CreateStateTimelineElementViewModel>
 
-class CreateStateTimelineElementView : TimelineElementView<CreateStateTimelineElementViewModel> {
+class CreateStateTimelineElementViewImpl : CreateStateTimelineElementView {
     override val supports: KClass<CreateStateTimelineElementViewModel> = CreateStateTimelineElementViewModel::class
 
     override suspend fun waitFor(element: CreateStateTimelineElementViewModel) {

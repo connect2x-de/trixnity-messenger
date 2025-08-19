@@ -42,8 +42,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
 
+interface FileRoomMessageTimelineElementView : TimelineElementView<File>
 
-class FileRoomMessageTimelineElementView : TimelineElementView<File> {
+class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementView {
     override val supports: KClass<File> =
         File::class
 

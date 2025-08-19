@@ -21,6 +21,9 @@ contact us at [contact@connect2x.de](mailto:contact@connect2x.de).
 If you are just interested in the UI and white labelling it, have a look at
 this [Readme](trixnity-messenger-compose-view/README.md).
 
+## iOS Client
+Trixnity Messenger also has support for iOS devices. Warning: The implementation is partly incomplete and experimental. If bugs occur, please report them.
+
 ## MVVM
 
 Trixnity Messenger follows the MVVM pattern, in particular it represents the view model (VM) part. Trixnity is the
@@ -149,6 +152,38 @@ val matrixMessenger = MatrixMessenger.create {
     // ... more config ...
 }
 ```
+
+Some configuration options for the Matrix Messenger can also be changed via properties at build time, e.g. `tm_disable_downloads` to prohibit the download of files from the Messenger.
+
+### Enable notifications
+
+In order to receive system notifications from a Trixnity Messenger instance, the default `noopNotificationsModule`
+must be overriden in the DI of the multi-messenger and messenger respectively.
+If no `NotificationHandlerProvider` is present in the view DIs, a warning will be logged upon the first time
+of it being accessed through the DI.
+
+A `NotificationHandlerProvider` may be registered in your `MatrixMultiMessengerConfiguration` or `MatrixMessengerConfiguration`
+using the `notificationModule` function provided by the view module.
+
+Example:
+
+```kotlin
+val matrixMessenger = MatrixMessenger.create configScope@{
+    val notificationsDebugEnabled = // ...
+    moduleFactories += { notificationsModule(this@configScope, notificationsDebugEnabled) }
+}
+```
+
+For more information about the `notificationsDebugEnabled` flag, see [the according Sysnotify documentation](https://gitlab.com/connect2x/sysnotify/-/blob/main/sysnotify/src/commonMain/kotlin/de/connect2x/sysnotify/NotificationHandler.kt?ref_type=heads#L211).
+
+### Adjusting the log level
+
+Currently the log level can be adjusted using environment variables and config files
+employed by the underlying logging implementation.
+
+An exception to this being the Web client, where the log level may be adjusted using
+the `?loglevel=LEVEL` query parameter, where `LEVEL` can be one of the constants described
+in Kotlin Logging's `Level` enum.
 
 ### MatrixClientConfiguration
 

@@ -34,7 +34,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.VerificationDoneTimelineElementViewModel
 import kotlin.reflect.KClass
 
-class VerificationDoneMessageTimelineElementView : TimelineElementView<VerificationDoneTimelineElementViewModel> {
+interface VerificationDoneMessageTimelineElementView : TimelineElementView<VerificationDoneTimelineElementViewModel>
+
+class VerificationDoneMessageTimelineElementViewImpl : VerificationDoneMessageTimelineElementView {
     override val supports: KClass<out VerificationDoneTimelineElementViewModel> =
         VerificationDoneTimelineElementViewModel::class
 

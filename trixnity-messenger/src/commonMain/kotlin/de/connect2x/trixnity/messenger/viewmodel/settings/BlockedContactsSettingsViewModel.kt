@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -44,6 +45,10 @@ class BlockedContactsSettingsViewModelImpl(
     BlockedContactsSettingsViewModel {
 
     override val account = viewModelContext.userId
+
+    private val backCallback = BackCallback {
+        back()
+    }
 
     private val userBlocking = get<UserBlocking>()
 
@@ -95,6 +100,10 @@ class BlockedContactsSettingsViewModelImpl(
 
     override fun back() {
         onCloseBlockedContactsSettings()
+    }
+
+    init {
+        backHandler.register(backCallback)
     }
 }
 

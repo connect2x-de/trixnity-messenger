@@ -33,7 +33,7 @@ class TypingInfoTest {
     val userServiceMock = mock<UserService>()
     val roomServiceMock = mock<RoomService>()
 
-    val roomId = RoomId("room1", "localhost")
+    val roomId = RoomId("!room1")
     val user1 = UserId("1", "localhost")
     val user2 = UserId("2", "localhost")
     val user3 = UserId("3", "localhost")

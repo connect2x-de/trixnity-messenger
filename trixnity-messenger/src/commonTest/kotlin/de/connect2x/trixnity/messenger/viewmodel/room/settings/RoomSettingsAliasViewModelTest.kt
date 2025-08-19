@@ -28,7 +28,6 @@ import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.model.rooms.GetRoomAlias
 import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixRegex
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomAliasId
@@ -43,7 +42,7 @@ import kotlin.time.Duration.Companion.seconds
 
 
 class RoomSettingsAliasViewModelTest {
-    private val roomId = RoomId("room", "127.0.0.1")
+    private val roomId = RoomId("!room")
     private val me = UserId("user", "127.0.0.1")
 
     private var matrixClientMock = mock<MatrixClient>()
@@ -90,7 +89,7 @@ class RoomSettingsAliasViewModelTest {
                 Result.success(
                     GetRoomAlias.Response(it, listOf("127.0.0.1"))
                 )
-            } ?: if (MatrixRegex.roomAlias.matches((it.args[0] as RoomAliasId).full)) {
+            } ?: if (RoomAliasId.isValid((it.args[0] as RoomAliasId).full)) {
                 Result.failure(
                     MatrixServerException(
                         HttpStatusCode.NotFound, ErrorResponse.NotFound("")

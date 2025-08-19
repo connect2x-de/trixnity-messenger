@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.getOrNull
@@ -266,5 +267,20 @@ open class SelfVerificationViewModelImpl(
 
     override fun close() {
         onCloseSelfVerification(!showVerificationHelp.value)
+    }
+
+    private val backCallback = BackCallback(priority = if (isSetup.value) 1 else 0) {
+        when {
+            showVerificationHelp.value -> close()
+            (showResetRecoveryWarning.value || showPassphraseMethod.value != null || showRecoveryKeyMethod.value != null) -> backToChoose()
+
+            else -> backToHelp()
+        }
+    }
+
+    init {
+        backHandler.register(
+            backCallback
+        )
     }
 }

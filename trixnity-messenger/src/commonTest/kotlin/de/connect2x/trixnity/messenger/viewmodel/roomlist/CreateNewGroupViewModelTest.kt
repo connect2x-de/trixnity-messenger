@@ -97,7 +97,7 @@ class CreateNewGroupViewModelTest {
             roomsApiClientMock.createRoom(
                 any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
             )
-        } returns Result.success(RoomId("room1", "localhost"))
+        } returns Result.success(RoomId("!room1"))
         val cut = createNewGroupViewModel()
         cut.isPrivate.value = false
         cut.isEncrypted.value = true
@@ -185,7 +185,7 @@ class CreateNewGroupViewModelTest {
 
     @Test
     fun `create group with all selected users`() = runTest {
-        val roomId = RoomId("room1", "localhost")
+        val roomId = RoomId("!room1")
         every {
             onRoomCreatedMock.invoke(any(), any())
         } returns Unit
@@ -248,7 +248,7 @@ class CreateNewGroupViewModelTest {
 
     @Test
     fun `create group with a custom topic`() = runTest {
-        val roomId = RoomId("room1", "localhost")
+        val roomId = RoomId("!room1")
         val topicText = "This is a room for testing!"
         every {
             onRoomCreatedMock.invoke(any(), any())

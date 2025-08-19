@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.arkivanov.decompose.defaultComponentContext
+import de.connect2x.messenger.android.push.disableNotifications
 import de.connect2x.messenger.android.push.setPush
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
@@ -31,12 +32,12 @@ import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
-import de.connect2x.trixnity.messenger.util.currentImmediateDispatcher
 import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.sysnotify.handlePermissionRequest
 import de.connect2x.sysnotify.withActivity
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.platformNotifications
+import de.connect2x.trixnity.messenger.util.currentImmediateDispatcher
 import de.connect2x.trixnity.messenger.util.defaultActivityGetter
 import de.connect2x.trixnity.messenger.util.defaultUrlHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -89,7 +90,7 @@ class MessengerActivity : AppCompatActivity() {
                                 if (anyNotificationsEnabled) {
                                     log.debug { "Notifications are enabled for active messenger, requesting permissions" }
                                     matrixMultiMessenger.di.get<NotificationHandler>()
-                                        .withActivity(this@MessengerActivity)
+                                        .withActivity { this@MessengerActivity }
                                         .requestPermissions()
                                     scope.launch {
                                         setPush(
@@ -100,6 +101,8 @@ class MessengerActivity : AppCompatActivity() {
                                             this,
                                         )
                                     }
+                                } else {
+                                    disableNotifications(applicationContext)
                                 }
                             }
                         }
@@ -114,7 +117,7 @@ class MessengerActivity : AppCompatActivity() {
                         activeMessengerOnce = { _, _ -> },
                         activeMessenger = { matrixMessenger, rootViewModel ->
                             val lifeCycleState =
-                                androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
+                                androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsState()
                             val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
                             CompositionLocalProvider(
                                 Platform provides PlatformType.ANDROID,
@@ -139,7 +142,7 @@ class MessengerActivity : AppCompatActivity() {
                     ) { existingProfiles ->
                         val showProfileCreation = remember { mutableStateOf(false) }
                         val lifeCycleState =
-                            androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsSate()
+                            androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsState()
                         val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
                         CompositionLocalProvider(
                             Platform provides PlatformType.ANDROID,
@@ -180,7 +183,7 @@ class MessengerActivity : AppCompatActivity() {
         scope.launch {
             matrixMessengerServiceConnection.matrixMultiMessenger.filterNotNull().first().di
                 .get<NotificationHandler>()
-                .withActivity(this@MessengerActivity)
+                .withActivity { this@MessengerActivity }
                 .handlePermissionRequest(requestCode, grantResults)
         }
     }
@@ -242,15 +245,15 @@ class MessengerActivity : AppCompatActivity() {
 }
 
 @Composable
-fun Lifecycle.observeAsSate(): State<Lifecycle.Event> {
+fun Lifecycle.observeAsState(): State<Lifecycle.Event> {
     val state = remember { mutableStateOf(Lifecycle.Event.ON_ANY) }
     DisposableEffect(this) {
         val observer = LifecycleEventObserver { _, event ->
             state.value = event
         }
-        this@observeAsSate.addObserver(observer)
+        this@observeAsState.addObserver(observer)
         onDispose {
-            this@observeAsSate.removeObserver(observer)
+            this@observeAsState.removeObserver(observer)
         }
     }
     return state

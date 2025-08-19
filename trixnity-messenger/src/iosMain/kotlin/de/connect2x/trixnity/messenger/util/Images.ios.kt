@@ -1,18 +1,39 @@
 package de.connect2x.trixnity.messenger.util
 
+import io.ktor.http.ContentType
+import io.ktor.util.encodeBase64
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.useContents
+import kotlinx.cinterop.usePinned
 import net.folivo.trixnity.utils.ByteArrayFlow
+import net.folivo.trixnity.utils.toByteArray
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import platform.CoreGraphics.CGSize
+import platform.Foundation.NSData
+import platform.Foundation.create
+import platform.UIKit.UIImage
 
 actual fun platformGetImageDimensionsModule(): Module = module {
     single<GetImageDimensions> {
-        GetImageDimensions { byteArrayFlow, maxSize ->
-            getImageDimensions(byteArrayFlow, maxSize)
+        GetImageDimensions { byteArrayFlow, maxSize, mimeType ->
+            getImageDimensions(byteArrayFlow, maxSize, mimeType)
         }
     }
 }
 
-suspend fun getImageDimensions(byteArrayFlow: ByteArrayFlow, maxMediaSize: Long): Pair<Int?, Int?> {
-    //TODO Implement
-    return (null to null)
+@OptIn(ExperimentalForeignApi::class)
+suspend fun getImageDimensions(
+    byteArrayFlow: ByteArrayFlow,
+    maxMediaSize: Long,
+    mimeType: ContentType?
+): Pair<Int?, Int?> {
+    val bytes = byteArrayFlow.toByteArray(maxMediaSize)?: return (null to null)
+    val imageData = bytes.usePinned { NSData.create(it.addressOf(0), bytes.size.toULong()) }
+    UIImage(data = imageData).let { image ->
+        val width = image.size.useContents { (width * image.scale).toInt() }
+        val height = image.size.useContents { (height * image.scale).toInt() }
+        return (width to height)
+    }
 }

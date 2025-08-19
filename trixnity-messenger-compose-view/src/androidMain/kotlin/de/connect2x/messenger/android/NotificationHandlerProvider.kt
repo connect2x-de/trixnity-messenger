@@ -2,9 +2,10 @@ package de.connect2x.messenger.android
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import de.connect2x.sysnotify.NotificationHandler
-import de.connect2x.sysnotify.create
+import de.connect2x.sysnotify.withActivationFactory
+import de.connect2x.sysnotify.withContext
 import de.connect2x.trixnity.messenger.PushMode
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -41,17 +42,17 @@ internal class NotificationHandlerProviderImpl(
             val userId = it.key
             val channelId = pushChannelId(userId, config)
             log.debug { "Creating notification handler with channel ID $channelId" }
-            userId to NotificationHandler.create(
+            userId to NotificationHandler(
                 name = config.appName,
-                id = channelId,
-                contextGetter = { context },
-                activationIntent = { _, notification ->
+                id = channelId
+            )
+                .withContext { context }
+                .withActivationFactory { _, notification ->
                     Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse("${config.urlProtocol}://localhost/room/${notification.userData}"),
+                        "${config.urlProtocol}://localhost/room/${notification.callbackData}".toUri(),
                     )
                 }
-            )
         }.toMap()
     }
 

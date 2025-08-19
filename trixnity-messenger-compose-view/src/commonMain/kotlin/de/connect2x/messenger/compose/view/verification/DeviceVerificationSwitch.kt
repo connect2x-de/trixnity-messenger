@@ -18,7 +18,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -42,13 +41,15 @@ import net.folivo.trixnity.core.model.events.m.key.verification.VerificationMeth
 fun BoxScope.DeviceVerificationWizardStepSwitch(
     viewModel: VerificationViewModel
 ) {
-    val i18n = DI.current.get<I18nView>()
+    val i18n = DI.get<I18nView>()
     val selectedVerificationMethod =
         remember { mutableStateOf<VerificationMethod?>(null) }
-    val child = viewModel.stack.subscribeAsState().value.active.instance
+    val childState = viewModel.stack.subscribeAsState()
     val step = WizardStep(
-        id = "DEVICE_VERIFICATION_WIZARD", title = { i18n.deviceVerification() }, content = {
-            when (child) {
+        id = "DEVICE_VERIFICATION_WIZARD",
+        title = { i18n.deviceVerification() },
+        content = {
+            when (val child = childState.value.active.instance) {
                 is Wrapper.Request -> DeviceVerificationWizardRequest(child.viewModel)
                 is Wrapper.Wait -> DeviceVerificationWizardWaitForOther()
                 is Wrapper.SelectVerificationMethod -> DeviceVerificationWizardSelectVerificationMethod(
@@ -63,13 +64,14 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
                 is Wrapper.Rejected -> DeviceVerificationWizardRejected()
                 is Wrapper.Timeout -> DeviceVerificationWizardTimeout()
                 is Wrapper.Cancelled -> DeviceVerificationWizardCancelled()
-                is Wrapper.AcceptedByOtherClient -> Box {} // not applicable for device verifications
-                is Wrapper.None -> Box {}
-            }.let {}
+                // not applicable for device verifications
+                is Wrapper.AcceptedByOtherClient -> Unit
+                is Wrapper.None -> Unit
+            }
         },
         nextButton = {
             Custom {
-                when (child) {
+                when (val child = childState.value.active.instance) {
                     is Wrapper.Request ->
                         ThemedButton(
                             style = MaterialTheme.components.primaryButton,
@@ -92,7 +94,7 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
             }
         },
         additionalButton = {
-            when (child) {
+            when (val child = childState.value.active.instance) {
                 is Wrapper.Wait ->
                     ThemedButton(
                         style = MaterialTheme.components.primaryButton,
@@ -129,13 +131,12 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
                     OkButton(child.viewModel::ok)
                 }
 
-                else -> null
+                else -> Unit
             }
-
         },
         backButton = {
             Custom {
-                when (child) {
+                when (val child = childState.value.active.instance) {
                     is Wrapper.CompareEmojisOrNumbers ->
                         ThemedButton(
                             style = MaterialTheme.components.destructiveButton,
@@ -145,7 +146,7 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
                             Text(i18n.verificationNotMatch())
                         }
 
-                    else -> {}
+                    else -> Unit
                 }
             }
         }
@@ -157,7 +158,7 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
 @Composable
 fun DeviceVerificationWizardRequest(verificationStepRequestViewModel: VerificationStepRequestViewModel) {
     val i18n = DI.get<I18nView>()
-    val deviceDisplayName = verificationStepRequestViewModel.ourDeviceDisplayName.collectAsState().value
+    val deviceDisplayName = verificationStepRequestViewModel.theirDeviceDisplayName.collectAsState().value
     val theirDisplayName = verificationStepRequestViewModel.theirDisplayName.collectAsState().value
 
     Column {

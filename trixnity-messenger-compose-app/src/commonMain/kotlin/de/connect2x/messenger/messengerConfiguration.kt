@@ -1,6 +1,7 @@
 package de.connect2x.messenger
 
 import de.connect2x.messenger.compose.view.composeViewModule
+import de.connect2x.messenger.compose.view.notifications.notificationsModule
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
@@ -13,7 +14,7 @@ import org.koin.dsl.module
 
 fun messengerConfiguration(
     customConfig: MatrixMultiMessengerConfiguration.() -> Unit = {},
-): MatrixMultiMessengerConfiguration.() -> Unit = {
+): MatrixMultiMessengerConfiguration.() -> Unit = multiMessengerConfig@{
     appName = BuildConfig.appName
     appId = BuildConfig.appId
     privacyInfo = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
@@ -21,8 +22,11 @@ fun messengerConfiguration(
     licenses = BuildConfig.licenses
     sendLogsEmailAddress = null
     urlProtocol = BuildConfig.appId
+    val notificationsDebugEnabled = BuildConfig.flavor == Flavor.DEV
+
     modulesFactories += listOf(
         { composeViewModule(null) },
+        { notificationsModule(this@multiMessengerConfig, notificationsDebugEnabled) },
         // TODO this needs to be removed and fixed, as there is no MatrixMessengerSettingsHolderImpl at MultiMessenger level!
         ::platformMatrixMessengerSettingsHolderModule,
         // TODO there should be a more clean way for I18n
@@ -50,16 +54,11 @@ fun messengerConfiguration(
     }
 
     // MatrixMessengerConfiguration flavors
-    messengerConfiguration {
-        modulesFactories += listOf(
-            { composeViewModule(this) },
-        )
-        when (BuildConfig.flavor) {
-            Flavor.PROD -> {}
-            Flavor.DEV -> {
-                // defaultHomeServer = "" // TODO your home server
-            }
-        }
+    messengerConfiguration messengerConfig@{
+        modulesFactories += { composeViewModule(this) }
+        modulesFactories += { notificationsModule(this@messengerConfig, notificationsDebugEnabled) }
+        downloadsDisabled = BuildConfig.downloadsDisabled
+        // defaultHomeServer = "" // TODO your home server
     }
     customConfig()
 }

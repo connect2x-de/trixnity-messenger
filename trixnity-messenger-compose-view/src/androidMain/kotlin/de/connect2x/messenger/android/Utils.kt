@@ -3,12 +3,12 @@ package de.connect2x.messenger.android
 import android.content.ClipData
 import androidx.work.ForegroundInfo
 import de.connect2x.sysnotify.NotificationHandle
-import de.connect2x.sysnotify.nativeNotification
+import de.connect2x.sysnotify.notification
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import net.folivo.trixnity.core.model.UserId
 
 internal fun NotificationHandle.toForegroundInfo(): ForegroundInfo {
-    return ForegroundInfo(hashCode(), nativeNotification)
+    return ForegroundInfo(hashCode(), notification)
 }
 
 internal fun pushChannelId(userId: UserId, config: MatrixMultiMessengerConfiguration) =

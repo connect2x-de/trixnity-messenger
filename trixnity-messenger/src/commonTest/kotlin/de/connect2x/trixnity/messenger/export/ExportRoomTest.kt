@@ -39,8 +39,8 @@ import kotlin.test.Test
 
 class ExportRoomTest {
 
-    val roomId = RoomId("room1", "localhost")
-    val roomIdWithErrors = RoomId("roomWithErrors", "localhost")
+    val roomId = RoomId("!room1")
+    val roomIdWithErrors = RoomId("!roomWithErrors")
     val alice = UserId("alice", "localhost")
     val fakeProperties = object : ExportRoomSinkProperties {}
     val timeline = (0..9).map { timelineEvent(it.toLong()) } + (10..19).map { timelineEventWithMedia(it.toLong()) }
@@ -119,7 +119,11 @@ class ExportRoomTest {
         val cut = cut()
 
         cut(
-            roomId, fakeProperties, matrixClientMock, timeZone = TimeZone.of("CET")
+            roomId,
+            fakeProperties,
+            matrixClientMock,
+            includeMedia = true,
+            timeZone = TimeZone.of("CET")
         ) shouldBe ExportRoomResult.Success()
 
         verifySuspend(VerifyMode.order) {
@@ -142,7 +146,12 @@ class ExportRoomTest {
         val cut = cut()
 
         cut(
-            roomId, fakeProperties, matrixClientMock, buffer = 15, timeZone = TimeZone.of("CET")
+            roomId,
+            fakeProperties,
+            matrixClientMock,
+            buffer = 15,
+            includeMedia = true,
+            timeZone = TimeZone.of("CET")
         ) shouldBe ExportRoomResult.Success()
 
         verifySuspend(VerifyMode.order) {
@@ -161,12 +170,35 @@ class ExportRoomTest {
     }
 
     @Test
+    fun `should not export media when downloads are disabled`() = runTest {
+        val cut = cut()
+
+        cut(
+            roomId,
+            fakeProperties,
+            matrixClientMock,
+            buffer = 15,
+            includeMedia = false,
+            timeZone = TimeZone.of("CET")
+        ) shouldBe ExportRoomResult.Success()
+
+        verifySuspend(VerifyMode.not) {
+            mediaServiceMock.getMedia(any(), any(), eq(false))
+        }
+    }
+
+    @Test
     fun `track progress`() = runTest {
         val cut = cut()
 
         val progress = MutableStateFlow(ExportRoomProgress())
         cut(
-            roomId, fakeProperties, matrixClientMock, progress = progress, timeZone = TimeZone.of("CET")
+            roomId,
+            fakeProperties,
+            matrixClientMock,
+            progress = progress,
+            includeMedia = true,
+            timeZone = TimeZone.of("CET")
         ) shouldBe ExportRoomResult.Success()
 
         progress.value shouldBe ExportRoomProgress(20, 20)
@@ -180,6 +212,7 @@ class ExportRoomTest {
             roomId,
             fakeProperties,
             matrixClientMock,
+            includeMedia = true,
             rangeStartCondition = { it.eventId == EventId("5") },
             rangeEndCondition = { it.eventId == EventId("15") },
             timeZone = TimeZone.of("CET"),
@@ -212,6 +245,7 @@ class ExportRoomTest {
             roomIdWithErrors,
             fakeProperties,
             matrixClientMock,
+            includeMedia = true,
             timeZone = TimeZone.of("CET")
         ) shouldBe ExportRoomResult.Success(
             missingMedia = listOf(

@@ -330,13 +330,11 @@ open class MainViewModelImpl(
                     launch {
                         messengerSettings[userId].filterNotNull().map { it.base.presenceIsPublic }
                             .distinctUntilChanged()
-                            .collect { presenceIsPublic ->
-                                if (presenceIsPublic && lifecycle.state >= Lifecycle.State.STARTED) {
-                                    log.info { "the settings for `presenceIsPublic` have changed -> restart sync with ONLINE" }
-                                    matrixClient.startSync(presence = Presence.ONLINE)
-                                } else if (presenceIsPublic.not() && lifecycle.state >= Lifecycle.State.STARTED) {
-                                    log.info { "the settings for `presenceIsPublic` have changed -> restart sync with OFFLINE" }
-                                    matrixClient.startSync(presence = Presence.OFFLINE)
+                            .collect { isPublic ->
+                                val presence = if (isPublic) Presence.ONLINE else Presence.OFFLINE
+                                if (lifecycle.state >= Lifecycle.State.STARTED) {
+                                    log.info { "the settings for `presenceIsPublic` have changed -> restart sync with $presence" }
+                                    matrixClient.startSync(presence = presence)
                                 }
                             }
                     }
@@ -448,7 +446,10 @@ open class MainViewModelImpl(
             }
 
             is TimelineElementMention.Event -> {
+                log.debug { "Opening Room ${timelineElementMention.room.roomId}" }
+                val roomId = timelineElementMention.room.roomId
                 val eventId = timelineElementMention.event.eventId
+                onRoomSelected(userId, roomId)
                 // TODO: implement and open event view
                 log.warn { "EventView to display $eventId not implemented yet" }
             }

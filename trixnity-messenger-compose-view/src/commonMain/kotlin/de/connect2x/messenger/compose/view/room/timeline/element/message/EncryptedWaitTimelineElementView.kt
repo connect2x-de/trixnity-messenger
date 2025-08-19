@@ -28,7 +28,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.EncryptedWaitTimelineElementViewModel
 import kotlin.reflect.KClass
 
-class EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimelineElementViewModel> {
+interface EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimelineElementViewModel>
+
+class EncryptedWaitTimelineElementViewImpl : EncryptedWaitTimelineElementView {
     override val supports: KClass<EncryptedWaitTimelineElementViewModel> =
         EncryptedWaitTimelineElementViewModel::class
 

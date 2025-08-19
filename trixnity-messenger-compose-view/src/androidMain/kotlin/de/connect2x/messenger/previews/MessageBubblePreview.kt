@@ -1,13 +1,17 @@
+@file:OptIn(MSC2448::class)
+
 package de.connect2x.messenger.previews
 
 import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import de.connect2x.messenger.compose.view.room.timeline.element.message.FileRoomMessageTimelineElementView
-import de.connect2x.messenger.compose.view.room.timeline.element.message.ImageRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.FileRoomMessageTimelineElementViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.message.ImageRoomMessageTimelineElementViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.message.TextBasedRoomMessageTimelineElementView
 import de.connect2x.messenger.previews.util.InitMessengerPreview
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
+import de.connect2x.trixnity.messenger.util.html.HtmlNode
+import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel1
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
@@ -20,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import net.folivo.trixnity.client.media.PlatformMedia
+import net.folivo.trixnity.core.MSC2448
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.ByteArrayFlow
@@ -54,8 +59,9 @@ fun TextMessageBubblePreview() {
     val element = object : RoomMessageTimelineElementViewModel.TextBased.Text {
         override val body: String = "Hello everyone!"
         override val formattedBody: String = "Hello <b/>everyone!"
-        override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
-        override val mentionsInFormattedBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
+        override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
+        override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
+        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
         override fun openMention(timelineElementMention: TimelineElementMention) {}
     }
     InitMessengerPreview {
@@ -86,6 +92,7 @@ fun ImageMessageBubblePreview() {
         override val height: Int? = 40
         override val thumbnailWidth: Int? = 40
         override val thumbnailHeight: Int? = 40
+        override val blurhash: String? = null
         override val thumbnailLoading: StateFlow<Boolean> = MutableStateFlow(false)
 
         override val name: String = "kiwi.png"
@@ -105,7 +112,7 @@ fun ImageMessageBubblePreview() {
         override fun cancelDownloadMedia() {}
     }
     InitMessengerPreview {
-        ImageRoomMessageTimelineElementView().createInTimeline(
+        ImageRoomMessageTimelineElementViewImpl().createInTimeline(
             holder,
             element,
         )
@@ -145,7 +152,7 @@ fun FileMessageBubblePreview() {
         override fun cancelDownloadMedia() {}
     }
     InitMessengerPreview {
-        FileRoomMessageTimelineElementView().createInTimeline(
+        FileRoomMessageTimelineElementViewImpl().createInTimeline(
             holder,
             element,
         )

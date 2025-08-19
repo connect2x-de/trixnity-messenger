@@ -9,7 +9,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased.Text
 import kotlin.reflect.KClass
 
-class TextRoomMessageTimelineElementView : TimelineElementView<Text> {
+interface TextRoomMessageTimelineElementView : TimelineElementView<Text>
+
+class TextRoomMessageTimelineElementViewImpl : TextRoomMessageTimelineElementView {
     override val supports: KClass<Text> =
         Text::class
 

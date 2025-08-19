@@ -26,9 +26,19 @@ open class I18nView(
         DE - "Archiviert"
     }
 
+    open fun commonError() = translate {
+        EN - "Error"
+        DE - "Fehler"
+    }
+
     open fun commonContextMenu() = translate {
         EN - "context menu"
         DE - "Kontextmenü"
+    }
+
+    open fun commonButtonDisabled() = translate {
+        EN - "This option is deactivated"
+        DE - "Diese Option ist deaktiviert"
     }
 
     open fun commonInactive() = translate {
@@ -605,6 +615,7 @@ open class I18nView(
         EN - "There is already a verification process with this user in another room"
         DE - "Es läuft bereits ein Verifikationsprozess mit diesem Nutzer in einem anderen Raum"
     }
+
     open fun dehydratedDevice() = translate {
         EN - "This virtual (so called dehydrated) device is used to decrypt messages when no other device is online."
         DE - "Dieses virtuelle (sogenannte dehydrierte) Gerät wird verwendet um Nachrichten zu entschlüsseln, wenn kein anderes Gerät online ist."
@@ -613,6 +624,11 @@ open class I18nView(
     open fun anErrorHasOccurred() = translate {
         EN - "An error has occurred."
         DE - "Ein Fehler ist aufgetreten."
+    }
+
+    open fun errorDetails() = translate {
+        EN - "Error Details"
+        DE - "Fehlerdetails"
     }
 
     open fun closeApp(appName: String) = translate {
@@ -840,6 +856,11 @@ open class I18nView(
         DE - "Diese Aktion kann eventuell nicht mehr rückgängig gemacht werden."
     }
 
+    open fun userProfileRoleCreator() = translate {
+        EN - "room creator"
+        DE - "Raumersteller"
+    }
+
     open fun userProfileRoleAdministrator() = translate {
         EN - "administrator"
         DE - "Administrator"
@@ -871,7 +892,7 @@ open class I18nView(
     }
 
     open fun userProfileNoteText() = translate {
-        EN - """Every user in a chat/group is given a value between 0 and 100.
+        EN - """Every user in a chat/group has a given power level (number).
             |This value determines the rights a user has in this chat or group.
             |
             |The higher the value, the more rights a user has.
@@ -879,7 +900,7 @@ open class I18nView(
             |
             |Standard values are: 0 (user), 50 (moderator) and 100 (administrator).
         """.trimMargin()
-        DE - """Jedem Nutzer in einem Chat/Gruppe wird ein Wert zwischen 0 und 100 zugewiesen.
+        DE - """Jedem Nutzer in einem Chat/Gruppe hat ein Berechtigungslevel (Zahl).
             |Dieser Wert bestimmt welche Rechte ein Nutzer in diesem Chat oder dieser Gruppe besitzt.
             |
             |Je höher dieser Wert ist, desto mehr Rechte besitzt der Nutzer.
@@ -970,7 +991,7 @@ open class I18nView(
     }
 
     open fun settingsRoomMemberListKnocking() = translate {
-        EN - "Kocking"
+        EN - "Knocking"
         DE - "Klopfend"
     }
 
@@ -985,12 +1006,12 @@ open class I18nView(
     }
 
     open fun unbannable() = translate {
-        EN - "unbanable"
+        EN - "remove ban"
         DE - "entbannbar"
     }
 
     open fun notUnbannable() = translate {
-        EN - "not unbannable"
+        EN - "cannot remove ban"
         DE - "nicht entbannbar"
     }
 
@@ -1010,7 +1031,7 @@ open class I18nView(
     }
 
     open fun roomHeaderUserIsBlocked() = translate {
-        EN - "This user is blocked by you."
+        EN - "This user was blocked by you."
         DE - "Dieser Nutzer wird von Ihnen geblockt."
     }
 
@@ -1052,6 +1073,18 @@ open class I18nView(
     open fun timelineElementMetadataReadersAndReactionsNone() = translate {
         EN - "No message interactions yet."
         DE - "Bisher keine Nachrichtsinteraktionen"
+    }
+
+    // Eigenname, daher keine Übersetzung
+    open fun timelineElementMetadataBody() = translate {
+        EN - "Body"
+        DE - "Body"
+    }
+
+    // Eigenname, daher keine Übersetzung
+    open fun timelineElementMetadataFormattedBody() = translate {
+        EN - "Formatted Body"
+        DE - "Formatted Body"
     }
 
     open fun timelineJumpToEnd() = translate {
@@ -1459,6 +1492,11 @@ open class I18nView(
         DE - "Sie haben noch keine Chats oder Gruppen."
     }
 
+    open fun roomListNoSearchResults() = translate {
+        EN - "No chats or groups found."
+        DE - "Keine Chats oder Gruppen gefunden."
+    }
+
     open fun roomListCreateRoom() = translate {
         EN - "Create a new chat or group"
         DE - "Neuen Chat oder Gruppe anlegen"
@@ -1532,6 +1570,16 @@ open class I18nView(
     open fun accountsOverviewLogout() = translate {
         EN - "Logout"
         DE - "Ausloggen"
+    }
+
+    open fun appInfoJvmPlatform(runtime: String, host: String) = translate {
+        EN - "$runtime on $host"
+        DE - "$runtime auf $host"
+    }
+
+    open fun appInfoAndroidPlatform(version: String, apiLevel: String) = translate {
+        EN - "Android $version with API level $apiLevel"
+        DE - "Android $version mit API Level $apiLevel"
     }
 
     open fun appInfoVersion(versionNumber: String) = translate {
@@ -2315,12 +2363,12 @@ open class I18nView(
         DE - "Verschlüsselung: "
     }
 
-    open fun optionalGroupNamePlaceholder() = translate {
+    open fun optionalGroupNameLabel() = translate {
         EN - "Optional group name"
         DE - "Optionaler Gruppenname"
     }
 
-    open fun optionalGroupTopicPlaceholder() = translate {
+    open fun optionalGroupTopicLabel() = translate {
         EN - "Optional group topic"
         DE - "Optionales Gruppenthema"
     }
@@ -2865,6 +2913,11 @@ open class I18nView(
     open fun knockLabel() = translate {
         EN - "Why do you wish to join? (Optional)"
         DE - "Warum möchtest du beitreten? (Optional)"
+    }
+
+    open fun mentionEventInRoom(roomName: String) = translate {
+        EN - "Message in $roomName"
+        DE - "Nachricht in $roomName"
     }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)

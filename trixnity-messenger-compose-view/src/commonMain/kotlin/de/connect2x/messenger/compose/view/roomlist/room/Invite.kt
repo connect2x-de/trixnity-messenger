@@ -12,9 +12,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.style.TextOverflow
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.SelectableText
+import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -57,7 +59,7 @@ class InviteRoomListElementImpl : InviteRoomListElement {
             }
         ) {
             Tooltip(
-                tooltip = { Text(i18n.invitationAccept())}
+                tooltip = { Text(i18n.invitationAccept()) }
             ) {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
@@ -67,7 +69,7 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                 }
             }
             Tooltip(
-                tooltip = { Text(i18n.invitationReject())}
+                tooltip = { Text(i18n.invitationReject()) }
             ) {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
@@ -85,7 +87,7 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                     Text(i18n.invitationRejectHeader())
                 }
                 ModalDialogContent {
-                    if(rejectionInProgress) {
+                    if (rejectionInProgress) {
                         ThemedProgressIndicator(style = MaterialTheme.components.circularProgressIndicator)
                         return@ModalDialogContent
                     }
@@ -118,10 +120,22 @@ class InviteRoomListElementImpl : InviteRoomListElement {
 
     @Composable
     fun RoomInviterUserInfo(inviterNameOrUserId: String) {
-        Text(
-            inviterNameOrUserId,
-            style = MaterialTheme.typography.labelMedium,
-            maxLines = 1,
-        )
+        val needsTooltip = remember { mutableStateOf(false) }
+        Tooltip(
+            tooltip = {
+                TooltipText(inviterNameOrUserId)
+            },
+            enabled = needsTooltip.value
+        ) {
+            Text(
+                inviterNameOrUserId,
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                onTextLayout = {
+                    needsTooltip.value = it.hasVisualOverflow
+                }
+            )
+        }
     }
 }

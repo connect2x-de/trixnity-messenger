@@ -9,12 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added support for displaying MSC2448 Blurhash as image placeholder
 - Copy message content
 
 ### Changed
 
-- Move to room with active verification, when verification with user is already running
-- Disable start user verification option when one is already running
+- Updated Sysnotify to 2.0.3
+- Improve accessibility of notification settings
 
 ### Deprecated
 
@@ -22,9 +23,205 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Show correct error message on corrupt files
+- Timeline stuttering due to large images
 
 ### Security
+
+## 3.7.1
+
+### Removed
+
+- Removed legacy key chain
+
+### Fixed
+
+- Don't restart sync on presence change
+- Crash on startup due to process file lock on some shared libraries
+- Crash due to AutoLinkifyVisitor processing Matches out of order
+
+## 3.7.0
+
+### Added
+
+- File load and save dialogs on iOS targets
+- PDF reader support on iOS
+- MatrixMessengerConfiguration for toggling refresh tokens
+
+### Changed
+
+- Bump Compose to 1.8.2
+- Bump FileKit to 0.10.0-beta04
+- Move startMessenger logic for the iOS client in separate function
+- Power Levels now use net.folivo.trixnity.client.user.PowerLevel instead of Long
+- Added Role.CREATOR
+- Change markdown to GFM
+- Don't use refresh tokens by default
+- Bump c2x Conventions to 50375801
+- Improved Reference/Link parsing
+
+### Fixed
+
+- Fixed crash due to scrollbar measuring policy on Android
+- Fixed several translation issues
+- Show error messages when replacing events
+
+### Security
+
+- Support room version 12
+
+## 3.6.17
+
+### Changed
+
+- New rich text renderer
+- Show correct feedback when getting no search results in the room list
+- Labels for text fields are always on
+- Adapt to trixnity References-API changes
+
+### Fixed
+
+- Web client: sync is not stopped when tab or browser loses focus
+- Fix OOM gradle dependencies tasks
+
+## 3.6.16
+
+### Changed
+
+- More explicit error messages on room creation
+- Upgraded Gradle to 8.14.3
+- Downgraded to Java 17
+- Upgraded Sysnotify from 1.9.0 to 2.0.0
+
+### Fixed
+
+- Hardcoded log level in Web is not adjustable
+
+## 3.6.15
+
+### Added
+
+- Network availability check for iOS
+- Get dimension of image on iOS
+
+### Changed
+
+- Updated SysNotify to 1.9.0 and commonized desktop and web notification handling
+- Room list elements now show multiple lines when the font size is large
+- Presence icons for users are now distinguishable by color and shape
+- Adapted to new mention regex
+- Update Trixnity from 4.17.1 to 4.18.0
+
+### Fixed
+
+- Verification getting stuck after app lost focus
+- Failing ITs with user search race condition that led to flaky tests
+- Various issues in regard to PDF reader page loading and zooming
+
+## 3.6.14
+
+### Changed
+
+- Room list elements now show multiple lines when the font size is large
+- Presence icons for users are now distinguishable by color and shape
+- Update Trixnity from 4.16.9 to 4.17.1
+
+### Fixed
+
+- Correctly indicate overflows in room invite name or matrix ids
+- Fix Android back button closing the app instead of returning to previous view
+
+## 3.6.13
+
+### Changed
+
+- Timeline element and details views are now based on interfaces and thus can be replaced
+
+## 3.6.12
+
+### Added
+
+- Support for building for iOS x64
+
+### Changed
+
+- Send correct image size when uploading images on web
+
+### Fixed
+
+- Boostrap wizard graphics are not inverted and have visible background
+- Remove timeline flickering due to switching between image fallback and thumbnail in reply elements
+- Fix root lifecycle not starting
+- Back Button doesn't work in BlockedContacts view, when focussing a pdf and in the Wizards
+- Add lifecycle stop/start when moving iOS app to background/foreground
+- Export not working in web
+- Don't export media when downloads are disabled
+- Escape CSV export with additional '
+
+## 3.6.11
+
+### Added
+
+- More features in the iOS UI
+- MatrixMultiMessenger.closeSuspending() to wait for every operation in Trixnity Messenger to be finished (in comparison
+  to close() which will fire and forget and thus could give the impression that all operations are finished which might
+  not be the case)
+
+### Changed
+
+- Rename observeAsSate to observeAsState
+- Update Trixnity from 4.16.8 to 4.16.9
+
+### Fixed
+
+- Show error to user when room list element action failed
+- Forgetting room when declining invite to deleted room
+- Image detail view now displays image the first time it is opened
+- PDF details view displays valid PDFs again
+- Reopening PDF details view does not trigger download again
+
+## 3.6.10
+
+### Changed
+
+- Updated Trixnity from 4.16.7 to 4.16.8
+
+### Fixed
+
+- Update room database to support iOS shared storage
+
+## 3.6.9
+
+### Fixed
+
+- Don't block opening room database
+
+## 3.6.8
+
+### Added
+
+- Disable downloads by build environment variable
+
+### Changed
+
+- Updated Trixnity from 4.16.5 to 4.16.7
+- Updated various dependencies (important: kotlin-wrappers updated to 2025.6.9)
+
+### Fixed
+
+- Unsupported image mime types are treated as images
+- link colour in privacy and imprint page
+
+## 3.6.7
+
+### Changed
+
+- Move to room with active verification, when verification with user is already running
+- Disable start user verification option when one is already running
+
+### Fixed
+
+- Show correct error message on corrupt files
+- Fix database encryption problem when app was in background mode
 
 ## 3.6.6
 

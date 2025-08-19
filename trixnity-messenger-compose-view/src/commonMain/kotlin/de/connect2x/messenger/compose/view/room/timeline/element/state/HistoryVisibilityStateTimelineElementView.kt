@@ -15,8 +15,10 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlin.reflect.KClass
 
+interface HistoryVisibilityStateTimelineElementView :
+    TimelineElementView<HistoryVisibilityStateTimelineElementViewModel>
 
-class HistoryVisibilityStateTimelineElementView : TimelineElementView<HistoryVisibilityStateTimelineElementViewModel> {
+class HistoryVisibilityStateTimelineElementViewImpl : HistoryVisibilityStateTimelineElementView {
     override val supports: KClass<HistoryVisibilityStateTimelineElementViewModel> =
         HistoryVisibilityStateTimelineElementViewModel::class
 
