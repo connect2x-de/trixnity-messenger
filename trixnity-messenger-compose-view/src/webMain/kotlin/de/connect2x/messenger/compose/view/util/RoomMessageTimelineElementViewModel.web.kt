@@ -5,7 +5,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.ClipboardItem
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.*
 import io.ktor.http.ContentType
 import org.w3c.files.Blob
 import web.errors.DOMException
@@ -18,7 +18,7 @@ private fun <T : Any> T.asBlob() = Blob(arrayOf(this))
 @Composable
 actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
     val items = when (this) {
-        is RoomMessageTimelineElementViewModel.TextBased<*> ->
+        is TextBased<*> ->
             this.formattedBody?.let {
                 mapOf(
                     ContentType.Text.Html to it,
@@ -31,13 +31,12 @@ actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
 
         is FileBased<*> -> mapOf<Any, Any>() // FIXME should deliver caption
 
-        is RoomMessageTimelineElementViewModel.Location -> mapOf(
-            ContentType.Text.Html to "<a href=\"${this.osmLink}\" >${this.coordinates}</a>",
-            ContentType.Text.Plain to this.coordinates
+        is Location -> mapOf(
+            ContentType.Text.Plain to this.coordinates // FIXME should deliver proper location description (placename, coordinates)
         )
 
-        is RoomMessageTimelineElementViewModel.VerificationRequest,
-        is RoomMessageTimelineElementViewModel.Unknown -> mapOf<Any, Any>()
+        is VerificationRequest,
+        is Unknown -> mapOf<Any, Any>()
     }.mapKeys { it.toString() }.mapValues { it.asBlob() }
 
     return if (items.isEmpty()) null else ClipEntry(

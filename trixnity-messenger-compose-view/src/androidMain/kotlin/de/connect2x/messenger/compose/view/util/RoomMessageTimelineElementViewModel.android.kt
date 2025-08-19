@@ -19,10 +19,9 @@ actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
         is FileBased -> null // FIXME should deliver caption
 
         is Location ->
-            ClipData.newHtmlText(
+            ClipData.newPlainText(
                 i18n.commonLocation(),
-                this.coordinates,
-                "<a href=\"${this.osmLink}\" >${this.coordinates}</a>"
+                this.coordinates // FIXME should deliver proper location description (placename, coordinates)
             )
 
         is TextBased ->
