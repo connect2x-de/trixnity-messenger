@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated Sysnotify to 2.0.3
 - Improve accessibility of notification settings
+- Length Constraint for MXIDs in AccountsOverview and Profilepicker
 
 ### Deprecated
 
@@ -59,8 +60,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't use refresh tokens by default
 - Bump c2x Conventions to 50375801
 - Improved Reference/Link parsing
-
-- Length Constraint for MXIDs in AccountsOverview and Profilepicker
 
 ### Fixed
 
