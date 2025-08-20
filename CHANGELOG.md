@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Timeline stuttering due to large images
+- AccountsOverview glitching out on long MXIDs
 
 ### Security
 
@@ -65,11 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed crash due to scrollbar measuring policy on Android
 - Fixed several translation issues
-<<<<<<< CHANGELOG.md
-- AccountsOverview glitching out on long MXIDs
-=======
 - Show error messages when replacing events
->>>>>>> CHANGELOG.md
 
 ### Security
 
