@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Notifications on iOS
 - Added support for displaying MSC2448 Blurhash as image placeholder
 - Tooltip for MXID and Username in Avatar Display Section
 

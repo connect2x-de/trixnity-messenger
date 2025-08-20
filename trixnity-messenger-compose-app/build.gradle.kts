@@ -114,6 +114,7 @@ kotlin {
         iosTarget.binaries.framework {
             export(sharedLibs.decompose)
             export(sharedLibs.essenty.lifecycle)
+            export(projects.trixnityMessengerComposeView)
             baseName = "TrixnityMessengerUI"
             isStatic = true
         }
@@ -122,7 +123,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(projects.trixnityMessengerComposeView)
+                api(projects.trixnityMessengerComposeView) // api because of iOS
                 implementation(compose.components.resources)
                 api(sharedLibs.decompose) // needed for export to iOS
                 api(sharedLibs.essenty.lifecycle) // needed for export to iOS
