@@ -9,9 +9,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added support for displaying MSC2448 Blurhash as image placeholder
+- Tooltip for MXID and Username in Avatar Display Section
+
+### Changed
+
+- Updated Sysnotify to 2.0.3
+- Improve accessibility of notification settings
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Timeline stuttering due to large images
+
+### Security
+
+## 3.7.1
+
+### Removed
+
+- Removed legacy key chain
+
+### Fixed
+
+- Don't restart sync on presence change
+- Crash on startup due to process file lock on some shared libraries
+- Crash due to AutoLinkifyVisitor processing Matches out of order
+
+## 3.7.0
+
+### Added
+
 - File load and save dialogs on iOS targets
 - PDF reader support on iOS
-- Tooltip for MXID and Username in Avatar Display Section
+- MatrixMessengerConfiguration for toggling refresh tokens
 
 ### Changed
 
@@ -21,10 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Power Levels now use net.folivo.trixnity.client.user.PowerLevel instead of Long
 - Added Role.CREATOR
 - Change markdown to GFM
-
-### Deprecated
-
-### Removed
+- Don't use refresh tokens by default
+- Bump c2x Conventions to 50375801
+- Improved Reference/Link parsing
 
 - Length Constraint for MXIDs in AccountsOverview and Profilepicker
 
@@ -32,7 +65,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed crash due to scrollbar measuring policy on Android
 - Fixed several translation issues
+<<<<<<< CHANGELOG.md
 - AccountsOverview glitching out on long MXIDs
+=======
+- Show error messages when replacing events
+>>>>>>> CHANGELOG.md
 
 ### Security
 

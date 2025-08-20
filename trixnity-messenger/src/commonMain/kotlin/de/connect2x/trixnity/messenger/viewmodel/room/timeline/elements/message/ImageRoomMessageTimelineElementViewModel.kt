@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
+import net.folivo.trixnity.core.MSC2448
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
 import org.koin.core.component.get
@@ -65,4 +66,7 @@ class ImageRoomMessageTimelineElementViewModelImpl(
 
     override val width: Int? = content.info?.width
     override val height: Int? = content.info?.height
+
+    @MSC2448
+    override val blurhash: String? = content.info?.blurhash
 }

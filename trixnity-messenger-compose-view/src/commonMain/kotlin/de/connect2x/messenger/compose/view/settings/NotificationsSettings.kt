@@ -28,6 +28,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
+import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
 import de.connect2x.messenger.compose.view.common.SmallSpacer
@@ -54,23 +55,19 @@ class NotificationsSettingsViewImpl : NotificationsSettingsView {
         val notificationSettings = notificationsSettingsViewModel.notificationSettings.collectAsState().value
         val scroll = rememberScrollState()
 
-        Box(Modifier.fillMaxSize()) {
-            Box {
-                Column {
-                    Header(notificationsSettingsViewModel::back, i18n.commonNotifications().capitalize(Locale.current))
+        Column(Modifier.fillMaxSize()) {
+            Header(notificationsSettingsViewModel::back, i18n.commonNotifications().capitalize(Locale.current))
 
-                    Box {
-                        Column(Modifier.padding(10.dp).verticalScroll(scroll)) {
-                            notificationSettings.map { notificationSettingsSingleAccount ->
-                                NotificationSettingsSingleAccount(notificationSettingsSingleAccount)
-                            }
-                        }
-                        VerticalScrollbar(
-                            Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                            scroll,
-                        )
+            Box {
+                Column(Modifier.padding(10.dp).verticalScroll(scroll)) {
+                    notificationSettings.map { notificationSettingsSingleAccount ->
+                        NotificationSettingsSingleAccount(notificationSettingsSingleAccount)
                     }
                 }
+                VerticalScrollbar(
+                    Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                    scroll,
+                )
             }
         }
     }
@@ -150,101 +147,86 @@ fun ColumnScope.PlatformNotificationAccountSettings(
 
     MiddleSpacer()
 
-    val soundOptions = listOfNotNull(
-        if (settings.defaultLevel >= NotificationSettings.DefaultLevel.ROOM)
-            OptionSettingOption(
-                text = i18n.notificationsSettingsAccountSoundRoom(),
-                value = settings.sound.room,
-                toggle = { viewModel.updateAccountSettings(settings.copy(sound = settings.sound.copy(room = !settings.sound.room))) },
-                enabled = canChangeSettings
-            )
-        else null,
-        if (settings.defaultLevel >= NotificationSettings.DefaultLevel.DM)
-            OptionSettingOption(
-                text = i18n.notificationsSettingsAccountSoundDM(),
-                value = settings.sound.dm,
-                toggle = { viewModel.updateAccountSettings(settings.copy(sound = settings.sound.copy(dm = !settings.sound.dm))) },
-                enabled = canChangeSettings
-            )
-        else null,
-        if (settings.defaultLevel >= NotificationSettings.DefaultLevel.MENTION)
-            OptionSettingOption(
-                text = i18n.notificationsSettingsAccountSoundMention(),
-                value = settings.sound.mention,
-                toggle = { viewModel.updateAccountSettings(settings.copy(sound = settings.sound.copy(mention = !settings.sound.mention))) },
-                enabled = canChangeSettings
-            )
-        else null,
-        if (settings.defaultLevel > NotificationSettings.DefaultLevel.NONE)
-            OptionSettingOption(
-                text = i18n.notificationsSettingsAccountSoundCall(),
-                value = settings.sound.call,
-                toggle = { viewModel.updateAccountSettings(settings.copy(sound = settings.sound.copy(call = !settings.sound.call))) },
-                enabled = canChangeSettings
-            ) else null,
-    )
-    if (soundOptions.isNotEmpty())
-        CollapsableOptionSetting(
-            text = i18n.notificationsSettingsAccountSound(),
-            icon = Icons.Filled.NotificationsActive,
-            options = soundOptions,
+    MoreOptions(
+        title = { Text(i18n.notificationsSettingsAccountSound(), style = MaterialTheme.typography.titleSmall) },
+        icon = Icons.Filled.NotificationsActive,
+    ) {
+        Setting(
+            text = i18n.notificationsSettingsAccountSoundRoom(),
+            value = settings.sound.room,
+            enabled = canChangeSettings && settings.defaultLevel >= NotificationSettings.DefaultLevel.ROOM,
+            toggle = { viewModel.updateAccountSettings(settings.copy(sound = settings.sound.copy(room = !settings.sound.room))) }
         )
+        Setting(
+            text = i18n.notificationsSettingsAccountSoundDM(),
+            value = settings.sound.dm,
+            enabled = canChangeSettings && settings.defaultLevel >= NotificationSettings.DefaultLevel.DM,
+            toggle = { viewModel.updateAccountSettings(settings.copy(sound = settings.sound.copy(dm = !settings.sound.dm))) }
+        )
+        Setting(
+            text = i18n.notificationsSettingsAccountSoundMention(),
+            value = settings.sound.mention,
+            enabled = canChangeSettings && settings.defaultLevel >= NotificationSettings.DefaultLevel.MENTION,
+            toggle = { viewModel.updateAccountSettings(settings.copy(sound = settings.sound.copy(mention = !settings.sound.mention))) }
+        )
+        Setting(
+            text = i18n.notificationsSettingsAccountSoundCall(),
+            value = settings.sound.call,
+            enabled = canChangeSettings && settings.defaultLevel > NotificationSettings.DefaultLevel.NONE,
+            toggle = { viewModel.updateAccountSettings(settings.copy(sound = settings.sound.copy(call = !settings.sound.call))) }
+        )
+    }
 
     MiddleSpacer()
-
-    val activityOptions = if (settings.defaultLevel > NotificationSettings.DefaultLevel.NONE)
-        listOf(
-            OptionSettingOption(
-                text = i18n.notificationsSettingsAccountActivityInvite(),
-                value = settings.activity.invite,
-                toggle = { viewModel.updateAccountSettings(settings.copy(activity = settings.activity.copy(invite = !settings.activity.invite))) },
-                enabled = canChangeSettings
-            ),
-            OptionSettingOption(
-                text = i18n.notificationsSettingsAccountActivityStatus(),
-                value = settings.activity.status,
-                toggle = { viewModel.updateAccountSettings(settings.copy(activity = settings.activity.copy(status = !settings.activity.status))) },
-                enabled = canChangeSettings
-            ),
-            OptionSettingOption(
-                text = i18n.notificationsSettingsAccountActivityNotice(),
-                value = settings.activity.notice,
-                toggle = { viewModel.updateAccountSettings(settings.copy(activity = settings.activity.copy(notice = !settings.activity.notice))) },
-                enabled = canChangeSettings
-            ),
+    MoreOptions(
+        title = { Text(i18n.notificationsSettingsAccountOthers(), style = MaterialTheme.typography.titleSmall) },
+        icon = Icons.Filled.Notifications,
+    ) {
+        Setting(
+            text = i18n.notificationsSettingsAccountActivityInvite(),
+            value = settings.activity.invite,
+            enabled = canChangeSettings && settings.defaultLevel > NotificationSettings.DefaultLevel.NONE,
+            toggle = { viewModel.updateAccountSettings(settings.copy(activity = settings.activity.copy(invite = !settings.activity.invite))) }
         )
-    else listOf()
 
-    val mentionOptions =
-        if (settings.defaultLevel >= NotificationSettings.DefaultLevel.MENTION)
-            listOf(
-                OptionSettingOption(
-                    text = i18n.notificationsSettingsAccountMentionUser(viewModel.account),
-                    value = settings.mention.user,
-                    toggle = { viewModel.updateAccountSettings(settings.copy(mention = settings.mention.copy(user = !settings.mention.user))) },
-                    enabled = canChangeSettings
-                ),
-                OptionSettingOption(
-                    text = i18n.notificationsSettingsAccountMentionRoom(),
-                    value = settings.mention.room,
-                    toggle = { viewModel.updateAccountSettings(settings.copy(mention = settings.mention.copy(room = !settings.mention.room))) },
-                    enabled = canChangeSettings
-                ),
-//            OptionSettingOption( // TODO enable as soon as keywords are supported
-//                text = i18n.notificationsSettingsAccountMentionKeyword(),
-//                value = settings.mention.keyword,
-//                toggle = { viewModel.updateAccountSettings(settings.copy(mention = settings.mention.copy(keyword = !settings.mention.keyword))) },
-//                enabled = canChangeSettings && settings.keywords.isNotEmpty()
-//            ),
-            )
-        else emptyList()
-    val otherOptions = activityOptions + mentionOptions
-    if (otherOptions.isNotEmpty())
-        CollapsableOptionSetting(
-            text = i18n.notificationsSettingsAccountOthers(),
-            icon = Icons.Filled.Notifications,
-            options = otherOptions,
+        Setting(
+            text = i18n.notificationsSettingsAccountActivityStatus(),
+            value = settings.activity.status,
+            enabled = canChangeSettings && settings.defaultLevel > NotificationSettings.DefaultLevel.NONE,
+            toggle = { viewModel.updateAccountSettings(settings.copy(activity = settings.activity.copy(status = !settings.activity.status))) }
         )
+
+        Setting(
+            text = i18n.notificationsSettingsAccountActivityNotice(),
+            value = settings.activity.notice,
+            enabled = canChangeSettings && settings.defaultLevel > NotificationSettings.DefaultLevel.NONE,
+            toggle = { viewModel.updateAccountSettings(settings.copy(activity = settings.activity.copy(notice = !settings.activity.notice))) }
+        )
+
+        Setting(
+            text = i18n.notificationsSettingsAccountMentionUser(viewModel.account),
+            value = settings.mention.user,
+            enabled = canChangeSettings && settings.defaultLevel >= NotificationSettings.DefaultLevel.MENTION,
+            toggle = { viewModel.updateAccountSettings(settings.copy(mention = settings.mention.copy(user = !settings.mention.user))) }
+        )
+
+        Setting(
+            text = i18n.notificationsSettingsAccountMentionRoom(),
+            value = settings.mention.room,
+            enabled = canChangeSettings && settings.defaultLevel >= NotificationSettings.DefaultLevel.MENTION,
+            toggle = { viewModel.updateAccountSettings(settings.copy(mention = settings.mention.copy(room = !settings.mention.room))) }
+        )
+
+        // TODO enable as soon as keywords are supported
+        /*
+        Setting(
+            text = i18n.notificationsSettingsAccountMentionKeyword(),
+            value = settings.mention.keyword,
+            enabled = canChangeSettings && settings.keywords.isNotEmpty() && settings.defaultLevel >= NotificationSettings.DefaultLevel.MENTION,
+            toggle = { viewModel.updateAccountSettings(settings.copy(mention = settings.mention.copy(keyword = !settings.mention.keyword))) }
+        )
+         */
+    }
 
     // TODO settings.keywords
 

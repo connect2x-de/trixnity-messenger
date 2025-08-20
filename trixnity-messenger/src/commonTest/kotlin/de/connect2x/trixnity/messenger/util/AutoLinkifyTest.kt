@@ -122,7 +122,7 @@ class AutoLinkifyTest {
                             HtmlNode.TextContent("Hallo "),
                             HtmlNode.HtmlElement(
                                 "a", mapOf(
-                                    "href" to "https://matrix.to/#/%40alice%3Aexample.org",
+                                    "href" to "matrix:u/alice:example.org",
                                 ), listOf(
                                     HtmlNode.TextContent("@alice:example.org"),
                                 )
@@ -133,6 +133,31 @@ class AutoLinkifyTest {
                 )
             ),
             actual = parseLinks("Hallo https://matrix.to/#/%40alice%3Aexample.org! How are you?"),
+        )
+    }
+
+    @Test
+    fun shouldReplaceLinkEventMention() {
+        assertEquals(
+            expected = HtmlNode.HtmlElement(
+                "#root", emptyMap(), listOf(
+                    HtmlNode.HtmlElement(
+                        tag="span",
+                        attributes=emptyMap(),
+                        children=listOf(
+                            HtmlNode.HtmlElement(
+                                tag="a",
+                                attributes=mapOf("href" to "matrix:roomid/WvOltebgJfkgHzhfpW:matrix.org/e/KoEcMwZKqGpCeuMjAmt9zvmWgO72f7hDFkvfBMS479A?via=matrix.org&via=imbitbu.de"),
+                                children=listOf(
+                                    HtmlNode.TextContent(content="\$KoEcMwZKqGpCeuMjAmt9zvmWgO72f7hDFkvfBMS479A")
+                                )
+                            ),
+                            HtmlNode.TextContent(" This is an event mention"),
+                        ),
+                    ),
+                )
+            ),
+            actual = parseLinks("https://matrix.to/#/!WvOltebgJfkgHzhfpW:matrix.org/\$KoEcMwZKqGpCeuMjAmt9zvmWgO72f7hDFkvfBMS479A?via=matrix.org&via=imbitbu.de This is an event mention")
         )
     }
 

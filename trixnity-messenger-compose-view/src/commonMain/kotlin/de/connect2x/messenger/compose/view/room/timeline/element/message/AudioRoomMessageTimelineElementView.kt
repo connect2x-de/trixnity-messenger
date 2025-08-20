@@ -122,9 +122,7 @@ internal fun MessageAudio(
     val downloadSuccessful = remember { element.downloadMediaResult.map { it != null } }.collectAsState(false)
 
     Column(
-        modifier = Modifier
-            .padding(10.dp)
-            .fillMaxWidth(),
+        modifier = Modifier.padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row {

@@ -63,6 +63,18 @@ class SecretByteArraysTest {
     }
 
     @Test
+    fun `set - should initialize null returning provider`() = runTest {
+        secretByteArrayKeyProviders = listOf(provider1)
+        everySuspend { provider1.rotate(any(), any(), any()) } returns
+                SecretByteArrayKeyProvider.RotateResult(null, null, null)
+        
+        cut.set("secret", null)
+        val settings = settings.value.base.secretByteArrays.shouldNotBeNull()
+        settings.secrets.shouldBeEmpty()
+        settings.keyInfo.shouldBeEmpty()
+    }
+
+    @Test
     fun `set - should remove secret on null`() = runTest {
         settings.update<MatrixMessengerSettingsBase> {
             MatrixMessengerSettingsBase(
@@ -83,6 +95,17 @@ class SecretByteArraysTest {
         settings.update<MatrixMessengerSettingsBase> {
             MatrixMessengerSettingsBase(secretByteArrays = SecretByteArraySettings(mapOf(), mapOf(), null))
         }
+        cut.set("secret", "***".encodeToByteArray())
+        settings.value.base.secretByteArrays?.secrets?.get("secret") shouldBe
+                SecretByteArray.Unencrypted("***".encodeToByteArray())
+    }
+
+    @Test
+    fun `set - should store secret unencrypted when null returning provider given`() = runTest {
+        secretByteArrayKeyProviders = listOf(provider1)
+        everySuspend { provider1.rotate(any(), any(), any()) } returns
+                SecretByteArrayKeyProvider.RotateResult(null, null, null)
+
         cut.set("secret", "***".encodeToByteArray())
         settings.value.base.secretByteArrays?.secrets?.get("secret") shouldBe
                 SecretByteArray.Unencrypted("***".encodeToByteArray())
