@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.7.2
+
+### Added
+
 - Notifications on iOS
 - Added support for displaying MSC2448 Blurhash as image placeholder
 - Tooltip for MXID and Username in Avatar Display Section
@@ -19,16 +33,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve accessibility of notification settings
 - Length Constraint for MXIDs in AccountsOverview and Profilepicker
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Timeline stuttering due to large images
 - AccountsOverview glitching out on long MXIDs
-
-### Security
 
 ## 3.7.1
 
