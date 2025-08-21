@@ -1,3 +1,5 @@
+@file:OptIn(MSC2448::class)
+
 package de.connect2x.messenger.previews
 
 import android.annotation.SuppressLint
@@ -22,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import net.folivo.trixnity.client.media.PlatformMedia
+import net.folivo.trixnity.core.MSC2448
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.ByteArrayFlow
@@ -89,6 +92,7 @@ fun ImageMessageBubblePreview() {
         override val height: Int? = 40
         override val thumbnailWidth: Int? = 40
         override val thumbnailHeight: Int? = 40
+        override val blurhash: String? = null
         override val thumbnailLoading: StateFlow<Boolean> = MutableStateFlow(false)
 
         override val name: String = "kiwi.png"

@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -91,6 +92,12 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
             }
         )
     }
+
+    @Composable
+    override fun getClipEntry(
+        holder: BaseTimelineElementHolderViewModel,
+        element: RedactedTimelineElementViewModel
+    ): ClipEntry? = null
 }
 
 @Composable

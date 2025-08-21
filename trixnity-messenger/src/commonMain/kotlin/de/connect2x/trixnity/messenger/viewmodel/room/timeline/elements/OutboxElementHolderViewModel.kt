@@ -103,7 +103,6 @@ class OutboxElementHolderViewModelImpl(
     onOpenMention: OpenMentionCallback,
     private val jumpTo: (roomId: RoomId, eventId: EventId) -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, OutboxElementHolderViewModel {
-
     private val timeZone = get<TimeZone>()
     private val i18n = get<I18n>()
     private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
@@ -310,5 +309,7 @@ class OutboxElementHolderViewModelImpl(
         }
     }
 
-    override fun jumpTo() {}
+    override fun jumpTo() {
+        log.trace { "Tried to jump to unsent outbox Message ($transactionId)" }
+    }
 }

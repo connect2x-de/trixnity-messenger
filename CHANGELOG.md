@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Copy message content
+
 ### Changed
 
 ### Deprecated
@@ -18,6 +20,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## 3.7.2
+
+### Added
+
+- Notifications on iOS
+- Added support for displaying MSC2448 Blurhash as image placeholder
+- Tooltip for MXID and Username in Avatar Display Section
+
+### Changed
+
+- Updated Sysnotify to 2.0.3
+- Improve accessibility of notification settings
+- Length Constraint for MXIDs in AccountsOverview and Profilepicker
+
+### Fixed
+
+- Timeline stuttering due to large images
+- AccountsOverview glitching out on long MXIDs
+
+## 3.7.1
+
+### Removed
+
+- Removed legacy key chain
+
+### Fixed
+
+- Don't restart sync on presence change
+- Crash on startup due to process file lock on some shared libraries
+- Crash due to AutoLinkifyVisitor processing Matches out of order
 
 ## 3.7.0
 
