@@ -35,7 +35,7 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
 @Suppress("NonAsciiCharacters")
-class RoomMessageTimelineElementViewModelImplTest {
+class RoomMessageTimelineElementViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
