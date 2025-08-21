@@ -128,12 +128,12 @@ open class I18nView(
 
     open fun commonCopy() = translate {
         EN - "copy"
-        DE - "kopieren"
+        DE - "Kopieren"
     }
 
     open fun commonCopied() = translate {
         EN - "copied"
-        DE - "kopiert"
+        DE - "Kopiert"
     }
 
     open fun commonWaiting() = translate {
@@ -349,6 +349,21 @@ open class I18nView(
     open fun commonSubmit() = translate {
         EN - "submit"
         DE - "absenden"
+    }
+
+    open fun commonRichText() = translate {
+        EN - "rich text"
+        DE - "Formatierter Text"
+    }
+
+    open fun commonText() = translate {
+        EN - "text"
+        DE - "Text"
+    }
+
+    open fun commonLocation() = translate {
+        EN - "location"
+        DE - "Standort"
     }
 
     open fun commonShowTooltip() = translate {

@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.ClipEntry
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -42,6 +43,12 @@ interface TimelineElementViewSelector :
         holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
     ) = rememberFactory(element).createReplyInSendMessage(holder, element)
+
+    @Composable
+    fun getClipEntry(
+        holder: BaseTimelineElementHolderViewModel,
+        element: TimelineElementViewModel<*>,
+    ): ClipEntry? = rememberFactory(element).getClipEntry(holder, element)
 }
 
 @Composable
