@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ClipEntry
@@ -15,6 +14,8 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSelectionContainer
 import de.connect2x.messenger.compose.view.util.toClipEntry
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -82,7 +83,7 @@ fun LocationMessageElement(
         // on Android and iOS, this will consume long tap events, which we use for the context menu
         when (Platform.current) {
             PlatformType.ANDROID, PlatformType.IOS -> LocationMessageContent(element, showMenuAction)
-            PlatformType.DESKTOP, PlatformType.WEB -> SelectionContainer {
+            PlatformType.DESKTOP, PlatformType.WEB -> ThemedSelectionContainer(MaterialTheme.components.selectionOnPrimary) {
                 LocationMessageContent(element, showMenuAction)
             }
         }

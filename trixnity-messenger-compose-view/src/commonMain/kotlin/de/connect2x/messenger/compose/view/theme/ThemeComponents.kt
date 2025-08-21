@@ -29,6 +29,7 @@ import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
 import de.connect2x.messenger.compose.view.theme.components.LocalContent
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.CircularProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
+import de.connect2x.messenger.compose.view.theme.components.SelectionStyle
 import de.connect2x.messenger.compose.view.theme.components.SliderStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.messenger.compose.view.theme.components.SwitchStyle
@@ -354,5 +355,8 @@ class ThemeComponentsImpl : ThemeComponents {
                 disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             ),
         ),
+        // selection
+        selectionOnSurface = SelectionStyle.onSurface(),
+        selectionOnPrimary = SelectionStyle.onPrimary(),
     )
 }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.Icon
@@ -31,14 +30,13 @@ import de.connect2x.messenger.compose.view.richtext.RichTextColors
 import de.connect2x.messenger.compose.view.richtext.RichTextDisplay
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSelectionContainer
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.util.UriCaller
-import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import io.ktor.http.*
 
 @Composable
 fun TextBasedRoomMessageTimelineElementView(
@@ -64,7 +62,7 @@ fun TextRoomMessageTimelineElementView(
     // on Desktop and Web, it makes sense to select text and copy it;
     // on Android and iOS, this will consume long tap events, which we use for the context menu
     when (Platform.current) {
-        PlatformType.DESKTOP, PlatformType.WEB -> SelectionContainer {
+        PlatformType.DESKTOP, PlatformType.WEB -> ThemedSelectionContainer(MaterialTheme.components.selectionOnPrimary) {
             MessageTextContent(holder, element, showActionMenu)
         }
         PlatformType.ANDROID, PlatformType.IOS -> MessageTextContent(holder, element, showActionMenu)

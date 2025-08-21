@@ -50,7 +50,6 @@ import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_FILE
 import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.icons.EditIcon
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
 import de.connect2x.messenger.compose.view.files.LoadFileDialog
@@ -59,6 +58,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModel
@@ -222,7 +222,7 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
                     HelpIcon(i18n.profileYourNameInfo())
                 }
                 Spacer(Modifier.size(5.dp))
-                SelectableText(displayName)
+                ThemedSelectableText(displayName, MaterialTheme.components.selectionOnSurface)
             }
         }
         if (editMode.value) {
@@ -275,6 +275,6 @@ fun ProfileUserId(profileSingleViewModel: ProfileSingleViewModel) {
             HelpIcon(i18n.profileUserNameInfo())
         }
         Spacer(Modifier.size(5.dp))
-        SelectableText(profileSingleViewModel.userId.full)
+        ThemedSelectableText(profileSingleViewModel.userId.full, MaterialTheme.components.selectionOnSurface)
     }
 }

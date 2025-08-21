@@ -53,7 +53,6 @@ import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.VerySmallSpacer
@@ -75,6 +74,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedInfoChip
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
+import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.theme.components.ThemedSuggestionChip
 import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
@@ -152,7 +152,11 @@ class UserProfileViewImpl : UserProfileView {
                             }
                         }
                         Spacer(Modifier.height(20.dp))
-                        SelectableText(userInfoElement.name, style = MaterialTheme.typography.titleLarge)
+                        ThemedSelectableText(
+                            userInfoElement.name,
+                            MaterialTheme.components.selectionOnSurface,
+                            style = MaterialTheme.typography.titleLarge
+                        )
 
                         if (userInfoElement.name != userId.full) {
                             CopyableUserId(userId, MaterialTheme.typography.bodyLarge)
@@ -220,7 +224,12 @@ fun CopyableUserId(userId: UserId, textStyle: TextStyle) {
     val clipboard = LocalClipboardManager.current
 
     Row(verticalAlignment = Alignment.CenterVertically) {
-        SelectableText(userId.full, style = textStyle, overflow = TextOverflow.Visible)
+        ThemedSelectableText(
+            userId.full,
+            MaterialTheme.components.selectionOnSurface,
+            style = textStyle,
+            overflow = TextOverflow.Visible
+        )
         Spacer(Modifier.size(5.dp))
         Tooltip({ TooltipText(i18n.userProfileCopyUserId()) }) {
             ThemedIconButton(

@@ -15,7 +15,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.style.TextOverflow
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
-import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -27,6 +26,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
+import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 interface InviteRoomListElement {
@@ -91,11 +91,12 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                         ThemedProgressIndicator(style = MaterialTheme.components.circularProgressIndicator)
                         return@ModalDialogContent
                     }
-                    SelectableText(
+                    ThemedSelectableText(
                         text = i18n.formattedInvitationBody(
                             inviterName = inviterUserInfo?.name ?: i18n.commonUnknown(),
                             roomName = roomName,
                         ),
+                        selectionStyle = MaterialTheme.components.selectionOnSurface,
                     )
                 }
                 ModalDialogFooter {
