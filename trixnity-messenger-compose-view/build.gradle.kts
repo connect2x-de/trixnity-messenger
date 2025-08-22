@@ -58,6 +58,9 @@ kotlin {
     )
     applyDefaultHierarchyTemplate()
     sourceSets {
+        all {
+            languageSettings.optIn("kotlin.time.ExperimentalTime")
+        }
         val commonMain by getting {
             dependencies {
                 api(projects.trixnityMessenger)
@@ -71,8 +74,6 @@ kotlin {
                 api(sharedLibs.decompose.extensions)
                 api(sharedLibs.aboutLibraries.compose.m3)
                 implementation(sharedLibs.kotlinx.datetime)
-                implementation(sharedLibs.stately.common)
-                implementation(sharedLibs.stately.collections)
                 implementation(sharedLibs.androidx.annotation)
                 implementation(libs.okio)
                 implementation(compose.uiUtil)

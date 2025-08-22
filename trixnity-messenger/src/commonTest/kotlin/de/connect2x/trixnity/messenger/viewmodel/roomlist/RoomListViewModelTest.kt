@@ -46,7 +46,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.room.RoomService
@@ -72,6 +71,7 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import io.kotest.matchers.Matcher as KoMatcher
 
 class RoomListViewModelTest {

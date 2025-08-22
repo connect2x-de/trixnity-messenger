@@ -9,6 +9,7 @@ import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
 import de.connect2x.trixnity.messenger.util.RootPath
+import kotlinx.datetime.TimeZone
 import org.koin.dsl.module
 
 
@@ -35,7 +36,7 @@ fun messengerConfiguration(
         {
             module {
                 single<Languages> { DefaultLanguages }
-                single<I18n> { object : I18n(get(), get(), get(), get()) {} }
+                single<I18n> { object : I18n(get(), get(), get(), get<TimeZone>()) {} }
             }
         },
     )

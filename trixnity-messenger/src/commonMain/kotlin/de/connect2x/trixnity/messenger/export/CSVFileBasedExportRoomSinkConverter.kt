@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.messenger.export
 
-import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.core.model.RoomId
+import kotlin.time.Instant
 
 data class CSVFileBasedExportRoomProperties(
     override val destination: Destination,

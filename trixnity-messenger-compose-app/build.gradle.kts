@@ -121,6 +121,9 @@ kotlin {
     }
 
     sourceSets {
+        all {
+            languageSettings.optIn("kotlin.time.ExperimentalTime")
+        }
         commonMain {
             dependencies {
                 api(projects.trixnityMessengerComposeView) // api because of iOS

@@ -11,14 +11,15 @@ import dev.mokkery.matcher.ArgMatchersScope
 import dev.mokkery.matcher.matching
 import dev.mokkery.resetAnswers
 import dev.mokkery.resetCalls
-import io.kotest.assertions.errorCollector
 import io.kotest.assertions.withClue
+import io.kotest.matchers.errorCollector
 import io.kotest.matchers.nulls.shouldNotBeNull
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -34,7 +35,6 @@ import net.folivo.trixnity.core.model.UserId
 import org.koin.core.Koin
 import kotlin.coroutines.ContinuationInterceptor
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -182,4 +182,4 @@ val CoroutineScope.testScheduler
 fun TestScope.settle() = testScheduler.runCurrent()
 fun CoroutineContext.settle() = testScheduler.runCurrent()
 fun CoroutineScope.settle() = testScheduler.settle()
-suspend fun settle() = coroutineContext.testScheduler.settle()
+suspend fun settle() = currentCoroutineContext().testScheduler.settle()

@@ -34,7 +34,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.room
@@ -48,6 +47,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
+import kotlin.time.Instant
 
 private val log = KotlinLogging.logger {}
 
@@ -227,7 +227,8 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                         override val formattedBody: String? = null
                         override val formattedBodyContent: HtmlNode.HtmlElement? = null
                         override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-                        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
+                        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
+                            MutableStateFlow(mapOf())
 
                         override fun openMention(mention: TimelineElementMention) {}
                     }
@@ -239,7 +240,8 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                         override val formattedBody: String? = null
                         override val formattedBodyContent: HtmlNode.HtmlElement? = null
                         override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-                        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
+                        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
+                            MutableStateFlow(mapOf())
 
                         override fun openMention(mention: TimelineElementMention) {}
                     }
@@ -251,7 +253,8 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                         override val formattedBody: String? = null
                         override val formattedBodyContent: HtmlNode.HtmlElement? = null
                         override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-                        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
+                        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
+                            MutableStateFlow(mapOf())
 
                         override fun openMention(mention: TimelineElementMention) {}
                     }
@@ -266,7 +269,9 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                 override val formattedBody: String? = null
                 override val formattedBodyContent: HtmlNode.HtmlElement? = null
                 override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-                override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
+                override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
+                    MutableStateFlow(mapOf())
+
                 override fun openMention(mention: TimelineElementMention) {}
             }
             sender.value = UserInfoElement(

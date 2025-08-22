@@ -30,8 +30,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.room
@@ -55,6 +53,8 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Unkn
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import org.koin.core.component.get
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 
 private val log = KotlinLogging.logger {}
