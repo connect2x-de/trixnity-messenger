@@ -147,7 +147,7 @@ dependencies {
 }
 
 android {
-    namespace = "${libs.versions.appId.get()}.compose.view"
+    namespace = "de.connect2x.trixnity.messenger.compose.view"
     compileSdk = sharedLibs.versions.androidCompileSDK.get().toInt()
     buildFeatures {
         compose = true

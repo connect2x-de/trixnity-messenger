@@ -18,9 +18,9 @@ plugins {
 
 configureJava(sharedLibs.versions.targetJvm)
 
-val version = libs.versions.trixnityMessengerApp.get()
-val appName = libs.versions.appName.get()
-val appId = libs.versions.appId.get()
+val version = "0.0.0"
+val appName = "Trixnity Messenger"
+val appId = "de.connect2x.trixnity.messenger"
 
 enum class BuildFlavor { PROD, DEV }
 
@@ -189,7 +189,7 @@ compose {
                 // @see https://github.com/JetBrains/compose-jb/tree/master/tutorials/Native_distributions_and_local_execution#jvm-resource-loading
                 appResourcesRootDir = layout.buildDirectory
                 packageName = appId
-                packageVersion = libs.versions.trixnityMessengerApp.get()
+                packageVersion = version
 
                 windows {
                     menu = true

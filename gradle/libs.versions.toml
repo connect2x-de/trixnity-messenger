@@ -1,9 +1,6 @@
 [versions]
 
-trixnityMessenger = "3.8.0"
-trixnityMessengerApp = "1.0.0"
-appName = "Trixnity Messenger"
-appId = "de.connect2x.messenger"
+trixnityMessenger = "3.8.1"
 
 seskar = "4.14.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
