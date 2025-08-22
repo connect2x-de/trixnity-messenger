@@ -52,6 +52,7 @@ kotlin {
             testTask {
                 useKarma {
                     useFirefoxHeadless()
+                    useConfigDirectory(rootDir.resolve("karma.config.d"))
                 }
             }
         }
