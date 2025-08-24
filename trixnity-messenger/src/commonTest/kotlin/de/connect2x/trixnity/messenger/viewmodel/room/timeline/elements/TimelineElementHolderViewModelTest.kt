@@ -28,8 +28,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import net.folivo.trixnity.client.MatrixClient
@@ -62,8 +60,10 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
 import kotlin.test.Test
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 
 class TimelineElementHolderViewModelTest {
@@ -294,6 +294,7 @@ class TimelineElementHolderViewModelTest {
                             override val relatesTo: RelatesTo = RelatesTo.Replace(eventId = eventId)
                             override val externalUrl: String? = null
                             override val mentions: Mentions? = null
+                            override fun copyWith(relatesTo: RelatesTo?): MessageEventContent = this
                         }
                     ))))
         timeline(roomServiceMock, roomId) {
@@ -320,6 +321,7 @@ class TimelineElementHolderViewModelTest {
                             override val relatesTo: RelatesTo = RelatesTo.Replace(eventId = eventId)
                             override val externalUrl: String? = null
                             override val mentions: Mentions? = null
+                            override fun copyWith(relatesTo: RelatesTo?): MessageEventContent = this
                         }
                     ))))
         timeline(roomServiceMock, roomId) {
@@ -668,6 +670,7 @@ class TimelineElementHolderViewModelTest {
                                 RelatesTo.Replace(eventId = eventId, newContent = TextBased.Text("edit"))
                             override val externalUrl: String? = null
                             override val mentions: Mentions? = null
+                            override fun copyWith(relatesTo: RelatesTo?): MessageEventContent = this
                         }
                     ))))
         timeline(roomServiceMock, roomId) {

@@ -7,7 +7,9 @@ import net.folivo.trixnity.client.media.opfs.createOpfsMediaStoreModule
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import web.fs.FileSystemGetDirectoryOptions
+import web.fs.getDirectoryHandle
 import web.navigator.navigator
+import web.storage.getDirectory
 
 private val log = KotlinLogging.logger {}
 

@@ -4,10 +4,10 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlin.test.Test
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class FormattersTest {
     val clock = mock<Clock> {

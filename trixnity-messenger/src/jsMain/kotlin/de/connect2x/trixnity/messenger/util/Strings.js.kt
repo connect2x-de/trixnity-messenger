@@ -4,6 +4,7 @@ import js.intl.Granularity
 import js.intl.SegmentData
 import js.intl.Segmenter
 import js.intl.SegmenterOptions
+import js.intl.grapheme
 import js.iterable.JsIterable
 import js.iterable.iterator
 

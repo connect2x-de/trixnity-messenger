@@ -9,12 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added support for displaying MSC2448 Blurhash as image placeholder
-
 ### Changed
-
-- Updated Sysnotify to 2.0.3
-- Improve accessibility of notification settings
 
 ### Deprecated
 
@@ -22,9 +17,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Timeline stuttering due to large images
-
 ### Security
+
+## 3.8.0
+
+### Added
+
+- Copy message content
+
+### Changed
+
+- Updated Trixnity to 4.22.0
+
+## 3.7.2
+
+### Added
+
+- Notifications on iOS
+- Added support for displaying MSC2448 Blurhash as image placeholder
+- Tooltip for MXID and Username in Avatar Display Section
+
+### Changed
+
+- Updated Sysnotify to 2.0.3
+- Improve accessibility of notification settings
+- Length Constraint for MXIDs in AccountsOverview and Profilepicker
+
+### Fixed
+
+- Timeline stuttering due to large images
+- AccountsOverview glitching out on long MXIDs
 
 ## 3.7.1
 

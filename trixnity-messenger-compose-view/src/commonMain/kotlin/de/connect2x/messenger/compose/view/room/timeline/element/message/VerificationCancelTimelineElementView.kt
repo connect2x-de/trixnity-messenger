@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -73,6 +74,12 @@ class VerificationCancelTimelineElementViewImpl : VerificationCancelTimelineElem
         element: VerificationCancelTimelineElementViewModel
     ) {
     }
+
+    @Composable
+    override fun getClipEntry(
+        holder: BaseTimelineElementHolderViewModel,
+        element: VerificationCancelTimelineElementViewModel
+    ): ClipEntry? = null
 
 }
 

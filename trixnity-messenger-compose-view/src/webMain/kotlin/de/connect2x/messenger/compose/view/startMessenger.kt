@@ -28,13 +28,14 @@ import kotlinx.coroutines.flow.updateAndGet
 import org.jetbrains.skiko.wasm.onWasmReady
 import web.dom.DocumentVisibilityState
 import web.dom.document
+import web.dom.visible
 import web.events.Event
 import web.events.VISIBILITY_CHANGE
 import web.events.addEventListener
+import web.focus.BLUR
+import web.focus.FOCUS
+import web.focus.FocusEvent
 import web.prompts.alert
-import web.uievents.BLUR
-import web.uievents.FOCUS
-import web.uievents.FocusEvent
 import web.url.URL
 import web.window.window
 

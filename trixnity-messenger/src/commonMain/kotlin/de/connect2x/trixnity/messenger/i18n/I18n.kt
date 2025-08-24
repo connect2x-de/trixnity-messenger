@@ -7,13 +7,13 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.mb
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
 import net.folivo.trixnity.core.model.RoomAliasId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import kotlin.time.Instant
 
 private val log = KotlinLogging.logger { }
 

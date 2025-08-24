@@ -29,10 +29,11 @@ import net.folivo.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
 import net.folivo.trixnity.client.media.opfs.OpfsPlatformMedia
 import web.dom.document
 import web.file.File
-import web.html.HTML
+import web.html.HtmlTagName
 import web.timers.setTimeout
 import web.url.URL
 import web.window.WindowTarget
+import web.window._self
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger {}
@@ -134,7 +135,7 @@ actual fun SaveFileDialog(
             log.debug { "completed saving: $fileName" }
 
             // Invoke the download method that FileKit for web uses internally.
-            val a = document.createElement(HTML.a)
+            val a = document.createElement(HtmlTagName.a)
             a.href = fileUri
             a.download = fileName
             a.target = WindowTarget._self

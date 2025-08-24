@@ -29,6 +29,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -47,6 +49,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
+import de.connect2x.messenger.compose.view.util.toClipEntry
 import de.connect2x.messenger.compose.view.util.BlurHashDecoder
 import de.connect2x.messenger.compose.view.util.animateImage
 import de.connect2x.messenger.compose.view.util.rememberComputation
@@ -123,6 +126,12 @@ class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementV
     override fun createReplyInSendMessage(holder: TimelineElementHolderViewModel, element: Image) {
         ImageReplyElement(holder, element)
     }
+
+    @Composable
+    override fun getClipEntry(
+        holder: BaseTimelineElementHolderViewModel,
+        element: Image
+    ): ClipEntry? = element.toClipEntry()
 }
 
 @Composable

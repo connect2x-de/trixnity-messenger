@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -81,6 +82,12 @@ class EncryptedErrorTimelineElementViewImpl : EncryptedErrorTimelineElementView 
             }
         )
     }
+
+    @Composable
+    override fun getClipEntry(
+        holder: BaseTimelineElementHolderViewModel,
+        element: EncryptedErrorTimelineElementViewModel
+    ): ClipEntry? = null
 
 }
 
