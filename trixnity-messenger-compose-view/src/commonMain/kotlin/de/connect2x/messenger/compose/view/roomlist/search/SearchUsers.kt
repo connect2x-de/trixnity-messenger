@@ -1,14 +1,8 @@
 package de.connect2x.messenger.compose.view.roomlist.search
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.search.SearchUsersLocally
 import de.connect2x.messenger.compose.view.search.UserSearchResultListView
@@ -16,10 +10,12 @@ import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomViewModel
 
 interface SearchUsersView {
-    @Composable
     fun create(
         createNewRoomViewModel: CreateNewRoomViewModel,
         onUserClick: (Search.SearchUserElement) -> Unit,
+        userSearch: UserSearchResultListView,
+        userSearchResults: UserSearchResultListView.SearchResultState,
+        scope: LazyListScope
     )
 }
 
@@ -27,24 +23,28 @@ interface SearchUsersView {
 fun SearchUsers(
     createNewRoomViewModel: CreateNewRoomViewModel,
     onUserClick: (Search.SearchUserElement) -> Unit,
+    userSearch: UserSearchResultListView,
+    userSearchResults: UserSearchResultListView.SearchResultState,
+    scope: LazyListScope
 ) {
-    DI.get<SearchUsersView>().create(createNewRoomViewModel, onUserClick)
+    DI.get<SearchUsersView>().create(createNewRoomViewModel, onUserClick, userSearch, userSearchResults, scope)
 }
 
 class SearchUsersViewImpl : SearchUsersView {
-    @Composable
     override fun create(
         createNewRoomViewModel: CreateNewRoomViewModel,
         onUserClick: (Search.SearchUserElement) -> Unit,
+        userSearch: UserSearchResultListView,
+        userSearchResults: UserSearchResultListView.SearchResultState,
+        scope: LazyListScope
     ) {
-        val listState = rememberLazyListState()
-        val userSearch = DI.get<UserSearchResultListView>()
-        val userSearchResults = userSearch.collectUserSearchResult(createNewRoomViewModel.searchHandler)
-        Box {
-            LazyColumn(state = listState) {
-                SearchUsersLocally(createNewRoomViewModel.searchHandler, onUserClick, userSearch, userSearchResults)
-            }
-            VerticalScrollbar(Modifier.fillMaxHeight().align(Alignment.CenterEnd), listState, false)
+        with(scope) {
+            SearchUsersLocally(
+                createNewRoomViewModel.searchHandler,
+                onUserClick,
+                userSearch,
+                userSearchResults
+            )
         }
     }
 }

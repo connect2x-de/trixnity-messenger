@@ -37,7 +37,7 @@ import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.search.SearchUsersLocally
+import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
 import de.connect2x.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
@@ -71,6 +71,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
         val isCreating by createNewGroupViewModel.isCreating.collectAsState()
         val optionalRoomName = createNewGroupViewModel.optionalRoomName.collectAsTextFieldValueState()
         val optionalRoomTopic = createNewGroupViewModel.optionalGroupTopic.collectAsTextFieldValueState()
+        val userSearchView = DI.get<SearchUsersView>()
         val userSearch = DI.get<UserSearchResultListView>()
         val userSearchResults =
             userSearch.collectUserSearchResult(createNewGroupViewModel.createNewRoomViewModel.searchHandler)
@@ -139,7 +140,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             modifier = Modifier.fillMaxSize(),
                             state = lazyListState
                         ) {
-                            item(key = "moreOptions") {
+                            item(key = "MoreOptions") {
                                 Column {
                                     MoreOptions(roomOptionsString, modifier = Modifier.padding(horizontal = 10.dp)) {
                                         CreateGroupOptions(createNewGroupViewModel)
@@ -147,21 +148,22 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                                     Spacer(Modifier.height(15.dp))
                                 }
                             }
-                            item(key = "roomNameInput") {
+                            item(key = "RoomNameInput") {
                                 OptionalRoomNameInput(optionalRoomName)
                                 Spacer(Modifier.height(15.dp))
                             }
-                            item(key = "roomTopic") {
+                            item(key = "RoomTopic") {
                                 OptionalRoomTopicInput(optionalRoomTopic)
                             }
-                            item(key = "usersInGroup") {
+                            item(key = "UsersInGroup") {
                                 UsersInGroup(createNewGroupViewModel)
                             }
-                            SearchUsersLocally(
-                                createNewGroupViewModel.createNewRoomViewModel.searchHandler,
+                            userSearchView.create(
+                                createNewGroupViewModel.createNewRoomViewModel,
                                 createNewGroupViewModel::onUserClick,
                                 userSearch,
-                                userSearchResults
+                                userSearchResults,
+                                this
                             )
                         }
                         VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), lazyListState, false)
