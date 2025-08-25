@@ -14,6 +14,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import kotlinx.coroutines.delay
@@ -21,12 +22,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Instant
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import net.folivo.trixnity.client.MatrixClient
@@ -39,6 +40,7 @@ import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user.UserService
+import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -58,8 +60,10 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
 import kotlin.test.Test
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 
 class TimelineElementHolderViewModelTest {
@@ -290,6 +294,7 @@ class TimelineElementHolderViewModelTest {
                             override val relatesTo: RelatesTo = RelatesTo.Replace(eventId = eventId)
                             override val externalUrl: String? = null
                             override val mentions: Mentions? = null
+                            override fun copyWith(relatesTo: RelatesTo?): MessageEventContent = this
                         }
                     ))))
         timeline(roomServiceMock, roomId) {
@@ -316,6 +321,7 @@ class TimelineElementHolderViewModelTest {
                             override val relatesTo: RelatesTo = RelatesTo.Replace(eventId = eventId)
                             override val externalUrl: String? = null
                             override val mentions: Mentions? = null
+                            override fun copyWith(relatesTo: RelatesTo?): MessageEventContent = this
                         }
                     ))))
         timeline(roomServiceMock, roomId) {
@@ -664,6 +670,7 @@ class TimelineElementHolderViewModelTest {
                                 RelatesTo.Replace(eventId = eventId, newContent = TextBased.Text("edit"))
                             override val externalUrl: String? = null
                             override val mentions: Mentions? = null
+                            override fun copyWith(relatesTo: RelatesTo?): MessageEventContent = this
                         }
                     ))))
         timeline(roomServiceMock, roomId) {
@@ -697,6 +704,39 @@ class TimelineElementHolderViewModelTest {
         backgroundScope.launch { cut.isReplaced.collect() }
         eventually(100.milliseconds) {
             cut.isReplaced.value shouldBe true
+        }
+
+    }
+
+    @Test
+    fun `errorIfReplaced » should show an error when sendError of replacing event is not null`() = runTest {
+        val sendError = RoomOutboxMessage.SendError.Unknown(
+            ErrorResponse.Unknown("Too large")
+        )
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(
+            listOf(
+                flowOf(
+                    RoomOutboxMessage(
+                        roomId,
+                        "0",
+                        TextBased.Text("", relatesTo = RelatesTo.Replace(eventId)),
+                        createdAt = Clock.System.now(),
+                        sendError = sendError
+                    )
+                )
+            )
+        )
+        every { roomServiceMock.getTimelineEventRelations(roomId, eventId, RelationType.Replace) } returns flowOf(
+            mapOf()
+        )
+        timeline(roomServiceMock, roomId) {
+            +timelineEvent
+        }
+        val cut = cut(eventId = eventId)
+
+        cut.sendError.launchIn(backgroundScope)
+        eventually(100.milliseconds) {
+            cut.sendError.value shouldNotBe null
         }
 
     }

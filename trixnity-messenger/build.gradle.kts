@@ -4,22 +4,23 @@ import co.touchlab.skie.configuration.FlowInterop
 import co.touchlab.skie.configuration.FunctionInterop
 import co.touchlab.skie.configuration.SealedInterop
 import co.touchlab.skie.configuration.SuspendInterop
+import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.isCI
 import de.connect2x.conventions.registerCoverageTask
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotest)
-    alias(libs.plugins.mokkery)
-    alias(libs.plugins.skie)
-    alias(libs.plugins.kmmbridge)
-    alias(libs.plugins.dokka)
+    alias(sharedLibs.plugins.kotlin.multiplatform)
+    alias(sharedLibs.plugins.kotlin.serialization)
+    alias(sharedLibs.plugins.android.library)
+    alias(sharedLibs.plugins.mokkery)
+    alias(sharedLibs.plugins.skie)
+    alias(sharedLibs.plugins.kmmBridge)
+    alias(sharedLibs.plugins.dokka)
     `maven-publish`
 }
 
+configureJava(sharedLibs.versions.targetJvm)
 registerCoverageTask()
 
 kotlin {
@@ -51,6 +52,7 @@ kotlin {
             testTask {
                 useKarma {
                     useFirefoxHeadless()
+                    useConfigDirectory(rootDir.resolve("karma.config.d"))
                 }
             }
         }
@@ -64,7 +66,7 @@ kotlin {
     ).forEach {
         it.binaries.framework {
             baseName = "TrixnityMessenger"
-            export(libs.decompose)
+            export(sharedLibs.decompose)
             export(libs.trixnity.client)
             isStatic = true
         }
@@ -73,40 +75,42 @@ kotlin {
     sourceSets {
         all {
             languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
+            languageSettings.optIn("kotlin.time.ExperimentalTime")
         }
         val commonMain by getting {
             dependencies {
                 api(libs.trixnity.client)
                 implementation(libs.trixnity.crypto.core)
-                api(libs.ktor.client.logging)
-                api(libs.decompose)
-                api(libs.kotlinx.coroutines)
+                api(sharedLibs.ktor.client.logging)
+                api(sharedLibs.decompose)
+                api(sharedLibs.kotlinx.coroutines.core)
                 api(libs.logging)
-                api(libs.koin.core)
-                api(libs.kotlinx.serialization)
+                api(sharedLibs.koin.core)
+                api(sharedLibs.kotlinx.serialization.core)
+                api(sharedLibs.kotlinx.serialization.json)
+                api(sharedLibs.kotlinx.datetime)
                 implementation(libs.okio)
-                implementation(libs.kotlinx.datetime)
                 implementation(libs.kim)
                 implementation(libs.markdown)
                 implementation(libs.ksoup.html)
-                implementation(libs.skie.annotations)
+                implementation(sharedLibs.skie.annotations)
             }
         }
         val commonTest by getting {
             dependencies {
-                implementation(libs.kotlin.test)
+                implementation(sharedLibs.kotlin.test)
+                implementation(sharedLibs.kotlinx.coroutines.test)
+                implementation(sharedLibs.kotest.assertions.core)
+                implementation(sharedLibs.ktor.client.mock)
+                implementation(sharedLibs.mokkery.coroutines)
                 implementation(libs.okio.fakefilesystem)
-                implementation(libs.kotlinx.coroutines.test)
-                implementation(libs.kotest.assertion.core)
-                implementation(libs.ktor.client.mock)
-                implementation(libs.mokkery.coroutines)
             }
         }
         val jvmAndNativeMain by creating {
             dependsOn(commonMain)
             dependencies {
                 implementation(libs.trixnity.client.repository.room)
-                implementation(libs.androidx.sqlite3mc.bundled)
+                implementation(sharedLibs.androidx.sqlite3mc.bundled)
                 api(libs.trixnity.client.media.okio)
             }
         }
@@ -114,16 +118,17 @@ kotlin {
             dependsOn(jvmAndNativeMain)
             kotlin.srcDirs("src/icu4j/kotlin")
             dependencies {
-                implementation(libs.bundles.jna)
+                implementation(sharedLibs.jna)
+                implementation(sharedLibs.jna.platform)
                 implementation(libs.icu4j)
             }
         }
         androidMain {
             dependsOn(jvmAndNativeMain)
             dependencies {
-                implementation(libs.androidx.activity)
-                implementation(libs.androidx.security.crypto)
-                implementation(libs.androidx.browser)
+                implementation(sharedLibs.androidx.activity.ktx)
+                implementation(sharedLibs.androidx.security.crypto)
+                implementation(sharedLibs.androidx.browser)
             }
         }
         nativeMain {
@@ -132,7 +137,7 @@ kotlin {
         iosMain {
             dependencies {
                 // since with iOS projects, we cannot include the engine, we select it here
-                implementation(libs.ktor.client.darwin)
+                implementation(sharedLibs.ktor.client.darwin)
             }
         }
         jsMain {
@@ -142,9 +147,9 @@ kotlin {
                 api(libs.trixnity.client.media.indexeddb)
                 api(npm("@js-joda/timezone", libs.versions.jsJoda.get()))
                 implementation(project(":wrappers-zipjs"))
-                implementation(project.dependencies.platform(libs.kotlin.wrappers.bom))
-                implementation(libs.kotlin.browser)
-                implementation(libs.ktor.client.js) // since there is only 1 engine in web, we select it here
+                implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))
+                implementation(sharedLibs.kotlin.browser)
+                implementation(sharedLibs.ktor.client.js) // since there is only 1 engine in web, we select it here
             }
         }
         val nonAndroidTest by creating {
@@ -180,9 +185,9 @@ kotlin {
 
 android {
     namespace = "$group.trixnity.messenger"
-    compileSdk = libs.versions.androidCompileSDK.get().toInt()
+    compileSdk = sharedLibs.versions.androidCompileSDK.get().toInt()
     defaultConfig {
-        minSdk = libs.versions.androidMinimalSDK.get().toInt()
+        minSdk = sharedLibs.versions.androidMinimalSDK.get().toInt()
     }
     sourceSets {
         named("main") {

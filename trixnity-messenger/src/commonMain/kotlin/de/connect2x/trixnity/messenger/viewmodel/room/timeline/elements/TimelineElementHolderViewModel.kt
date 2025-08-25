@@ -4,6 +4,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.i18n.getErrorMessage
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -46,7 +47,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.flatten
@@ -77,6 +77,7 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.Text
 import org.koin.core.component.get
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 
@@ -250,6 +251,10 @@ class TimelineElementHolderViewModelImpl(
     private val newContentIfReplaced: SharedFlow<MessageEventContent?> =
         outboxElementIfReplaced.map { (it?.content?.relatesTo as? RelatesTo.Replace)?.newContent }
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+
+    override val sendError = outboxElementIfReplaced.filterNotNull().map { outboxElement ->
+        outboxElement.sendError?.getErrorMessage(i18n)
+    }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val isReplaced: StateFlow<Boolean> =
         combine(
@@ -590,7 +595,9 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
             override val formattedBody: String = "Hello <b/>everyone!"
             override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
             override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-            override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
+            override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
+                MutableStateFlow(mapOf())
+
             override fun openMention(mention: TimelineElementMention) {}
         })
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -610,6 +617,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val readers: MutableStateFlow<List<UserInfoElement>> = MutableStateFlow(listOf())
     override val canBeReactedTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val sendError: StateFlow<String?> = MutableStateFlow(null)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -641,7 +649,9 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
             override val formattedBody: String = "Hello!"
             override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
             override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
-            override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
+            override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
+                MutableStateFlow(mapOf())
+
             override fun openMention(mention: TimelineElementMention) {}
         })
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
@@ -660,6 +670,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val readers: MutableStateFlow<List<UserInfoElement>> = MutableStateFlow(listOf())
     override val canBeReactedTo: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isReplaced: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val sendError: StateFlow<String?> = MutableStateFlow(null)
     override val isReply: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)

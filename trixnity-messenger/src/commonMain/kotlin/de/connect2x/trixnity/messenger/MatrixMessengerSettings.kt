@@ -2,7 +2,6 @@
 
 package de.connect2x.trixnity.messenger
 
-import de.connect2x.trixnity.messenger.secrets.LegacySecretByteArrayKey
 import de.connect2x.trixnity.messenger.secrets.SecretByteArray
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrayKeyInfo
 import de.connect2x.trixnity.messenger.settings.JsonDelegateSerializer
@@ -33,8 +32,6 @@ private val log = KotlinLogging.logger { }
 
 @Serializable
 data class MatrixMessengerSettingsBase(
-    @Deprecated("for backwards compatibility")
-    val secretByteArrayKey: LegacySecretByteArrayKey? = null, // TODO can be removed in future
     val secretByteArrays: SecretByteArraySettings? = null,
     val accounts: Map<UserId, MatrixMessengerAccountSettings> = mapOf(),
     val preferredLang: String? = null,
@@ -86,8 +83,6 @@ data class SecretByteArraySettings(
 
 @Serializable
 data class MatrixMessengerAccountSettingsBase(
-    @Deprecated("for backwards compatibility")
-    val databasePassword: SecretByteArray? = null, // TODO can be removed in future
     val displayName: String? = null,
     val displayColor: Long? = null,
     val notificationsEnabled: Boolean = false,

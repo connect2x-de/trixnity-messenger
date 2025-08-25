@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Clock
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.room.RoomService
@@ -30,6 +29,7 @@ import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.UserPresence
 import net.folivo.trixnity.client.store.membership
+import net.folivo.trixnity.client.user.PowerLevel
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
@@ -48,6 +48,7 @@ import net.folivo.trixnity.crypto.key.UserTrustLevel
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 
 class MemberListViewModelTest {
@@ -136,13 +137,13 @@ class MemberListViewModelTest {
         every { userServiceMock.canKickUser(eq(roomId), any()) } returns MutableStateFlow(true)
         every { userServiceMock.canBanUser(eq(roomId), any()) } returns MutableStateFlow(true)
         every { userServiceMock.canUnbanUser(eq(roomId), any()) } returns MutableStateFlow(true)
-        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns flowOf(50)
-        every { userServiceMock.getPowerLevel(any(), any(), any()) } returns 50
+        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns flowOf(PowerLevel.User(50))
+        every { userServiceMock.getPowerLevel(any(), any(), any()) } returns PowerLevel.User(50)
 
         every { userServiceMock.getById(eq(roomId), eq(me)) } returns roomUserMeFlow
         every { userServiceMock.getById(eq(roomId), eq(alice)) } returns roomUserAliceFlow
         every { userServiceMock.getById(eq(roomId), eq(bob)) } returns roomUserBobFlow
-        every { userServiceMock.canSetPowerLevelToMax(eq(roomId), any()) } returns MutableStateFlow(1)
+        every { userServiceMock.canSetPowerLevelToMax(eq(roomId), any()) } returns MutableStateFlow(PowerLevel.User(1))
         every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) } returns flowOf(
             IgnoredUserListEventContent(emptyMap())
         )
@@ -173,7 +174,7 @@ class MemberListViewModelTest {
 
     fun setupAliceBobMe() {
         val powerLevelsEventContent = PowerLevelsEventContent(users = mapOf(alice to 100, bob to 50, me to 1))
-        val createEventContent = CreateEventContent(creator = bob)
+        val createEventContent = CreateEventContent()
 
         val powerLevelEvent = StateEvent(
             powerLevelsEventContent,
@@ -207,26 +208,26 @@ class MemberListViewModelTest {
         every {
             userServiceMock.getPowerLevel(
                 alice,
-                bob,
+                createEvent,
                 powerLevelsEventContent = powerLevelsEventContent,
             )
-        } returns 100
+        } returns PowerLevel.User(100)
 
         every {
             userServiceMock.getPowerLevel(
                 bob,
-                bob,
+                createEvent,
                 powerLevelsEventContent = powerLevelsEventContent,
             )
-        } returns 50
+        } returns PowerLevel.User(50)
 
         every {
             userServiceMock.getPowerLevel(
                 me,
-                bob,
+                createEvent,
                 powerLevelsEventContent = powerLevelsEventContent,
             )
-        } returns 1
+        } returns PowerLevel.User(1)
     }
 
     @Test

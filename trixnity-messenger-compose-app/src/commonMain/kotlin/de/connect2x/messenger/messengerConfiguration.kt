@@ -9,6 +9,7 @@ import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
 import de.connect2x.trixnity.messenger.util.RootPath
+import kotlinx.datetime.TimeZone
 import org.koin.dsl.module
 
 
@@ -19,6 +20,7 @@ fun messengerConfiguration(
     appId = BuildConfig.appId
     privacyInfo = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
     imprint = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
+    pushUrl = "https://sygnal.demo.timmy-messenger.de/_matrix/push/v1/notify"
     licenses = BuildConfig.licenses
     sendLogsEmailAddress = null
     urlProtocol = BuildConfig.appId
@@ -34,7 +36,7 @@ fun messengerConfiguration(
         {
             module {
                 single<Languages> { DefaultLanguages }
-                single<I18n> { object : I18n(get(), get(), get(), get()) {} }
+                single<I18n> { object : I18n(get(), get(), get(), get<TimeZone>()) {} }
             }
         },
     )
@@ -56,7 +58,7 @@ fun messengerConfiguration(
     // MatrixMessengerConfiguration flavors
     messengerConfiguration messengerConfig@{
         modulesFactories += { composeViewModule(this) }
-        modulesFactories += { notificationsModule(this@messengerConfig, notificationsDebugEnabled) }
+        modulesFactories += { notificationsModule(this@messengerConfig, false) }
         downloadsDisabled = BuildConfig.downloadsDisabled
         // defaultHomeServer = "" // TODO your home server
     }

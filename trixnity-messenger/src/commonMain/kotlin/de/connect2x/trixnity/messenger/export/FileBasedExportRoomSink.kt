@@ -1,12 +1,12 @@
 package de.connect2x.trixnity.messenger.export
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.core.model.RoomId
 import okio.ByteString.Companion.toByteString
+import kotlin.time.Clock
 
 private val log = KotlinLogging.logger { }
 

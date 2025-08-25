@@ -43,7 +43,6 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.flattenValues
 import net.folivo.trixnity.client.key
@@ -62,6 +61,7 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 
 private val log = KotlinLogging.logger {}
@@ -380,7 +380,10 @@ class RoomListViewModelImpl(
             }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
         searchResultsEmpty =
-            combine(elements, allRoomsFlow) { roomElements, allRooms -> allRooms.isNotEmpty() && roomElements.isEmpty() }
+            combine(
+                elements,
+                allRoomsFlow
+            ) { roomElements, allRooms -> allRooms.isNotEmpty() && roomElements.isEmpty() }
                 .stateIn(coroutineScope, WhileSubscribed(), false)
 
         _syncState = matrixClients.flatMapLatest { matrixClients ->

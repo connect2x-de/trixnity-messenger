@@ -7,7 +7,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
@@ -17,12 +19,14 @@ import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
 import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenuItem
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
@@ -37,6 +41,16 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
     val canBeReported = asTimelineElementHolder()?.canBeReported?.collectAsState()?.value == true
     val canRetrySend = asOutboxElementHolder()?.canRetrySend?.collectAsState()?.value == true
     val canAbortSend = asOutboxElementHolder()?.canAbortSend?.collectAsState()?.value == true
+
+    val clipboard = LocalClipboard.current
+    val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
+    val clipEntry =
+        this.element.collectAsState().value?.let { timelineElementViewModel ->
+            timelineElementViewSelector.getClipEntry(this, timelineElementViewModel)
+        }
+    val canBeCopied = clipEntry != null
+    val coroutineScope = rememberCoroutineScope()
+
     return buildList {
         if (this@contextMenuActions is TimelineElementHolderViewModel) {
             add(
@@ -73,6 +87,16 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.reportMessage(),
                     action = ::report,
+                )
+            )
+            if (canBeCopied) add(
+                BaseTimelineElementHolderContextMenuAction(
+                    label = i18n.commonCopy(),
+                    action = {
+                        coroutineScope.launch {
+                            clipboard.setClipEntry(clipEntry)
+                        }
+                    },
                 )
             )
         }

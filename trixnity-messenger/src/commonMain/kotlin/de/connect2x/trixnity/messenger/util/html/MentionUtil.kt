@@ -14,37 +14,37 @@ fun Reference.toLink(): String = when (this) {
         if (finalRoomId != null) {
             append("roomid/")
             append(finalRoomId.full.trimStart(RoomId.sigilCharacter))
+            append("/")
         }
         append("e/")
         append(eventId.full.trimStart(EventId.sigilCharacter))
-        appendParameters(uri)
+        appendParameters(parameters)
     }
 
     is Reference.Room -> buildString {
         append("matrix:roomid/")
         append(roomId.full.trimStart(RoomId.sigilCharacter))
-        appendParameters(uri)
+        appendParameters(parameters)
     }
 
     is Reference.RoomAlias -> buildString {
         append("matrix:r/")
         append(roomAliasId.full.trimStart(RoomAliasId.sigilCharacter))
-        appendParameters(uri)
+        appendParameters(parameters)
     }
 
     is Reference.User -> buildString {
         append("matrix:u/")
         append(userId.full.trimStart(UserId.sigilCharacter))
-        appendParameters(uri)
+        appendParameters(parameters)
     }
 
-    is Reference.Link -> uri
+    is Reference.Link -> this.url
 }
 
-private fun StringBuilder.appendParameters(uri: String?) {
-    if (uri == null) return
-    val params = parseUrl(uri)?.parameters ?: return
-    if (params.isEmpty()) return
-    append('?')
-    params.formUrlEncodeTo(this)
+private fun StringBuilder.appendParameters(params: Parameters?) {
+    if (params != null && !params.isEmpty()) {
+        append('?')
+        params.formUrlEncodeTo(this)
+    }
 }

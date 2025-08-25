@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
@@ -30,6 +29,7 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.UserPresence
+import net.folivo.trixnity.client.user.PowerLevel
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
@@ -47,6 +47,7 @@ import net.folivo.trixnity.crypto.key.UserTrustLevel
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
+import kotlin.time.Clock
 
 class MemberListElementViewModelTest {
     private val me = UserId("user1", "localhost")
@@ -124,10 +125,10 @@ class MemberListElementViewModelTest {
         every { userServiceMock.canKickUser(eq(roomId), any()) } returns MutableStateFlow(true)
         every { userServiceMock.canBanUser(eq(roomId), any()) } returns MutableStateFlow(true)
         every { userServiceMock.canUnbanUser(eq(roomId), any()) } returns MutableStateFlow(true)
-        every { userServiceMock.getPowerLevel(eq(roomId), eq(alice)) } returns MutableStateFlow(50)
+        every { userServiceMock.getPowerLevel(eq(roomId), eq(alice)) } returns MutableStateFlow(PowerLevel.User(50))
         every {
             userServiceMock.canSetPowerLevelToMax(eq(roomId), any())
-        } returns MutableStateFlow(100)
+        } returns MutableStateFlow(PowerLevel.User(100))
         every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) } returns flowOf(
             IgnoredUserListEventContent(emptyMap())
         )
@@ -143,7 +144,7 @@ class MemberListElementViewModelTest {
     @Test
     fun `initially do not create MemberElement before subscription`() = runTest {
 
-        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(50)
+        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(PowerLevel.User(50))
 
         val cut = memberListElementViewModel(roomUserAlice)
 
@@ -155,7 +156,7 @@ class MemberListElementViewModelTest {
     @Test
     fun `Create MemberElement after subscription`() = runTest {
 
-        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(50)
+        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(PowerLevel.User(50))
 
         val cut = memberListElementViewModel(roomUserAlice)
 
@@ -169,11 +170,11 @@ class MemberListElementViewModelTest {
     fun setupRoleComputationForTheMemberList() {
         every {
             userServiceMock.getPowerLevel(eq(roomId), eq(alice))
-        } returns MutableStateFlow(50)
+        } returns MutableStateFlow(PowerLevel.User(50))
 
         every {
             userServiceMock.getPowerLevel(eq(roomId), eq(me))
-        } returns MutableStateFlow(50)
+        } returns MutableStateFlow(PowerLevel.User(50))
     }
 
     @Test
@@ -181,7 +182,7 @@ class MemberListElementViewModelTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
-        } returns MutableStateFlow(100)
+        } returns MutableStateFlow(PowerLevel.User(100))
         val cut = memberListElementViewModel(roomUserBob)
         cut.role.first { it != Role.USER } shouldBe Role.ADMIN
     }
@@ -191,7 +192,7 @@ class MemberListElementViewModelTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
-        } returns MutableStateFlow(100)
+        } returns MutableStateFlow(PowerLevel.User(100))
         val cut = memberListElementViewModel(roomUserBob)
         cut.showRole.first { it } shouldBe true
     }
@@ -201,7 +202,7 @@ class MemberListElementViewModelTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
-        } returns MutableStateFlow(50)
+        } returns MutableStateFlow(PowerLevel.User(50))
         val cut = memberListElementViewModel(roomUserBob)
         cut.role.first { it != Role.USER } shouldBe Role.MODERATOR
     }
@@ -211,7 +212,7 @@ class MemberListElementViewModelTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
-        } returns MutableStateFlow(50)
+        } returns MutableStateFlow(PowerLevel.User(50))
         val cut = memberListElementViewModel(roomUserBob)
         delay(100)
         cut.showRole.first { it } shouldBe true
@@ -223,7 +224,7 @@ class MemberListElementViewModelTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
-        } returns MutableStateFlow(0)
+        } returns MutableStateFlow(PowerLevel.User(0))
         val cut = memberListElementViewModel(roomUserBob)
         cut.role.value shouldBe Role.USER
     }
@@ -233,7 +234,7 @@ class MemberListElementViewModelTest {
         setupRoleComputationForTheMemberList()
         every {
             userServiceMock.getPowerLevel(roomId, bob)
-        } returns MutableStateFlow(0)
+        } returns MutableStateFlow(PowerLevel.User(0))
         val cut = memberListElementViewModel(roomUserBob)
         delay(50)
         cut.showRole.value shouldBe false

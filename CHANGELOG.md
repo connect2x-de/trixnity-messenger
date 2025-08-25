@@ -9,14 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- File Load and Save dialogs on iOS targets
 - Highlight mode of focused elements for better a11y
 
 ### Changed
-
-- Bump Compose to 1.8.2
-- Bump FileKit to 0.10.0-beta04
-- Move startMessenger logic for the iOS client in separate function
 
 ### Deprecated
 
@@ -24,9 +19,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 3.8.0
+
+### Added
+
+- Copy message content
+
+### Changed
+
+- Updated Trixnity to 4.22.0
+
+## 3.7.2
+
+### Added
+
+- Notifications on iOS
+- Added support for displaying MSC2448 Blurhash as image placeholder
+- Tooltip for MXID and Username in Avatar Display Section
+
+### Changed
+
+- Updated Sysnotify to 2.0.3
+- Improve accessibility of notification settings
+- Length Constraint for MXIDs in AccountsOverview and Profilepicker
+
+### Fixed
+
+- Timeline stuttering due to large images
+- AccountsOverview glitching out on long MXIDs
+
+## 3.7.1
+
+### Removed
+
+- Removed legacy key chain
+
+### Fixed
+
+- Don't restart sync on presence change
+- Crash on startup due to process file lock on some shared libraries
+- Crash due to AutoLinkifyVisitor processing Matches out of order
+
+## 3.7.0
+
+### Added
+
+- File load and save dialogs on iOS targets
+- PDF reader support on iOS
+- MatrixMessengerConfiguration for toggling refresh tokens
+
+### Changed
+
+- Bump Compose to 1.8.2
+- Bump FileKit to 0.10.0-beta04
+- Move startMessenger logic for the iOS client in separate function
+- Power Levels now use net.folivo.trixnity.client.user.PowerLevel instead of Long
+- Added Role.CREATOR
+- Change markdown to GFM
+- Don't use refresh tokens by default
+- Bump c2x Conventions to 50375801
+- Improved Reference/Link parsing
+
+### Fixed
+
 - Fixed crash due to scrollbar measuring policy on Android
+- Fixed several translation issues
+- Show error messages when replacing events
 
 ### Security
+
+- Support room version 12
 
 ## 3.6.17
 

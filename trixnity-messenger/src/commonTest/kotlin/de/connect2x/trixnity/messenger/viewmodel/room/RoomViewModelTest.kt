@@ -34,7 +34,6 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
-import io.kotest.assertions.failure
 import io.kotest.assertions.withClue
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
@@ -53,6 +52,7 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.room.TimelineStateChange
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.TimelineEvent
+import net.folivo.trixnity.client.user.PowerLevel
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.client.verification.VerificationService
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
@@ -75,6 +75,7 @@ import org.koin.dsl.module
 import kotlin.reflect.KClass
 import kotlin.test.AfterTest
 import kotlin.test.Test
+import kotlin.test.fail
 import kotlin.time.Duration.Companion.milliseconds
 
 
@@ -188,14 +189,14 @@ class RoomViewModelTest {
         every { userServiceMock.canKickUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canBanUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canUnbanUser(roomId, any()) } returns MutableStateFlow(false)
-        every { userServiceMock.canSetPowerLevelToMax(roomId, any()) } returns MutableStateFlow(0L)
+        every { userServiceMock.canSetPowerLevelToMax(roomId, any()) } returns MutableStateFlow(PowerLevel.User(0L))
         every { userServiceMock.getAccountData(DirectEventContent::class, "") } returns
                 MutableStateFlow(null)
         every { userServiceMock.getAccountData(IgnoredUserListEventContent::class, "") } returns
                 MutableStateFlow(null)
         every { userServiceMock.getAccountData(PushRulesEventContent::class, "") } returns
                 MutableStateFlow(null)
-        every { userServiceMock.getPowerLevel(any(), any()) } returns MutableStateFlow(50)
+        every { userServiceMock.getPowerLevel(any(), any()) } returns MutableStateFlow(PowerLevel.User(50))
         every { userServiceMock.canSendEvent(any(), any<KClass<out RoomEventContent>>()) } returns flowOf(true)
         every { userServiceMock.getReceiptsById(any(), any()) } returns flowOf(null)
         every { minimizeMessengerMock.invoke() } returns Unit
@@ -441,7 +442,7 @@ private suspend inline fun <reified T : ExtrasRouter.Wrapper> RoomViewModelImpl.
         delay(100.milliseconds)
         (this.extrasStack.value.active.instance as T)
     } catch (_: ClassCastException) {
-        throw failure(
+        fail(
             "expected extras pane to be of instance ${T::class.simpleName}" +
                     " but instead was: ${this.extrasStack.value.active.instance::class.simpleName}"
         )
@@ -452,7 +453,7 @@ private suspend inline fun <reified T : TimelineRouter.Wrapper> RoomViewModelImp
         delay(100.milliseconds)
         (this.timelineStack.value.active.instance as T)
     } catch (_: ClassCastException) {
-        throw failure(
+        fail(
             "expected timeline to be of instance ${T::class.simpleName}" +
                     " but instead was: ${this.extrasStack.value.active.instance::class.simpleName}"
         )

@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.ClipEntry
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
@@ -34,6 +35,12 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
         holder: TimelineElementHolderViewModel,
         element: V,
     )
+
+    @Composable
+    fun getClipEntry(
+        holder: BaseTimelineElementHolderViewModel,
+        element: V,
+    ): ClipEntry?
 }
 
 object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*>> {
@@ -63,6 +70,12 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*
         element: TimelineElementViewModel<*>
     ) {
     }
+
+    @Composable
+    override fun getClipEntry(
+        holder: BaseTimelineElementHolderViewModel,
+        element: TimelineElementViewModel<*>
+    ): ClipEntry? = null
 
     @Composable
     override fun createReplyInTimeline(

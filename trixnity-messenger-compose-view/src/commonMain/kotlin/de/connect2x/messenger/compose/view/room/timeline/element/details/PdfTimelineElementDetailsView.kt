@@ -69,11 +69,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import net.folivo.trixnity.client.media.PlatformMedia
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
+import kotlin.time.Clock
 
 private val log = KotlinLogging.logger {}
 

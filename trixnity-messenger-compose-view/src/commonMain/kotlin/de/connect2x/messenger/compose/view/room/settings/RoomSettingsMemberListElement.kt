@@ -33,6 +33,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.Role
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
+import net.folivo.trixnity.client.user.PowerLevel
 import net.folivo.trixnity.core.model.UserId
 
 interface RoomSettingsMemberListElementView {
@@ -113,7 +114,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                         if (showRole || showPowerLevel) {
                             Text(
                                 text = getRoomSettingsMemberRoleName(role, i18n)
-                                        + if (showPowerLevel) " ($powerLevel)" else "",
+                                        + if (showPowerLevel && powerLevel is PowerLevel.User) " (${powerLevel.level})" else "",
                                 style = MaterialTheme.typography.labelMedium,
                                 maxLines = 1,
                             )
@@ -130,6 +131,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
 
 fun getRoomSettingsMemberRoleName(role: Role, i18n: I18nView): String {
     return when (role) {
+        Role.CREATOR -> i18n.userProfileRoleCreator()
         Role.ADMIN -> i18n.userProfileRoleAdministrator()
         Role.MODERATOR -> i18n.userProfileRoleModerator()
         Role.USER -> i18n.userProfileRoleUser()

@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.key
 import net.folivo.trixnity.client.verification
 import net.folivo.trixnity.clientserverapi.model.devices.Device
@@ -29,6 +28,7 @@ import net.folivo.trixnity.core.MSC3814
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.crypto.key.DeviceTrustLevel
 import org.koin.core.component.get
+import kotlin.time.Instant
 
 
 private val log = KotlinLogging.logger {}

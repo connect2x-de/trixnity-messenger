@@ -9,6 +9,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import kotlinx.coroutines.flow.StateFlow
 import net.folivo.trixnity.client.media.PlatformMedia
+import net.folivo.trixnity.core.MSC2448
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C> {
@@ -75,6 +76,8 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
             val height: Int?
             val thumbnailWidth: Int?
             val thumbnailHeight: Int?
+            @MSC2448
+            val blurhash: String?
         }
 
         interface Audio : FileBased<RoomMessageEventContent.FileBased.Audio> {

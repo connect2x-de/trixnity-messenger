@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.i18n.getErrorMessage
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -35,8 +36,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.flatten
@@ -50,6 +49,8 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 private val log = KotlinLogging.logger { }
 
@@ -83,7 +84,6 @@ interface OutboxElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val transactionId: String
 
     val uploadProgress: StateFlow<FileTransferProgressElement?>
-    val sendError: StateFlow<String?>
 
     val canRetrySend: StateFlow<Boolean>
     val canAbortSend: StateFlow<Boolean>
@@ -103,7 +103,6 @@ class OutboxElementHolderViewModelImpl(
     onOpenMention: OpenMentionCallback,
     private val jumpTo: (roomId: RoomId, eventId: EventId) -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, OutboxElementHolderViewModel {
-
     private val timeZone = get<TimeZone>()
     private val i18n = get<I18n>()
     private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
@@ -291,17 +290,7 @@ class OutboxElementHolderViewModelImpl(
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val sendError: StateFlow<String?> = outboxMessageFlow.map { outboxMessage ->
-        if (outboxMessage == null) return@map null
-        when (val sendError = outboxMessage.sendError) {
-            RoomOutboxMessage.SendError.NoEventPermission -> i18n.sendErrorEventPermission()
-            RoomOutboxMessage.SendError.NoMediaPermission -> i18n.sendErrorMediaPermission()
-            RoomOutboxMessage.SendError.MediaTooLarge -> i18n.sendErrorMediaTooLarge()
-            is RoomOutboxMessage.SendError.BadRequest -> i18n.sendErrorUnknown(sendError.errorResponse.error)
-            is RoomOutboxMessage.SendError.Unknown -> i18n.sendErrorUnknown(sendError.errorResponse?.error)
-            RoomOutboxMessage.SendError.EncryptionAlgorithmNotSupported -> i18n.sendErrorUnknown(sendError.toString())
-            is RoomOutboxMessage.SendError.EncryptionError -> i18n.sendErrorUnknown(sendError.reason)
-            null -> null
-        }
+        outboxMessage?.sendError?.getErrorMessage(i18n)
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val canAbortSend: StateFlow<Boolean> = MutableStateFlow(true)
@@ -320,5 +309,7 @@ class OutboxElementHolderViewModelImpl(
         }
     }
 
-    override fun jumpTo() {}
+    override fun jumpTo() {
+        log.trace { "Tried to jump to unsent outbox Message ($transactionId)" }
+    }
 }

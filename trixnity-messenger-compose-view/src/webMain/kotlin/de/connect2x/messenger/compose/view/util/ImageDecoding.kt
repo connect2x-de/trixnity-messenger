@@ -5,9 +5,9 @@ import kotlinx.coroutines.CompletableDeferred
 import web.blob.Blob
 import web.blob.BlobPropertyBag
 import web.canvas.CanvasRenderingContext2D
+import web.canvas.ID
 import web.dom.document
 import web.events.EventHandler
-import web.html.HTMLCanvasElement
 import web.html.HtmlTagName
 import web.html.Image
 import web.url.URL
@@ -23,7 +23,7 @@ actual suspend fun decodeImageRGBA8888(
         val actualWidth = if (newWidth == -1) image.width else newWidth
         val actualHeight = if (newHeight == -1) image.height else newHeight
 
-        val canvas = document.createElement(HtmlTagName<HTMLCanvasElement>("canvas"))
+        val canvas = document.createElement(HtmlTagName.canvas)
         canvas.width = actualWidth
         canvas.height = actualHeight
         val context = canvas.getContext(CanvasRenderingContext2D.ID)!!

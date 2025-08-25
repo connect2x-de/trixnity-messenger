@@ -9,5 +9,3 @@ sealed interface TimelineElementViewModel<C : RoomEventContent> {
     interface Message<C : MessageEventContent> : TimelineElementViewModel<C>
     data object Empty : TimelineElementViewModel<RoomEventContent>
 }
-
-

@@ -68,6 +68,11 @@ sealed interface BaseTimelineElementHolderViewModel {
     val showBigGapBefore: StateFlow<Boolean?>
 
     /**
+     * Errors that occurred during sending of this event, either during initial sending or when replacing previous events
+     */
+    val sendError: StateFlow<String?>
+
+    /**
      * Scroll to this element in the timeline.
      */
     fun jumpTo()

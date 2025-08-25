@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.room
@@ -26,6 +25,7 @@ import net.folivo.trixnity.core.model.events.m.room.RedactionEventContent
 import net.folivo.trixnity.core.model.events.originTimestampOrNull
 import org.koin.core.component.get
 import kotlin.reflect.KClass
+import kotlin.time.Instant
 
 interface RedactedTimelineElementViewModelFactory : TimelineElementViewModelFactory<RedactedEventContent> {
     override fun create(

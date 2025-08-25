@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.export
 
-import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.originTimestamp
+import kotlin.time.Instant
 
 fun interface ExportRoomRangeStartCondition {
     /**

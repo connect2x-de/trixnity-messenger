@@ -163,7 +163,6 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewMo
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccount
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccountImpl
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.ModuleFactory
@@ -176,6 +175,7 @@ import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import kotlin.time.Clock
 
 
 fun interface ConfigureMatrixClientConfiguration {

@@ -63,6 +63,8 @@ class AppInfoViewImpl : AppInfoView {
                 PrivacyLink(appInfoViewModel)
                 ImprintLink(appInfoViewModel)
                 LicensesLink(appInfoViewModel)
+                Spacer(Modifier.weight(1F))
+                PlatformAppInfo()
             }
         }
 

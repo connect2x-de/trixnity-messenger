@@ -128,12 +128,12 @@ open class I18nView(
 
     open fun commonCopy() = translate {
         EN - "copy"
-        DE - "kopieren"
+        DE - "Kopieren"
     }
 
     open fun commonCopied() = translate {
         EN - "copied"
-        DE - "kopiert"
+        DE - "Kopiert"
     }
 
     open fun commonWaiting() = translate {
@@ -349,6 +349,21 @@ open class I18nView(
     open fun commonSubmit() = translate {
         EN - "submit"
         DE - "absenden"
+    }
+
+    open fun commonRichText() = translate {
+        EN - "rich text"
+        DE - "Formatierter Text"
+    }
+
+    open fun commonText() = translate {
+        EN - "text"
+        DE - "Text"
+    }
+
+    open fun commonLocation() = translate {
+        EN - "location"
+        DE - "Standort"
     }
 
     open fun commonShowTooltip() = translate {
@@ -841,6 +856,11 @@ open class I18nView(
         DE - "Diese Aktion kann eventuell nicht mehr rückgängig gemacht werden."
     }
 
+    open fun userProfileRoleCreator() = translate {
+        EN - "room creator"
+        DE - "Raumersteller"
+    }
+
     open fun userProfileRoleAdministrator() = translate {
         EN - "administrator"
         DE - "Administrator"
@@ -872,7 +892,7 @@ open class I18nView(
     }
 
     open fun userProfileNoteText() = translate {
-        EN - """Every user in a chat/group is given a value between 0 and 100.
+        EN - """Every user in a chat/group has a given power level (number).
             |This value determines the rights a user has in this chat or group.
             |
             |The higher the value, the more rights a user has.
@@ -880,7 +900,7 @@ open class I18nView(
             |
             |Standard values are: 0 (user), 50 (moderator) and 100 (administrator).
         """.trimMargin()
-        DE - """Jedem Nutzer in einem Chat/Gruppe wird ein Wert zwischen 0 und 100 zugewiesen.
+        DE - """Jedem Nutzer in einem Chat/Gruppe hat ein Berechtigungslevel (Zahl).
             |Dieser Wert bestimmt welche Rechte ein Nutzer in diesem Chat oder dieser Gruppe besitzt.
             |
             |Je höher dieser Wert ist, desto mehr Rechte besitzt der Nutzer.
@@ -971,7 +991,7 @@ open class I18nView(
     }
 
     open fun settingsRoomMemberListKnocking() = translate {
-        EN - "Kocking"
+        EN - "Knocking"
         DE - "Klopfend"
     }
 
@@ -986,12 +1006,12 @@ open class I18nView(
     }
 
     open fun unbannable() = translate {
-        EN - "unbanable"
+        EN - "remove ban"
         DE - "entbannbar"
     }
 
     open fun notUnbannable() = translate {
-        EN - "not unbannable"
+        EN - "cannot remove ban"
         DE - "nicht entbannbar"
     }
 
@@ -1011,7 +1031,7 @@ open class I18nView(
     }
 
     open fun roomHeaderUserIsBlocked() = translate {
-        EN - "This user is blocked by you."
+        EN - "This user was blocked by you."
         DE - "Dieser Nutzer wird von Ihnen geblockt."
     }
 
@@ -1550,6 +1570,16 @@ open class I18nView(
     open fun accountsOverviewLogout() = translate {
         EN - "Logout"
         DE - "Ausloggen"
+    }
+
+    open fun appInfoJvmPlatform(runtime: String, host: String) = translate {
+        EN - "$runtime on $host"
+        DE - "$runtime auf $host"
+    }
+
+    open fun appInfoAndroidPlatform(version: String, apiLevel: String) = translate {
+        EN - "Android $version with API level $apiLevel"
+        DE - "Android $version mit API Level $apiLevel"
     }
 
     open fun appInfoVersion(versionNumber: String) = translate {

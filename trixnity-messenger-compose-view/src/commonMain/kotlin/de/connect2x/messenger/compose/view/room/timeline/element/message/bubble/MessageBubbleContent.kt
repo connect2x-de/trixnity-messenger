@@ -30,7 +30,6 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.ReadMarker
-import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
@@ -126,7 +125,7 @@ fun MessageBubbleContent(
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     val highlight = holder.asTimelineElementHolder()?.highlight?.collectAsState()?.value == true
-    val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
+    val sendError = holder.sendError.collectAsState().value
     val showSender = holder.showSender.collectAsState().value == true
     val isReplaced = holder.asTimelineElementHolder()?.isReplaced?.collectAsState()?.value == true
     val hasRepliedElement = holder.isReply.collectAsState().value == true

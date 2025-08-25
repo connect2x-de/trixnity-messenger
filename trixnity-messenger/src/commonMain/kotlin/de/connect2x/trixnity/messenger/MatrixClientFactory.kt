@@ -111,23 +111,13 @@ class MatrixClientFactoryImpl(
         private const val ID = "de.connect2x.trixnity.messenger.secrets.database"
     }
 
-    @Suppress("DEPRECATION") // TODO: remove this in the future
     private suspend fun getDatabaseKey(userId: UserId, createNew: Boolean): ByteArray? {
-        val legacyKey = settings.value.base.accounts[userId]
-            ?.base?.databasePassword
-            ?.let { secretByteArrays.getLegacy(it) }
-        return if (legacyKey != null) {
-            secretByteArrays.set(ID, legacyKey)
-            settings.update<MatrixMessengerAccountSettingsBase>(userId) { it.copy(databasePassword = null) }
-            legacyKey
+        return if (createNew) {
+            val newKey = repositoriesModuleCreation.generateDatabaseKey() ?: return null
+            secretByteArrays.set("$ID-$userId", newKey)
+            newKey
         } else {
-            if (createNew) {
-                val newKey = repositoriesModuleCreation.generateDatabaseKey() ?: return null
-                secretByteArrays.set("$ID-$userId", newKey)
-                newKey
-            } else {
-                secretByteArrays.get("$ID-$userId") ?: secretByteArrays.get(ID)
-            }
+            secretByteArrays.get("$ID-$userId") ?: secretByteArrays.get(ID)
         }
     }
 
