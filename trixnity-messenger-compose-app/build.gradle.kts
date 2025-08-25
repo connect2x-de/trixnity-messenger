@@ -20,7 +20,7 @@ configureJava(sharedLibs.versions.targetJvm)
 
 val version = "1.0.0"
 val appName = "Trixnity Messenger"
-val appId = "de.connect2x.trixnity.messenger"
+val appId = "de.connect2x.messenger"
 
 enum class BuildFlavor { PROD, DEV }
 
