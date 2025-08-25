@@ -44,6 +44,9 @@ fun AppInfo(appInfoViewModel: AppInfoViewModel) {
     DI.get<AppInfoView>().create(appInfoViewModel)
 }
 
+@Composable
+expect fun PlatformAppInfo()
+
 class AppInfoViewImpl : AppInfoView {
     @Composable
     override fun create(appInfoViewModel: AppInfoViewModel) {
@@ -104,14 +107,14 @@ fun Item(content: @Composable () -> Unit, action: (() -> Unit)? = null, icon: @C
     val interactionSource = remember { MutableInteractionSource() }
     Box(
         Modifier
-        .fillMaxWidth()
-        .clickable(interactionSource, LocalIndication.current) {
-            if (action != null) {
-                action()
+            .fillMaxWidth()
+            .clickable(interactionSource, LocalIndication.current) {
+                if (action != null) {
+                    action()
+                }
             }
-        }
-        .focusHighlighting(interactionSource)
-        .buttonPointerModifier()
+            .focusHighlighting(interactionSource)
+            .buttonPointerModifier()
     ) {
         Row(
             Modifier.padding(horizontal = 20.dp, vertical = 30.dp),
