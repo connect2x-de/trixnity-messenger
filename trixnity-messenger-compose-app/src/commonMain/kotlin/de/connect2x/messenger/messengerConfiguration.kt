@@ -58,7 +58,7 @@ fun messengerConfiguration(
     // MatrixMessengerConfiguration flavors
     messengerConfiguration messengerConfig@{
         modulesFactories += { composeViewModule(this) }
-        modulesFactories += { notificationsModule(this@messengerConfig, false) }
+        modulesFactories += { notificationsModule(this@messengerConfig, notificationsDebugEnabled) }
         downloadsDisabled = BuildConfig.downloadsDisabled
         // defaultHomeServer = "" // TODO your home server
     }
