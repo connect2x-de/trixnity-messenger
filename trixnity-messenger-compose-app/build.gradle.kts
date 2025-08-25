@@ -18,7 +18,7 @@ plugins {
 
 configureJava(sharedLibs.versions.targetJvm)
 
-val version = "0.0.0"
+val version = "1.0.0"
 val appName = "Trixnity Messenger"
 val appId = "de.connect2x.trixnity.messenger"
 
