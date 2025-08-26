@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Change user search to use lazy loading approach with a sticky header to ease scrolling on smaller screens
+
 ### Deprecated
 
 ### Removed
