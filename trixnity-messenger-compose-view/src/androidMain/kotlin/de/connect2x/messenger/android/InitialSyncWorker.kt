@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
-import de.connect2x.messenger.compose.view.R
 import de.connect2x.sysnotify.Notification
 import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.sysnotify.SysNotifyIntent
@@ -13,6 +12,7 @@ import de.connect2x.sysnotify.getNotificationIcon
 import de.connect2x.sysnotify.withActivationFactory
 import de.connect2x.sysnotify.withContext
 import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.compose.view.R
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import io.github.oshai.kotlinlogging.KotlinLogging
 import net.folivo.trixnity.core.model.UserId
