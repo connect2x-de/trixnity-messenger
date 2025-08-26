@@ -34,7 +34,6 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
-import io.kotest.assertions.failure
 import io.kotest.assertions.withClue
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
@@ -76,6 +75,7 @@ import org.koin.dsl.module
 import kotlin.reflect.KClass
 import kotlin.test.AfterTest
 import kotlin.test.Test
+import kotlin.test.fail
 import kotlin.time.Duration.Companion.milliseconds
 
 
@@ -442,7 +442,7 @@ private suspend inline fun <reified T : ExtrasRouter.Wrapper> RoomViewModelImpl.
         delay(100.milliseconds)
         (this.extrasStack.value.active.instance as T)
     } catch (_: ClassCastException) {
-        throw failure(
+        fail(
             "expected extras pane to be of instance ${T::class.simpleName}" +
                     " but instead was: ${this.extrasStack.value.active.instance::class.simpleName}"
         )
@@ -453,7 +453,7 @@ private suspend inline fun <reified T : TimelineRouter.Wrapper> RoomViewModelImp
         delay(100.milliseconds)
         (this.timelineStack.value.active.instance as T)
     } catch (_: ClassCastException) {
-        throw failure(
+        fail(
             "expected timeline to be of instance ${T::class.simpleName}" +
                     " but instead was: ${this.extrasStack.value.active.instance::class.simpleName}"
         )

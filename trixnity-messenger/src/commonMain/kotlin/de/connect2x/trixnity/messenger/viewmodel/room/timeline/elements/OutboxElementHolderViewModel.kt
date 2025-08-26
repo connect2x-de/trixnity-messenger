@@ -36,8 +36,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.flatten
@@ -51,6 +49,8 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 private val log = KotlinLogging.logger { }
 
@@ -103,7 +103,6 @@ class OutboxElementHolderViewModelImpl(
     onOpenMention: OpenMentionCallback,
     private val jumpTo: (roomId: RoomId, eventId: EventId) -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, OutboxElementHolderViewModel {
-
     private val timeZone = get<TimeZone>()
     private val i18n = get<I18n>()
     private val timelineElementViewModelFactorySelector = get<TimelineElementViewModelFactorySelector>()
@@ -310,5 +309,7 @@ class OutboxElementHolderViewModelImpl(
         }
     }
 
-    override fun jumpTo() {}
+    override fun jumpTo() {
+        log.trace { "Tried to jump to unsent outbox Message ($transactionId)" }
+    }
 }

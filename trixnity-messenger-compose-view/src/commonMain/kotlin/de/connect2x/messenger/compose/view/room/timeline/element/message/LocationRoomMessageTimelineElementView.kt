@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import de.connect2x.messenger.compose.view.DI
@@ -14,6 +15,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
+import de.connect2x.messenger.compose.view.util.toClipEntry
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.Location
@@ -57,6 +59,12 @@ class LocationRoomMessageTimelineElementViewImpl : LocationRoomMessageTimelineEl
     override fun createReplyInSendMessage(holder: TimelineElementHolderViewModel, element: Location) {
         LocationReplyElement(holder, element)
     }
+
+    @Composable
+    override fun getClipEntry(
+        holder: BaseTimelineElementHolderViewModel,
+        element: Location
+    ): ClipEntry? = element.toClipEntry()
 }
 
 @Composable

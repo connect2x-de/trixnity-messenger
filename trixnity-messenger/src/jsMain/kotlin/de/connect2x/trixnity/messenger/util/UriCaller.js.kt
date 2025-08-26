@@ -5,6 +5,8 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 import web.url.URL
 import web.window.WindowTarget
+import web.window._blank
+import web.window._self
 import web.window.window
 
 private val log = KotlinLogging.logger { }

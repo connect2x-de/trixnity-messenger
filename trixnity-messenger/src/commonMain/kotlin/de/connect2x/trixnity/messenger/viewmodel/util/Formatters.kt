@@ -1,7 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -9,7 +7,9 @@ import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 fun Float.format(precision: Int = 3, separator: Char = '.') =
     if (this.isNaN()) "0" else {

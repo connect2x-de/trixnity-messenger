@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.job
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.media.MediaService
@@ -45,6 +44,7 @@ import net.folivo.trixnity.core.model.events.m.PresenceEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
+import kotlin.time.Clock
 
 private fun Search.SearchUserElement.testAvatarData() = image?.let { "${userId.full}_avatarUrl" to it }
 

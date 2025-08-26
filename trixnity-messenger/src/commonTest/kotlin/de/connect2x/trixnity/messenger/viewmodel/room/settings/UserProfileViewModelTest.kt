@@ -34,7 +34,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
-import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key
@@ -66,6 +65,7 @@ import net.folivo.trixnity.crypto.key.UserTrustLevel
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 
 @Suppress("NonAsciiCharacters")

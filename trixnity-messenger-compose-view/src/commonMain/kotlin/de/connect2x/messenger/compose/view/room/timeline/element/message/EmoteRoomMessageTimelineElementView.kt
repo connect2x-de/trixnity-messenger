@@ -1,7 +1,9 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.ClipEntry
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.messenger.compose.view.util.toClipEntry
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased.Emote
@@ -48,4 +50,10 @@ class EmoteRoomMessageTimelineElementViewImpl : EmoteRoomMessageTimelineElementV
     ) {
         TextReplyInSendMessage(holder, element)
     }
+
+    @Composable
+    override fun getClipEntry(
+        holder: BaseTimelineElementHolderViewModel,
+        element: Emote
+    ): ClipEntry? = element.toClipEntry()
 }

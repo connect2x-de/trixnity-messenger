@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +39,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElement
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.util.toClipEntry
 import de.connect2x.messenger.compose.view.verification.AcceptSasStart
 import de.connect2x.messenger.compose.view.verification.CompareEmojisOrNumbers
 import de.connect2x.messenger.compose.view.verification.DeviceVerificationWaitForOther
@@ -92,6 +94,12 @@ class VerificationRequestRoomMessageTimelineElementViewImpl : VerificationReques
         element: VerificationRequest,
     ) {
     }
+
+    @Composable
+    override fun getClipEntry(
+        holder: BaseTimelineElementHolderViewModel,
+        element: VerificationRequest
+    ): ClipEntry? = element.toClipEntry()
 }
 
 @Composable
