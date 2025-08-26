@@ -135,8 +135,8 @@ import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReadersImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.InitialsImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.IsDirectRoom
+import de.connect2x.trixnity.messenger.viewmodel.util.IsDirectRoomImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
-import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviterImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomNameImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
@@ -243,7 +243,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<DownloadManager> { DownloadManagerImpl(get<CoroutineScope>().coroutineContext) }
             single<Thumbnails> { ThumbnailsImpl() }
             single<RoomUsers> { RoomUsers }
-            single<IsDirectRoom> { IsDirectRoom }
+            single<IsDirectRoom> { IsDirectRoomImpl(get()) }
             single<ActiveVerifications> { ActiveVerificationsImpl() }
             single<RoomPresence> { RoomPresenceImpl(get()) }
             single<Search> { SearchImpl(get(), get(), get()) }

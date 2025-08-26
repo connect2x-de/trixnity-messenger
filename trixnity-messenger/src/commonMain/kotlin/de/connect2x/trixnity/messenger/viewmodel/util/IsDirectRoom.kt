@@ -1,24 +1,26 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.DirectEventContent
 
+/**
+ * Provides a flow to determine whether a room is a direct room
+ * from a member count perspective.
+ * If a room has more than 2 members, it is not considered a direct
+ * room by the operator defined by this interface.
+ * See [RoomUsers] for how users are fetched for a room.
+ */
 fun interface IsDirectRoom {
-    suspend operator fun invoke(matrixClient: MatrixClient, roomId: RoomId): Boolean
+    operator fun invoke(matrixClient: MatrixClient, roomId: RoomId): Flow<Boolean>
+}
 
-    companion object : IsDirectRoom {
-        override suspend operator fun invoke(
-            matrixClient: MatrixClient,
-            roomId: RoomId
-        ): Boolean = matrixClient.user.getAccountData<DirectEventContent>()
-            .first()
-            ?.mappings
-            ?.entries
-            ?.any { (_, rooms) -> rooms?.contains(roomId) == true }
-            ?: false
-    }
+class IsDirectRoomImpl(
+    private val roomUsers: RoomUsers
+) : IsDirectRoom {
+    override operator fun invoke(
+        matrixClient: MatrixClient,
+        roomId: RoomId
+    ): Flow<Boolean> = roomUsers.getUsers(matrixClient, roomId).map { users -> users.size > 2 }
 }

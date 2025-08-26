@@ -17,15 +17,13 @@ interface RoomUsers {
     ): Flow<List<UserId>>
 
     companion object : RoomUsers {
-        private val memberships: Set<Membership> = setOf(Membership.JOIN, Membership.INVITE)
-
         override fun getUsers(
             matrixClient: MatrixClient,
             roomId: RoomId
         ): Flow<List<UserId>> = matrixClient.user.getAll(roomId) // @formatter:off
             .flattenValues()
             .map { users -> users
-                .filter { user -> user.event.content.membership in memberships }
+                .filter { user -> user.event.content.membership == Membership.JOIN }
                 .map { user -> user.userId }
             }
             .distinctUntilChanged() // @formatter:on
