@@ -10,14 +10,14 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.Membership
 
-interface RoomUsers {
-    fun getUsers(
+fun interface RoomUsers {
+    operator fun invoke(
         matrixClient: MatrixClient,
         roomId: RoomId
     ): Flow<List<UserId>>
 
     companion object : RoomUsers {
-        override fun getUsers(
+        override operator fun invoke(
             matrixClient: MatrixClient,
             roomId: RoomId
         ): Flow<List<UserId>> = matrixClient.user.getAll(roomId) // @formatter:off

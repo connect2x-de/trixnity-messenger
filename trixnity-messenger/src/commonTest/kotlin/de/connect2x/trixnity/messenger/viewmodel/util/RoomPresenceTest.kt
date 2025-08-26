@@ -64,7 +64,7 @@ class RoomPresenceTest {
         every { roomServiceMock.getById(room) } calls {
             flowOf(Room(room, isDirect = isDirect))
         }
-        every { roomUsers.getUsers(matrixClientMock, room) } calls {
+        every { roomUsers(matrixClientMock, room) } calls {
             flowOf(members)
         }
         every { userServiceMock.getById(room, alice) } returns flowOf(

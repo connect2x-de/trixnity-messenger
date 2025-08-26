@@ -197,7 +197,7 @@ class RoomHeaderViewModelTest {
     fun `should show correct room name with initials and avatar and react to changes`() = runTest {
         val roomName = MutableStateFlow("My Room")
         roomNameElement returns roomName
-        every { roomUsers.getUsers(any(), eq(roomId)) } returns flowOf(emptyList())
+        every { roomUsers(any(), eq(roomId)) } returns flowOf(emptyList())
 
         val cut = roomHeaderViewModel()
         delay(100)
@@ -230,7 +230,7 @@ class RoomHeaderViewModelTest {
 
     @Test
     fun `compute trust level of null for non-direct rooms`() = runTest {
-        every { roomUsers.getUsers(any(), eq(roomId)) } returns flowOf(emptyList())
+        every { roomUsers(any(), eq(roomId)) } returns flowOf(emptyList())
 
         val cut = roomHeaderViewModel()
         delay(100)
@@ -243,7 +243,7 @@ class RoomHeaderViewModelTest {
         val trustLevel = MutableStateFlow<UserTrustLevel>(UserTrustLevel.CrossSigned(verified = true))
         val directRoom = MutableStateFlow(listOf(otherUser))
         room.update { it?.copy(isDirect = true) }
-        every { roomUsers.getUsers(any(), eq(roomId)) } returns directRoom
+        every { roomUsers(any(), eq(roomId)) } returns directRoom
         every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns trustLevel
 
         val cut = roomHeaderViewModel()
@@ -266,7 +266,7 @@ class RoomHeaderViewModelTest {
     fun `allow to verify other user if not yet verified and vice versa`() = runTest {
         val trustLevel = MutableStateFlow(UserTrustLevel.CrossSigned(verified = false))
         room.update { it?.copy(isDirect = true) }
-        every { roomUsers.getUsers(any(), eq(roomId)) } returns flowOf(listOf(otherUser))
+        every { roomUsers(any(), eq(roomId)) } returns flowOf(listOf(otherUser))
         every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns trustLevel
 
         val cut = roomHeaderViewModel()
@@ -282,7 +282,7 @@ class RoomHeaderViewModelTest {
 
     @Test
     fun `not allow user verification in non-direct room`() = runTest {
-        every { roomUsers.getUsers(any(), eq(roomId)) } returns flowOf(emptyList())
+        every { roomUsers(any(), eq(roomId)) } returns flowOf(emptyList())
         every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns flowOf(
             UserTrustLevel.CrossSigned(verified = false)
         )
@@ -299,7 +299,7 @@ class RoomHeaderViewModelTest {
             val ignoredUsersEventContent = MutableStateFlow(IgnoredUserListEventContent(mapOf()))
             ignoredUsers returns ignoredUsersEventContent
             room.update { it?.copy(isDirect = true) }
-            every { roomUsers.getUsers(any(), eq(roomId)) } returns flowOf(listOf(otherUser))
+            every { roomUsers(any(), eq(roomId)) } returns flowOf(listOf(otherUser))
             every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns flowOf(
                 UserTrustLevel.CrossSigned(verified = false)
             )
@@ -324,7 +324,7 @@ class RoomHeaderViewModelTest {
     @Test
     fun `not allow to block user in non-direct rooms or direct rooms with more than 2 participants`() = runTest {
         val directRoom = MutableStateFlow(listOf(otherUser, UserId("another_dude", "localhost")))
-        every { roomUsers.getUsers(any(), eq(roomId)) } returns directRoom
+        every { roomUsers(any(), eq(roomId)) } returns directRoom
         every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns flowOf(
             UserTrustLevel.CrossSigned(verified = false)
         )
@@ -351,7 +351,7 @@ class RoomHeaderViewModelTest {
 
     @Test
     fun `knocking » should calculate amount of knocking users`() = runTest {
-        every { roomUsers.getUsers(any(), eq(roomId)) } returns flowOf(emptyList())
+        every { roomUsers(any(), eq(roomId)) } returns flowOf(emptyList())
 
         val cut = roomHeaderViewModel()
         delay(500.milliseconds)

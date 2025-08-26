@@ -1075,7 +1075,7 @@ class TimelineViewModelImpl(
             log.debug { "try to create new user verification" }
             val isDirectRoom = matrixClient.room.getById(roomId).first()?.isDirect == true
             log.debug { "is direct room: $isDirectRoom" }
-            roomUsers.getUsers(matrixClient, roomId).first().firstOrNull()
+            roomUsers(matrixClient, roomId).first().firstOrNull()
                 ?.let { otherUserId ->
                     log.debug { "create new user verification with user $otherUserId" }
                     matrixClient.verification.createUserVerificationRequest(otherUserId)

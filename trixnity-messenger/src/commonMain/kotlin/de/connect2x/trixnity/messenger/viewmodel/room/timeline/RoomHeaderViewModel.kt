@@ -4,6 +4,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.IsDirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
@@ -206,12 +207,12 @@ open class RoomHeaderViewModelImpl(
             )
         )
 
-    override val isDirectChat = matrixClient.room.getById(selectedRoomId).map { it?.isDirect == true }
+    override val isDirectChat = get<IsDirectRoom>()(matrixClient, selectedRoomId)
         .stateIn(coroutineScope, Eagerly, false)
 
     private val singleDirectUser =
         isDirectChat.flatMapLatest { isDirectChat ->
-            if (isDirectChat) roomUsers.getUsers(matrixClient, selectedRoomId).map { userIds ->
+            if (isDirectChat) roomUsers(matrixClient, selectedRoomId).map { userIds ->
                 if (userIds.size == 1) userIds.first() else null
             }
             else flowOf(null)

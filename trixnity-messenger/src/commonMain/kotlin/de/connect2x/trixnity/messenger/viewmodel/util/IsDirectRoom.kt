@@ -22,5 +22,5 @@ class IsDirectRoomImpl(
     override operator fun invoke(
         matrixClient: MatrixClient,
         roomId: RoomId
-    ): Flow<Boolean> = roomUsers.getUsers(matrixClient, roomId).map { users -> users.size > 2 }
+    ): Flow<Boolean> = roomUsers(matrixClient, roomId).map { users -> users.size <= 2 }
 }

@@ -115,6 +115,7 @@ class TimelineElementHolderViewModelTest {
                 })
         }.koin
         every { matrixClientMock.userId } returns us
+        every { userServiceMock.getAll(roomId) } returns flowOf(emptyMap())
         every { userServiceMock.canSendEvent(roomId, any<KClass<out RoomEventContent>>()) } returns flowOf(true)
         every { userServiceMock.getById(roomId, any()) } calls { params ->
             val userId = params.args[1] as UserId
@@ -336,7 +337,11 @@ class TimelineElementHolderViewModelTest {
             cut.showSender.value shouldBe true
         }
 
-        timeline.room.update { it.copy(isDirect = true) }
+        timeline.addEvents {
+            +messageEvent(sender = us) {
+                text("Hello :)")
+            }
+        }
         eventually(100.milliseconds) {
             cut.showSender.value shouldBe false
         }

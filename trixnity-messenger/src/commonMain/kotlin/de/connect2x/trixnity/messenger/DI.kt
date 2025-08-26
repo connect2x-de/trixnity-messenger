@@ -245,7 +245,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<RoomUsers> { RoomUsers }
             single<IsDirectRoom> { IsDirectRoomImpl(get()) }
             single<ActiveVerifications> { ActiveVerificationsImpl() }
-            single<RoomPresence> { RoomPresenceImpl(get()) }
+            single<RoomPresence> { RoomPresenceImpl(get(), get()) }
             single<Search> { SearchImpl(get(), get(), get()) }
             single<RunInitialSync> { RunInitialSync }
             single<DragAndDropHandler> { DragAndDropHandlerBase() }
