@@ -74,6 +74,8 @@ class MessengerActivity : AppCompatActivity() {
 
         checkExternalStoragePermissions()
 
+        val componentContext = defaultComponentContext()
+
         scope.launch {
             val matrixMultiMessenger = matrixMessengerServiceConnection.matrixMultiMessenger.filterNotNull().first()
             matrixMultiMessenger.defaultActivityGetter { this@MessengerActivity }
@@ -113,7 +115,7 @@ class MessengerActivity : AppCompatActivity() {
                 setContent {
                     WithProfileSelection(
                         matrixMultiMessenger = matrixMultiMessenger,
-                        componentContext = defaultComponentContext(),
+                        componentContext = componentContext,
                         activeMessengerOnce = { _, _ -> },
                         activeMessenger = { matrixMessenger, rootViewModel ->
                             val lifeCycleState =
