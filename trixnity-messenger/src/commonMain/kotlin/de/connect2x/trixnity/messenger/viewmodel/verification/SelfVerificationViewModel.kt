@@ -112,20 +112,14 @@ open class SelfVerificationViewModelImpl(
         matrixClient.verification.getSelfVerificationMethods()
             .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
 
-    private val loadingDone = MutableStateFlow(false)
     override val verificationMethodsLoaded: StateFlow<Boolean?> =
         verificationMethods.map { verificationMethods ->
-            if (loadingDone.value) true
-            else if (verificationMethods !is PreconditionsNotMet) {
-                loadingDone.value = true
-                true
-            } else false
-        }
-            .stateIn(
-                coroutineScope,
-                SharingStarted.WhileSubscribed(),
-                null
-            )
+            verificationMethods !is PreconditionsNotMet
+        }.stateIn(
+            coroutineScope,
+            SharingStarted.WhileSubscribed(),
+            null
+        )
 
     override fun waitForAvailableVerificationMethods() {
         coroutineScope.launch {

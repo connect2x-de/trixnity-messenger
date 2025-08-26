@@ -28,7 +28,6 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
-import de.connect2x.messenger.compose.view.R
 import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
@@ -38,6 +37,7 @@ import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.sysnotify.handlePermissionRequest
 import de.connect2x.sysnotify.withActivity
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.compose.view.R
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.util.currentImmediateDispatcher
 import de.connect2x.trixnity.messenger.util.defaultActivityGetter
