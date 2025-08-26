@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
-//import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext

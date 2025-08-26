@@ -8,11 +8,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.room.Membership
 
 fun interface RoomPresence {
     operator fun invoke(
@@ -34,23 +32,12 @@ class RoomPresenceImpl(
             if (isDirect)
                 roomUsers(matrixClient, roomId)
                     .map { it - matrixClient.userId }
-                    .flatMapLatest { directUsers ->
-                        if (directUsers.isEmpty()) flowOf(emptyList())
-                        else combine(directUsers.map { directUser ->
-                            matrixClient.user.getById(roomId, directUser)
-                                .map { roomUser -> if (roomUser != null) roomUser.userId to roomUser.membership else null }
+                    .flatMapLatest { users ->
+                        if (users.isEmpty()) flowOf(null)
+                        else combine(users.map {
+                            matrixClient.user.getPresence(it)
+                                .map { userPresence -> userPresence?.presence }
                                 .distinctUntilChanged()
-                        }) { directUsersWithMembership ->
-                            directUsersWithMembership
-                                .filterNotNull()
-                                .filter { it.second == Membership.JOIN }
-                                .map { it.first }
-                        }
-                    }
-                    .flatMapLatest { directUsers ->
-                        if (directUsers.isEmpty()) flowOf(null)
-                        else combine(directUsers.map {
-                            matrixClient.user.getPresence(it).map { it?.presence }.distinctUntilChanged()
                         }) { userPresences ->
                             when {
                                 userPresences.any { it == Presence.ONLINE } -> Presence.ONLINE

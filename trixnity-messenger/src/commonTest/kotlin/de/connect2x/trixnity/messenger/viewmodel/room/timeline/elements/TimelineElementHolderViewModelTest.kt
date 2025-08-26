@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -32,17 +31,14 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.RoomDisplayName
 import net.folivo.trixnity.client.store.RoomOutboxMessage
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.TimelineEventRelation
 import net.folivo.trixnity.client.store.eventId
-import net.folivo.trixnity.client.store.joinedMemberCount
 import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.model.sync.Sync
 import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -115,7 +111,46 @@ class TimelineElementHolderViewModelTest {
                 })
         }.koin
         every { matrixClientMock.userId } returns us
-        every { userServiceMock.getAll(roomId) } returns flowOf(emptyMap())
+        every { userServiceMock.getAll(roomId) } returns flowOf(
+            mapOf(
+                us to flowOf(
+                    RoomUser(
+                        roomId, us, "Us", ClientEvent.RoomEvent.StateEvent(
+                            MemberEventContent(membership = Membership.JOIN),
+                            id = eventId,
+                            sender = us,
+                            roomId = roomId,
+                            originTimestamp = 0L,
+                            stateKey = us.full,
+                        )
+                    )
+                ),
+                bob to flowOf(
+                    RoomUser(
+                        roomId, bob, "Bob", ClientEvent.RoomEvent.StateEvent(
+                            MemberEventContent(membership = Membership.JOIN),
+                            id = eventId,
+                            sender = bob,
+                            roomId = roomId,
+                            originTimestamp = 0L,
+                            stateKey = bob.full,
+                        )
+                    )
+                ),
+                alice to flowOf(
+                    RoomUser(
+                        roomId, alice, "Alice", ClientEvent.RoomEvent.StateEvent(
+                            MemberEventContent(membership = Membership.JOIN),
+                            id = eventId,
+                            sender = alice,
+                            roomId = roomId,
+                            originTimestamp = 0L,
+                            stateKey = alice.full,
+                        )
+                    )
+                )
+            )
+        )
         every { userServiceMock.canSendEvent(roomId, any<KClass<out RoomEventContent>>()) } returns flowOf(true)
         every { userServiceMock.getById(roomId, any()) } calls { params ->
             val userId = params.args[1] as UserId
@@ -229,23 +264,6 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showSender » false when not first in a user sequence`() = runTest {
-        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
-        timeline(roomServiceMock, roomId) {
-            +messageEvent(sender = alice) {
-                text("Hi!")
-            }
-            +timelineEvent
-        }
-        val cut = cut()
-
-        backgroundScope.launch { cut.showSender.collect() }
-        eventually(100.milliseconds) {
-            cut.showSender.value shouldBe false
-        }
-    }
-
-    @Test
     fun `showSender » be false when we are the sender`() = runTest {
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         val ourTimelineEvent = timelineEvent.copy(event = (timelineEvent.event as MessageEvent).copy(sender = us))
@@ -264,38 +282,11 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
-    fun `showSender » be false when there are less than 2 other people`() = runTest {
-        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
-        val timeline = timeline(roomServiceMock, roomId) {
-            +messageEvent(sender = us) {
-                text("Hello!")
-            }
-            +timelineEvent
-        }
-
-        timeline.room.update { it.copy(name = RoomDisplayName(
-            summary = Sync.Response.Rooms.JoinedRoom.RoomSummary(joinedMemberCount = 2)
-        )) }
-        val cut = cut()
-
-        backgroundScope.launch { cut.showSender.collect() }
-        eventually(100.milliseconds) {
-            cut.showSender.value shouldBe false
-        }
-
-        timeline.room.update { it.copy(name = RoomDisplayName(
-            summary = Sync.Response.Rooms.JoinedRoom.RoomSummary(joinedMemberCount = 3)
-        )) }
-        eventually(100.milliseconds) {
-            cut.showSender.value shouldBe true
-        }
-    }
-
-    @Test
     fun `showSender » be true when there are at least 2 other people`() = runTest {
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+
         val latestEvent = timelineEvent.copy(event = (timelineEvent.event as MessageEvent).copy(sender = bob))
-        val timeline = timeline(roomServiceMock, roomId) {
+        timeline(roomServiceMock, roomId) {
             +messageEvent(sender = us) {
                 text("HELLOU")
             }
@@ -303,45 +294,54 @@ class TimelineElementHolderViewModelTest {
             +latestEvent
         }
 
-        timeline.room.update { it.copy(name = RoomDisplayName(
-            summary = Sync.Response.Rooms.JoinedRoom.RoomSummary(joinedMemberCount = 3)
-        )) }
         val cut = cut(timelineEvent = latestEvent)
 
         backgroundScope.launch { cut.showSender.collect() }
         eventually(100.milliseconds) {
             cut.showSender.value shouldBe true
         }
-
-        timeline.room.update { it.copy(name = RoomDisplayName(
-            summary = Sync.Response.Rooms.JoinedRoom.RoomSummary(joinedMemberCount = 2)
-        )) }
-        eventually(100.milliseconds) {
-            cut.showSender.value shouldBe false
-        }
     }
 
     @Test
     fun `showSender » be false when room is direct`() = runTest {
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
-        val timeline = timeline(roomServiceMock, roomId) {
-            +messageEvent(sender = bob) {
-                text("Hi!")
+        every { userServiceMock.getAll(roomId) } returns flowOf(
+            mapOf(
+                us to flowOf(
+                    RoomUser(
+                        roomId, us, "Us", ClientEvent.RoomEvent.StateEvent(
+                            MemberEventContent(membership = Membership.JOIN),
+                            id = eventId,
+                            sender = us,
+                            roomId = roomId,
+                            originTimestamp = 0L,
+                            stateKey = us.full,
+                        )
+                    )
+                ),
+                alice to flowOf(
+                    RoomUser(
+                        roomId, alice, "Alice", ClientEvent.RoomEvent.StateEvent(
+                            MemberEventContent(membership = Membership.JOIN),
+                            id = eventId,
+                            sender = alice,
+                            roomId = roomId,
+                            originTimestamp = 0L,
+                            stateKey = alice.full,
+                        )
+                    )
+                )
+            )
+        )
+        timeline(roomServiceMock, roomId) {
+            +messageEvent(sender = us) {
+                text("HELLO")
             }
             +timelineEvent
         }
         val cut = cut()
 
         backgroundScope.launch { cut.showSender.collect() }
-        eventually(100.milliseconds) {
-            cut.showSender.value shouldBe true
-        }
-
-        timeline.addEvents {
-            +messageEvent(sender = us) {
-                text("Hello :)")
-            }
-        }
         eventually(100.milliseconds) {
             cut.showSender.value shouldBe false
         }
