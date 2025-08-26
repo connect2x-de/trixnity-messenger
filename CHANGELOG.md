@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Reduce unnecessary timeline rerenders
+- Fix layout inspector usage on Android
+
 ### Security
 
 ## 3.8.1
