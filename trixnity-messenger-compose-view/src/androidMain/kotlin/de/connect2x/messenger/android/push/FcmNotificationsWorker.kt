@@ -19,7 +19,6 @@ import androidx.work.WorkerParameters
 import de.connect2x.messenger.android.NotificationHandlerProvider
 import de.connect2x.messenger.android.backgroundSyncShouldBeRunning
 import de.connect2x.messenger.android.withMatrixMessengerService
-import de.connect2x.messenger.compose.view.R
 import de.connect2x.sysnotify.Notification
 import de.connect2x.sysnotify.getNotificationIcon
 import de.connect2x.sysnotify.push
@@ -28,6 +27,7 @@ import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.PushMode
+import de.connect2x.trixnity.messenger.compose.view.R
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
