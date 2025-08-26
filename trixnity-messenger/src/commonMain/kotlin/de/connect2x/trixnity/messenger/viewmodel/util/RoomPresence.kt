@@ -23,9 +23,8 @@ interface RoomPresence {
 }
 
 class RoomPresenceImpl(
-    private val directRoom: DirectRoom,
+    val roomUsers: RoomUsers
 ) : RoomPresence {
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override operator fun invoke(
         matrixClient: MatrixClient,
@@ -34,7 +33,7 @@ class RoomPresenceImpl(
         matrixClient.room.getById(roomId).map { it?.isDirect == true }.distinctUntilChanged()
             .flatMapLatest { isDirect ->
                 if (isDirect)
-                    directRoom.getUsers(matrixClient, roomId)
+                    roomUsers.getUsers(matrixClient, roomId)
                         .map { it - matrixClient.userId }
                         .flatMapLatest { directUsers ->
                             if (directUsers.isEmpty()) flowOf(emptyList())

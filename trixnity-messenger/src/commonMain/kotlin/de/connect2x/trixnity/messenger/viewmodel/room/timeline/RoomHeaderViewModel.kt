@@ -3,11 +3,11 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomUsers
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
@@ -146,7 +146,7 @@ open class RoomHeaderViewModelImpl(
     private val onOpenRoomSettings: () -> Unit,
     private val onOpenUserProfile: (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomHeaderViewModel {
-    private val directRoom = get<DirectRoom>()
+    private val roomUsers = get<RoomUsers>()
     private val roomPresence = get<RoomPresence>()
     private val roomName = get<RoomName>()
     private val roomTopic = get<RoomTopic>()
@@ -211,7 +211,7 @@ open class RoomHeaderViewModelImpl(
 
     private val singleDirectUser =
         isDirectChat.flatMapLatest { isDirectChat ->
-            if (isDirectChat) directRoom.getUsers(matrixClient, selectedRoomId).map { userIds ->
+            if (isDirectChat) roomUsers.getUsers(matrixClient, selectedRoomId).map { userIds ->
                 if (userIds.size == 1) userIds.first() else null
             }
             else flowOf(null)

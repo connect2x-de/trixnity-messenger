@@ -38,7 +38,7 @@ class RoomPresenceTest {
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
-    val directRoomMock = mock<DirectRoom>()
+    val roomUsers = mock<RoomUsers>()
 
     lateinit var presences: Map<UserId, Presence?>
 
@@ -48,7 +48,7 @@ class RoomPresenceTest {
 
     @BeforeTest
     fun beforeTest() {
-        resetMocks(matrixClientMock, userServiceMock, directRoomMock)
+        resetMocks(matrixClientMock, userServiceMock)
         isDirect = false
         members = listOf()
         presences = mapOf()
@@ -64,7 +64,7 @@ class RoomPresenceTest {
         every { roomServiceMock.getById(room) } calls {
             flowOf(Room(room, isDirect = isDirect))
         }
-        every { directRoomMock.getUsers(matrixClientMock, room) } calls {
+        every { roomUsers.getUsers(matrixClientMock, room) } calls {
             flowOf(members)
         }
         every { userServiceMock.getById(room, alice) } returns flowOf(
@@ -99,7 +99,7 @@ class RoomPresenceTest {
             flowOf(presences[userId]?.let { UserPresence(it, Clock.System.now()) })
         }
 
-        cut = RoomPresenceImpl(directRoomMock)
+        cut = RoomPresenceImpl(roomUsers)
     }
 
     @Test

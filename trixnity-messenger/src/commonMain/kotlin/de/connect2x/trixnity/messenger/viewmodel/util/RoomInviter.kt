@@ -16,21 +16,21 @@ private val log = KotlinLogging.logger { }
 
 interface RoomInviter {
     suspend fun getInviter(matrixClient: MatrixClient, roomId: RoomId): UserId?
-}
 
-class RoomInviterImpl : RoomInviter {
-    override suspend fun getInviter(matrixClient: MatrixClient, roomId: RoomId): UserId? {
-        return withTimeoutOrNull(3.seconds) {
-            try {
-                val result =
-                    matrixClient.room.getState<MemberEventContent>(roomId, stateKey = matrixClient.userId.full)
-                        .first { it != null && it.content.membership == Membership.INVITE }
-                        ?.sender
-                log.debug { "inviter in $roomId is '$result'" }
-                result
-            } catch (exc: Exception) {
-                log.error(exc) { "cannot find an inviter for the user ${matrixClient.userId.full} in the room $roomId" }
-                null
+    companion object : RoomInviter {
+        override suspend fun getInviter(matrixClient: MatrixClient, roomId: RoomId): UserId? {
+            return withTimeoutOrNull(3.seconds) {
+                try {
+                    val result =
+                        matrixClient.room.getState<MemberEventContent>(roomId, stateKey = matrixClient.userId.full)
+                            .first { it != null && it.content.membership == Membership.INVITE }
+                            ?.sender
+                    log.debug { "inviter in $roomId is '$result'" }
+                    result
+                } catch (exc: Exception) {
+                    log.error(exc) { "cannot find an inviter for the user ${matrixClient.userId.full} in the room $roomId" }
+                    null
+                }
             }
         }
     }
