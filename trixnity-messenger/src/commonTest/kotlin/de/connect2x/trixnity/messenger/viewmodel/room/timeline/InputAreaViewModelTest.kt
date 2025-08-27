@@ -16,6 +16,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
+import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.shouldBe
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.delay
@@ -56,6 +57,7 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
+@Suppress("NonAsciiCharacters")
 class InputAreaViewModelTest {
 
     private val roomId = RoomId("!room1")
@@ -438,7 +440,7 @@ class InputAreaViewModelTest {
         cut.textField.update("Hello! @Alin", IntRange(12, 12))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value shouldBe null
+            cut.listOfMentions.value shouldBe emptyList()
         }
     }
 
@@ -463,7 +465,7 @@ class InputAreaViewModelTest {
         cut.textField.update("Hello! @Bo", IntRange(10, 10))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value shouldBe null
+            cut.listOfMentions.value shouldBe emptyList()
         }
     }
 
@@ -843,6 +845,42 @@ class InputAreaViewModelTest {
 
         eventually(300.milliseconds) {
             formattedBody shouldBe """<p>Hi <a href="matrix:u/alice:hallo.com">Alice</a></p>"""
+        }
+    }
+
+    @Test
+    fun `mentions » only curate listOfMentions at start of string if cursor is after @`() = runTest {
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+
+        cut.textField.update("@", 1..1)
+
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value?.map { it.userId } shouldContainOnly listOf(aliceUserId, alvinUserId, zoopUserId)
+        }
+
+        cut.textField.update("@", 0..0)
+
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value shouldBe null
+        }
+    }
+
+    @Test
+    fun `mentions » only curate listOfMentions at end of string if cursor is after @`() = runTest {
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+
+        cut.textField.update("Allu @", 6..6)
+
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value?.map { it.userId } shouldContainOnly listOf(aliceUserId, alvinUserId, zoopUserId)
+        }
+
+        cut.textField.update("Allu @", 5..5)
+
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value shouldBe null
         }
     }
 

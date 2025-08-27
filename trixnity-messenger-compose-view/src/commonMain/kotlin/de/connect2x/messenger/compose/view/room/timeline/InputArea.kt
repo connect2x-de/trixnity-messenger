@@ -184,7 +184,7 @@ fun UserSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: FocusRe
     val listOfMentions = inputAreaViewModel.listOfMentions.collectAsState().value
     val scrollState = rememberScrollState()
 
-    if (listOfMentions != null || loading) {
+    if (listOfMentions?.isNotEmpty() == true || loading) {
         Box(
             Modifier
                 .padding(vertical = 10.dp, horizontal = 20.dp)

@@ -248,7 +248,7 @@ open class InputAreaViewModelImpl(
                 _listOfMentionsLoading.value = true
                 val listOfUsers = listOfUsers(userIdLocalPartBeforeCursor)
                 _listOfMentionsLoading.value = false
-                listOfUsers.ifEmpty { null }
+                listOfUsers
             } else null
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
