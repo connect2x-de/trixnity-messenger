@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
-import de.connect2x.trixnity.messenger.viewmodel.util.GetRoomUsers
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -41,7 +40,6 @@ import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.client.user.getAccountData
 import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -146,10 +144,12 @@ class TimelineElementHolderViewModelTest {
         }.koin
         every { matrixClientMock.userId } returns usId
         every { userServiceMock.getAccountData(DirectEventContent::class, any()) } returns flowOf(
-            DirectEventContent(mapOf(
-                bobId to emptySet(),
-                aliceId to emptySet()
-            ))
+            DirectEventContent(
+                mapOf(
+                    bobId to emptySet(),
+                    aliceId to emptySet()
+                )
+            )
         )
         every { userServiceMock.getAll(roomId) } returns flowOf(
             mapOf(
@@ -268,9 +268,11 @@ class TimelineElementHolderViewModelTest {
     @Test
     fun `showSender » false when not first in a user sequence`() = runTest {
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
-        every { userServiceMock.getAll(roomId) } returns flowOf(mapOf(
-            aliceId to flowOf(alice)
-        ))
+        every { userServiceMock.getAll(roomId) } returns flowOf(
+            mapOf(
+                aliceId to flowOf(alice)
+            )
+        )
         timeline(roomServiceMock, roomId) {
             +timelineEvent
         }
@@ -284,10 +286,12 @@ class TimelineElementHolderViewModelTest {
     @Test
     fun `showSender » be false when we are the sender`() = runTest {
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
-        every { userServiceMock.getAll(roomId) } returns flowOf(mapOf(
-            bobId to flowOf(bob),
-            usId to flowOf(us)
-        ))
+        every { userServiceMock.getAll(roomId) } returns flowOf(
+            mapOf(
+                bobId to flowOf(bob),
+                usId to flowOf(us)
+            )
+        )
         val ourTimelineEvent = timelineEvent.copy(event = (timelineEvent.event as MessageEvent).copy(sender = usId))
         timeline(roomServiceMock, roomId) {
             +messageEvent(sender = bobId) {
@@ -306,9 +310,11 @@ class TimelineElementHolderViewModelTest {
     fun `showSender » be false when room is direct`() = runTest {
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         every { userServiceMock.getAccountData(DirectEventContent::class, any()) } returns flowOf(
-            DirectEventContent(mapOf(
-                aliceId to emptySet()
-            ))
+            DirectEventContent(
+                mapOf(
+                    aliceId to emptySet()
+                )
+            )
         )
         val timeline = timeline(roomServiceMock, roomId) {
             +timelineEvent
