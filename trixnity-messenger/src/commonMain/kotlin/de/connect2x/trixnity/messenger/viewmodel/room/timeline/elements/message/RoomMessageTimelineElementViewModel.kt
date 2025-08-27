@@ -88,10 +88,13 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
 
     interface FileBased<C : RoomMessageEventContent.FileBased> : RoomMessageTimelineElementViewModel<C> {
         val name: String
-        val description: String?
         val size: String?
         val mimeType: String?
-        val showCaption: Boolean
+
+        /**
+         * If true, [body] and [formattedBody] contain the files caption
+         */
+        val hasCaption: Boolean
 
         val loadMediaResult: StateFlow<ByteArray?>
         val loadMediaProgress: StateFlow<FileTransferProgressElement?>

@@ -62,7 +62,7 @@ fun TextMessageBubblePreview() {
         override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
         override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
         override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
-        override fun openMention(timelineElementMention: TimelineElementMention) {}
+        override fun openMention(mention: TimelineElementMention) {}
     }
     InitMessengerPreview {
         TextBasedRoomMessageTimelineElementView(
@@ -96,10 +96,9 @@ fun ImageMessageBubblePreview() {
         override val thumbnailLoading: StateFlow<Boolean> = MutableStateFlow(false)
 
         override val name: String = "kiwi.png"
-        override val description: String? = null
         override val size: String? = "465kb"
         override val mimeType: String? = "image/png"
-        override val showCaption: Boolean = true
+        override val hasCaption: Boolean = true
         override val loadMediaResult: StateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
         override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
         override val loadMediaError: StateFlow<String?> = MutableStateFlow(null)
@@ -143,10 +142,9 @@ fun FileMessageBubblePreview() {
     holder.showBigGapBefore.value = true
     val element = object : RoomMessageTimelineElementViewModel.FileBased.File {
         override val name: String = "kiwi.txt"
-        override val description: String? = "A file."
         override val size: String? = "465kb"
         override val mimeType: String? = "text/plain"
-        override val showCaption: Boolean = true
+        override val hasCaption: Boolean = true
         override val loadMediaResult: StateFlow<ByteArray?> = MutableStateFlow("Kiwi".toByteArray())
         override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
         override val loadMediaError: StateFlow<String?> = MutableStateFlow(null)

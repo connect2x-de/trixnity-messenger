@@ -128,12 +128,12 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
     @Test
     fun `caption » show body as caption`() = runTest {
-        fileBasedMessageViewModel(caption = "Amazing File!").showCaption shouldBe true
+        fileBasedMessageViewModel(caption = "Amazing File!").hasCaption shouldBe true
     }
 
     @Test
     fun `caption » don't show body as caption`() = runTest {
-        fileBasedMessageViewModel(caption = null).showCaption shouldBe false
+        fileBasedMessageViewModel(caption = null).hasCaption shouldBe false
     }
 
     private fun TestScope.fileBasedMessageViewModel(caption: String? = null): FileBasedRoomMessageTimelineElementViewModel<RoomMessageEventContent.FileBased.File> =

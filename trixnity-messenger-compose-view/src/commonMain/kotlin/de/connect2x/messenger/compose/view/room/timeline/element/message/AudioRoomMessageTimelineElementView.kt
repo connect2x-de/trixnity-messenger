@@ -1,12 +1,10 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -14,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -32,18 +29,13 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
-import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
-import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
-import de.connect2x.messenger.compose.view.util.ifNotNull
 import de.connect2x.messenger.compose.view.util.toClipEntry
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Audio
-import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
 import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
-import kotlin.time.Duration.Companion.milliseconds
 
 interface AudioRoomMessageTimelineElementView : TimelineElementView<Audio>
 
@@ -107,20 +99,6 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
 }
 
 @Composable
-internal fun AudioMessageElementOverlay(element: Audio) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            "${shortenFileName(element)}${element.duration.ifNotNull { ", ${formatDuration(it.milliseconds)}" }}${element.size.ifNotNull { " $it" }}",
-            Modifier.basicMarquee(),
-            color = MaterialTheme.messengerColors.metaDataPreview,
-            maxLines = 1
-        )
-    }
-}
-
-@Composable
 internal fun MessageAudio(
     element: Audio,
     showActionMenu: () -> Unit,
@@ -179,7 +157,7 @@ internal fun ReplyMessageAudio(holder: TimelineElementHolderViewModel, element: 
                     tint = Color.DarkGray,
                 )
                 FileName(element.name)
-                if (element.showCaption) {
+                if (element.hasCaption) {
                     TextReply(element, maxLines = 2)
                 }
             }

@@ -2,7 +2,6 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -25,7 +24,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -248,7 +246,7 @@ internal fun ImageReplyElement(holder: TimelineElementHolderViewModel, element: 
                         FileName(element.name)
                     }
                 }
-                if (element.showCaption) {
+                if (element.hasCaption) {
                     TextReply(element, maxLines = 2)
                 }
             }

@@ -35,10 +35,9 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 ) : RoomMessageTimelineElementViewModel.FileBased<C>,
     RoomMessageTimelineElementViewModelImpl<C>(viewModelContext, content, roomId, onOpenMention) {
     override val name: String = content.fileName ?: content.body
-    override val description: String? = if (content.fileName != null) content.body else null
-    override val size: String? = content.info?.size?.let { " (${formatSize(it.toLong())})" } ?: ""
+    override val size: String? = content.info?.size?.let { " (${formatSize(it)})" } ?: ""
     override val mimeType: String? = content.info?.mimeType
-    override val showCaption: Boolean = content.fileName != null && content.body != content.fileName
+    override val hasCaption: Boolean = content.fileName != null && content.body != content.fileName
 
     private val downloadManager = viewModelContext.get<DownloadManager>()
 

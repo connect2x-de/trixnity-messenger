@@ -220,7 +220,7 @@ internal fun VideoReplyElement(holder: TimelineElementHolderViewModel, element: 
                         FileName(element.name)
                     }
                 }
-                if (element.showCaption) {
+                if (element.hasCaption) {
                     TextReply(element, maxLines = 2)
                 }
             }
