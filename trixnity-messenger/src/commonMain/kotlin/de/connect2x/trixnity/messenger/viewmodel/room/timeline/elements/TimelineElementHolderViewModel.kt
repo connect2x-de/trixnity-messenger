@@ -405,12 +405,14 @@ class TimelineElementHolderViewModelImpl(
     private val is1on1Room: StateFlow<Boolean> = get<Is1on1Room>()(matrixClient, roomId)
         .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
-    private val previousEventPreventsSenderBeingShown: StateFlow<Boolean> = previousSupportedTimelineEvent.map { event ->
-        event?.sender != senderUserId || event.event is ClientEvent.RoomEvent.StateEvent
-    }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+    private val previousEventIsStateOrNotBySender: StateFlow<Boolean> =
+        previousSupportedTimelineEvent.map { event ->
+            event?.sender != senderUserId || event.event is ClientEvent.RoomEvent.StateEvent
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
-    override val showSender: StateFlow<Boolean?> = combine(is1on1Room, previousEventPreventsSenderBeingShown) { is1on1Room, isPreviousStateEvent ->
-        (!is1on1Room || isPreviousStateEvent) && !isByMe
+    override val showSender: StateFlow<Boolean?> = combine(is1on1Room, previousEventIsStateOrNotBySender)
+    { is1on1Room, previousEventIsStateOrNotBySender ->
+        !is1on1Room && previousEventIsStateOrNotBySender && !isByMe
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showBigGapBefore: StateFlow<Boolean?> =
