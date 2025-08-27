@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Copy message content
+- Captions for Media messages
 
 ### Changed
 
@@ -18,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+
+- UI spacing for file-timeline-elements
+- Mentions List calculated even though mention was already selected
+- Crash when selecting mention if cursorPosition=0
 
 ### Security
 
@@ -59,7 +64,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - File load and save dialogs on iOS targets
 - PDF reader support on iOS
 - MatrixMessengerConfiguration for toggling refresh tokens
-- Captions for Media messages
 
 ### Changed
 
@@ -78,9 +82,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed crash due to scrollbar measuring policy on Android
 - Fixed several translation issues
 - Show error messages when replacing events
-- UI spacing for file-timeline-elements
-- Mentions List calculated even though mention was already selected
-- Crash when selecting mention if cursorPosition=0
 
 ### Security
 
