@@ -18,7 +18,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReaders
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.IsDirectRoom
+import de.connect2x.trixnity.messenger.viewmodel.util.Is1on1Room
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -402,9 +402,16 @@ class TimelineElementHolderViewModelImpl(
             user.toUserInfoElement(coroutineScope, matrixClient, initials, senderUserId, config.maxMediaSizeInMemory)
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-    override val showSender: StateFlow<Boolean?> = get<IsDirectRoom>()(matrixClient, roomId)
-        .map { isDirectRoom -> !isDirectRoom && !isByMe }
-        .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+    private val is1on1Room: StateFlow<Boolean> = get<Is1on1Room>()(matrixClient, roomId)
+        .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+
+    private val previousEventPreventsSenderBeingShown: StateFlow<Boolean> = previousSupportedTimelineEvent.map { event ->
+        event?.sender != senderUserId || event.event is ClientEvent.RoomEvent.StateEvent
+    }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+
+    override val showSender: StateFlow<Boolean?> = combine(is1on1Room, previousEventPreventsSenderBeingShown) { is1on1Room, isPreviousStateEvent ->
+        (!is1on1Room || isPreviousStateEvent) && !isByMe
+    }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showBigGapBefore: StateFlow<Boolean?> =
         previousSupportedTimelineEvent.map { timelineEvent ->

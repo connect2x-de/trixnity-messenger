@@ -132,10 +132,11 @@ import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactionsImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReaders
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReadersImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.GetRoomUsers
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.InitialsImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.IsDirectRoom
-import de.connect2x.trixnity.messenger.viewmodel.util.IsDirectRoomImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.Is1on1Room
+import de.connect2x.trixnity.messenger.viewmodel.util.Is1on1RoomImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomNameImpl
@@ -143,7 +144,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresenceImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopicImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.RoomUsers
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlockingImpl
 import de.connect2x.trixnity.messenger.viewmodel.verification.AcceptSasStartViewModelFactory
@@ -242,10 +242,10 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
 
             single<DownloadManager> { DownloadManagerImpl(get<CoroutineScope>().coroutineContext) }
             single<Thumbnails> { ThumbnailsImpl() }
-            single<RoomUsers> { RoomUsers }
-            single<IsDirectRoom> { IsDirectRoomImpl(get()) }
+            single<GetRoomUsers> { GetRoomUsers }
+            single<Is1on1Room> { Is1on1RoomImpl(get()) }
             single<ActiveVerifications> { ActiveVerificationsImpl() }
-            single<RoomPresence> { RoomPresenceImpl(get(), get()) }
+            single<RoomPresence> { RoomPresenceImpl(get()) }
             single<Search> { SearchImpl(get(), get(), get()) }
             single<RunInitialSync> { RunInitialSync }
             single<DragAndDropHandler> { DragAndDropHandlerBase() }

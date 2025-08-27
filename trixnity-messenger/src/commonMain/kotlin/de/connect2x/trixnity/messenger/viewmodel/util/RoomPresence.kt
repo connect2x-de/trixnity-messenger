@@ -8,9 +8,12 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.store.membership
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.Presence
+import net.folivo.trixnity.core.model.events.m.room.Membership
 
 fun interface RoomPresence {
     operator fun invoke(
@@ -20,18 +23,30 @@ fun interface RoomPresence {
 }
 
 class RoomPresenceImpl(
-    val roomUsers: RoomUsers,
-    val isDirectRoom: IsDirectRoom
+    val getRoomUsers: GetRoomUsers,
 ) : RoomPresence {
     @OptIn(ExperimentalCoroutinesApi::class)
     override operator fun invoke(
         matrixClient: MatrixClient,
         roomId: RoomId,
     ): Flow<Presence?> =
-        isDirectRoom(matrixClient, roomId).flatMapLatest { isDirect ->
+        matrixClient.room.getById(roomId).map { room -> room?.isDirect == true }.flatMapLatest { isDirect ->
             if (isDirect)
-                roomUsers(matrixClient, roomId)
+                getRoomUsers(matrixClient, roomId)
                     .map { it - matrixClient.userId }
+                    .flatMapLatest { users ->
+                        if (users.isEmpty()) flowOf(emptyList())
+                        else combine(users.map { directUser ->
+                            matrixClient.user.getById(roomId, directUser)
+                                .map { roomUser -> if (roomUser != null) roomUser.userId to roomUser.membership else null }
+                                .distinctUntilChanged()
+                        }) { directUsersWithMembership ->
+                            directUsersWithMembership
+                                .filterNotNull()
+                                .filter { it.second == Membership.JOIN }
+                                .map { it.first }
+                        }
+                    }
                     .flatMapLatest { users ->
                         if (users.isEmpty()) flowOf(null)
                         else combine(users.map {

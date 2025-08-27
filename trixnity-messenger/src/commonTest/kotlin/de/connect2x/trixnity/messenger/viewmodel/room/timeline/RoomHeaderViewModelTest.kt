@@ -8,7 +8,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
-import de.connect2x.trixnity.messenger.viewmodel.util.RoomUsers
+import de.connect2x.trixnity.messenger.viewmodel.util.GetRoomUsers
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
@@ -100,7 +100,7 @@ class RoomHeaderViewModelTest {
     private val roomTopicMock = mock<RoomTopic>()
     private val initialsMock = mock<Initials>()
     private val roomPresenceMock = mock<RoomPresence>()
-    private val roomUsers = mock<RoomUsers>()
+    private val roomUsers = mock<GetRoomUsers>()
     private val userBlockingMock = mock<UserBlocking>()
 
     private var roomNameElement: BlockingAnsweringScope<Flow<String>>

@@ -34,7 +34,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactorySelector
-import de.connect2x.trixnity.messenger.viewmodel.util.RoomUsers
+import de.connect2x.trixnity.messenger.viewmodel.util.GetRoomUsers
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedFlow
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedIndexedFlow
 import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
@@ -338,7 +338,7 @@ class TimelineViewModelImpl(
 
     override val draggedFile: MutableStateFlow<FileDescriptor?> = MutableStateFlow(null)
 
-    private val roomUsers = get<RoomUsers>()
+    private val roomUsers = get<GetRoomUsers>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
 
     override val roomHeaderViewModel: RoomHeaderViewModel =
