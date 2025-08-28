@@ -19,6 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## 3.8.2
+
+### Changed
+
+- Updated Trixnity to 4.22.2
+
 ## 3.8.1
 
 ### Changed
