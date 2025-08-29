@@ -1,10 +1,10 @@
 [versions]
 
-trixnityMessenger = "3.8.2"
+trixnityMessenger = "3.8.3"
 
 seskar = "4.14.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
-trixnity = "4.22.1" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "4.22.2" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "2.0.3" # https://gitlab.com/connect2x/sysnotify/-/packages
 
 okio = "3.16.0" # https://square.github.io/okio/changelog
