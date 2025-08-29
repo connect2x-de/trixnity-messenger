@@ -15,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,29 +28,29 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 
 interface ScrollToEndButtonView {
     @Composable
-    fun BoxScope.create(timelineViewModel: TimelineViewModel, canScrollToEnd: Boolean)
+    fun BoxScope.create(timelineViewModel: TimelineViewModel, canScrollToEnd: State<Boolean>)
 }
 
 @Composable
-fun BoxScope.ScrollToEndButton(timelineViewModel: TimelineViewModel, canScrollToEnd: Boolean) {
+fun BoxScope.ScrollToEndButton(timelineViewModel: TimelineViewModel, canScrollToEnd: State<Boolean>) {
     with(DI.get<ScrollToEndButtonView>()) { create(timelineViewModel, canScrollToEnd) }
 }
 
 class ScrollToEndButtonViewImpl : ScrollToEndButtonView {
     @Composable
-    override fun BoxScope.create(timelineViewModel: TimelineViewModel, canScrollToEnd: Boolean) {
-        val unreadCount = timelineViewModel.unreadCount.collectAsState().value
+    override fun BoxScope.create(timelineViewModel: TimelineViewModel, canScrollToEnd: State<Boolean>) {
+        val unreadCount = timelineViewModel.unreadCount.collectAsState()
         val i18n = DI.get<I18nView>()
 
         BadgedBox(
             modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp),
             badge = {
                 AnimatedVisibility(
-                    visible = canScrollToEnd,
+                    visible = canScrollToEnd.value,
                     enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessVeryLow)),
                     exit = fadeOut()
                 ) {
-                    unreadCount?.let {
+                    unreadCount.value?.let { unreadCount ->
                         Badge(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
                         ) {
@@ -59,7 +60,7 @@ class ScrollToEndButtonViewImpl : ScrollToEndButtonView {
                 }
             }) {
             AnimatedVisibility(
-                visible = canScrollToEnd,
+                visible = canScrollToEnd.value,
                 enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessVeryLow)),
                 exit = fadeOut()
             ) {
