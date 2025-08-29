@@ -139,6 +139,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                         Spacer(Modifier.height(15.dp))
                         val lazyListState = rememberLazyListState()
                         val expandOptions = remember { mutableStateOf(false) }
+                        val expandHistoryOptions = remember { mutableStateOf(false) }
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             state = lazyListState
@@ -150,7 +151,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                                         modifier = Modifier.padding(horizontal = 10.dp),
                                         expanded = expandOptions
                                     ) {
-                                        CreateGroupOptions(createNewGroupViewModel)
+                                        CreateGroupOptions(createNewGroupViewModel, expandHistoryOptions)
                                     }
                                     Spacer(Modifier.height(15.dp))
                                 }
