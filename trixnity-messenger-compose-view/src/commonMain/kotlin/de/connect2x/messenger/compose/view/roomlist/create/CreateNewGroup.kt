@@ -22,6 +22,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
@@ -136,13 +138,18 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
 
                         Spacer(Modifier.height(15.dp))
                         val lazyListState = rememberLazyListState()
+                        val expandOptions = remember { mutableStateOf(false) }
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             state = lazyListState
                         ) {
                             item(key = "MoreOptions") {
                                 Column {
-                                    MoreOptions(roomOptionsString, modifier = Modifier.padding(horizontal = 10.dp)) {
+                                    MoreOptions(
+                                        roomOptionsString,
+                                        modifier = Modifier.padding(horizontal = 10.dp),
+                                        expanded = expandOptions
+                                    ) {
                                         CreateGroupOptions(createNewGroupViewModel)
                                     }
                                     Spacer(Modifier.height(15.dp))

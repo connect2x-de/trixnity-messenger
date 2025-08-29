@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,9 +55,10 @@ fun ColumnScope.MoreOptions(
     enabled: Boolean = true,
     icon: ImageVector = Icons.Default.Settings,
     modifier: Modifier = Modifier,
+    expanded: MutableState<Boolean> = remember { mutableStateOf(false) },
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    MoreInfo({ Text(title, style = MaterialTheme.typography.titleSmall) }, enabled, content, icon, modifier)
+    MoreInfo({ Text(title, style = MaterialTheme.typography.titleSmall) }, enabled, content, icon, modifier, expanded)
 }
 
 @Composable
@@ -66,7 +68,13 @@ fun ColumnScope.MoreInfo(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    MoreInfo({ Text(title, style = MaterialTheme.typography.titleSmall) }, enabled, content, Icons.Default.Info, modifier)
+    MoreInfo(
+        { Text(title, style = MaterialTheme.typography.titleSmall) },
+        enabled,
+        content,
+        Icons.Default.Info,
+        modifier
+    )
 }
 
 @Composable
@@ -76,9 +84,10 @@ private fun ColumnScope.MoreInfo(
     content: @Composable ColumnScope.() -> Unit,
     icon: ImageVector,
     modifier: Modifier = Modifier,
-    ) {
+    expanded: MutableState<Boolean> = remember { mutableStateOf(false) }
+) {
     val i18n = DI.get<I18nView>()
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by expanded
     val rotateState by animateFloatAsState(
         targetValue = if (expanded) 180F else 0F,
     )
