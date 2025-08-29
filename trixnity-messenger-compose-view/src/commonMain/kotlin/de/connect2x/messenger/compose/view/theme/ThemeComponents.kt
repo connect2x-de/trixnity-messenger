@@ -13,11 +13,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.theme.components.ApplySystemUiTheme
 import de.connect2x.messenger.compose.view.theme.components.AvatarStyle
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.ChipStyle
@@ -32,6 +34,7 @@ import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorSty
 import de.connect2x.messenger.compose.view.theme.components.SliderStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.messenger.compose.view.theme.components.SwitchStyle
+import de.connect2x.messenger.compose.view.theme.components.SystemUiStyle
 import de.connect2x.messenger.compose.view.theme.components.TooltipStyle
 
 @Composable
@@ -45,6 +48,7 @@ fun MaterialThemeComponents(
         LocalContentColor provides Color.LocalContent
     ) {
         val components = componentStyles.create()
+        ApplySystemUiTheme(components.systemUi)
         CompositionLocalProvider(
             LocalComponentStyles provides components,
             LocalContentColor provides contentColor,
@@ -65,6 +69,11 @@ class ThemeComponentsImpl : ThemeComponents {
     // This configuration tries to be as faithful as possible to our old design.
     // Even in places where our old design has low contrast or uneven spacing.
     override fun create(): ComponentStyles = ComponentStyles(
+        // system
+        systemUi = SystemUiStyle.default(
+            header = MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp),
+            footer = MaterialTheme.colorScheme.background,
+        ),
         // buttons
         primaryButton = ButtonStyle.filled(
             colors = ButtonDefaults.buttonColors(
