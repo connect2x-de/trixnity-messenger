@@ -4,11 +4,11 @@ import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
+import de.connect2x.trixnity.messenger.viewmodel.util.GetDirectRoomUser
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
-import de.connect2x.trixnity.messenger.viewmodel.util.GetRoomUsers
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
@@ -100,7 +100,7 @@ class RoomHeaderViewModelTest {
     private val roomTopicMock = mock<RoomTopic>()
     private val initialsMock = mock<Initials>()
     private val roomPresenceMock = mock<RoomPresence>()
-    private val roomUsers = mock<GetRoomUsers>()
+    private val getDirectRoomUser = mock<GetDirectRoomUser>()
     private val userBlockingMock = mock<UserBlocking>()
 
     private var roomNameElement: BlockingAnsweringScope<Flow<String>>
@@ -119,7 +119,7 @@ class RoomHeaderViewModelTest {
             roomTopicMock,
             initialsMock,
             roomPresenceMock,
-            roomUsers,
+            getDirectRoomUser,
             userBlockingMock,
         )
         every { matrixClientMock.di } returns koinApplication {
@@ -196,7 +196,7 @@ class RoomHeaderViewModelTest {
     fun `should show correct room name with initials and avatar and react to changes`() = runTest {
         val roomName = MutableStateFlow("My Room")
         roomNameElement returns roomName
-        every { roomUsers(any(), eq(roomId)) } returns flowOf(emptyList())
+        every { getDirectRoomUser(any(), eq(roomId)) } returns flowOf(null)
 
         val cut = roomHeaderViewModel()
         delay(100)
@@ -229,7 +229,7 @@ class RoomHeaderViewModelTest {
 
     @Test
     fun `compute trust level of null for non-direct rooms`() = runTest {
-        every { roomUsers(any(), eq(roomId)) } returns flowOf(emptyList())
+        every { getDirectRoomUser(any(), eq(roomId)) } returns flowOf(null)
 
         val cut = roomHeaderViewModel()
         delay(100)
@@ -240,9 +240,9 @@ class RoomHeaderViewModelTest {
     @Test
     fun `react to changes in the user's trust level`() = runTest {
         val trustLevel = MutableStateFlow<UserTrustLevel>(UserTrustLevel.CrossSigned(verified = true))
-        val directRoom = MutableStateFlow(listOf(otherUser))
+        val directRoom = MutableStateFlow<UserId?>(otherUser)
         room.update { it?.copy(isDirect = true) }
-        every { roomUsers(any(), eq(roomId)) } returns directRoom
+        every { getDirectRoomUser(any(), eq(roomId)) } returns directRoom
         every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns trustLevel
 
         val cut = roomHeaderViewModel()
@@ -255,7 +255,7 @@ class RoomHeaderViewModelTest {
 
         cut.userTrustLevel.value shouldBe UserTrustLevel.Blocked
 
-        directRoom.value = emptyList()
+        directRoom.value = null
         delay(100)
 
         cut.userTrustLevel.value shouldBe null
@@ -265,7 +265,7 @@ class RoomHeaderViewModelTest {
     fun `allow to verify other user if not yet verified and vice versa`() = runTest {
         val trustLevel = MutableStateFlow(UserTrustLevel.CrossSigned(verified = false))
         room.update { it?.copy(isDirect = true) }
-        every { roomUsers(any(), eq(roomId)) } returns flowOf(listOf(otherUser))
+        every { getDirectRoomUser(any(), eq(roomId)) } returns flowOf(otherUser)
         every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns trustLevel
 
         val cut = roomHeaderViewModel()
@@ -281,7 +281,7 @@ class RoomHeaderViewModelTest {
 
     @Test
     fun `not allow user verification in non-direct room`() = runTest {
-        every { roomUsers(any(), eq(roomId)) } returns flowOf(emptyList())
+        every { getDirectRoomUser(any(), eq(roomId)) } returns flowOf(null)
         every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns flowOf(
             UserTrustLevel.CrossSigned(verified = false)
         )
@@ -298,7 +298,7 @@ class RoomHeaderViewModelTest {
             val ignoredUsersEventContent = MutableStateFlow(IgnoredUserListEventContent(mapOf()))
             ignoredUsers returns ignoredUsersEventContent
             room.update { it?.copy(isDirect = true) }
-            every { roomUsers(any(), eq(roomId)) } returns flowOf(listOf(otherUser))
+            every { getDirectRoomUser(any(), eq(roomId)) } returns flowOf(otherUser)
             every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns flowOf(
                 UserTrustLevel.CrossSigned(verified = false)
             )
@@ -322,8 +322,8 @@ class RoomHeaderViewModelTest {
 
     @Test
     fun `not allow to block user in non-direct rooms or direct rooms with more than 2 participants`() = runTest {
-        val directRoom = MutableStateFlow(listOf(otherUser, UserId("another_dude", "localhost")))
-        every { roomUsers(any(), eq(roomId)) } returns directRoom
+        val directRoom = MutableStateFlow<UserId?>(null)
+        every { getDirectRoomUser(any(), eq(roomId)) } returns directRoom
         every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns flowOf(
             UserTrustLevel.CrossSigned(verified = false)
         )
@@ -335,13 +335,13 @@ class RoomHeaderViewModelTest {
         cut.canUnblockUser.value shouldBe false
 
         room.update { it?.copy(isDirect = true) }
-        directRoom.value = listOf(otherUser)
+        directRoom.value = otherUser
         delay(100)
 
         cut.canBlockUser.value shouldBe true
         cut.canUnblockUser.value shouldBe false
 
-        directRoom.value = emptyList()
+        directRoom.value = null
         delay(100)
 
         cut.canBlockUser.value shouldBe false
@@ -350,7 +350,7 @@ class RoomHeaderViewModelTest {
 
     @Test
     fun `knocking » should calculate amount of knocking users`() = runTest {
-        every { roomUsers(any(), eq(roomId)) } returns flowOf(emptyList())
+        every { getDirectRoomUser(any(), eq(roomId)) } returns flowOf(null)
 
         val cut = roomHeaderViewModel()
         delay(500.milliseconds)
@@ -370,7 +370,7 @@ class RoomHeaderViewModelTest {
                                     single { roomTopicMock }
                                     single { roomPresenceMock }
                                     single { initialsMock }
-                                    single { roomUsers }
+                                    single { getDirectRoomUser }
                                     single { userBlockingMock }
                                 })
                 }.koin,

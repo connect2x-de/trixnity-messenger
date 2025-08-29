@@ -20,47 +20,45 @@ fun interface RoomPresence {
         matrixClient: MatrixClient,
         roomId: RoomId,
     ): Flow<Presence?>
-}
 
-class RoomPresenceImpl(
-    val getRoomUsers: GetRoomUsers,
-) : RoomPresence {
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override operator fun invoke(
-        matrixClient: MatrixClient,
-        roomId: RoomId,
-    ): Flow<Presence?> =
-        matrixClient.room.getById(roomId).map { room -> room?.isDirect == true }.flatMapLatest { isDirect ->
-            if (isDirect)
-                getRoomUsers(matrixClient, roomId)
-                    .map { it - matrixClient.userId }
-                    .flatMapLatest { users ->
-                        if (users.isEmpty()) flowOf(emptyList())
-                        else combine(users.map { directUser ->
-                            matrixClient.user.getById(roomId, directUser)
-                                .map { roomUser -> if (roomUser != null) roomUser.userId to roomUser.membership else null }
-                                .distinctUntilChanged()
-                        }) { directUsersWithMembership ->
-                            directUsersWithMembership
-                                .filterNotNull()
-                                .filter { it.second == Membership.JOIN }
-                                .map { it.first }
-                        }
-                    }
-                    .flatMapLatest { users ->
-                        if (users.isEmpty()) flowOf(null)
-                        else combine(users.map {
-                            matrixClient.user.getPresence(it)
-                                .map { userPresence -> userPresence?.presence }
-                                .distinctUntilChanged()
-                        }) { userPresences ->
-                            when {
-                                userPresences.any { it == Presence.ONLINE } -> Presence.ONLINE
-                                userPresences.any { it == Presence.UNAVAILABLE } -> Presence.UNAVAILABLE
-                                else -> Presence.OFFLINE
+    companion object : RoomPresence {
+        @OptIn(ExperimentalCoroutinesApi::class)
+        override operator fun invoke(
+            matrixClient: MatrixClient,
+            roomId: RoomId,
+        ): Flow<Presence?> =
+            matrixClient.room.getById(roomId).map { room -> room?.isDirect == true }.flatMapLatest { isDirect ->
+                if (isDirect)
+                    roomId.getRoomUsers(matrixClient)
+                        .map { users -> users - matrixClient.userId }
+                        .flatMapLatest { users ->
+                            if (users.isEmpty()) flowOf(emptyList())
+                            else combine(users.map { directUser ->
+                                matrixClient.user.getById(roomId, directUser)
+                                    .map { roomUser -> if (roomUser != null) roomUser.userId to roomUser.membership else null }
+                                    .distinctUntilChanged()
+                            }) { directUsersWithMembership ->
+                                directUsersWithMembership
+                                    .filterNotNull()
+                                    .filter { it.second == Membership.JOIN }
+                                    .map { it.first }
                             }
                         }
-                    }
-            else flowOf(null)
-        }
+                        .flatMapLatest { users ->
+                            if (users.isEmpty()) flowOf(null)
+                            else combine(users.map {
+                                matrixClient.user.getPresence(it)
+                                    .map { userPresence -> userPresence?.presence }
+                                    .distinctUntilChanged()
+                            }) { userPresences ->
+                                when {
+                                    userPresences.any { it == Presence.ONLINE } -> Presence.ONLINE
+                                    userPresences.any { it == Presence.UNAVAILABLE } -> Presence.UNAVAILABLE
+                                    else -> Presence.OFFLINE
+                                }
+                            }
+                        }
+                else flowOf(null)
+            }
+    }
 }

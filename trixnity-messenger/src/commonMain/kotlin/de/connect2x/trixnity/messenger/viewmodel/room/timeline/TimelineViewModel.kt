@@ -34,7 +34,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactorySelector
-import de.connect2x.trixnity.messenger.viewmodel.util.GetRoomUsers
+import de.connect2x.trixnity.messenger.viewmodel.util.GetDirectRoomUser
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedFlow
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedIndexedFlow
 import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
@@ -338,7 +338,7 @@ class TimelineViewModelImpl(
 
     override val draggedFile: MutableStateFlow<FileDescriptor?> = MutableStateFlow(null)
 
-    private val roomUsers = get<GetRoomUsers>()
+    private val getDirectRoomUser = get<GetDirectRoomUser>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
 
     override val roomHeaderViewModel: RoomHeaderViewModel =
@@ -1075,11 +1075,10 @@ class TimelineViewModelImpl(
             log.debug { "try to create new user verification" }
             val isDirectRoom = matrixClient.room.getById(roomId).first()?.isDirect == true
             log.debug { "is direct room: $isDirectRoom" }
-            roomUsers(matrixClient, roomId).first().firstOrNull()
-                ?.let { otherUserId ->
-                    log.debug { "create new user verification with user $otherUserId" }
-                    matrixClient.verification.createUserVerificationRequest(otherUserId)
-                }
+            getDirectRoomUser(matrixClient, roomId).first()?.let { otherUserId ->
+                log.debug { "create new user verification with user $otherUserId" }
+                matrixClient.verification.createUserVerificationRequest(otherUserId)
+            }
         }
     }
 

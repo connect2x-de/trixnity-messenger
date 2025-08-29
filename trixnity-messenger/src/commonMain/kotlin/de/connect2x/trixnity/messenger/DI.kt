@@ -128,20 +128,18 @@ import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepFallbackViewModelFac
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepMsisdnViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepPasswordViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.util.GetDirectRoomUser
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactionsImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReaders
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReadersImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.GetRoomUsers
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.InitialsImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.Is1on1Room
-import de.connect2x.trixnity.messenger.viewmodel.util.Is1on1RoomImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.IsOneToOneRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomNameImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
-import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresenceImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopicImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
@@ -242,10 +240,10 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
 
             single<DownloadManager> { DownloadManagerImpl(get<CoroutineScope>().coroutineContext) }
             single<Thumbnails> { ThumbnailsImpl() }
-            single<GetRoomUsers> { GetRoomUsers }
-            single<Is1on1Room> { Is1on1RoomImpl(get()) }
+            single<GetDirectRoomUser> { GetDirectRoomUser }
+            single<IsOneToOneRoom> { IsOneToOneRoom }
             single<ActiveVerifications> { ActiveVerificationsImpl() }
-            single<RoomPresence> { RoomPresenceImpl(get()) }
+            single<RoomPresence> { RoomPresence }
             single<Search> { SearchImpl(get(), get(), get()) }
             single<RunInitialSync> { RunInitialSync }
             single<DragAndDropHandler> { DragAndDropHandlerBase() }

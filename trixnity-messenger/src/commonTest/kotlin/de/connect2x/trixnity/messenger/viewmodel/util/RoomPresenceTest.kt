@@ -20,6 +20,7 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent
+import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
 import net.folivo.trixnity.core.model.events.m.room.Membership
@@ -38,17 +39,15 @@ class RoomPresenceTest {
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
-    val getRoomUsers = mock<GetRoomUsers>()
 
     lateinit var presences: Map<UserId, Presence?>
 
     var isDirect: Boolean = false
     lateinit var members: List<UserId>
-    lateinit var cut: RoomPresence
 
     @BeforeTest
     fun beforeTest() {
-        resetMocks(matrixClientMock, userServiceMock, getRoomUsers)
+        resetMocks(matrixClientMock, userServiceMock)
         isDirect = false
         members = listOf()
         presences = mapOf()
@@ -63,9 +62,6 @@ class RoomPresenceTest {
         }.koin
         every { roomServiceMock.getById(room) } calls {
             flowOf(Room(room, isDirect = isDirect))
-        }
-        every { getRoomUsers(matrixClientMock, room) } calls {
-            flowOf(members)
         }
         every { userServiceMock.getById(room, alice) } returns flowOf(
             RoomUser(
@@ -98,8 +94,6 @@ class RoomPresenceTest {
         every { userServiceMock.getPresence(any()) } calls { (userId: UserId) ->
             flowOf(presences[userId]?.let { UserPresence(it, Clock.System.now()) })
         }
-
-        cut = RoomPresenceImpl(getRoomUsers)
     }
 
     @Test
@@ -107,52 +101,102 @@ class RoomPresenceTest {
         isDirect = false
         members = listOf(alice)
         presences = mapOf(alice to Presence.OFFLINE)
-        cut(matrixClientMock, room).first() shouldBe null
+        RoomPresence(matrixClientMock, room).first() shouldBe null
     }
 
     @Test
     fun `is direct - without members - should be null`() = runTest {
+        every { userServiceMock.getAccountData(DirectEventContent::class, any()) } returns flowOf(
+            DirectEventContent(
+                mappings = mapOf(us to emptySet())
+            )
+        )
         isDirect = true
         members = listOf()
         presences = mapOf(alice to Presence.OFFLINE)
-        cut(matrixClientMock, room).first() shouldBe null
+        RoomPresence(matrixClientMock, room).first() shouldBe null
     }
 
     @Test
     fun `is direct - single member - should be presence of single member`() = runTest {
+        every { userServiceMock.getAccountData(DirectEventContent::class, any()) } returns flowOf(
+            DirectEventContent(
+                mappings = mapOf(
+                    alice to emptySet(),
+                    us to emptySet()
+                )
+            )
+        )
         isDirect = true
         members = listOf(alice)
         presences = mapOf(alice to Presence.OFFLINE)
-        cut(matrixClientMock, room).first() shouldBe Presence.OFFLINE
+        RoomPresence(matrixClientMock, room).first() shouldBe Presence.OFFLINE
     }
 
     @Test
     fun `is direct - multiple members - should be ONLINE when any is ONLINE`() = runTest {
+        every { userServiceMock.getAccountData(DirectEventContent::class, any()) } returns flowOf(
+            DirectEventContent(
+                mappings = mapOf(
+                    alice to emptySet(),
+                    bob to emptySet(),
+                    us to emptySet()
+                )
+            )
+        )
         isDirect = true
         members = listOf(alice, bob)
         presences = mapOf(alice to Presence.ONLINE, bob to Presence.OFFLINE)
-        cut(matrixClientMock, room).first() shouldBe Presence.ONLINE
+        RoomPresence(matrixClientMock, room).first() shouldBe Presence.ONLINE
     }
 
     @Test
     fun `is direct - multiple members - should be UNAVAILABLE when any is UNAVAILABLE`() = runTest {
+        every { userServiceMock.getAccountData(DirectEventContent::class, any()) } returns flowOf(
+            DirectEventContent(
+                mappings = mapOf(
+                    alice to emptySet(),
+                    bob to emptySet(),
+                    us to emptySet()
+                )
+            )
+        )
         isDirect = true
         members = listOf(alice, bob)
         presences = mapOf(alice to Presence.OFFLINE, bob to Presence.UNAVAILABLE)
-        cut(matrixClientMock, room).first() shouldBe Presence.UNAVAILABLE
+        RoomPresence(matrixClientMock, room).first() shouldBe Presence.UNAVAILABLE
     }
 
     @Test
     fun `is direct - multiple members - should be OFFLINE when none is ONLINE or UNAVAILABLE`() = runTest {
+        every { userServiceMock.getAccountData(DirectEventContent::class, any()) } returns flowOf(
+            DirectEventContent(
+                mappings = mapOf(
+                    alice to emptySet(),
+                    bob to emptySet(),
+                    us to emptySet()
+                )
+            )
+        )
         isDirect = true
         members = listOf(alice, bob)
         presences = mapOf(alice to Presence.OFFLINE, bob to null)
-        cut(matrixClientMock, room).first() shouldBe Presence.OFFLINE
+        RoomPresence(matrixClientMock, room).first() shouldBe Presence.OFFLINE
     }
 
     @Test
     fun `is direct - multiple members - should ignore members that are not JOIN`() = runTest {
         val carol = UserId("carol", "localhost")
+        every { userServiceMock.getAccountData(DirectEventContent::class, any()) } returns flowOf(
+            DirectEventContent(
+                mappings = mapOf(
+                    alice to emptySet(),
+                    bob to emptySet(),
+                    carol to emptySet(),
+                    us to emptySet()
+                )
+            )
+        )
         every { userServiceMock.getById(room, carol) } returns flowOf(
             RoomUser(
                 room, carol, carol.full,
@@ -170,11 +214,20 @@ class RoomPresenceTest {
         isDirect = true
         members = listOf(alice, bob, carol)
         presences = mapOf(alice to Presence.OFFLINE, bob to Presence.OFFLINE, carol to Presence.ONLINE)
-        cut(matrixClientMock, room).first() shouldBe Presence.OFFLINE
+        RoomPresence(matrixClientMock, room).first() shouldBe Presence.OFFLINE
     }
 
     @Test
     fun `is direct - multiple members - should ignore us`() = runTest {
+        every { userServiceMock.getAccountData(DirectEventContent::class, any()) } returns flowOf(
+            DirectEventContent(
+                mappings = mapOf(
+                    alice to emptySet(),
+                    bob to emptySet(),
+                    us to emptySet()
+                )
+            )
+        )
         every { userServiceMock.getById(room, us) } returns flowOf(
             RoomUser(
                 room, us, us.full,
@@ -192,6 +245,6 @@ class RoomPresenceTest {
         isDirect = true
         members = listOf(alice, bob, us)
         presences = mapOf(alice to Presence.OFFLINE, bob to Presence.OFFLINE, us to Presence.ONLINE)
-        cut(matrixClientMock, room).first() shouldBe Presence.OFFLINE
+        RoomPresence(matrixClientMock, room).first() shouldBe Presence.OFFLINE
     }
 }

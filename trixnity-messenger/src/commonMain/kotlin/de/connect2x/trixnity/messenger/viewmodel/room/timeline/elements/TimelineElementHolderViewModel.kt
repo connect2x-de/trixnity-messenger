@@ -18,7 +18,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReaders
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.Is1on1Room
+import de.connect2x.trixnity.messenger.viewmodel.util.IsOneToOneRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -402,7 +402,7 @@ class TimelineElementHolderViewModelImpl(
             user.toUserInfoElement(coroutineScope, matrixClient, initials, senderUserId, config.maxMediaSizeInMemory)
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-    private val is1on1Room: StateFlow<Boolean> = get<Is1on1Room>()(matrixClient, roomId)
+    private val isOneToOneRoom: StateFlow<Boolean> = get<IsOneToOneRoom>()(matrixClient, roomId)
         .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     private val previousEventIsStateOrNotBySender: StateFlow<Boolean> =
@@ -410,7 +410,7 @@ class TimelineElementHolderViewModelImpl(
             event?.sender != senderUserId || event.event is ClientEvent.RoomEvent.StateEvent
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
-    override val showSender: StateFlow<Boolean?> = combine(is1on1Room, previousEventIsStateOrNotBySender)
+    override val showSender: StateFlow<Boolean?> = combine(isOneToOneRoom, previousEventIsStateOrNotBySender)
     { is1on1Room, previousEventIsStateOrNotBySender ->
         !is1on1Room && previousEventIsStateOrNotBySender && !isByMe
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
