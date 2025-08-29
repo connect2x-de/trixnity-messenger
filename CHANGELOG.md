@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reduce unnecessary timeline rerenders
 - Fix layout inspector usage on Android
+- Usernames are not shown in groups which started as a direct chat
 
 ### Security
 
@@ -78,7 +79,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't restart sync on presence change
 - Crash on startup due to process file lock on some shared libraries
 - Crash due to AutoLinkifyVisitor processing Matches out of order
-- Usernames are not shown in groups which started as a direct chat
 
 ## 3.7.0
 
