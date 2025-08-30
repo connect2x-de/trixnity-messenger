@@ -55,7 +55,7 @@ class UserSearchFieldViewImpl : UserSearchFieldView {
             value = userSearchTerm,
             onValueChange = { userSearchTerm = it },
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.surface)
                 .fillMaxWidth()
                 .padding(start = 10.dp, end = 10.dp, top = 20.dp)
                 .focusRequester(focusRequester),
