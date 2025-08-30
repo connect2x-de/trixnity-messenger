@@ -19,9 +19,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Always show the verification as not ready when PreconditionsNotMet (can be triggered by a sync issue later on)
+- Reduce unnecessary timeline rerenders
+- Fix layout inspector usage on Android
 
 ### Security
+
+## 3.8.2
+
+### Changed
+
+- Updated Trixnity to 4.22.2
+
+## 3.8.1
+
+### Changed
+
+- Updated Trixnity to 4.22.1
+
+### Fixed
+
+- Always show the verification as not ready when PreconditionsNotMet (can be triggered by a sync issue later on)
 
 ## 3.8.0
 
