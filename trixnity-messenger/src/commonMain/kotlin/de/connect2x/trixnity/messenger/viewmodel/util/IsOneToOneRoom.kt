@@ -1,9 +1,15 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.RoomId
+import net.folivo.trixnity.core.model.events.m.room.Membership
 
 /**
  * Provides a boolean flow to determine whether a room is
@@ -16,9 +22,17 @@ fun interface IsOneToOneRoom {
     operator fun invoke(matrixClient: MatrixClient, roomId: RoomId): Flow<Boolean>
 
     companion object : IsOneToOneRoom {
+        @OptIn(ExperimentalCoroutinesApi::class)
         override operator fun invoke(
             matrixClient: MatrixClient,
             roomId: RoomId
-        ): Flow<Boolean> = roomId.getRoomUsers(matrixClient).map { users -> users.size <= 2 }
+        ): Flow<Boolean> = matrixClient.room.getById(roomId).flatMapLatest { room ->
+            if (room?.isDirect == true) matrixClient.user.getAll(roomId).flatMapLatest { users ->
+                if(users.isNotEmpty()) combine(users.values) { combinedUsers ->
+                    combinedUsers.filter { user -> user?.event?.content?.membership == Membership.JOIN }.size == 2
+                } else flowOf(false)
+            }
+            else flowOf(false)
+        }
     }
 }

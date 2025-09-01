@@ -29,8 +29,8 @@ fun interface RoomPresence {
         ): Flow<Presence?> =
             matrixClient.room.getById(roomId).map { room -> room?.isDirect == true }.flatMapLatest { isDirect ->
                 if (isDirect)
-                    roomId.getRoomUsers(matrixClient)
-                        .map { users -> users - matrixClient.userId }
+                    matrixClient.user.getAll(roomId)
+                        .map { users -> users.keys - matrixClient.userId }
                         .flatMapLatest { users ->
                             if (users.isEmpty()) flowOf(emptyList())
                             else combine(users.map { directUser ->

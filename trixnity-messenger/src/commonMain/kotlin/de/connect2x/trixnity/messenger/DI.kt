@@ -128,7 +128,6 @@ import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepFallbackViewModelFac
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepMsisdnViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepPasswordViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.util.GetDirectRoomUser
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactionsImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReaders
@@ -240,7 +239,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
 
             single<DownloadManager> { DownloadManagerImpl(get<CoroutineScope>().coroutineContext) }
             single<Thumbnails> { ThumbnailsImpl() }
-            single<GetDirectRoomUser> { GetDirectRoomUser }
             single<IsOneToOneRoom> { IsOneToOneRoom }
             single<ActiveVerifications> { ActiveVerificationsImpl() }
             single<RoomPresence> { RoomPresence }

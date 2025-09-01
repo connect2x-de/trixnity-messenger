@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.util.GetDirectRoomUser
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -150,7 +150,6 @@ open class RoomHeaderViewModelImpl(
     private val roomPresence = get<RoomPresence>()
     private val roomName = get<RoomName>()
     private val roomTopic = get<RoomTopic>()
-    private val getDirectRoomUser = get<GetDirectRoomUser>()
     private val initials = get<Initials>()
     private val userBlocking = get<UserBlocking>()
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
@@ -211,8 +210,17 @@ open class RoomHeaderViewModelImpl(
         .map { room -> room?.isDirect == true }
         .stateIn(coroutineScope, Eagerly, false)
 
-    private val singleDirectUser: SharedFlow<UserId?> =
-        getDirectRoomUser(matrixClient, selectedRoomId).shareIn(coroutineScope, Eagerly, replay = 1)
+    private val singleDirectUser: SharedFlow<UserId?> = isDirectChat
+        .flatMapLatest { isDirectChat ->
+            if (isDirectChat) matrixClient.user.getAll(selectedRoomId)
+                .map { users ->
+                    val usersWithoutMe = (users.keys - matrixClient.userId)
+                    if (usersWithoutMe.size != 1) return@map null
+                    usersWithoutMe.first()
+                }
+            else emptyFlow()
+        }
+        .shareIn(coroutineScope, Eagerly, replay = 1)
 
     override val userTrustLevel: StateFlow<UserTrustLevel?> =
         singleDirectUser.flatMapLatest { singleDirectUser ->
