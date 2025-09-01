@@ -112,7 +112,7 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
                             }
                         }
                     } else {
-                        items(state.users, key = { it.userId }) { user ->
+                        items(state.users, key = { it.userId.toString() }) { user ->
                             UserElement(user, onClick = { userClickReaction(user) })
                         }
                     }
