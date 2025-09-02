@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add support for edge-to-edge on Android 36 and above
+- Implemented Network Monitor for network availability check
+- Vertical and horizontal scrollbars on iOS
 
 ### Changed
 
@@ -19,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Call openURL on main queue to prevent call on background thread
 - Translations on iOS show English when OS has configured German locale
 - Reduce unnecessary timeline rerenders
 - Fix layout inspector usage on Android

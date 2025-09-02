@@ -1,7 +1,11 @@
 package de.connect2x.messenger.compose.view
 
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.HorizontalScrollbar
+import androidx.compose.foundation.defaultScrollbarStyle
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
@@ -24,35 +28,44 @@ import kotlin.time.Duration
 actual fun VerticalScrollbar(
     modifier: Modifier,
     scrollState: ScrollState,
-){
-    // TODO
-}
+) = VerticalScrollbar(
+    adapter = rememberScrollbarAdapter(scrollState),
+    style = defaultScrollbarStyle(),
+    modifier = modifier
+)
 
 @Composable
 actual fun VerticalScrollbar(
     modifier: Modifier,
     lazyListState: LazyListState,
     reverseLayout: Boolean,
-) {
-    // TODO
-}
+) = VerticalScrollbar(
+    adapter = rememberScrollbarAdapter(lazyListState),
+    modifier = modifier,
+    reverseLayout = reverseLayout,
+    style = defaultScrollbarStyle(),
+)
 
 @Composable
 actual fun HorizontalScrollbar(
     modifier: Modifier,
     scrollState: ScrollState,
-) {
-    // TODO
-}
+) = HorizontalScrollbar(
+    adapter = rememberScrollbarAdapter(scrollState),
+    style = defaultScrollbarStyle(),
+    modifier = modifier
+)
 
 @Composable
 actual fun HorizontalScrollbar(
     modifier: Modifier,
     lazyListState: LazyListState,
     reverseLayout: Boolean,
-) {
-    // TODO
-}
+) = HorizontalScrollbar(
+    adapter = rememberScrollbarAdapter(lazyListState),
+    style = defaultScrollbarStyle(),
+    modifier = modifier
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
