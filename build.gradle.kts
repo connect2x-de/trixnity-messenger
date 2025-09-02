@@ -18,7 +18,7 @@ plugins {
     alias(sharedLibs.plugins.kmmBridge) apply false
     alias(sharedLibs.plugins.compose.multiplatform) apply false
     alias(sharedLibs.plugins.dokka)
-    alias(libs.plugins.google.services) apply false
+    alias(sharedLibs.plugins.google.services) apply false
     alias(libs.plugins.seskar) apply false
     `maven-publish`
     alias(sharedLibs.plugins.c2xConventions)

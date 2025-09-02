@@ -107,8 +107,7 @@ kotlin {
                 implementation(compose.preview)
                 implementation(sharedLibs.androidx.security.crypto)
                 implementation(sharedLibs.ktor.client.okhttp)
-                implementation(project.dependencies.platform(libs.firebase.bom))
-                implementation(libs.firebase.messaging.ktx)
+                implementation(sharedLibs.firebase.messaging.ktx)
                 // for Previews:
                 implementation(libs.slf4j.api)
             }
