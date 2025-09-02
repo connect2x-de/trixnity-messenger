@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Translations on iOS show English when OS has configured German locale
+- Set `event_id_only` format when setting pusher on iOS
 - Reduce unnecessary timeline rerenders
 - Fix layout inspector usage on Android
 
