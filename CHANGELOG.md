@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add support for edge-to-edge on Android 36 and above
 - Highlight mode of focused elements for better a11y
 
 ### Changed
@@ -19,9 +20,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Always show the verification as not ready when PreconditionsNotMet (can be triggered by a sync issue later on)
+- Copy messages now works on iOS
+- Fix copy of recovery key in wizard step on iOS
+- Translations on iOS show English when OS has configured German locale
+- Set `event_id_only` format when setting pusher on iOS
+- Reduce unnecessary timeline rerenders
+- Fix layout inspector usage on Android
 
 ### Security
+
+## 3.8.2
+
+### Changed
+
+- Updated Trixnity to 4.22.2
+
+## 3.8.1
+
+### Changed
+
+- Updated Trixnity to 4.22.1
+
+### Fixed
+
+- Always show the verification as not ready when PreconditionsNotMet (can be triggered by a sync issue later on)
 
 ## 3.8.0
 

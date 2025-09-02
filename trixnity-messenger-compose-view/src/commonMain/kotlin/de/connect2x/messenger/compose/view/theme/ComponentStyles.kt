@@ -17,9 +17,12 @@ import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorSty
 import de.connect2x.messenger.compose.view.theme.components.SliderStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.messenger.compose.view.theme.components.SwitchStyle
+import de.connect2x.messenger.compose.view.theme.components.SystemUiStyle
 import de.connect2x.messenger.compose.view.theme.components.TooltipStyle
 
 data class ComponentStyles(
+    // system ui
+    val systemUi: SystemUiStyle,
     // buttons
     val primaryButton: ButtonStyle,
     val secondaryButton: ButtonStyle,

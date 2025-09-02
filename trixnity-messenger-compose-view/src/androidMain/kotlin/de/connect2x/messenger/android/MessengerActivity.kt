@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
@@ -65,7 +66,7 @@ class MessengerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge() // TODO for better UX
+        enableEdgeToEdge()
 
         log.debug { "Creating activity instance for '${getString(R.string.app_name)}'" }
 
@@ -75,6 +76,8 @@ class MessengerActivity : AppCompatActivity() {
         this.backgroundSyncShouldBeRunning = false
 
         checkExternalStoragePermissions()
+
+        val componentContext = defaultComponentContext()
 
         scope.launch {
             val matrixMultiMessenger = matrixMessengerServiceConnection.matrixMultiMessenger.filterNotNull().first()
@@ -115,7 +118,7 @@ class MessengerActivity : AppCompatActivity() {
                 setContent {
                     WithProfileSelection(
                         matrixMultiMessenger = matrixMultiMessenger,
-                        componentContext = defaultComponentContext(),
+                        componentContext = componentContext,
                         activeMessengerOnce = { _, _ -> },
                         activeMessenger = { matrixMessenger, rootViewModel ->
                             val lifeCycleState =
