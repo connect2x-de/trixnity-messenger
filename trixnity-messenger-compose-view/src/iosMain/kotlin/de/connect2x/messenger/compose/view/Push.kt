@@ -46,6 +46,7 @@ private fun createSetPushersRequest(userId: UserId, deviceId: String, di: Koin, 
         appDisplayName = "${configuration.appName} (iOS)",
         appId = "${configuration.appId}.ios",
         data = PusherData(
+            format = "event_id_only",
             url = configuration.pushUrl,
             customFields = JsonObject(mapOf(
                 "default_payload" to JsonObject(mapOf(
