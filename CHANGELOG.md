@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Copy messages now works on iOS
+- Fix copy of recovery key in wizard step on iOS
 - Translations on iOS show English when OS has configured German locale
 - Set `event_id_only` format when setting pusher on iOS
 - Reduce unnecessary timeline rerenders
