@@ -22,6 +22,7 @@ import de.connect2x.messenger.compose.view.common.tooltipGestures
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components.ThemedPlainTooltip
 import org.koin.core.Koin
+import platform.UIKit.UIPasteboard
 import kotlin.time.Duration
 
 @Composable
@@ -115,4 +116,6 @@ actual fun Modifier.pointerEventWrapper(
     onEvent: AwaitPointerEventScope.(event: PointerEvent) -> Unit
 ): Modifier = this
 
-actual suspend fun copyToClipboard(value: String, di: Koin) {} // TODO
+actual suspend fun copyToClipboard(value: String, di: Koin) {
+    UIPasteboard.generalPasteboard.string = value
+}
