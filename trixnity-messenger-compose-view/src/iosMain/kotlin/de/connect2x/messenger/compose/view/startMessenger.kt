@@ -109,7 +109,7 @@ fun startMessenger(
                                     }
 
                                     log.trace { "Request notification permissions for $userId" }
-                                    notificationHandlerProvider(userId.toString()).requestPermissions { _, granted ->
+                                    notificationHandlerProvider(userId.toString()).requestPermissions { granted ->
                                         if (granted) {
                                             log.debug {
                                                 "Granted permissions for notifications, add pushers... (userId=$userId)"
