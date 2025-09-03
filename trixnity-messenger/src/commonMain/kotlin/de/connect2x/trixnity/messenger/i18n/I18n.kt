@@ -134,6 +134,11 @@ open class I18n(
         DE - "'$oldDisplayName' hat den Namen zu '$newDisplayName' geändert"
     }
 
+    open fun eventRemoveDisplayName(oldDisplayName: String?) = translate {
+        EN - "'$oldDisplayName' has removed their name"
+        DE - "'$oldDisplayName' hat den Namen entfernt"
+    }
+
     open fun eventChangeChatGenitive() = translate {
         EN - "the chat"
         DE - "des Chats"
