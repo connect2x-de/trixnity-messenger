@@ -2,7 +2,7 @@
 
 trixnityMessenger = "3.8.3"
 
-seskar = "4.14.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
+seskar = "4.15.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
 trixnity = "4.22.2" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "2.1.0-LOCAL" # https://gitlab.com/connect2x/sysnotify/-/packages
@@ -19,7 +19,6 @@ testContainers = "1.21.3" # https://github.com/testcontainers/testcontainers-jav
 ksoup = "0.2.5" # https://github.com/fleeksoft/ksoup/releases
 highlights = "1.0.0" # https://github.com/SnipMeDev/Highlights/releases
 copyWebpackPlugin = "13.0.1" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
-composeUiTest = "1.9.0" # https://mvnrepository.com/artifact/androidx.compose.ui/ui-test-junit4
 filekit = "0.10.0" # https://github.com/vinceglb/FileKit/releases
 kotlinLogging = "7.0.13" # https://github.com/MicroUtils/kotlin-logging/releases
 slf4j = "2.0.17" # https://github.com/qos-ch/slf4j/tags
@@ -45,8 +44,6 @@ okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 filekit-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
-ui-test-junit4-android = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "composeUiTest" }
-ui-test-android-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "composeUiTest" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testContainers" }
 logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlinLogging" }

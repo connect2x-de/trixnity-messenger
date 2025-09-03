@@ -157,7 +157,7 @@ kotlin {
                 implementation(sharedLibs.androidx.activity.compose)
                 implementation(libs.logback.android)
                 implementation(libs.slf4j.api)
-                implementation(sharedLibs.firebase.messaging.ktx)
+                implementation(sharedLibs.firebase.messaging)
             }
         }
         val webMain by getting {

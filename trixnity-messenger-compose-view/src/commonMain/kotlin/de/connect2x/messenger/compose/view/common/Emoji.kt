@@ -50,7 +50,7 @@ fun EmojiTable(
     modifier: Modifier = Modifier
 ) {
     val firstItemFocusRequester = remember { FocusRequester() }
-    FlowRow(modifier.focusGroup().focusRestorer { firstItemFocusRequester }) {
+    FlowRow(modifier.focusGroup().focusRestorer(firstItemFocusRequester)) {
         emojis.forEachIndexed { index, emoji ->
             EmojiButton(
                 label = emoji,

@@ -107,7 +107,7 @@ kotlin {
                 implementation(compose.preview)
                 implementation(sharedLibs.androidx.security.crypto)
                 implementation(sharedLibs.ktor.client.okhttp)
-                implementation(sharedLibs.firebase.messaging.ktx)
+                implementation(sharedLibs.firebase.messaging)
                 // for Previews:
                 implementation(libs.slf4j.api)
             }
@@ -141,8 +141,8 @@ kotlin {
 }
 
 dependencies {
-    androidTestImplementation(libs.ui.test.junit4.android)
-    debugImplementation(libs.ui.test.android.manifest)
+    androidTestImplementation(sharedLibs.compose.ui.test.junit4.android)
+    debugImplementation(sharedLibs.compose.ui.test.android.manifest)
 }
 
 android {

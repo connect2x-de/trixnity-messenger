@@ -32,7 +32,6 @@ import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.sysnotify.NotificationHandler
-import de.connect2x.sysnotify.handlePermissionRequest
 import de.connect2x.sysnotify.withActivity
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.compose.view.R
@@ -174,19 +173,6 @@ class MessengerActivity : AppCompatActivity() {
                     }
                 requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
             }
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>, grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        scope.launch {
-            matrixMessengerServiceConnection.matrixMultiMessenger.filterNotNull().first().di
-                .get<NotificationHandler>()
-                .withActivity { this@MessengerActivity }
-                .handlePermissionRequest(requestCode, grantResults)
         }
     }
 

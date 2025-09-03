@@ -217,6 +217,7 @@ class UserProfileViewImpl : UserProfileView {
 @Composable
 fun CopyableUserId(userId: UserId, textStyle: TextStyle) {
     val i18n = DI.get<I18nView>()
+    @Suppress("DEPRECATION") // TODO: New clipboard API is not usable from common code, fix this eventually..
     val clipboard = LocalClipboardManager.current
 
     Row(verticalAlignment = Alignment.CenterVertically) {
