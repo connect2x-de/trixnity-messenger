@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add support for edge-to-edge on Android 36 and above
+
 ### Changed
 
 - Upgraded Sysnotify to 2.1.0
@@ -20,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Copy messages now works on iOS
+- Fix copy of recovery key in wizard step on iOS
+- Translations on iOS show English when OS has configured German locale
+- Set `event_id_only` format when setting pusher on iOS
 - Reduce unnecessary timeline rerenders
 - Fix layout inspector usage on Android
 
