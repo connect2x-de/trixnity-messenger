@@ -62,7 +62,7 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
                             ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
                         } else {
                             Tooltip(tooltip = { TooltipText { currentJoinRule.getExplanation(i18n) } }) {
-                                Text(currentJoinRule.getStateName(i18n))
+                                Text(currentJoinRule.getStateName(i18n), style = MaterialTheme.typography.titleSmall)
                             }
                         }
                     },

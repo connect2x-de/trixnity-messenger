@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.common.customClickable
+import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 
 @Composable
@@ -29,6 +30,7 @@ fun Setting(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
             .customClickable(enabled = enabled) { toggle(!value) }
+            .focusHighlighting(interactionSource)
     ){
         Column(Modifier.weight(1f, fill = true)) {
             Text(
