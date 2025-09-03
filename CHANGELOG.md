@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add support for edge-to-edge on Android 36 and above
+- Add button to open app settings on iOS
+- Add info text when notification permissions are disabled on iOS
 - Implemented Network Monitor for network availability check
 - Vertical and horizontal scrollbars on iOS
 
