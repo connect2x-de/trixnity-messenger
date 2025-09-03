@@ -46,6 +46,7 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
         val defaultAccentColor = DI.get<DefaultAccentColor>().value
         val isHighContrast by appearanceSettingsViewModel.isHighContrast.collectAsState()
         val packedAccentColor by appearanceSettingsViewModel.accentColor.collectAsState()
+        val isFocusHighlighting by appearanceSettingsViewModel.isFocusHighlighting.collectAsState()
         val accentColor = packedAccentColor?.let { Color(it.toULong()) } ?: defaultAccentColor
 
         Box(Modifier.fillMaxSize()) {
@@ -63,6 +64,9 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
                             ) {
                                 appearanceSettingsViewModel.setAccentColor(it.value.toLong())
                             }
+                        }
+                        SettingsCard(title = i18n.appearanceAccessibilityTitle(), icon = Icons.Filled.FormatSize) {
+                            AppearanceSettingsSize(appearanceSettingsViewModel)
                             Spacer(Modifier.height(15.dp))
                             Setting(
                                 text = i18n.appearanceHighContrastHeading(),
@@ -71,9 +75,13 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
                             ) {
                                 appearanceSettingsViewModel.toggleHighContrast()
                             }
-                        }
-                        SettingsCard(title = i18n.appearanceAccessibilityTitle(), icon = Icons.Filled.FormatSize) {
-                            AppearanceSettingsSize(appearanceSettingsViewModel)
+                            Setting(
+                                text = i18n.appearanceFocusHighlightingHeading(),
+                                explanation = i18n.appearanceFocusHighlightingExplanation(),
+                                value = isFocusHighlighting,
+                            ) {
+                                appearanceSettingsViewModel.toggleFocusHighlighting()
+                            }
                         }
                     }
                     VerticalScrollbar(

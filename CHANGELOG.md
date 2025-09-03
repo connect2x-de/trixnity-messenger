@@ -14,8 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add info text when notification permissions are disabled on iOS
 - Implemented Network Monitor for network availability check
 - Vertical and horizontal scrollbars on iOS
+- Highlight mode of focused elements for better a11y
 
 ### Changed
+
+- Upgraded Sysnotify to 2.1.0
+- Upgraded Gradle to 9.0.0
 
 ### Deprecated
 
@@ -24,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Call openURL on main queue to prevent call on background thread (iOS)
+- Show more appropriate message when user removes their name
 - Copy messages now works on iOS
 - Fix copy of recovery key in wizard step on iOS
 - Translations on iOS show English when OS has configured German locale

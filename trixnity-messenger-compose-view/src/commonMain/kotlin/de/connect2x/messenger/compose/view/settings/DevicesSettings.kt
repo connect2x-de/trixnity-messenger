@@ -3,7 +3,6 @@ package de.connect2x.messenger.compose.view.settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -23,8 +22,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GppGood
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.RestoreFromTrash
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -69,6 +66,8 @@ import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenu
+import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenuItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountWithDevices
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceInfo
@@ -262,7 +261,7 @@ fun OtherDevice(userId: UserId, device: DeviceInfo, devicesSettingsViewModel: De
                     ) {
                         Spacer(Modifier.size(20.dp))
                         EditIcon(Icons.Default.MoreVert, i18n.commonMore())
-                        DropdownMenu(
+                        ThemedDropdownMenu(
                             expanded = showOptions.value,
                             modifier = Modifier.defaultMinSize(minWidth = 200.dp)
                                 .background(MaterialTheme.colorScheme.background),
@@ -410,7 +409,7 @@ fun DeviceDropdownItem(
     icon: ImageVector,
     iconColor: Color = MaterialTheme.colorScheme.onBackground,
 ) {
-    DropdownMenuItem(
+    ThemedDropdownMenuItem(
         text = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(icon, title, tint = iconColor)
@@ -420,6 +419,5 @@ fun DeviceDropdownItem(
         },
         onClick = onClick,
         modifier = Modifier.buttonPointerModifier(),
-        contentPadding = PaddingValues(horizontal = 10.dp),
     )
 }

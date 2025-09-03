@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -87,15 +88,17 @@ fun SelectVerificationMethodContent(
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         if (selectVerificationMethodViewModel.hasSelection) {
             verificationMethods.forEach { (verificationMethod, explanation) ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { selectedVerificationMethod.value = verificationMethod }
-                ) {
-                    RadioButton(
-                        selected = selectedVerificationMethod.value == verificationMethod,
-                        onClick = { selectedVerificationMethod.value = verificationMethod },
-                    )
-                    Text(explanation)
+                key(verificationMethod) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { selectedVerificationMethod.value = verificationMethod }
+                    ) {
+                        RadioButton(
+                            selected = selectedVerificationMethod.value == verificationMethod,
+                            onClick = { selectedVerificationMethod.value = verificationMethod },
+                        )
+                        Text(explanation)
+                    }
                 }
             }
         } else {

@@ -85,7 +85,14 @@ class MemberStateTimelineElementViewModelImpl(
                         } else if (content.avatarUrl != previousContent.avatarUrl) {
                             flowOf(i18n.eventChangeAvatar(name))
                         } else if (content.displayName != previousContent.displayName) {
-                            flowOf(i18n.eventChangeDisplayName(previousContent.displayName, content.displayName))
+                            if (content.displayName == null) {
+                                flowOf(i18n.eventRemoveDisplayName(previousContent.displayName ?: event.sender.full))
+                            } else {
+                                flowOf(i18n.eventChangeDisplayName(
+                                    previousContent.displayName ?: event.sender.full,
+                                    content.displayName
+                                ))
+                            }
                         } else {
                             // This message is not very precise because it is also triggered when there is no change at all.
                             // Emitting null would lead to the UI waiting for a value.
