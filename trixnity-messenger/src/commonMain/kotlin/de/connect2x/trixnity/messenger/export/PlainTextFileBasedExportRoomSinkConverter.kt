@@ -50,7 +50,7 @@ private val exportTimestampMessageFormat by lazy {
         chars("-")
         monthNumber()
         chars("-")
-        dayOfMonth()
+        day()
         chars(" ")
         hour()
         chars(":")

@@ -13,6 +13,7 @@ import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.entity.Library
 import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
+import com.mikepenz.aboutlibraries.ui.compose.m3.chipColors
 import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
@@ -48,7 +49,10 @@ class AppInfoLicensesViewImpl : AppInfoLicensesView {
                 }
                 AdaptiveDialogScrollContent(scrollState = lazyListState) {
                     LibrariesContainer(
-                        colors = LibraryDefaults.libraryColors(backgroundColor = Color.Transparent),
+                        colors = LibraryDefaults.libraryColors(
+                            backgroundColor = Color.Transparent,
+                            licenseChipColors = LibraryDefaults.chipColors()
+                        ),
                         libraries = Libs.Builder().withJson(licences).build(),
                         lazyListState = lazyListState,
                         textStyles = LibraryDefaults.libraryTextStyles(

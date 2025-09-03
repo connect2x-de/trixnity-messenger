@@ -131,11 +131,6 @@ class AddMatrixAccountViewModelTest {
                         async { handler(request) ?: unhandledRequest(request) }.await()
                     }
                 }.create()
-                httpClientConfig = {
-                    install(SaveBodyPlugin) {
-                        disabled = true
-                    }
-                }
             }
             get<I18n>().setCurrentLang(DefaultLanguages.EN)
         }

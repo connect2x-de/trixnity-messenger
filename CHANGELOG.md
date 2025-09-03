@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Upgraded Sysnotify to 2.1.0
+- Upgraded Gradle to 9.0.0
+
 ### Deprecated
 
 ### Removed

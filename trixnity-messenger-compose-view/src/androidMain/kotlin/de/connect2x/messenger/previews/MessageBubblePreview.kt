@@ -62,7 +62,7 @@ fun TextMessageBubblePreview() {
         override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
         override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
         override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
-        override fun openMention(timelineElementMention: TimelineElementMention) {}
+        override fun openMention(mention: TimelineElementMention) {}
     }
     InitMessengerPreview {
         TextBasedRoomMessageTimelineElementView(
