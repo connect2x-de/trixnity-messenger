@@ -56,7 +56,6 @@ suspend fun MatrixMessengerWithRoot.leaveRoom(roomId: RoomId) = with(root) {
         val timelineViewModel = mainViewModel
             .roomRouterStack.waitFor(RoomRouter.Wrapper.View::class).viewModel
             .timelineStack.waitFor(TimelineRouter.Wrapper.View::class).viewModel
-        timelineViewModel.roomHeaderViewModel.roomHeaderInfo.map { it.roomName }.first { it == roomName }
         timelineViewModel.leaveRoom()
         log.debug { "left room $roomId" }
         mainViewModel.roomRouterStack.waitFor(RoomRouter.Wrapper.None::class)

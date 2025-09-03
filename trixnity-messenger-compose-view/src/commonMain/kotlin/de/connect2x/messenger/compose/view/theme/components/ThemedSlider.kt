@@ -1,7 +1,10 @@
 package de.connect2x.messenger.compose.view.theme.components
 
 import androidx.annotation.IntRange
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RangeSlider
@@ -11,19 +14,24 @@ import androidx.compose.material3.SliderColors
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SliderState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import de.connect2x.messenger.compose.view.theme.components
 
 data class SliderStyle(
     val colors: SliderColors,
+    val focusedBorder: BorderStroke?,
 ) {
     companion object {
         @Composable
         fun default(
             colors: SliderColors = SliderDefaults.colors(),
+            focusedBorder: BorderStroke? = null,
         ) = SliderStyle(
             colors = colors,
+            focusedBorder = focusedBorder,
         )
     }
 }
@@ -40,17 +48,26 @@ fun ThemedSlider(
     onValueChangeFinished: (() -> Unit)? = null,
     style: SliderStyle = MaterialTheme.components.slider,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
-) = Slider(
-    value,
-    onValueChange,
-    modifier,
-    enabled,
-    valueRange,
-    steps,
-    onValueChangeFinished,
-    style.colors,
-    interactionSource,
-)
+) {
+    val hasFocus = interactionSource.collectIsFocusedAsState().value
+    val border = style.focusedBorder?.let { borderStroke ->
+        if (enabled && hasFocus) Modifier.border(borderStroke)
+        else Modifier
+    } ?: Modifier
+
+    Slider(
+        value,
+        onValueChange,
+        modifier
+            .then(border),
+        enabled,
+        valueRange,
+        steps,
+        onValueChangeFinished,
+        style.colors,
+        interactionSource,
+    )
+}
 
 @Composable
 @ExperimentalMaterial3Api
@@ -74,19 +91,28 @@ fun ThemedSlider(
         SliderDefaults.Track(colors = style.colors, enabled = enabled, sliderState = sliderState)
     },
     valueRange: ClosedFloatingPointRange<Float> = 0f..1f
-) = Slider(
-    value,
-    onValueChange,
-    modifier,
-    enabled,
-    onValueChangeFinished,
-    style.colors,
-    interactionSource,
-    steps,
-    thumb,
-    track,
-    valueRange,
-)
+) {
+    val hasFocus = interactionSource.collectIsFocusedAsState().value
+    val border = style.focusedBorder?.let { borderStroke ->
+        if (enabled && hasFocus) Modifier.border(borderStroke)
+        else Modifier
+    } ?: Modifier
+
+    Slider(
+        value,
+        onValueChange,
+        modifier
+            .then(border),
+        enabled,
+        onValueChangeFinished,
+        style.colors,
+        interactionSource,
+        steps,
+        thumb,
+        track,
+        valueRange,
+    )
+}
 
 @Composable
 @ExperimentalMaterial3Api
@@ -106,15 +132,24 @@ fun ThemedSlider(
     track: @Composable (SliderState) -> Unit = { sliderState ->
         SliderDefaults.Track(colors = style.colors, enabled = enabled, sliderState = sliderState)
     }
-) = Slider(
-    state,
-    modifier,
-    enabled,
-    style.colors,
-    interactionSource,
-    thumb,
-    track,
-)
+) {
+    val hasFocus = interactionSource.collectIsFocusedAsState().value
+    val border = style.focusedBorder?.let { borderStroke ->
+        if (enabled && hasFocus) Modifier.border(borderStroke)
+        else Modifier
+    } ?: Modifier
+
+    Slider(
+        state,
+        modifier
+            .then(border),
+        enabled,
+        style.colors,
+        interactionSource,
+        thumb,
+        track,
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -127,16 +162,26 @@ fun ThemedRangeSlider(
     @IntRange(from = 0) steps: Int = 0,
     onValueChangeFinished: (() -> Unit)? = null,
     style: SliderStyle = MaterialTheme.components.slider,
-) = RangeSlider(
-    value,
-    onValueChange,
-    modifier,
-    enabled,
-    valueRange,
-    steps,
-    onValueChangeFinished,
-    style.colors,
-)
+) {
+    val hasFocus = remember { mutableStateOf(false) }
+    val border = style.focusedBorder?.let { borderStroke ->
+        if (enabled && hasFocus.value) Modifier.border(borderStroke)
+        else Modifier
+    } ?: Modifier
+
+    RangeSlider(
+        value,
+        onValueChange,
+        modifier
+            .onFocusChanged { focusState -> hasFocus.value = focusState.isFocused }
+            .then(border),
+        enabled,
+        valueRange,
+        steps,
+        onValueChangeFinished,
+        style.colors,
+    )
+}
 
 @Composable
 @ExperimentalMaterial3Api
@@ -172,20 +217,30 @@ fun ThemedRangeSlider(
         )
     },
     @IntRange(from = 0) steps: Int = 0
-) = RangeSlider(
-    value,
-    onValueChange,
-    modifier,
-    enabled,
-    valueRange,
-    onValueChangeFinished,
-    style.colors,
-    startInteractionSource,
-    endInteractionSource,
-    startThumb,
-    endThumb,
-    track,
-)
+) {
+    val hasFocus = remember { mutableStateOf(false) }
+    val border = style.focusedBorder?.let { borderStroke ->
+        if (enabled && hasFocus.value) Modifier.border(borderStroke)
+        else Modifier
+    } ?: Modifier
+
+    RangeSlider(
+        value,
+        onValueChange,
+        modifier
+            .onFocusChanged { focusState -> hasFocus.value = focusState.isFocused }
+            .then(border),
+        enabled,
+        valueRange,
+        onValueChangeFinished,
+        style.colors,
+        startInteractionSource,
+        endInteractionSource,
+        startThumb,
+        endThumb,
+        track,
+    )
+}
 
 @Composable
 @ExperimentalMaterial3Api
@@ -217,14 +272,23 @@ fun ThemedRangeSlider(
             rangeSliderState = rangeSliderState
         )
     }
-) = RangeSlider(
-    state,
-    modifier,
-    enabled,
-    style.colors,
-    startInteractionSource,
-    endInteractionSource,
-    startThumb,
-    endThumb,
-    track,
-)
+) {
+    val hasFocus = remember { mutableStateOf(false) }
+    val border = style.focusedBorder?.let { borderStroke ->
+        if (enabled && hasFocus.value) Modifier.border(borderStroke)
+        else Modifier
+    } ?: Modifier
+    RangeSlider(
+        state,
+        modifier
+            .onFocusChanged { focusState -> hasFocus.value = focusState.isFocused }
+            .then(border),
+        enabled,
+        style.colors,
+        startInteractionSource,
+        endInteractionSource,
+        startThumb,
+        endThumb,
+        track,
+    )
+}

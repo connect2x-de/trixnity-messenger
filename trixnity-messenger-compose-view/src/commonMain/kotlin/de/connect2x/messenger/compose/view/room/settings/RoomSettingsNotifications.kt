@@ -68,7 +68,7 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
                         ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
                     } else {
                         Tooltip(tooltip = { TooltipText { selectedLevelExplanation } }) {
-                            Text(selectedLevelName)
+                            Text(selectedLevelName, style = MaterialTheme.typography.titleSmall)
                         }
                     }
                 },

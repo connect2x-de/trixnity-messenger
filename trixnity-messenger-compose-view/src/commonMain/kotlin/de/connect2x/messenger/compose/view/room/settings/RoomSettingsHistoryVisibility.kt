@@ -80,7 +80,10 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
                                         ) else historyVisibility.getExplanation(i18n)
                                     }
                                 }) {
-                                    Text(historyVisibility.getStateName(i18n))
+                                    Text(
+                                        historyVisibility.getStateName(i18n),
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
                                 }
                             }
                         },

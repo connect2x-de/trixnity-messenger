@@ -1,11 +1,8 @@
 package de.connect2x.messenger.compose.view.roomlist.header
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,13 +12,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenu
+import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenuItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
@@ -44,19 +42,19 @@ class AccountOptionsViewImpl : AccountOptionsView {
         val config = DI.get<MatrixMessengerConfiguration>()
         val menuOpen = remember { mutableStateOf(false) }
         Tooltip(
-            tooltip = { Text(i18n.accountMoreSettings())}
+            tooltip = { Text(i18n.accountMoreSettings()) }
         ) {
             ThemedIconButton(
                 style = MaterialTheme.components.commonIconButton,
                 onClick = { menuOpen.value = menuOpen.value.not() },
             ) {
                 Icon(Icons.Default.MoreVert, i18n.accountMoreSettings())
-                DropdownMenu(
+                ThemedDropdownMenu(
                     menuOpen.value,
                     { menuOpen.value = menuOpen.value.not() },
                     modifier = Modifier.background(MaterialTheme.colorScheme.background),
                 ) {
-                    DropdownMenuItem(
+                    ThemedDropdownMenuItem(
                         text = {
                             Text(
                                 i18n.commonSettings().capitalize(Locale.current),
@@ -65,17 +63,15 @@ class AccountOptionsViewImpl : AccountOptionsView {
                         },
                         accountViewModel::openUserSettings,
                         Modifier.buttonPointerModifier(),
-                        contentPadding = PaddingValues(horizontal = 10.dp)
                     )
-                    DropdownMenuItem(
+                    ThemedDropdownMenuItem(
                         text = {
                             Text(i18n.accountYourAccounts(), color = MaterialTheme.colorScheme.onBackground)
                         },
                         roomListViewModel::openAccountsOverview,
                         Modifier.buttonPointerModifier(),
-                        contentPadding = PaddingValues(horizontal = 10.dp)
                     )
-                    DropdownMenuItem(
+                    ThemedDropdownMenuItem(
                         text = {
                             Text(
                                 i18n.accountAboutTheApp(config.appName),
@@ -84,17 +80,15 @@ class AccountOptionsViewImpl : AccountOptionsView {
                         },
                         accountViewModel::openAppInfo,
                         Modifier.buttonPointerModifier(),
-                        contentPadding = PaddingValues(horizontal = 10.dp)
                     )
 
                     config.sendLogsEmailAddress?.let {
-                        DropdownMenuItem(
+                        ThemedDropdownMenuItem(
                             text = {
                                 Text(i18n.accountSendErrorLogs(), color = MaterialTheme.colorScheme.onBackground)
                             },
                             roomListViewModel::sendLogs,
                             Modifier.buttonPointerModifier(),
-                            contentPadding = PaddingValues(horizontal = 10.dp)
                         )
                     }
                 }
