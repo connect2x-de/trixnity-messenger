@@ -13,7 +13,7 @@ plugins {
     alias(sharedLibs.plugins.compose.compiler)
     alias(sharedLibs.plugins.aboutLibraries.plugin)
     // TODO active when you want to use google-services for notifications (needs google-services.json)
-    // alias(libs.plugins.google.services)
+    // alias(sharedLibs.plugins.google.services)
 }
 
 configureJava(sharedLibs.versions.targetJvm)
