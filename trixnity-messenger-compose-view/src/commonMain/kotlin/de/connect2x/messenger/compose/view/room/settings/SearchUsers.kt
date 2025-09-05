@@ -10,8 +10,9 @@ import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.get
-import de.connect2x.messenger.compose.view.search.SearchUsersLocally
 import de.connect2x.messenger.compose.view.search.UserSearchResultListView
+import de.connect2x.messenger.compose.view.search.collectUserSearchResult
+import de.connect2x.messenger.compose.view.search.searchUsersLocally
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModel
 
@@ -38,12 +39,17 @@ class SearchUsersSettingsViewImpl : SearchUsersSettingsView {
         onUserClick: (Search.SearchUserElement) -> Unit,
     ) {
         val listState = rememberLazyListState()
-        val userSearch = DI.get<UserSearchResultListView>()
-        val userSearchResults = userSearch.collectUserSearchResult(potentialMembersViewModel.searchHandler)
+        val userSearchResultList = DI.get<UserSearchResultListView>()
+        val userSearchResults = collectUserSearchResult(potentialMembersViewModel.searchHandler)
 
         Box {
             LazyColumn(state = listState) {
-                SearchUsersLocally(potentialMembersViewModel.searchHandler, onUserClick, userSearch, userSearchResults)
+                searchUsersLocally(
+                    potentialMembersViewModel.searchHandler,
+                    onUserClick,
+                    userSearchResults,
+                    userSearchResultList,
+                )
             }
             VerticalScrollbar(Modifier.fillMaxHeight().align(Alignment.CenterEnd), listState, false)
         }

@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
@@ -33,22 +32,11 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
-import de.connect2x.trixnity.messenger.util.UserSearchHandler
-import kotlinx.coroutines.flow.map
 
 interface UserSearchResultListView {
-    interface SearchResultState {
-        object Loading : SearchResultState
-        object Placeholder : SearchResultState
-        data class Results(val users: List<SearchUserElement>) : SearchResultState
-    }
 
-    @Composable
-    fun collectUserSearchResult(
-        userSearchHandler: UserSearchHandler,
-    ): SearchResultState
-
-    fun createLazyComposables(
+    // this function is no @Composable as it is used inside a LazyListScope
+    fun create(
         scope: LazyListScope,
         state: SearchResultState,
         userClickReaction: (SearchUserElement) -> Unit,
@@ -56,32 +44,17 @@ interface UserSearchResultListView {
 }
 
 class UserSearchResultListViewImpl : UserSearchResultListView {
-    @Composable
-    override fun collectUserSearchResult(
-        userSearchHandler: UserSearchHandler,
-    ): UserSearchResultListView.SearchResultState {
-        val users = userSearchHandler.foundUsers.collectAsState().value
-        val waitForResults = userSearchHandler.waitForUserResults.collectAsState().value
-        val searchWasApplied =
-            remember { userSearchHandler.searchTerm.map { it.text.isNotBlank() } }.collectAsState(false).value
-        return when {
-            waitForResults -> UserSearchResultListView.SearchResultState.Loading
-            users.isEmpty() && !searchWasApplied -> UserSearchResultListView.SearchResultState.Placeholder
-            else -> UserSearchResultListView.SearchResultState.Results(users)
-        }
-    }
-
-    override fun createLazyComposables(
+    override fun create(
         scope: LazyListScope,
-        state: UserSearchResultListView.SearchResultState,
+        state: SearchResultState,
         userClickReaction: (SearchUserElement) -> Unit,
     ) {
         with(scope) {
             when (state) {
-                UserSearchResultListView.SearchResultState.Loading ->
+                SearchResultState.Loading ->
                     item(key = "users-loading") { LoadingSpinner() }
 
-                UserSearchResultListView.SearchResultState.Placeholder ->
+                SearchResultState.Placeholder ->
                     item(key = "users-placeholder") {
                         val i18n = DI.get<I18nView>()
                         Box(
@@ -96,7 +69,7 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
                         }
                     }
 
-                is UserSearchResultListView.SearchResultState.Results -> {
+                is SearchResultState.Results -> {
                     if (state.users.isEmpty()) {
                         item(key = "users-notfound") {
                             val i18n = DI.get<I18nView>()

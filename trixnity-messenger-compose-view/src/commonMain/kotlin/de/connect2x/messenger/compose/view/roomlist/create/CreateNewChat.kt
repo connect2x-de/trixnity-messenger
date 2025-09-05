@@ -31,6 +31,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
 import de.connect2x.messenger.compose.view.search.UserSearchResultListView
+import de.connect2x.messenger.compose.view.search.collectUserSearchResult
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.AvatarContentIcon
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
@@ -61,9 +62,8 @@ class CreateNewChatViewImpl : CreateNewChatView {
         val error = createNewChatViewModel.error.collectAsState().value
         val errorDetails = createNewChatViewModel.errorDetails.collectAsState().value
         val searchUsersView = DI.get<SearchUsersView>()
-        val searchUsers = DI.get<UserSearchResultListView>()
-        val searchUsersResults =
-            searchUsers.collectUserSearchResult(createNewChatViewModel.createNewRoomViewModel.searchHandler)
+        val userSearchResultView = DI.get<UserSearchResultListView>()
+        val searchUsersResults = collectUserSearchResult(createNewChatViewModel.createNewRoomViewModel.searchHandler)
 
         Box(Modifier.fillMaxSize()) {
             Box {
@@ -111,9 +111,9 @@ class CreateNewChatViewImpl : CreateNewChatView {
                         searchUsersView.create(
                             createNewChatViewModel.createNewRoomViewModel,
                             createNewChatViewModel::onUserClick,
-                            searchUsers,
                             searchUsersResults,
-                            this
+                            userSearchResultView,
+                            this,
                         )
                     }
                 }

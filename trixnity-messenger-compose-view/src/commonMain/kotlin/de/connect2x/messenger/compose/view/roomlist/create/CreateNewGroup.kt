@@ -41,6 +41,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
 import de.connect2x.messenger.compose.view.search.UserSearchResultListView
+import de.connect2x.messenger.compose.view.search.collectUserSearchResult
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
@@ -74,9 +75,8 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
         val optionalRoomName = createNewGroupViewModel.optionalRoomName.collectAsTextFieldValueState()
         val optionalRoomTopic = createNewGroupViewModel.optionalGroupTopic.collectAsTextFieldValueState()
         val userSearchView = DI.get<SearchUsersView>()
-        val userSearch = DI.get<UserSearchResultListView>()
-        val userSearchResults =
-            userSearch.collectUserSearchResult(createNewGroupViewModel.createNewRoomViewModel.searchHandler)
+        val userSearchResultView = DI.get<UserSearchResultListView>()
+        val userSearchResults = collectUserSearchResult(createNewGroupViewModel.createNewRoomViewModel.searchHandler)
 
         val roomOptionsString = buildString {
             append(i18n.roomType())
@@ -169,8 +169,8 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             userSearchView.create(
                                 createNewGroupViewModel.createNewRoomViewModel,
                                 createNewGroupViewModel::onUserClick,
-                                userSearch,
                                 userSearchResults,
+                                userSearchResultView,
                                 this
                             )
                         }
