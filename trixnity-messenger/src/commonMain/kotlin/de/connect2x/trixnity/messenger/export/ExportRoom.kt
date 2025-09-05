@@ -221,7 +221,7 @@ internal val exportTimestampFormat by lazy {
         chars("-")
         monthNumber()
         chars("-")
-        dayOfMonth()
+        day()
         chars(" ")
         hour()
         chars("-")

@@ -811,8 +811,8 @@ class RoomListViewModelMultiAccountTest {
                                 viewModelContext: ViewModelContext,
                                 onAccountSelected: (UserId?) -> Unit,
                                 onUserSettingsSelected: () -> Unit,
-                                onUserProfileSelected: () -> Unit,
-                                onShowAppInfo: () -> Unit
+                                onShowAppInfo: () -> Unit,
+                                onShowProfile: () -> Unit
                             ): AccountViewModel = object : AccountViewModel {
                                 override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
                                 override val isSingleAccount: StateFlow<Boolean> = MutableStateFlow(false)

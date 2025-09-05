@@ -13,9 +13,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +35,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.root.IsSinglePane
 import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 
@@ -53,6 +56,29 @@ fun Header(
 }
 
 @Composable
+internal fun HeaderSurface(
+    style: SurfaceStyle = MaterialTheme.components.header,
+    content: @Composable () -> Unit,
+) {
+    val localElevation = LocalAbsoluteTonalElevation.current
+
+    CompositionLocalProvider(
+        LocalAbsoluteTonalElevation provides 0.dp
+    ) {
+        ThemedSurface(
+            style = style,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            CompositionLocalProvider(
+                LocalAbsoluteTonalElevation provides LocalAbsoluteTonalElevation.current + localElevation
+            ) {
+                content()
+            }
+        }
+    }
+}
+
+@Composable
 fun Header(
     onBack: () -> Unit,
     title: @Composable () -> Unit,
@@ -64,9 +90,7 @@ fun Header(
     val headerHeight = headerHeightFlow.collectAsState().value
     val density = LocalDensity.current
 
-    ThemedSurface(
-        style = MaterialTheme.components.header,
-    ) {
+    HeaderSurface {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.fillMaxWidth().onGloballyPositioned { coordinates ->

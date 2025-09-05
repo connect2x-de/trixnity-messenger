@@ -2728,6 +2728,16 @@ open class I18nView(
         DE - "Erhöht den Gesamtkontrast zwischen Vorder- und Hintergrund-Elemente um diese besser erkennbar zu machen"
     }
 
+    open fun appearanceFocusHighlightingHeading() = translate {
+        EN - "Focus Highlighting"
+        DE - "Fokus Hervorhebung"
+    }
+
+    open fun appearanceFocusHighlightingExplanation() = translate {
+        EN - "Enables better visibility for focused elements."
+        DE - "Fokussierte Elemente werden stärker hervorgehoben."
+    }
+
     open fun appearanceAccentColorHeading() = translate {
         EN - "Accent Color"
         DE - "Akzentfarbe"

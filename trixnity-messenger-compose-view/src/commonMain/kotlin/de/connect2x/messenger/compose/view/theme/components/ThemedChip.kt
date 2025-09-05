@@ -14,7 +14,10 @@ import androidx.compose.material3.SelectableChipElevation
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
@@ -28,6 +31,7 @@ data class ChipStyle(
     val enabledBorder: BorderStroke?,
     val selectedBorder: BorderStroke?,
     val disabledBorder: BorderStroke?,
+    val focusedBorder: BorderStroke?,
 ) {
     @Immutable
     data class Elevation(
@@ -299,8 +303,9 @@ data class ChipStyle(
         }
     }
 
-    fun border(enabled: Boolean, selected: Boolean = false) = when {
+    fun border(enabled: Boolean, selected: Boolean = false, hasFocus: Boolean = false) = when {
         !enabled -> disabledBorder
+        enabled && hasFocus -> focusedBorder
         selected -> selectedBorder
         else -> enabledBorder
     }
@@ -314,6 +319,7 @@ data class ChipStyle(
             enabledBorder: BorderStroke? = FilterChipDefaults.filterChipBorder(enabled = true, selected = false),
             selectedBorder: BorderStroke? = FilterChipDefaults.filterChipBorder(enabled = true, selected = true),
             disabledBorder: BorderStroke? = FilterChipDefaults.filterChipBorder(enabled = false, selected = false),
+            focusedBorder: BorderStroke? = null,
         ) = ChipStyle(
             shape,
             colors,
@@ -321,6 +327,7 @@ data class ChipStyle(
             enabledBorder,
             selectedBorder,
             disabledBorder,
+            focusedBorder,
         )
 
         @Composable
@@ -331,6 +338,7 @@ data class ChipStyle(
             enabledBorder: BorderStroke? = null,
             selectedBorder: BorderStroke? = null,
             disabledBorder: BorderStroke? = null,
+            focusedBorder: BorderStroke? = null,
         ) = ChipStyle(
             shape,
             colors,
@@ -338,6 +346,7 @@ data class ChipStyle(
             enabledBorder,
             selectedBorder,
             disabledBorder,
+            focusedBorder,
         )
     }
 }
@@ -352,19 +361,24 @@ fun ThemedAssistChip(
     trailingIcon: @Composable (() -> Unit)? = null,
     style: ChipStyle = MaterialTheme.components.commonChip,
     interactionSource: MutableInteractionSource? = null,
-) = AssistChip(
-    onClick,
-    label,
-    modifier,
-    enabled,
-    leadingIcon,
-    trailingIcon,
-    style.shape,
-    style.colors.forChip(),
-    style.elevation?.forChip(),
-    style.border(enabled),
-    interactionSource,
-)
+) {
+    val hasFocus = remember { mutableStateOf(false) }
+
+    AssistChip(
+        onClick,
+        label,
+        modifier
+            .onFocusChanged { hasFocus.value = it.hasFocus },
+        enabled,
+        leadingIcon,
+        trailingIcon,
+        style.shape,
+        style.colors.forChip(),
+        style.elevation?.forChip(),
+        style.border(enabled, hasFocus = hasFocus.value),
+        interactionSource,
+    )
+}
 
 @Composable
 fun ThemedSuggestionChip(
@@ -375,18 +389,23 @@ fun ThemedSuggestionChip(
     icon: @Composable (() -> Unit)? = null,
     style: ChipStyle = MaterialTheme.components.commonChip,
     interactionSource: MutableInteractionSource? = null,
-) = SuggestionChip(
-    onClick,
-    label,
-    modifier,
-    enabled,
-    icon,
-    style.shape,
-    style.colors.forChip(),
-    style.elevation?.forChip(),
-    style.border(enabled),
-    interactionSource,
-)
+) {
+    val hasFocus = remember { mutableStateOf(false) }
+
+    SuggestionChip(
+        onClick,
+        label,
+        modifier
+            .onFocusChanged { hasFocus.value = it.hasFocus },
+        enabled,
+        icon,
+        style.shape,
+        style.colors.forChip(),
+        style.elevation?.forChip(),
+        style.border(enabled, hasFocus = hasFocus.value),
+        interactionSource,
+    )
+}
 
 @Composable
 fun ThemedFilterChip(
@@ -399,20 +418,25 @@ fun ThemedFilterChip(
     trailingIcon: @Composable (() -> Unit)? = null,
     style: ChipStyle = MaterialTheme.components.commonChip,
     interactionSource: MutableInteractionSource? = null
-) = FilterChip(
-    selected,
-    onClick,
-    label,
-    modifier,
-    enabled,
-    leadingIcon,
-    trailingIcon,
-    style.shape,
-    style.colors.forSelectableChip(),
-    style.elevation?.forSelectableChip(),
-    style.border(enabled, selected),
-    interactionSource,
-)
+) {
+    val hasFocus = remember { mutableStateOf(false) }
+
+    FilterChip(
+        selected,
+        onClick,
+        label,
+        modifier
+            .onFocusChanged { hasFocus.value = it.hasFocus },
+        enabled,
+        leadingIcon,
+        trailingIcon,
+        style.shape,
+        style.colors.forSelectableChip(),
+        style.elevation?.forSelectableChip(),
+        style.border(enabled, selected, hasFocus.value),
+        interactionSource,
+    )
+}
 
 @Composable
 fun ThemedInputChip(
@@ -426,21 +450,26 @@ fun ThemedInputChip(
     trailingIcon: @Composable (() -> Unit)? = null,
     style: ChipStyle = MaterialTheme.components.commonChip,
     interactionSource: MutableInteractionSource? = null
-) = InputChip(
-    selected,
-    onClick,
-    label,
-    modifier,
-    enabled,
-    leadingIcon,
-    avatar,
-    trailingIcon,
-    style.shape,
-    style.colors.forSelectableChip(),
-    style.elevation?.forSelectableChip(),
-    style.border(enabled, selected),
-    interactionSource,
-)
+) {
+    val hasFocus = remember { mutableStateOf(false) }
+
+    InputChip(
+        selected,
+        onClick,
+        label,
+        modifier
+            .onFocusChanged { hasFocus.value = it.hasFocus },
+        enabled,
+        leadingIcon,
+        avatar,
+        trailingIcon,
+        style.shape,
+        style.colors.forSelectableChip(),
+        style.elevation?.forSelectableChip(),
+        style.border(enabled, selected, hasFocus.value),
+        interactionSource,
+    )
+}
 
 @Composable
 fun ThemedInfoChip(
@@ -448,15 +477,20 @@ fun ThemedInfoChip(
     modifier: Modifier = Modifier,
     icon: @Composable (() -> Unit)? = null,
     style: ChipStyle = MaterialTheme.components.commonChip,
-) = SuggestionChip(
-    onClick = {},
-    label = label,
-    modifier = modifier,
-    enabled=false,
-    icon = icon,
-    shape = style.shape,
-    colors = style.colors.forStaticChip(),
-    elevation = style.elevation?.forStaticChip(),
-    border = style.border(enabled = true, selected = true),
-    interactionSource = null,
-)
+) {
+    val hasFocus = remember { mutableStateOf(false) }
+
+    SuggestionChip(
+        onClick = {},
+        label = label,
+        modifier = modifier
+            .onFocusChanged { hasFocus.value = it.hasFocus },
+        enabled = false,
+        icon = icon,
+        shape = style.shape,
+        colors = style.colors.forStaticChip(),
+        elevation = style.elevation?.forStaticChip(),
+        border = style.border(enabled = true, selected = true, hasFocus.value),
+        interactionSource = null,
+    )
+}

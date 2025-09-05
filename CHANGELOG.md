@@ -9,8 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add support for edge-to-edge on Android 36 and above
+- Highlight mode of focused elements for better a11y
+
 ### Changed
 
+- Upgraded Sysnotify to 2.1.0
+- Upgraded Gradle to 9.0.0
 - Change user search to use lazy loading approach with a sticky header to ease scrolling on smaller screens
 
 ### Deprecated
@@ -19,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Show more appropriate message when user removes their name
+- Copy messages now works on iOS
+- Fix copy of recovery key in wizard step on iOS
+- Translations on iOS show English when OS has configured German locale
+- Set `event_id_only` format when setting pusher on iOS
 - Reduce unnecessary timeline rerenders
 - Fix layout inspector usage on Android
 

@@ -13,7 +13,7 @@ plugins {
     alias(sharedLibs.plugins.compose.compiler)
     alias(sharedLibs.plugins.aboutLibraries.plugin)
     // TODO active when you want to use google-services for notifications (needs google-services.json)
-    // alias(libs.plugins.google.services)
+    // alias(sharedLibs.plugins.google.services)
 }
 
 configureJava(sharedLibs.versions.targetJvm)
@@ -157,8 +157,7 @@ kotlin {
                 implementation(sharedLibs.androidx.activity.compose)
                 implementation(libs.logback.android)
                 implementation(libs.slf4j.api)
-                implementation(project.dependencies.platform(libs.firebase.bom))
-                implementation(libs.firebase.messaging.ktx)
+                implementation(sharedLibs.firebase.messaging)
             }
         }
         val webMain by getting {

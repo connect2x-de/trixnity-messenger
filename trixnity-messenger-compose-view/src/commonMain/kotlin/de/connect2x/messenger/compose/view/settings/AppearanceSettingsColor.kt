@@ -14,8 +14,6 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,7 +27,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -85,12 +82,15 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
             is IconButtonStyle.Default -> primaryIconButtonStyle.copy(
                 colors = primaryIconButtonStyle.colors.copy(contentColor = currentColor)
             )
+
             is IconButtonStyle.Filled -> primaryIconButtonStyle.copy(
                 colors = primaryIconButtonStyle.colors.copy(containerColor = currentColor)
             )
+
             is IconButtonStyle.FilledTonal -> primaryIconButtonStyle.copy(
                 colors = primaryIconButtonStyle.colors.copy(containerColor = currentColor)
             )
+
             is IconButtonStyle.Outlined -> primaryIconButtonStyle.copy(
                 colors = primaryIconButtonStyle.colors.copy(contentColor = currentColor)
             )
@@ -99,7 +99,6 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
         MoreOptions({
             Text(
                 text = "${text}: ",
-                fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleSmall,
             )
             Spacer(Modifier.width(5.dp))
@@ -121,14 +120,12 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                     steps = 359,
                     modifier = Modifier.weight(1F),
                     style = MaterialTheme.components.slider.let {
-                        it.copy(colors = it.colors.copy(
-                            thumbColor = currentColor
-                        ))
+                        it.copy(colors = it.colors.copy(thumbColor = currentColor))
                     },
                     track = { HueSliderTrack(defaultAccentColor) },
                 )
                 Spacer(Modifier.width(10.dp))
-                Tooltip({Text(i18n.appearanceAccentColorDefault())}) {
+                Tooltip({ Text(i18n.appearanceAccentColorDefault()) }) {
                     ThemedIconButton(
                         style = accentIconButtonStyle,
                         onClick = {
@@ -153,8 +150,9 @@ fun HueSliderTrack(
     modifier: Modifier = Modifier.height(4.dp),
 ) {
     var height by remember { mutableStateOf(0) }
-    Canvas(modifier = modifier.fillMaxWidth()
-        .onGloballyPositioned { height = it.size.height }) {
+    Canvas(
+        modifier = modifier.fillMaxWidth()
+            .onGloballyPositioned { height = it.size.height }) {
         val isRtl = layoutDirection == LayoutDirection.Rtl
         val sliderLeft = Offset(0F, center.y)
         val sliderRight = Offset(size.width, center.y)
