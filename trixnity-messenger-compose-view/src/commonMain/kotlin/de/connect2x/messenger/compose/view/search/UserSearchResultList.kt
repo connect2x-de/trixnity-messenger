@@ -52,7 +52,14 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
         with(scope) {
             when (state) {
                 SearchResultState.Loading ->
-                    item(key = "users-loading") { LoadingSpinner() }
+                    item(key = "users-loading") {
+                        Box(
+                            Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 20.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            LoadingSpinner()
+                        }
+                    }
 
                 SearchResultState.Placeholder ->
                     item(key = "users-placeholder") {
