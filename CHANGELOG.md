@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Search results on smaller screens can now be scrolled
 - Show more appropriate message when user removes their name
 - Copy messages now works on iOS
 - Fix copy of recovery key in wizard step on iOS

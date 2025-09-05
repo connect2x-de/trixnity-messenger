@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.search
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -8,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,8 +55,9 @@ class UserSearchFieldViewImpl : UserSearchFieldView {
             value = userSearchTerm,
             onValueChange = { userSearchTerm = it },
             modifier = Modifier
+                .background(MaterialTheme.colorScheme.surface)
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 20.dp)
+                .padding(start = 10.dp, end = 10.dp, top = 20.dp)
                 .focusRequester(focusRequester),
             leadingIcon = { Icon(Icons.Default.Search, i18n.userSearchSearchPeople()) },
             trailingIcon = {
