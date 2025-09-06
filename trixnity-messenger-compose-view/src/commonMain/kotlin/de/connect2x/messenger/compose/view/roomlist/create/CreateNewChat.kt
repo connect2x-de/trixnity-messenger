@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.TravelExplore
@@ -28,7 +29,9 @@ import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
+import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
+import de.connect2x.messenger.compose.view.search.UserSearchResultListView
+import de.connect2x.messenger.compose.view.search.collectUserSearchResult
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.AvatarContentIcon
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
@@ -58,6 +61,9 @@ class CreateNewChatViewImpl : CreateNewChatView {
         val isCreating by createNewChatViewModel.isCreating.collectAsState()
         val error = createNewChatViewModel.error.collectAsState().value
         val errorDetails = createNewChatViewModel.errorDetails.collectAsState().value
+        val searchUsersView = DI.get<SearchUsersView>()
+        val userSearchResultView = DI.get<UserSearchResultListView>()
+        val searchUsersResults = collectUserSearchResult(createNewChatViewModel.createNewRoomViewModel.searchHandler)
 
         Box(Modifier.fillMaxSize()) {
             Box {
@@ -89,18 +95,27 @@ class CreateNewChatViewImpl : CreateNewChatView {
 
                 Column {
                     Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
-                    if (isCreating) {
-                        ThemedProgressIndicator(
-                            Modifier.fillMaxWidth(),
-                            MaterialTheme.components.linearProgressIndicator
+                    LazyColumn {
+                        item(key = "CreatingIndicator") {
+                            if (isCreating) {
+                                ThemedProgressIndicator(
+                                    Modifier.fillMaxWidth(),
+                                    MaterialTheme.components.linearProgressIndicator
+                                )
+                            }
+                        }
+                        item(key = "AddOrSearchGroup") {
+                            AddOrSearchGroup(createNewChatViewModel)
+                            HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
+                        }
+                        searchUsersView.create(
+                            createNewChatViewModel.createNewRoomViewModel,
+                            createNewChatViewModel::onUserClick,
+                            searchUsersResults,
+                            userSearchResultView,
+                            this,
                         )
                     }
-                    AddOrSearchGroup(createNewChatViewModel)
-                    HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
-                    SearchUsers(
-                        createNewChatViewModel.createNewRoomViewModel,
-                        onUserClick = createNewChatViewModel::onUserClick
-                    )
                 }
             }
         }

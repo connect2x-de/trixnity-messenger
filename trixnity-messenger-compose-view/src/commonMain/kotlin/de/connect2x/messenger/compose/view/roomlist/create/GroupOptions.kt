@@ -11,11 +11,13 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -34,17 +36,20 @@ import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventConten
 
 interface CreateGroupOptionsView {
     @Composable
-    fun create(createNewGroupViewModel: CreateNewGroupViewModel)
+    fun create(createNewGroupViewModel: CreateNewGroupViewModel, historyExpanded: MutableState<Boolean>)
 }
 
 @Composable
-fun CreateGroupOptions(createNewGroupViewModel: CreateNewGroupViewModel) {
-    DI.get<CreateGroupOptionsView>().create(createNewGroupViewModel)
+fun CreateGroupOptions(
+    createNewGroupViewModel: CreateNewGroupViewModel,
+    historyExpanded: MutableState<Boolean> = remember { mutableStateOf(false) }
+) {
+    DI.get<CreateGroupOptionsView>().create(createNewGroupViewModel, historyExpanded)
 }
 
 class CreateGroupOptionsViewImpl : CreateGroupOptionsView {
     @Composable
-    override fun create(createNewGroupViewModel: CreateNewGroupViewModel) {
+    override fun create(createNewGroupViewModel: CreateNewGroupViewModel, historyExpanded: MutableState<Boolean>) {
         val isPrivate by createNewGroupViewModel.isPrivate.collectAsState()
         val isEncrypted by createNewGroupViewModel.isEncrypted.collectAsState()
         val historyVisibility by createNewGroupViewModel.optionalRoomHistoryVisibility.collectAsState()
@@ -118,7 +123,8 @@ class CreateGroupOptionsViewImpl : CreateGroupOptionsView {
                             "${i18n.chatHistoryVisibility()}: ${
                                 historyVisibility?.getStateName(i18n)
                                     ?: HistoryVisibilityEventContent.HistoryVisibility.SHARED.getStateName(i18n)
-                            }"
+                            }",
+                            expanded = historyExpanded
                         ) {
                             for (visibility in createNewGroupViewModel.availableRoomHistoryVisibilities) {
                                 CreateGroupVisibilityOption(visibility, createNewGroupViewModel)
