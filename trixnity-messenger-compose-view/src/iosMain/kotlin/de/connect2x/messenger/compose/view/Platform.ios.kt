@@ -25,35 +25,27 @@ import kotlin.time.Duration
 actual fun VerticalScrollbar(
     modifier: Modifier,
     scrollState: ScrollState,
-){
-    // TODO
-}
+) = Unit
 
 @Composable
 actual fun VerticalScrollbar(
     modifier: Modifier,
     lazyListState: LazyListState,
     reverseLayout: Boolean,
-) {
-    // TODO
-}
+) = Unit
 
 @Composable
 actual fun HorizontalScrollbar(
     modifier: Modifier,
     scrollState: ScrollState,
-) {
-    // TODO
-}
+) = Unit
 
 @Composable
 actual fun HorizontalScrollbar(
     modifier: Modifier,
     lazyListState: LazyListState,
     reverseLayout: Boolean,
-) {
-    // TODO
-}
+) = Unit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -9,7 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add support for edge-to-edge on Android 36 and above
+- Support for edge-to-edge on Android 36 and above
+- Button to open app settings on iOS
+- Info text when notification permissions are disabled (iOS)
+- Network Monitor for network availability check (iOS)
 - Highlight mode of focused elements for better a11y
 
 ### Changed
@@ -24,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Search results on smaller screens can now be scrolled
+- Call openURL on main queue to prevent call on background thread (iOS)
 - Show more appropriate message when user removes their name
 - Copy messages now works on iOS
 - Fix copy of recovery key in wizard step on iOS
