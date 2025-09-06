@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.8.3
+
+### Added
+
 - Support for edge-to-edge on Android 36 and above
 - Button to open app settings on iOS
 - Info text when notification permissions are disabled (iOS)
@@ -19,10 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Upgraded Sysnotify to 2.1.0
 - Upgraded Gradle to 9.0.0
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -35,8 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Set `event_id_only` format when setting pusher on iOS
 - Reduce unnecessary timeline rerenders
 - Fix layout inspector usage on Android
-
-### Security
 
 ## 3.8.2
 
