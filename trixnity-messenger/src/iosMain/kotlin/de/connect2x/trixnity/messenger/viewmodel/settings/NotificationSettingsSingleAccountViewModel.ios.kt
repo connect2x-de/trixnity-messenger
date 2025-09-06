@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -16,6 +15,7 @@ import platform.UserNotifications.UNAuthorizationStatusAuthorized
 import platform.UserNotifications.UNAuthorizationStatusEphemeral
 import platform.UserNotifications.UNAuthorizationStatusProvisional
 import platform.UserNotifications.UNUserNotificationCenter
+import kotlin.time.Duration.Companion.seconds
 
 actual interface NotificationSettingsSingleAccountViewModel : NotificationSettingsSingleAccountViewModelBase {
     val notificationPermissionsNecessary: StateFlow<Boolean>
@@ -42,10 +42,11 @@ class NotificationSettingsSingleAccountViewModelImpl(
                         UNAuthorizationStatusAuthorized,
                         UNAuthorizationStatusProvisional,
                         UNAuthorizationStatusEphemeral -> notificationPermissionGranted.value = true
+
                         else -> notificationPermissionGranted.value = false
                     }
                 }
-                delay(15000)
+                delay(15.seconds)
             }
         }
     }

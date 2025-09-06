@@ -16,9 +16,12 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModel
+import io.github.oshai.kotlinlogging.KotlinLogging
 import platform.Foundation.NSURL
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
+
+private val log = KotlinLogging.logger { }
 
 @Composable
 fun DeviceSettingsButton(enabled: Boolean) {
@@ -30,6 +33,8 @@ fun DeviceSettingsButton(enabled: Boolean) {
             val appSettingsUrl = NSURL(string = UIApplicationOpenSettingsURLString)
             if (UIApplication.sharedApplication().canOpenURL(appSettingsUrl)) {
                 UIApplication.sharedApplication().openURL(appSettingsUrl, emptyMap<Any?, Any>()) {}
+            } else {
+                log.warn { "Couldn't open $appSettingsUrl" }
             }
         }
     ) {
