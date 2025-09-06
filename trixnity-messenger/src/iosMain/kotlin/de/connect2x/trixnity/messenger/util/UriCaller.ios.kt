@@ -20,7 +20,7 @@ actual fun platformUriCallerModule(): Module = module {
             // openURL requires to be called on the main queue, because otherwise it will be called on a background
             // thread.
             dispatch_async(dispatch_get_main_queue()) {
-                UIApplication.sharedApplication.openURL(safeUri)
+                UIApplication.sharedApplication.openURL(safeUri, emptyMap<Any?, Any?>()) {}
             }
         }
     }
