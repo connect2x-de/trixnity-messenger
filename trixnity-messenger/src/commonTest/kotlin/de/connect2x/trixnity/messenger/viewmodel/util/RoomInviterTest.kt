@@ -54,7 +54,7 @@ class RoomInviterTest {
                 stateKey = me.full,
             )
         )
-        RoomInviter.getInviter(matrixClientMock, roomId) shouldBe inviter
+        RoomInviterImpl.getInviter(matrixClientMock, roomId) shouldBe inviter
     }
 
     @Test
@@ -71,6 +71,6 @@ class RoomInviterTest {
                 stateKey = me.full,
             )
         )
-        RoomInviter.getInviter(matrixClientMock, roomId) shouldBe null
+        RoomInviterImpl.getInviter(matrixClientMock, roomId) shouldBe null
     }
 }

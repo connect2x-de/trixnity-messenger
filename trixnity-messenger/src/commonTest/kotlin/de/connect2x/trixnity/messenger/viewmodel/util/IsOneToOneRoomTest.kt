@@ -88,7 +88,7 @@ class IsOneToOneRoomTest {
 
     @Test
     fun `no direct room - returns false`() = runTest {
-        val isOneToOneRoom = IsOneToOneRoom(matrixClientMock, roomId).first()
+        val isOneToOneRoom = IsOneToOneRoomImpl(matrixClientMock, roomId).first()
         isOneToOneRoom shouldBe false
     }
 
@@ -101,7 +101,7 @@ class IsOneToOneRoomTest {
             )
         )
         every { userServiceMock.getAll(roomId) } returns flowOf(mapOf())
-        val isOneToOneRoom = IsOneToOneRoom(matrixClientMock, roomId).first()
+        val isOneToOneRoom = IsOneToOneRoomImpl(matrixClientMock, roomId).first()
         isOneToOneRoom shouldBe false
     }
 
@@ -118,7 +118,7 @@ class IsOneToOneRoomTest {
                 usId to flowOf(us)
             )
         )
-        val isOneToOneRoom = IsOneToOneRoom(matrixClientMock, roomId).first()
+        val isOneToOneRoom = IsOneToOneRoomImpl(matrixClientMock, roomId).first()
         isOneToOneRoom shouldBe false
     }
 
@@ -136,7 +136,7 @@ class IsOneToOneRoomTest {
                 aliceId to flowOf(alice)
             )
         )
-        val isOneToOneRoom = IsOneToOneRoom(matrixClientMock, roomId).first()
+        val isOneToOneRoom = IsOneToOneRoomImpl(matrixClientMock, roomId).first()
         isOneToOneRoom shouldBe true
     }
 
@@ -170,7 +170,7 @@ class IsOneToOneRoomTest {
         )
         every { userServiceMock.getAll(roomId) } returns roomUsers
 
-        val isOneToOneRoom = IsOneToOneRoom(matrixClientMock, roomId)
+        val isOneToOneRoom = IsOneToOneRoomImpl(matrixClientMock, roomId)
         isOneToOneRoom.first() shouldBe true
 
         roomUsers.value += bobId to flowOf(bob)
@@ -205,7 +205,7 @@ class IsOneToOneRoomTest {
                 )
             )
         )
-        val isOneToOneRoom = IsOneToOneRoom(matrixClientMock, roomId).first()
+        val isOneToOneRoom = IsOneToOneRoomImpl(matrixClientMock, roomId).first()
         isOneToOneRoom shouldBe true
     }
 
@@ -224,7 +224,7 @@ class IsOneToOneRoomTest {
                 bobId to flowOf(bob)
             )
         )
-        val isOneToOneRoom = IsOneToOneRoom(matrixClientMock, roomId).first()
+        val isOneToOneRoom = IsOneToOneRoomImpl(matrixClientMock, roomId).first()
         isOneToOneRoom shouldBe false
     }
 }

@@ -140,7 +140,7 @@ class RoomPresenceTest {
         isDirect = false
         members = listOf(aliceId)
         presences = mapOf(aliceId to Presence.OFFLINE)
-        RoomPresence(matrixClientMock, room).first() shouldBe null
+        RoomPresenceImpl(matrixClientMock, room).first() shouldBe null
     }
 
     @Test
@@ -153,7 +153,7 @@ class RoomPresenceTest {
         isDirect = true
         members = listOf()
         presences = mapOf(aliceId to Presence.OFFLINE)
-        RoomPresence(matrixClientMock, room).first() shouldBe null
+        RoomPresenceImpl(matrixClientMock, room).first() shouldBe null
     }
 
     @Test
@@ -167,7 +167,7 @@ class RoomPresenceTest {
         isDirect = true
         members = listOf(aliceId)
         presences = mapOf(aliceId to Presence.OFFLINE)
-        RoomPresence(matrixClientMock, room).first() shouldBe Presence.OFFLINE
+        RoomPresenceImpl(matrixClientMock, room).first() shouldBe Presence.OFFLINE
     }
 
     @Test
@@ -182,7 +182,7 @@ class RoomPresenceTest {
         isDirect = true
         members = listOf(aliceId, bobId)
         presences = mapOf(aliceId to Presence.ONLINE, bobId to Presence.OFFLINE)
-        RoomPresence(matrixClientMock, room).first() shouldBe Presence.ONLINE
+        RoomPresenceImpl(matrixClientMock, room).first() shouldBe Presence.ONLINE
     }
 
     @Test
@@ -197,7 +197,7 @@ class RoomPresenceTest {
         isDirect = true
         members = listOf(aliceId, bobId)
         presences = mapOf(aliceId to Presence.OFFLINE, bobId to Presence.UNAVAILABLE)
-        RoomPresence(matrixClientMock, room).first() shouldBe Presence.UNAVAILABLE
+        RoomPresenceImpl(matrixClientMock, room).first() shouldBe Presence.UNAVAILABLE
     }
 
     @Test
@@ -212,7 +212,7 @@ class RoomPresenceTest {
         isDirect = true
         members = listOf(aliceId, bobId)
         presences = mapOf(aliceId to Presence.OFFLINE, bobId to null)
-        RoomPresence(matrixClientMock, room).first() shouldBe Presence.OFFLINE
+        RoomPresenceImpl(matrixClientMock, room).first() shouldBe Presence.OFFLINE
     }
 
     @Test
@@ -242,7 +242,7 @@ class RoomPresenceTest {
         isDirect = true
         members = listOf(aliceId, bobId, carol)
         presences = mapOf(aliceId to Presence.OFFLINE, bobId to Presence.OFFLINE, carol to Presence.ONLINE)
-        RoomPresence(matrixClientMock, room).first() shouldBe Presence.OFFLINE
+        RoomPresenceImpl(matrixClientMock, room).first() shouldBe Presence.OFFLINE
     }
 
     @Test
@@ -258,6 +258,6 @@ class RoomPresenceTest {
         isDirect = true
         members = listOf(aliceId, bobId, usId)
         presences = mapOf(aliceId to Presence.OFFLINE, bobId to Presence.OFFLINE, usId to Presence.ONLINE)
-        RoomPresence(matrixClientMock, room).first() shouldBe Presence.OFFLINE
+        RoomPresenceImpl(matrixClientMock, room).first() shouldBe Presence.OFFLINE
     }
 }
