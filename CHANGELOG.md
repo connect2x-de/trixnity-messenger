@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix closing profiles not working sometimes and leading to app crash
+
 ### Security
 
 ## 3.8.3

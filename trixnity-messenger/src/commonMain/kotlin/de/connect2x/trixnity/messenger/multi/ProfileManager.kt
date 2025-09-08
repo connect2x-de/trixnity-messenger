@@ -51,9 +51,11 @@ class ProfileManagerImpl(
         }.stateIn(coroutineScope, SharingStarted.Eagerly, null)
 
     override suspend fun closeProfile() {
-        log.debug { "close current profile ${activeProfile.value}" }
-        activeMatrixMessenger.value?.closeSuspending()
-        settingsHolder.update<MatrixMultiMessengerSettingsBase> { it.copy(activeProfile = null) }
+        withContext(NonCancellable) {
+            log.debug { "close current profile ${activeProfile.value}" }
+            activeMatrixMessenger.value?.close() // cannot use closeSuspending because we may be running in the same scope
+            settingsHolder.update<MatrixMultiMessengerSettingsBase> { it.copy(activeProfile = null) }
+        }
     }
 
     override suspend fun selectProfile(profile: String) {
