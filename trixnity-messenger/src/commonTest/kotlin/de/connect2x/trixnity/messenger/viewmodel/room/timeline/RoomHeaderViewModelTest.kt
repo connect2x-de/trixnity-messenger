@@ -238,7 +238,8 @@ class RoomHeaderViewModelTest {
     fun `react to changes in the user's trust level`() = runTest {
         val trustLevel = MutableStateFlow<UserTrustLevel>(UserTrustLevel.CrossSigned(verified = true))
         val directRoom = MutableStateFlow(mapOf(
-            otherUser to flowOf(otherRoomUser)
+            otherUser to flowOf(otherRoomUser),
+            me to flowOf(meRoomUser)
         ))
         room.update { it?.copy(isDirect = true) }
         every { userServiceMock.getAll(eq(roomId)) } returns directRoom
@@ -266,7 +267,8 @@ class RoomHeaderViewModelTest {
         room.update { it?.copy(isDirect = true) }
         every { userServiceMock.getAll(eq(roomId)) } returns flowOf(
             mapOf(
-                otherUser to flowOf(otherRoomUser)
+                otherUser to flowOf(otherRoomUser),
+                me to flowOf(meRoomUser)
             )
         )
         every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns trustLevel
@@ -303,7 +305,8 @@ class RoomHeaderViewModelTest {
             room.update { it?.copy(isDirect = true) }
             every { userServiceMock.getAll(eq(roomId)) } returns flowOf(
                 mapOf(
-                    otherUser to flowOf(otherRoomUser)
+                    otherUser to flowOf(otherRoomUser),
+                    me to flowOf(meRoomUser)
                 )
             )
             every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns flowOf(
@@ -342,13 +345,20 @@ class RoomHeaderViewModelTest {
         cut.canUnblockUser.value shouldBe false
 
         room.update { it?.copy(isDirect = true) }
-        directRoom.value = mapOf(otherUser to flowOf(otherRoomUser))
+        directRoom.value = mapOf(
+            otherUser to flowOf(otherRoomUser),
+            me to flowOf(meRoomUser)
+        )
         delay(100)
 
         cut.canBlockUser.value shouldBe true
         cut.canUnblockUser.value shouldBe false
 
-        directRoom.value = mapOf()
+        directRoom.value = mapOf(
+            otherUser to flowOf(otherRoomUser),
+            knockingUser to flowOf(knockingRoomUser),
+            me to flowOf(meRoomUser)
+        )
         delay(100)
 
         cut.canBlockUser.value shouldBe false
