@@ -18,12 +18,14 @@ private val log = KotlinLogging.logger { }
  *
  */
 interface RunInitialSync {
-    suspend operator fun invoke(matrixClient: MatrixClient): Boolean =
+    suspend operator fun invoke(matrixClient: MatrixClient): Boolean
+}
+
+object RunInitialSyncImpl : RunInitialSync {
+    override suspend operator fun invoke(matrixClient: MatrixClient): Boolean =
         matrixClient.syncOnce { true }
             .getOrElse {
                 log.error(it) { "cannot perform initial sync" }
                 false
             }
-
-    companion object : RunInitialSync
 }
