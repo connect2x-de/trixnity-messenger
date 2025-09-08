@@ -3,8 +3,8 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.IsOneToOneRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
@@ -15,10 +15,12 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -146,7 +148,6 @@ open class RoomHeaderViewModelImpl(
     private val onOpenRoomSettings: () -> Unit,
     private val onOpenUserProfile: (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomHeaderViewModel {
-    private val directRoom = get<DirectRoom>()
     private val roomPresence = get<RoomPresence>()
     private val roomName = get<RoomName>()
     private val roomTopic = get<RoomTopic>()
@@ -206,16 +207,20 @@ open class RoomHeaderViewModelImpl(
             )
         )
 
-    override val isDirectChat = matrixClient.room.getById(selectedRoomId).map { it?.isDirect == true }
+    override val isDirectChat: StateFlow<Boolean> = get<IsOneToOneRoom>()(matrixClient, selectedRoomId)
         .stateIn(coroutineScope, Eagerly, false)
 
-    private val singleDirectUser =
-        isDirectChat.flatMapLatest { isDirectChat ->
-            if (isDirectChat) directRoom.getUsers(matrixClient, selectedRoomId).map { userIds ->
-                if (userIds.size == 1) userIds.first() else null
-            }
-            else flowOf(null)
-        }.shareIn(coroutineScope, Eagerly, replay = 1)
+    private val singleDirectUser: SharedFlow<UserId?> = isDirectChat
+        .flatMapLatest { isDirectChat ->
+            if (isDirectChat) matrixClient.user.getAll(selectedRoomId)
+                .map { users ->
+                    val usersWithoutMe = (users.keys - matrixClient.userId)
+                    if (usersWithoutMe.size != 1) return@map null
+                    usersWithoutMe.first()
+                }
+            else emptyFlow()
+        }
+        .shareIn(coroutineScope, Eagerly, replay = 1)
 
     override val userTrustLevel: StateFlow<UserTrustLevel?> =
         singleDirectUser.flatMapLatest { singleDirectUser ->
@@ -237,7 +242,7 @@ open class RoomHeaderViewModelImpl(
             flowOf(users.count { user -> user.membership == Membership.KNOCK })
         }.stateIn(coroutineScope, WhileSubscribed(), 0)
 
-    override val usersTyping = matrixClient.room.usersTyping.map { map ->
+    override val usersTyping: StateFlow<String?> = matrixClient.room.usersTyping.map { map ->
         map[selectedRoomId]?.let { typingInfo(matrixClient, selectedRoomId, i18n, it) }
     }.stateIn(coroutineScope, WhileSubscribed(), null)
 

@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Usernames are not shown in groups which started as a direct chat
 - Fix closing profiles not working sometimes and leading to app crash
 
 ### Security
