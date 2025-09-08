@@ -23,6 +23,9 @@ struct Trixnity_Messenger_iOSApp: App {
                     @unknown default: break
                     }
                 }
+                .onOpenURL(perform: { url in
+                    StartMessengerKt.handleUrl(url: url.absoluteString)
+                })
                 .ignoresSafeArea(.all)
         }
     }

@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- SSO Login Redirect to App on iOS targets
+
 ### Security
 
 ## 3.8.3
