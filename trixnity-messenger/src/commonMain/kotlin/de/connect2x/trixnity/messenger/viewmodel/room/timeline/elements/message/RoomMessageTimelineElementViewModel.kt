@@ -55,7 +55,8 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         val size: String?
         val mimeType: String?
 
-        val loadMediaResult: StateFlow<ByteArray?>
+        val loadMediaResult: StateFlow<PlatformMedia?>
+        val loadMediaResultBytes: StateFlow<ByteArray?>
         val loadMediaProgress: StateFlow<FileTransferProgressElement?>
         val loadMediaError: StateFlow<String?>
         fun loadMedia()
@@ -76,6 +77,7 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
             val height: Int?
             val thumbnailWidth: Int?
             val thumbnailHeight: Int?
+
             @MSC2448
             val blurhash: String?
         }
