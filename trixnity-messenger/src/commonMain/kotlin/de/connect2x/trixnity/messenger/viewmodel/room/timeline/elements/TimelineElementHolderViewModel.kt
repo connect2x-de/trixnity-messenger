@@ -18,6 +18,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReaders
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.IsOneToOneRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -66,7 +67,7 @@ import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import net.folivo.trixnity.core.model.events.ClientEvent
 import net.folivo.trixnity.core.model.events.MessageEventContent
 import net.folivo.trixnity.core.model.events.RedactedEventContent
 import net.folivo.trixnity.core.model.events.m.ReactionEventContent
@@ -401,17 +402,17 @@ class TimelineElementHolderViewModelImpl(
             user.toUserInfoElement(coroutineScope, matrixClient, initials, senderUserId, config.maxMediaSizeInMemory)
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-    override val showSender: StateFlow<Boolean?> = when {
-        senderUserId == userId -> flowOf(false)
-        else -> matrixClient.room.getById(roomId)
-            .filterNotNull()
-            .map { it.isDirect }
-            .flatMapLatest { isDirect ->
-                if (isDirect) flowOf(false)
-                else previousSupportedTimelineEvent.map { timelineEvent ->
-                    timelineEvent?.sender != senderUserId || timelineEvent.event is StateEvent
-                }
-            }
+    private val isOneToOneRoom: StateFlow<Boolean> = get<IsOneToOneRoom>()(matrixClient, roomId)
+        .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+
+    private val previousEventIsStateOrNotBySender: StateFlow<Boolean> =
+        previousSupportedTimelineEvent.map { event ->
+            event?.sender != senderUserId || event.event is ClientEvent.RoomEvent.StateEvent
+        }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+
+    override val showSender: StateFlow<Boolean?> = combine(isOneToOneRoom, previousEventIsStateOrNotBySender)
+    { is1on1Room, previousEventIsStateOrNotBySender ->
+        !is1on1Room && previousEventIsStateOrNotBySender && !isByMe
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showBigGapBefore: StateFlow<Boolean?> =

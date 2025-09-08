@@ -14,6 +14,7 @@ import de.connect2x.sysnotify.withContext
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.compose.view.R
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
+import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSyncImpl
 import io.github.oshai.kotlinlogging.KotlinLogging
 import net.folivo.trixnity.core.model.UserId
 
@@ -58,7 +59,7 @@ class InitialSyncWorker(
 
             val matrixClient = matrixMessenger.di.get<MatrixClients>().value[userId] ?: return Result.failure()
             log.debug { "Initial sync for $userId" }
-            val success = RunInitialSync(matrixClient)
+            val success = RunInitialSyncImpl(matrixClient)
             log.debug { "Initial sync done: $success" }
 
             notificationHandler.close() // Close notification handler when work is done
