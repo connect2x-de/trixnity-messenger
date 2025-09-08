@@ -54,8 +54,7 @@ class RoomInviterTest {
                 stateKey = me.full,
             )
         )
-        val cut = roomInviter()
-        cut.getInviter(matrixClientMock, roomId) shouldBe inviter
+        RoomInviterImpl.getInviter(matrixClientMock, roomId) shouldBe inviter
     }
 
     @Test
@@ -72,9 +71,6 @@ class RoomInviterTest {
                 stateKey = me.full,
             )
         )
-        val cut = roomInviter()
-        cut.getInviter(matrixClientMock, roomId) shouldBe null
+        RoomInviterImpl.getInviter(matrixClientMock, roomId) shouldBe null
     }
-
-    private fun roomInviter() = RoomInviterImpl()
 }

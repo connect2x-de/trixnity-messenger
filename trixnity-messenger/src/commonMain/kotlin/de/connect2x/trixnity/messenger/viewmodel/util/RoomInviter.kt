@@ -18,7 +18,7 @@ interface RoomInviter {
     suspend fun getInviter(matrixClient: MatrixClient, roomId: RoomId): UserId?
 }
 
-class RoomInviterImpl : RoomInviter {
+object RoomInviterImpl : RoomInviter {
     override suspend fun getInviter(matrixClient: MatrixClient, roomId: RoomId): UserId? {
         return withTimeoutOrNull(3.seconds) {
             try {
