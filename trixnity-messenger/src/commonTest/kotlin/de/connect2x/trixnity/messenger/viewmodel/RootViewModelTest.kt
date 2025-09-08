@@ -91,8 +91,8 @@ class RootViewModelTest {
                                 viewModelContext: ViewModelContext,
                                 onAccountSelected: (UserId?) -> Unit,
                                 onUserSettingsSelected: () -> Unit,
-                                onUserProfileSelected: () -> Unit,
-                                onShowAppInfo: () -> Unit
+                                onShowAppInfo: () -> Unit,
+                                onShowProfile: () -> Unit
                             ): AccountViewModel = accountViewModelMock
                         }
                     }
@@ -107,7 +107,7 @@ class RootViewModelTest {
                                 onUserProfileSelected: () -> Unit,
                                 onOpenAppInfo: () -> Unit,
                                 onSendLogs: () -> Unit,
-                                onOpenAccounts: () -> Unit,
+                                onOpenAccountsOverview: () -> Unit,
                                 onAccountSelected: () -> Unit,
                                 onStartVerification: (UserId) -> Unit,
                                 onCloseRoom: () -> Unit,

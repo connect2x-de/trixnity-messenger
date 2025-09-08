@@ -5,22 +5,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
@@ -28,7 +25,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
@@ -36,91 +32,76 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
-import de.connect2x.trixnity.messenger.util.UserSearchHandler
-import kotlinx.coroutines.flow.map
 
 interface UserSearchResultListView {
-    @Composable
+
+    // this function is no @Composable as it is used inside a LazyListScope
     fun create(
-        userSearchHandler: UserSearchHandler,
-        shouldScroll: Boolean,
+        scope: LazyListScope,
+        state: SearchResultState,
         userClickReaction: (SearchUserElement) -> Unit,
     )
 }
 
-@Composable
-fun UserSearchResultList(
-    userSearchHandler: UserSearchHandler,
-    shouldScroll: Boolean,
-    userClickReaction: (SearchUserElement) -> Unit,
-) {
-    DI.get<UserSearchResultListView>().create(userSearchHandler, shouldScroll, userClickReaction)
-}
-
 class UserSearchResultListViewImpl : UserSearchResultListView {
-    @Composable
     override fun create(
-        userSearchHandler: UserSearchHandler,
-        shouldScroll: Boolean,
+        scope: LazyListScope,
+        state: SearchResultState,
         userClickReaction: (SearchUserElement) -> Unit,
     ) {
-        val i18n = DI.get<I18nView>()
-        val users = userSearchHandler.foundUsers.collectAsState().value
-        val waitForResults = userSearchHandler.waitForUserResults.collectAsState().value
-        val searchWasApplied =
-            remember { userSearchHandler.searchTerm.map { it.text.isNotBlank() } }.collectAsState(false).value
-
-        val scroll = rememberScrollState()
-        val modifier = remember(shouldScroll) {
-            if (shouldScroll) {
-                Modifier.verticalScroll(scroll)
-            } else {
-                Modifier
-            }
-        }
-
-
-        if (waitForResults) {
-            LoadingSpinner()
-        } else {
-            Box {
-                Column(modifier) {
-                    if (users.isEmpty()) {
+        with(scope) {
+            when (state) {
+                SearchResultState.Loading ->
+                    item(key = "users-loading") {
                         Box(
-                            Modifier.fillMaxSize().padding(horizontal = 10.dp),
+                            Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 20.dp),
                             contentAlignment = Alignment.Center,
                         ) {
-                            if (searchWasApplied) {
+                            LoadingSpinner()
+                        }
+                    }
+
+                SearchResultState.Placeholder ->
+                    item(key = "users-placeholder") {
+                        val i18n = DI.get<I18nView>()
+                        Box(
+                            Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 20.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = i18n.userSearchSearchPeople(),
+                                fontStyle = FontStyle.Italic,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    }
+
+                is SearchResultState.Results -> {
+                    if (state.users.isEmpty()) {
+                        item(key = "users-notfound") {
+                            val i18n = DI.get<I18nView>()
+                            Box(
+                                Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 20.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
                                 Text(
                                     text = i18n.userSearchNotFound(),
                                     fontStyle = FontStyle.Italic,
                                     textAlign = TextAlign.Center,
                                 )
-                            } else {
-                                Text(
-                                    text = i18n.userSearchSearchPeople(),
-                                    fontStyle = FontStyle.Italic,
-                                    textAlign = TextAlign.Center,
-                                )
                             }
                         }
-                    }
-                    users.map { user ->
-                        key(user.userId) {
+                    } else {
+                        items(state.users, key = { it.userId.toString() }) { user ->
                             UserElement(user, onClick = { userClickReaction(user) })
                         }
                     }
-                }
-                if (shouldScroll) {
-                    VerticalScrollbar(
-                        Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                        scroll,
-                    )
                 }
             }
         }
     }
 }
+
 
 @Composable
 private fun UserElement(

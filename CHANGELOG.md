@@ -17,11 +17,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 3.8.3
+
+### Added
+
+- Support for edge-to-edge on Android 36 and above
+- Button to open app settings on iOS
+- Info text when notification permissions are disabled (iOS)
+- Network Monitor for network availability check (iOS)
+- Highlight mode of focused elements for better a11y
+
+### Changed
+
+- Upgraded Sysnotify to 2.1.0
+- Upgraded Gradle to 9.0.0
+
+### Fixed
+
+- Search results on smaller screens can now be scrolled
+- Call openURL on main queue to prevent call on background thread (iOS)
+- Show more appropriate message when user removes their name
+- Copy messages now works on iOS
+- Fix copy of recovery key in wizard step on iOS
+- Translations on iOS show English when OS has configured German locale
+- Set `event_id_only` format when setting pusher on iOS
 - Reduce unnecessary timeline rerenders
 - Fix layout inspector usage on Android
 - Usernames are not shown in groups which started as a direct chat
-
-### Security
 
 ## 3.8.2
 

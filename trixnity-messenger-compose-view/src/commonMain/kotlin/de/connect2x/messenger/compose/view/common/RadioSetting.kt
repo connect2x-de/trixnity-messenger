@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.common
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -14,18 +15,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
+import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
 
 internal data class RadioSettingOption(
     val text: String,
     val explanation: String? = null,
     val enabled: Boolean = true,
-    val style : TextStyle? = null
+    val style: TextStyle? = null
 )
 
 @Composable
@@ -66,31 +73,56 @@ internal fun <T> ColumnScope.RadioSetting(
 ) {
     MoreOptions(title = title, icon = icon, enabled = enabled) {
         for ((key, option) in options) {
-            val (optionText, optionExplanation, optionEnabled, optionStyle) = option
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(10.dp).clickable { set(key) }
-            ) {
-                if (optionExplanation != null) {
-                    HelpIcon(optionExplanation)
-                    Spacer(modifier = Modifier.width(10.dp))
-                } else Spacer(modifier = Modifier.width(20.dp))
-                Text(
-                    text = optionText,
-                    style = optionStyle ?: LocalTextStyle.current,
-                    modifier = Modifier.weight(1.0f, fill = true)
-                )
-                RadioButton(
-                    selected = key == value,
-                    enabled = enabled && optionEnabled,
-                    onClick = { set(key) },
-                )
-            }
+            RadioSettingOption(option, key, value, set, enabled)
         }
         if (additionalContent != null) {
             Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp)) {
                 additionalContent()
             }
         }
+    }
+}
+
+@Composable
+private fun <T> RadioSettingOption(
+    option: RadioSettingOption,
+    key: T,
+    value: T,
+    set: (T) -> Unit,
+    enabled: Boolean,
+) {
+    val hasFocus = remember { mutableStateOf(false) }
+    val focusedBorder =
+        if (IsFocusHighlighting.current && hasFocus.value) {
+            Modifier.border(
+                width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+        } else Modifier
+
+    val (optionText, optionExplanation, optionEnabled, optionStyle) = option
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(10.dp)
+            .onFocusChanged { hasFocus.value = it.hasFocus }
+            .then(focusedBorder)
+            .clickable { set(key) }
+            .buttonPointerModifier(enabled)
+    ) {
+        if (optionExplanation != null) {
+            HelpIcon(optionExplanation)
+            Spacer(modifier = Modifier.width(10.dp))
+        } else Spacer(modifier = Modifier.width(20.dp))
+        Text(
+            text = optionText,
+            style = optionStyle ?: LocalTextStyle.current,
+            modifier = Modifier.weight(1.0f, fill = true)
+        )
+        RadioButton(
+            selected = key == value,
+            enabled = enabled && optionEnabled,
+            onClick = { set(key) },
+        )
     }
 }

@@ -20,7 +20,7 @@ private val emojiPattern: Regex =
     Regex("^($SURROGATE_PAIR|$SYMBOLICS|$KEYCAPS|$FLAGS|$DIACRITICS|$VAR_SELECTOR)+$")
 
 interface GraphemeIterableProvider {
-    operator fun invoke(string: String) : GraphemeIterable
+    operator fun invoke(string: String): GraphemeIterable
 }
 
 interface GraphemeIterable : Iterable<String> {
@@ -56,7 +56,6 @@ val String.graphCount: Int
 )
 inline fun String.forEachGraph(crossinline consumer: (graph: String, index: Int) -> Boolean) {
     PlatformGraphemeIterableProvider(this).forEachIndexed { index, graph ->
-        println(graph)
         if (!consumer(graph, index)) return
     }
 }

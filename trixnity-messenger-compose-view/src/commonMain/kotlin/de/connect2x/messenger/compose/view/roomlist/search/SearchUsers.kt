@@ -1,40 +1,38 @@
 package de.connect2x.messenger.compose.view.roomlist.search
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.runtime.Composable
-import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.get
-import de.connect2x.messenger.compose.view.search.SearchUsersLocally
+import androidx.compose.foundation.lazy.LazyListScope
+import de.connect2x.messenger.compose.view.search.SearchResultState
+import de.connect2x.messenger.compose.view.search.UserSearchResultListView
+import de.connect2x.messenger.compose.view.search.searchUsersLocally
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomViewModel
 
 interface SearchUsersView {
-    @Composable
+    // this function is no @Composable as it is used inside a LazyListScope
     fun create(
         createNewRoomViewModel: CreateNewRoomViewModel,
-        shouldScroll: Boolean,
         onUserClick: (Search.SearchUserElement) -> Unit,
+        userSearchResults: SearchResultState,
+        userSearchResultListView: UserSearchResultListView,
+        scope: LazyListScope
     )
 }
 
-@Composable
-fun SearchUsers(
-    createNewRoomViewModel: CreateNewRoomViewModel,
-    shouldScroll: Boolean = true,
-    onUserClick: (Search.SearchUserElement) -> Unit,
-) {
-    DI.get<SearchUsersView>().create(createNewRoomViewModel, shouldScroll, onUserClick)
-}
-
 class SearchUsersViewImpl : SearchUsersView {
-    @Composable
     override fun create(
         createNewRoomViewModel: CreateNewRoomViewModel,
-        shouldScroll: Boolean,
         onUserClick: (Search.SearchUserElement) -> Unit,
+        userSearchResults: SearchResultState,
+        userSearchResultListView: UserSearchResultListView,
+        scope: LazyListScope,
     ) {
-        Column {
-            SearchUsersLocally(createNewRoomViewModel.searchHandler, shouldScroll, onUserClick)
+        with(scope) {
+            searchUsersLocally(
+                createNewRoomViewModel.searchHandler,
+                onUserClick,
+                userSearchResults,
+                userSearchResultListView,
+            )
         }
     }
 }

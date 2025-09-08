@@ -1143,8 +1143,8 @@ class RoomListViewModelTest {
                                 viewModelContext: ViewModelContext,
                                 onAccountSelected: (UserId?) -> Unit,
                                 onUserSettingsSelected: () -> Unit,
-                                onUserProfileSelected: () -> Unit,
-                                onShowAppInfo: () -> Unit
+                                onShowAppInfo: () -> Unit,
+                                onShowProfile: () -> Unit
                             ): AccountViewModel {
                                 return object : AccountViewModel {
                                     override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)

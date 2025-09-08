@@ -4,10 +4,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -19,6 +22,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
@@ -27,13 +32,16 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.roomlist.search.SearchUsers
+import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
+import de.connect2x.messenger.compose.view.search.UserSearchResultListView
+import de.connect2x.messenger.compose.view.search.collectUserSearchResult
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
@@ -66,6 +74,9 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
         val isCreating by createNewGroupViewModel.isCreating.collectAsState()
         val optionalRoomName = createNewGroupViewModel.optionalRoomName.collectAsTextFieldValueState()
         val optionalRoomTopic = createNewGroupViewModel.optionalGroupTopic.collectAsTextFieldValueState()
+        val userSearchView = DI.get<SearchUsersView>()
+        val userSearchResultView = DI.get<UserSearchResultListView>()
+        val userSearchResults = collectUserSearchResult(createNewGroupViewModel.createNewRoomViewModel.searchHandler)
 
         val roomOptionsString = buildString {
             append(i18n.roomType())
@@ -117,31 +128,53 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             fontSize = 16.sp,
                         )
                     })
-
-                    if (isCreating) {
-                        ThemedProgressIndicator(
-                            Modifier.fillMaxWidth(),
-                            MaterialTheme.components.linearProgressIndicator
-                        )
-                    }
-
-                    Spacer(Modifier.height(15.dp))
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                    ) {
-                        MoreOptions(roomOptionsString, modifier = Modifier.padding(horizontal = 10.dp)) {
-                            CreateGroupOptions(createNewGroupViewModel)
+                    Box {
+                        if (isCreating) {
+                            ThemedProgressIndicator(
+                                Modifier.fillMaxWidth(),
+                                MaterialTheme.components.linearProgressIndicator
+                            )
                         }
+
                         Spacer(Modifier.height(15.dp))
-                        OptionalRoomNameInput(optionalRoomName)
-                        Spacer(Modifier.height(15.dp))
-                        OptionalRoomTopicInput(optionalRoomTopic)
-                        UsersInGroup(createNewGroupViewModel)
-                        SearchUsers(
-                            createNewGroupViewModel.createNewRoomViewModel,
-                            shouldScroll = true,
-                            createNewGroupViewModel::onUserClick,
-                        )
+                        val lazyListState = rememberLazyListState()
+                        val expandOptions = remember { mutableStateOf(false) }
+                        val expandHistoryOptions = remember { mutableStateOf(false) }
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            state = lazyListState
+                        ) {
+                            item(key = "MoreOptions") {
+                                Column {
+                                    MoreOptions(
+                                        roomOptionsString,
+                                        modifier = Modifier.padding(horizontal = 10.dp),
+                                        expanded = expandOptions
+                                    ) {
+                                        CreateGroupOptions(createNewGroupViewModel, expandHistoryOptions)
+                                    }
+                                    Spacer(Modifier.height(15.dp))
+                                }
+                            }
+                            item(key = "RoomNameInput") {
+                                OptionalRoomNameInput(optionalRoomName)
+                                Spacer(Modifier.height(15.dp))
+                            }
+                            item(key = "RoomTopic") {
+                                OptionalRoomTopicInput(optionalRoomTopic)
+                            }
+                            item(key = "UsersInGroup") {
+                                UsersInGroup(createNewGroupViewModel)
+                            }
+                            userSearchView.create(
+                                createNewGroupViewModel.createNewRoomViewModel,
+                                createNewGroupViewModel::onUserClick,
+                                userSearchResults,
+                                userSearchResultView,
+                                this
+                            )
+                        }
+                        VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), lazyListState, false)
                     }
                 }
             }

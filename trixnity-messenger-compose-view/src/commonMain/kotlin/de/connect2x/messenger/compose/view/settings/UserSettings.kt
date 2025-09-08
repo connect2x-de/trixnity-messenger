@@ -1,6 +1,8 @@
 package de.connect2x.messenger.compose.view.settings
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +21,7 @@ import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
@@ -27,13 +30,13 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModel
 
-// TODO TIM (showContactList)
 interface UserSettingsView {
     @Composable
     fun create(userSettingsViewModel: UserSettingsViewModel, mainViewModel: MainViewModel)
@@ -129,11 +132,13 @@ fun AccountSetupSettings(userSettingsViewModel: UserSettingsViewModel) {
 
 @Composable
 fun SettingItem(icon: @Composable () -> Unit, text: String, action: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
     Box(
         Modifier
-        .fillMaxWidth()
-        .clickable { action() }
-        .buttonPointerModifier()
+            .fillMaxWidth()
+            .clickable(interactionSource, LocalIndication.current) { action() }
+            .focusHighlighting(interactionSource)
+            .buttonPointerModifier()
     ) {
         Row(
             Modifier.padding(horizontal = 20.dp, vertical = 30.dp),
