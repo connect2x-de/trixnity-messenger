@@ -20,19 +20,19 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
  */
 fun interface IsOneToOneRoom {
     operator fun invoke(matrixClient: MatrixClient, roomId: RoomId): Flow<Boolean>
+}
 
-    companion object : IsOneToOneRoom {
-        @OptIn(ExperimentalCoroutinesApi::class)
-        override operator fun invoke(
-            matrixClient: MatrixClient,
-            roomId: RoomId
-        ): Flow<Boolean> = matrixClient.room.getById(roomId).flatMapLatest { room ->
-            if (room?.isDirect == true) matrixClient.user.getAll(roomId).flatMapLatest { users ->
-                if(users.isNotEmpty()) combine(users.values) { combinedUsers ->
-                    combinedUsers.filter { user -> user?.event?.content?.membership == Membership.JOIN }.size == 2
-                } else flowOf(false)
-            }
-            else flowOf(false)
+object IsOneToOneRoomImpl : IsOneToOneRoom {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override operator fun invoke(
+        matrixClient: MatrixClient,
+        roomId: RoomId
+    ): Flow<Boolean> = matrixClient.room.getById(roomId).flatMapLatest { room ->
+        if (room?.isDirect == true) matrixClient.user.getAll(roomId).flatMapLatest { users ->
+            if(users.isNotEmpty()) combine(users.values) { combinedUsers ->
+                combinedUsers.filter { user -> user?.event?.content?.membership == Membership.JOIN }.size == 2
+            } else flowOf(false)
         }
+        else flowOf(false)
     }
 }

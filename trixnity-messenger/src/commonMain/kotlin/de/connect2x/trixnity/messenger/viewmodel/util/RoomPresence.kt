@@ -20,45 +20,45 @@ fun interface RoomPresence {
         matrixClient: MatrixClient,
         roomId: RoomId,
     ): Flow<Presence?>
+}
 
-    companion object : RoomPresence {
-        @OptIn(ExperimentalCoroutinesApi::class)
-        override operator fun invoke(
-            matrixClient: MatrixClient,
-            roomId: RoomId,
-        ): Flow<Presence?> =
-            matrixClient.room.getById(roomId).map { room -> room?.isDirect == true }.flatMapLatest { isDirect ->
-                if (isDirect)
-                    matrixClient.user.getAll(roomId)
-                        .map { users -> users.keys - matrixClient.userId }
-                        .flatMapLatest { users ->
-                            if (users.isEmpty()) flowOf(emptyList())
-                            else combine(users.map { directUser ->
-                                matrixClient.user.getById(roomId, directUser)
-                                    .map { roomUser -> if (roomUser != null) roomUser.userId to roomUser.membership else null }
-                                    .distinctUntilChanged()
-                            }) { directUsersWithMembership ->
-                                directUsersWithMembership
-                                    .filterNotNull()
-                                    .filter { it.second == Membership.JOIN }
-                                    .map { it.first }
+object RoomPresenceImpl : RoomPresence {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override operator fun invoke(
+        matrixClient: MatrixClient,
+        roomId: RoomId,
+    ): Flow<Presence?> =
+        matrixClient.room.getById(roomId).map { room -> room?.isDirect == true }.flatMapLatest { isDirect ->
+            if (isDirect)
+                matrixClient.user.getAll(roomId)
+                    .map { users -> users.keys - matrixClient.userId }
+                    .flatMapLatest { users ->
+                        if (users.isEmpty()) flowOf(emptyList())
+                        else combine(users.map { directUser ->
+                            matrixClient.user.getById(roomId, directUser)
+                                .map { roomUser -> if (roomUser != null) roomUser.userId to roomUser.membership else null }
+                                .distinctUntilChanged()
+                        }) { directUsersWithMembership ->
+                            directUsersWithMembership
+                                .filterNotNull()
+                                .filter { it.second == Membership.JOIN }
+                                .map { it.first }
+                        }
+                    }
+                    .flatMapLatest { users ->
+                        if (users.isEmpty()) flowOf(null)
+                        else combine(users.map {
+                            matrixClient.user.getPresence(it)
+                                .map { userPresence -> userPresence?.presence }
+                                .distinctUntilChanged()
+                        }) { userPresences ->
+                            when {
+                                userPresences.any { it == Presence.ONLINE } -> Presence.ONLINE
+                                userPresences.any { it == Presence.UNAVAILABLE } -> Presence.UNAVAILABLE
+                                else -> Presence.OFFLINE
                             }
                         }
-                        .flatMapLatest { users ->
-                            if (users.isEmpty()) flowOf(null)
-                            else combine(users.map {
-                                matrixClient.user.getPresence(it)
-                                    .map { userPresence -> userPresence?.presence }
-                                    .distinctUntilChanged()
-                            }) { userPresences ->
-                                when {
-                                    userPresences.any { it == Presence.ONLINE } -> Presence.ONLINE
-                                    userPresences.any { it == Presence.UNAVAILABLE } -> Presence.UNAVAILABLE
-                                    else -> Presence.OFFLINE
-                                }
-                            }
-                        }
-                else flowOf(null)
-            }
-    }
+                    }
+            else flowOf(null)
+        }
 }
