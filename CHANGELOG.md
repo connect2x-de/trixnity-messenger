@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Usernames are not shown in groups which started as a direct chat
+
 ### Security
 
 ## 3.8.3
@@ -45,7 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Set `event_id_only` format when setting pusher on iOS
 - Reduce unnecessary timeline rerenders
 - Fix layout inspector usage on Android
-- Usernames are not shown in groups which started as a direct chat
 
 ## 3.8.2
 
