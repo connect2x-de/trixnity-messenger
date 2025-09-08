@@ -40,7 +40,7 @@ fun messengerConfiguration(
             }
         },
     )
-    multiProfile = false
+    multiProfile = true
 
     // MatrixMultiMessengerConfiguration flavors
     when (BuildConfig.flavor) {
@@ -59,8 +59,7 @@ fun messengerConfiguration(
     messengerConfiguration messengerConfig@{
         modulesFactories += { composeViewModule(this) }
         modulesFactories += { notificationsModule(this@messengerConfig, notificationsDebugEnabled) }
-        downloadsDisabled = BuildConfig.downloadsDisabled
-        // defaultHomeServer = "" // TODO your home server
+        defaultHomeServer = "demo.timmy-messenger.de"
     }
     customConfig()
 }
