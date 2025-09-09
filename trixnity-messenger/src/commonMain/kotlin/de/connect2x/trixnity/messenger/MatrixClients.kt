@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.MatrixClient
@@ -269,9 +268,7 @@ class MatrixClientsImpl(
         withContext(NonCancellable) {
             log.info { "delete account data on this machine" }
             val matrixClient = matrixClients.value[userId]
-            val coroutineScope = matrixClient?.di?.get<CoroutineScope>()
             matrixClient?.closeSuspending()
-            coroutineScope?.coroutineContext?.job?.join()
 
             settings.delete(userId)
             matrixClients.update { it - userId }
