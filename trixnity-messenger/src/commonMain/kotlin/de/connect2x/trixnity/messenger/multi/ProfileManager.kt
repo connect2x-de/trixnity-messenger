@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.encodeToJsonElement
@@ -35,7 +36,7 @@ class ProfileManagerImpl(
     private val settingsHolder: MatrixMultiMessengerSettingsHolder,
     private val matrixMessengerFactory: MatrixMessengerFactory,
     private val deleteProfileData: DeleteProfileData,
-    coroutineScope: CoroutineScope,
+    private val coroutineScope: CoroutineScope,
 ) : ProfileManager {
     override val profiles: StateFlow<Map<String, MatrixMultiMessengerProfileSettings>> =
         settingsHolder.map { it.base.profiles }
@@ -51,20 +52,24 @@ class ProfileManagerImpl(
         }.stateIn(coroutineScope, SharingStarted.Eagerly, null)
 
     override suspend fun closeProfile() {
-        withContext(NonCancellable) {
-            log.debug { "close current profile ${activeProfile.value}" }
-            activeMatrixMessenger.value?.close() // cannot use closeSuspending because we may be running in the same scope
-            settingsHolder.update<MatrixMultiMessengerSettingsBase> { it.copy(activeProfile = null) }
-        }
+        coroutineScope.launch { // ensure we are NOT running in a CoroutineScope that is any children of the MatrixMessenger
+            withContext(NonCancellable) {
+                log.debug { "close current profile ${activeProfile.value}" }
+                activeMatrixMessenger.value?.closeSuspending()
+                settingsHolder.update<MatrixMultiMessengerSettingsBase> { it.copy(activeProfile = null) }
+            }
+        }.join()
     }
 
     override suspend fun selectProfile(profile: String) {
-        log.debug { "select profile $profile" }
-        closeProfile()
-        settingsHolder.update<MatrixMultiMessengerSettingsBase> {
-            if (it.profiles.containsKey(profile)) it.copy(activeProfile = profile)
-            else it
-        }
+        coroutineScope.launch { // ensure we are NOT running in a CoroutineScope that is any children of the MatrixMessenger
+            log.debug { "select profile $profile" }
+            closeProfile()
+            settingsHolder.update<MatrixMultiMessengerSettingsBase> {
+                if (it.profiles.containsKey(profile)) it.copy(activeProfile = profile)
+                else it
+            }
+        }.join()
     }
 
     override suspend fun createProfile(settings: MatrixMultiMessengerProfileSettingsBase): String {
@@ -96,16 +101,18 @@ class ProfileManagerImpl(
     }
 
     override suspend fun deleteProfile(profile: String) {
-        log.debug { "delete profile $profile" }
-        if (activeProfile.value == profile) closeProfile()
-        withContext(NonCancellable) {
-            settingsHolder.update<MatrixMultiMessengerSettingsBase> { oldSettings ->
-                oldSettings.copy(
-                    profiles = oldSettings.profiles - profile,
-                    activeProfile = if (oldSettings.activeProfile == profile) null else oldSettings.activeProfile
-                )
+        coroutineScope.launch { // ensure we are NOT running in a CoroutineScope that is any children of the MatrixMessenger
+            log.debug { "delete profile $profile" }
+            if (activeProfile.value == profile) closeProfile()
+            withContext(NonCancellable) {
+                settingsHolder.update<MatrixMultiMessengerSettingsBase> { oldSettings ->
+                    oldSettings.copy(
+                        profiles = oldSettings.profiles - profile,
+                        activeProfile = if (oldSettings.activeProfile == profile) null else oldSettings.activeProfile
+                    )
+                }
+                deleteProfileData(profile)
             }
-            deleteProfileData(profile)
-        }
+        }.join()
     }
 }
