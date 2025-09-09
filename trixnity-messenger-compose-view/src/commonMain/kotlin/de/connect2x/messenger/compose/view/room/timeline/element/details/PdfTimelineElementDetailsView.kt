@@ -139,7 +139,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
     ) {
         val minZoom = 0.5f
         val maxZoom = 4f
-        val media = element.loadMediaResult.collectAsState().value
+        val media = element.loadMediaResultPlatformMedia.collectAsState().value
         val progress = element.loadMediaProgress.collectAsState().value
         val (error, setError) = remember { mutableStateOf<String?>(null) }
         val zoom = remember { mutableStateOf(1.0f) }

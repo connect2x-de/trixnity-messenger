@@ -99,8 +99,8 @@ fun ImageMessageBubblePreview() {
         override val description: String? = null
         override val size: String? = "465kb"
         override val mimeType: String? = "image/png"
-        override val loadMediaResult: StateFlow<PlatformMedia?> = MutableStateFlow(InMemoryPlatformMedia(flowOf(previewImageByteArray())))
-        override val loadMediaResultBytes: StateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
+        override val loadMediaResultPlatformMedia: StateFlow<PlatformMedia?> = MutableStateFlow(InMemoryPlatformMedia(flowOf(previewImageByteArray())))
+        override val loadMediaResult: StateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
         override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
         override val loadMediaError: StateFlow<String?> = MutableStateFlow(null)
         override fun loadMedia() {}
@@ -138,8 +138,8 @@ fun FileMessageBubblePreview() {
         override val description: String? = "A file."
         override val size: String? = "465kb"
         override val mimeType: String? = "text/plain"
-        override val loadMediaResult: StateFlow<PlatformMedia?> = MutableStateFlow(InMemoryPlatformMedia(flowOf("Kiwi".toByteArray())))
-        override val loadMediaResultBytes: StateFlow<ByteArray?> = MutableStateFlow("Kiwi".toByteArray())
+        override val loadMediaResultPlatformMedia: StateFlow<PlatformMedia?> = MutableStateFlow(InMemoryPlatformMedia(flowOf("Kiwi".toByteArray())))
+        override val loadMediaResult: StateFlow<ByteArray?> = MutableStateFlow("Kiwi".toByteArray())
         override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
         override val loadMediaError: StateFlow<String?> = MutableStateFlow(null)
         override fun loadMedia() {}
