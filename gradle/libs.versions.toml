@@ -1,6 +1,6 @@
 [versions]
 
-trixnityMessenger = "3.8.4"
+trixnityMessenger = "3.8.5"
 
 seskar = "4.15.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 

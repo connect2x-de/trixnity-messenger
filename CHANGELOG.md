@@ -17,11 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 3.8.4
+
+### Fixed
+
 - SSO Login Redirect to App on iOS targets
 - Usernames are not shown in groups which started as a direct chat
 - Fix closing profiles not working sometimes and leading to app crash
-
-### Security
 
 ## 3.8.3
 
