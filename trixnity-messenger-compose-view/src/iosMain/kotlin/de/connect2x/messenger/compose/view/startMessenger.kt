@@ -69,7 +69,7 @@ fun handleUrl(url: String) = multiMessengerHolder.get()?.defaultUrlHandler?.onUr
 fun startMessenger(
     lifecycle: LifecycleRegistry,
     configuration: MatrixMultiMessengerConfiguration.() -> Unit
-): UIViewController {
+): Pair<MatrixMultiMessenger, UIViewController> {
     log.info { "Starting iOS client" }
     val matrixMultiMessenger = runBlocking {
         multiMessengerHolder.getOrCreate {
@@ -79,7 +79,7 @@ fun startMessenger(
 
     log.debug { "Created MatrixMultiMessenger" }
 
-    return ComposeUIViewController(
+    return matrixMultiMessenger to ComposeUIViewController(
         configure = { enforceStrictPlistSanityCheck = false }
     ) {
         var isFocused by remember { mutableStateOf(false) }
