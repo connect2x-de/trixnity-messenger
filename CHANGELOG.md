@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - iOS: startMessenger() helper function now also returns MatrixMultiMessenger in order to bridge certain values to Swift
   code (like objects that can only be obtained via Koin)
-
 - Don't close DI, because garbage collector can handle it
+- Upgrade Trixnity to 4.22.3
 
 ### Deprecated
 
