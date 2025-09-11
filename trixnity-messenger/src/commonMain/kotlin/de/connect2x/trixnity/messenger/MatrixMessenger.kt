@@ -113,7 +113,6 @@ class MatrixMessengerImpl private constructor(
         if (di.getOrNull<MatrixMultiMessengerConfiguration>() == null) {
             di.get<MatrixMessengerConfiguration>().httpClientEngine?.close()
         }
-        di.close()
     }
 
     override suspend fun closeSuspending() {

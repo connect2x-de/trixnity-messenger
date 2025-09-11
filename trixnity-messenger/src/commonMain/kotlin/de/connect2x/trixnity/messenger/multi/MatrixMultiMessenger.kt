@@ -98,7 +98,6 @@ class MatrixMultiMessengerImpl private constructor(
         }
         activeMatrixMessenger.value?.close()
         di.get<MatrixMultiMessengerConfiguration>().httpClientEngine?.close()
-        di.close()
     }
 
     override suspend fun closeSuspending() {
