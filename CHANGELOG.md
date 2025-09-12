@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Technical: Support deep nested settings view
+
 ### Changed
 
 - iOS: startMessenger() helper function now also returns MatrixMultiMessenger in order to bridge certain values to Swift

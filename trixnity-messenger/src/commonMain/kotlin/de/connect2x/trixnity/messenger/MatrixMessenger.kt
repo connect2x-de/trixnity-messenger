@@ -109,7 +109,6 @@ class MatrixMessengerImpl private constructor(
         di.get<CoroutineScope>().apply {
             cancel("stopped MatrixMessenger")
         }
-        di.get<MatrixClients>().value.values.forEach { it.close() }
         if (di.getOrNull<MatrixMultiMessengerConfiguration>() == null) {
             di.get<MatrixMessengerConfiguration>().httpClientEngine?.close()
         }

@@ -225,7 +225,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             }
             single<MatrixClients> {
                 MatrixClientsImpl(get(), get(), get(), get(), get())
-            }
+            }.bind<AutoCloseable>()
 
             single<TimelineEventContentToString> { TimelineEventContentToStringImpl(get()) }
             single<Initials> { InitialsImpl(get()) }
