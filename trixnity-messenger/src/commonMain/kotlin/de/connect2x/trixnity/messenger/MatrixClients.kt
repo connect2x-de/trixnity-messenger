@@ -33,7 +33,7 @@ import net.folivo.trixnity.core.model.UserId
 private val log = KotlinLogging.logger { }
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
-interface MatrixClients : StateFlow<Map<UserId, MatrixClient>> {
+interface MatrixClients : StateFlow<Map<UserId, MatrixClient>>, AutoCloseable {
     suspend fun login(
         baseUrl: Url,
         identifier: IdentifierType,
@@ -179,12 +179,13 @@ class MatrixClientsImpl(
                     settings.value.base.accounts.map { it.value.base.displayColor }.filterNotNull().toSet()
                 )
             }
-        settings.update<MatrixMessengerAccountSettingsBase>(matrixClient.userId) {
-            MatrixMessengerAccountSettingsBase.withConfigDefaults(
+        settings.create(
+            userId = matrixClient.userId,
+            settings = MatrixMessengerAccountSettingsBase.withConfigDefaults(
                 displayColor = displayColor,
                 config = config
             )
-        }
+        )
         if (settings.value.base.accounts.size == 1) { // if first account, set as the active account
             settings.update<MatrixMessengerSettingsBase> { it.copy(selectedAccount = matrixClient.userId) }
         }
@@ -276,5 +277,9 @@ class MatrixClientsImpl(
         }
     }.onFailure {
         log.warn(it) { "failed to remove user data fro $userId" }
+    }
+
+    override fun close() {
+        value.values.forEach { it.close() }
     }
 }

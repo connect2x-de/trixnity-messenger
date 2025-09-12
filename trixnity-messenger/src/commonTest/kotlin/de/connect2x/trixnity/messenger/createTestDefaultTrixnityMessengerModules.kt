@@ -94,6 +94,10 @@ fun TestScope.createTestDefaultTrixnityMessengerModules(
             override suspend fun remove(userId: UserId): Result<Unit> {
                 TODO("Not yet implemented")
             }
+
+            override fun close() {
+                TODO("Not yet implemented")
+            }
         }
     }
     single<CreateRepositoriesModule> {
