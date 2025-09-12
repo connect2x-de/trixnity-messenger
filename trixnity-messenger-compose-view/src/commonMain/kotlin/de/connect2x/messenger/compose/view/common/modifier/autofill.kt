@@ -1,6 +1,6 @@
 @file:Suppress("DEPRECATION") // TODO: Remove once the androidx.compose.ui.autofill.ContentType API is public
 
-package de.connect2x.messenger.compose.view.common
+package de.connect2x.messenger.compose.view.common.modifier
 
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier

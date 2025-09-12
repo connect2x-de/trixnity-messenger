@@ -25,7 +25,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.common.modifier.autofill
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components

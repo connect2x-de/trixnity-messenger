@@ -14,8 +14,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.style.TextOverflow
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.SelectableText
+import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView

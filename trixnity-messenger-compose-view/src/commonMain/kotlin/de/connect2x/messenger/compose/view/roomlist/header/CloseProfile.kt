@@ -8,7 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components

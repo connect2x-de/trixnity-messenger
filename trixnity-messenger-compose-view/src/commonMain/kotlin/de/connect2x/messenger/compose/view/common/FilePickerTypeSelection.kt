@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.FilePickerType.ATTACHMENT_FILE
 import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_AND_VIDEO_FILE
 import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_FILE

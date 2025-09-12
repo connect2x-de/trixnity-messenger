@@ -31,7 +31,7 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.common.modifier.blockPointerInput
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -108,7 +108,8 @@ fun RowScope.NextButton(enabled: Boolean = true, text: String? = null, nextActio
     ThemedButton(
         style = MaterialTheme.components.primaryButton,
         onClick = nextAction,
-        modifier = Modifier.weight(1.0f, fill = false).width(IntrinsicSize.Max), // avoid wrapping button text if possibles
+        modifier = Modifier.weight(1.0f, fill = false)
+            .width(IntrinsicSize.Max), // avoid wrapping button text if possibles
         enabled = enabled,
     ) {
         Text(text ?: i18n.commonNext().capitalize(Locale.current))
@@ -121,7 +122,8 @@ fun RowScope.CloseModalButton(closeModalAction: () -> Unit, caption: String? = n
     ThemedButton(
         style = MaterialTheme.components.destructiveButton,
         onClick = { closeModalAction() },
-        modifier = Modifier.weight(1.0f, fill = false).width(IntrinsicSize.Max), // avoid wrapping button text if possible
+        modifier = Modifier.weight(1.0f, fill = false)
+            .width(IntrinsicSize.Max), // avoid wrapping button text if possible
     ) {
         Text(caption ?: i18n.commonClose())
     }
@@ -171,7 +173,7 @@ private fun MessengerModalHeader(onDismiss: (() -> Unit)?, title: String) {
             color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
         if (onDismiss != null)
-            Tooltip({ Text(i18n.commonCancel())}) {
+            Tooltip({ Text(i18n.commonCancel()) }) {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = onDismiss,

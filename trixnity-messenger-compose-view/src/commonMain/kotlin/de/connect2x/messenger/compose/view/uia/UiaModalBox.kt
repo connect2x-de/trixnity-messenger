@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.blockPointerInput
+import de.connect2x.messenger.compose.view.common.modifier.blockPointerInput
 import de.connect2x.messenger.compose.view.get
 
 

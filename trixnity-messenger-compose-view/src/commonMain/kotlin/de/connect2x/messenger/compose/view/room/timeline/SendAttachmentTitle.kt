@@ -17,7 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -51,7 +51,7 @@ class SendAttachmentTitleViewImpl : SendAttachmentTitleView {
             )
             Spacer(Modifier.fillMaxWidth().weight(1.0f, false))
             Tooltip(
-                tooltip = { Text(i18n.commonCancel())}
+                tooltip = { Text(i18n.commonCancel()) }
             ) {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,

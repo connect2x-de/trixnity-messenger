@@ -27,7 +27,6 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.messenger.compose.view.get
@@ -103,7 +102,7 @@ fun Header(
                     ) {
                         when (backButtonType) {
                             BACK ->
-                                Tooltip({ Text(i18n.commonBack()) },) {
+                                Tooltip({ Text(i18n.commonBack()) }) {
                                     ThemedIconButton(
                                         style = MaterialTheme.components.commonIconButton,
                                         onClick = onBack,
@@ -113,7 +112,7 @@ fun Header(
                                 }
 
                             CLOSE ->
-                                Tooltip({ Text(i18n.commonClose()) },) {
+                                Tooltip({ Text(i18n.commonClose()) }) {
                                     ThemedIconButton(
                                         style = MaterialTheme.components.commonIconButton,
                                         onClick = onBack,
