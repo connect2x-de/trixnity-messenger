@@ -22,7 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Desktop: show scrollbar in user search when creating a new chat
+- Focus highlighting for "Create Group" and "Search Group"
+- Desktop/Web: show scrollbar in user search when creating a new chat
 
 ### Security
 

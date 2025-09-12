@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.roomlist.create
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -30,6 +32,7 @@ import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MoreInfo
+import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
@@ -137,12 +140,19 @@ class CreateNewChatViewImpl : CreateNewChatView {
 fun AddOrSearchGroup(createNewChatViewModel: CreateNewChatViewModel) {
     val i18n = DI.get<I18nView>()
     val isCreating by createNewChatViewModel.isCreating.collectAsState()
+    val interactionSourceCreateGroup = remember { MutableInteractionSource() }
+    val interactionSourceSearchGroup = remember { MutableInteractionSource() }
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             Modifier.weight(1.0f, fill = true)
-                .clickable(enabled = !isCreating) { createNewChatViewModel.createGroup() }
+                .clickable(
+                    enabled = !isCreating,
+                    interactionSource = interactionSourceCreateGroup,
+                    indication = null
+                ) { createNewChatViewModel.createGroup() }
+                .focusHighlighting(interactionSource = interactionSourceCreateGroup)
                 .buttonPointerModifier()
         ) {
             Row(
@@ -159,7 +169,11 @@ fun AddOrSearchGroup(createNewChatViewModel: CreateNewChatViewModel) {
         Spacer(Modifier.size(20.dp))
         Box(
             Modifier.weight(1.0f, fill = true)
-                .clickable { createNewChatViewModel.searchGroup() }
+                .clickable(
+                    interactionSource = interactionSourceSearchGroup,
+                    indication = null
+                ) { createNewChatViewModel.searchGroup() }
+                .focusHighlighting(interactionSource = interactionSourceSearchGroup)
                 .buttonPointerModifier()
         ) {
             Row(
