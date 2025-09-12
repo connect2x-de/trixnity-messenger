@@ -120,7 +120,7 @@ class MatrixClientInitializationViewModelTest {
         }.koin
         val settings = di.get<MatrixMessengerSettingsHolder>()
         accounts.forEach { (account, accountSettings) ->
-            settings.update<MatrixMessengerAccountSettingsBase>(account) { accountSettings }
+            settings.create(account, accountSettings)
         }
         settings.update<MatrixMessengerSettingsBase>() { it.copy(selectedAccount = selectedAccount) }
         val viewModelContext = testViewModelContext(di)
