@@ -11,6 +11,8 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.uia.UiaSwitch
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.koin.core.Koin
 
 
@@ -36,6 +38,12 @@ val PlatformType.isDesktop
 val Platform = compositionLocalOf<PlatformType> { error("compositionLocal not defined") }
 val IsFocused = compositionLocalOf<Boolean> { error("compositionLocal not defined") }
 val DI = compositionLocalOf<Koin> { error("DI is not defined as compositionLocal") }
+
+/**
+ * Needs to be registered at an element that - at all times - consumes key events. Compose does only get keyboard events
+ * on focused elements, so it _has to_ be registered at the window level (Desktop, Web).
+ */
+val EscapeKeyPressed = compositionLocalOf<Flow<Unit>> { flowOf() }
 
 interface ClientView {
     @Composable

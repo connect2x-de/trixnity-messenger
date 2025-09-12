@@ -14,6 +14,7 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
@@ -23,6 +24,7 @@ import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.EscapeKeyPressed
 import de.connect2x.messenger.compose.view.common.modifier.tooltipAnchorSemantics
 import de.connect2x.messenger.compose.view.common.modifier.tooltipGestures
 import de.connect2x.messenger.compose.view.get
@@ -35,23 +37,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
-
-/**
- * Needs to be registered at an element that - at all times - consumes key events. Compose does only get keyboard events
- * on focused elements, so it _has to_ be registered at the window level (Desktop, Web).
- */
-object TooltipKeyboardObserver {
-    private val listeners = mutableListOf<() -> Unit>()
-
-    fun registerEscapeListener(listener: () -> Unit): () -> Unit {
-        listeners.add(listener)
-        return { listeners.remove(listener) }
-    }
-
-    fun triggerEscapeKeyPressed() {
-        listeners.forEach { it() }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,7 +85,12 @@ fun Tooltip(
         }
     }
 
-    TooltipKeyboardObserver.registerEscapeListener { hideTooltip() }
+    val escapeKeyPressed = EscapeKeyPressed.current
+    LaunchedEffect(Unit) {
+        escapeKeyPressed.collect {
+            hideTooltip()
+        }
+    }
 
     TooltipBox(
         modifier = Modifier

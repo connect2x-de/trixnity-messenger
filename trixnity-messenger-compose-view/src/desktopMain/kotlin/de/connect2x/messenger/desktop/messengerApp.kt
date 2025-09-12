@@ -27,10 +27,10 @@ import com.arkivanov.essenty.lifecycle.pause
 import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.EscapeKeyPressed
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
-import de.connect2x.messenger.compose.view.common.TooltipKeyboardObserver
 import de.connect2x.messenger.compose.view.notifications.Notifications
 import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
@@ -45,6 +45,7 @@ import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.defaultDragAndDropHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import okio.FileSystem
 import java.awt.Frame
@@ -71,6 +72,7 @@ fun CoroutineScope.messengerApp(
             height = min(1000.dp, height.dp)
         )
         var windowIsFocused by remember { mutableStateOf(false) }
+        val escapeKeyPressed = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
         Window(
             onCloseRequest = ::exitApplication,
@@ -79,7 +81,7 @@ fun CoroutineScope.messengerApp(
             state = windowState,
             onPreviewKeyEvent = { event ->
                 if (event.type == KeyEventType.KeyDown && event.key == Key.Escape) {
-                    TooltipKeyboardObserver.triggerEscapeKeyPressed()
+                    escapeKeyPressed.tryEmit(Unit)
                     false
                 } else false
             }
@@ -144,6 +146,7 @@ fun CoroutineScope.messengerApp(
                         IsFocused provides windowIsFocused,
                         DI provides matrixMessenger.di,
                         IsFocusHighlighting provides isFocusHighlighting,
+                        EscapeKeyPressed provides escapeKeyPressed,
                     ) {
                         MessengerTheme {
                             Client(rootViewModel)
@@ -166,6 +169,7 @@ fun CoroutineScope.messengerApp(
                         DI provides matrixMultiMessenger.di,
                         ShowProfileCreation provides showProfileCreation,
                         IsFocusHighlighting provides false, // FIXME do we need this here, too?
+                        EscapeKeyPressed provides escapeKeyPressed,
                     ) {
                         MessengerTheme {
                             Profiles(matrixMultiMessenger, existingProfiles)

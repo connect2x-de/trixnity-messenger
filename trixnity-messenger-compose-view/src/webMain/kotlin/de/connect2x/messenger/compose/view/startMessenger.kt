@@ -9,7 +9,6 @@ import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.pause
 import com.arkivanov.essenty.lifecycle.resume
-import de.connect2x.messenger.compose.view.common.TooltipKeyboardObserver
 import de.connect2x.messenger.compose.view.notifications.Notifications
 import de.connect2x.messenger.compose.view.profiles.rememberRootViewModel
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
@@ -25,6 +24,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.KotlinLoggingConfiguration
 import io.github.oshai.kotlinlogging.Level
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.updateAndGet
@@ -73,6 +73,7 @@ suspend fun startMessenger(
 
     val lifecycleRegistry = LifecycleRegistry(Lifecycle.State.STARTED)
     val windowIsFocused = MutableStateFlow(false)
+    val escapeKeyPressed = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     log.info { "Created MatrixMultiMessenger" }
 
@@ -111,7 +112,7 @@ suspend fun startMessenger(
         handler = { event: Event ->
             (event as? KeyboardEvent)?.let { keyboardEvent ->
                 if (keyboardEvent.key == "Escape") {
-                    TooltipKeyboardObserver.triggerEscapeKeyPressed()
+                    escapeKeyPressed.tryEmit(Unit)
                 }
             }
         })
@@ -133,6 +134,7 @@ suspend fun startMessenger(
                     CompositionLocalProvider(
                         Platform provides PlatformType.WEB,
                         IsFocused provides windowIsFocused.collectAsState(false).value,
+                        EscapeKeyPressed provides escapeKeyPressed,
                     ) {
                         val matrixMessenger by matrixMessengerFlow.collectAsState()
                         val rootViewModel = rememberRootViewModel(matrixMessenger, lifecycleRegistry)
