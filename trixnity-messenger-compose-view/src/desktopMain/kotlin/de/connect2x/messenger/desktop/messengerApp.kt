@@ -7,6 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.toAwtImage
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -26,6 +30,7 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
+import de.connect2x.messenger.compose.view.common.TooltipKeyboardObserver
 import de.connect2x.messenger.compose.view.notifications.Notifications
 import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
@@ -71,7 +76,13 @@ fun CoroutineScope.messengerApp(
             onCloseRequest = ::exitApplication,
             icon = MessengerTrayIcon(0),
             title = matrixMultiMessenger.di.get<MatrixMultiMessengerConfiguration>().appName,
-            state = windowState
+            state = windowState,
+            onPreviewKeyEvent = { event ->
+                if (event.type == KeyEventType.KeyDown && event.key == Key.Escape) {
+                    TooltipKeyboardObserver.triggerEscapeKeyPressed()
+                    false
+                } else false
+            }
         ) {
             WithProfileSelection(
                 matrixMultiMessenger = matrixMultiMessenger,

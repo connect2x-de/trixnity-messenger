@@ -9,6 +9,7 @@ import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.pause
 import com.arkivanov.essenty.lifecycle.resume
+import de.connect2x.messenger.compose.view.common.TooltipKeyboardObserver
 import de.connect2x.messenger.compose.view.notifications.Notifications
 import de.connect2x.messenger.compose.view.profiles.rememberRootViewModel
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
@@ -32,11 +33,13 @@ import web.dom.DocumentVisibilityState
 import web.dom.document
 import web.dom.visible
 import web.events.Event
+import web.events.EventType
 import web.events.VISIBILITY_CHANGE
 import web.events.addEventListener
 import web.focus.BLUR
 import web.focus.FOCUS
 import web.focus.FocusEvent
+import web.keyboard.KeyboardEvent
 import web.prompts.alert
 import web.url.URL
 import web.window.window
@@ -102,6 +105,16 @@ suspend fun startMessenger(
             )
         }
     )
+
+    window.addEventListener(
+        type = EventType("keydown"),
+        handler = { event: Event ->
+            (event as? KeyboardEvent)?.let { keyboardEvent ->
+                if (keyboardEvent.key == "Escape") {
+                    TooltipKeyboardObserver.triggerEscapeKeyPressed()
+                }
+            }
+        })
 
     coroutineScope {
         val matrixMessengerFlow = matrixMultiMessenger

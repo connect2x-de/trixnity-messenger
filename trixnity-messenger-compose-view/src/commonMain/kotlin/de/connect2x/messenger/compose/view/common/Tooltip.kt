@@ -17,17 +17,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.modifier.customOnKeyEvent
 import de.connect2x.messenger.compose.view.common.modifier.tooltipAnchorSemantics
 import de.connect2x.messenger.compose.view.common.modifier.tooltipGestures
 import de.connect2x.messenger.compose.view.get
@@ -40,6 +35,23 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
+
+/**
+ * Needs to be registered at an element that - at all times - consumes key events. Compose does only get keyboard events
+ * on focused elements, so it _has to_ be registered at the window level (Desktop, Web).
+ */
+object TooltipKeyboardObserver {
+    private val listeners = mutableListOf<() -> Unit>()
+
+    fun registerEscapeListener(listener: () -> Unit): () -> Unit {
+        listeners.add(listener)
+        return { listeners.remove(listener) }
+    }
+
+    fun triggerEscapeKeyPressed() {
+        listeners.forEach { it() }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,6 +100,8 @@ fun Tooltip(
         }
     }
 
+    TooltipKeyboardObserver.registerEscapeListener { hideTooltip() }
+
     TooltipBox(
         modifier = Modifier
             .tooltipGestures(
@@ -110,12 +124,6 @@ fun Tooltip(
     ) {
         Box(
             Modifier
-                .customOnKeyEvent { keyEvent ->
-                    if (keyEvent.type == KeyEventType.KeyDown && keyEvent.key == Key.Escape) {
-                        tooltipState.dismiss()
-                        true
-                    } else false
-                }
                 .onFocusChanged { focusState ->
                     if (focusState.isFocused) {
                         scope.launch(start = CoroutineStart.UNDISPATCHED) {
