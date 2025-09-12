@@ -5,12 +5,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.TravelExplore
@@ -24,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MoreInfo
@@ -64,6 +67,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
         val searchUsersView = DI.get<SearchUsersView>()
         val userSearchResultView = DI.get<UserSearchResultListView>()
         val searchUsersResults = collectUserSearchResult(createNewChatViewModel.createNewRoomViewModel.searchHandler)
+        val listState = rememberLazyListState()
 
         Box(Modifier.fillMaxSize()) {
             Box {
@@ -95,25 +99,32 @@ class CreateNewChatViewImpl : CreateNewChatView {
 
                 Column {
                     Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
-                    LazyColumn {
-                        item(key = "CreatingIndicator") {
-                            if (isCreating) {
-                                ThemedProgressIndicator(
-                                    Modifier.fillMaxWidth(),
-                                    MaterialTheme.components.linearProgressIndicator
-                                )
+                    Box(Modifier.fillMaxSize()) {
+                        LazyColumn(state = listState) {
+                            item(key = "CreatingIndicator") {
+                                if (isCreating) {
+                                    ThemedProgressIndicator(
+                                        Modifier.fillMaxWidth(),
+                                        MaterialTheme.components.linearProgressIndicator
+                                    )
+                                }
                             }
+                            item(key = "AddOrSearchGroup") {
+                                AddOrSearchGroup(createNewChatViewModel)
+                                HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
+                            }
+                            searchUsersView.create(
+                                createNewChatViewModel.createNewRoomViewModel,
+                                createNewChatViewModel::onUserClick,
+                                searchUsersResults,
+                                userSearchResultView,
+                                this,
+                            )
                         }
-                        item(key = "AddOrSearchGroup") {
-                            AddOrSearchGroup(createNewChatViewModel)
-                            HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
-                        }
-                        searchUsersView.create(
-                            createNewChatViewModel.createNewRoomViewModel,
-                            createNewChatViewModel::onUserClick,
-                            searchUsersResults,
-                            userSearchResultView,
-                            this,
+                        VerticalScrollbar(
+                            Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                            lazyListState = listState,
+                            reverseLayout = false,
                         )
                     }
                 }

@@ -120,62 +120,61 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Column {
-                    Header(createNewGroupViewModel::back, {
-                        Text(
-                            i18n.createNewGroupNewGroup(),
-                            fontWeight = Bold,
-                            fontSize = 16.sp,
+                Header(createNewGroupViewModel::back, {
+                    Text(
+                        i18n.createNewGroupNewGroup(),
+                        fontWeight = Bold,
+                        fontSize = 16.sp,
+                    )
+                })
+                Box(Modifier.fillMaxSize()) {
+                    if (isCreating) {
+                        ThemedProgressIndicator(
+                            Modifier.fillMaxWidth(),
+                            MaterialTheme.components.linearProgressIndicator
                         )
-                    })
-                    Box {
-                        if (isCreating) {
-                            ThemedProgressIndicator(
-                                Modifier.fillMaxWidth(),
-                                MaterialTheme.components.linearProgressIndicator
-                            )
-                        }
-
-                        Spacer(Modifier.height(15.dp))
-                        val lazyListState = rememberLazyListState()
-                        val expandOptions = remember { mutableStateOf(false) }
-                        val expandHistoryOptions = remember { mutableStateOf(false) }
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            state = lazyListState
-                        ) {
-                            item(key = "MoreOptions") {
-                                Column {
-                                    MoreOptions(
-                                        roomOptionsString,
-                                        modifier = Modifier.padding(horizontal = 10.dp),
-                                        expanded = expandOptions
-                                    ) {
-                                        CreateGroupOptions(createNewGroupViewModel, expandHistoryOptions)
-                                    }
-                                    Spacer(Modifier.height(15.dp))
+                    }
+                    val lazyListState = rememberLazyListState()
+                    val expandOptions = remember { mutableStateOf(false) }
+                    val expandHistoryOptions = remember { mutableStateOf(false) }
+                    LazyColumn(
+                        state = lazyListState,
+                    ) {
+                        item(key = "MoreOptions") {
+                            Column {
+                                MoreOptions(
+                                    roomOptionsString,
+                                    modifier = Modifier.padding(horizontal = 10.dp),
+                                    expanded = expandOptions
+                                ) {
+                                    CreateGroupOptions(createNewGroupViewModel, expandHistoryOptions)
                                 }
-                            }
-                            item(key = "RoomNameInput") {
-                                OptionalRoomNameInput(optionalRoomName)
                                 Spacer(Modifier.height(15.dp))
                             }
-                            item(key = "RoomTopic") {
-                                OptionalRoomTopicInput(optionalRoomTopic)
-                            }
-                            item(key = "UsersInGroup") {
-                                UsersInGroup(createNewGroupViewModel)
-                            }
-                            userSearchView.create(
-                                createNewGroupViewModel.createNewRoomViewModel,
-                                createNewGroupViewModel::onUserClick,
-                                userSearchResults,
-                                userSearchResultView,
-                                this
-                            )
                         }
-                        VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), lazyListState, false)
+                        item(key = "RoomNameInput") {
+                            OptionalRoomNameInput(optionalRoomName)
+                            Spacer(Modifier.height(15.dp))
+                        }
+                        item(key = "RoomTopic") {
+                            OptionalRoomTopicInput(optionalRoomTopic)
+                        }
+                        item(key = "UsersInGroup") {
+                            UsersInGroup(createNewGroupViewModel)
+                        }
+                        userSearchView.create(
+                            createNewGroupViewModel.createNewRoomViewModel,
+                            createNewGroupViewModel::onUserClick,
+                            userSearchResults,
+                            userSearchResultView,
+                            this
+                        )
                     }
+                    VerticalScrollbar(
+                        Modifier.fillMaxHeight().align(Alignment.CenterEnd),
+                        lazyListState,
+                        false
+                    )
                 }
             }
             Box(
