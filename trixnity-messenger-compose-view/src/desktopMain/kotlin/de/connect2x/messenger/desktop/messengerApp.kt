@@ -7,6 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.toAwtImage
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -23,6 +27,7 @@ import com.arkivanov.essenty.lifecycle.pause
 import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.messenger.compose.view.Client
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.EscapeKeyPressed
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
@@ -40,6 +45,7 @@ import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.defaultDragAndDropHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import okio.FileSystem
 import java.awt.Frame
@@ -66,12 +72,19 @@ fun CoroutineScope.messengerApp(
             height = min(1000.dp, height.dp)
         )
         var windowIsFocused by remember { mutableStateOf(false) }
+        val escapeKeyPressed = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
         Window(
             onCloseRequest = ::exitApplication,
             icon = MessengerTrayIcon(0),
             title = matrixMultiMessenger.di.get<MatrixMultiMessengerConfiguration>().appName,
-            state = windowState
+            state = windowState,
+            onPreviewKeyEvent = { event ->
+                if (event.type == KeyEventType.KeyDown && event.key == Key.Escape) {
+                    escapeKeyPressed.tryEmit(Unit)
+                    false
+                } else false
+            }
         ) {
             WithProfileSelection(
                 matrixMultiMessenger = matrixMultiMessenger,
@@ -133,6 +146,7 @@ fun CoroutineScope.messengerApp(
                         IsFocused provides windowIsFocused,
                         DI provides matrixMessenger.di,
                         IsFocusHighlighting provides isFocusHighlighting,
+                        EscapeKeyPressed provides escapeKeyPressed,
                     ) {
                         MessengerTheme {
                             Client(rootViewModel)
@@ -155,6 +169,7 @@ fun CoroutineScope.messengerApp(
                         DI provides matrixMultiMessenger.di,
                         ShowProfileCreation provides showProfileCreation,
                         IsFocusHighlighting provides false, // FIXME do we need this here, too?
+                        EscapeKeyPressed provides escapeKeyPressed,
                     ) {
                         MessengerTheme {
                             Profiles(matrixMultiMessenger, existingProfiles)

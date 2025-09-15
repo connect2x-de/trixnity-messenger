@@ -10,6 +10,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
+import de.connect2x.messenger.compose.view.common.modifier.customOnKeyEvent
 import kotlinx.coroutines.launch
 
 private val keys = setOf(Key.Enter, Key.NumPadEnter, Key.Spacebar)

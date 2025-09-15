@@ -24,6 +24,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.KotlinLoggingConfiguration
 import io.github.oshai.kotlinlogging.Level
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.updateAndGet
@@ -32,11 +33,13 @@ import web.dom.DocumentVisibilityState
 import web.dom.document
 import web.dom.visible
 import web.events.Event
+import web.events.EventType
 import web.events.VISIBILITY_CHANGE
 import web.events.addEventListener
 import web.focus.BLUR
 import web.focus.FOCUS
 import web.focus.FocusEvent
+import web.keyboard.KeyboardEvent
 import web.prompts.alert
 import web.url.URL
 import web.window.window
@@ -70,6 +73,7 @@ suspend fun startMessenger(
 
     val lifecycleRegistry = LifecycleRegistry(Lifecycle.State.STARTED)
     val windowIsFocused = MutableStateFlow(false)
+    val escapeKeyPressed = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     log.info { "Created MatrixMultiMessenger" }
 
@@ -103,6 +107,16 @@ suspend fun startMessenger(
         }
     )
 
+    window.addEventListener(
+        type = EventType("keydown"),
+        handler = { event: Event ->
+            (event as? KeyboardEvent)?.let { keyboardEvent ->
+                if (keyboardEvent.key == "Escape") {
+                    escapeKeyPressed.tryEmit(Unit)
+                }
+            }
+        })
+
     coroutineScope {
         val matrixMessengerFlow = matrixMultiMessenger
             .singleModeMatrixMessenger()
@@ -120,6 +134,7 @@ suspend fun startMessenger(
                     CompositionLocalProvider(
                         Platform provides PlatformType.WEB,
                         IsFocused provides windowIsFocused.collectAsState(false).value,
+                        EscapeKeyPressed provides escapeKeyPressed,
                     ) {
                         val matrixMessenger by matrixMessengerFlow.collectAsState()
                         val rootViewModel = rememberRootViewModel(matrixMessenger, lifecycleRegistry)

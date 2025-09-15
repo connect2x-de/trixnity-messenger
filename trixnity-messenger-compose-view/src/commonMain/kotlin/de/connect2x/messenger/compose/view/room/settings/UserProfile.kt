@@ -51,13 +51,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.SmallSpacer
+import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.messenger.compose.view.common.icons.BanIcon
@@ -221,6 +221,7 @@ class UserProfileViewImpl : UserProfileView {
 @Composable
 fun CopyableUserId(userId: UserId, textStyle: TextStyle) {
     val i18n = DI.get<I18nView>()
+
     @Suppress("DEPRECATION") // TODO: New clipboard API is not usable from common code, fix this eventually..
     val clipboard = LocalClipboardManager.current
 
