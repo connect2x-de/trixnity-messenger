@@ -55,8 +55,13 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         val size: String?
         val mimeType: String?
 
-        val loadMediaResultPlatformMedia: StateFlow<PlatformMedia?>
+        @Deprecated(
+            "This will be removed in the future for consistency with downloadMedia behaviour, please use loadMediaResultBytes instead",
+            replaceWith = ReplaceWith("loadMediaResultBytes")
+        )
         val loadMediaResult: StateFlow<ByteArray?>
+        val loadMediaResultPlatformMedia: StateFlow<PlatformMedia?>
+        val loadMediaResultBytes: StateFlow<ByteArray?>
         val loadMediaProgress: StateFlow<FileTransferProgressElement?>
         val loadMediaError: StateFlow<String?>
         fun loadMedia()
