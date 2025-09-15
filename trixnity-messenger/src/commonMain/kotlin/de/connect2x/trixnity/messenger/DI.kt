@@ -44,6 +44,7 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccoun
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
+import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSyncImpl
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
@@ -128,14 +129,14 @@ import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepFallbackViewModelFac
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepMsisdnViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepPasswordViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
-import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoomImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactions
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactionsImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReaders
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReadersImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.InitialsImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.IsOneToOneRoom
+import de.connect2x.trixnity.messenger.viewmodel.util.IsOneToOneRoomImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviter
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomInviterImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
@@ -224,7 +225,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             }
             single<MatrixClients> {
                 MatrixClientsImpl(get(), get(), get(), get(), get())
-            }
+            }.bind<AutoCloseable>()
 
             single<TimelineEventContentToString> { TimelineEventContentToStringImpl(get()) }
             single<Initials> { InitialsImpl(get()) }
@@ -235,18 +236,18 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<I18n> { I18n(get(), get(), get(), get()) }
             single<RoomName> { RoomNameImpl(get(), get()) }
             single<RoomTopic> { RoomTopicImpl() }
-            single<RoomInviter> { RoomInviterImpl() }
+            single<RoomInviter> { RoomInviterImpl }
             single<UserBlocking> { UserBlockingImpl() }
             single<EnterRoom> { EnterRoomImpl() }
             single<LeaveRoom> { LeaveRoomImpl() }
 
             single<DownloadManager> { DownloadManagerImpl(get<CoroutineScope>().coroutineContext) }
             single<Thumbnails> { ThumbnailsImpl() }
-            single<DirectRoom> { DirectRoomImpl() }
+            single<IsOneToOneRoom> { IsOneToOneRoomImpl }
             single<ActiveVerifications> { ActiveVerificationsImpl() }
-            single<RoomPresence> { RoomPresenceImpl(get()) }
+            single<RoomPresence> { RoomPresenceImpl }
             single<Search> { SearchImpl(get(), get(), get()) }
-            single<RunInitialSync> { RunInitialSync }
+            single<RunInitialSync> { RunInitialSyncImpl }
             single<DragAndDropHandler> { DragAndDropHandlerBase() }
             single<AccountSetupViewModelFactory> { AccountSetupViewModelFactory }
 

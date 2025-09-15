@@ -30,16 +30,6 @@ val buildFlavor = BuildFlavor.valueOf(
         ?: if (isCI) "PROD" else "DEV"
 )
 
-val downloadsDisabled = when (
-    project.properties["tm_disable_downloads"] as? String
-        ?: System.getenv("TM_DISABLE_DOWNLOADS")
-        ?: "false"
-) {
-    "true" -> true
-    "false" -> false
-    else -> throw IllegalArgumentException("Unknown TIM disable downloads option, expected true or false")
-}
-
 registerMultiplatformLicensesTasks { licenseTask, target, variant ->
     // TODO: move this into c2x-conventions eventually
     val targetName = target.targetName
@@ -47,7 +37,6 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
         dependsOn(licenseTask)
         group = "build config"
         inputs.property("tm_build_flavor", buildFlavor)
-        inputs.property("tm_disable_downloads", downloadsDisabled)
         val generatedSrc =
             layout.buildDirectory.dir("generatedSrc/${targetName}Main/kotlin")
         doLast {
@@ -69,7 +58,6 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
                 override val appName: String = "$appName"
                 override val appId: String = "$appId"
                 override val licenses: String = $quotes$licencesString$quotes
-                override val downloadsDisabled: Boolean = $downloadsDisabled
             }
         """.trimIndent()
             outputFile.asFile.apply {

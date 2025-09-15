@@ -105,15 +105,13 @@ class MatrixMessengerImpl private constructor(
     }
 
     override fun close() {
-        di.getAll<MatrixMessengerCloseHook>().forEach { it(this) }
+        di.getAll<AutoCloseable>().forEach { it.close() }
         di.get<CoroutineScope>().apply {
             cancel("stopped MatrixMessenger")
         }
-        di.get<MatrixClients>().value.values.forEach { it.close() }
         if (di.getOrNull<MatrixMultiMessengerConfiguration>() == null) {
             di.get<MatrixMessengerConfiguration>().httpClientEngine?.close()
         }
-        di.close()
     }
 
     override suspend fun closeSuspending() {

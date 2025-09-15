@@ -99,6 +99,7 @@ class MainViewModelTest {
     private val backPressedHandler = BackDispatcher()
 
     private val myUserId = UserId("user1", "localhost")
+    private val testUserId = UserId("test", "server")
     private val myDeviceId = "deviceId"
     private val roomsFlow = MutableStateFlow(emptyMap<RoomId, StateFlow<Room?>>())
 
@@ -232,7 +233,7 @@ class MainViewModelTest {
         every { roomServiceMock.getOutbox(eq(roomId)) } returns flowOf(listOf())
 
         val cut = mainViewModel()
-        cut.onRoomSelected(UserId("test", "server"), roomId)
+        cut.onRoomSelected(testUserId, roomId)
         delay(100)
 
         assertSoftly {
@@ -247,7 +248,7 @@ class MainViewModelTest {
         every { roomServiceMock.getOutbox(eq(roomId)) } returns flowOf(listOf())
 
         val cut = mainViewModel()
-        cut.onRoomSelected(UserId("test", "server"), roomId)
+        cut.onRoomSelected(testUserId, roomId)
         cut shouldShowRoom true
         cut.closeDetailsAndShowList()
         delay(100)
@@ -265,7 +266,7 @@ class MainViewModelTest {
         every { roomServiceMock.getOutbox(eq(roomId)) } returns flowOf(listOf())
 
         val cut = mainViewModel()
-        cut.onRoomSelected(UserId("test", "server"), roomId)
+        cut.onRoomSelected(testUserId, roomId)
         delay(100)
 
         backPressedHandler.back()
@@ -312,7 +313,7 @@ class MainViewModelTest {
         selfVerificationMethods returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
         every { verificationServiceMock2.getSelfVerificationMethods() } returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
 
-        val user1 = UserId("test", "server")
+        val user1 = testUserId
         val user2 = UserId("test2", "server")
 
         val cut = mainViewModel(
@@ -359,12 +360,12 @@ class MainViewModelTest {
         } returns Result.success(Unit)
 
         val cut = mainViewModel()
-        cut.selfVerificationRouter.showSelfVerification(UserId("test", "server"), true)
+        cut.selfVerificationRouter.showSelfVerification(testUserId, true)
 
         eventually(2.seconds) {
             cut.selfVerificationStack.value.active.configuration should beOfType<SelfVerificationRouter.Config.SelfVerification>()
         }
-        cut.selfVerificationRouter.closeSelfVerification(UserId("test", "server"))
+        cut.selfVerificationRouter.closeSelfVerification(testUserId)
         eventually(2.seconds) {
             cut.selfVerificationStack.value.active.configuration should beOfType<SelfVerificationRouter.Config.None>()
         }
@@ -407,7 +408,7 @@ class MainViewModelTest {
             matrixClientMock2.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>())
         } returns Result.success(Unit)
 
-        val user1 = UserId("test", "server")
+        val user1 = testUserId
         val user2 = UserId("test2", "server")
 
 
@@ -423,9 +424,9 @@ class MainViewModelTest {
         eventually(2.seconds) {
             val configuration = cut.selfVerificationStack.value.active.configuration
             configuration.shouldBeInstanceOf<SelfVerificationRouter.Config.SelfVerification>()
-            configuration.userId shouldBe UserId("test", "server")
+            configuration.userId shouldBe testUserId
         }
-        cut.selfVerificationRouter.closeSelfVerification(UserId("test", "server"))
+        cut.selfVerificationRouter.closeSelfVerification(testUserId)
         eventually(2.seconds) {
             val configuration = cut.selfVerificationStack.value.active.configuration
             configuration.shouldBeInstanceOf<SelfVerificationRouter.Config.SelfVerification>()
@@ -455,11 +456,10 @@ class MainViewModelTest {
             matrixClientMock.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>())
         } returns Result.success(Unit)
 
-        messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
-            it.copy(
-                accountSetupFinished = false
-            )
-        }
+        messengerSettings.create(
+            testUserId,
+            MatrixMessengerAccountSettingsBase(accountSetupFinished = false)
+        )
         val cut = mainViewModel()
 
         continually(2.seconds) {
@@ -559,19 +559,19 @@ class MainViewModelTest {
         runTest {
             mainViewModel()
             delay(300.milliseconds) // give viewmodel time to start first sync
-            messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(testUserId) {
                 it.copy(presenceIsPublic = false)
             }
             delay(10.milliseconds)
-            messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(testUserId) {
                 it.copy(presenceIsPublic = true)
             }
             delay(10.milliseconds)
-            messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(testUserId) {
                 it.copy(presenceIsPublic = false)
             }
             delay(10.milliseconds)
-            messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(testUserId) {
                 it.copy(presenceIsPublic = true)
             }
             delay(10.milliseconds)
@@ -609,13 +609,9 @@ class MainViewModelTest {
     }
 
     private suspend fun TestScope.mainViewModel(
-        matrixClients: Map<UserId, MatrixClient> = mapOf(UserId("test", "server") to matrixClientMock),
+        matrixClients: Map<UserId, MatrixClient> = mapOf(testUserId to matrixClientMock),
     ): MainViewModelImpl {
-        messengerSettings.update<MatrixMessengerAccountSettingsBase>(UserId("test", "server")) {
-            it.copy(
-                accountSetupFinished = true
-            )
-        }
+        messengerSettings.create(testUserId, MatrixMessengerAccountSettingsBase(accountSetupFinished = true))
 
         return MainViewModelImpl(
             viewModelContext = ViewModelContextImpl(

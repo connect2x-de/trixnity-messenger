@@ -21,6 +21,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.create
+import de.connect2x.trixnity.messenger.util.defaultUrlHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
@@ -55,16 +56,20 @@ class MatrixMultiMessengerHolder {
 
         return checkNotNull(matrixMultiMessenger)
     }
+
+    fun get(): MatrixMultiMessenger? = matrixMultiMessenger
 }
 
 // Because the notification delegate can be called when the other messenger is running, we should ensure we are only
 // using one messenger at the time.
 internal val multiMessengerHolder: MatrixMultiMessengerHolder = MatrixMultiMessengerHolder()
 
+fun handleUrl(url: String) = multiMessengerHolder.get()?.defaultUrlHandler?.onUri(url)
+
 fun startMessenger(
     lifecycle: LifecycleRegistry,
     configuration: MatrixMultiMessengerConfiguration.() -> Unit
-): UIViewController {
+): Pair<MatrixMultiMessenger, UIViewController> {
     log.info { "Starting iOS client" }
     val matrixMultiMessenger = runBlocking {
         multiMessengerHolder.getOrCreate {
@@ -74,7 +79,7 @@ fun startMessenger(
 
     log.debug { "Created MatrixMultiMessenger" }
 
-    return ComposeUIViewController(
+    return matrixMultiMessenger to ComposeUIViewController(
         configure = { enforceStrictPlistSanityCheck = false }
     ) {
         var isFocused by remember { mutableStateOf(false) }

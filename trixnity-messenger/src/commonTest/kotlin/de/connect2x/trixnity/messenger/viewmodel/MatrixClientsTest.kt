@@ -11,7 +11,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.testDispatcher
-import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import dev.mokkery.answering.SuspendAnsweringScope
@@ -197,8 +196,8 @@ class MatrixClientsTest {
     @Test
     fun `initFromStore » init from the store and settings`() = runTest {
         val cut = createCut()
-        settings.update(UserId("test1", "server")) { it }
-        settings.update(UserId("test2", "server")) { it }
+        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
+        settings.create(UserId("test2", "server"), MatrixMessengerAccountSettingsBase())
         val result = cut.initFromStore()
 
         result shouldBe MatrixClients.InitFromStoreResult(
@@ -217,8 +216,8 @@ class MatrixClientsTest {
     @Test
     fun `initFromStore » skip init from store when matrix client is already present`() = runTest {
         val cut = createCut()
-        settings.update(UserId("test1", "server")) { it }
-        settings.update(UserId("test2", "server")) { it }
+        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
+        settings.create(UserId("test2", "server"), MatrixMessengerAccountSettingsBase())
         mutableMatrixClients.value = mapOf(
             UserId("test1", "server") to matrixClientMock1,
         )
@@ -237,7 +236,7 @@ class MatrixClientsTest {
     @Test
     fun `initFromStore » have failure when init from store is not possible`() = runTest {
         val cut = createCut()
-        settings.update(UserId("test1", "server")) { it }
+        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
         everySuspend { matrixClientFactory.initFromStore(any()) } calls {
             initFromStoreCalled = true
             Result.success(null)
@@ -255,7 +254,7 @@ class MatrixClientsTest {
     @Test
     fun `initFromStore » have failure on exception`() = runTest {
         val cut = createCut()
-        settings.update(UserId("test1", "server")) { it }
+        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
         everySuspend { matrixClientFactory.initFromStore(any()) } calls {
             Result.failure(DatabaseLockedException("The database is locked."))
         }
@@ -268,8 +267,8 @@ class MatrixClientsTest {
     @Test
     fun `logout » logout matrix client`() = runTest {
         val cut = createCut()
-        settings.update(UserId("test1", "server")) { it }
-        settings.update(UserId("test2", "server")) { it }
+        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
+        settings.create(UserId("test2", "server"), MatrixMessengerAccountSettingsBase())
         mutableMatrixClients.value = mapOf(
             UserId("test1", "server") to matrixClientMock1,
             UserId("test2", "server") to matrixClientMock2,
@@ -292,7 +291,7 @@ class MatrixClientsTest {
     @Test
     fun `external logout » remove matrix client`() = runTest {
         val cut = createCut()
-        settings.update(UserId("test1", "server")) { it }
+        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
         mutableMatrixClients.value = mapOf(
             UserId("test1", "server") to matrixClientMock1,
         )
@@ -312,8 +311,8 @@ class MatrixClientsTest {
     @Test
     fun `remove » remove matrix client`() = runTest {
         val cut = createCut()
-        settings.update<MatrixMessengerAccountSettingsBase>(UserId("test1", "server")) { it }
-        settings.update<MatrixMessengerAccountSettingsBase>(UserId("test2", "server")) { it }
+        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
+        settings.create(UserId("test2", "server"), MatrixMessengerAccountSettingsBase())
         mutableMatrixClients.value = mapOf(
             UserId("test1", "server") to matrixClientMock1,
             UserId("test2", "server") to matrixClientMock2,

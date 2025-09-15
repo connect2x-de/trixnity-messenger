@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.updateAndGet
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
-interface NotificationHandlerProvider {
+interface NotificationHandlerProvider : AutoCloseable {
     companion object {
         const val GLOBAL: String = "global" // The subId of the global NotificationHandler instance
 
@@ -22,7 +22,7 @@ interface NotificationHandlerProvider {
                     )
                 }
 
-                override fun closeAll() {
+                override fun close() {
                     instances.value.values.forEach { it.value.close() }
                 }
             }
@@ -31,12 +31,10 @@ interface NotificationHandlerProvider {
         fun of(handler: NotificationHandler): NotificationHandlerProvider {
             return object : NotificationHandlerProvider {
                 override fun invoke(subId: String): NotificationHandler = handler
-                override fun closeAll() = handler.close()
+                override fun close() = handler.close()
             }
         }
     }
 
     operator fun invoke(subId: String): NotificationHandler
-
-    fun closeAll()
 }

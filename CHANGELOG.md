@@ -9,8 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Technical: Support deep nested settings view
+
 ### Changed
 - Expose platform media in loadMedia of FileBasedRoomMessageTimelineElementViewModel to allow temporary file generation
+
+- iOS: startMessenger() helper function now also returns MatrixMultiMessenger in order to bridge certain values to Swift
+  code (like objects that can only be obtained via Koin)
+- Don't close DI, because garbage collector can handle it
+- Upgrade Trixnity to 4.22.3
 
 ### Deprecated
 
@@ -18,7 +25,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Focus highlighting for "Create Group" and "Search Group"
+- Desktop/Web: show scrollbar in user search when creating a new chat
+
 ### Security
+
+## 3.8.4
+
+### Fixed
+
+- SSO Login Redirect to App on iOS targets
+- Usernames are not shown in groups which started as a direct chat
+- Fix closing profiles not working sometimes and leading to app crash
 
 ## 3.8.3
 
