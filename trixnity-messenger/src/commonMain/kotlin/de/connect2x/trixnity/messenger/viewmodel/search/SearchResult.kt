@@ -4,6 +4,6 @@ import de.connect2x.trixnity.messenger.viewmodel.search.provider.ProviderSearchR
 
 data class SearchResult(
     val providerDisplayName: String,
-    val providerSearchResult: ProviderSearchResult,
+    val providerSearchResult: ProviderSearchResult?,
     val isLoading: Boolean,
 )

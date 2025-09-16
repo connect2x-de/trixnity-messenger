@@ -58,18 +58,18 @@ class SearchUserViewModelImpl(
         combine(providerSearchResult) { it },
         combine(providerSearchLoading) { it },
     ) { results, loading ->
-        results.mapIndexedNotNull { index, result ->
-            result?.let {
-                SearchResult(
-                    providerDisplayName = searchUserProviders[index].providerDisplayName,
-                    providerSearchResult = result,
-                    isLoading = loading[index],
-                )
-            }
+        results.mapIndexed { index, result ->
+            SearchResult(
+                providerDisplayName = searchUserProviders[index].providerDisplayName,
+                providerSearchResult = result,
+                isLoading = loading[index],
+            )
         }
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
+
     init {
+        log.debug { "searchUserProviders: $searchUserProviders" }
         coroutineScope.launch { search() }
     }
 
@@ -89,7 +89,6 @@ class SearchUserViewModelImpl(
             .scopedCollectLatest { searchTerm ->
                 if (searchTerm.isNotBlank()) {
                     log.trace { "search for users" }
-                    log.trace { "searchUserProviders: $searchUserProviders" }
                     searchUserProviders.mapIndexed { index, searchUserProvider ->
                         log.trace { " - in search provider ${searchUserProvider.providerDisplayName} (${searchUserProvider.providerId})" }
                         providerSearchLoading[index].value = true

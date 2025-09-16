@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatNewSearchViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.ProviderSearchResult
@@ -22,24 +23,30 @@ fun SearchResults(createNewChatViewModel: CreateNewChatViewModel) {
         } else {
             // FIXME loading, etc
             searchResults.forEach { searchResult ->
-                println(" + searchResult: $searchResult")
-                when (val providerSearchResult = searchResult.providerSearchResult) {
-                    is ProviderSearchResult.Success -> {
-                        providerSearchResult.result.forEach { providerIndividualSearchResult ->
-                            println(" - providerIndividualSearchResult: $providerIndividualSearchResult")
-                            Box(Modifier.padding(horizontal = 20.dp)) {
-                                SearchResultSelector(
-                                    userSearchResult = providerIndividualSearchResult,
-                                    onClick = {
-                                        createNewChatViewModel.onUserClick(it)
-                                    }
-                                )
+                if (searchResult.isLoading) {
+                    LoadingSpinner()
+                } else {
+                    when (val providerSearchResult = searchResult.providerSearchResult) {
+                        null -> {
+
+                        }
+
+                        is ProviderSearchResult.Success -> {
+                            providerSearchResult.result.forEach { providerIndividualSearchResult ->
+                                Box(Modifier.padding(horizontal = 20.dp)) {
+                                    SearchResultSelector(
+                                        userSearchResult = providerIndividualSearchResult,
+                                        onClick = {
+                                            createNewChatViewModel.onUserClick(it)
+                                        }
+                                    )
+                                }
                             }
                         }
-                    }
 
-                    is ProviderSearchResult.Failure -> {
-                        Text("${searchResult.providerDisplayName}: failure")
+                        is ProviderSearchResult.Failure -> {
+                            Text("${searchResult.providerDisplayName}: failure")
+                        }
                     }
                 }
             }
