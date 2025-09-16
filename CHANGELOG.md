@@ -19,8 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   code (like objects that can only be obtained via Koin)
 - Don't close DI, because garbage collector can handle it
 - Upgrade Trixnity to 4.22.3
+- Expose platform media in loadMedia of FileBasedRoomMessageTimelineElementViewModel to allow temporary file generation
 
 ### Deprecated
+
+- rename loadMediaResult to loadMediaResultBytes in FileBased RoomMessageEventContent 
 
 ### Removed
 

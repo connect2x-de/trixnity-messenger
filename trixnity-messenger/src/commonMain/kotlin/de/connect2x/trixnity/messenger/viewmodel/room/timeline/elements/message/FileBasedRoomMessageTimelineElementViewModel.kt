@@ -34,8 +34,16 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
     private val downloadManager = viewModelContext.get<DownloadManager>()
 
-    private val _loadMediaResult: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
-    override val loadMediaResult: StateFlow<ByteArray?> = _loadMediaResult.asStateFlow()
+    private val _loadMediaResultPlatformMedia: MutableStateFlow<PlatformMedia?> = MutableStateFlow(null)
+    override val loadMediaResultPlatformMedia: StateFlow<PlatformMedia?> = _loadMediaResultPlatformMedia.asStateFlow()
+    private val _loadMediaResultBytes: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
+    override val loadMediaResultBytes: StateFlow<ByteArray?> = _loadMediaResultBytes.asStateFlow()
+
+    @Deprecated(
+        "This will be removed in the future for consistency with downloadMedia behaviour, please use loadMediaResultBytes instead",
+        replaceWith = ReplaceWith("loadMediaResultBytes")
+    )
+    override val loadMediaResult: StateFlow<ByteArray?> = loadMediaResultBytes
     private val _loadMediaProgress: MutableStateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
     override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = _loadMediaProgress.asStateFlow()
     private val _loadMediaError: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -54,7 +62,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     override fun loadMedia() {
         activeLoadMedia.value?.cancel("new load media started")
 
-        _loadMediaResult.value = null
+        _loadMediaResultPlatformMedia.value = null
         _loadMediaProgress.value = null
         _loadMediaError.value = null
         _loadMediaProgress.value = FileTransferProgressElement(
@@ -75,15 +83,13 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
             )
             activeLoadMedia.value = resultAsync
             resultAsync.await()
-                .mapCatching {
-                    it.toByteArray(
+                .onSuccess {
+                    _loadMediaResultPlatformMedia.value = it
+                    _loadMediaResultBytes.value = it.toByteArray(
                         coroutineScope,
                         expectedSize = content.info?.size,
                         maxSize = maxMediaSizeInMemory
                     )
-                }
-                .onSuccess {
-                    _loadMediaResult.value = it
                 }.onFailure {
                     _loadMediaError.value = i18n.mediaCouldNotBeRead()
                 }
