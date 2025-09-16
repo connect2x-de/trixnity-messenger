@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.8.5
+
+### Added
+
 - Technical: Support deep nested settings view
 
 ### Changed
@@ -18,12 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - iOS: startMessenger() helper function now also returns MatrixMultiMessenger in order to bridge certain values to Swift
   code (like objects that can only be obtained via Koin)
 - Don't close DI, because garbage collector can handle it
-- Upgrade Trixnity to 4.22.3
+- Upgrade Trixnity to 4.22.4
 - Expose platform media in loadMedia of FileBasedRoomMessageTimelineElementViewModel to allow temporary file generation
 
 ### Deprecated
 
-- rename loadMediaResult to loadMediaResultBytes in FileBased RoomMessageEventContent 
+- rename loadMediaResult to loadMediaResultBytes in FileBased RoomMessageEventContent
 
 ### Removed
 
@@ -32,8 +46,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Focus highlighting for "Create Group" and "Search Group"
 - Desktop/Web: show scrollbar in user search when creating a new chat
 - Fix crash due to intrinsic size in timeline
-
-### Security
 
 ## 3.8.4
 
