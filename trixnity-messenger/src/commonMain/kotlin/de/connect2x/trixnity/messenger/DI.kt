@@ -35,6 +35,7 @@ import de.connect2x.trixnity.messenger.util.platformStringsModule
 import de.connect2x.trixnity.messenger.util.platformUriCallerModule
 import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationFailureViewModelFactory
@@ -99,12 +100,19 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.To
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ThumbnailsImpl
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatNewSearchViewModelImpl
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
@@ -168,6 +176,7 @@ import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClientConfiguration
 import net.folivo.trixnity.client.ModuleFactory
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
+import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
 import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
 import org.koin.core.module.Module
@@ -324,6 +333,10 @@ private fun syncViewModels() = module {
     single<SyncViewModelFactory> { SyncViewModelFactory }
 }
 
+inline fun <reified F : SearchUserProvider> Module.searchUserProvider(
+    noinline definition: Scope.(ParametersHolder) -> F,
+) = single<F>(named<F>(), definition = definition).bind<SearchUserProvider>()
+
 private fun roomListViewModels() = module {
     single<AccountViewModelFactory> { AccountViewModelFactory }
     single<CreateNewChatViewModelFactory> { CreateNewChatViewModelFactory }
@@ -332,6 +345,31 @@ private fun roomListViewModels() = module {
     single<SearchGroupViewModelFactory> { SearchGroupViewModelFactory }
     single<RoomListElementViewModelFactory> { RoomListElementViewModelFactory }
     single<RoomListViewModelFactory> { RoomListViewModelFactory }
+    // new search
+    searchUserProvider<HomeserverSearchUserProvider> { HomeserverSearchUserProvider(get(), get(), get(), get()) }
+    single<SearchUserViewModelFactory> { SearchUserViewModelFactory }
+    single<CreateNewChatViewModelFactory> {
+        object : CreateNewChatViewModelFactory {
+            override fun create(
+                viewModelContext: MatrixClientViewModelContext,
+                createNewRoomViewModel: CreateNewRoomViewModel,
+                onCreateGroup: (UserId) -> Unit,
+                onSearchGroup: (UserId) -> Unit,
+                onCancel: () -> Unit
+            ): CreateNewChatViewModel {
+                return CreateNewChatNewSearchViewModelImpl(
+                    viewModelContext = viewModelContext,
+                    createNewChatViewModel = CreateNewChatViewModelImpl(
+                        viewModelContext = viewModelContext,
+                        createNewRoomViewModel = createNewRoomViewModel,
+                        onCreateGroup = onCreateGroup,
+                        onSearchGroup = onSearchGroup,
+                        onCancel = onCancel,
+                    ),
+                )
+            }
+        }
+    }
 }
 
 private fun settingsViewModels() = module {

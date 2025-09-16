@@ -176,6 +176,7 @@ import de.connect2x.messenger.compose.view.roomlist.RoomListView
 import de.connect2x.messenger.compose.view.roomlist.RoomListViewImpl
 import de.connect2x.messenger.compose.view.roomlist.create.CreateGroupOptionsView
 import de.connect2x.messenger.compose.view.roomlist.create.CreateGroupOptionsViewImpl
+import de.connect2x.messenger.compose.view.roomlist.create.CreateNewChatNewSearchViewImpl
 import de.connect2x.messenger.compose.view.roomlist.create.CreateNewChatView
 import de.connect2x.messenger.compose.view.roomlist.create.CreateNewChatViewImpl
 import de.connect2x.messenger.compose.view.roomlist.create.CreateNewGroupView
@@ -204,8 +205,12 @@ import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementView
 import de.connect2x.messenger.compose.view.roomlist.room.RoomListElementViewImpl
 import de.connect2x.messenger.compose.view.roomlist.search.SearchGroupView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchGroupViewImpl
+import de.connect2x.messenger.compose.view.roomlist.search.SearchResultView
+import de.connect2x.messenger.compose.view.roomlist.search.SearchResultViewSelector
+import de.connect2x.messenger.compose.view.roomlist.search.SearchResultViewSelectorImpl
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersViewImpl
+import de.connect2x.messenger.compose.view.roomlist.search.homeserver.HomeserverSearchResultView
 import de.connect2x.messenger.compose.view.root.MainView
 import de.connect2x.messenger.compose.view.root.MainViewImpl
 import de.connect2x.messenger.compose.view.root.MessengerView
@@ -406,11 +411,20 @@ fun roomListHeaderViewModule() = module {
     single<AccountOptionsView> { AccountOptionsViewImpl() }
 }
 
+inline fun <reified F : SearchResultView<*>> Module.searchResultView(
+    noinline definition: Scope.(ParametersHolder) -> F
+) = single<F>(named<F>(), definition = definition).bind<SearchResultView<*>>()
+
 fun createRoomsViewModule() = module {
     single<CreateNewChatView> { CreateNewChatViewImpl() }
     single<CreateNewGroupView> { CreateNewGroupViewImpl() }
     single<UsersInGroupView> { UsersInGroupViewImpl() }
     single<CreateGroupOptionsView> { CreateGroupOptionsViewImpl() }
+
+    //new search
+    searchResultView<HomeserverSearchResultView> { HomeserverSearchResultView() }
+    single<SearchResultViewSelector> { SearchResultViewSelectorImpl(getAll()) }
+    single<CreateNewChatView> { CreateNewChatNewSearchViewImpl() }
 }
 
 fun searchViewModule() = module {

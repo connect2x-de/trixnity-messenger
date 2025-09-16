@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.UserId
@@ -24,10 +25,21 @@ import kotlin.time.toDuration
 
 private val log = KotlinLogging.logger {}
 
+interface SearchUserViewModelFactory {
+    fun create(
+        matrixClientViewModelContext: MatrixClientViewModelContext,
+    ): SearchUserViewModel {
+        return SearchUserViewModelImpl(
+            matrixClientViewModelContext,
+        )
+    }
+
+    companion object : SearchUserViewModelFactory
+}
+
 interface SearchUserViewModel {
     val searchTerm: TextFieldViewModel
     val searchResult: StateFlow<List<SearchResult>?>
-    suspend fun search()
 }
 
 // FIXME limit search to users not already selected in a group
@@ -57,9 +69,14 @@ class SearchUserViewModelImpl(
         }
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
+    init {
+        coroutineScope.launch { search() }
+    }
+
     @OptIn(FlowPreview::class)
-    override suspend fun search() {
+    private suspend fun search() {
         searchTerm
+            .onEach { log.trace { "Searching for user $it" } }
             .map { it.text }
             .distinctUntilChanged()
             .debounce(debounceDuration)
@@ -72,8 +89,9 @@ class SearchUserViewModelImpl(
             .scopedCollectLatest { searchTerm ->
                 if (searchTerm.isNotBlank()) {
                     log.trace { "search for users" }
+                    log.trace { "searchUserProviders: $searchUserProviders" }
                     searchUserProviders.mapIndexed { index, searchUserProvider ->
-                        log.trace { "in search provider ${searchUserProvider.providerDisplayName} (${searchUserProvider.providerId})" }
+                        log.trace { " - in search provider ${searchUserProvider.providerDisplayName} (${searchUserProvider.providerId})" }
                         providerSearchLoading[index].value = true
                         launch {
                             providerSearchResult[index].value =

@@ -46,7 +46,14 @@ class HomeserverSearchUserProvider(
         return matrixClients.value[activeAccount]
             ?.let { matrixClient ->
                 val maxMediaSizeInMemory = matrixMessengerConfiguration.maxMediaSizeInMemory
-                searchInternal(searchTerm, matrixClient, maxMediaSizeInMemory, coroutineScope)
+                coroutineScope {
+                    val userId = UserId(searchTerm)
+                    if (userId.isValid()) {
+                        searchMxId(matrixClient, userId, coroutineScope, maxMediaSizeInMemory)
+                    } else {
+                        searchUser(matrixClient, searchTerm, coroutineScope, maxMediaSizeInMemory)
+                    }
+                }
             }
             ?: run {
                 log.error { "No active MatrixClient found. This is something unexpected and should not happen." }
@@ -54,83 +61,86 @@ class HomeserverSearchUserProvider(
             }
     }
 
-    private suspend fun searchInternal(
-        searchTerm: String,
+    private suspend fun searchMxId(
         matrixClient: MatrixClient,
-        maxMediaSizeInMemory: Long,
+        userId: UserId,
         coroutineScope: CoroutineScope,
-    ) = coroutineScope {
-        val userId = UserId(searchTerm)
-        if (userId.isValid()) {
-            val profile = matrixClient.api.user.getProfile(userId)
-                .onFailure { exc ->
-                    log.error(exc) { "Cannot access user profile for $userId." }
-                }
-                .getOrNull()
-            val image = profile?.avatarUrl?.let { url ->
-                matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                    onSuccess = {
-                        it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
-                    },
-                    onFailure = { null }
-                )
+        maxMediaSizeInMemory: Long
+    ): ProviderSearchResult.Success {
+        val profile = matrixClient.api.user.getProfile(userId)
+            .onFailure { exc ->
+                log.error(exc) { "Cannot access user profile for $userId." }
             }
-            val presence = getPresence(matrixClient, userId)
-                .map { presence ->
-                    presence ?: matrixClient.api.user.getPresence(userId).getOrNull()?.presence
-                }
-                .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            .getOrNull()
+        val image = profile?.avatarUrl?.let { url ->
+            matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
+                onSuccess = {
+                    it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
+                },
+                onFailure = { null }
+            )
+        }
+        val presence = getPresence(matrixClient, userId)
+            .map { presence ->
+                presence ?: matrixClient.api.user.getPresence(userId).getOrNull()?.presence
+            }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-            ProviderSearchResult.Success(
-                listOf(
-                    HomeserverUserSearchResult(
-                        userId = userId,
-                        displayName = profile?.displayName ?: "",
-                        initials = initials.compute(profile?.displayName ?: userId.full),
-                        image = image,
-                        presence = presence,
-                    )
+        return ProviderSearchResult.Success(
+            listOf(
+                HomeserverUserSearchResult(
+                    userId = userId,
+                    displayName = profile?.displayName ?: "",
+                    initials = initials.compute(profile?.displayName ?: userId.full),
+                    image = image,
+                    presence = presence,
                 )
             )
-        } else {
-            // TODO this does not search for matrix IDs, see https://github.com/matrix-org/synapse/issues/7588
-            matrixClient.api.user.searchUsers(searchTerm, i18n.currentLang.code, null) // FIXME set limit?
-                .fold( // TODO get correct language
-                    onSuccess = { response ->
-                        log.trace { "got users $searchTerm" }
-                        ProviderSearchResult.Success(
-                            response.results
-                                .asSequence()
-                                .filter { searchUser -> searchUser.userId != matrixClient.userId }
-//                            .take(limit?.toInt() ?: Int.MAX_VALUE)
-                                .map { searchUser ->
-                                    async {
-                                        val image =
-                                            getImage(coroutineScope, matrixClient, searchUser, maxMediaSizeInMemory)
-                                        val presence = getPresence(matrixClient, searchUser.userId)
-                                            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-
-                                        HomeserverUserSearchResult(
-                                            userId = userId,
-                                            displayName = searchUser.displayName ?: "",
-                                            initials = initials.compute(searchUser.displayName ?: userId.full),
-                                            image = image,
-                                            presence = presence
-                                        )
-                                    }
-                                }
-                                .toList()
-                                .awaitAll()
-                                .also { log.trace { "found users for $searchTerm: $it" } }
-                        )
-                    },
-                    onFailure = {
-                        log.error(it) { "search for users resulted in error" }
-                        ProviderSearchResult.Failure("Error fetching users.")
-                    }
-                )
-        }
+        )
     }
+
+    private suspend fun CoroutineScope.searchUser(
+        matrixClient: MatrixClient,
+        searchTerm: String,
+        coroutineScope: CoroutineScope,
+        maxMediaSizeInMemory: Long,
+    ): ProviderSearchResult =
+        // TODO this does not search for matrix IDs, see https://github.com/matrix-org/synapse/issues/7588
+        matrixClient.api.user.searchUsers(searchTerm, i18n.currentLang.code, 100) // FIXME set limit?
+            .fold( // TODO get correct language
+                onSuccess = { response ->
+                    log.trace { "got users $searchTerm" }
+                    ProviderSearchResult.Success(
+                        response.results
+                            .asSequence()
+                            .filter { searchUser -> searchUser.userId != matrixClient.userId }
+                            //                            .take(limit?.toInt() ?: Int.MAX_VALUE)
+                            .map { searchUser ->
+                                async {
+                                    val image =
+                                        getImage(coroutineScope, matrixClient, searchUser, maxMediaSizeInMemory)
+                                    val presence = getPresence(matrixClient, searchUser.userId)
+                                        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+                                    HomeserverUserSearchResult(
+                                        userId = searchUser.userId,
+                                        displayName = searchUser.displayName ?: "",
+                                        initials = initials.compute(searchUser.displayName ?: searchUser.userId.full),
+                                        image = image,
+                                        presence = presence
+                                    )
+                                }
+                            }
+                            .toList()
+                            .awaitAll()
+                            .also { log.trace { "found users for $searchTerm: $it" } }
+                    )
+                },
+                onFailure = {
+                    log.error(it) { "search for users resulted in error" }
+                    ProviderSearchResult.Failure("Error fetching users.")
+                }
+            )
 
     private suspend fun getImage(
         coroutineScope: CoroutineScope,

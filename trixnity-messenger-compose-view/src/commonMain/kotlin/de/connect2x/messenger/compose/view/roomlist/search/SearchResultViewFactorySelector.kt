@@ -1,0 +1,13 @@
+package de.connect2x.messenger.compose.view.roomlist.search
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
+
+interface SearchResultViewFactorySelector<T> {
+    @Composable
+    fun rememberFactory(element: UserSearchResult): T =
+        remember(element) { selectFactory(element) }
+
+    fun selectFactory(element: UserSearchResult): T
+}

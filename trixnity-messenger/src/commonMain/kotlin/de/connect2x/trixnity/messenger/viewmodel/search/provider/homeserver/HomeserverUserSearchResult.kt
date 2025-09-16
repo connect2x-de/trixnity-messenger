@@ -36,4 +36,10 @@ data class HomeserverUserSearchResult(
         result = 31 * result + presence.hashCode()
         return result
     }
+
+    override fun toString(): String {
+        return "HomeserverUserSearchResult(userId=$userId, displayName='$displayName', initials='$initials')"
+    }
+
+
 }
