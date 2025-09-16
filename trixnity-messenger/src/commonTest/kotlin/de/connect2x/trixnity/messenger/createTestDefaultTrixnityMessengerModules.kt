@@ -21,8 +21,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestScope
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.client.MatrixClient
@@ -36,6 +34,8 @@ import okio.fakefilesystem.FakeFileSystem
 import org.koin.core.module.Module
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 fun TestScope.createTestDefaultTrixnityMessengerModules(
     matrixClientMock: MatrixClient,
@@ -56,8 +56,8 @@ fun TestScope.createTestDefaultTrixnityMessengerModules(
     single<CoroutineScope> {
         CoroutineScope(
             backgroundScope.coroutineContext
-                + ImmediateDispatcherElement(testDispatcher)
-                + SupervisorJob(backgroundScope.coroutineContext[Job])
+                    + ImmediateDispatcherElement(testDispatcher)
+                    + SupervisorJob(backgroundScope.coroutineContext[Job])
         )
     }
     single<MatrixMessengerConfiguration> { MatrixMessengerConfiguration() }.bind<MatrixMessengerBaseConfiguration>()
@@ -92,6 +92,10 @@ fun TestScope.createTestDefaultTrixnityMessengerModules(
             }
 
             override suspend fun remove(userId: UserId): Result<Unit> {
+                TODO("Not yet implemented")
+            }
+
+            override fun close() {
                 TODO("Not yet implemented")
             }
         }

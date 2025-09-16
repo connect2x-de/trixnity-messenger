@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.export
 
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -8,6 +7,7 @@ import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.originTimestamp
 import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.core.model.RoomId
+import kotlin.time.Instant
 
 data class PlainTextFileBasedExportRoomProperties(
     override val destination: Destination
@@ -50,7 +50,7 @@ private val exportTimestampMessageFormat by lazy {
         chars("-")
         monthNumber()
         chars("-")
-        dayOfMonth()
+        day()
         chars(" ")
         hour()
         chars(":")

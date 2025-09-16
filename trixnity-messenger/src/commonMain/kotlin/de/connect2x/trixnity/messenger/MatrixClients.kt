@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.MatrixClient
@@ -34,7 +33,7 @@ import net.folivo.trixnity.core.model.UserId
 private val log = KotlinLogging.logger { }
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
-interface MatrixClients : StateFlow<Map<UserId, MatrixClient>> {
+interface MatrixClients : StateFlow<Map<UserId, MatrixClient>>, AutoCloseable {
     suspend fun login(
         baseUrl: Url,
         identifier: IdentifierType,
@@ -180,12 +179,13 @@ class MatrixClientsImpl(
                     settings.value.base.accounts.map { it.value.base.displayColor }.filterNotNull().toSet()
                 )
             }
-        settings.update<MatrixMessengerAccountSettingsBase>(matrixClient.userId) {
-            MatrixMessengerAccountSettingsBase.withConfigDefaults(
+        settings.create(
+            userId = matrixClient.userId,
+            settings = MatrixMessengerAccountSettingsBase.withConfigDefaults(
                 displayColor = displayColor,
                 config = config
             )
-        }
+        )
         if (settings.value.base.accounts.size == 1) { // if first account, set as the active account
             settings.update<MatrixMessengerSettingsBase> { it.copy(selectedAccount = matrixClient.userId) }
         }
@@ -269,9 +269,7 @@ class MatrixClientsImpl(
         withContext(NonCancellable) {
             log.info { "delete account data on this machine" }
             val matrixClient = matrixClients.value[userId]
-            val coroutineScope = matrixClient?.di?.get<CoroutineScope>()
             matrixClient?.closeSuspending()
-            coroutineScope?.coroutineContext?.job?.join()
 
             settings.delete(userId)
             matrixClients.update { it - userId }
@@ -279,5 +277,9 @@ class MatrixClientsImpl(
         }
     }.onFailure {
         log.warn(it) { "failed to remove user data fro $userId" }
+    }
+
+    override fun close() {
+        value.values.forEach { it.close() }
     }
 }

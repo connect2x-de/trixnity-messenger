@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.common
+package de.connect2x.messenger.compose.view.common.modifier
 
 import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -16,9 +16,7 @@ import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.semantics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -30,8 +28,8 @@ internal fun Modifier.tooltipGestures(
     enabled: Boolean,
     state: TooltipState,
     longPressDelay: Duration,
-    hoverShowDelay: Duration,
-    hoverHideDelay: Duration,
+    showTooltip: () -> Unit,
+    hideTooltip: () -> Unit,
 ): Modifier =
     if (enabled) {
         pointerInput(state) {
@@ -84,37 +82,17 @@ internal fun Modifier.tooltipGestures(
                     awaitPointerEventScope {
                         val pass = PointerEventPass.Main
 
-                        var showTask: Job? = null
-                        var hideTask: Job? = null
-
                         while (true) {
                             val event = awaitPointerEvent(pass)
                             val inputType = event.changes[0].type
                             if (inputType == PointerType.Mouse) {
                                 when (event.type) {
                                     PointerEventType.Enter -> {
-                                        hideTask?.cancel()
-                                        hideTask = null
-
-                                        if (showTask == null) {
-                                            showTask = launch {
-                                                delay(hoverShowDelay)
-                                                state.show(MutatePriority.PreventUserInput)
-                                                showTask = null
-                                            }
-                                        }
+                                        showTooltip()
                                     }
-                                    PointerEventType.Exit -> {
-                                        showTask?.cancel()
-                                        showTask = null
 
-                                        if (hideTask == null) {
-                                            hideTask = launch {
-                                                delay(hoverHideDelay)
-                                                state.dismiss()
-                                                hideTask = null
-                                            }
-                                        }
+                                    PointerEventType.Exit -> {
+                                        hideTooltip()
                                     }
                                 }
                             }

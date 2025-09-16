@@ -13,14 +13,14 @@ plugins {
     alias(sharedLibs.plugins.compose.compiler)
     alias(sharedLibs.plugins.aboutLibraries.plugin)
     // TODO active when you want to use google-services for notifications (needs google-services.json)
-    // alias(libs.plugins.google.services)
+    // alias(sharedLibs.plugins.google.services)
 }
 
 configureJava(sharedLibs.versions.targetJvm)
 
-val version = libs.versions.trixnityMessengerApp.get()
-val appName = libs.versions.appName.get()
-val appId = libs.versions.appId.get()
+val version = "1.0.0"
+val appName = "Trixnity Messenger"
+val appId = "de.connect2x.messenger"
 
 enum class BuildFlavor { PROD, DEV }
 
@@ -30,16 +30,6 @@ val buildFlavor = BuildFlavor.valueOf(
         ?: if (isCI) "PROD" else "DEV"
 )
 
-val downloadsDisabled = when (
-    project.properties["tm_disable_downloads"] as? String
-        ?: System.getenv("TM_DISABLE_DOWNLOADS")
-        ?: "false"
-) {
-    "true" -> true
-    "false" -> false
-    else -> throw IllegalArgumentException("Unknown TIM disable downloads option, expected true or false")
-}
-
 registerMultiplatformLicensesTasks { licenseTask, target, variant ->
     // TODO: move this into c2x-conventions eventually
     val targetName = target.targetName
@@ -47,7 +37,6 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
         dependsOn(licenseTask)
         group = "build config"
         inputs.property("tm_build_flavor", buildFlavor)
-        inputs.property("tm_disable_downloads", downloadsDisabled)
         val generatedSrc =
             layout.buildDirectory.dir("generatedSrc/${targetName}Main/kotlin")
         doLast {
@@ -69,7 +58,6 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
                 override val appName: String = "$appName"
                 override val appId: String = "$appId"
                 override val licenses: String = $quotes$licencesString$quotes
-                override val downloadsDisabled: Boolean = $downloadsDisabled
             }
         """.trimIndent()
             outputFile.asFile.apply {
@@ -121,6 +109,9 @@ kotlin {
     }
 
     sourceSets {
+        all {
+            languageSettings.optIn("kotlin.time.ExperimentalTime")
+        }
         commonMain {
             dependencies {
                 api(projects.trixnityMessengerComposeView) // api because of iOS
@@ -154,8 +145,7 @@ kotlin {
                 implementation(sharedLibs.androidx.activity.compose)
                 implementation(libs.logback.android)
                 implementation(libs.slf4j.api)
-                implementation(project.dependencies.platform(libs.firebase.bom))
-                implementation(libs.firebase.messaging.ktx)
+                implementation(sharedLibs.firebase.messaging)
             }
         }
         val webMain by getting {
@@ -186,7 +176,7 @@ compose {
                 // @see https://github.com/JetBrains/compose-jb/tree/master/tutorials/Native_distributions_and_local_execution#jvm-resource-loading
                 appResourcesRootDir = layout.buildDirectory
                 packageName = appId
-                packageVersion = libs.versions.trixnityMessengerApp.get()
+                packageVersion = version
 
                 windows {
                     menu = true

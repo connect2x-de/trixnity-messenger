@@ -8,8 +8,12 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 import web.fs.FileSystemGetDirectoryOptions
 import web.fs.FileSystemRemoveOptions
+import web.fs.getDirectoryHandle
+import web.fs.removeEntry
+import web.idb.databases
 import web.idb.indexedDB
 import web.navigator.navigator
+import web.storage.getDirectory
 import web.storage.localStorage
 
 private val log = KotlinLogging.logger {}

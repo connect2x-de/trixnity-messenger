@@ -19,7 +19,6 @@ import androidx.work.WorkerParameters
 import de.connect2x.messenger.android.NotificationHandlerProvider
 import de.connect2x.messenger.android.backgroundSyncShouldBeRunning
 import de.connect2x.messenger.android.withMatrixMessengerService
-import de.connect2x.messenger.compose.view.R
 import de.connect2x.sysnotify.Notification
 import de.connect2x.sysnotify.getNotificationIcon
 import de.connect2x.sysnotify.push
@@ -28,6 +27,7 @@ import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.PushMode
+import de.connect2x.trixnity.messenger.compose.view.R
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -54,6 +54,7 @@ import net.folivo.trixnity.core.model.events.roomIdOrNull
 import net.folivo.trixnity.core.model.events.senderOrNull
 import java.time.Instant
 import kotlin.time.Duration.Companion.seconds
+import androidx.core.graphics.createBitmap
 
 class FcmNotificationsWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     private val log = KotlinLogging.logger { }
@@ -175,7 +176,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
     }
 
     private fun Bitmap.getCircledBitmap(): Bitmap {
-        val output = Bitmap.createBitmap(this.width, this.height, Bitmap.Config.ARGB_8888)
+        val output = createBitmap(this.width, this.height)
         val canvas = Canvas(output)
         val paint = Paint()
         val rect = Rect(0, 0, this.width, this.height)

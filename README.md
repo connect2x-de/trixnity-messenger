@@ -22,7 +22,9 @@ If you are just interested in the UI and white labelling it, have a look at
 this [Readme](trixnity-messenger-compose-view/README.md).
 
 ## iOS Client
-Trixnity Messenger also has support for iOS devices. Warning: The implementation is partly incomplete and experimental. If bugs occur, please report them.
+
+Trixnity Messenger also has support for iOS devices. Warning: The implementation is partly incomplete and experimental.
+If bugs occur, please report them.
 
 ## MVVM
 
@@ -153,8 +155,6 @@ val matrixMessenger = MatrixMessenger.create {
 }
 ```
 
-Some configuration options for the Matrix Messenger can also be changed via properties at build time, e.g. `tm_disable_downloads` to prohibit the download of files from the Messenger.
-
 ### Enable notifications
 
 In order to receive system notifications from a Trixnity Messenger instance, the default `noopNotificationsModule`
@@ -162,7 +162,8 @@ must be overriden in the DI of the multi-messenger and messenger respectively.
 If no `NotificationHandlerProvider` is present in the view DIs, a warning will be logged upon the first time
 of it being accessed through the DI.
 
-A `NotificationHandlerProvider` may be registered in your `MatrixMultiMessengerConfiguration` or `MatrixMessengerConfiguration`
+A `NotificationHandlerProvider` may be registered in your `MatrixMultiMessengerConfiguration` or
+`MatrixMessengerConfiguration`
 using the `notificationModule` function provided by the view module.
 
 Example:
@@ -170,11 +171,12 @@ Example:
 ```kotlin
 val matrixMessenger = MatrixMessenger.create configScope@{
     val notificationsDebugEnabled = // ...
-    moduleFactories += { notificationsModule(this@configScope, notificationsDebugEnabled) }
+        moduleFactories += { notificationsModule(this@configScope, notificationsDebugEnabled) }
 }
 ```
 
-For more information about the `notificationsDebugEnabled` flag, see [the according Sysnotify documentation](https://gitlab.com/connect2x/sysnotify/-/blob/main/sysnotify/src/commonMain/kotlin/de/connect2x/sysnotify/NotificationHandler.kt?ref_type=heads#L211).
+For more information about the `notificationsDebugEnabled` flag,
+see [the according Sysnotify documentation](https://gitlab.com/connect2x/sysnotify/-/blob/main/sysnotify/src/commonMain/kotlin/de/connect2x/sysnotify/NotificationHandler.kt?ref_type=heads#L211).
 
 ### Adjusting the log level
 

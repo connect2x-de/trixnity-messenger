@@ -11,9 +11,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
+import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -62,7 +62,7 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
                             ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
                         } else {
                             Tooltip(tooltip = { TooltipText { currentJoinRule.getExplanation(i18n) } }) {
-                                Text(currentJoinRule.getStateName(i18n))
+                                Text(currentJoinRule.getStateName(i18n), style = MaterialTheme.typography.titleSmall)
                             }
                         }
                     },

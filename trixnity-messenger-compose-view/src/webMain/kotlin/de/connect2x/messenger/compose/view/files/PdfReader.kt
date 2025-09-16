@@ -1,18 +1,19 @@
 package de.connect2x.messenger.compose.view.files
 
 import androidx.compose.ui.graphics.ImageBitmap
-import pdfjs.GetViewportParameters
-import pdfjs.PDFDocumentProxy
-import pdfjs.RenderParameters
-import pdfjs.getDocument
 import io.github.oshai.kotlinlogging.KotlinLogging
 import js.typedarrays.Uint8Array
 import js.typedarrays.toByteArray
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import pdfjs.GetViewportParameters
+import pdfjs.PDFDocumentProxy
+import pdfjs.RenderParameters
+import pdfjs.getDocument
 import web.blob.Blob
 import web.canvas.CanvasRenderingContext2D
+import web.canvas.ID
 import web.dom.ElementId
 import web.dom.document
 import web.html.HTMLCanvasElement

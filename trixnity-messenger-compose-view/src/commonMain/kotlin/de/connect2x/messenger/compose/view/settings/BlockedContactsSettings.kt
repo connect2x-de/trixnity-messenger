@@ -32,9 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -137,7 +137,7 @@ fun IgnoredUserListElement(
                     MaterialTheme.components.extraSmallCircularProgressIndicator
                 )
 
-                else -> Tooltip({ Text(i18n.unblockContactDescription())}) {
+                else -> Tooltip({ Text(i18n.unblockContactDescription()) }) {
                     ThemedIconButton(
                         style = MaterialTheme.components.commonIconButton,
                         onClick = { viewModel.unblockContact(user.userId) },

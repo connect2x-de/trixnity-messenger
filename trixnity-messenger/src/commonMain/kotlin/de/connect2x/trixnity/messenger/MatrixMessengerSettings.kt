@@ -39,11 +39,19 @@ data class MatrixMessengerSettingsBase(
     val ssoState: SSOState? = null,
 
     val themeMode: ThemeMode = ThemeMode.DEFAULT,
+    /**
+     * The high contrast mode is an a11y option to have fewer colors and more contrast on all UI elements to improve
+     * readability.
+     */
     val isHighContrast: Boolean = false,
+    /**
+     * Focused elements are highlighted more to enable better keyboard navigation.
+     */
+    val isFocusHighlighting: Boolean = false,
     val accentColor: Long? = null,
     val fontSize: Float? = null,
     val displaySize: Float? = null,
-    val applySystemSizes: Boolean = true
+    val applySystemSizes: Boolean = true,
 ) : SettingsView<MatrixMessengerSettings>
 
 @Serializable
@@ -81,7 +89,7 @@ data class MatrixMessengerAccountSettingsBase(
     val presenceIsPublic: Boolean = true,
     val readMarkerIsPublic: Boolean = true,
     val typingIsPublic: Boolean = true,
-    val accountSetupFinished: Boolean = false
+    val accountSetupFinished: Boolean = false,
 ) : SettingsView<MatrixMessengerAccountSettings> {
     companion object {
         fun withConfigDefaults(
@@ -89,7 +97,6 @@ data class MatrixMessengerAccountSettingsBase(
             config: MatrixMessengerConfiguration,
         ) = MatrixMessengerAccountSettingsBase(
             displayColor = displayColor,
-            notificationsEnabled = config.notificationsEnabled,
             presenceIsPublic = config.defaultPresenceIsPublic,
             readMarkerIsPublic = config.defaultReadMarkerIsPublic,
             typingIsPublic = config.defaultTypingIsPublic,
@@ -118,6 +125,11 @@ internal object MatrixMessengerAccountSettingsSerializer : JsonDelegateSerialize
 interface MatrixMessengerSettingsHolder : SettingsHolder<MatrixMessengerSettings> {
     operator fun get(userId: UserId): Flow<MatrixMessengerAccountSettings?>
 
+    suspend fun create(
+        userId: UserId,
+        settings: MatrixMessengerAccountSettingsBase
+    )
+
     suspend fun update(
         userId: UserId,
         updater: MutableSettings<MatrixMessengerAccountSettings>.(MatrixMessengerAccountSettings) -> Unit,
@@ -134,13 +146,23 @@ class MatrixMessengerSettingsHolderImpl(
     override operator fun get(userId: UserId): Flow<MatrixMessengerAccountSettings?> =
         map { it.base.accounts[userId] }
 
+    override suspend fun create(
+        userId: UserId,
+        settings: MatrixMessengerAccountSettingsBase,
+    ) = update<MatrixMessengerSettingsBase> {
+        log.debug { "create account settings for $userId" }
+        val accountSettings = MutableSettingsImpl(MatrixMessengerAccountSettings(emptyMap()))
+        accountSettings.set(settings)
+        it.copy(accounts = it.accounts + (userId to MatrixMessengerAccountSettings(accountSettings)))
+    }
+
     override suspend fun update(
         userId: UserId,
         updater: MutableSettings<MatrixMessengerAccountSettings>.(MatrixMessengerAccountSettings) -> Unit,
     ) = update<MatrixMessengerSettingsBase> {
-        log.debug { "update MatrixMessengerSettings" }
+        log.debug { "update account settings for $userId" }
         val oldAccounts = it.accounts
-        val oldAccountSettings = oldAccounts[userId] ?: MatrixMessengerAccountSettings(emptyMap())
+        val oldAccountSettings = oldAccounts[userId] ?: return@update it
         val newAccountSettings = MutableSettingsImpl(oldAccountSettings)
         with(newAccountSettings) {
             updater(oldAccountSettings)
@@ -149,6 +171,7 @@ class MatrixMessengerSettingsHolderImpl(
     }
 
     override suspend fun delete(userId: UserId) = update<MatrixMessengerSettingsBase> {
+        log.debug { "delete account settings for $userId" }
         val accounts = it.accounts - userId
         val selectedAccount =
             if (it.selectedAccount == userId) accounts.keys.firstOrNull()

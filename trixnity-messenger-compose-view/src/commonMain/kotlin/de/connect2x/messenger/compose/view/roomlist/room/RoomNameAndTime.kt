@@ -13,20 +13,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import de.connect2x.messenger.compose.view.Tooltip
+import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.icons.UnencryptedIcon
-import de.connect2x.messenger.compose.view.theme.components
-import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
 fun RoomName(roomName: String?, modifier: Modifier = Modifier) {
     Tooltip({ TooltipText(roomName ?: " ") }) {
         Row(modifier) {
-            ThemedSelectableText(
+            Text( // cannot be SelectableText as this will require focus and tabbing through the room list is painful
                 text = roomName ?: " ",
-                selectionStyle = MaterialTheme.components.selectionOnSurface,
                 style = MaterialTheme.typography.labelLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

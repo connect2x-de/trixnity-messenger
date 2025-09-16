@@ -34,7 +34,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactorySelector
-import de.connect2x.trixnity.messenger.viewmodel.util.DirectRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedFlow
 import de.connect2x.trixnity.messenger.viewmodel.util.asReversedIndexedFlow
 import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
@@ -86,7 +85,6 @@ import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.client.room
@@ -114,6 +112,7 @@ import org.koin.core.component.get
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 
 private val log = KotlinLogging.logger {}
@@ -338,7 +337,6 @@ class TimelineViewModelImpl(
 
     override val draggedFile: MutableStateFlow<FileDescriptor?> = MutableStateFlow(null)
 
-    private val directRoom = get<DirectRoom>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
 
     override val roomHeaderViewModel: RoomHeaderViewModel =
@@ -1075,11 +1073,11 @@ class TimelineViewModelImpl(
             log.debug { "try to create new user verification" }
             val isDirectRoom = matrixClient.room.getById(roomId).first()?.isDirect == true
             log.debug { "is direct room: $isDirectRoom" }
-            directRoom.getUsers(matrixClient, roomId).first().firstOrNull()
-                ?.let { otherUserId ->
-                    log.debug { "create new user verification with user $otherUserId" }
-                    matrixClient.verification.createUserVerificationRequest(otherUserId)
-                }
+            val otherUserId = matrixClient.user.getAll(roomId).map { users ->
+                (users.keys - matrixClient.userId).firstOrNull()
+            }.first() ?: return@launch
+            log.debug { "create new user verification with user $otherUserId" }
+            matrixClient.verification.createUserVerificationRequest(otherUserId)
         }
     }
 

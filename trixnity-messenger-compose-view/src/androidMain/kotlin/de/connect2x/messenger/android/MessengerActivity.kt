@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
@@ -15,6 +16,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
@@ -27,15 +29,15 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.PlatformType
-import de.connect2x.messenger.compose.view.R
 import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.sysnotify.NotificationHandler
-import de.connect2x.sysnotify.handlePermissionRequest
 import de.connect2x.sysnotify.withActivity
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.compose.view.R
 import de.connect2x.trixnity.messenger.platformNotifications
 import de.connect2x.trixnity.messenger.util.currentImmediateDispatcher
 import de.connect2x.trixnity.messenger.util.defaultActivityGetter
@@ -53,6 +55,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.core.net.toUri
 
 class MessengerActivity : AppCompatActivity() {
     private val log = KotlinLogging.logger { }
@@ -63,7 +66,7 @@ class MessengerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge() // TODO for better UX
+        enableEdgeToEdge()
 
         log.debug { "Creating activity instance for '${getString(R.string.app_name)}'" }
 
@@ -73,6 +76,8 @@ class MessengerActivity : AppCompatActivity() {
         this.backgroundSyncShouldBeRunning = false
 
         checkExternalStoragePermissions()
+
+        val componentContext = defaultComponentContext()
 
         scope.launch {
             val matrixMultiMessenger = matrixMessengerServiceConnection.matrixMultiMessenger.filterNotNull().first()
@@ -113,16 +118,20 @@ class MessengerActivity : AppCompatActivity() {
                 setContent {
                     WithProfileSelection(
                         matrixMultiMessenger = matrixMultiMessenger,
-                        componentContext = defaultComponentContext(),
+                        componentContext = componentContext,
                         activeMessengerOnce = { _, _ -> },
                         activeMessenger = { matrixMessenger, rootViewModel ->
                             val lifeCycleState =
                                 androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle.observeAsState()
                             val isFocused = lifeCycleState.value == Lifecycle.Event.ON_RESUME
+                            val isFocusHighlighting =
+                                matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
+                                    .collectAsState().value.base.isFocusHighlighting
                             CompositionLocalProvider(
                                 Platform provides PlatformType.ANDROID,
                                 IsFocused provides isFocused,
                                 DI provides matrixMessenger.di,
+                                IsFocusHighlighting provides isFocusHighlighting,
                             ) {
                                 MessengerTheme {
                                     Client(rootViewModel)
@@ -149,6 +158,7 @@ class MessengerActivity : AppCompatActivity() {
                             IsFocused provides isFocused,
                             DI provides matrixMultiMessenger.di,
                             ShowProfileCreation provides showProfileCreation,
+                            IsFocusHighlighting provides false,
                         ) {
                             MessengerTheme {
                                 Profiles(matrixMultiMessenger, existingProfiles)
@@ -172,19 +182,6 @@ class MessengerActivity : AppCompatActivity() {
                     }
                 requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
             }
-        }
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>, grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        scope.launch {
-            matrixMessengerServiceConnection.matrixMultiMessenger.filterNotNull().first().di
-                .get<NotificationHandler>()
-                .withActivity { this@MessengerActivity }
-                .handlePermissionRequest(requestCode, grantResults)
         }
     }
 
@@ -215,7 +212,7 @@ class MessengerActivity : AppCompatActivity() {
 
             intent.action == Intent.ACTION_SEND && intent.type == "text/plain" -> {
                 intent.getStringExtra(Intent.EXTRA_TEXT)?.let { text ->
-                    val uri = Uri.parse(text)
+                    val uri = text.toUri()
 
                     if (uri.scheme == "http" || uri.scheme == "https") {
                         val icon = intent.clipData?.toSequence()?.firstOrNull()?.uri

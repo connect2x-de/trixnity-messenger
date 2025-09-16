@@ -13,7 +13,6 @@ plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
     alias(sharedLibs.plugins.kotlin.serialization)
     alias(sharedLibs.plugins.android.library)
-    alias(sharedLibs.plugins.kotest)
     alias(sharedLibs.plugins.mokkery)
     alias(sharedLibs.plugins.skie)
     alias(sharedLibs.plugins.kmmBridge)
@@ -53,6 +52,7 @@ kotlin {
             testTask {
                 useKarma {
                     useFirefoxHeadless()
+                    useConfigDirectory(rootDir.resolve("karma.config.d"))
                 }
             }
         }
@@ -75,6 +75,7 @@ kotlin {
     sourceSets {
         all {
             languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
+            languageSettings.optIn("kotlin.time.ExperimentalTime")
         }
         val commonMain by getting {
             dependencies {
@@ -87,8 +88,8 @@ kotlin {
                 api(sharedLibs.koin.core)
                 api(sharedLibs.kotlinx.serialization.core)
                 api(sharedLibs.kotlinx.serialization.json)
+                api(sharedLibs.kotlinx.datetime)
                 implementation(libs.okio)
-                implementation(sharedLibs.kotlinx.datetime)
                 implementation(libs.kim)
                 implementation(libs.markdown)
                 implementation(libs.ksoup.html)

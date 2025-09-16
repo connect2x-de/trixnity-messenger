@@ -4,10 +4,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -40,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
+import de.connect2x.messenger.compose.view.common.BlockWithHeaderMeasurePolicy
 import de.connect2x.messenger.compose.view.common.HorizontalScrollableMeasurePolicy
 import de.connect2x.messenger.compose.view.richtext.html.ListScope
 import de.connect2x.messenger.compose.view.richtext.html.TableContent
@@ -241,69 +240,74 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
                 tonalElevation = 4.dp,
                 shadowElevation = 2.dp,
                 shape = MaterialTheme.shapes.small,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.width(IntrinsicSize.Max)
+                contentColor = MaterialTheme.colorScheme.onSurface
             ) {
-                Column {
-                    highlightedCode?.let {
-                        Surface(
-                            tonalElevation = 4.dp,
-                            shadowElevation = 2.dp,
-                            modifier = Modifier.fillMaxWidth(),
-                            contentColor = MaterialTheme.colorScheme.onSurface,
-                        ) {
-                            Row(
-                                Modifier.height(48.dp).padding(start = 16.dp, end = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                Layout(
+                    content = {
+                        highlightedCode?.let {
+                            Surface(
+                                tonalElevation = 4.dp,
+                                shadowElevation = 2.dp,
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.layoutId(BlockWithHeaderMeasurePolicy.HeaderLayoutId)
                             ) {
-                                Text(
-                                    highlightedCode.language,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                )
-                                Spacer(Modifier.weight(1f))
-                                if (context.onCopy != null) {
-                                    IconButton(
-                                        onClick = {
-                                            context.onCopy(highlightedCode.content.text)
-                                        },
-                                        modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
-                                    ) {
-                                        Icon(
-                                            Icons.Default.ContentCopy,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(20.dp),
-                                        )
+                                Row(
+                                    Modifier.height(48.dp).padding(start = 16.dp, end = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        highlightedCode.language,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                    )
+                                    Spacer(Modifier.weight(1f))
+                                    if (context.onCopy != null) {
+                                        IconButton(
+                                            onClick = {
+                                                context.onCopy(highlightedCode.content.text)
+                                            },
+                                            modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.ContentCopy,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.size(20.dp),
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                    val scrollState = rememberScrollState()
-                    Layout(
-                        content = {
-                            Column(
-                                Modifier
-                                    .horizontalScroll(scrollState)
-                                    .padding(8.dp)
-                            ) {
-                                highlightedCode?.content?.let {
-                                    Text(
-                                        it,
-                                        fontFamily = FontFamily.Monospace,
-                                        softWrap = false,
-                                        color = MaterialTheme.colorScheme.onSurface,
+                        val scrollState = rememberScrollState()
+                        Layout(
+                            content = {
+                                Column(
+                                    Modifier
+                                        .horizontalScroll(scrollState)
+                                        .padding(8.dp)
+                                ) {
+                                    highlightedCode?.content?.let {
+                                        Text(
+                                            it,
+                                            fontFamily = FontFamily.Monospace,
+                                            softWrap = false,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                        )
+                                    } ?: Children(
+                                        node,
+                                        context.copy(preformatted = true)
                                     )
-                                } ?: Children(
-                                    node,
-                                    context.copy(preformatted = true)
+                                }
+                                HorizontalScrollbar(
+                                    Modifier.layoutId(HorizontalScrollableMeasurePolicy.ScrollbarLayoutId),
+                                    scrollState
                                 )
-                            }
-                            HorizontalScrollbar(Modifier.layoutId(HorizontalScrollableMeasurePolicy.ScrollbarLayoutId), scrollState)
-                        },
-                        measurePolicy = HorizontalScrollableMeasurePolicy
-                    )
-                }
+                            },
+                            measurePolicy = HorizontalScrollableMeasurePolicy
+                        )
+                    },
+                    measurePolicy = BlockWithHeaderMeasurePolicy
+                )
             }
         }
 

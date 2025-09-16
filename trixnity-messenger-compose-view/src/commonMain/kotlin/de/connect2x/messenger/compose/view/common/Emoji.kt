@@ -1,5 +1,7 @@
 package de.connect2x.messenger.compose.view.common
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,8 +12,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -26,6 +30,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.VerticalScrollbar
+import de.connect2x.messenger.compose.view.common.modifier.customClickable
+import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
 
 
 @Composable
@@ -50,7 +56,7 @@ fun EmojiTable(
     modifier: Modifier = Modifier
 ) {
     val firstItemFocusRequester = remember { FocusRequester() }
-    FlowRow(modifier.focusGroup().focusRestorer { firstItemFocusRequester }) {
+    FlowRow(modifier.focusGroup().focusRestorer(firstItemFocusRequester)) {
         emojis.forEachIndexed { index, emoji ->
             EmojiButton(
                 label = emoji,
@@ -80,6 +86,13 @@ fun EmojiButton(
                 focusRequester = focusRequester ?: remember { FocusRequester() },
                 indication = ripple(bounded = false, radius = 24.dp),
                 onClick = onClick,
+                onFocus = Modifier.border(
+                    BorderStroke(
+                        width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    ),
+                    shape = CircleShape,
+                ),
             )
             .padding(8.dp),
         contentAlignment = Alignment.Center,

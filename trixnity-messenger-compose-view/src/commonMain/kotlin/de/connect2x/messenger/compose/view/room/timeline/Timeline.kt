@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
@@ -19,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -74,37 +76,43 @@ fun ColumnScope.Timeline(timelineViewModel: TimelineViewModel) {
     with(DI.get<TimelineView>()) { create(timelineViewModel) }
 }
 
+private const val additionalEndPadding = 8
 class TimelineViewImpl : TimelineView {
     @Composable
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
         val i18n = DI.get<I18nView>()
         val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
-        val isFocused = IsFocused.current
         var scrollTo by remember { mutableStateOf<String?>(null) }
         LaunchedEffect(Unit) {
             timelineViewModel.scrollTo.collect { scrollTo = it }
         }
 
-        var timelineElementHolderViewModels by remember {
+        val timelineElementHolderViewModels = remember {
             mutableStateOf<List<BaseTimelineElementHolderViewModel>>(listOf())
         }
-        val isTimelineLoading = timelineElementHolderViewModels.isEmpty()
-        val timelineElementViewModelGrouped by derivedStateOf {
-            val vms = timelineElementHolderViewModels
-            buildList(vms.size) {
-                var lastDate: String? = null
-                for (index in vms.indices.reversed()) {
-                    val vm = vms[index]
-                    when {
-                        lastDate == vm.formattedDate -> add(null to vm)
-                        vm.element.value is TimelineElementViewModel.Empty -> add(null to vm)
-                        else -> {
-                            add(vm.formattedDate to vm)
-                            lastDate = vm.formattedDate
+        val isTimelineLoading = remember {
+            derivedStateOf {
+                timelineElementHolderViewModels.value.isEmpty()
+            }
+        }
+        val timelineElementViewModelGrouped = remember {
+            derivedStateOf {
+                val vms = timelineElementHolderViewModels.value
+                buildList(vms.size) {
+                    var lastDate: String? = null
+                    for (index in vms.indices.reversed()) {
+                        val vm = vms[index]
+                        when {
+                            lastDate == vm.formattedDate -> add(null to vm)
+                            vm.element.value is TimelineElementViewModel.Empty -> add(null to vm)
+                            else -> {
+                                add(vm.formattedDate to vm)
+                                lastDate = vm.formattedDate
+                            }
                         }
                     }
-                }
-            }.asReversed()
+                }.asReversed()
+            }
         }
 
         LaunchedEffect(Unit) {
@@ -120,23 +128,23 @@ class TimelineViewImpl : TimelineView {
                 }
                 log.trace { "finished wait for elements to be ready" }
                 elementsFromLastCollect = elements.toSet()
-                timelineElementHolderViewModels = elements.asReversed()
+                timelineElementHolderViewModels.value = elements.asReversed()
             }
         }
 
-        val error = timelineViewModel.error.collectAsState().value
-        val draggedFile = timelineViewModel.draggedFile.collectAsState().value
+        val error = timelineViewModel.error.collectAsState()
+        val draggedFile = timelineViewModel.draggedFile.collectAsState()
 
         val focusManager = LocalFocusManager.current
 
         Box(modifier = Modifier.weight(1.0f, fill = true)) {
-            if (isTimelineLoading) {
+            if (isTimelineLoading.value) {
                 Box(Modifier.fillMaxSize()) {
                     LoadingSpinner(Modifier.align(Alignment.Center))
                 }
             } else {
                 val unreadMarkerOnFirstLoad = remember {
-                    (timelineElementHolderViewModels.indexOfLast {
+                    (timelineElementHolderViewModels.value.indexOfLast {
                         it is TimelineElementHolderViewModel && it.showUnreadMarker.value
                     })
                 }
@@ -145,7 +153,7 @@ class TimelineViewImpl : TimelineView {
                     timelineViewModel.viewState.value?.lastVisibleElement
                         ?.let { key ->
                             var dateCount = 0
-                            timelineElementViewModelGrouped.mapIndexedNotNull { index, elementPair ->
+                            timelineElementViewModelGrouped.value.mapIndexedNotNull { index, elementPair ->
                                 if (elementPair.second.key == key)
                                     return@mapIndexedNotNull index + dateCount
                                 if (elementPair.first != null)
@@ -155,54 +163,14 @@ class TimelineViewImpl : TimelineView {
                         } ?: 0
                 }
 
+                val initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else initialIndex
                 val listState =
-                    rememberLazyListState(
-                        initialFirstVisibleItemIndex =
-                            if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else initialIndex
-                    )
+                    rememberLazyListState(initialFirstVisibleItemIndex = initialFirstVisibleItemIndex)
 
-
-                val visible by remember {
-                    derivedStateOf {
-                        val visibleItems = listState.layoutInfo.visibleItemsInfo
-                        val lastVisible =
-                            visibleItems.firstOrNull {
-                                // we want the last element in the timeline only if it is completely visible (compose considers even
-                                // 1 pixel of an element as "in view" which is not what we want)
-                                (it.key as? String)?.startsWith('!') == true &&
-                                        it.index == 0 && it.offset == 0 || it.index > 0
-                            }?.let {
-                                val key = it.key
-                                key as? String
-                            }
-                        val firstVisible = visibleItems.lastOrNull { (it.key as? String)?.startsWith('!') == true }
-                            ?.let {
-                                val key = it.key
-                                key as? String
-                            }
-                        if (firstVisible != null && lastVisible != null) {
-                            firstVisible to lastVisible
-                        } else null
-                    }
-                }
-                LaunchedEffect(visible, timelineElementHolderViewModels, isFocused) {
-                    visible?.let {
-                        timelineViewModel.viewState.value = TimelineViewModel.ViewState(
-                            firstVisibleElement = it.first,
-                            lastVisibleElement = it.second,
-                            firstLoadedElement = timelineElementHolderViewModels.last().key,
-                            lastLoadedElement = timelineElementHolderViewModels.first().key,
-                            windowIsFocused = isFocused,
-                        ).also {
-                            log.trace { "viewState: $it" }
-                        }
-                    }
-                }
-
-                LaunchedEffect(scrollTo, timelineElementHolderViewModels) {
+                LaunchedEffect(scrollTo, timelineElementHolderViewModels.value) {
                     if (scrollTo != null) {
                         val index = withTimeoutOrNull(5.seconds) {
-                            timelineElementHolderViewModels.indexOfFirst { it.key == scrollTo }
+                            timelineElementHolderViewModels.value.indexOfFirst { it.key == scrollTo }
                         } ?: -1
                         if (index >= 0) {
                             log.debug { "scrolling to $scrollTo (index=$index)" }
@@ -212,6 +180,9 @@ class TimelineViewImpl : TimelineView {
                     }
                 }
 
+                val visibleItems = rememberVisibleItems(listState)
+                updateVisibleItems(timelineViewModel, visibleItems, timelineElementHolderViewModels)
+
                 BoxWithConstraints(
                     Modifier
                         .pointerInput(Unit) {
@@ -220,7 +191,7 @@ class TimelineViewImpl : TimelineView {
                             })
                         }
                 ) {
-                    if (error != null) {
+                    error.value?.let { error ->
                         ThemedModalDialog({ timelineViewModel.errorDismiss() }) {
                             ModalDialogHeader {
                                 Text(i18n.anErrorHasOccurred())
@@ -242,13 +213,12 @@ class TimelineViewImpl : TimelineView {
                         Modifier
                             .padding(vertical = 2.dp)
                     ) {
-                        val canScrollToEnd by remember {
+                        val canScrollToEnd = remember {
                             derivedStateOf {
                                 val index = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index
                                 index != null && index != 0
                             }
                         }
-                        val additionalEndPadding = 8
                         Box {
                             LazyColumn(
                                 modifier = Modifier.fillMaxSize(),
@@ -265,7 +235,7 @@ class TimelineViewImpl : TimelineView {
                                 verticalArrangement = Arrangement.Bottom,
                             ) {
                                 log.trace { "rendering timeline elements" }
-                                timelineElementViewModelGrouped.forEach { (date, viewModel) ->
+                                timelineElementViewModelGrouped.value.forEach { (date, viewModel) ->
                                     item(viewModel.key) {
                                         TimelineElementHolder(viewModel)
                                     }
@@ -275,16 +245,9 @@ class TimelineViewImpl : TimelineView {
                                         }
                                 }
                             }
-                            Box(Modifier.padding(end = additionalEndPadding.dp)) {
-                                listState.layoutInfo.visibleItemsInfo.lastOrNull { (it.key as? String)?.startsWith('!') == true }
-                                    ?.let { layoutInfo ->
-                                        timelineElementHolderViewModels.find { it.key == layoutInfo.key }?.let {
-                                            DateStickyHeader(it.formattedDate)
-                                        }
-                                    }
-                            }
+                            ListDateHeader(visibleItems, timelineElementHolderViewModels)
                             ScrollToEndButton(timelineViewModel, canScrollToEnd)
-                            if (draggedFile != null) {
+                            draggedFile.value?.let { draggedFile ->
                                 Box(
                                     Modifier.fillMaxSize(),
                                     contentAlignment = Alignment.Center
@@ -338,5 +301,77 @@ fun ReportMessageSwitch(timelineViewModel: TimelineViewModel) {
                 MessageReport(child.viewModel)
             }
         }.let {}
+    }
+}
+
+@Composable
+fun rememberVisibleItems(listState: LazyListState): State<Pair<String, String>?> {
+    return remember {
+        derivedStateOf {
+            val visibleItems = listState.layoutInfo.visibleItemsInfo
+            val lastVisible =
+                visibleItems.firstOrNull {
+                    // we want the last element in the timeline only if it is completely visible (compose considers even
+                    // 1 pixel of an element as "in view" which is not what we want)
+                    (it.key as? String)?.startsWith('!') == true &&
+                            it.index == 0 && it.offset == 0 || it.index > 0
+                }?.let {
+                    val key = it.key
+                    key as? String
+                }
+            val firstVisible = visibleItems.lastOrNull { (it.key as? String)?.startsWith('!') == true }
+                ?.let {
+                    val key = it.key
+                    key as? String
+                }
+            if (firstVisible != null && lastVisible != null) {
+                firstVisible to lastVisible
+            } else null
+        }
+    }
+}
+
+@Composable
+fun updateVisibleItems(
+    timelineViewModel: TimelineViewModel,
+    visible: State<Pair<String, String>?>,
+    timelineElementHolderViewModels: State<List<BaseTimelineElementHolderViewModel>>,
+) {
+    val isFocused = IsFocused.current
+    val viewState = remember {
+        derivedStateOf {
+            visible.value?.let {
+                TimelineViewModel.ViewState(
+                    firstVisibleElement = it.first,
+                    lastVisibleElement = it.second,
+                    firstLoadedElement = timelineElementHolderViewModels.value.last().key,
+                    lastLoadedElement = timelineElementHolderViewModels.value.first().key,
+                    windowIsFocused = isFocused,
+                )
+            }
+        }
+    }
+    LaunchedEffect(viewState.value) {
+        log.trace { "viewState: ${viewState.value}" }
+        timelineViewModel.viewState.value = viewState.value
+    }
+}
+
+@Composable
+fun ListDateHeader(
+    visible: State<Pair<String, String>?>,
+    timelineElementHolderViewModels: State<List<BaseTimelineElementHolderViewModel>>,
+) {
+    val timestamp = remember {
+        derivedStateOf {
+            visible.value?.second?.let { lastEventId ->
+                timelineElementHolderViewModels.value
+                    .find { it.key == lastEventId }
+                    ?.formattedDate
+            }
+        }
+    }
+    Box(Modifier.padding(end = additionalEndPadding.dp)) {
+        timestamp.value?.let { DateStickyHeader(it) }
     }
 }

@@ -18,26 +18,46 @@ package de.connect2x.messenger.compose.view.common
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import androidx.compose.animation.core.*
-import androidx.compose.runtime.*
+import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.InfiniteRepeatableSpec
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Transition
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.rememberTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.toRect
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.node.Ref
 import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.unit.LayoutDirection
+import de.connect2x.messenger.compose.view.common.modifier.PlaceholderHighlight
 
 /**
- * Contains default values used by [Modifier.placeholder] and [PlaceholderHighlight].
+ * Contains default values used by [Modifier.placeholder] and [de.connect2x.messenger.compose.view.common.modifier.PlaceholderHighlight].
  */
 object PlaceholderDefaults {
     /**
-     * The default [InfiniteRepeatableSpec] to use for [fade].
+     * The default [InfiniteRepeatableSpec] to use for [de.connect2x.messenger.compose.view.common.modifier.fade].
      */
     val fadeAnimationSpec: InfiniteRepeatableSpec<Float> by lazy {
         infiniteRepeatable(
@@ -47,7 +67,7 @@ object PlaceholderDefaults {
     }
 
     /**
-     * The default [InfiniteRepeatableSpec] to use for [shimmer].
+     * The default [InfiniteRepeatableSpec] to use for [de.connect2x.messenger.compose.view.common.modifier.shimmer].
      */
     val shimmerAnimationSpec: InfiniteRepeatableSpec<Float> by lazy {
         infiniteRepeatable(
@@ -63,8 +83,8 @@ object PlaceholderDefaults {
  * A version of this modifier which uses appropriate values for Material themed apps is available
  * in the 'Placeholder Material' library.
  *
- * You can provide a [PlaceholderHighlight] which runs an highlight animation on the placeholder.
- * The [shimmer] and [fade] implementations are provided for easy usage.
+ * You can provide a [de.connect2x.messenger.compose.view.common.modifier.PlaceholderHighlight] which runs an highlight animation on the placeholder.
+ * The [de.connect2x.messenger.compose.view.common.modifier.shimmer] and [de.connect2x.messenger.compose.view.common.modifier.fade] implementations are provided for easy usage.
  *
  * A cross-fade transition will be applied to the content and placeholder UI when the [visible]
  * value changes. The transition can be customized via the [contentFadeTransitionSpec] and

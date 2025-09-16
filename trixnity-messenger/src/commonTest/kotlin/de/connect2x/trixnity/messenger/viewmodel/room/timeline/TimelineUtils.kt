@@ -57,6 +57,7 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RedactionEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 class RoomUserBuilder(
     private val userService: UserService,
@@ -364,7 +365,7 @@ class TimelineBuilder(
 
     fun messageEvent(
         sender: UserId,
-        sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
+        sentAt: Instant = Instant.fromEpochMilliseconds(0),
         eventId: EventId = EventId("${idCounter++}"),
         transactionId: String? = null,
         block: MessageEventBuilder.() -> Unit
@@ -372,7 +373,7 @@ class TimelineBuilder(
 
     fun stateEvent(
         sender: UserId,
-        sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
+        sentAt: Instant = Instant.fromEpochMilliseconds(0),
         block: StateEventBuilder.() -> Unit
     ): StateEvent<*> =
         stateEvent(sender, EventId("${idCounter++}"), roomId, sentAt, block)
@@ -382,7 +383,7 @@ fun messageEvent(
     sender: UserId,
     eventId: EventId,
     roomId: RoomId,
-    sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
+    sentAt: Instant = Instant.fromEpochMilliseconds(0),
     transactionId: String? = null,
     block: MessageEventBuilder.() -> Unit
 ): MessageEvent<*> {
@@ -456,7 +457,7 @@ fun stateEvent(
     sender: UserId,
     eventId: EventId,
     roomId: RoomId,
-    sentAt: kotlinx.datetime.Instant = kotlinx.datetime.Instant.fromEpochMilliseconds(0),
+    sentAt: Instant = Instant.fromEpochMilliseconds(0),
     block: StateEventBuilder.() -> Unit
 ): StateEvent<*> {
     val content = StateEventBuilder().apply(block).content

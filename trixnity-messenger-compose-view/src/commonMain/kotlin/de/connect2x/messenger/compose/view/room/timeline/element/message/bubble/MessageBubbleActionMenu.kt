@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +39,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.message.contextMenuActions
+import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenu
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import kotlinx.coroutines.launch
 
@@ -114,7 +114,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
                 Icon(Icons.Default.ExpandMore, i18n.commonContextMenu(), tint = Color.White)
             }
         }
-        DropdownMenu(
+        ThemedDropdownMenu(
             expanded = showActionMenu.value,
             onDismissRequest = { showActionMenu.value = false },
             offset = DpOffset(0.dp, 0.dp),

@@ -1,6 +1,9 @@
 package de.connect2x.messenger.compose.view.common
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,15 +19,16 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
 import de.connect2x.messenger.compose.view.get
@@ -47,6 +51,14 @@ fun ApprovableTextField(
     val isEdit by viewModel.isEdit.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     var value by viewModel.collectAsTextFieldValueState()
+    val interactionSource = remember { MutableInteractionSource() }
+    val hasFocus = interactionSource.collectIsFocusedAsState().value
+
+    LaunchedEffect(hasFocus) {
+        if (hasFocus && !isEdit) {
+            viewModel.startEdit()
+        }
+    }
 
     Column {
         Text(text = textCaption, style = MaterialTheme.typography.titleMedium)
@@ -75,16 +87,18 @@ fun ApprovableTextField(
                         onValueChange = { value = it },
                         enabled = isEdit,
                         placeholder = { Text(textPlaceholder) },
-                        modifier = Modifier.weight(1.0f, fill = true)
+                        modifier = Modifier
+                            .weight(1.0f, fill = true)
                             .pointerInput(Unit) {
                                 detectTapGestures(onPress = {
                                     if (!isEdit) viewModel.startEdit()
                                 })
-                            },
+                            }
+                            .focusable(enabled = true, interactionSource = interactionSource),
                         colors = TextFieldDefaults.colors(
                             disabledTextColor = MaterialTheme.colorScheme.surfaceTint,
                         ),
-                        keyboardOptions = keyboardOptions
+                        keyboardOptions = keyboardOptions,
                     )
                     if (isEdit) {
                         Spacer(Modifier.size(10.dp))

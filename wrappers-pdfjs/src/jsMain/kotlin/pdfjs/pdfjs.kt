@@ -31,24 +31,16 @@ import js.core.Void
 import js.errors.JsError
 import js.iterable.JsIterable
 import js.promise.Promise
-import js.symbol.Symbol
 import js.typedarrays.Uint8Array
 import js.typedarrays.Uint8ClampedArray
 import seskar.js.JsAsync
 import web.canvas.CanvasRenderingContext2D
-import web.dom.Element
 import web.html.HTMLCanvasElement
 import web.html.HTMLDivElement
 import web.html.HTMLDocument
-import web.html.HTMLElement
-import web.html.HTMLImageElement
 import web.streams.ReadableStream
-import web.svg.SVGElement
-import web.uievents.MouseEvent
-import web.uievents.PointerEvent
 import web.url.URL
 import web.workers.Worker
-import kotlin.js.Date
 import kotlin.js.Json
 
 external interface RefProxy {

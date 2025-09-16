@@ -58,6 +58,9 @@ kotlin {
     )
     applyDefaultHierarchyTemplate()
     sourceSets {
+        all {
+            languageSettings.optIn("kotlin.time.ExperimentalTime")
+        }
         val commonMain by getting {
             dependencies {
                 api(projects.trixnityMessenger)
@@ -71,8 +74,6 @@ kotlin {
                 api(sharedLibs.decompose.extensions)
                 api(sharedLibs.aboutLibraries.compose.m3)
                 implementation(sharedLibs.kotlinx.datetime)
-                implementation(sharedLibs.stately.common)
-                implementation(sharedLibs.stately.collections)
                 implementation(sharedLibs.androidx.annotation)
                 implementation(libs.okio)
                 implementation(compose.uiUtil)
@@ -106,8 +107,7 @@ kotlin {
                 implementation(compose.preview)
                 implementation(sharedLibs.androidx.security.crypto)
                 implementation(sharedLibs.ktor.client.okhttp)
-                implementation(project.dependencies.platform(libs.firebase.bom))
-                implementation(libs.firebase.messaging.ktx)
+                implementation(sharedLibs.firebase.messaging)
                 // for Previews:
                 implementation(libs.slf4j.api)
             }
@@ -141,12 +141,12 @@ kotlin {
 }
 
 dependencies {
-    androidTestImplementation(libs.ui.test.junit4.android)
-    debugImplementation(libs.ui.test.android.manifest)
+    androidTestImplementation(sharedLibs.compose.ui.test.junit4.android)
+    debugImplementation(sharedLibs.compose.ui.test.android.manifest)
 }
 
 android {
-    namespace = "${libs.versions.appId.get()}.compose.view"
+    namespace = "de.connect2x.trixnity.messenger.compose.view"
     compileSdk = sharedLibs.versions.androidCompileSDK.get().toInt()
     buildFeatures {
         compose = true

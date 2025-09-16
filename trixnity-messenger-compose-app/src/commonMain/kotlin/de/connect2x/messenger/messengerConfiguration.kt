@@ -9,6 +9,7 @@ import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
 import de.connect2x.trixnity.messenger.util.RootPath
+import kotlinx.datetime.TimeZone
 import org.koin.dsl.module
 
 
@@ -35,11 +36,11 @@ fun messengerConfiguration(
         {
             module {
                 single<Languages> { DefaultLanguages }
-                single<I18n> { object : I18n(get(), get(), get(), get()) {} }
+                single<I18n> { object : I18n(get(), get(), get(), get<TimeZone>()) {} }
             }
         },
     )
-    multiProfile = false
+    multiProfile = true
 
     // MatrixMultiMessengerConfiguration flavors
     when (BuildConfig.flavor) {
@@ -57,9 +58,8 @@ fun messengerConfiguration(
     // MatrixMessengerConfiguration flavors
     messengerConfiguration messengerConfig@{
         modulesFactories += { composeViewModule(this) }
-        modulesFactories += { notificationsModule(this@messengerConfig, false) }
-        downloadsDisabled = BuildConfig.downloadsDisabled
-        // defaultHomeServer = "" // TODO your home server
+        modulesFactories += { notificationsModule(this@messengerConfig, notificationsDebugEnabled) }
+        defaultHomeServer = "demo.timmy-messenger.de"
     }
     customConfig()
 }

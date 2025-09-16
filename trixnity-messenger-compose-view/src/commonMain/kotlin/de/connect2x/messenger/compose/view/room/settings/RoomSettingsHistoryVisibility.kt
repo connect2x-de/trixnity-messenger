@@ -11,9 +11,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
+import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -80,7 +80,10 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
                                         ) else historyVisibility.getExplanation(i18n)
                                     }
                                 }) {
-                                    Text(historyVisibility.getStateName(i18n))
+                                    Text(
+                                        historyVisibility.getStateName(i18n),
+                                        style = MaterialTheme.typography.titleSmall,
+                                    )
                                 }
                             }
                         },

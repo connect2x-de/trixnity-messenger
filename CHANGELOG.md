@@ -9,22 +9,97 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Technical: Support deep nested settings view
 - Copy message content
 - Captions for Media messages
-
+- 
 ### Changed
 
+- UI (Desktop, Web): tooltips are WCAG compliant (tooltip itself can be hovered, tooltips can be closed with Esc key,
+  tooltips appear on focus)
+- iOS: startMessenger() helper function now also returns MatrixMultiMessenger in order to bridge certain values to Swift
+  code (like objects that can only be obtained via Koin)
+- Don't close DI, because garbage collector can handle it
+- Upgrade Trixnity to 4.22.3
+- Expose platform media in loadMedia of FileBasedRoomMessageTimelineElementViewModel to allow temporary file generation
+
 ### Deprecated
+
+- rename loadMediaResult to loadMediaResultBytes in FileBased RoomMessageEventContent 
 
 ### Removed
 
 ### Fixed
 
+- Focus highlighting for "Create Group" and "Search Group"
+- Desktop/Web: show scrollbar in user search when creating a new chat
+- Fix crash due to intrinsic size in timeline
 - UI spacing for file-timeline-elements
 - Mentions List calculated even though mention was already selected
 - Crash when selecting mention if cursorPosition=0
 
 ### Security
+
+## 3.8.4
+
+### Fixed
+
+- SSO Login Redirect to App on iOS targets
+- Usernames are not shown in groups which started as a direct chat
+- Fix closing profiles not working sometimes and leading to app crash
+
+## 3.8.3
+
+### Added
+
+- Support for edge-to-edge on Android 36 and above
+- Button to open app settings on iOS
+- Info text when notification permissions are disabled (iOS)
+- Network Monitor for network availability check (iOS)
+- Highlight mode of focused elements for better a11y
+
+### Changed
+
+- Upgraded Sysnotify to 2.1.0
+- Upgraded Gradle to 9.0.0
+
+### Fixed
+
+- Search results on smaller screens can now be scrolled
+- Call openURL on main queue to prevent call on background thread (iOS)
+- Show more appropriate message when user removes their name
+- Copy messages now works on iOS
+- Fix copy of recovery key in wizard step on iOS
+- Translations on iOS show English when OS has configured German locale
+- Set `event_id_only` format when setting pusher on iOS
+- Reduce unnecessary timeline rerenders
+- Fix layout inspector usage on Android
+
+## 3.8.2
+
+### Changed
+
+- Updated Trixnity to 4.22.2
+
+## 3.8.1
+
+### Changed
+
+- Updated Trixnity to 4.22.1
+
+### Fixed
+
+- Always show the verification as not ready when PreconditionsNotMet (can be triggered by a sync issue later on)
+
+## 3.8.0
+
+### Added
+
+- Copy message content
+
+### Changed
+
+- Updated Trixnity to 4.22.0
 
 ## 3.7.2
 

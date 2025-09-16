@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.eventually
@@ -895,18 +897,17 @@ class InputAreaViewModelTest {
         )
     )
 
-    private fun TestScope.inputAreaViewModel(): InputAreaViewModelImpl {
+    private suspend fun TestScope.inputAreaViewModel(): InputAreaViewModelImpl {
+        val di = koinApplication {
+            modules(
+                createTestDefaultTrixnityMessengerModules(
+                    mapOf(UserId("test", "server") to matrixClientMock)
+                ),
+            )
+        }.koin
+        di.get<MatrixMessengerSettingsHolder>().create(UserId("test", "server"), MatrixMessengerAccountSettingsBase())
         return InputAreaViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(
-                di = koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(
-                            mapOf(UserId("test", "server") to matrixClientMock)
-                        ),
-                    )
-                }.koin,
-                userId = UserId("test", "server"),
-            ),
+            viewModelContext = testMatrixClientViewModelContext(di = di, userId = UserId("test", "server")),
             roomId = roomId,
             onMessageReplaceFinished = onMessageEditFinishedMock,
             onMessageReplyFinished = onMessageReplToFinishedMock,

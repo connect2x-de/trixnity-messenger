@@ -21,7 +21,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -57,7 +56,7 @@ fun BoxScope.DownloadProgress(
                             style = MaterialTheme.components.commonIconButton,
                             onClick = cancel
                         ) {
-                            Icon(Icons.Default.Cancel, i18n.commonCancel(),)
+                            Icon(Icons.Default.Cancel, i18n.commonCancel())
                         }
                     }
             }

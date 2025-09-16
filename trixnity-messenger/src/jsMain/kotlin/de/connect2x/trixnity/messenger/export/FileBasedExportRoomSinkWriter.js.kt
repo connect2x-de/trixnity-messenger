@@ -1,9 +1,6 @@
 package de.connect2x.trixnity.messenger.export
 
-import zipjs.ZipWriterConstructorOptions
-import zipjs.BlobReader
-import zipjs.ZipWriter
-import js.typedarrays.toUint8Array
+import js.typedarrays.asInt8Array
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -18,11 +15,23 @@ import web.fs.FileSystemGetDirectoryOptions
 import web.fs.FileSystemGetFileOptions
 import web.fs.FileSystemRemoveOptions
 import web.fs.FileSystemWritableFileStream
-import web.html.HTML
+import web.fs.createWritable
+import web.fs.getDirectoryHandle
+import web.fs.getFile
+import web.fs.getFileHandle
+import web.fs.removeEntry
+import web.fs.write
+import web.html.HtmlTagName
 import web.navigator.navigator
+import web.storage.getDirectory
+import web.streams.close
 import web.timers.setTimeout
 import web.url.URL
 import web.window.WindowTarget
+import web.window._self
+import zipjs.BlobReader
+import zipjs.ZipWriter
+import zipjs.ZipWriterConstructorOptions
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -84,7 +93,7 @@ class WebZipFileBasedExportRoomSinkWriter(
 
         content.collect {
             @OptIn(ExperimentalStdlibApi::class)
-            mediaStream.write(it.toUint8Array())
+            mediaStream.write(it.asInt8Array())
         }
 
         mediaStream.close()
@@ -100,7 +109,7 @@ class WebZipFileBasedExportRoomSinkWriter(
 
         val blobUrl = URL.createObjectURL(zipFile.getFile())
 
-        val a = document.createElement(HTML.a)
+        val a = document.createElement(HtmlTagName.a)
         a.href = blobUrl
         a.download = destination
         a.target = WindowTarget._self
@@ -110,7 +119,8 @@ class WebZipFileBasedExportRoomSinkWriter(
             @OptIn(DelicateCoroutinesApi::class)
             GlobalScope.launch {
                 URL.revokeObjectURL(blobUrl)
-                navigator.storage.getDirectory().removeEntry(outputDirectory.name, FileSystemRemoveOptions(recursive = true))
+                navigator.storage.getDirectory()
+                    .removeEntry(outputDirectory.name, FileSystemRemoveOptions(recursive = true))
             }
         }
     }

@@ -1,12 +1,17 @@
 package de.connect2x.messenger.compose.view.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
@@ -140,7 +145,28 @@ private fun wizardStepAccessibility(
     return WizardStep(
         id = step.stepId,
         title = { i18n.commonAccessibility() },
-        content = { Column { AppearanceSettingsSize(viewModel.appearanceSettingsViewModel) } }
+        content = {
+            val isHighContrast by viewModel.appearanceSettingsViewModel.isHighContrast.collectAsState()
+            val isFocusHighlighting by viewModel.appearanceSettingsViewModel.isFocusHighlighting.collectAsState()
+            Column {
+                AppearanceSettingsSize(viewModel.appearanceSettingsViewModel)
+                Spacer(Modifier.height(15.dp))
+                Setting(
+                    text = i18n.appearanceHighContrastHeading(),
+                    explanation = i18n.appearanceHighContrastExplanation(),
+                    value = isHighContrast
+                ) {
+                    viewModel.appearanceSettingsViewModel.toggleHighContrast()
+                }
+                Setting(
+                    text = i18n.appearanceFocusHighlightingHeading(),
+                    explanation = i18n.appearanceFocusHighlightingExplanation(),
+                    value = isFocusHighlighting,
+                ) {
+                    viewModel.appearanceSettingsViewModel.toggleFocusHighlighting()
+                }
+            }
+        }
     )
 }
 

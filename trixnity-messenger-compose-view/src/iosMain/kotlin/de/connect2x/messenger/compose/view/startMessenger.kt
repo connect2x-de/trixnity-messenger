@@ -1,7 +1,7 @@
 package de.connect2x.messenger.compose.view
 
-import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -15,10 +15,13 @@ import de.connect2x.messenger.compose.view.notifications.NotificationHandlerProv
 import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.create
+import de.connect2x.trixnity.messenger.util.defaultUrlHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
@@ -53,16 +56,20 @@ class MatrixMultiMessengerHolder {
 
         return checkNotNull(matrixMultiMessenger)
     }
+
+    fun get(): MatrixMultiMessenger? = matrixMultiMessenger
 }
 
 // Because the notification delegate can be called when the other messenger is running, we should ensure we are only
 // using one messenger at the time.
 internal val multiMessengerHolder: MatrixMultiMessengerHolder = MatrixMultiMessengerHolder()
 
+fun handleUrl(url: String) = multiMessengerHolder.get()?.defaultUrlHandler?.onUri(url)
+
 fun startMessenger(
     lifecycle: LifecycleRegistry,
     configuration: MatrixMultiMessengerConfiguration.() -> Unit
-): UIViewController {
+): Pair<MatrixMultiMessenger, UIViewController> {
     log.info { "Starting iOS client" }
     val matrixMultiMessenger = runBlocking {
         multiMessengerHolder.getOrCreate {
@@ -72,7 +79,7 @@ fun startMessenger(
 
     log.debug { "Created MatrixMultiMessenger" }
 
-    return ComposeUIViewController(
+    return matrixMultiMessenger to ComposeUIViewController(
         configure = { enforceStrictPlistSanityCheck = false }
     ) {
         var isFocused by remember { mutableStateOf(false) }
@@ -107,7 +114,7 @@ fun startMessenger(
                                     }
 
                                     log.trace { "Request notification permissions for $userId" }
-                                    notificationHandlerProvider(userId.toString()).requestPermissions { _, granted ->
+                                    notificationHandlerProvider(userId.toString()).requestPermissions { granted ->
                                         if (granted) {
                                             log.debug {
                                                 "Granted permissions for notifications, add pushers... (userId=$userId)"
@@ -126,10 +133,14 @@ fun startMessenger(
                 }
             },
             activeMessenger = { matrixMessenger, rootViewModel ->
+                val isFocusHighlighting =
+                    matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
+                        .collectAsState().value.base.isFocusHighlighting
                 CompositionLocalProvider(
                     Platform provides PlatformType.IOS,
                     IsFocused provides isFocused,
                     DI provides matrixMessenger.di,
+                    IsFocusHighlighting provides isFocusHighlighting,
                 ) {
                     MessengerTheme {
                         Client(rootViewModel)
@@ -143,6 +154,7 @@ fun startMessenger(
                     IsFocused provides isFocused,
                     DI provides matrixMultiMessenger.di,
                     ShowProfileCreation provides showProfileCreation,
+                    IsFocusHighlighting provides false,
                 ) {
                     MessengerTheme {
                         Profiles(matrixMultiMessenger, existingProfiles)

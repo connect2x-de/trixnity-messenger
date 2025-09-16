@@ -1,6 +1,8 @@
 package de.connect2x.messenger.compose.view.room.settings
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -36,6 +38,7 @@ import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,12 +51,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.SmallSpacer
+import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.messenger.compose.view.common.icons.BanIcon
@@ -62,6 +65,7 @@ import de.connect2x.messenger.compose.view.common.icons.NeutralVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
 import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
+import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.root.IsSinglePane
@@ -221,6 +225,8 @@ class UserProfileViewImpl : UserProfileView {
 @Composable
 fun CopyableUserId(userId: UserId, textStyle: TextStyle) {
     val i18n = DI.get<I18nView>()
+
+    @Suppress("DEPRECATION") // TODO: New clipboard API is not usable from common code, fix this eventually..
     val clipboard = LocalClipboardManager.current
 
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -319,20 +325,22 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
         }
         VerySmallSpacer()
 
-        MenuElement {
+        fun blockAction() {
+            if (isUserBlocked) {
+                userProfileViewModel.unblockUser()
+            } else {
+                userProfileViewModel.blockUser()
+            }
+        }
+
+        MenuElement(onClick = { blockAction() }) {
             BlockIcon()
             Spacer(Modifier.size(10.dp))
             Text(i18n.userProfileBlockUser())
             Spacer(Modifier.weight(1f, true))
             ThemedSwitch(
                 checked = isUserBlocked,
-                onCheckedChange = {
-                    if (isUserBlocked) {
-                        userProfileViewModel.unblockUser()
-                    } else {
-                        userProfileViewModel.blockUser()
-                    }
-                },
+                onCheckedChange = { blockAction() },
                 enabled = !blockingInProgress,
                 thumbContent = {
                     if (blockingInProgress) {
@@ -342,9 +350,7 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
             )
         }
         if (canOpenChat) {
-            MenuElement(Modifier.clickable {
-                userProfileViewModel.openChat()
-            }) {
+            MenuElement(onClick = { userProfileViewModel.openChat() }) {
                 Icon(
                     Icons.AutoMirrored.Filled.Send,
                     i18n.contact(),
@@ -364,9 +370,7 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
                 Tooltip(
                     enabled = verificationIsRunning,
                     tooltip = { TooltipText(i18n.verificationAlreadyRunningInAnotherRoom()) }) {
-                    MenuElement(Modifier.buttonPointerModifier().clickable {
-                        userProfileViewModel.openVerificationRoom()
-                    }) {
+                    MenuElement(onClick = { userProfileViewModel.openVerificationRoom() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.Wysiwyg,
                             i18n.userVerification(),
@@ -379,10 +383,9 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
             } else {
                 Tooltip(enabled = verificationIsRunning, tooltip = { TooltipText(i18n.verificationAlreadyRunning()) }) {
                     MenuElement(
-                        Modifier.buttonPointerModifier(!verificationIsRunning)
-                            .clickable(enabled = !verificationIsRunning) {
-                                userProfileViewModel.startVerification(isSinglePane)
-                            }) {
+                        onClick = { userProfileViewModel.startVerification(isSinglePane) },
+                        enabled = !verificationIsRunning,
+                    ) {
                         Icon(
                             Icons.AutoMirrored.Filled.Wysiwyg,
                             i18n.userVerification(),
@@ -403,9 +406,7 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
 
 @Composable
 private fun ChangePowerLevelSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
-    MenuElement(Modifier.clickable {
-        userProfileViewModel.changePowerLevelViewModel.openChangingPowerLevelDialog()
-    }) {
+    MenuElement(onClick = { userProfileViewModel.changePowerLevelViewModel.openChangingPowerLevelDialog() }) {
         Icon(
             Icons.Filled.Verified,
             i18n.userProfileChangePowerLevel(),
@@ -421,7 +422,18 @@ private fun BanUserSection(userProfileViewModel: UserProfileViewModel, i18n: I18
     val membership = userProfileViewModel.membership.collectAsState().value
     val membershipChanging = userProfileViewModel.membershipChanging.collectAsState().value
 
-    MenuElement(arrangement = Arrangement.SpaceBetween) {
+    fun action() {
+        if (membership == Membership.BAN) {
+            userProfileViewModel.openUnbanUserWarning()
+        } else {
+            userProfileViewModel.openBanUserWarning()
+        }
+    }
+
+    MenuElement(
+        onClick = { action() },
+        arrangement = Arrangement.SpaceBetween,
+    ) {
         Row {
             BanIcon()
             Spacer(Modifier.size(10.dp))
@@ -429,13 +441,7 @@ private fun BanUserSection(userProfileViewModel: UserProfileViewModel, i18n: I18
         }
         ThemedSwitch(
             checked = membership == Membership.BAN,
-            onCheckedChange = {
-                if (membership == Membership.BAN) {
-                    userProfileViewModel.openUnbanUserWarning()
-                } else {
-                    userProfileViewModel.openBanUserWarning()
-                }
-            },
+            onCheckedChange = { action() },
             enabled = !membershipChanging
         )
     }
@@ -443,9 +449,7 @@ private fun BanUserSection(userProfileViewModel: UserProfileViewModel, i18n: I18
 
 @Composable
 private fun KickUserSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
-    MenuElement(Modifier.clickable {
-        userProfileViewModel.openKickUserWarning()
-    }) {
+    MenuElement(onClick = { userProfileViewModel.openKickUserWarning() }) {
         Icon(
             Icons.Filled.PersonOff,
             i18n.userProfileRemoveUser(),
@@ -458,9 +462,7 @@ private fun KickUserSection(userProfileViewModel: UserProfileViewModel, i18n: I1
 
 @Composable
 private fun AcceptKnockSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
-    MenuElement(Modifier.clickable {
-        userProfileViewModel.acceptKnock()
-    }) {
+    MenuElement(onClick = { userProfileViewModel.acceptKnock() }) {
         Icon(
             Icons.Filled.DoorSliding,
             i18n.userProfileAcceptKnock(),
@@ -473,9 +475,7 @@ private fun AcceptKnockSection(userProfileViewModel: UserProfileViewModel, i18n:
 
 @Composable
 private fun RejectKnockSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
-    MenuElement(Modifier.clickable {
-        userProfileViewModel.rejectKnock()
-    }) {
+    MenuElement(onClick = { userProfileViewModel.rejectKnock() }) {
         Icon(
             Icons.Filled.DoorFront,
             i18n.userProfileRejectKnock(),
@@ -749,12 +749,25 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
 
 @Composable
 private fun MenuElement(
+    onClick: (() -> Unit)? = null,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier,
     arrangement: Arrangement.Horizontal = Arrangement.Start,
     content: @Composable RowScope.() -> Unit,
 ) {
+    val click = if (onClick != null) {
+        val interactionSource = remember { MutableInteractionSource() }
+        Modifier
+            .clickable(interactionSource, LocalIndication.current, enabled) { onClick() }
+            .focusHighlighting(interactionSource)
+            .buttonPointerModifier(enabled)
+    } else Modifier
     Row(
-        modifier.fillMaxWidth().padding(horizontal = 10.dp).minimumInteractiveComponentSize(),
+        modifier
+            .fillMaxWidth()
+            .then(click)
+            .padding(horizontal = 10.dp)
+            .minimumInteractiveComponentSize(),
         arrangement,
         Alignment.CenterVertically
     ) {

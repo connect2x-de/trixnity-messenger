@@ -40,8 +40,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
@@ -67,7 +65,9 @@ import org.koin.core.Koin
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import io.kotest.matchers.Matcher as KoMatcher
 
 class RoomListViewModelMultiAccountTest {
@@ -811,8 +811,8 @@ class RoomListViewModelMultiAccountTest {
                                 viewModelContext: ViewModelContext,
                                 onAccountSelected: (UserId?) -> Unit,
                                 onUserSettingsSelected: () -> Unit,
-                                onUserProfileSelected: () -> Unit,
-                                onShowAppInfo: () -> Unit
+                                onShowAppInfo: () -> Unit,
+                                onShowProfile: () -> Unit
                             ): AccountViewModel = object : AccountViewModel {
                                 override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
                                 override val isSingleAccount: StateFlow<Boolean> = MutableStateFlow(false)

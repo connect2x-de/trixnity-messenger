@@ -7,13 +7,14 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.mb
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
 import net.folivo.trixnity.core.model.RoomAliasId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import kotlin.time.Instant
 
 private val log = KotlinLogging.logger { }
 
@@ -130,6 +131,11 @@ open class I18n(
     open fun eventChangeDisplayName(oldDisplayName: String?, newDisplayName: String?) = translate {
         EN - "'$oldDisplayName' has changed their name to '$newDisplayName'"
         DE - "'$oldDisplayName' hat den Namen zu '$newDisplayName' geändert"
+    }
+
+    open fun eventRemoveDisplayName(oldDisplayName: String?) = translate {
+        EN - "'$oldDisplayName' has removed their name"
+        DE - "'$oldDisplayName' hat den Namen entfernt"
     }
 
     open fun eventChangeChatGenitive() = translate {
@@ -604,8 +610,8 @@ open class I18n(
 
     open fun settingsDevicesDisplayNameLastSeen(instant: Instant) = translate {
         val date = instant.toLocalDateTime(currentTimezone).date
-        EN - "last seen: ${date.monthNumber}/${date.dayOfMonth}/${date.year}" // AE
-        DE - "zuletzt gesehen: ${date.dayOfMonth}.${date.monthNumber}.${date.year}"
+        EN - "last seen: ${date.month.number}/${date.day}/${date.year}" // AE
+        DE - "zuletzt gesehen: ${date.day}.${date.month.number}.${date.year}"
     }
 
     open fun settingsDevicesDisplayNameError() = translate {

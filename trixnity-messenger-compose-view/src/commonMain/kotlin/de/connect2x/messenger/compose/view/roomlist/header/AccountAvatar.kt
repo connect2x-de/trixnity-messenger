@@ -3,15 +3,12 @@ package de.connect2x.messenger.compose.view.roomlist.header
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,13 +22,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.Tooltip
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenu
+import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenuItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
@@ -71,7 +70,7 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
     }.collectAsState(null).value
 
     if (activeAccountInfo != null) {
-        Box(Modifier.Companion.weight(1.0f, false).fillMaxWidth()) {
+        Box(Modifier.weight(1.0f, false).fillMaxWidth()) {
             ThemedButton(
                 style = MaterialTheme.components.accountSelector,
                 onClick = {
@@ -81,7 +80,7 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
             ) {
                 AvatarArea(activeAccountInfo)
                 if (isSingleAccount.not()) {
-                    DropdownMenu(
+                    ThemedDropdownMenu(
                         expanded = accountSelectionOpen.value,
                         onDismissRequest = { accountSelectionOpen.value = false },
                         offset = DpOffset(0.dp, 0.dp),
@@ -156,7 +155,7 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
     val accounts = accountViewModel.accounts.collectAsState().value
     val accountSelectionOpen = remember { mutableStateOf(false) }
 
-    Box(Modifier.Companion.weight(1.0f, false).fillMaxWidth()) {
+    Box(Modifier.weight(1.0f, false).fillMaxWidth()) {
         ThemedButton(
             style = MaterialTheme.components.accountSelector,
             onClick = { accountSelectionOpen.value = accountSelectionOpen.value.not() },
@@ -190,7 +189,7 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
             }
         }
 
-        DropdownMenu(
+        ThemedDropdownMenu(
             expanded = accountSelectionOpen.value,
             onDismissRequest = { accountSelectionOpen.value = false },
             offset = DpOffset(0.dp, 0.dp),
@@ -214,7 +213,7 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
 @Composable
 fun AllAccountsMenuItem(selectAction: () -> Unit) {
     val i18n = DI.get<I18nView>()
-    DropdownMenuItem(
+    ThemedDropdownMenuItem(
         text = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -230,7 +229,6 @@ fun AllAccountsMenuItem(selectAction: () -> Unit) {
             }
         },
         onClick = selectAction,
-        contentPadding = PaddingValues(horizontal = 20.dp)
     )
 }
 
@@ -239,7 +237,7 @@ fun AccountMenuItem(
     accountInfo: AccountInfo,
     selectAction: (UserId) -> Unit,
 ) {
-    DropdownMenuItem(
+    ThemedDropdownMenuItem(
         text = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -272,7 +270,6 @@ fun AccountMenuItem(
             }
         },
         onClick = { selectAction(accountInfo.userId) },
-        contentPadding = PaddingValues(all = 20.dp)
     )
 }
 

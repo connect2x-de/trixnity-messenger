@@ -61,7 +61,9 @@ fun TextMessageBubblePreview() {
         override val formattedBody: String = "Hello <b/>everyone!"
         override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
         override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(mapOf())
+        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
+            MutableStateFlow(mapOf())
+
         override fun openMention(mention: TimelineElementMention) {}
     }
     InitMessengerPreview {
@@ -99,7 +101,15 @@ fun ImageMessageBubblePreview() {
         override val size: String? = "465kb"
         override val mimeType: String? = "image/png"
         override val hasCaption: Boolean = true
-        override val loadMediaResult: StateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
+        override val loadMediaResultPlatformMedia: StateFlow<PlatformMedia?> =
+            MutableStateFlow(InMemoryPlatformMedia(flowOf(previewImageByteArray())))
+        override val loadMediaResultBytes: StateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
+
+        @Deprecated(
+            "This will be removed in the future for consistency with downloadMedia behaviour, please use loadMediaResultBytes instead",
+            replaceWith = ReplaceWith("loadMediaResultBytes")
+        )
+        override val loadMediaResult: StateFlow<ByteArray?> = loadMediaResultBytes
         override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
         override val loadMediaError: StateFlow<String?> = MutableStateFlow(null)
         override fun loadMedia() {}
@@ -145,7 +155,15 @@ fun FileMessageBubblePreview() {
         override val size: String? = "465kb"
         override val mimeType: String? = "text/plain"
         override val hasCaption: Boolean = true
-        override val loadMediaResult: StateFlow<ByteArray?> = MutableStateFlow("Kiwi".toByteArray())
+        override val loadMediaResultPlatformMedia: StateFlow<PlatformMedia?> =
+            MutableStateFlow(InMemoryPlatformMedia(flowOf("Kiwi".toByteArray())))
+        override val loadMediaResultBytes: StateFlow<ByteArray?> = MutableStateFlow("Kiwi".toByteArray())
+
+        @Deprecated(
+            "This will be removed in the future for consistency with downloadMedia behaviour, please use loadMediaResultBytes instead",
+            replaceWith = ReplaceWith("loadMediaResultBytes")
+        )
+        override val loadMediaResult: StateFlow<ByteArray?> = loadMediaResultBytes
         override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
         override val loadMediaError: StateFlow<String?> = MutableStateFlow(null)
         override fun loadMedia() {}

@@ -1,23 +1,16 @@
 package de.connect2x.messenger.compose.view.settings
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.MoreOptions
-import de.connect2x.messenger.compose.view.common.icons.HelpIcon
+import de.connect2x.messenger.compose.view.common.RadioSetting
+import de.connect2x.messenger.compose.view.common.RadioSettingOption
+import de.connect2x.messenger.compose.view.common.Tooltip
+import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.ThemeMode
@@ -30,7 +23,7 @@ interface AppearanceSettingsThemeView {
 
 @Composable
 fun ColumnScope.AppearanceSettingsTheme(appearanceSettingsViewModel: AppearanceSettingsViewModel) {
-    with(DI.get<AppearanceSettingsThemeView>()) {create(appearanceSettingsViewModel)}
+    with(DI.get<AppearanceSettingsThemeView>()) { create(appearanceSettingsViewModel) }
 }
 
 class AppearanceSettingsThemeViewImpl : AppearanceSettingsThemeView {
@@ -43,55 +36,34 @@ class AppearanceSettingsThemeViewImpl : AppearanceSettingsThemeView {
             ThemeMode.DARK -> i18n.appearanceThemeDarkHeading()
             else -> i18n.appearanceThemeDefaultHeading()
         }
-        MoreOptions(i18n.appearanceThemeHeading(themeName)) {
-            ThemeSetting(
-                appearanceSettingsViewModel,
-                i18n.appearanceThemeDefaultHeading(),
-                i18n.appearanceThemeDefaultExplanation(),
-                ThemeMode.DEFAULT
-            )
-            ThemeSetting(
-                appearanceSettingsViewModel,
-                i18n.appearanceThemeLightHeading(),
-                i18n.appearanceThemeLightExplanation(),
-                ThemeMode.LIGHT
-            )
-            ThemeSetting(
-                appearanceSettingsViewModel,
-                i18n.appearanceThemeDarkHeading(),
-                i18n.appearanceThemeDarkExplanation(),
-                ThemeMode.DARK
-            )
+        val themeExplanation = when (themeMode) {
+            ThemeMode.LIGHT -> i18n.appearanceThemeLightExplanation()
+            ThemeMode.DARK -> i18n.appearanceThemeDarkExplanation()
+            else -> i18n.appearanceThemeDefaultExplanation()
         }
-    }
-}
-
-@Composable
-fun ThemeSetting(
-    appearanceSettingsViewModel: AppearanceSettingsViewModel,
-    title: String,
-    explanation: String,
-    value: ThemeMode,
-) {
-    val themeMode by appearanceSettingsViewModel.themeMode.collectAsState()
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp)
-            .clickable {
-                appearanceSettingsViewModel.setThemeMode(value)
-            }
-            .buttonPointerModifier(),
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        HelpIcon(explanation)
-        Text(title, modifier = Modifier.weight(1.0f, fill = true))
-        RadioButton(
-            selected = themeMode == value,
-            onClick = {
-                appearanceSettingsViewModel.setThemeMode(value)
-            }
+        RadioSetting(
+            title = {
+                Tooltip(tooltip = { TooltipText { themeExplanation } }) {
+                    Text(i18n.appearanceThemeHeading(themeName), style = MaterialTheme.typography.titleSmall)
+                }
+            },
+            options = mapOf(
+                ThemeMode.DEFAULT to RadioSettingOption(
+                    i18n.appearanceThemeDefaultHeading(),
+                    i18n.appearanceThemeDefaultHeading(),
+                ),
+                ThemeMode.LIGHT to RadioSettingOption(
+                    i18n.appearanceThemeLightHeading(),
+                    i18n.appearanceThemeLightExplanation(),
+                ),
+                ThemeMode.DARK to RadioSettingOption(
+                    i18n.appearanceThemeDarkHeading(),
+                    i18n.appearanceThemeDarkExplanation(),
+                ),
+            ),
+            value = themeMode,
+            set = { appearanceSettingsViewModel.setThemeMode(it) },
         )
     }
 }
+

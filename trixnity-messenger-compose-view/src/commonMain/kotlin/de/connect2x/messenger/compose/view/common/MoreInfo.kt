@@ -2,8 +2,10 @@ package de.connect2x.messenger.compose.view.common
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -22,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +38,8 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
+import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
 
 @Composable
 fun ColumnScope.MoreOptions(
@@ -54,9 +59,10 @@ fun ColumnScope.MoreOptions(
     enabled: Boolean = true,
     icon: ImageVector = Icons.Default.Settings,
     modifier: Modifier = Modifier,
+    expanded: MutableState<Boolean> = remember { mutableStateOf(false) },
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    MoreInfo({ Text(title, style = MaterialTheme.typography.titleSmall) }, enabled, content, icon, modifier)
+    MoreInfo({ Text(title, style = MaterialTheme.typography.titleSmall) }, enabled, content, icon, modifier, expanded)
 }
 
 @Composable
@@ -66,7 +72,13 @@ fun ColumnScope.MoreInfo(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    MoreInfo({ Text(title, style = MaterialTheme.typography.titleSmall) }, enabled, content, Icons.Default.Info, modifier)
+    MoreInfo(
+        { Text(title, style = MaterialTheme.typography.titleSmall) },
+        enabled,
+        content,
+        Icons.Default.Info,
+        modifier
+    )
 }
 
 @Composable
@@ -76,13 +88,15 @@ private fun ColumnScope.MoreInfo(
     content: @Composable ColumnScope.() -> Unit,
     icon: ImageVector,
     modifier: Modifier = Modifier,
-    ) {
+    expanded: MutableState<Boolean> = remember { mutableStateOf(false) }
+) {
     val i18n = DI.get<I18nView>()
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by expanded
     val rotateState by animateFloatAsState(
         targetValue = if (expanded) 180F else 0F,
     )
     val interactionSource = remember { MutableInteractionSource() }
+    val hasFocus = interactionSource.collectIsFocusedAsState().value
 
     // Make sure we are not expanded when disabled
     if (!enabled) expanded = false
@@ -93,8 +107,15 @@ private fun ColumnScope.MoreInfo(
                 if (enabled) expanded = expanded.not()
             })
             .buttonPointerModifier(),
-        colors = if (enabled) CardDefaults.cardColors()
-        else CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+        colors =
+            if (enabled) CardDefaults.cardColors()
+            else CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+        border =
+            if (IsFocusHighlighting.current && hasFocus) BorderStroke(
+                width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            else null
     ) {
         Column(Modifier.fillMaxWidth()) {
             Row(

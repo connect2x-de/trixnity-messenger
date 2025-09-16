@@ -69,11 +69,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import net.folivo.trixnity.client.media.PlatformMedia
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
+import kotlin.time.Clock
 
 private val log = KotlinLogging.logger {}
 
@@ -139,8 +139,8 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
     ) {
         val minZoom = 0.5f
         val maxZoom = 4f
-        val media = element.downloadMediaResult.collectAsState().value
-        val progress = element.downloadMediaProgress.collectAsState().value
+        val media = element.loadMediaResultPlatformMedia.collectAsState().value
+        val progress = element.loadMediaProgress.collectAsState().value
         val (error, setError) = remember { mutableStateOf<String?>(null) }
         val zoom = remember { mutableStateOf(1.0f) }
         val canZoom = remember { mutableStateOf(false) }
@@ -162,11 +162,11 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
 
         LaunchedEffect(media) {
             if (media == null) { // if the pdf is opened a second time there's no need to re-download it
-                element.downloadMedia()
+                element.loadMedia()
             }
         }
-        LaunchedEffect(element.downloadMediaError) {
-            element.downloadMediaError.collect { if (it != null) setError(i18n.fileCouldNotBeLoaded()) }
+        LaunchedEffect(element.loadMediaError) {
+            element.loadMediaError.collect { if (it != null) setError(i18n.fileCouldNotBeLoaded()) }
         }
         FileBasedDetailsDialog(
             element,
