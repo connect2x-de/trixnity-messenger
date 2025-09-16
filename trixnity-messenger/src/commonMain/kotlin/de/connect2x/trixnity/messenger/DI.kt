@@ -346,6 +346,7 @@ private fun roomListViewModels() = module {
     single<RoomListElementViewModelFactory> { RoomListElementViewModelFactory }
     single<RoomListViewModelFactory> { RoomListViewModelFactory }
     // new search
+    // FIXME should be in own module so it can be left out
     searchUserProvider<HomeserverSearchUserProvider> { HomeserverSearchUserProvider(get(), get(), get(), get()) }
     single<SearchUserViewModelFactory> { SearchUserViewModelFactory }
     single<CreateNewChatViewModelFactory> {

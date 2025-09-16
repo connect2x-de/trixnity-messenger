@@ -28,7 +28,7 @@ import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.roomlist.search.SearchResults
+import de.connect2x.messenger.compose.view.roomlist.search.searchResults
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
@@ -38,6 +38,9 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatNewSearchViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+private val log = KotlinLogging.logger {}
 
 class CreateNewChatNewSearchViewImpl : CreateNewChatView {
     @Composable
@@ -48,6 +51,7 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
             val error = createNewChatViewModel.error.collectAsState().value
             val errorDetails = createNewChatViewModel.errorDetails.collectAsState().value
             var searchTerm by createNewChatViewModel.searchUserViewModel.searchTerm.collectAsTextFieldValueState()
+            val searchResults = createNewChatViewModel.searchUserViewModel.searchResult.collectAsState().value
             val listState = rememberLazyListState()
 
             Box(Modifier.fillMaxSize()) {
@@ -108,9 +112,7 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
                                         )
                                     }
                                 }
-                                item(key = "results") {
-                                    SearchResults(createNewChatViewModel)
-                                }
+                                searchResults(createNewChatViewModel, searchResults)
                             }
                             VerticalScrollbar(
                                 Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
@@ -121,6 +123,8 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
                     }
                 }
             }
+        } else {
+            log.warn { "Cannot show CreateNewChatNewSearchView, since the viewmodel does not conform to CreateNewChatNewSearchViewModel" }
         }
     }
 }

@@ -60,6 +60,7 @@ class SearchUserViewModelImpl(
     ) { results, loading ->
         results.mapIndexed { index, result ->
             SearchResult(
+                id = searchUserProviders[index].providerId,
                 providerDisplayName = searchUserProviders[index].providerDisplayName,
                 providerSearchResult = result,
                 isLoading = loading[index],

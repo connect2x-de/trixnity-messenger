@@ -13,6 +13,8 @@ data class HomeserverUserSearchResult(
     val presence: StateFlow<Presence?>
 ) : UserSearchResult {
 
+    override val id: String = userId.full
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
@@ -40,6 +42,4 @@ data class HomeserverUserSearchResult(
     override fun toString(): String {
         return "HomeserverUserSearchResult(userId=$userId, displayName='$displayName', initials='$initials')"
     }
-
-
 }
