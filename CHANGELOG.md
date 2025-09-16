@@ -13,12 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- UI (Desktop, Web): tooltips are WCAG compliant (tooltip itself can be hovered, tooltips can be closed with Esc key,
+  tooltips appear on focus)
 - iOS: startMessenger() helper function now also returns MatrixMultiMessenger in order to bridge certain values to Swift
   code (like objects that can only be obtained via Koin)
 - Don't close DI, because garbage collector can handle it
 - Upgrade Trixnity to 4.22.3
+- Expose platform media in loadMedia of FileBasedRoomMessageTimelineElementViewModel to allow temporary file generation
 
 ### Deprecated
+
+- rename loadMediaResult to loadMediaResultBytes in FileBased RoomMessageEventContent 
 
 ### Removed
 
@@ -26,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Focus highlighting for "Create Group" and "Search Group"
 - Desktop/Web: show scrollbar in user search when creating a new chat
+- Fix crash due to intrinsic size in timeline
 
 ### Security
 

@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.common
+package de.connect2x.messenger.compose.view.common.modifier
 
 import androidx.compose.foundation.IndicationNodeFactory
 import androidx.compose.foundation.focusable
@@ -20,6 +20,8 @@ import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.customIndication
+import de.connect2x.messenger.compose.view.common.customKeySelect
 
 @Composable
 fun Modifier.customClickable(

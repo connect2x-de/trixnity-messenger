@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.common
+package de.connect2x.messenger.compose.view.common.modifier
 
 /*
  * Copyright 2021 The Android Open Source Project
@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.util.lerp
+import de.connect2x.messenger.compose.view.common.PlaceholderDefaults
 import kotlin.math.max
 
 /**

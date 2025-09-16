@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.common
+package de.connect2x.messenger.compose.view.common.modifier
 
 import androidx.compose.ui.CombinedModifier
 import androidx.compose.ui.Modifier

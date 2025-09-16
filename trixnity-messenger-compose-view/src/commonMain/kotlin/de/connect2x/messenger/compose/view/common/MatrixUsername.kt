@@ -16,6 +16,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.common.modifier.autofill
 import de.connect2x.messenger.compose.view.get
 
 interface MatrixUsernameView {
