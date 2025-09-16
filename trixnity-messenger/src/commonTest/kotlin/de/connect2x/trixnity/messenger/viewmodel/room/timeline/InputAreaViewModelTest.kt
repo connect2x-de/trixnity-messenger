@@ -849,7 +849,7 @@ class InputAreaViewModelTest {
     }
 
     @Test
-    fun `mentions » only curate listOfMentions at start of string if cursor is after @`() = runTest {
+    fun `mentions » only curate listOfMentions at start of string if cursor is after sigil`() = runTest {
         val cut = inputAreaViewModel()
         subscribe(cut)
 
@@ -867,7 +867,7 @@ class InputAreaViewModelTest {
     }
 
     @Test
-    fun `mentions » only curate listOfMentions at end of string if cursor is after @`() = runTest {
+    fun `mentions » only curate listOfMentions at end of string if cursor is after sigil`() = runTest {
         val cut = inputAreaViewModel()
         subscribe(cut)
 
