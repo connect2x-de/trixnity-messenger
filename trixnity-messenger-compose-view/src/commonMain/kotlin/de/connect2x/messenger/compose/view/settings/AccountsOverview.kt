@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
@@ -52,6 +51,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
+import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
 
@@ -111,10 +111,11 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                                         }
                                     )
 
-                                    SelectableText(
+                                    ThemedSelectableText(
                                         accountInfo.userId.full,
+                                        MaterialTheme.components.selectionOnSurface,
+                                        selectionModifier = Modifier.padding(horizontal = 10.dp),
                                         style = MaterialTheme.typography.labelMedium,
-                                        modifier = Modifier.padding(horizontal = 10.dp),
                                     )
                                 }
 

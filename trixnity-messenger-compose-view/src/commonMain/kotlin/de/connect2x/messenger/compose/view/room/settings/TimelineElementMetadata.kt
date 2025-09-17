@@ -54,7 +54,6 @@ import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
-import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.common.TooltipText
@@ -62,6 +61,8 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
@@ -105,8 +106,8 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
         var elementHistory by remember { mutableStateOf(listOf<TimelineElementHolderViewModel>()) }
         val firstElement = elementHistory.firstOrNull()
         var lastElement by remember { mutableStateOf<TimelineElementHolderViewModel?>(null) }
-        val messageElement = lastElement?.element?.collectAsState()?.value
-                as? RoomMessageTimelineElementViewModel.TextBased<*>
+        val messageElement =
+            lastElement?.element?.collectAsState()?.value as? RoomMessageTimelineElementViewModel.TextBased<*>
         val sender = lastElement?.sender?.collectAsState()?.value
         val reactions = firstElement?.reactions?.collectAsState()?.value
         val readers = firstElement?.readers?.collectAsState()?.value
@@ -145,9 +146,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                 ) {
                     Column(
                         verticalArrangement = Arrangement.Top,
-                        modifier = Modifier
-                            .padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp))
-                            .fillMaxSize()
+                        modifier = Modifier.padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp)).fillMaxSize()
                             .verticalScroll(scrollState)
                     ) {
                         SubHeading(i18n.timelineElementMetadataSender())
@@ -162,13 +161,13 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                         SmallSpacer()
                         messageElement?.body?.let { content ->
                             ExpandableSection(i18n.timelineElementMetadataBody(), Icons.Default.Code) {
-                                SelectableText(content)
+                                ThemedSelectableText(content, MaterialTheme.components.selectionOnSurface)
                             }
                             SmallSpacer()
                         }
                         messageElement?.formattedBody?.let { content ->
                             ExpandableSection(i18n.timelineElementMetadataFormattedBody(), Icons.Default.Code) {
-                                SelectableText(content)
+                                ThemedSelectableText(content, MaterialTheme.components.selectionOnSurface)
                             }
                             SmallSpacer()
                         }
@@ -202,12 +201,9 @@ fun ColumnScope.ExpandableSection(
     ) {
         Column {
             Row(
-                modifier = Modifier
-                    .clickable(interactionSource, LocalIndication.current) {
+                modifier = Modifier.clickable(interactionSource, LocalIndication.current) {
                         expanded.value = !expanded.value
-                    }.buttonPointerModifier(true)
-                    .padding(16.dp)
-                    .fillMaxWidth(),
+                    }.buttonPointerModifier(true).padding(16.dp).fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -216,8 +212,7 @@ fun ColumnScope.ExpandableSection(
                 Text(heading, style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.weight(1F).padding(end = 10.dp))
                 Icon(
-                    Icons.Default.ArrowDropDown, contentDescription = null,
-                    modifier = Modifier.rotate(rotateState)
+                    Icons.Default.ArrowDropDown, contentDescription = null, modifier = Modifier.rotate(rotateState)
                 )
             }
             AnimatedVisibility(expanded.value) {
@@ -249,8 +244,13 @@ fun ColumnScope.ReadersAndReactions(
     val state = rememberLazyListState()
 
     val allReadersAndReactions = remember(readers, reactions) {
-        (readers.associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, false) } +
-                reactions.byUser).values.toList()
+        (readers.associate {
+            it.userId to EventReactions.ByUserInfo(
+                mapOf(),
+                it,
+                false
+            )
+        } + reactions.byUser).values.toList()
     }.sortedByDescending { it.reactions.size }
     val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
 
@@ -303,25 +303,16 @@ private fun UserInfo(
         }
     }
     Tooltip({ TooltipText(tooltipText) }) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .clickable {
-                    onOpenUserProfile(userInfo.userId)
-                }
-                .buttonPointerModifier()
-        ) {
+        Row(Modifier.fillMaxWidth().clickable {
+                onOpenUserProfile(userInfo.userId)
+            }.buttonPointerModifier()) {
             Box(
-                Modifier
-                    .padding(start = 4.dp, top = 4.dp, bottom = 4.dp)
-                    .align(Alignment.CenterVertically)
+                Modifier.padding(start = 4.dp, top = 4.dp, bottom = 4.dp).align(Alignment.CenterVertically)
             ) {
                 ThemedUserAvatar(userInfo.initials, image)
             }
             Column(
-                Modifier
-                    .align(Alignment.CenterVertically)
-                    .padding(start = 8.dp)
+                Modifier.align(Alignment.CenterVertically).padding(start = 8.dp)
             ) {
                 Text(
                     userInfo.name,

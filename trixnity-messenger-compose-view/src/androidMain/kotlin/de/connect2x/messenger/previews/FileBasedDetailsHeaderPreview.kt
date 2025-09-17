@@ -12,7 +12,10 @@ import de.connect2x.messenger.compose.view.room.timeline.element.details.FileBas
 import de.connect2x.messenger.compose.view.room.timeline.element.details.FileBasedDetailsHeaderButton
 import de.connect2x.messenger.previews.util.InitMessengerPreview
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.ImageRoomMessageTimelineElementViewModelImpl
+import net.folivo.trixnity.core.model.EventId
+import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
 
@@ -27,7 +30,10 @@ private fun ElementDetailsHeaderPreview() {
                     componentContext = DefaultComponentContext(LifecycleRegistry()),
                     userId = UserId("1", "localhost"),
                 ),
-                content = FileBased.Image(body = "image.png")
+                content = FileBased.Image(body = "image.png"),
+                roomId = RoomId("!testimage:server"),
+                eventIdOrTransactionId = EventIdOrTransactionId(EventId("\$very1demure1event")),
+                onOpenMention = { _, _ -> }
             ),
             {},
             {},

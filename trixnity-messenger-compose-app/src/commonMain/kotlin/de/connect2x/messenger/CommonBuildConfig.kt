@@ -10,5 +10,5 @@ interface CommonBuildConfig {
     val licenses: String
 }
 
-@Suppress("NO_ACTUAL_FOR_EXPECT") // This links to sources generated on demand
+@Suppress("NO_ACTUAL_FOR_EXPECT", "KotlinNoActualForExpect") // This links to sources generated on demand
 expect val BuildConfig: CommonBuildConfig

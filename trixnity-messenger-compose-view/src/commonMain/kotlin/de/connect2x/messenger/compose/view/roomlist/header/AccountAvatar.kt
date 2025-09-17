@@ -70,7 +70,7 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
     }.collectAsState(null).value
 
     if (activeAccountInfo != null) {
-        Box(Modifier.Companion.weight(1.0f, false).fillMaxWidth()) {
+        Box(Modifier.weight(1.0f, false).fillMaxWidth()) {
             ThemedButton(
                 style = MaterialTheme.components.accountSelector,
                 onClick = {
@@ -155,7 +155,7 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
     val accounts = accountViewModel.accounts.collectAsState().value
     val accountSelectionOpen = remember { mutableStateOf(false) }
 
-    Box(Modifier.Companion.weight(1.0f, false).fillMaxWidth()) {
+    Box(Modifier.weight(1.0f, false).fillMaxWidth()) {
         ThemedButton(
             style = MaterialTheme.components.accountSelector,
             onClick = { accountSelectionOpen.value = accountSelectionOpen.value.not() },

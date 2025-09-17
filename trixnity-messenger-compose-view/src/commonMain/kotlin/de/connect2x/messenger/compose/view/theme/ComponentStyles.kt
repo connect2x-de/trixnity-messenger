@@ -14,6 +14,7 @@ import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.CircularProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
+import de.connect2x.messenger.compose.view.theme.components.SelectionStyle
 import de.connect2x.messenger.compose.view.theme.components.SliderStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.messenger.compose.view.theme.components.SwitchStyle
@@ -96,6 +97,9 @@ data class ComponentStyles(
     // dropdown
     val dropdownMenu: SurfaceStyle,
     val dropdownMenuItem: DropdownMenuItemStyle,
+    // selection
+    val selectionOnSurface: SelectionStyle,
+    val selectionOnPrimary: SelectionStyle,
 )
 
 internal val LocalComponentStyles = staticCompositionLocalOf<ComponentStyles> { error("compositionLocal not defined") }

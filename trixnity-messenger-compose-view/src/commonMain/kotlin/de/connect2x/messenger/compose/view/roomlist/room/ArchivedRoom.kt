@@ -16,7 +16,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -28,6 +27,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedLabel
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
+import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 interface ArchivedRoomListElement {
@@ -74,11 +74,12 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
                     Text(i18n.forgetRoomWarningHeader())
                 }
                 ModalDialogContent {
-                    SelectableText(
+                    ThemedSelectableText(
                         text = i18n.formattedForgetRoomWarningBody(
                             isDirect = isDirect == true,
                             roomName = roomName
-                        )
+                        ),
+                        selectionStyle = MaterialTheme.components.selectionOnSurface,
                     )
                 }
                 ModalDialogFooter {

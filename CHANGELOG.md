@@ -24,7 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Technical: Support deep nested settings view
-
+- Copy message content
+- Captions for Media messages
+- 
 ### Changed
 
 - UI (Desktop, Web): tooltips are WCAG compliant (tooltip itself can be hovered, tooltips can be closed with Esc key,
@@ -46,6 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Focus highlighting for "Create Group" and "Search Group"
 - Desktop/Web: show scrollbar in user search when creating a new chat
 - Fix crash due to intrinsic size in timeline
+- UI spacing for file-timeline-elements
+- Mentions List calculated even though mention was already selected
+- Crash when selecting mention if cursorPosition=0
 
 ## 3.8.4
 

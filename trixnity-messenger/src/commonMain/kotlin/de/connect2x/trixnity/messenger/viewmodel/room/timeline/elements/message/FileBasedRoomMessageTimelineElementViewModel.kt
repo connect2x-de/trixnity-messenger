@@ -5,6 +5,8 @@ import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -18,6 +20,7 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
+import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.component.get
 
@@ -26,11 +29,15 @@ private val log = KotlinLogging.logger {}
 abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEventContent.FileBased>(
     private val viewModelContext: MatrixClientViewModelContext,
     private val content: C,
-) : RoomMessageTimelineElementViewModel.FileBased<C>, MatrixClientViewModelContext by viewModelContext {
+    private val roomId: RoomId,
+    private val eventIdOrTransactionId: EventIdOrTransactionId,
+    private val onOpenMention: OpenMentionCallback,
+) : RoomMessageTimelineElementViewModel.FileBased<C>,
+    RoomMessageTimelineElementViewModelImpl<C>(viewModelContext, content, roomId, onOpenMention) {
     override val name: String = content.fileName ?: content.body
-    override val description: String? = if (content.fileName != null) content.body else null
-    override val size: String? = content.info?.size?.let { " (${formatSize(it.toLong())})" } ?: ""
+    override val size: String? = content.info?.size?.let { " (${formatSize(it)})" } ?: ""
     override val mimeType: String? = content.info?.mimeType
+    override val hasCaption: Boolean = content.fileName != null && content.body != content.fileName
 
     private val downloadManager = viewModelContext.get<DownloadManager>()
 

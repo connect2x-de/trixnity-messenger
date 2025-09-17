@@ -22,17 +22,20 @@ import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.ImageInfo
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.ThumbnailInfo
+import net.folivo.trixnity.core.model.events.m.room.VideoInfo
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
-class ImageRoomMessageTimelineElementViewModelTest {
+class VideoRoomMessageTimelineElementViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
     val thumbnailsMock = mock<Thumbnails>()
+
+    val roomId = RoomId("!bathroom:server")
+    val meUserId = UserId("tester", "server")
 
     init {
         resetMocks(matrixClientMock, thumbnailsMock)
@@ -43,11 +46,11 @@ class ImageRoomMessageTimelineElementViewModelTest {
     fun `load a thumbnail successfully`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                any(), eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Image>(), any(), any()
+                any(), eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Video>(), any(), any()
             )
         } returns "thumbnail".encodeToByteArray()
 
-        val cut = imageMessageViewModel()
+        val cut = videoRoomMessageTimelineElementViewModel()
         backgroundScope.launch { cut.thumbnail.collect {} }
 
         delay(100.milliseconds)
@@ -58,14 +61,14 @@ class ImageRoomMessageTimelineElementViewModelTest {
     fun `load a thumbnail that takes a while to load`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                any(), eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Image>(), any(), any()
+                any(), eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Video>(), any(), any()
             )
         } calls {
             delay(500.milliseconds)
             "thumbnail".encodeToByteArray()
         }
 
-        val cut = imageMessageViewModel()
+        val cut = videoRoomMessageTimelineElementViewModel()
         backgroundScope.launch { cut.thumbnail.collect {} }
 
         cut.thumbnail.value shouldBe null
@@ -73,7 +76,7 @@ class ImageRoomMessageTimelineElementViewModelTest {
         delay(499.milliseconds)
         cut.thumbnail.value shouldBe null
 
-        delay(1.milliseconds)
+        delay(2.milliseconds)
         cut.thumbnail.value shouldBe "thumbnail".encodeToByteArray()
     }
 
@@ -81,33 +84,35 @@ class ImageRoomMessageTimelineElementViewModelTest {
     fun `return 'null' for a thumbnail that cannot be loaded`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                any(), eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Image>(), any(), any()
+                any(), eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Video>(), any(), any()
             )
         } returns null
 
-        val cut = imageMessageViewModel()
+        val cut = videoRoomMessageTimelineElementViewModel()
         backgroundScope.launch { cut.thumbnail.collect {} }
 
         delay(100.milliseconds)
         cut.thumbnail.value shouldBe null
     }
 
-    private fun TestScope.imageMessageViewModel(): ImageRoomMessageTimelineElementViewModelImpl {
-        return ImageRoomMessageTimelineElementViewModelImpl(
+    fun TestScope.videoRoomMessageTimelineElementViewModel(): RoomMessageTimelineElementViewModel.FileBased.Video {
+        return VideoRoomMessageTimelineElementViewModelImpl(
             viewModelContext = testMatrixClientViewModelContext(
                 di = koinApplication {
                     modules(
                         createTestDefaultTrixnityMessengerModules(
-                            mapOf(UserId("test", "server") to matrixClientMock)
+                            mapOf(meUserId to matrixClientMock)
                         ) + module {
                             single { thumbnailsMock }
-                        })
+                        }
+                    )
                 }.koin,
-                userId = UserId("test", "server"),
+                userId = meUserId,
             ),
-            content = RoomMessageEventContent.FileBased.Image(
+            content = RoomMessageEventContent.FileBased.Video(
                 "",
-                info = ImageInfo(
+                info = VideoInfo(
+                    duration = 100L,
                     height = 500,
                     width = 500,
                     thumbnailInfo = ThumbnailInfo(
@@ -116,8 +121,8 @@ class ImageRoomMessageTimelineElementViewModelTest {
                     )
                 )
             ),
-            roomId = RoomId("!testimage:server"),
-            eventIdOrTransactionId = EventIdOrTransactionId(EventId("\$very1demure1event")),
+            roomId = roomId,
+            eventIdOrTransactionId = EventIdOrTransactionId(EventId("\$videomessage")),
             onOpenMention = { _, _ -> }
         )
     }

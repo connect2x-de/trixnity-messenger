@@ -55,6 +55,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.core.net.toUri
 
 class MessengerActivity : AppCompatActivity() {
     private val log = KotlinLogging.logger { }
@@ -211,7 +212,7 @@ class MessengerActivity : AppCompatActivity() {
 
             intent.action == Intent.ACTION_SEND && intent.type == "text/plain" -> {
                 intent.getStringExtra(Intent.EXTRA_TEXT)?.let { text ->
-                    val uri = Uri.parse(text)
+                    val uri = text.toUri()
 
                     if (uri.scheme == "http" || uri.scheme == "https") {
                         val icon = intent.clipData?.toSequence()?.firstOrNull()?.uri

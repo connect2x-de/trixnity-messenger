@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.Warning
@@ -55,6 +54,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
+import de.connect2x.messenger.compose.view.theme.components.ThemedSelectionContainer
 import de.connect2x.trixnity.messenger.viewmodel.verification.CrossSigningBootstrapViewModel
 import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
 import de.connect2x.trixnity_messenger_compose_view.generated.resources.recoverykey
@@ -156,7 +156,7 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                     ) {
                         WizardImage(Res.drawable.recoverykey, i18n.bootstrapRecoveryKey(), 60.dp)
                         LargeSpacer()
-                        SelectionContainer(Modifier.weight(1.0f)) {
+                        ThemedSelectionContainer(MaterialTheme.components.selectionOnSurface, Modifier.weight(1.0f)) {
                             Column {
                                 Text(
                                     text = recoveryKeyPart1 ?: "",

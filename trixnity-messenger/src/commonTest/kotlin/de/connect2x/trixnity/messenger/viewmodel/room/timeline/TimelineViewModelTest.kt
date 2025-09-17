@@ -18,7 +18,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.TextBasedRoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -74,6 +74,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
+@Suppress("NonAsciiCharacters")
 class TimelineViewModelTest {
 
     private var lifecycleRegistry: LifecycleRegistry
@@ -370,7 +371,7 @@ class TimelineViewModelTest {
         cut.elements.first().lastOrNull()?.key shouldBe "${roomId.full}-replace-2"
         eventually(2.seconds) {
             val elementViewModel = cut.elements.first().firstOrNull()?.element?.value
-            if (elementViewModel is TextBasedRoomMessageTimelineElementViewModel) {
+            if (elementViewModel is RoomMessageTimelineElementViewModel<*>) {
                 elementViewModel.body shouldBe "Hello!!!"
             } else fail("")
             cut.elements.first().getOrNull(1)?.element?.value shouldBe TimelineElementViewModel.Empty

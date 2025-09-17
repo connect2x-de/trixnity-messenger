@@ -47,6 +47,7 @@ import kotlin.test.Test
 import kotlin.test.fail
 
 
+@Suppress("NonAsciiCharacters")
 class MatrixClientsTest {
     private val mutableMatrixClients: MutableStateFlow<Map<UserId, MatrixClient>>
     private val loginState: MutableStateFlow<MatrixClient.LoginState>

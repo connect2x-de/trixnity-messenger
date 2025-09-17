@@ -13,7 +13,6 @@ import de.connect2x.sysnotify.withActivationFactory
 import de.connect2x.sysnotify.withContext
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.compose.view.R
-import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSyncImpl
 import io.github.oshai.kotlinlogging.KotlinLogging
 import net.folivo.trixnity.core.model.UserId

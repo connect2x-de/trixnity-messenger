@@ -36,4 +36,4 @@ class TextRoomMessageTimelineElementViewModelImpl(
     roomId: RoomId,
     onOpenMention: OpenMentionCallback,
 ) : RoomMessageTimelineElementViewModel.TextBased.Text,
-    TextBasedRoomMessageTimelineElementViewModel<TextBased.Text>(viewModelContext, content, roomId, onOpenMention)
+    RoomMessageTimelineElementViewModelImpl<TextBased.Text>(viewModelContext, content, roomId, onOpenMention)

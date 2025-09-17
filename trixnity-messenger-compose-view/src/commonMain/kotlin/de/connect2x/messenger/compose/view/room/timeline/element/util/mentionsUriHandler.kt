@@ -11,7 +11,7 @@ private val log = KotlinLogging.logger {}
 
 fun mentionsUriHandler(
     baseHandler: UriHandler,
-    element: RoomMessageTimelineElementViewModel.TextBased<*>,
+    element: RoomMessageTimelineElementViewModel<*>,
     mentions: List<TimelineElementMention?>
 ): State<UriHandler> {
     return mutableStateOf(object : UriHandler {

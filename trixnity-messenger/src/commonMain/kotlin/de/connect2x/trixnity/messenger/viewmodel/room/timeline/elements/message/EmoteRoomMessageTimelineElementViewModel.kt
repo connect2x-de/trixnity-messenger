@@ -35,4 +35,4 @@ class EmoteRoomMessageTimelineElementViewModelImpl(
     roomId: RoomId,
     onOpenMention: OpenMentionCallback,
 ) : RoomMessageTimelineElementViewModel.TextBased.Emote,
-    TextBasedRoomMessageTimelineElementViewModel<TextBased.Emote>(viewModelContext, content, roomId, onOpenMention)
+    RoomMessageTimelineElementViewModelImpl<TextBased.Emote>(viewModelContext, content, roomId, onOpenMention)

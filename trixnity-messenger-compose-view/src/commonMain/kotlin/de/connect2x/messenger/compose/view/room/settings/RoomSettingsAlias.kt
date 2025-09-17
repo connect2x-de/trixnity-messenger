@@ -33,7 +33,6 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MoreOptions
-import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.modifier.gesturesDisabled
@@ -41,6 +40,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModel
 import net.folivo.trixnity.core.model.RoomAliasId
 
@@ -100,7 +100,11 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                             Arrangement.SpaceBetween,
                             Alignment.CenterVertically
                         ) {
-                            SelectableText(alias, modifier = Modifier.weight(1f, false))
+                            ThemedSelectableText(
+                                alias,
+                                MaterialTheme.components.selectionOnSurface,
+                                selectionModifier = Modifier.weight(1f, false)
+                            )
 
                             Row {
                                 if (canChangeRoomAlias) {
@@ -150,7 +154,10 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                             Arrangement.SpaceBetween,
                             Alignment.CenterVertically
                         ) {
-                            SelectableText(alias, modifier = Modifier.weight(1f, false))
+                            ThemedSelectableText(
+                                alias,
+                                MaterialTheme.components.selectionOnSurface,
+                                selectionModifier = Modifier.weight(1f, false))
                             Row {
                                 if (canChangeRoomAlias) {
                                     Tooltip({ Text(i18n.makeMainAlias()) }) {

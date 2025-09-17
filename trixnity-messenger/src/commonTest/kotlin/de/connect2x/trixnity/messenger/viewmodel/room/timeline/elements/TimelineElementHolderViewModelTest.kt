@@ -66,6 +66,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
+@Suppress("NonAsciiCharacters")
 class TimelineElementHolderViewModelTest {
     private val roomId = RoomId("!room1")
     private val eventId = EventId("event")

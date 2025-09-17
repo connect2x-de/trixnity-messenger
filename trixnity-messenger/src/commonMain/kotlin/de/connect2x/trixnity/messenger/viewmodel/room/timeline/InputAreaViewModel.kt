@@ -288,7 +288,7 @@ open class InputAreaViewModelImpl(
     }
 
     private fun TextFieldViewModel.State.mentionBeforeCursor() =
-        if (text.isNotEmpty() && selection != null && selection.firstIsLast()) {
+        if (text.isNotEmpty() && selection != null && selection.firstIsLast() && selection.first != 0) {
             text.substring(0..(selection.last - 1).coerceIn(0..text.lastIndex))
                 .takeLast(50)
                 .takeIf { it.contains('@') }
