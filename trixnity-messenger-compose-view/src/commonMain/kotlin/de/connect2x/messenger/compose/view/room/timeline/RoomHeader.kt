@@ -242,9 +242,8 @@ fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
         Tooltip(tooltip = {
             Text(topic)
         }) {
-            ThemedSelectableText(
+            Text(
                 topic,
-                MaterialTheme.components.selectionOnSurface,
                 style = MaterialTheme.typography.labelMedium,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
