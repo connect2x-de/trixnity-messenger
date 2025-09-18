@@ -12,6 +12,8 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
 
     suspend fun waitFor(element: V)
 
+    fun isFocusable(): Boolean
+
     @Composable
     fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
@@ -49,6 +51,8 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*
 
 
     override suspend fun waitFor(element: TimelineElementViewModel<*>) {}
+
+    override fun isFocusable(): Boolean = false
 
     @Composable
     override fun createInTimeline(

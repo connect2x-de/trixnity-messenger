@@ -20,6 +20,9 @@ interface TimelineElementViewSelector :
     suspend fun waitFor(element: TimelineElementViewModel<*>) =
         selectFactory(element).waitFor(element)
 
+    fun isFocusable(element: TimelineElementViewModel<*>) =
+        selectFactory(element).isFocusable()
+
     @Composable
     fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,

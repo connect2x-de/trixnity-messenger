@@ -24,6 +24,9 @@ class NameStateTimelineElementViewImpl : NameStateTimelineElementView {
         element.changeMessage.filterNotNull().first()
     }
 
+    // FIXME
+    override fun isFocusable(): Boolean = false
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,

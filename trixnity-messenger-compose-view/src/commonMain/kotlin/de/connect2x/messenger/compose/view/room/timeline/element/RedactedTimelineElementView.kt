@@ -39,6 +39,8 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
         element.message.filterNotNull().first()
     }
 
+    override fun isFocusable(): Boolean = true
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,

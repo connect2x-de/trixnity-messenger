@@ -19,6 +19,8 @@ class TextRoomMessageTimelineElementViewImpl : TextRoomMessageTimelineElementVie
         // NO-OP (has default size)
     }
 
+    override fun isFocusable(): Boolean = true
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
