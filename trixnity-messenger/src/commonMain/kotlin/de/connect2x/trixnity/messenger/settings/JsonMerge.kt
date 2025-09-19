@@ -18,14 +18,16 @@ fun jsonMerge(source: JsonObject, update: JsonObject, override: List<String>? = 
 
         for ((key, updateValue) in currentUpdate) {
             val baseValue = currentBase[key]
-            val newPath = path + key
-
-            if (newPath == override) {
-                currentBase[key] = updateValue
-            } else if (baseValue is JsonObject && updateValue is JsonObject) {
-                val mergedChild = baseValue.toMutableMap()
-                currentBase[key] = JsonObject(mergedChild)
-                stack.add(StackElement(mergedChild, updateValue, newPath))
+            
+            if (baseValue is JsonObject && updateValue is JsonObject) {
+                val newPath = path + key
+                if (newPath == override) {
+                    currentBase[key] = JsonObject(baseValue + updateValue)
+                } else {
+                    val mergedChild = baseValue.toMutableMap()
+                    currentBase[key] = JsonObject(mergedChild)
+                    stack.add(StackElement(mergedChild, updateValue, newPath))
+                }
             } else {
                 currentBase[key] = updateValue
             }

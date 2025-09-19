@@ -173,7 +173,8 @@ class JsonMergeTest {
                     mapOf(
                         "y" to JsonObject(
                             mapOf(
-                                "z" to JsonPrimitive(99)
+                                "z" to JsonPrimitive(99),
+                                "w" to JsonPrimitive(2),
                             )
                         )
                     )
@@ -205,49 +206,6 @@ class JsonMergeTest {
 
         jsonMerge(base, update, override = listOf("a")) shouldBe JsonObject(
             mapOf("a" to JsonObject(mapOf("b" to JsonPrimitive(10))))
-        )
-    }
-
-    @Test
-    fun `override - deep path override only`() {
-        val base = JsonObject(
-            mapOf(
-                "x" to JsonObject(
-                    mapOf(
-                        "y" to JsonObject(
-                            mapOf(
-                                "z" to JsonPrimitive("keep"),
-                                "w" to JsonPrimitive("remove")
-                            )
-                        )
-                    )
-                )
-            )
-        )
-        val update = JsonObject(
-            mapOf(
-                "x" to JsonObject(
-                    mapOf(
-                        "y" to JsonObject(
-                            mapOf(
-                                "z" to JsonPrimitive("updated")
-                            )
-                        )
-                    )
-                )
-            )
-        )
-
-        jsonMerge(base, update, override = listOf("x", "y")) shouldBe JsonObject(
-            mapOf(
-                "x" to JsonObject(
-                    mapOf(
-                        "y" to JsonObject(
-                            mapOf("z" to JsonPrimitive("updated"))
-                        )
-                    )
-                )
-            )
         )
     }
 
