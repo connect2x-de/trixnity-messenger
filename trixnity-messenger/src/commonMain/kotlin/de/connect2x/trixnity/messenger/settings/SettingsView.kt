@@ -29,7 +29,7 @@ fun <S : Settings<S>, T : SettingsView<S>> MutableSettings<S>.set(value: T, seri
     val newValues = SettingsJson.encodeToJsonElement(serializer, value) as? JsonObject
     if (newValues != null) {
         if (keys != null) putAll(putJsonChild(JsonObject(this), newValues, keys))
-        else putAll(newValues)
+        else putAll(jsonMerge(JsonObject(this), newValues))
     }
 }
 

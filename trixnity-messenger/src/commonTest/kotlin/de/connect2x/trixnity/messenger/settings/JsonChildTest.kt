@@ -60,7 +60,16 @@ class JsonChildTest {
         putJsonChild(
             JsonObject(mapOf("dino" to JsonObject(mapOf("a" to JsonPrimitive("unicorn"))))),
             JsonObject(mapOf("dino" to JsonObject(mapOf("b" to JsonPrimitive("unicorn"))))),
-        ) shouldBe JsonObject(mapOf("dino" to JsonObject(mapOf("b" to JsonPrimitive("unicorn")))))
+        ) shouldBe JsonObject(
+            mapOf(
+                "dino" to JsonObject(
+                    mapOf(
+                        "a" to JsonPrimitive("unicorn"),
+                        "b" to JsonPrimitive("unicorn")
+                    )
+                )
+            )
+        )
 
     }
 
