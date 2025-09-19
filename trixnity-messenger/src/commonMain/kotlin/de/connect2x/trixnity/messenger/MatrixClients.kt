@@ -1,11 +1,12 @@
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.MatrixClients.InitFromStoreResult
+import de.connect2x.trixnity.messenger.secrets.SecretByteArrays
+import de.connect2x.trixnity.messenger.secrets.deleteDatabaseKey
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.NonCancellable
@@ -14,12 +15,12 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.MatrixClient.LoginInfo
@@ -57,6 +58,10 @@ interface MatrixClients : StateFlow<Map<UserId, MatrixClient>>, AutoCloseable {
         val failures: Map<UserId, MatrixClientInitializationException>,
     )
 
+    val initFromStoreResult: StateFlow<InitFromStoreResult?>
+    val isInitialized: StateFlow<Boolean>
+
+    @Deprecated("This should not be used anymore. It is called automatically on startup. Instead listen to initFromStoreResult or isInitialized when you need it.")
     suspend fun initFromStore(): InitFromStoreResult
 
     suspend fun logout(userId: UserId): Result<Unit>
@@ -73,32 +78,32 @@ class MatrixClientsImpl(
     private val deleteAccountData: DeleteAccountData,
     private val settings: MatrixMessengerSettingsHolder,
     private val config: MatrixMessengerConfiguration,
-    coroutineScope: CoroutineScope,
+    private val secretByteArrays: SecretByteArrays,
     private val matrixClients: MutableStateFlow<Map<UserId, MatrixClient>> = MutableStateFlow(mapOf()),
-) : MatrixClients, StateFlow<Map<UserId, MatrixClient>> by matrixClients {
-    init {
-        coroutineScope.launch {
-            flatMapLatest { matrixClients ->
-                combine(
-                    matrixClients.map { matrixClient -> matrixClient.value.loginState.map { matrixClient.key to it } }
-                ) { it.toMap() }
-            }.distinctUntilChanged()
-                .collect { matrixClientLoginStates ->
-                    log.debug { "check login states $matrixClientLoginStates" }
-                    matrixClientLoginStates.forEach { (userId, loginState) ->
-                        when (loginState) {
-                            MatrixClient.LoginState.LOGGED_OUT_SOFT, // TODO soft logout
-                            MatrixClient.LoginState.LOCKED, // TODO locked
-                            MatrixClient.LoginState.LOGGED_OUT -> {
-                                log.info { "remote logout triggered" }
-                                remove(userId)
-                            }
-
-                            MatrixClient.LoginState.LOGGED_IN, null -> {}
+) : Worker, MatrixClients, StateFlow<Map<UserId, MatrixClient>> by matrixClients {
+    override suspend fun doWork() {
+        @Suppress("DEPRECATION")
+        initFromStore()
+        flatMapLatest { matrixClients ->
+            combine(
+                matrixClients.map { matrixClient -> matrixClient.value.loginState.map { matrixClient.key to it } }
+            ) { it.toMap() }
+        }.distinctUntilChanged()
+            .collect { matrixClientLoginStates ->
+                log.debug { "check login states $matrixClientLoginStates" }
+                matrixClientLoginStates.forEach { (userId, loginState) ->
+                    when (loginState) {
+                        MatrixClient.LoginState.LOGGED_OUT_SOFT, // TODO soft logout
+                        MatrixClient.LoginState.LOCKED, // TODO locked
+                        MatrixClient.LoginState.LOGGED_OUT -> {
+                            log.info { "remote logout triggered" }
+                            remove(userId)
                         }
+
+                        MatrixClient.LoginState.LOGGED_IN, null -> {}
                     }
                 }
-        }
+            }
     }
 
     override suspend fun login(
@@ -215,38 +220,48 @@ class MatrixClientsImpl(
         }
     }
 
-    override suspend fun initFromStore(): InitFromStoreResult = coroutineScope {
-        val success = MutableStateFlow(setOf<UserId>())
-        val failures = MutableStateFlow(mapOf<UserId, MatrixClientInitializationException>())
-        val newMatrixClients = settings.value.base.accounts.map { (userId, accountSettings) ->
-            async {
-                if (matrixClients.value[userId] == null) {
-                    val newMatrixClient = factory.initFromStore(userId)
-                        .fold(
-                            onSuccess = { newMatrixClient ->
-                                if (newMatrixClient != null) success.update { it + userId }
-                                else failures.update { it + (userId to MatrixClientInitializationException.NoDatabaseException) }
-                                newMatrixClient
-                            },
-                            onFailure = { e ->
-                                log.error(e) { "could not load $userId from store" }
-                                val failure = when (e) {
-                                    is CancellationException -> throw e
-                                    is MatrixClientInitializationException -> e
-                                    else -> MatrixClientInitializationException.Unknown(e.message)
+    private val _initFromStoreResult: MutableStateFlow<InitFromStoreResult?> = MutableStateFlow(null)
+    override val initFromStoreResult: StateFlow<InitFromStoreResult?> = _initFromStoreResult.asStateFlow()
+    private val _isInitialized: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val isInitialized: StateFlow<Boolean> = _isInitialized.asStateFlow()
+
+    @Deprecated("This should not be used anymore. It is called automatically on startup. Instead listen to initFromStoreResult or isInitialized when you need it.")
+    override suspend fun initFromStore(): InitFromStoreResult = // TODO make internal and undeprecate
+        coroutineScope {
+            val success = MutableStateFlow(setOf<UserId>())
+            val failures = MutableStateFlow(mapOf<UserId, MatrixClientInitializationException>())
+            val newMatrixClients = settings.value.base.accounts.keys.map { account ->
+                async {
+                    if (matrixClients.value[account] == null) {
+                        val newMatrixClient = factory.initFromStore(account)
+                            .fold(
+                                onSuccess = { newMatrixClient ->
+                                    if (newMatrixClient != null) success.update { it + account }
+                                    else failures.update { it + (account to MatrixClientInitializationException.NoDatabaseException) }
+                                    newMatrixClient
+                                },
+                                onFailure = { e ->
+                                    log.error(e) { "could not load $account from store" }
+                                    val failure = when (e) {
+                                        is CancellationException -> throw e
+                                        is MatrixClientInitializationException -> e
+                                        else -> MatrixClientInitializationException.Unknown(e.message)
+                                    }
+                                    failures.update { it + (account to failure) }
+                                    null
                                 }
-                                failures.update { it + (userId to failure) }
-                                null
-                            }
-                        )
-                    if (newMatrixClient != null) userId to newMatrixClient
-                    else null
-                } else null
-            }
-        }.awaitAll().filterNotNull()
-        matrixClients.update { it + newMatrixClients }
-        InitFromStoreResult(success = success.value, failures = failures.value)
-    }
+                            )
+                        if (newMatrixClient != null) account to newMatrixClient
+                        else null
+                    } else null
+                }
+            }.awaitAll().filterNotNull()
+            matrixClients.update { it + newMatrixClients }
+            val result = InitFromStoreResult(success = success.value, failures = failures.value)
+            _initFromStoreResult.value = result
+            _isInitialized.value = true
+            result
+        }
 
     override suspend fun logout(userId: UserId): Result<Unit> {
         log.info { "logout (userId=$userId)" }
@@ -273,6 +288,7 @@ class MatrixClientsImpl(
 
             settings.delete(userId)
             matrixClients.update { it - userId }
+            secretByteArrays.deleteDatabaseKey(userId)
             deleteAccountData(userId)
         }
     }.onFailure {

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Introduce Worker to schedule work when messenger is started
+
 ### Changed
 
 ### Deprecated
@@ -16,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+
+- Fix db keys not deleted on account remove
 
 ### Security
 
@@ -26,7 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Technical: Support deep nested settings view
 - Copy message content
 - Captions for Media messages
-- 
+-
+
 ### Changed
 
 - UI (Desktop, Web): tooltips are WCAG compliant (tooltip itself can be hovered, tooltips can be closed with Esc key,
