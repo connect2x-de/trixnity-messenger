@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.multi
 import co.touchlab.skie.configuration.annotations.DefaultArgumentInterop
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
+import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.settings.SettingsHolder
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -77,10 +78,10 @@ class MatrixMultiMessengerImpl private constructor(
                 if (oldSettings.forgetActiveProfileOnStart) oldSettings.copy(activeProfile = null)
                 else oldSettings
             }
-            val worker = di.getAll<MatrixMultiMessengerWorker>()
-            worker.forEach { work ->
-                log.debug { "start worker $work" }
-                coroutineScope.launch { work() }
+            val worker = di.getAll<Worker>()
+            worker.forEach { worker ->
+                log.debug { "start worker $worker" }
+                coroutineScope.launch { worker.doWork() }
             }
             val matrixMultiMessengerImpl = MatrixMultiMessengerImpl(
                 di = di,

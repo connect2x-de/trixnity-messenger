@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Introduce Worker to schedule work when messenger is started
+
 ### Changed
 
 ### Deprecated
@@ -17,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix db keys not deleted on account remove
 - Technical: Don't override siblings or children in the deep nested settings view
 
 ### Security
@@ -28,7 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Technical: Support deep nested settings view
 - Copy message content
 - Captions for Media messages
--
 
 ### Changed
 

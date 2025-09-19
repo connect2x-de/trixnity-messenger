@@ -17,6 +17,7 @@ import dev.mokkery.everySuspend
 import dev.mokkery.mock
 import dev.mokkery.verify
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.core.model.UserId
@@ -34,9 +35,11 @@ class MatrixClientInitializationViewModelTest {
     init {
         resetMocks(matrixClientsMock, onNoAccountsMock)
         every { onNoAccountsMock.invoke() } returns Unit
-        everySuspend { matrixClientsMock.initFromStore() } returns MatrixClients.InitFromStoreResult(
-            success = emptySet(),
-            failures = emptyMap(),
+        everySuspend { matrixClientsMock.initFromStoreResult } returns MutableStateFlow(
+            MatrixClients.InitFromStoreResult(
+                success = emptySet(),
+                failures = emptyMap(),
+            )
         )
     }
 
