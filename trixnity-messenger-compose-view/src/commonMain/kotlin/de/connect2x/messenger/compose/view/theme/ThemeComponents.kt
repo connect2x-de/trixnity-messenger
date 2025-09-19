@@ -228,13 +228,12 @@ class ThemeComponentsImpl : ThemeComponents {
         // room list
         roomListElement = SurfaceStyle.default(
             color = Color.Unspecified,
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
         roomListSelection = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onBackground,
-        ),
-        roomListFocused = SurfaceStyle.default(
-            border = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
         roomListDivider = DividerStyle.default(
             padding = PaddingValues(horizontal = 10.dp),

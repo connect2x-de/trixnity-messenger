@@ -60,9 +60,8 @@ data class ComponentStyles(
     val horizontalDivider: DividerStyle?,
     val verticalDivider: DividerStyle?,
     // room list
-    val roomListFocused: SurfaceStyle,
-    val roomListSelection: SurfaceStyle,
     val roomListElement: SurfaceStyle,
+    val roomListSelection: SurfaceStyle,
     val roomListDivider: DividerStyle?,
     val accountSelector: ButtonStyle,
     // input area

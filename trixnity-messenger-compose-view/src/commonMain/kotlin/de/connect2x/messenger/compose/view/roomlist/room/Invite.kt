@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.Tooltip
@@ -27,6 +28,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
+import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 interface InviteRoomListElement {
@@ -64,6 +66,7 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = { roomListElementViewModel.acceptInvitation() },
+                    modifier = Modifier.rovingFocusChild(),
                 ) {
                     Icon(Icons.Default.Check, i18n.invitationAccept())
                 }
@@ -74,6 +77,7 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = { showReject = true },
+                    modifier = Modifier.rovingFocusChild(),
                 ) {
                     Icon(Icons.Default.Close, i18n.invitationReject())
                 }
