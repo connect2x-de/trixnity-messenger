@@ -34,5 +34,5 @@ internal fun putJsonChild(
 ): JsonObject {
     val update =
         keys.asReversed().fold(value) { child, segment -> buildJsonObject { put(segment, child) } }
-    return jsonMerge(source, update)
+    return jsonMerge(source, update, keys)
 }

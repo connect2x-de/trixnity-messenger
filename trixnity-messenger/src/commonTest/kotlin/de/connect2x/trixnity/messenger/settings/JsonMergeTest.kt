@@ -136,4 +136,146 @@ class JsonMergeTest {
             )
         )
     }
+
+    @Test
+    fun `override - nested object replaced`() {
+        val base = JsonObject(
+            mapOf(
+                "x" to JsonObject(
+                    mapOf(
+                        "y" to JsonObject(
+                            mapOf(
+                                "z" to JsonPrimitive(1),
+                                "w" to JsonPrimitive(2),
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        val update = JsonObject(
+            mapOf(
+                "x" to JsonObject(
+                    mapOf(
+                        "y" to JsonObject(
+                            mapOf(
+                                "z" to JsonPrimitive(99)
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        jsonMerge(base, update, override = listOf("x", "y")) shouldBe JsonObject(
+            mapOf(
+                "x" to JsonObject(
+                    mapOf(
+                        "y" to JsonObject(
+                            mapOf(
+                                "z" to JsonPrimitive(99)
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `override - primitive instead of object`() {
+        val base = JsonObject(
+            mapOf("a" to JsonObject(mapOf("b" to JsonPrimitive(1))))
+        )
+        val update = JsonObject(
+            mapOf("a" to JsonPrimitive(100))
+        )
+
+        jsonMerge(base, update, override = listOf("a")) shouldBe JsonObject(
+            mapOf("a" to JsonPrimitive(100))
+        )
+    }
+
+    @Test
+    fun `override - object instead of primitive`() {
+        val base = JsonObject(mapOf("a" to JsonPrimitive(5)))
+        val update = JsonObject(
+            mapOf("a" to JsonObject(mapOf("b" to JsonPrimitive(10))))
+        )
+
+        jsonMerge(base, update, override = listOf("a")) shouldBe JsonObject(
+            mapOf("a" to JsonObject(mapOf("b" to JsonPrimitive(10))))
+        )
+    }
+
+    @Test
+    fun `override - deep path override only`() {
+        val base = JsonObject(
+            mapOf(
+                "x" to JsonObject(
+                    mapOf(
+                        "y" to JsonObject(
+                            mapOf(
+                                "z" to JsonPrimitive("keep"),
+                                "w" to JsonPrimitive("remove")
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        val update = JsonObject(
+            mapOf(
+                "x" to JsonObject(
+                    mapOf(
+                        "y" to JsonObject(
+                            mapOf(
+                                "z" to JsonPrimitive("updated")
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        jsonMerge(base, update, override = listOf("x", "y")) shouldBe JsonObject(
+            mapOf(
+                "x" to JsonObject(
+                    mapOf(
+                        "y" to JsonObject(
+                            mapOf("z" to JsonPrimitive("updated"))
+                        )
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `override - no override behaves like normal merge`() {
+        val base = JsonObject(
+            mapOf("a" to JsonObject(mapOf("b" to JsonPrimitive(1))))
+        )
+        val update = JsonObject(
+            mapOf("a" to JsonObject(mapOf("c" to JsonPrimitive(2))))
+        )
+
+        jsonMerge(base, update, override = null) shouldBe JsonObject(
+            mapOf("a" to JsonObject(mapOf("b" to JsonPrimitive(1), "c" to JsonPrimitive(2))))
+        )
+    }
+
+    @Test
+    fun `override - empty override toplevel`() {
+        val base = JsonObject(
+            mapOf("a" to JsonObject(mapOf("b" to JsonPrimitive(1))), "d" to JsonPrimitive(1))
+        )
+        val update = JsonObject(
+            mapOf("a" to JsonObject(mapOf("c" to JsonPrimitive(2))))
+        )
+
+        jsonMerge(base, update, override = listOf()) shouldBe JsonObject(
+            mapOf("a" to JsonObject(mapOf("c" to JsonPrimitive(2))), "d" to JsonPrimitive(1))
+        )
+    }
 }
