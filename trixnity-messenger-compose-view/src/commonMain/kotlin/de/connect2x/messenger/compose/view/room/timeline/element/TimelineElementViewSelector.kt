@@ -1,6 +1,9 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
@@ -39,13 +42,17 @@ interface TimelineElementViewSelector :
     fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-    ) = rememberFactory(element).createReplyInTimeline(holder, element)
+        modifier: Modifier = Modifier,
+        interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    ) = rememberFactory(element).createReplyInTimeline(holder, element, modifier, interactionSource)
 
     @Composable
     fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-    ) = rememberFactory(element).createReplyInSendMessage(holder, element)
+        modifier: Modifier = Modifier,
+        interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    ) = rememberFactory(element).createReplyInSendMessage(holder, element, modifier, interactionSource)
 
     @Composable
     fun getClipEntry(

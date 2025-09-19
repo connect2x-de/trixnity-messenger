@@ -323,6 +323,7 @@ class ThemeComponentsImpl : ThemeComponents {
         messageReference = SurfaceStyle.default(
             shape = RoundedCornerShape(8.dp),
             color = Color(0x55FFFFFF),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
         ),
         // tooltip
         tooltip = TooltipStyle.default(

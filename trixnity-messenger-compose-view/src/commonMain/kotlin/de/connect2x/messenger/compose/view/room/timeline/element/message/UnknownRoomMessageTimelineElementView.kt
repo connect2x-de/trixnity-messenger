@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -51,9 +52,13 @@ class UnknownRoomMessageTimelineElementViewImpl : UnknownRoomMessageTimelineElem
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
         element: Unknown,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
         ReferencedMessagePill(
             holder = holder,
+            modifier = modifier,
+            interactionSource = interactionSource,
             content = {
                 Text(
                     text = element.fallbackBody,
@@ -70,9 +75,13 @@ class UnknownRoomMessageTimelineElementViewImpl : UnknownRoomMessageTimelineElem
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
         element: Unknown,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
         ReferencedMessagePill(
             holder = holder,
+            modifier = modifier,
+            interactionSource = interactionSource,
             content = {
                 Text(
                     text = element.fallbackBody,

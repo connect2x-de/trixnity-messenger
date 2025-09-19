@@ -1,8 +1,10 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.state
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import de.connect2x.messenger.compose.view.room.timeline.Indicator
 import de.connect2x.messenger.compose.view.room.timeline.IndicatorText
@@ -48,10 +50,14 @@ class HistoryVisibilityStateTimelineElementViewImpl : HistoryVisibilityStateTime
     @Composable
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
-        element: HistoryVisibilityStateTimelineElementViewModel
+        element: HistoryVisibilityStateTimelineElementViewModel,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
         ReferencedMessagePill(
             holder = holder,
+            modifier = modifier,
+            interactionSource = interactionSource,
             content = {
                 StateElement(element)
             }
@@ -61,10 +67,14 @@ class HistoryVisibilityStateTimelineElementViewImpl : HistoryVisibilityStateTime
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
-        element: HistoryVisibilityStateTimelineElementViewModel
+        element: HistoryVisibilityStateTimelineElementViewModel,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
         ReferencedMessagePill(
             holder = holder,
+            modifier = modifier,
+            interactionSource = interactionSource,
             content = {
                 StateElement(element)
             }

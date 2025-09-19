@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -63,9 +64,13 @@ class EncryptedErrorTimelineElementViewImpl : EncryptedErrorTimelineElementView 
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
         element: EncryptedErrorTimelineElementViewModel,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
         ReferencedMessagePill(
             holder = holder,
+            modifier = modifier,
+            interactionSource = interactionSource,
             content = {
                 EncryptedMessageErrorElement()
             }
@@ -75,10 +80,14 @@ class EncryptedErrorTimelineElementViewImpl : EncryptedErrorTimelineElementView 
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
-        element: EncryptedErrorTimelineElementViewModel
+        element: EncryptedErrorTimelineElementViewModel,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
         ReferencedMessagePill(
             holder = holder,
+            modifier = modifier,
+            interactionSource = interactionSource,
             content = {
                 EncryptedMessageErrorElement()
             }

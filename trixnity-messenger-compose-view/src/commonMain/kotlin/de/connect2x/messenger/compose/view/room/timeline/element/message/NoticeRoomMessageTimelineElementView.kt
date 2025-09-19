@@ -1,6 +1,8 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.util.toClipEntry
@@ -41,16 +43,20 @@ class NoticeRoomMessageTimelineElementViewImpl : NoticeRoomMessageTimelineElemen
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
         element: Notice,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
-        TextReplyInTimeline(holder, element)
+        TextReplyInTimeline(holder, element, modifier, interactionSource)
     }
 
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
         element: Notice,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
-        TextReplyInSendMessage(holder, element)
+        TextReplyInSendMessage(holder, element, modifier, interactionSource)
     }
 
     @Composable

@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -72,10 +73,14 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
     @Composable
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
-        element: RedactedTimelineElementViewModel
+        element: RedactedTimelineElementViewModel,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
         ReferencedMessagePill(
             holder = holder,
+            modifier = modifier,
+            interactionSource = interactionSource,
             content = {
                 RedactedMessageElement(element)
             }
@@ -86,9 +91,13 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
         element: RedactedTimelineElementViewModel,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
         ReferencedMessagePill(
             holder = holder,
+            modifier = modifier,
+            interactionSource = interactionSource,
             content = {
                 RedactedMessageElement(element)
             }

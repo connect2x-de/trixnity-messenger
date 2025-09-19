@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -88,6 +89,8 @@ class VerificationRequestRoomMessageTimelineElementViewImpl : VerificationReques
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
         element: VerificationRequest,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
     }
 
@@ -95,6 +98,8 @@ class VerificationRequestRoomMessageTimelineElementViewImpl : VerificationReques
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
         element: VerificationRequest,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
     }
 
