@@ -1,32 +1,48 @@
 package de.connect2x.messenger.compose.view.common
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
+import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
+import de.connect2x.messenger.compose.view.util.RovingFocusContainer
+import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.rovingFocusItem
+import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 
 internal data class RadioSettingOption(
     val text: String,
@@ -36,7 +52,7 @@ internal data class RadioSettingOption(
 )
 
 @Composable
-internal fun <T> ColumnScope.RadioSetting(
+internal fun <T: Any> ColumnScope.RadioSetting(
     text: String,
     explanation: String? = null,
     options: Map<T, RadioSettingOption>,
@@ -62,7 +78,7 @@ internal fun <T> ColumnScope.RadioSetting(
 }
 
 @Composable
-internal fun <T> ColumnScope.RadioSetting(
+internal fun <T : Any> ColumnScope.RadioSetting(
     title: @Composable () -> Unit,
     options: Map<T, RadioSettingOption>,
     value: T,
@@ -71,9 +87,34 @@ internal fun <T> ColumnScope.RadioSetting(
     enabled: Boolean = true,
     icon: ImageVector = Icons.Default.Settings,
 ) {
+    val keys = remember(options) { options.keys.toList() }
+    val defaultItem = options.keys.firstOrNull()
     MoreOptions(title = title, icon = icon, enabled = enabled) {
-        for ((key, option) in options) {
-            RadioSettingOption(option, key, value, set, enabled)
+        RovingFocusContainer {
+            Column(
+                modifier = Modifier.verticalRovingFocus(
+                    default = defaultItem,
+                    scroll = {},
+                    up = {
+                        val currentItem = activeRef.value ?: defaultItem
+                        val currentIndex = keys.indexOf(currentItem)
+                        val nextIndex = currentIndex.minus(1).coerceIn(keys.indices)
+                        keys[nextIndex]
+                    },
+                    down = {
+                        val currentItem = activeRef.value ?: defaultItem
+                        val currentIndex = keys.indexOf(currentItem)
+                        val nextIndex = currentIndex.plus(1).coerceIn(keys.indices)
+                        keys[nextIndex]
+                    },
+                )
+            ) {
+                for ((key, option) in options) {
+                    RovingFocusItem(key, options.keys.first()) {
+                        RadioSettingOption(option, key, value, set, enabled)
+                    }
+                }
+            }
         }
         if (additionalContent != null) {
             Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp)) {
@@ -91,9 +132,10 @@ private fun <T> RadioSettingOption(
     set: (T) -> Unit,
     enabled: Boolean,
 ) {
-    val hasFocus = remember { mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val focused = interactionSource.collectIsFocusedAsState()
     val focusedBorder =
-        if (IsFocusHighlighting.current && hasFocus.value) {
+        if (IsFocusHighlighting.current && focused.value) {
             Modifier.border(
                 width = MaterialTheme.messengerFocusIndicator.borderWidth,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -101,28 +143,34 @@ private fun <T> RadioSettingOption(
         } else Modifier
 
     val (optionText, optionExplanation, optionEnabled, optionStyle) = option
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    ListItem(
+        headlineContent = { Text(optionText, style = optionStyle ?: LocalTextStyle.current) },
+        leadingContent = if (optionExplanation != null) {
+            @Composable { HelpIcon(optionExplanation) }
+        } else null,
+        trailingContent = {
+            RadioButton(
+                selected = key == value,
+                enabled = enabled && optionEnabled,
+                interactionSource = interactionSource,
+                onClick = null,
+                modifier = Modifier.minimumInteractiveComponentSize(),
+            )
+        },
         modifier = Modifier
-            .padding(10.dp)
-            .onFocusChanged { hasFocus.value = it.hasFocus }
+            .rovingFocusItem()
             .then(focusedBorder)
-            .clickable { set(key) }
-            .buttonPointerModifier(enabled)
-    ) {
-        if (optionExplanation != null) {
-            HelpIcon(optionExplanation)
-            Spacer(modifier = Modifier.width(10.dp))
-        } else Spacer(modifier = Modifier.width(20.dp))
-        Text(
-            text = optionText,
-            style = optionStyle ?: LocalTextStyle.current,
-            modifier = Modifier.weight(1.0f, fill = true)
-        )
-        RadioButton(
-            selected = key == value,
-            enabled = enabled && optionEnabled,
-            onClick = { set(key) },
-        )
-    }
+            .selectable(
+                selected = key == value,
+                onClick = { set(key) },
+                enabled = enabled && optionEnabled,
+                role = Role.RadioButton,
+                interactionSource = interactionSource,
+                indication = LocalIndication.current
+            )
+            .buttonPointerModifier(enabled),
+        colors = ListItemDefaults.colors(
+            containerColor = Color.Transparent,
+        ),
+    )
 }
