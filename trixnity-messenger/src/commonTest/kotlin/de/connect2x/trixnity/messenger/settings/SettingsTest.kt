@@ -51,7 +51,6 @@ class SettingsTest {
         cut.value.base.accentColor shouldBe 1
         settingsStorage.value shouldBe """
             {
-                "secretByteArrays": null,
                 "accounts": {},
                 "preferredLang": null,
                 "selectedAccount": null,

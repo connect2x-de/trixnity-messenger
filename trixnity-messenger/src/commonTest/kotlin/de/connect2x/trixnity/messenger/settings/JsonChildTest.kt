@@ -56,12 +56,25 @@ class JsonChildTest {
     }
 
     @Test
-    fun `putJsonChild - empty keys - put into root`() {
+    fun `putJsonChild - empty keys - override into root`() {
         putJsonChild(
-            JsonObject(mapOf("dino" to JsonObject(mapOf("a" to JsonPrimitive("unicorn"))))),
+            JsonObject(
+                mapOf(
+                    "dino" to JsonObject(mapOf("a" to JsonPrimitive("unicorn"))),
+                    "c" to JsonPrimitive("value")
+                )
+            ),
             JsonObject(mapOf("dino" to JsonObject(mapOf("b" to JsonPrimitive("unicorn"))))),
-        ) shouldBe JsonObject(mapOf("dino" to JsonObject(mapOf("b" to JsonPrimitive("unicorn")))))
-
+        ) shouldBe JsonObject(
+            mapOf(
+                "dino" to JsonObject(
+                    mapOf(
+                        "b" to JsonPrimitive("unicorn")
+                    )
+                ),
+                "c" to JsonPrimitive("value"),
+            )
+        )
     }
 
     @Test
@@ -106,12 +119,7 @@ class JsonChildTest {
             mapOf(
                 "a" to JsonObject(
                     mapOf(
-                        "b" to JsonObject(
-                            mapOf(
-                                "c" to JsonPrimitive("value"),
-                                "dino" to JsonPrimitive("unicorn"),
-                            )
-                        ),
+                        "b" to simpleObject,
                         "d" to simpleObject,
                     )
                 ),
