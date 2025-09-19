@@ -306,16 +306,19 @@ class ThemeComponentsImpl : ThemeComponents {
             color = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
             shape = RoundedCornerShape(8.dp),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimary),
         ),
         messageBubbleOther = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.secondary,
             contentColor = MaterialTheme.colorScheme.onSecondary,
             shape = RoundedCornerShape(8.dp),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSecondary),
         ),
         messageBubbleError = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.errorContainer,
             contentColor = MaterialTheme.colorScheme.onErrorContainer,
             shape = RoundedCornerShape(8.dp),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimary),
         ),
         messageReference = SurfaceStyle.default(
             shape = RoundedCornerShape(8.dp),
