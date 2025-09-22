@@ -57,6 +57,7 @@ import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Tooltip
+import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
@@ -166,13 +167,13 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                         }
                         SmallSpacer()
                         messageElement?.body?.let { content ->
-                            ExpandableSection(i18n.timelineElementMetadataBody(), Icons.Default.Code) {
+                            ExpandableSection(i18n.timelineElementMetadataBody(), icon = Icons.Default.Code) {
                                 ThemedSelectableText(content, MaterialTheme.components.selectionOnSurface)
                             }
                             SmallSpacer()
                         }
                         messageElement?.formattedBody?.let { content ->
-                            ExpandableSection(i18n.timelineElementMetadataFormattedBody(), Icons.Default.Code) {
+                            ExpandableSection(i18n.timelineElementMetadataFormattedBody(), icon = Icons.Default.Code) {
                                 ThemedSelectableText(content, MaterialTheme.components.selectionOnSurface)
                             }
                             SmallSpacer()
@@ -190,9 +191,25 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
 }
 
 @Composable
-fun ColumnScope.ExpandableSection(
+fun ExpandableSection(
     heading: String,
-    icon: ImageVector,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    content: @Composable () -> Unit,
+) {
+    ExpandableSection(
+        heading = { Text(heading, style = MaterialTheme.typography.titleMedium) },
+        modifier = modifier,
+        icon = icon,
+        content = content,
+    )
+}
+
+@Composable
+fun ExpandableSection(
+    heading: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
     content: @Composable () -> Unit,
 ) {
     val expanded = remember { mutableStateOf(false) }
@@ -203,19 +220,26 @@ fun ColumnScope.ExpandableSection(
         shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
         contentColor = MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier
+            .focusHighlighting(interactionSource)
+            .fillMaxWidth()
     ) {
         Column {
             Row(
-                modifier = Modifier.clickable(interactionSource, LocalIndication.current) {
-                    expanded.value = !expanded.value
-                }.buttonPointerModifier(true).padding(16.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .clickable(interactionSource, LocalIndication.current) {
+                        expanded.value = !expanded.value
+                    }
+                    .buttonPointerModifier(true).padding(16.dp)
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(icon, contentDescription = null)
-                Spacer(Modifier.size(10.dp))
-                Text(heading, style = MaterialTheme.typography.titleMedium)
+                if (icon != null) {
+                    Icon(icon, contentDescription = null)
+                    Spacer(Modifier.size(10.dp))
+                }
+                heading()
                 Spacer(Modifier.weight(1F).padding(end = 10.dp))
                 Icon(
                     Icons.Default.ArrowDropDown, contentDescription = null, modifier = Modifier.rotate(rotateState)

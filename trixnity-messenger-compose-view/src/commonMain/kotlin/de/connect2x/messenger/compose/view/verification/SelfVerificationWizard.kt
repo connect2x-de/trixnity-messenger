@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -46,7 +47,6 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
-import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.RunningText
 import de.connect2x.messenger.compose.view.common.SmallSpacer
@@ -56,6 +56,7 @@ import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.room.settings.ExpandableSection
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.messengerColors
@@ -184,7 +185,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                         Text(text = i18n.selfVerificationHelpOtherDevice())
                         Text(text = i18n.selfVerificationHelpVerifyThis())
                         Spacer(Modifier.size(20.dp))
-                        MoreInfo(i18n.selfVerificationHelpReasonTitle()) {
+                        ExpandableSection(heading = i18n.selfVerificationHelpReasonTitle(), icon = Icons.Default.Info,) {
                             RunningText(text = i18n.selfVerificationHelpReason1())
                             RunningText(text = i18n.selfVerificationHelpReason2())
                             RunningText(text = i18n.selfVerificationHelpReason3())

@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.roomlist.create
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,12 +15,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -37,10 +39,9 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.MoreInfo
-import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.room.settings.ExpandableSection
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
 import de.connect2x.messenger.compose.view.search.SearchResultState
 import de.connect2x.messenger.compose.view.search.UserSearchResultListView
@@ -58,7 +59,6 @@ import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
-import kotlin.collections.contains
 
 interface CreateNewGroupView {
     @Composable
@@ -158,10 +158,10 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                         ) {
                             item(key = "MoreOptions") {
                                 Column {
-                                    MoreOptions(
+                                    ExpandableSection(
                                         roomOptionsString,
                                         modifier = Modifier.padding(horizontal = 10.dp),
-                                        expanded = expandOptions
+                                        icon = Icons.Default.Settings,
                                     ) {
                                         CreateGroupOptions(createNewGroupViewModel, expandHistoryOptions)
                                     }
@@ -222,9 +222,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                 ModalDialogContent {
                     Text(error)
                     if (errorDetails != null) {
-                        MoreInfo(
-                            title = i18n.errorDetails(),
-                        ) {
+                        ExpandableSection(heading = i18n.errorDetails(), icon = Icons.Default.Info) {
                             Text(errorDetails, modifier = Modifier.padding(20.dp))
                         }
                     }

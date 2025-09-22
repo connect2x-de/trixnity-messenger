@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarOutline
 import androidx.compose.material3.Icon
@@ -32,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
-import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.common.modifier.gesturesDisabled
 import de.connect2x.messenger.compose.view.get
@@ -62,7 +62,10 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
             },
             style = MaterialTheme.components.settingsItem,
         )
-        MoreOptions(if (canChangeRoomAlias) i18n.manageAliases() else i18n.showAliases()) {
+        ExpandableSection(
+            heading = if (canChangeRoomAlias) i18n.manageAliases() else i18n.showAliases(),
+            icon = Icons.Default.Settings,
+        ) {
             Box(Modifier.fillMaxSize()) {
                 Column {
                     if (canChangeRoomAlias) {

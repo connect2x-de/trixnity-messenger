@@ -28,12 +28,12 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
-import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.room.settings.ExpandableSection
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettings
@@ -150,9 +150,9 @@ fun ColumnScope.PlatformNotificationAccountSettings(
 
     MiddleSpacer()
 
-    MoreOptions(
-        title = { Text(i18n.notificationsSettingsAccountSound(), style = MaterialTheme.typography.titleSmall) },
-        icon = Icons.Filled.NotificationsActive,
+    ExpandableSection(
+        heading = { Text(i18n.notificationsSettingsAccountSound(), style = MaterialTheme.typography.titleSmall) },
+        icon = Icons.Filled.NotificationsActive
     ) {
         ThemedListItemSwitch(
             style = MaterialTheme.components.settingsItem,
@@ -193,9 +193,9 @@ fun ColumnScope.PlatformNotificationAccountSettings(
     }
 
     MiddleSpacer()
-    MoreOptions(
-        title = { Text(i18n.notificationsSettingsAccountOthers(), style = MaterialTheme.typography.titleSmall) },
-        icon = Icons.Filled.Notifications,
+    ExpandableSection(
+        heading = { Text(i18n.notificationsSettingsAccountOthers(), style = MaterialTheme.typography.titleSmall) },
+        icon = Icons.Filled.Notifications
     ) {
         ThemedListItemSwitch(
             style = MaterialTheme.components.settingsItem,
