@@ -20,7 +20,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
+import com.mikepenz.aboutlibraries.ui.compose.m3.chipColors
+import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
 import de.connect2x.messenger.compose.view.theme.components.ApplySystemUiTheme
 import de.connect2x.messenger.compose.view.theme.components.AvatarStyle
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
@@ -32,6 +36,7 @@ import de.connect2x.messenger.compose.view.theme.components.DropdownMenuItemStyl
 import de.connect2x.messenger.compose.view.theme.components.FloatingActionButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
+import de.connect2x.messenger.compose.view.theme.components.LibraryStyle
 import de.connect2x.messenger.compose.view.theme.components.ListItemStyle
 import de.connect2x.messenger.compose.view.theme.components.LocalContent
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.CircularProgressIndicatorStyle
@@ -435,6 +440,17 @@ class ThemeComponentsImpl : ThemeComponents {
             colors = ListItemDefaults.colors(
                 containerColor = Color.Transparent,
             )
-        )
+        ),
+        library = LibraryStyle.default(
+            colors = LibraryDefaults.libraryColors(
+                backgroundColor = Color.Transparent,
+                licenseChipColors = LibraryDefaults.chipColors(),
+            ),
+            textStyles = LibraryDefaults.libraryTextStyles(
+                defaultOverflow = TextOverflow.Ellipsis,
+                nameMaxLines = 10,
+                versionMaxLines = 2
+            ),
+        ),
     )
 }
