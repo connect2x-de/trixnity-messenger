@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.room.settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -62,9 +63,14 @@ import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.messenger.compose.view.util.RovingFocusContainer
+import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.rovingFocusItem
+import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModel
@@ -173,7 +179,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                         }
                         HorizontalDivider()
                         MiddleSpacer()
-                        ReadersAndReactions(reactions, readers, viewModel::openUserProfile)
+                        ReadersAndReactions(reactions, readers, scrollState, viewModel::openUserProfile)
                         SmallSpacer()
                     }
                     VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
@@ -202,8 +208,8 @@ fun ColumnScope.ExpandableSection(
         Column {
             Row(
                 modifier = Modifier.clickable(interactionSource, LocalIndication.current) {
-                        expanded.value = !expanded.value
-                    }.buttonPointerModifier(true).padding(16.dp).fillMaxWidth(),
+                    expanded.value = !expanded.value
+                }.buttonPointerModifier(true).padding(16.dp).fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -238,21 +244,28 @@ fun ColumnScope.SubHeading(heading: String) {// TODO re-use in other components
 fun ColumnScope.ReadersAndReactions(
     reactions: EventReactions,
     readers: List<UserInfoElement>,
+    parentScrollState: ScrollState,
     onOpenUserProfile: (UserId) -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val state = rememberLazyListState()
 
     val allReadersAndReactions = remember(readers, reactions) {
-        (readers.associate {
+        readers.associate {
             it.userId to EventReactions.ByUserInfo(
                 mapOf(),
                 it,
                 false
             )
-        } + reactions.byUser).values.toList()
-    }.sortedByDescending { it.reactions.size }
+        }.plus(reactions.byUser).values.sortedByDescending { it.reactions.size }
+    }
+
+    val references = remember(allReadersAndReactions) {
+        allReadersAndReactions.map { it.sender.userId }
+    }
+
     val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
+    val defaultItem = references.firstOrNull()
 
     Column(Modifier.heightIn(min = 100.dp, max = 500.dp)) {
         if (hasReadersOrReactions) {
@@ -266,17 +279,45 @@ fun ColumnScope.ReadersAndReactions(
                 }
             )
             Box {
-                LazyColumn(state = state) {
-                    items(allReadersAndReactions) { eventReaction ->
-                        UserInfo(
-                            eventReaction.sender,
-                            eventReaction.reactions.keys,
-                            onOpenUserProfile = onOpenUserProfile,
+                RovingFocusContainer {
+                    LazyColumn(
+                        state = state,
+                        modifier = Modifier.verticalRovingFocus(
+                            default = defaultItem,
+                            scroll = { item ->
+                                val index = references.indexOf(item)
+                                if (index != -1) {
+                                    parentScrollState.scrollTo(parentScrollState.maxValue)
+                                    state.scrollToItem(index)
+                                }
+                            },
+                            up = {
+                                val currentItem = activeRef.value ?: defaultItem
+                                val currentIndex = references.indexOf(currentItem)
+                                val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
+                                references[nextIndex]
+                            },
+                            down = {
+                                val currentItem = activeRef.value ?: defaultItem
+                                val currentIndex = references.indexOf(currentItem)
+                                val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
+                                references[nextIndex]
+                            },
                         )
-                        Spacer(Modifier.height(5.dp))
+                    ) {
+                        items(allReadersAndReactions) { eventReaction ->
+                            RovingFocusItem(eventReaction.sender.userId, defaultItem) {
+                                UserInfo(
+                                    eventReaction.sender,
+                                    eventReaction.reactions.keys,
+                                    onOpenUserProfile = onOpenUserProfile,
+                                )
+                            }
+                            Spacer(Modifier.height(5.dp))
+                        }
                     }
                 }
-                if (allReadersAndReactions.size > 6) {
+                if (state.canScrollForward || state.canScrollBackward) {
                     VerticalScrollbar(Modifier.align(Alignment.CenterEnd), state, false)
                 }
             }
@@ -307,17 +348,10 @@ private fun UserInfo(
         }
     }
     Tooltip({ Text(tooltipText) }) {
-        Row(Modifier.fillMaxWidth().clickable {
-                onOpenUserProfile(userInfo.userId)
-            }.buttonPointerModifier()) {
-            Box(
-                Modifier.padding(start = 4.dp, top = 4.dp, bottom = 4.dp).align(Alignment.CenterVertically)
-            ) {
-                ThemedUserAvatar(userInfo.initials, image)
-            }
-            Column(
-                Modifier.align(Alignment.CenterVertically).padding(start = 8.dp)
-            ) {
+        ThemedListItemButton(
+            style = MaterialTheme.components.settingsItem,
+            leadingContent = { ThemedUserAvatar(userInfo.initials, image) },
+            headlineContent = {
                 Text(
                     userInfo.name,
                     style = MaterialTheme.typography.labelLarge,
@@ -325,7 +359,9 @@ private fun UserInfo(
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
                 )
-                if (hasReactions) {
+            },
+            supportingContent = if (!hasReactions) null else {
+                {
                     Text(
                         compiledReactionsList,
                         style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
@@ -334,8 +370,12 @@ private fun UserInfo(
                         maxLines = 1,
                     )
                 }
+            },
+            modifier = Modifier.rovingFocusItem(),
+            onClick = {
+                onOpenUserProfile(userInfo.userId)
             }
-        }
+        )
     }
 }
 
