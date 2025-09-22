@@ -509,7 +509,7 @@ private fun DialogHandler(userProfileViewModel: UserProfileViewModel) {
 @Composable
 fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
     val i18n = DI.get<I18nView>()
-    var kickUserReason by userProfileViewModel.kickUserReason.collectAsTextFieldValueState()
+    val kickUserReason = userProfileViewModel.kickUserReason.collectAsTextFieldValueState()
     val isDirect = userProfileViewModel.isDirect.collectAsState().value
 
     ThemedModalDialog({ userProfileViewModel.closeKickUserWarning() }) {
@@ -521,8 +521,8 @@ fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
         }
         ModalDialogContent {
             OutlinedTextField(
-                value = kickUserReason,
-                onValueChange = { kickUserReason = it },
+                value = kickUserReason.value,
+                onValueChange = { kickUserReason.value = it },
                 label = {
                     Text(i18n.commonOptionalReason())
                 },
@@ -553,7 +553,7 @@ fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
 @Composable
 fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
     val i18n = DI.get<I18nView>()
-    var banUserReason by userProfileViewModel.banUserReason.collectAsTextFieldValueState()
+    val banUserReason = userProfileViewModel.banUserReason.collectAsTextFieldValueState()
 
     ThemedModalDialog({ userProfileViewModel.closeBanUserWarning() }) {
         ModalDialogHeader {
@@ -561,8 +561,8 @@ fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
         }
         ModalDialogContent {
             OutlinedTextField(
-                value = banUserReason,
-                onValueChange = { banUserReason = it },
+                value = banUserReason.value,
+                onValueChange = { banUserReason.value = it },
                 label = {
                     Text(i18n.commonOptionalReason())
                 },
@@ -593,7 +593,7 @@ fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
 @Composable
 fun UnbanUserWarning(userProfileViewModel: UserProfileViewModel) {
     val i18n = DI.get<I18nView>()
-    var unbanUserReason by userProfileViewModel.unbanUserReason.collectAsTextFieldValueState()
+    val unbanUserReason = userProfileViewModel.unbanUserReason.collectAsTextFieldValueState()
 
     ThemedModalDialog({ userProfileViewModel.closeUnbanUserWarning() }) {
         ModalDialogHeader {
@@ -601,8 +601,8 @@ fun UnbanUserWarning(userProfileViewModel: UserProfileViewModel) {
         }
         ModalDialogContent {
             OutlinedTextField(
-                value = unbanUserReason,
-                onValueChange = { unbanUserReason = it },
+                value = unbanUserReason.value,
+                onValueChange = { unbanUserReason.value = it },
                 label = {
                     Text(i18n.commonOptionalReason())
                 },
