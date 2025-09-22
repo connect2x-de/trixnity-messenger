@@ -1632,6 +1632,16 @@ open class I18nView(
         DE - "Andere Geräte"
     }
 
+    open fun devicesRenameDevice() = translate {
+        EN - "Rename device"
+        DE - "Gerät umbenennen"
+    }
+
+    open fun devicesDeviceName() = translate {
+        EN - "Device Name"
+        DE - "Gerätename"
+    }
+
     open fun devicesRemoveDevice() = translate {
         EN - "Remove device"
         DE - "Gerät entfernen"
