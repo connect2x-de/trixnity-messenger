@@ -221,7 +221,7 @@ fun ExpandableSection(
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
         contentColor = MaterialTheme.colorScheme.onSurface,
         modifier = modifier
-            .focusHighlighting(interactionSource)
+            .focusHighlighting(interactionSource, shape = MaterialTheme.shapes.small)
             .fillMaxWidth()
     ) {
         Column {
