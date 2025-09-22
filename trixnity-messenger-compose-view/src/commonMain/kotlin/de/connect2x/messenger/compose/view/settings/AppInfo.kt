@@ -1,16 +1,10 @@
 package de.connect2x.messenger.compose.view.settings
 
-import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Wysiwyg
 import androidx.compose.material.icons.outlined.Email
@@ -19,18 +13,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 
@@ -80,49 +71,32 @@ class AppInfoViewImpl : AppInfoView {
 @Composable
 fun PrivacyLink(appInfoViewModel: AppInfoViewModel) {
     val i18n = DI.get<I18nView>()
-    Item(i18n.appInfoPrivacy(), { appInfoViewModel.showPrivacy.value = true }) { Icon(Icons.Outlined.PrivacyTip, "") }
+    ThemedListItemButton(
+        leadingContent = { Icon(Icons.Outlined.PrivacyTip, "") },
+        headlineContent = { Text(i18n.appInfoPrivacy()) },
+        onClick = { appInfoViewModel.showPrivacy.value = true },
+        modifier = Modifier.heightIn(min = 72.dp),
+    )
 }
 
 @Composable
 fun ImprintLink(appInfoViewModel: AppInfoViewModel) {
     val i18n = DI.get<I18nView>()
-    Item(i18n.appInfoImprint(), { appInfoViewModel.showImprint.value = true }) { Icon(Icons.Outlined.Email, "") }
+    ThemedListItemButton(
+        leadingContent = { Icon(Icons.Outlined.Email, "") },
+        headlineContent = { Text(i18n.appInfoImprint()) },
+        onClick = { appInfoViewModel.showImprint.value = true },
+        modifier = Modifier.heightIn(min = 72.dp),
+    )
 }
 
 @Composable
 fun LicensesLink(appInfoViewModel: AppInfoViewModel) {
     val i18n = DI.get<I18nView>()
-    Item(
-        i18n.appInfoLicenses(),
-        { appInfoViewModel.showLicenses.value = true }) { Icon(Icons.AutoMirrored.Outlined.Wysiwyg, "") }
-}
-
-@Composable
-fun Item(text: String, action: (() -> Unit)? = null, icon: @Composable () -> Unit) {
-    Item({ Text(text) }, action, icon)
-}
-
-@Composable
-fun Item(content: @Composable () -> Unit, action: (() -> Unit)? = null, icon: @Composable () -> Unit) {
-    val interactionSource = remember { MutableInteractionSource() }
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .clickable(interactionSource, LocalIndication.current) {
-                if (action != null) {
-                    action()
-                }
-            }
-            .focusHighlighting(interactionSource)
-            .buttonPointerModifier()
-    ) {
-        Row(
-            Modifier.padding(horizontal = 20.dp, vertical = 30.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            icon()
-            Spacer(Modifier.size(20.dp))
-            content()
-        }
-    }
+    ThemedListItemButton(
+        leadingContent = { Icon(Icons.AutoMirrored.Outlined.Wysiwyg, "") },
+        headlineContent = { Text(i18n.appInfoLicenses()) },
+        onClick = { appInfoViewModel.showLicenses.value = true },
+        modifier = Modifier.heightIn(min = 72.dp),
+    )
 }
