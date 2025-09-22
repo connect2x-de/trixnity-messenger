@@ -17,7 +17,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -84,6 +87,9 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
 
                     Column {
                         Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
+                        val expanded = rememberSaveable(searchResults) {
+                            searchResults?.map { false }?.toMutableStateList() ?: SnapshotStateList()
+                        }
                         Box(Modifier.fillMaxSize()) {
                             LazyColumn(state = listState) {
                                 item(key = "CreatingIndicator") {
@@ -112,7 +118,13 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
                                         )
                                     }
                                 }
-                                searchResults(createNewChatViewModel, searchResults)
+                                searchResults(
+                                    createNewChatViewModel,
+                                    searchTerm.text,
+                                    searchResults,
+                                    listState,
+                                    expanded,
+                                )
                             }
                             VerticalScrollbar(
                                 Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
