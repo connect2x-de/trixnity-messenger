@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Implement Keyboard navigation
+- Implement Keyboard navigation for Main UI
+- Implement Keyboard navigation for Settings
 
 ### Changed
 
