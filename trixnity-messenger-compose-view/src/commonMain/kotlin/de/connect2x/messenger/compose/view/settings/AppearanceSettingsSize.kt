@@ -34,6 +34,7 @@ import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.messenger.compose.view.theme.SystemDensity
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedSlider
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
@@ -100,11 +101,12 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
 
         // Settings
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Setting(
-                text = i18n.appearanceSizesApplySystemHeading(),
-                explanation = i18n.appearanceSizesApplySystemExplanation(),
-                value = applySystemSizes,
-                toggle = {
+            ThemedListItemSwitch(
+                style = MaterialTheme.components.settingsItem,
+                headlineContent = { Text(i18n.appearanceSizesApplySystemHeading()) },
+                supportingContent = { Text(i18n.appearanceSizesApplySystemExplanation()) },
+                selected = applySystemSizes,
+                onChange = { 
                     appearanceSettingsViewModel.toggleApplySystemSizes()
                     newFontSize = -1F
                     newDisplaySize = -1F
@@ -112,7 +114,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                     maxHeaderHeight.value = Dp(0.0f)
                     appearanceSettingsViewModel.setDisplaySize(defaultSizes.displaySize)
                     appearanceSettingsViewModel.setFontSize(defaultSizes.fontSize)
-                }
+                },
             )
         }
 

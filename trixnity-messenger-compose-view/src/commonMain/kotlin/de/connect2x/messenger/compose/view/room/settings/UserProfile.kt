@@ -1,8 +1,5 @@
 package de.connect2x.messenger.compose.view.room.settings
 
-import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -10,7 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,11 +30,9 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,7 +45,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
@@ -65,7 +58,6 @@ import de.connect2x.messenger.compose.view.common.icons.NeutralVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
 import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
-import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.root.IsSinglePane
@@ -76,11 +68,12 @@ import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedInfoChip
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.theme.components.ThemedSuggestionChip
-import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
@@ -325,80 +318,80 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
             Text(i18n.userProfileUserOptions(), style = MaterialTheme.typography.titleMedium)
         }
         VerySmallSpacer()
-
-        fun blockAction() {
-            if (isUserBlocked) {
-                userProfileViewModel.unblockUser()
-            } else {
-                userProfileViewModel.blockUser()
-            }
-        }
-
-        MenuElement(onClick = { blockAction() }) {
-            BlockIcon()
-            Spacer(Modifier.size(10.dp))
-            Text(i18n.userProfileBlockUser())
-            Spacer(Modifier.weight(1f, true))
-            ThemedSwitch(
-                checked = isUserBlocked,
-                onCheckedChange = { blockAction() },
-                enabled = !blockingInProgress,
-                thumbContent = {
-                    if (blockingInProgress) {
-                        ThemedProgressIndicator(style = MaterialTheme.components.switchProgressIndicator)
-                    }
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            leadingContent = { BlockIcon() },
+            headlineContent = { Text(i18n.userProfileBlockUser()) },
+            selected = isUserBlocked,
+            onChange = {
+                if (isUserBlocked) {
+                    userProfileViewModel.unblockUser()
+                } else {
+                    userProfileViewModel.blockUser()
                 }
-            )
-        }
-        if (canOpenChat) {
-            MenuElement(onClick = { userProfileViewModel.openChat() }) {
-                Icon(
-                    Icons.AutoMirrored.Filled.Send,
-                    i18n.contact(),
-                    Modifier.size(24.dp),
-                    defaultColorForState(!openingChat)
-                )
-                Spacer(Modifier.size(10.dp))
-                Text(
-                    text = i18n.userProfileContact(),
-                    color = defaultColorForState(!openingChat)
-                )
+            },
+            enabled = !blockingInProgress,
+            thumbContent = {
+                if (blockingInProgress) {
+                    ThemedProgressIndicator(style = MaterialTheme.components.switchProgressIndicator)
+                }
             }
+        )
+        if (canOpenChat) {
+            ThemedListItemButton(
+                style = MaterialTheme.components.settingsItem,
+                leadingContent = {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send,
+                        null,
+                        tint = defaultColorForState(!openingChat),
+                    )
+                },
+                headlineContent = {
+                    Text(
+                        text = i18n.userProfileContact(),
+                        color = defaultColorForState(!openingChat)
+                    )
+                },
+                onClick = { userProfileViewModel.openChat() },
+            )
         }
         val isSinglePane = IsSinglePane.current
         if (verificationAvailable) {
             if (verificationIsRunning && !verificationInThisRoom) {
                 Tooltip(
                     enabled = verificationIsRunning,
-                    tooltip = { TooltipText(i18n.verificationAlreadyRunningInAnotherRoom()) }) {
-                    MenuElement(onClick = { userProfileViewModel.openVerificationRoom() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Wysiwyg,
-                            i18n.userVerification(),
-                            Modifier.size(24.dp),
-                        )
-                        Spacer(Modifier.size(10.dp))
-                        Text(text = i18n.userProfileNavigateToVerification())
-                    }
+                    tooltip = { TooltipText(i18n.verificationAlreadyRunningInAnotherRoom()) },
+                ) {
+                    ThemedListItemButton(
+                        style = MaterialTheme.components.settingsItem,
+                        leadingContent = { Icon(Icons.AutoMirrored.Filled.Wysiwyg, null) },
+                        headlineContent = { Text(i18n.userProfileNavigateToVerification()) },
+                        onClick = { userProfileViewModel.openVerificationRoom() },
+                    )
                 }
             } else {
-                Tooltip(enabled = verificationIsRunning, tooltip = { TooltipText(i18n.verificationAlreadyRunning()) }) {
-                    MenuElement(
+                Tooltip(
+                    enabled = verificationIsRunning,
+                    tooltip = { TooltipText(i18n.verificationAlreadyRunning()) },
+                ) {
+                    ThemedListItemButton(
+                        style = MaterialTheme.components.settingsItem,
+                        leadingContent = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.Wysiwyg, null,
+                                tint = defaultColorForState(!verificationIsRunning)
+                            )
+                        },
+                        headlineContent = {
+                            Text(
+                                i18n.userProfileVerification(),
+                                color = defaultColorForState(!verificationIsRunning)
+                            )
+                        },
                         onClick = { userProfileViewModel.startVerification(isSinglePane) },
                         enabled = !verificationIsRunning,
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Wysiwyg,
-                            i18n.userVerification(),
-                            Modifier.size(24.dp),
-                            defaultColorForState(!verificationIsRunning)
-                        )
-                        Spacer(Modifier.size(10.dp))
-                        Text(
-                            text = i18n.userProfileVerification(),
-                            color = defaultColorForState(!verificationIsRunning)
-                        )
-                    }
+                    )
                 }
             }
         }
@@ -407,15 +400,12 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
 
 @Composable
 private fun ChangePowerLevelSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
-    MenuElement(onClick = { userProfileViewModel.changePowerLevelViewModel.openChangingPowerLevelDialog() }) {
-        Icon(
-            Icons.Filled.Verified,
-            i18n.userProfileChangePowerLevel(),
-            Modifier.size(24.dp)
-        )
-        Spacer(Modifier.size(10.dp))
-        Text(i18n.userProfileChangePowerLevel())
-    }
+    ThemedListItemButton(
+        style = MaterialTheme.components.settingsItem,
+        leadingContent = { Icon(Icons.Filled.Verified, null) },
+        headlineContent = { Text(i18n.userProfileChangePowerLevel()) },
+        onClick = { userProfileViewModel.changePowerLevelViewModel.openChangingPowerLevelDialog() },
+    )
 }
 
 @Composable
@@ -423,68 +413,62 @@ private fun BanUserSection(userProfileViewModel: UserProfileViewModel, i18n: I18
     val membership = userProfileViewModel.membership.collectAsState().value
     val membershipChanging = userProfileViewModel.membershipChanging.collectAsState().value
 
-    fun action() {
-        if (membership == Membership.BAN) {
-            userProfileViewModel.openUnbanUserWarning()
-        } else {
-            userProfileViewModel.openBanUserWarning()
-        }
-    }
-
-    MenuElement(
-        onClick = { action() },
-        arrangement = Arrangement.SpaceBetween,
-    ) {
-        Row {
-            BanIcon()
-            Spacer(Modifier.size(10.dp))
-            Text(i18n.userProfileBanUser())
-        }
-        ThemedSwitch(
-            checked = membership == Membership.BAN,
-            onCheckedChange = { action() },
-            enabled = !membershipChanging
-        )
-    }
+    ThemedListItemSwitch(
+        style = MaterialTheme.components.settingsItem,
+        leadingContent = { BanIcon() },
+        headlineContent = { Text(i18n.userProfileBanUser()) },
+        selected = membership == Membership.BAN,
+        onChange = {
+            if (membership == Membership.BAN) {
+                userProfileViewModel.openUnbanUserWarning()
+            } else {
+                userProfileViewModel.openBanUserWarning()
+            }
+        },
+        enabled = !membershipChanging,
+    )
 }
 
 @Composable
 private fun KickUserSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
-    MenuElement(onClick = { userProfileViewModel.openKickUserWarning() }) {
-        Icon(
-            Icons.Filled.PersonOff,
-            i18n.userProfileRemoveUser(),
-            Modifier.size(24.dp)
-        )
-        Spacer(Modifier.size(10.dp))
-        Text(i18n.userProfileRemoveUser())
-    }
+    ThemedListItemButton(
+        style = MaterialTheme.components.settingsItem,
+        leadingContent = {
+            Icon(Icons.Filled.PersonOff, null)
+        },
+        headlineContent = {
+            Text(i18n.userProfileRemoveUser())
+        },
+        onClick = { userProfileViewModel.openKickUserWarning() },
+    )
 }
 
 @Composable
 private fun AcceptKnockSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
-    MenuElement(onClick = { userProfileViewModel.acceptKnock() }) {
-        Icon(
-            Icons.Filled.DoorSliding,
-            i18n.userProfileAcceptKnock(),
-            Modifier.size(24.dp)
-        )
-        Spacer(Modifier.size(10.dp))
-        Text(i18n.userProfileAcceptKnock())
-    }
+    ThemedListItemButton(
+        style = MaterialTheme.components.settingsItem,
+        leadingContent = {
+            Icon(Icons.Filled.DoorSliding, null)
+        },
+        headlineContent = {
+            Text(i18n.userProfileAcceptKnock())
+        },
+        onClick = { userProfileViewModel.acceptKnock() },
+    )
 }
 
 @Composable
 private fun RejectKnockSection(userProfileViewModel: UserProfileViewModel, i18n: I18nView) {
-    MenuElement(onClick = { userProfileViewModel.rejectKnock() }) {
-        Icon(
-            Icons.Filled.DoorFront,
-            i18n.userProfileRejectKnock(),
-            Modifier.size(24.dp)
-        )
-        Spacer(Modifier.size(10.dp))
-        Text(i18n.userProfileRejectKnock())
-    }
+    ThemedListItemButton(
+        style = MaterialTheme.components.settingsItem,
+        leadingContent = {
+            Icon(Icons.Filled.DoorFront, null)
+        },
+        headlineContent = {
+            Text(i18n.userProfileRejectKnock())
+        },
+        onClick = { userProfileViewModel.rejectKnock() },
+    )
 }
 
 @Composable
@@ -750,34 +734,6 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                 Text(i18n.userProfileChangePowerLevel())
             }
         }
-    }
-}
-
-@Composable
-private fun MenuElement(
-    onClick: (() -> Unit)? = null,
-    enabled: Boolean = true,
-    modifier: Modifier = Modifier,
-    arrangement: Arrangement.Horizontal = Arrangement.Start,
-    content: @Composable RowScope.() -> Unit,
-) {
-    val click = if (onClick != null) {
-        val interactionSource = remember { MutableInteractionSource() }
-        Modifier
-            .clickable(interactionSource, LocalIndication.current, enabled) { onClick() }
-            .focusHighlighting(interactionSource)
-            .buttonPointerModifier(enabled)
-    } else Modifier
-    Row(
-        modifier
-            .fillMaxWidth()
-            .then(click)
-            .padding(horizontal = 10.dp)
-            .minimumInteractiveComponentSize(),
-        arrangement,
-        Alignment.CenterVertically
-    ) {
-        content()
     }
 }
 

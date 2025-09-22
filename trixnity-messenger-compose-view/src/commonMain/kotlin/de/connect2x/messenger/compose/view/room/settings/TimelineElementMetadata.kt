@@ -62,8 +62,8 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
-import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -344,17 +344,12 @@ private fun ColumnScope.MessageContentHistorySwitch(
     var showHistory by remember { mutableStateOf(false) }
 
     if (elementHistory.isNotEmpty() && elementHistory.size > 1) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable { showHistory = showHistory.not() }.buttonPointerModifier(),
-        ) {
-            Text(text = i18n.timelineElementMetadataHistory(), style = MaterialTheme.typography.titleSmall)
-            Spacer(Modifier.size(5.dp).weight(1f, true))
-            ThemedSwitch(
-                checked = showHistory,
-                onCheckedChange = { showHistory = it },
-            )
-        }
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.timelineElementMetadataHistory()) },
+            selected = showHistory,
+            onChange = { showHistory = it },
+        )
     }
 
     Column(Modifier.heightIn(min = 50.dp, max = 500.dp)) {
