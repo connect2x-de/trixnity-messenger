@@ -51,6 +51,7 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.messenger.compose.view.theme.components.ThemedHorizontalDivider
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
+import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 
 @Composable
@@ -164,6 +165,7 @@ fun SearchRoomsBanner(roomListViewModel: RoomListViewModel) {
                     .padding(10.dp)
                     .heightIn(40.dp)
                     .focusRequester(focusRequester)
+                    .inputFocusNavigation()
                     .onKeyEvent {
                         if (it.type == KeyEventType.KeyDown && it.key == Key.Escape) {
                             roomListViewModel.showSearch.value = false
