@@ -15,9 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
-import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.common.Tooltip import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
@@ -127,10 +125,8 @@ class InviteRoomListElementImpl : InviteRoomListElement {
     fun RoomInviterUserInfo(inviterNameOrUserId: String) {
         val needsTooltip = remember { mutableStateOf(false) }
         Tooltip(
-            tooltip = {
-                TooltipText(inviterNameOrUserId)
-            },
-            enabled = needsTooltip.value
+            enabled = needsTooltip.value,
+            tooltip = { Text(inviterNameOrUserId) }
         ) {
             Text(
                 inviterNameOrUserId,

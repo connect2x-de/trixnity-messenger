@@ -43,7 +43,6 @@ import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.icons.EditIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
@@ -275,9 +274,7 @@ fun DeviceItem(
         headlineContent = {
             Text(displayName.value)
             if (device.isDehydrated) {
-                Tooltip(tooltip = {
-                    TooltipText(i18n.dehydratedDevice())
-                }) {
+                Tooltip({ Text(i18n.dehydratedDevice()) }) {
                     Icon(
                         Icons.Default.RestoreFromTrash,
                         i18n.dehydratedDevice(),

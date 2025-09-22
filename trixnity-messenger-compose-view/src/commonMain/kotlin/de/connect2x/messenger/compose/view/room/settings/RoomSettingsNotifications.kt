@@ -16,7 +16,6 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -52,7 +51,10 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
         Column {
             ThemedListItem(
                 headlineContent = {
-                    Text(i18n.commonNotifications().capitalize(Locale.current), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        i18n.commonNotifications().capitalize(Locale.current),
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 },
                 style = MaterialTheme.components.settingsItem,
             )
@@ -61,7 +63,7 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
                     if (isLoading) {
                         ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
                     } else {
-                        Tooltip(tooltip = { TooltipText { selectedLevelExplanation } }) {
+                        Tooltip({ Text(selectedLevelExplanation) }) {
                             Text(selectedLevelName, style = MaterialTheme.typography.titleSmall)
                         }
                     }

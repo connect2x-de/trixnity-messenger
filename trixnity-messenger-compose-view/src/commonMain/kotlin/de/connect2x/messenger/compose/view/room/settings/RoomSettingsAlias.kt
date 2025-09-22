@@ -34,7 +34,6 @@ import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.modifier.gesturesDisabled
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -196,9 +195,7 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                                             .size(40.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Tooltip(
-                                            tooltip = { TooltipText(i18n.mainAlias()) }
-                                        ) {
+                                        Tooltip({ Text(i18n.mainAlias()) }) {
                                             Icon(Icons.Default.StarOutline, i18n.alias())
                                         }
                                     }

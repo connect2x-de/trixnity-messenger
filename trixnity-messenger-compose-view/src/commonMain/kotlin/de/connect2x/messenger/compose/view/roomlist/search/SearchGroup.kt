@@ -40,7 +40,6 @@ import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -193,7 +192,7 @@ fun SearchGroupResult(
 ) {
     val image = group.image.collectAsState().value
 
-    Tooltip({ TooltipText(group.groupName) }) {
+    Tooltip({ Text(group.groupName) }) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier

@@ -50,7 +50,6 @@ import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.icons.BanIcon
 import de.connect2x.messenger.compose.view.common.icons.BlockIcon
 import de.connect2x.messenger.compose.view.common.icons.NeutralVerifiedIcon
@@ -230,7 +229,7 @@ fun CopyableUserId(userId: UserId, textStyle: TextStyle) {
             overflow = TextOverflow.Visible
         )
         Spacer(Modifier.size(5.dp))
-        Tooltip({ TooltipText(i18n.userProfileCopyUserId()) }) {
+        Tooltip({ Text(i18n.userProfileCopyUserId()) }) {
             ThemedIconButton(
                 style = MaterialTheme.components.commonIconButton,
                 onClick = { clipboard.setText(AnnotatedString(userId.full)) }
@@ -354,7 +353,7 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
             if (verificationIsRunning && !verificationInThisRoom) {
                 Tooltip(
                     enabled = verificationIsRunning,
-                    tooltip = { TooltipText(i18n.verificationAlreadyRunningInAnotherRoom()) },
+                    tooltip = { Text(i18n.verificationAlreadyRunningInAnotherRoom()) },
                 ) {
                     ThemedListItemButton(
                         style = MaterialTheme.components.settingsItem,
@@ -366,7 +365,7 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
             } else {
                 Tooltip(
                     enabled = verificationIsRunning,
-                    tooltip = { TooltipText(i18n.verificationAlreadyRunning()) },
+                    tooltip = { Text(i18n.verificationAlreadyRunning()) },
                 ) {
                     ThemedListItemButton(
                         style = MaterialTheme.components.settingsItem,

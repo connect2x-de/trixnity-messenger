@@ -12,7 +12,6 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.i18n.getExplanation
@@ -56,12 +55,11 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
                 style = MaterialTheme.components.settingsItem,
             )
             if (!canChangeRoomHistoryVisibility) {
-                Tooltip(tooltip = {
-                    TooltipText {
-                        if (isEncrypted) historyVisibility.getExplanationWhenEncrypted(i18n) else historyVisibility.getExplanation(
-                            i18n
-                        )
-                    }
+                Tooltip({
+                    Text(
+                        if (isEncrypted) historyVisibility.getExplanationWhenEncrypted(i18n)
+                        else historyVisibility.getExplanation(i18n)
+                    )
                 }) {
                     Text(
                         text = historyVisibility.getStateName(i18n),
@@ -75,12 +73,11 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
                         if (isHistoryVisibilityChanging) {
                             ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
                         } else {
-                            Tooltip(tooltip = {
-                                TooltipText {
-                                    if (isEncrypted) historyVisibility.getExplanationWhenEncrypted(
-                                        i18n
-                                    ) else historyVisibility.getExplanation(i18n)
-                                }
+                            Tooltip({
+                                Text(
+                                    if (isEncrypted) historyVisibility.getExplanationWhenEncrypted(i18n)
+                                    else historyVisibility.getExplanation(i18n)
+                                )
                             }) {
                                 Text(
                                     historyVisibility.getStateName(i18n),

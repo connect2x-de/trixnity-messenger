@@ -18,7 +18,6 @@ import de.connect2x.messenger.compose.view.common.MatrixUsername
 import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.TabInTextField
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModel
@@ -53,7 +52,7 @@ class RegisterNewAccountViewImpl : RegisterNewAccountView {
                 label = i18n.registrationUsername(),
                 enabled = true,
             ) {
-                Tooltip({ TooltipText(i18n.profileUserNameInfo()) }) {
+                Tooltip({ Text(i18n.profileUserNameInfo()) }) {
                     Icon(
                         Icons.Default.Info,
                         i18n.profileUserNameInfo(),

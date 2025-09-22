@@ -56,7 +56,6 @@ import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
@@ -307,7 +306,7 @@ private fun UserInfo(
             append(i18n.timelineElementMetadataUserInfoTooltipReactions(compiledReactionsList))
         }
     }
-    Tooltip({ TooltipText(tooltipText) }) {
+    Tooltip({ Text(tooltipText) }) {
         Row(Modifier.fillMaxWidth().clickable {
                 onOpenUserProfile(userInfo.userId)
             }.buttonPointerModifier()) {

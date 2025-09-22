@@ -16,7 +16,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
@@ -25,7 +24,7 @@ fun LastMessageAndUnreadMessagesCounter(roomListElementViewModel: RoomListElemen
     val usersTyping = roomListElementViewModel.usersTyping.collectAsState().value
     val unreadMessages = roomListElementViewModel.unreadMessages.collectAsState().value
 
-    Tooltip({ TooltipText(usersTyping ?: lastMessage ?: " ") }) {
+    Tooltip({ Text(usersTyping ?: lastMessage ?: " ") }) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Box(Modifier.fillMaxWidth().weight(1.0f, false).alignByBaseline()) {
                 LastMessage(lastMessage, usersTyping)

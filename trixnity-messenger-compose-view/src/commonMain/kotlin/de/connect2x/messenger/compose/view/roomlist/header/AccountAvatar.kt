@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -118,32 +117,22 @@ fun AvatarArea(
         ThemedUserAvatar(accountInfo.initials, accountInfo.avatar)
         Spacer(Modifier.size(10.dp))
         Column {
-            Tooltip(
-                tooltip = {
-                    TooltipText { accountInfo.displayName }
-                },
-                content = {
-                    Text(
-                        accountInfo.displayName,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                }
-            )
-            Tooltip(
-                tooltip = {
-                    TooltipText { accountInfo.userId.full }
-                },
-                content = {
-                    Text(
-                        accountInfo.userId.full,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.labelMedium,
-                    )
-                }
-            )
+            Tooltip({ Text(accountInfo.displayName) }) {
+                Text(
+                    accountInfo.displayName,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
+            Tooltip({ Text(accountInfo.userId.full) }) {
+                Text(
+                    accountInfo.userId.full,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelMedium,
+                )
+            }
         }
     }
 }
@@ -162,14 +151,7 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 ThemedUserAvatar("*", null)
                 Spacer(Modifier.size(10.dp))
-                Tooltip(
-                    tooltip = {
-                        TooltipText {
-                            accounts.joinToString { account -> account.displayName }
-                        }
-                    },
-                    onClick = { accountSelectionOpen.value = accountSelectionOpen.value.not() }
-                ) {
+                Tooltip({ Text(accounts.joinToString { account -> account.displayName }) }) {
                     Column {
                         Text(
                             i18n.accountAllAccounts(),
@@ -228,7 +210,7 @@ fun AccountMenuItem(
         leadingIcon = { ThemedUserAvatar(accountInfo.initials, accountInfo.avatar) },
         text = {
             Column {
-                Tooltip({ TooltipText { accountInfo.displayName } }) {
+                Tooltip({ Text(accountInfo.displayName) }) {
                     Text(
                         accountInfo.displayName,
                         maxLines = 1,

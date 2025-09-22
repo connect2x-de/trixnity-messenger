@@ -12,7 +12,6 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.i18n.getExplanation
@@ -51,7 +50,7 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
                 style = MaterialTheme.components.settingsItem,
             )
             if (!canChangeJoinRule.value) {
-                Tooltip(tooltip = { TooltipText { currentJoinRule.getExplanation(i18n) } }) {
+                Tooltip({ Text(currentJoinRule.getExplanation(i18n)) }) {
                     Text(
                         text = currentJoinRule.getStateName(i18n),
                         style = MaterialTheme.typography.labelLarge,
@@ -64,7 +63,7 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
                         if (joinRuleIsChanging) {
                             ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
                         } else {
-                            Tooltip(tooltip = { TooltipText { currentJoinRule.getExplanation(i18n) } }) {
+                            Tooltip({ Text(currentJoinRule.getExplanation(i18n)) }) {
                                 Text(currentJoinRule.getStateName(i18n), style = MaterialTheme.typography.titleSmall)
                             }
                         }

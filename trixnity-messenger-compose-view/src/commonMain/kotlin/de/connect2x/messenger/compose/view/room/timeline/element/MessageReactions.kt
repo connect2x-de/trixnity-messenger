@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.EmojiPopup
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -157,7 +156,7 @@ internal fun MessageReactionButton(
     onAddReaction: (reaction: String) -> Unit,
     onRemoveReaction: () -> Unit,
 ) {
-    Tooltip({ TooltipText(reactionEvents.joinToString { it.sender.name }) }) {
+    Tooltip({ Text(reactionEvents.joinToString { it.sender.name }) }) {
         if (myReaction) {
             ThemedButton(
                 onClick = { onRemoveReaction() },

@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
@@ -138,7 +137,7 @@ class BaseTimelineElementHolderContextMenuAction(
         val i18n = DI.get<I18nView>()
         Tooltip(
             enabled = !isEnabled,
-            tooltip = { TooltipText { i18n.commonButtonDisabled() } },
+            tooltip = { Text(i18n.commonButtonDisabled()) },
         ) {
             ThemedDropdownMenuItem(
                 enabled = isEnabled,
@@ -158,9 +157,7 @@ class BaseTimelineElementHolderContextMenuAction(
         val i18n = DI.get<I18nView>()
         Tooltip(
             enabled = !isEnabled,
-            tooltip = {
-                TooltipText { i18n.commonButtonDisabled() }
-            }
+            tooltip = { Text(i18n.commonButtonDisabled()) }
         ) {
             Text(
                 label,
