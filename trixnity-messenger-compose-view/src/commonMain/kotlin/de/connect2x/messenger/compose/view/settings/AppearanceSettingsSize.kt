@@ -51,6 +51,7 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import kotlin.math.round
+import kotlin.math.roundToInt
 
 interface AppearanceSettingsSizeView {
     @Composable
@@ -75,12 +76,16 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
         var newFontSize by remember { mutableStateOf(-1F) }
         val finalNewFontSize =
             if (newFontSize != -1F && newFontSize != fontSize) newFontSize else fontSize
+        val fontSizeRange = defaultSizes.maxFontSize.minus(defaultSizes.minFontSize)
+        val fontSizeSteps = fontSizeRange.div(0.05).roundToInt()
 
         // Display size
         val displaySize = appearanceSettingsViewModel.displaySize.collectAsState().value ?: defaultSizes.displaySize
         var newDisplaySize by remember { mutableStateOf(-1F) }
         val finalNewDisplaySize =
             if (newDisplaySize != -1F && newDisplaySize != displaySize) newDisplaySize else displaySize
+        val displaySizeRange = defaultSizes.maxDisplaySize.minus(defaultSizes.minDisplaySize)
+        val displaySizeSteps = displaySizeRange.div(0.05).roundToInt()
 
         // Preview
         val systemDensity = SystemDensity.current
@@ -135,7 +140,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
             ThemedSlider(
                 value = finalNewFontSize,
                 onValueChange = { newFontSize = it },
-                steps = 0,
+                steps = fontSizeSteps,
                 valueRange = defaultSizes.minFontSize..defaultSizes.maxFontSize,
                 enabled = !applySystemSizes
             )
@@ -158,7 +163,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                 value = finalNewDisplaySize,
                 onValueChange = { newDisplaySize = it },
                 valueRange = defaultSizes.minDisplaySize..defaultSizes.maxDisplaySize,
-                steps = 0,
+                steps = displaySizeSteps,
                 enabled = !applySystemSizes
             )
 

@@ -117,7 +117,7 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                         set(defaultAccentColor.deriveFromHue(newHue))
                     },
                     valueRange = 0F..359F,
-                    steps = 359,
+                    steps = 180,
                     modifier = Modifier.weight(1F),
                     style = MaterialTheme.components.slider.let {
                         it.copy(colors = it.colors.copy(thumbColor = currentColor))

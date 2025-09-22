@@ -14,6 +14,11 @@ import androidx.compose.material3.SliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import de.connect2x.messenger.compose.view.theme.components
 
 data class SliderStyle(
@@ -55,6 +60,39 @@ fun ThemedSlider(
         value,
         onValueChange,
         modifier
+            .onKeyEvent { event ->
+                when (event.key) {
+                    Key.MoveHome -> {
+                        if (event.type == KeyEventType.KeyDown) {
+                            onValueChange(valueRange.start)
+                        }
+                        true
+                    }
+                    Key.MoveEnd -> {
+                        if (event.type == KeyEventType.KeyDown) {
+                            onValueChange(valueRange.endInclusive)
+                        }
+                        true
+                    }
+                    Key.DirectionLeft, Key.DirectionDown -> {
+                        if (event.type == KeyEventType.KeyDown) {
+                            val range = valueRange.endInclusive - valueRange.start
+                            val stepSize = range / steps
+                            onValueChange(value.minus(stepSize).coerceIn(valueRange))
+                        }
+                        true
+                    }
+                    Key.DirectionRight, Key.DirectionUp -> {
+                        if (event.type == KeyEventType.KeyDown) {
+                            val range = valueRange.endInclusive - valueRange.start
+                            val stepSize = range / steps
+                            onValueChange(value.plus(stepSize).coerceIn(valueRange))
+                        }
+                        true
+                    }
+                    else -> false
+                }
+            }
             .then(border),
         enabled,
         valueRange,
@@ -98,6 +136,39 @@ fun ThemedSlider(
         value,
         onValueChange,
         modifier
+            .onKeyEvent { event ->
+                when (event.key) {
+                    Key.MoveHome -> {
+                        if (event.type == KeyEventType.KeyDown) {
+                            onValueChange(valueRange.start)
+                        }
+                        true
+                    }
+                    Key.MoveEnd -> {
+                        if (event.type == KeyEventType.KeyDown) {
+                            onValueChange(valueRange.endInclusive)
+                        }
+                        true
+                    }
+                    Key.DirectionLeft, Key.DirectionDown -> {
+                        if (event.type == KeyEventType.KeyDown) {
+                            val range = valueRange.endInclusive - valueRange.start
+                            val stepSize = range / steps
+                            onValueChange(value.minus(stepSize).coerceIn(valueRange))
+                        }
+                        true
+                    }
+                    Key.DirectionRight, Key.DirectionUp -> {
+                        if (event.type == KeyEventType.KeyDown) {
+                            val range = valueRange.endInclusive - valueRange.start
+                            val stepSize = range / steps
+                            onValueChange(value.plus(stepSize).coerceIn(valueRange))
+                        }
+                        true
+                    }
+                    else -> false
+                }
+            }
             .then(border),
         enabled,
         onValueChangeFinished,
