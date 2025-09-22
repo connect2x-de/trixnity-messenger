@@ -101,7 +101,7 @@ class RoomListViewImpl : RoomListView {
                 RovingFocusContainer {
                     val rovingFocusState = LocalRovingFocus.current
                     val defaultItem = derivedStateOf {
-                        selectedRoomId.value ?: allRoomState.value.first().roomId
+                        selectedRoomId.value ?: allRoomState.value.firstOrNull()?.roomId
                     }
 
                     LaunchedEffect(rovingFocusState, defaultItem.value) {
