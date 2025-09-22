@@ -51,7 +51,6 @@ import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.common.TooltipText
-import de.connect2x.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.messenger.compose.view.common.icons.BanIcon
 import de.connect2x.messenger.compose.view.common.icons.BlockIcon
 import de.connect2x.messenger.compose.view.common.icons.NeutralVerifiedIcon
@@ -68,6 +67,7 @@ import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedInfoChip
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
@@ -75,7 +75,6 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndica
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.theme.components.ThemedSuggestionChip
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
-import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel
@@ -263,15 +262,12 @@ private fun RoomOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
     if (shouldShowChangePowerLevel || shouldShowBan || iHavePowerToKickUser) {
         HorizontalDivider(Modifier.fillMaxWidth())
 
-        SmallSpacer()
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.messengerDpConstants.small),
-            Arrangement.Start,
-            Alignment.CenterVertically
-        ) {
-            Text(i18n.userProfileRoomOptions(), style = MaterialTheme.typography.titleMedium)
-        }
-        SmallSpacer()
+        ThemedListItem(
+            headlineContent = {
+                Text(i18n.userProfileRoomOptions(), style = MaterialTheme.typography.titleMedium)
+            },
+            style = MaterialTheme.components.settingsItem,
+        )
 
         if (shouldShowChangePowerLevel) {
             ChangePowerLevelSection(userProfileViewModel, i18n)
@@ -309,15 +305,12 @@ private fun UserOptions(userProfileViewModel: UserProfileViewModel, i18n: I18nVi
         val verificationAvailable = userProfileViewModel.canVerifyUser.collectAsState().value
         val verificationIsRunning = userProfileViewModel.verificationIsRunning.collectAsState().value
 
-        VerySmallSpacer()
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.messengerDpConstants.small),
-            Arrangement.Start,
-            Alignment.CenterVertically
-        ) {
-            Text(i18n.userProfileUserOptions(), style = MaterialTheme.typography.titleMedium)
-        }
-        VerySmallSpacer()
+        ThemedListItem(
+            headlineContent = {
+                Text(i18n.userProfileUserOptions(), style = MaterialTheme.typography.titleMedium)
+            },
+            style = MaterialTheme.components.settingsItem,
+        )
         ThemedListItemSwitch(
             style = MaterialTheme.components.settingsItem,
             leadingContent = { BlockIcon() },

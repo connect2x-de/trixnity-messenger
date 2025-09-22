@@ -1,12 +1,10 @@
 package de.connect2x.messenger.compose.view.room.settings
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import de.connect2x.messenger.compose.view.DI
@@ -17,6 +15,7 @@ import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsSecurityViewModel
@@ -41,12 +40,15 @@ class RoomSettingsSecurityViewImpl : RoomSettingsSecurityView {
             roomSettingsSecurityViewModel.isEncryptionWarningOpen.collectAsState().value
 
         Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = i18n.security().capitalize(Locale.current),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
+            ThemedListItem(
+                style = MaterialTheme.components.settingsItem,
+                headlineContent = {
+                    Text(
+                        i18n.security().capitalize(Locale.current),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+            )
             ThemedListItemSwitch(
                 style = MaterialTheme.components.settingsItem,
                 headlineContent = { Text(i18n.roomEndToEndEncryption()) },

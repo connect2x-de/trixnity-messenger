@@ -62,6 +62,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
@@ -256,11 +257,15 @@ fun ColumnScope.ReadersAndReactions(
 
     Column(Modifier.heightIn(min = 100.dp, max = 500.dp)) {
         if (hasReadersOrReactions) {
-            Text(
-                text = i18n.timelineElementMetadataReadersAndReactions(),
-                style = MaterialTheme.typography.titleMedium,
+            ThemedListItem(
+                style = MaterialTheme.components.settingsItem,
+                headlineContent = {
+                    Text(
+                        i18n.timelineElementMetadataReadersAndReactions(),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
             )
-            SmallSpacer()
             Box {
                 LazyColumn(state = state) {
                     items(allReadersAndReactions) { eventReaction ->

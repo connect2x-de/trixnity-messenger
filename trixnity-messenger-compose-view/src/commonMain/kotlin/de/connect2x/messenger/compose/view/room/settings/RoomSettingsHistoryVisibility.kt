@@ -1,9 +1,7 @@
 package de.connect2x.messenger.compose.view.room.settings
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +19,7 @@ import de.connect2x.messenger.compose.view.i18n.getExplanation
 import de.connect2x.messenger.compose.view.i18n.getExplanationWhenEncrypted
 import de.connect2x.messenger.compose.view.i18n.getStateName
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
@@ -50,56 +49,58 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
             roomSettingsHistoryVisibilityViewModel.availableRoomHistoryVisibilities.collectAsState().value
 
         Column {
-            Text(text = i18n.chatHistoryVisibility(), style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.size(10.dp))
-            Column {
-                if (!canChangeRoomHistoryVisibility) {
-                    Tooltip(tooltip = {
-                        TooltipText {
-                            if (isEncrypted) historyVisibility.getExplanationWhenEncrypted(i18n) else historyVisibility.getExplanation(
-                                i18n
-                            )
-                        }
-                    }) {
-                        Text(
-                            text = historyVisibility.getStateName(i18n),
-                            style = MaterialTheme.typography.labelLarge,
-                            modifier = Modifier.padding(start = 10.dp)
+            ThemedListItem(
+                headlineContent = {
+                    Text(i18n.chatHistoryVisibility(), style = MaterialTheme.typography.titleMedium)
+                },
+                style = MaterialTheme.components.settingsItem,
+            )
+            if (!canChangeRoomHistoryVisibility) {
+                Tooltip(tooltip = {
+                    TooltipText {
+                        if (isEncrypted) historyVisibility.getExplanationWhenEncrypted(i18n) else historyVisibility.getExplanation(
+                            i18n
                         )
                     }
-                } else {
-                    RadioSetting(
-                        title = {
-                            if (isHistoryVisibilityChanging) {
-                                ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
-                            } else {
-                                Tooltip(tooltip = {
-                                    TooltipText {
-                                        if (isEncrypted) historyVisibility.getExplanationWhenEncrypted(
-                                            i18n
-                                        ) else historyVisibility.getExplanation(i18n)
-                                    }
-                                }) {
-                                    Text(
-                                        historyVisibility.getStateName(i18n),
-                                        style = MaterialTheme.typography.titleSmall,
-                                    )
-                                }
-                            }
-                        },
-                        options = visibilities?.associate {
-                            it to RadioSettingOption(
-                                text = it.getStateName(i18n),
-                                explanation = (if (isEncrypted) it.getExplanationWhenEncrypted(i18n) else it.getExplanation(
-                                    i18n
-                                )),
-                                enabled = roomSettingsHistoryVisibilityViewModel.historyVisibilityCanBeChangedTo(it) && isHistoryVisibilityChanging.not()
-                            )
-                        } ?: mapOf(),
-                        set = { roomSettingsHistoryVisibilityViewModel.changeRoomHistoryVisibility(it) },
-                        value = historyVisibility
+                }) {
+                    Text(
+                        text = historyVisibility.getStateName(i18n),
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(start = 10.dp)
                     )
                 }
+            } else {
+                RadioSetting(
+                    title = {
+                        if (isHistoryVisibilityChanging) {
+                            ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
+                        } else {
+                            Tooltip(tooltip = {
+                                TooltipText {
+                                    if (isEncrypted) historyVisibility.getExplanationWhenEncrypted(
+                                        i18n
+                                    ) else historyVisibility.getExplanation(i18n)
+                                }
+                            }) {
+                                Text(
+                                    historyVisibility.getStateName(i18n),
+                                    style = MaterialTheme.typography.titleSmall,
+                                )
+                            }
+                        }
+                    },
+                    options = visibilities?.associate {
+                        it to RadioSettingOption(
+                            text = it.getStateName(i18n),
+                            explanation = (if (isEncrypted) it.getExplanationWhenEncrypted(i18n) else it.getExplanation(
+                                i18n
+                            )),
+                            enabled = roomSettingsHistoryVisibilityViewModel.historyVisibilityCanBeChangedTo(it) && isHistoryVisibilityChanging.not()
+                        )
+                    } ?: mapOf(),
+                    set = { roomSettingsHistoryVisibilityViewModel.changeRoomHistoryVisibility(it) },
+                    value = historyVisibility
+                )
             }
         }
     }

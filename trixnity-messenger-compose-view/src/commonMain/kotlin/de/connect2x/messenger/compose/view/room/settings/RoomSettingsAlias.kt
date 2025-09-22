@@ -40,6 +40,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModel
@@ -56,8 +57,12 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
     val canChangeRoomAlias = viewModel.canChangeRoomAlias.collectAsState().value
 
     Column {
-        Text(text = i18n.aliases().capitalize(Locale.current), style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.size(10.dp))
+        ThemedListItem(
+            headlineContent = {
+                Text(i18n.aliases().capitalize(Locale.current), style = MaterialTheme.typography.titleMedium)
+            },
+            style = MaterialTheme.components.settingsItem,
+        )
         MoreOptions(if (canChangeRoomAlias) i18n.manageAliases() else i18n.showAliases()) {
             Box(Modifier.fillMaxSize()) {
                 Column {
