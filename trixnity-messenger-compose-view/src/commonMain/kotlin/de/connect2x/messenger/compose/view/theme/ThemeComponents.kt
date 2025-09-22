@@ -228,13 +228,12 @@ class ThemeComponentsImpl : ThemeComponents {
         // room list
         roomListElement = SurfaceStyle.default(
             color = Color.Unspecified,
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
         roomListSelection = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onBackground,
-        ),
-        roomListFocused = SurfaceStyle.default(
-            border = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
         roomListDivider = DividerStyle.default(
             padding = PaddingValues(horizontal = 10.dp),
@@ -307,20 +306,24 @@ class ThemeComponentsImpl : ThemeComponents {
             color = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
             shape = RoundedCornerShape(8.dp),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimary),
         ),
         messageBubbleOther = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.secondary,
             contentColor = MaterialTheme.colorScheme.onSecondary,
             shape = RoundedCornerShape(8.dp),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSecondary),
         ),
         messageBubbleError = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.errorContainer,
             contentColor = MaterialTheme.colorScheme.onErrorContainer,
             shape = RoundedCornerShape(8.dp),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimary),
         ),
         messageReference = SurfaceStyle.default(
             shape = RoundedCornerShape(8.dp),
             color = Color(0x55FFFFFF),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
         ),
         // tooltip
         tooltip = TooltipStyle.default(

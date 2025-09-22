@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -45,6 +46,9 @@ class VerificationCancelTimelineElementViewImpl : VerificationCancelTimelineElem
         // NO-OP (has default size)
     }
 
+    // FIXME
+    override fun isFocusable(): Boolean = false
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
@@ -64,14 +68,18 @@ class VerificationCancelTimelineElementViewImpl : VerificationCancelTimelineElem
     @Composable
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
-        element: VerificationCancelTimelineElementViewModel
+        element: VerificationCancelTimelineElementViewModel,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
     }
 
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
-        element: VerificationCancelTimelineElementViewModel
+        element: VerificationCancelTimelineElementViewModel,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
     }
 

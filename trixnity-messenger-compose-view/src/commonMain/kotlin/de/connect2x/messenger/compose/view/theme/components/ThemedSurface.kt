@@ -32,6 +32,7 @@ data class SurfaceStyle(
     val tonalElevation: Dp,
     val shadowElevation: Dp,
     val border: BorderStroke?,
+    val focusedBorder: BorderStroke?,
     val contentPadding: PaddingValues,
     val padding: PaddingValues,
     val textStyle: TextStyle?,
@@ -45,6 +46,7 @@ data class SurfaceStyle(
             tonalElevation: Dp = 0.dp,
             shadowElevation: Dp = 0.dp,
             border: BorderStroke? = null,
+            focusedBorder: BorderStroke? = null,
             contentPadding: PaddingValues = PaddingValues(0.dp),
             padding: PaddingValues = PaddingValues(0.dp),
             textStyle: TextStyle? = null,
@@ -55,6 +57,7 @@ data class SurfaceStyle(
             tonalElevation = tonalElevation,
             shadowElevation = shadowElevation,
             border = border,
+            focusedBorder = focusedBorder,
             contentPadding = contentPadding,
             padding = padding,
             textStyle = textStyle,
@@ -66,6 +69,7 @@ data class SurfaceStyle(
 fun ThemedSurface(
     modifier: Modifier = Modifier,
     style: SurfaceStyle,
+    focused: Boolean = false,
     content: @Composable BoxScope.() -> Unit
 ) = Surface(
     modifier = modifier.padding(style.padding),
@@ -74,7 +78,7 @@ fun ThemedSurface(
     contentColor = style.contentColor,
     tonalElevation = style.tonalElevation,
     shadowElevation = style.shadowElevation,
-    border = style.border,
+    border = if (focused) style.focusedBorder else style.border,
 ) {
     Box(Modifier.padding(style.contentPadding)) {
         style.textStyle?.let {
@@ -88,6 +92,7 @@ fun ThemedSurface(
 @Composable
 fun Modifier.themedSurface(
     style: SurfaceStyle,
+    focused: Boolean = false,
 ): Modifier {
     val shadowElevation = with (LocalDensity.current) { style.shadowElevation.toPx() }
     val backgroundColor = if (style.color != MaterialTheme.colorScheme.surface) style.color
@@ -98,10 +103,12 @@ fun Modifier.themedSurface(
         clip = false
     )
 
+    val border = if (focused) style.focusedBorder else style.border
+
     return this
         .padding(style.padding)
         .then(if (shadowElevation > 0f) shadowModifier else Modifier)
-        .then(if (style.border != null) Modifier.border(style.border, style.shape) else Modifier)
+        .then(if (border != null) Modifier.border(border, style.shape) else Modifier)
         .background(color = backgroundColor, shape = style.shape)
         .clip(style.shape)
         .padding(style.contentPadding)

@@ -28,6 +28,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ChipStyle
 import de.connect2x.messenger.compose.view.theme.components.ThemedSuggestionChip
+import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 
 internal fun mentionLabel(i18n: I18nView, mention: TimelineElementMention): String = when (mention) {
@@ -71,6 +72,7 @@ internal fun MentionChip(
             },
             onClick = { onMentionClick(mention) },
             modifier = Modifier
+                .rovingFocusChild()
                 .requiredWidthIn(max = maxWidth)
                 .pointerHoverIcon(PointerIcon.Hand)
                 .padding(all = 1.dp),

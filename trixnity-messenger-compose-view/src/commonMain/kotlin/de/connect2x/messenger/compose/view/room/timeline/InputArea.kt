@@ -92,6 +92,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.theme.messengerIcons
+import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
 import kotlinx.coroutines.delay
@@ -277,6 +278,7 @@ fun RowScope.InputAreaTextField(
         BasicTextField(
             cursorBrush = SolidColor(style.colors.cursorColor),
             modifier = Modifier
+                .inputFocusNavigation()
                 .focusRequester(focusRequester)
                 .fillMaxWidth()
                 .onPreviewKeyEvent {

@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message.bubble
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -65,6 +66,8 @@ class MessageBubbleViewImpl : MessageBubbleView {
 
         val reactionsOpen = remember { mutableStateOf(false) }
 
+        val interactionSource = remember { MutableInteractionSource() }
+
         BoxWithConstraints(
             Modifier.fillMaxWidth()
         ) {
@@ -92,6 +95,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
                         reactionsOpen = reactionsOpen,
                         additionalContextActions = additionalContextActions,
                         isPreview = isPreview,
+                        interactionSource = interactionSource,
                         content = content,
                     )
                 }

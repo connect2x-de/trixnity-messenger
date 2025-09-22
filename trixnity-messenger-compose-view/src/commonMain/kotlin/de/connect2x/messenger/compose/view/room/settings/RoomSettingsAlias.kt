@@ -41,6 +41,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
+import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModel
 import net.folivo.trixnity.core.model.RoomAliasId
 
@@ -74,7 +75,10 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                                     }
                                 },
                                 label = { Text(i18n.newAlias()) },
-                                modifier = Modifier.weight(1.0f, fill = true).fillMaxWidth(),
+                                modifier = Modifier
+                                    .inputFocusNavigation()
+                                    .weight(1.0f, fill = true)
+                                    .fillMaxWidth(),
                                 colors = TextFieldDefaults.colors(
                                     disabledTextColor = MaterialTheme.colorScheme.surfaceTint,
                                 ),

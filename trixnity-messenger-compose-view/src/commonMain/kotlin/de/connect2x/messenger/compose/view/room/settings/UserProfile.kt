@@ -83,6 +83,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedSuggestionChip
 import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
+import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel
 import net.folivo.trixnity.client.user.PowerLevel
@@ -525,7 +526,8 @@ fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
                 label = {
                     Text(i18n.commonOptionalReason())
                 },
-                maxLines = 5
+                maxLines = 5,
+                modifier = Modifier.inputFocusNavigation(),
             )
         }
         ModalDialogFooter {
@@ -564,7 +566,8 @@ fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
                 label = {
                     Text(i18n.commonOptionalReason())
                 },
-                maxLines = 5
+                maxLines = 5,
+                modifier = Modifier.inputFocusNavigation(),
             )
         }
         ModalDialogFooter {
@@ -603,7 +606,8 @@ fun UnbanUserWarning(userProfileViewModel: UserProfileViewModel) {
                 label = {
                     Text(i18n.commonOptionalReason())
                 },
-                maxLines = 5
+                maxLines = 5,
+                modifier = Modifier.inputFocusNavigation(),
             )
         }
         ModalDialogFooter {
@@ -675,7 +679,9 @@ fun ChangingPowerLevel(userProfileViewModel: UserProfileViewModel) {
                 isError = changingPowerLevelDialogError != null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .inputFocusNavigation()
+                    .fillMaxWidth(),
                 maxLines = 1
             )
             FlowRow(Modifier.fillMaxWidth(), Arrangement.spacedBy(4.dp, Alignment.Start), Arrangement.Top) {

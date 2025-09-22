@@ -1,7 +1,9 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
@@ -32,6 +34,8 @@ class LocationRoomMessageTimelineElementViewImpl : LocationRoomMessageTimelineEl
         // NO-OP (has default size)
     }
 
+    override fun isFocusable(): Boolean = true
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
@@ -52,13 +56,20 @@ class LocationRoomMessageTimelineElementViewImpl : LocationRoomMessageTimelineEl
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
         element: Location,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
-        LocationReplyElement(holder, element)
+        LocationReplyElement(holder, element, modifier, interactionSource)
     }
 
     @Composable
-    override fun createReplyInSendMessage(holder: TimelineElementHolderViewModel, element: Location) {
-        LocationReplyElement(holder, element)
+    override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: Location,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
+    ) {
+        LocationReplyElement(holder, element, modifier, interactionSource)
     }
 
     @Composable
@@ -114,7 +125,12 @@ internal fun LocationMessageContent(
 }
 
 @Composable
-internal fun LocationReplyElement(holder: TimelineElementHolderViewModel, element: Location) {
+internal fun LocationReplyElement(
+    holder: TimelineElementHolderViewModel,
+    element: Location,
+    modifier: Modifier,
+    interactionSource: MutableInteractionSource,
+) {
     val i18n = DI.get<I18nView>()
     val (geoUrl, pos) = element.geoUri
         .removePrefix("geo:").substringBefore(";").split(",")
@@ -125,6 +141,8 @@ internal fun LocationReplyElement(holder: TimelineElementHolderViewModel, elemen
     val uriHandler = LocalUriHandler.current
     ReferencedMessagePill(
         holder = holder,
+        modifier = modifier,
+        interactionSource = interactionSource,
         content = {
             ClickableText(
                 text = AnnotatedString(i18n.locationClickText(pos)),

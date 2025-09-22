@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
+import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import kotlin.math.roundToInt
 
 // This must match exactly
@@ -119,6 +120,7 @@ internal fun CompoundText(
                     softWrap = true,
                     maxLines = Int.MAX_VALUE,
                     minLines = 1,
+                    modifier = Modifier.rovingFocusChild()
                 )
                 if (placeholders.isNotEmpty()) {
                     Layout(
