@@ -527,7 +527,7 @@ fun KickUserWarning(userProfileViewModel: UserProfileViewModel) {
                     Text(i18n.commonOptionalReason())
                 },
                 maxLines = 5,
-                modifier = Modifier.inputFocusNavigation(),
+                modifier = Modifier.fillMaxWidth().inputFocusNavigation(),
             )
         }
         ModalDialogFooter {
@@ -567,7 +567,7 @@ fun BanUserWarning(userProfileViewModel: UserProfileViewModel) {
                     Text(i18n.commonOptionalReason())
                 },
                 maxLines = 5,
-                modifier = Modifier.inputFocusNavigation(),
+                modifier = Modifier.inputFocusNavigation().fillMaxWidth(),
             )
         }
         ModalDialogFooter {
@@ -607,7 +607,7 @@ fun UnbanUserWarning(userProfileViewModel: UserProfileViewModel) {
                     Text(i18n.commonOptionalReason())
                 },
                 maxLines = 5,
-                modifier = Modifier.inputFocusNavigation(),
+                modifier = Modifier.inputFocusNavigation().fillMaxWidth(),
             )
         }
         ModalDialogFooter {
