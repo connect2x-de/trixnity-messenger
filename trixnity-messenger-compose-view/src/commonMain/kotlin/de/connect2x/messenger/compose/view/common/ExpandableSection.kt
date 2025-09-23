@@ -38,7 +38,7 @@ fun ExpandableSection(
     heading: String,
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
-    content: @Composable () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     ExpandableSection(
         heading = { Text(heading, style = MaterialTheme.typography.titleMedium) },
@@ -53,7 +53,7 @@ fun ExpandableSection(
     heading: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
-    content: @Composable () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     val expanded = remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
@@ -91,7 +91,7 @@ fun ExpandableSection(
                 )
             }
             AnimatedVisibility(expanded.value) {
-                Box(Modifier.padding(8.dp)) {
+                Column(Modifier.padding(8.dp)) {
                     content()
                 }
             }
