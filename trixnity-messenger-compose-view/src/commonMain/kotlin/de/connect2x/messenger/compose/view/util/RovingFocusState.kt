@@ -236,3 +236,69 @@ fun Modifier.horizontalRovingFocus(
             }
         }
 }
+
+@Composable
+fun Modifier.rovingFocus2D(
+    default: Any? = null,
+    up: RovingFocusState.() -> Any?,
+    down: RovingFocusState.() -> Any?,
+    left: RovingFocusState.() -> Any?,
+    right: RovingFocusState.() -> Any?,
+    scroll: suspend CoroutineScope.(Any?) -> Unit = {},
+): Modifier {
+    val state = LocalRovingFocus.current ?: return this
+    val interactionSource = remember { MutableInteractionSource() }
+
+    return this then Modifier
+        .onFocusEvent {
+            state.hasFocus = it.hasFocus
+            if (it.isFocused) {
+                val item = state.activeRef.value ?: default
+                state.selectItem(item) { scroll(item) }
+            }
+        }
+        .focusProperties {
+            val item = state.activeRef.value ?: default
+            if (state.references[item] != null) {
+                canFocus = false
+            }
+        }
+        .focusable(interactionSource = interactionSource)
+        .onKeyEvent { event ->
+            when (event.key) {
+                Key.DirectionUp -> {
+                    if (event.type == KeyEventType.KeyDown) {
+                        val item = state.up()
+                        state.selectItem(item) { scroll(item) }
+                    }
+                    true
+                }
+
+                Key.DirectionDown -> {
+                    if (event.type == KeyEventType.KeyDown) {
+                        val item = state.down()
+                        state.selectItem(item) { scroll(item) }
+                    }
+                    true
+                }
+
+                Key.DirectionLeft -> {
+                    if (event.type == KeyEventType.KeyDown) {
+                        val item = state.left()
+                        state.selectItem(item) { scroll(item) }
+                    }
+                    true
+                }
+
+                Key.DirectionRight -> {
+                    if (event.type == KeyEventType.KeyDown) {
+                        val item = state.right()
+                        state.selectItem(item) { scroll(item) }
+                    }
+                    true
+                }
+
+                else -> false
+            }
+        }
+}
