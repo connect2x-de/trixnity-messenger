@@ -30,7 +30,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.i18n.getExplanation
 import de.connect2x.messenger.compose.view.i18n.getExplanationWhenEncrypted
 import de.connect2x.messenger.compose.view.i18n.getStateName
-import de.connect2x.messenger.compose.view.room.settings.ExpandableSection
+import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent

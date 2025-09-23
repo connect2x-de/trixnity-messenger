@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
-import de.connect2x.messenger.compose.view.room.settings.ExpandableSection
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemRadioButton
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
