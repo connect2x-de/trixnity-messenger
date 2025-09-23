@@ -27,7 +27,7 @@ import net.folivo.trixnity.core.model.events.m.Presence
 private val log = KotlinLogging.logger {}
 
 internal const val HOMESERVER_PROVIDER_ID = "de.connect2x.trixnity.messenger.search.homeserver"
-internal const val HOMESERVER_DISPLAY_NAME = "Homeserver"
+internal const val HOMESERVER_DISPLAY_NAME = "VZD LE"
 
 class HomeserverSearchUserProvider(
     private val initials: Initials,

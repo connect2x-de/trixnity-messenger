@@ -88,7 +88,7 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
                     Column {
                         Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
                         val expanded = rememberSaveable(searchResults) {
-                            searchResults?.map { false }?.toMutableStateList() ?: SnapshotStateList()
+                            searchResults?.map { 3 }?.toMutableStateList() ?: SnapshotStateList()
                         }
                         Box(Modifier.fillMaxSize()) {
                             LazyColumn(state = listState) {

@@ -1,27 +1,33 @@
 package de.connect2x.messenger.compose.view.roomlist.search
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MultiChoiceSegmentedButtonRow
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
-import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.common.modifier.customClickable
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatNewSearchViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.search.SearchResult
@@ -34,7 +40,7 @@ fun LazyListScope.searchResults(
     searchTerm: String,
     searchResults: List<SearchResult>?,
     listState: LazyListState,
-    expanded: SnapshotStateList<Boolean>,
+    expanded: SnapshotStateList<Int>,
 ) {
     if (createNewChatViewModel is CreateNewChatNewSearchViewModel) {
         if (searchResults == null) {
@@ -42,59 +48,14 @@ fun LazyListScope.searchResults(
                 Text("Search in ... ") // FIXME every provider could contribute a location!
             }
         } else {
+            optionsHeader(searchResults)
             searchResults.forEachIndexed { index, searchResult ->
                 if (searchResults.size > 1) {
-                    stickyHeader(searchResult.id) {
-                        val stickyHeaderActive = rememberStickyHeaderActive(listState, searchResult.id)
-                        Surface {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                ThemedIconButton(
-                                    onClick = { expanded[index] = expanded[index].not() },
-                                    enabled = ((searchResult.providerSearchResult as? ProviderSearchResult.Success)
-                                        ?.result?.size ?: 0) > 5,
-                                ) {
-                                    if (expanded[index]) {
-                                        Icon(Icons.Default.ExpandLess, "Show less")
-                                    } else {
-                                        Icon(Icons.Default.ExpandMore, "Show more")
-                                    }
-                                }
-                                Text(
-                                    text =
-                                        if (stickyHeaderActive.value) "${searchResult.providerDisplayName} ($searchTerm)"
-                                        else searchResult.providerDisplayName,
-                                    modifier = Modifier.padding(20.dp),
-                                    style = MaterialTheme.typography.titleMedium,
-                                )
-                            }
-                        }
-                        if (expanded[index].not() && searchResult.isLoading.not()) {
-                            when (val providerSearchResult = searchResult.providerSearchResult) {
-                                null -> {}
-
-                                is ProviderSearchResult.Success -> {
-                                    providerSearchResult.result.take(5)
-                                        .forEach { providerIndividualSearchResult ->
-                                            Box(Modifier.padding(horizontal = 20.dp)) {
-                                                SearchResultSelector(
-                                                    userSearchResult = providerIndividualSearchResult,
-                                                    onClick = {
-                                                        createNewChatViewModel.onUserClick(it)
-                                                    }
-                                                )
-                                            }
-                                        }
-                                }
-
-                                is ProviderSearchResult.Failure -> {
-                                    Text("${searchResult.providerDisplayName}: failure")
-                                }
-                            }
-                        }
-                    }
+                    multipleSearchResultsHeader(
+                        searchResult,
+                        listState,
+                        searchTerm,
+                    )
                 }
                 if (searchResult.isLoading) {
                     item("${searchResult.id}-loading") {
@@ -105,20 +66,13 @@ fun LazyListScope.searchResults(
                         null -> {}
 
                         is ProviderSearchResult.Success -> {
-                            if (expanded[index]) {
-                                providerSearchResult.result.forEach { providerIndividualSearchResult ->
-                                    item("${searchResult.id}-${providerIndividualSearchResult.id}") {
-                                        Box(Modifier.padding(horizontal = 20.dp)) {
-                                            SearchResultSelector(
-                                                userSearchResult = providerIndividualSearchResult,
-                                                onClick = {
-                                                    createNewChatViewModel.onUserClick(it)
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
+                            allSearchResults(
+                                providerSearchResult,
+                                searchResult,
+                                createNewChatViewModel,
+                                expanded,
+                                index,
+                            )
                         }
 
                         is ProviderSearchResult.Failure -> {
@@ -128,6 +82,108 @@ fun LazyListScope.searchResults(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+private fun LazyListScope.optionsHeader(
+    searchResults: List<SearchResult>,
+) {
+    stickyHeader("searchOptions") {
+        FlowRow(Modifier.padding(horizontal = 20.dp)) {
+            searchResults.forEach { searchResult ->
+                val checked = remember { mutableStateOf(true) }
+                MultiChoiceSegmentedButtonRow {
+                    SegmentedButton(
+                        checked = checked.value,
+                        onCheckedChange = { checked.value = it },
+                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                        icon = {
+                            SegmentedButtonDefaults.Icon(checked.value)
+                        },
+                        label = {
+                            Text(searchResult.providerDisplayName)
+                        }
+                    )
+                    SegmentedButton(
+                        checked = false,
+                        onCheckedChange = { },
+                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                        icon = {
+                            SegmentedButtonDefaults.Icon(false)
+                        },
+                        label = {
+                            Icon(Icons.Default.Settings, "Settings for ${searchResult.providerDisplayName}")
+                        },
+                        modifier = Modifier.requiredWidth(ButtonDefaults.MinWidth).weight(1.4f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun LazyListScope.multipleSearchResultsHeader(
+    searchResult: SearchResult,
+    listState: LazyListState,
+    searchTerm: String
+) {
+    stickyHeader(searchResult.id) {
+        val stickyHeaderActive = rememberStickyHeaderActive(listState, searchResult.id)
+        Surface {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text =
+                        if (stickyHeaderActive.value) "${searchResult.providerDisplayName} (\"$searchTerm\")"
+                        else searchResult.providerDisplayName,
+                    modifier = Modifier.padding(20.dp),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
+        }
+    }
+}
+
+private fun LazyListScope.allSearchResults(
+    providerSearchResult: ProviderSearchResult.Success,
+    searchResult: SearchResult,
+    createNewChatViewModel: CreateNewChatNewSearchViewModel,
+    expanded: SnapshotStateList<Int>,
+    index: Int
+) {
+    providerSearchResult.result.take(expanded[index]).forEach { providerIndividualSearchResult ->
+        item("${searchResult.id}-${providerIndividualSearchResult.id}") {
+            Box(Modifier.padding(horizontal = 20.dp)) {
+                SearchResultSelector(
+                    userSearchResult = providerIndividualSearchResult,
+                    onClick = {
+                        createNewChatViewModel.onUserClick(it)
+                    }
+                )
+            }
+        }
+    }
+    if (providerSearchResult.result.size > expanded[index]) {
+        item("more-${providerSearchResult.result.hashCode()}") {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+            ) {
+                Text(
+                    "Load more...",
+                    modifier = Modifier
+                        .customClickable(
+                            onClick = {
+                                expanded[index] = expanded[index] + 5
+                            }
+                        )
+                        .align(Alignment.Center),
+                )
             }
         }
     }
