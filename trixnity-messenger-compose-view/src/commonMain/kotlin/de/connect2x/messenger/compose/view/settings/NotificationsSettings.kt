@@ -125,25 +125,22 @@ fun ColumnScope.PlatformNotificationAccountSettings(
         options = mapOf(
             NotificationSettings.DefaultLevel.ROOM to RadioSettingOption(
                 text = i18n.notificationsSettingsAccountDefaultLevelRoom(),
-                enabled = canChangeSettings,
                 style = MaterialTheme.typography.labelLarge
             ),
             NotificationSettings.DefaultLevel.DM to RadioSettingOption(
                 text = i18n.notificationsSettingsAccountDefaultLevelDM(),
-                enabled = canChangeSettings,
                 style = MaterialTheme.typography.labelLarge
             ),
             NotificationSettings.DefaultLevel.MENTION to RadioSettingOption(
                 text = i18n.notificationsSettingsAccountDefaultLevelMention(),
-                enabled = canChangeSettings,
                 style = MaterialTheme.typography.labelLarge
             ),
             NotificationSettings.DefaultLevel.NONE to RadioSettingOption(
                 text = i18n.notificationsSettingsAccountDefaultLevelNone(),
-                enabled = canChangeSettings,
                 style = MaterialTheme.typography.labelLarge
             ),
         ),
+        enabled = canChangeSettings,
         value = settings.defaultLevel,
         set = { viewModel.updateAccountSettings(settings.copy(defaultLevel = it)) },
     )

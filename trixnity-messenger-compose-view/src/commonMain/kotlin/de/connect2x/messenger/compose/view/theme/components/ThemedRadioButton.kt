@@ -33,6 +33,7 @@ fun ThemedRadioButton(
     interactionSource: MutableInteractionSource? = null
 ) = RadioButton(
     selected = selected,
+    enabled = enabled,
     onClick = onClick,
     modifier = modifier.buttonPointerModifier(enabled),
     colors = style.colors,
