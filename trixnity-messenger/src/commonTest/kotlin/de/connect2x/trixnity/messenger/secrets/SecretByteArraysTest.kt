@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.secrets
 
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.SecretByteArraySettings
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
@@ -13,7 +12,6 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.maps.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -57,9 +55,9 @@ class SecretByteArraysTest {
     @Test
     fun `set - should initialized`() = runTest {
         cut.set("secret", null)
-        val settings = settings.value.base.secretByteArrays.shouldNotBeNull()
-        settings.secrets.shouldBeEmpty()
-        settings.keyInfo.shouldBeEmpty()
+        val settings = settings.value.secretByteArrays.shouldNotBeNull()
+        settings.secrets shouldBe emptyMap()
+        settings.keyInfo shouldBe emptyMap()
     }
 
     @Test
@@ -67,36 +65,34 @@ class SecretByteArraysTest {
         secretByteArrayKeyProviders = listOf(provider1)
         everySuspend { provider1.rotate(any(), any(), any()) } returns
                 SecretByteArrayKeyProvider.RotateResult(null, null, null)
-        
+
         cut.set("secret", null)
-        val settings = settings.value.base.secretByteArrays.shouldNotBeNull()
-        settings.secrets.shouldBeEmpty()
-        settings.keyInfo.shouldBeEmpty()
+        val settings = settings.value.secretByteArrays.shouldNotBeNull()
+        settings.secrets shouldBe emptyMap()
+        settings.keyInfo shouldBe emptyMap()
     }
 
     @Test
     fun `set - should remove secret on null`() = runTest {
-        settings.update<MatrixMessengerSettingsBase> {
-            MatrixMessengerSettingsBase(
-                secretByteArrays = SecretByteArraySettings(
-                    secrets = mapOf("secret" to SecretByteArray.Unencrypted("***".encodeToByteArray())),
-                    keyInfo = mapOf(),
-                    mac = null
-                )
+        settings.update<SecretByteArraySettings> {
+            SecretByteArraySettings(
+                secrets = mapOf("secret" to SecretByteArray.Unencrypted("***".encodeToByteArray())),
+                keyInfo = mapOf(),
+                mac = null
             )
         }
         cut.set("secret", null)
-        settings.value.base.secretByteArrays.shouldNotBeNull()
-            .secrets.shouldBeEmpty()
+        settings.value.secretByteArrays.shouldNotBeNull()
+            .secrets shouldBe emptyMap()
     }
 
     @Test
     fun `set - should store secret unencrypted when no provider given`() = runTest {
-        settings.update<MatrixMessengerSettingsBase> {
-            MatrixMessengerSettingsBase(secretByteArrays = SecretByteArraySettings(mapOf(), mapOf(), null))
+        settings.update<SecretByteArraySettings> {
+            SecretByteArraySettings(mapOf(), mapOf(), null)
         }
         cut.set("secret", "***".encodeToByteArray())
-        settings.value.base.secretByteArrays?.secrets?.get("secret") shouldBe
+        settings.value.secretByteArrays?.secrets?.get("secret") shouldBe
                 SecretByteArray.Unencrypted("***".encodeToByteArray())
     }
 
@@ -107,7 +103,7 @@ class SecretByteArraysTest {
                 SecretByteArrayKeyProvider.RotateResult(null, null, null)
 
         cut.set("secret", "***".encodeToByteArray())
-        settings.value.base.secretByteArrays?.secrets?.get("secret") shouldBe
+        settings.value.secretByteArrays?.secrets?.get("secret") shouldBe
                 SecretByteArray.Unencrypted("***".encodeToByteArray())
     }
 
@@ -119,11 +115,11 @@ class SecretByteArraysTest {
             keyInfo = mapOf("provider-1" to SecretByteArrayKeyInfo()),
             key = aesKey1.invoke(32)
         )
-        settings.update<MatrixMessengerSettingsBase> {
-            MatrixMessengerSettingsBase(secretByteArrays = secretByteArraysSettings)
+        settings.update<SecretByteArraySettings> {
+            secretByteArraysSettings
         }
         cut.set("my.secret", "***".encodeToByteArray())
-        val secret = settings.value.base.secretByteArrays?.secrets?.get("my.secret")
+        val secret = settings.value.secretByteArrays.secrets?.get("my.secret")
             .shouldBeInstanceOf<SecretByteArray.AesHmacSha2>()
         decryptAesHmacSha2(
             content = AesHmacSha2EncryptedData(secret.iv, secret.ciphertext, secret.mac),
@@ -135,9 +131,9 @@ class SecretByteArraysTest {
     @Test
     fun `get - should initialized`() = runTest {
         cut.get("secret")
-        val settings = settings.value.base.secretByteArrays.shouldNotBeNull()
-        settings.secrets.shouldBeEmpty()
-        settings.keyInfo.shouldBeEmpty()
+        val settings = settings.value.secretByteArrays.shouldNotBeNull()
+        settings.secrets shouldBe emptyMap()
+        settings.keyInfo shouldBe emptyMap()
     }
 
     @Test
@@ -147,13 +143,11 @@ class SecretByteArraysTest {
 
     @Test
     fun `get - should get unencrypted secret`() = runTest {
-        settings.update<MatrixMessengerSettingsBase> {
-            MatrixMessengerSettingsBase(
-                secretByteArrays = SecretByteArraySettings(
-                    mapOf("secret" to SecretByteArray.Unencrypted("***".encodeToByteArray())),
-                    mapOf(),
-                    null,
-                )
+        settings.update<SecretByteArraySettings> {
+            SecretByteArraySettings(
+                mapOf("secret" to SecretByteArray.Unencrypted("***".encodeToByteArray())),
+                mapOf(),
+                null,
             )
         }
         cut.get("secret") shouldBe "***".encodeToByteArray()
@@ -174,8 +168,8 @@ class SecretByteArraysTest {
             keyInfo = mapOf("provider-1" to SecretByteArrayKeyInfo()),
             key = aesKey1.invoke(32)
         )
-        settings.update<MatrixMessengerSettingsBase> {
-            MatrixMessengerSettingsBase(secretByteArrays = secretByteArraysSettings)
+        settings.update<SecretByteArraySettings> {
+            secretByteArraysSettings
         }
 
         cut.get("secret") shouldBe "***".encodeToByteArray()
@@ -189,8 +183,8 @@ class SecretByteArraysTest {
             keyInfo = mapOf("provider-1" to SecretByteArrayKeyInfo()),
             key = aesKey1.invoke(32)
         )
-        settings.update<MatrixMessengerSettingsBase> {
-            MatrixMessengerSettingsBase(secretByteArrays = secretByteArraysSettings)
+        settings.update<SecretByteArraySettings> {
+            secretByteArraysSettings
         }
         cut.set("my.secret", "***".encodeToByteArray())
         cut.get("my.secret") shouldBe "***".encodeToByteArray()
@@ -208,8 +202,8 @@ class SecretByteArraysTest {
             ),
             key = aesKey2.invoke(32)
         )
-        settings.update<MatrixMessengerSettingsBase> {
-            MatrixMessengerSettingsBase(secretByteArrays = secretByteArraysSettings)
+        settings.update<SecretByteArraySettings> {
+            secretByteArraysSettings
         }
         cut.set("my.secret", "***".encodeToByteArray())
         cut.get("my.secret") shouldBe "***".encodeToByteArray()
@@ -234,8 +228,8 @@ class SecretByteArraysTest {
             keyInfo = mapOf("provider-1" to SecretByteArrayKeyInfo()),
             mac = "abc".encodeToByteArray()
         ).let { manipulate(it) }
-        settings.update<MatrixMessengerSettingsBase> {
-            MatrixMessengerSettingsBase(secretByteArrays = secretByteArraysSettings)
+        settings.update<SecretByteArraySettings> {
+            secretByteArraysSettings
         }
 
         shouldThrow<SecretByteArrayException> {
@@ -280,8 +274,8 @@ class SecretByteArraysTest {
             ),
             key = aesKey2.invoke(32)
         )
-        settings.update<MatrixMessengerSettingsBase> {
-            MatrixMessengerSettingsBase(secretByteArrays = secretByteArraysSettings)
+        settings.update<SecretByteArraySettings> {
+            secretByteArraysSettings
         }
         cut.getInputKeyAndExtra("provider-2") shouldBe
                 SecretByteArrays.GetInputKeyAndExtraResult(getInputKey = aesKey1, extra = extra2)
@@ -297,8 +291,8 @@ class SecretByteArraysTest {
             keyInfo = mapOf("provider-1" to SecretByteArrayKeyInfo(extra = extra1)),
             key = aesKey1.invoke(32)
         )
-        settings.update<MatrixMessengerSettingsBase> {
-            MatrixMessengerSettingsBase(secretByteArrays = secretByteArraysSettings)
+        settings.update<SecretByteArraySettings> {
+            secretByteArraysSettings
         }
         everySuspend { provider1.rotate(any(), any(), any()) } returns
                 SecretByteArrayKeyProvider.RotateResult(aesKey3, aesKey1, null)
@@ -316,7 +310,7 @@ class SecretByteArraysTest {
             provider1.rotate(extra1, null, null)
         }
 
-        settings.value.base.secretByteArrays shouldBe
+        settings.value.secretByteArrays shouldBe
                 de.connect2x.trixnity.messenger.secrets.SecretByteArraySettings(
                     mapOf(),
                     mapOf(
@@ -337,8 +331,8 @@ class SecretByteArraysTest {
                 keyInfo = mapOf("provider-1" to SecretByteArrayKeyInfo(extra = extra1)),
                 mac = "abc".encodeToByteArray()
             ).also { manipulate(it) }
-            settings.update<MatrixMessengerSettingsBase> {
-                MatrixMessengerSettingsBase(secretByteArrays = secretByteArraysSettings)
+            settings.update<SecretByteArraySettings> {
+                secretByteArraysSettings
             }
             everySuspend { provider1.rotate(any(), any(), any()) } returns
                     SecretByteArrayKeyProvider.RotateResult(aesKey3, aesKey1, null)

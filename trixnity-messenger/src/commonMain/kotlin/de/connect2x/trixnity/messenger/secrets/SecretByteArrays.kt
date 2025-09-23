@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.secrets
 
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.SecretByteArraySettings
 import de.connect2x.trixnity.messenger.settings.SettingsJson
@@ -55,21 +54,19 @@ class SecretByteArraysImpl(
         val newSettings =
             if (raw == null) {
                 SecretByteArraySettings(
-                    secrets = secretByteArraysSettings.secrets - id,
-                    keyInfo = secretByteArraysSettings.keyInfo,
+                    secrets = secretByteArraysSettings.secrets.orEmpty() - id,
+                    keyInfo = secretByteArraysSettings.keyInfo.orEmpty(),
                     key = key
                 )
             } else {
                 val secretByteArray = get(id, raw, key)
                 SecretByteArraySettings(
-                    secrets = secretByteArraysSettings.secrets + (id to secretByteArray),
-                    keyInfo = secretByteArraysSettings.keyInfo,
+                    secrets = secretByteArraysSettings.secrets.orEmpty() + (id to secretByteArray),
+                    keyInfo = secretByteArraysSettings.keyInfo.orEmpty(),
                     key = key
                 )
             }
-        settings.update<MatrixMessengerSettingsBase> {
-            it.copy(secretByteArrays = newSettings)
-        }
+        settings.update<SecretByteArraySettings> { newSettings }
     }
 
     private suspend fun get(id: String, raw: ByteArray, secretByteArrayKey: ByteArray?): SecretByteArray {
@@ -95,7 +92,7 @@ class SecretByteArraysImpl(
     override suspend fun get(id: String): ByteArray? {
         log.trace { "get SecretByteArray $id" }
         val secretByteArraySettings = getSettingsOrInitialize()
-        val secretByteArray = secretByteArraySettings.secrets[id]
+        val secretByteArray = secretByteArraySettings.secrets?.get(id)
         return if (secretByteArray == null) return null
         else {
             val secretByteArrayKey = getKey(keySize)
@@ -131,7 +128,8 @@ class SecretByteArraysImpl(
     }
 
     private suspend fun getSettingsOrInitialize(): SecretByteArraySettings {
-        return settings.value.base.secretByteArrays ?: rotateKeys(null, null, null)
+        return settings.value.secretByteArrays.takeIf { it.secrets != null && it.keyInfo != null }
+            ?: rotateKeys(null, null, null)
     }
 
     private val rotateKeysLock = Mutex()
@@ -141,7 +139,7 @@ class SecretByteArraysImpl(
         changedProviderRotate: (suspend (oldExtra: JsonObject?, getOldInputKey: GetKey?, getNewInputKey: GetKey?) -> SecretByteArrayKeyProvider.RotateResult)?
     ): SecretByteArraySettings = rotateKeysLock.withLock {
         log.debug { "rotateKeys (changedProviderId=$changedProviderId)" }
-        val secretByteArraySettings = settings.value.base.secretByteArrays
+        val secretByteArraySettings = settings.value.secretByteArrays
         val oldSecretByteArrayKeyInfos = secretByteArraySettings?.keyInfo.orEmpty()
         val newSecretByteArrayKeyInfos = mutableMapOf<String, SecretByteArrayKeyInfo>()
         val newKey =
@@ -183,16 +181,14 @@ class SecretByteArraysImpl(
                 keyInfo = newSecretByteArrayKeyInfos,
                 key = newKey
             )
-        settings.update<MatrixMessengerSettingsBase> {
-            it.copy(secretByteArrays = newSettings)
-        }
+        settings.update<SecretByteArraySettings> { newSettings }
         newSettings
     }
 
     override suspend fun getInputKeyAndExtra(providerId: String): SecretByteArrays.GetInputKeyAndExtraResult {
         val secretByteArraySettings = getSettingsOrInitialize()
         val secretByteArrayKeyInfos = secretByteArraySettings.keyInfo
-        val extra = secretByteArrayKeyInfos[providerId]?.extra
+        val extra = secretByteArrayKeyInfos?.get(providerId)?.extra
         val orderedSecretByteArrayKeyProviders = getOrderedSecretByteArrayKeyProviders(secretByteArraySettings)
         val inputKey =
             if (orderedSecretByteArrayKeyProviders.any { it.id == providerId }) {
@@ -200,7 +196,7 @@ class SecretByteArraysImpl(
                     .takeWhile { it.id != providerId }
                     .fold(null as GetKey?) { getInputKey, secretByteArrayKeyProvider ->
                         secretByteArrayKeyProvider.get(
-                            extra = secretByteArrayKeyInfos[secretByteArrayKeyProvider.id]?.extra,
+                            extra = secretByteArrayKeyInfos?.get(secretByteArrayKeyProvider.id)?.extra,
                             getInputKey = getInputKey
                         )
                     }
@@ -215,7 +211,7 @@ class SecretByteArraysImpl(
         log.debug { "getKey (size=$size, orderedSecretByteArrayKeyProviders=${orderedSecretByteArrayKeyProviders.map { it.id }})" }
         val key = orderedSecretByteArrayKeyProviders.fold(null as GetKey?) { getInputKey, secretByteArrayKeyProvider ->
             secretByteArrayKeyProvider.get(
-                secretByteArrayKeyInfos[secretByteArrayKeyProvider.id]?.extra,
+                secretByteArrayKeyInfos?.get(secretByteArrayKeyProvider.id)?.extra,
                 getInputKey
             )
         }?.invoke(size)
@@ -257,7 +253,7 @@ suspend fun SecretByteArraySettings(
 )
 
 suspend fun SecretByteArraySettings.checkIntegrity(key: ByteArray?) {
-    val calculatedMac = getMac(secrets, keyInfo, key)
+    val calculatedMac = getMac(secrets.orEmpty(), keyInfo.orEmpty(), key)
     if (!mac.contentEquals(calculatedMac))
         throw SecretByteArrayException("SecretByteArray integrity check failed")
 }

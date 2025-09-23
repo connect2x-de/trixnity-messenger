@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Technical: Don't override siblings or children in the deep nested settings view
+
 ### Security
 
 ## 3.8.5
@@ -28,7 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Technical: Support deep nested settings view
 - Copy message content
 - Captions for Media messages
-- 
+-
+
 ### Changed
 
 - UI (Desktop, Web): tooltips are WCAG compliant (tooltip itself can be hovered, tooltips can be closed with Esc key,

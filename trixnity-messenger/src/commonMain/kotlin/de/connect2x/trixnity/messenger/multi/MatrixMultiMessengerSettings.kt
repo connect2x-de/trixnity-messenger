@@ -29,7 +29,9 @@ data class MatrixMultiMessengerProfileSettingsBase(
 data class MatrixMultiMessengerSettings(
     private val delegate: Map<String, JsonElement>
 ) : SettingsImpl<MatrixMultiMessengerSettings>(delegate) {
-    val base by lazy { get<MatrixMultiMessengerSettings, MatrixMultiMessengerSettingsBase>() }
+    val base by lazy {
+        get<MatrixMultiMessengerSettings, MatrixMultiMessengerSettingsBase>()
+    }
 }
 
 @Serializable(MatrixMultiMessengerProfileSettingsSerializer::class)
