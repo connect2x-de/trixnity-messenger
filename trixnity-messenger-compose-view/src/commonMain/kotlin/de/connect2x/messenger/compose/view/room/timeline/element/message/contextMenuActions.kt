@@ -145,10 +145,10 @@ class BaseTimelineElementHolderContextMenuAction(
         ) {
             ThemedDropdownMenuItem(
                 enabled = isEnabled,
+                modifier = Modifier.buttonPointerModifier(),
                 text = {
                     Text(
                         label,
-                        Modifier.buttonPointerModifier(),
                         color = if (isEnabled)
                             MaterialTheme.colorScheme.onBackground
                         else
