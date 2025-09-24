@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarOutline
 import androidx.compose.material3.Icon
@@ -31,15 +32,15 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
+import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
-import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.modifier.gesturesDisabled
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModel
@@ -56,9 +57,16 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
     val canChangeRoomAlias = viewModel.canChangeRoomAlias.collectAsState().value
 
     Column {
-        Text(text = i18n.aliases().capitalize(Locale.current), style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.size(10.dp))
-        MoreOptions(if (canChangeRoomAlias) i18n.manageAliases() else i18n.showAliases()) {
+        ThemedListItem(
+            headlineContent = {
+                Text(i18n.aliases().capitalize(Locale.current), style = MaterialTheme.typography.titleMedium)
+            },
+            style = MaterialTheme.components.settingsItem,
+        )
+        ExpandableSection(
+            heading = if (canChangeRoomAlias) i18n.manageAliases() else i18n.showAliases(),
+            icon = Icons.Default.Settings,
+        ) {
             Box(Modifier.fillMaxSize()) {
                 Column {
                     if (canChangeRoomAlias) {
@@ -191,9 +199,7 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                                             .size(40.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Tooltip(
-                                            tooltip = { TooltipText(i18n.mainAlias()) }
-                                        ) {
+                                        Tooltip({ Text(i18n.mainAlias()) }) {
                                             Icon(Icons.Default.StarOutline, i18n.alias())
                                         }
                                     }

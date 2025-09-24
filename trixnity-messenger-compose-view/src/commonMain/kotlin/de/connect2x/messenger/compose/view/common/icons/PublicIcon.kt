@@ -8,13 +8,13 @@ import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 
@@ -23,7 +23,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 fun BoxScope.PublicIcon() {
     val i18n = DI.get<I18nView>()
     Box(Modifier.align(Alignment.BottomEnd), contentAlignment = Alignment.Center) {
-        Tooltip({ TooltipText(i18n.roomTypePublic()) }) {
+        Tooltip({ Text(i18n.roomTypePublic()) }) {
             Icon(
                 Icons.Default.Circle,
                 i18n.roomTypeUnencrypted(),

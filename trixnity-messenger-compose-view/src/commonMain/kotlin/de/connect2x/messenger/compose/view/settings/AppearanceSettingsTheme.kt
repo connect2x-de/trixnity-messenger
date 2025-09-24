@@ -10,7 +10,6 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.ThemeMode
@@ -43,7 +42,7 @@ class AppearanceSettingsThemeViewImpl : AppearanceSettingsThemeView {
         }
         RadioSetting(
             title = {
-                Tooltip(tooltip = { TooltipText { themeExplanation } }) {
+                Tooltip({ Text(themeExplanation) }) {
                     Text(i18n.appearanceThemeHeading(themeName), style = MaterialTheme.typography.titleSmall)
                 }
             },

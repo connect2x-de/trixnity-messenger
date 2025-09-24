@@ -36,6 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import de.connect2x.messenger.compose.view.DI
@@ -118,21 +120,28 @@ fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
         }
     }
 
-    key(wizardStep) {
-        if (wizardStep != null) {
-            // this is necessary to have a scroll position saved on every step,
-            // but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
-            savableStateHolder.SaveableStateProvider(key = wizardStep.id) {
-                val scrollState = rememberScrollState()
-                Surface(
-                    Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
-                    BoxWithConstraints(
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+        ),
+    ) {
+        key(wizardStep) {
+            if (wizardStep != null) {
+                // this is necessary to have a scroll position saved on every step,
+                // but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
+                savableStateHolder.SaveableStateProvider(key = wizardStep.id) {
+                    val scrollState = rememberScrollState()
+                    Surface(
                         Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
+                        color = MaterialTheme.colorScheme.background,
                     ) {
-                        WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
+                        BoxWithConstraints(
+                            Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
+                        }
                     }
                 }
             }

@@ -24,7 +24,6 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.files.SaveFileDialog
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -118,7 +117,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
         additionalContextActions = { onClose ->
             // name
             Tooltip(
-                { TooltipText("${element.name}${element.size.ifNotNull { " $it" }}") } // full name
+                { Text("${element.name}${element.size.ifNotNull { " $it" }}") } // full name
             ) {
                 Text(
                     "${shortenFileName(element)}${element.size.ifNotNull { " $it" }}", // shortened name

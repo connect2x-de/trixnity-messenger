@@ -18,7 +18,7 @@ data class SwitchStyle(
         fun default(
             colors: SwitchColors = SwitchDefaults.colors(),
         ) = SwitchStyle(
-            colors,
+            colors = colors,
         )
     }
 }

@@ -43,7 +43,6 @@ import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.LargeSpacer
 import de.connect2x.messenger.compose.view.common.Paragraphs
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardImage
 import de.connect2x.messenger.compose.view.common.WizardNavigationButton
@@ -172,7 +171,7 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                             }
                         }
                         Spacer(Modifier.size(40.dp))
-                        Tooltip({ TooltipText(i18n.bootstrapRecoveryKeyCopyToClipboard()) }) {
+                        Tooltip({ Text(i18n.bootstrapRecoveryKeyCopyToClipboard()) }) {
                             Column(Modifier.width(IntrinsicSize.Min)) {
                                 val scope = rememberCoroutineScope()
                                 val di = DI.current
