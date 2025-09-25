@@ -42,6 +42,7 @@ interface RoomSettingsMemberListElementView {
         memberListViewModel: MemberListViewModel,
         memberUserId: UserId,
         memberListElementViewModel: MemberListElementViewModel,
+        modifier: Modifier,
         onClick: () -> Unit,
     )
 }
@@ -51,10 +52,11 @@ fun RoomSettingsMemberListElement(
     memberListViewModel: MemberListViewModel,
     memberUserId: UserId,
     memberListElementViewModel: MemberListElementViewModel,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     DI.get<RoomSettingsMemberListElementView>()
-        .create(memberListViewModel, memberUserId, memberListElementViewModel, onClick)
+        .create(memberListViewModel, memberUserId, memberListElementViewModel, modifier, onClick)
 }
 
 class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView {
@@ -63,6 +65,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
         memberListViewModel: MemberListViewModel,
         memberUserId: UserId,
         memberListElementViewModel: MemberListElementViewModel,
+        modifier: Modifier,
         onClick: () -> Unit,
     ) {
         val i18n = DI.get<I18nView>()
@@ -79,7 +82,7 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
         val interactionSource = remember { MutableInteractionSource() }
 
         Box(
-            Modifier
+            modifier
                 .fillMaxWidth()
                 .clickable(interactionSource = interactionSource, indication = LocalIndication.current) {
                     memberListElementViewModel.openUserProfile()

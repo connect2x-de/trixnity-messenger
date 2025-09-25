@@ -191,7 +191,7 @@ class TimelineViewImpl : TimelineView {
 
                 val lastItem = remember {
                     derivedStateOf {
-                        navigatableTimelineElements.value.first()
+                        navigatableTimelineElements.value.firstOrNull()
                     }
                 }
 

@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -55,40 +54,22 @@ class AccountOptionsViewImpl : AccountOptionsView {
                     modifier = Modifier.background(MaterialTheme.colorScheme.background),
                 ) {
                     ThemedDropdownMenuItem(
-                        text = {
-                            Text(
-                                i18n.commonSettings().capitalize(Locale.current),
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                        },
+                        text = { Text(i18n.commonSettings().capitalize(Locale.current)) },
                         accountViewModel::openUserSettings,
-                        Modifier.buttonPointerModifier(),
                     )
                     ThemedDropdownMenuItem(
-                        text = {
-                            Text(i18n.accountYourAccounts(), color = MaterialTheme.colorScheme.onBackground)
-                        },
+                        text = { Text(i18n.accountYourAccounts()) },
                         roomListViewModel::openAccountsOverview,
-                        Modifier.buttonPointerModifier(),
                     )
                     ThemedDropdownMenuItem(
-                        text = {
-                            Text(
-                                i18n.accountAboutTheApp(config.appName),
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                        },
+                        text = { Text(i18n.accountAboutTheApp(config.appName)) },
                         accountViewModel::openAppInfo,
-                        Modifier.buttonPointerModifier(),
                     )
 
                     config.sendLogsEmailAddress?.let {
                         ThemedDropdownMenuItem(
-                            text = {
-                                Text(i18n.accountSendErrorLogs(), color = MaterialTheme.colorScheme.onBackground)
-                            },
+                            text = { Text(i18n.accountSendErrorLogs()) },
                             roomListViewModel::sendLogs,
-                            Modifier.buttonPointerModifier(),
                         )
                     }
                 }

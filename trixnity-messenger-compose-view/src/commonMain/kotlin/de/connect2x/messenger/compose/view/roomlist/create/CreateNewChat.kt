@@ -16,11 +16,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GroupAdd
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -31,11 +33,12 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
+import de.connect2x.messenger.compose.view.search.SearchResultState
 import de.connect2x.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.messenger.compose.view.search.collectUserSearchResult
 import de.connect2x.messenger.compose.view.theme.components
@@ -47,6 +50,9 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedAvatar
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
+import de.connect2x.messenger.compose.view.util.LocalRovingFocus
+import de.connect2x.messenger.compose.view.util.RovingFocusContainer
+import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 
@@ -71,64 +77,102 @@ class CreateNewChatViewImpl : CreateNewChatView {
         val userSearchResultView = DI.get<UserSearchResultListView>()
         val searchUsersResults = collectUserSearchResult(createNewChatViewModel.createNewRoomViewModel.searchHandler)
         val listState = rememberLazyListState()
+        val references = remember(searchUsersResults) {
+            (searchUsersResults as? SearchResultState.Results)?.users?.map { it.userId.full }
+        }
+        val defaultItem = references?.firstOrNull()
 
-        Box(Modifier.fillMaxSize()) {
-            Box {
-                if (error != null) {
-                    ThemedModalDialog({ createNewChatViewModel.errorDismiss() }) {
-                        ModalDialogHeader {
-                            Text(i18n.anErrorHasOccurred())
-                        }
-                        ModalDialogContent {
-                            Text(error)
-                            if (errorDetails != null) {
-                                MoreInfo(
-                                    title = i18n.errorDetails(),
-                                ) {
-                                    Text(errorDetails, modifier = Modifier.padding(20.dp))
-                                }
-                            }
-                        }
-                        ModalDialogFooter {
-                            ThemedButton(
-                                style = MaterialTheme.components.primaryButton,
-                                onClick = { createNewChatViewModel.errorDismiss() },
-                            ) {
-                                Text(i18n.actionOk())
+        Column(Modifier.fillMaxSize()) {
+            Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
+            Box(Modifier.fillMaxSize()) {
+                RovingFocusContainer {
+                    val focusContainer = LocalRovingFocus.current
+                    val currentRef = focusContainer?.activeRef?.value
+                    LaunchedEffect(currentRef) {
+                        if (currentRef != null) {
+                            if (references?.contains(currentRef) != true) {
+                                focusContainer.activeRef.value = null
                             }
                         }
                     }
+
+                    val focusModifier = if (references != null) Modifier.verticalRovingFocus(
+                        default = defaultItem,
+                        scroll = { item ->
+                            val index = references.indexOf(item)
+                            if (index != -1) {
+                                listState.scrollToItem(index)
+                            }
+                        },
+                        up = {
+                            val currentItem = activeRef.value ?: defaultItem
+                            val currentIndex = references.indexOf(currentItem)
+                            val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
+                            references[nextIndex]
+                        },
+                        down = {
+                            val currentItem = activeRef.value ?: defaultItem
+                            val currentIndex = references.indexOf(currentItem)
+                            val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
+                            references[nextIndex]
+                        },
+                    ) else Modifier
+
+                    LazyColumn(
+                        modifier = Modifier.then(focusModifier),
+                        state = listState,
+                    ) {
+                        item(key = "CreatingIndicator") {
+                            if (isCreating) {
+                                ThemedProgressIndicator(
+                                    Modifier.fillMaxWidth(),
+                                    MaterialTheme.components.linearProgressIndicator
+                                )
+                            }
+                        }
+                        item(key = "AddOrSearchGroup") {
+                            AddOrSearchGroup(createNewChatViewModel)
+                            HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
+                        }
+                        searchUsersView.create(
+                            createNewChatViewModel.createNewRoomViewModel,
+                            createNewChatViewModel::onUserClick,
+                            searchUsersResults,
+                            userSearchResultView,
+                            this,
+                        )
+                    }
                 }
 
-                Column {
-                    Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
-                    Box(Modifier.fillMaxSize()) {
-                        LazyColumn(state = listState) {
-                            item(key = "CreatingIndicator") {
-                                if (isCreating) {
-                                    ThemedProgressIndicator(
-                                        Modifier.fillMaxWidth(),
-                                        MaterialTheme.components.linearProgressIndicator
-                                    )
-                                }
-                            }
-                            item(key = "AddOrSearchGroup") {
-                                AddOrSearchGroup(createNewChatViewModel)
-                                HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
-                            }
-                            searchUsersView.create(
-                                createNewChatViewModel.createNewRoomViewModel,
-                                createNewChatViewModel::onUserClick,
-                                searchUsersResults,
-                                userSearchResultView,
-                                this,
-                            )
+                if (listState.canScrollForward || listState.canScrollBackward) {
+                    VerticalScrollbar(
+                        Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                        lazyListState = listState,
+                        reverseLayout = false,
+                    )
+                }
+            }
+        }
+
+        if (error != null) {
+            ThemedModalDialog({ createNewChatViewModel.errorDismiss() }) {
+                ModalDialogHeader {
+                    Text(i18n.anErrorHasOccurred())
+                }
+                ModalDialogContent {
+                    Text(error)
+                    if (errorDetails != null) {
+                        ExpandableSection(heading = i18n.errorDetails(), icon = Icons.Default.Info) {
+                            Text(errorDetails, modifier = Modifier.padding(20.dp))
                         }
-                        VerticalScrollbar(
-                            Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                            lazyListState = listState,
-                            reverseLayout = false,
-                        )
+                    }
+                }
+                ModalDialogFooter {
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
+                        onClick = { createNewChatViewModel.errorDismiss() },
+                    ) {
+                        Text(i18n.actionOk())
                     }
                 }
             }

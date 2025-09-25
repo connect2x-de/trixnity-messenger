@@ -8,6 +8,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
@@ -19,10 +20,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
+import com.mikepenz.aboutlibraries.ui.compose.m3.chipColors
+import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
 import de.connect2x.messenger.compose.view.theme.components.ApplySystemUiTheme
 import de.connect2x.messenger.compose.view.theme.components.AvatarStyle
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
+import de.connect2x.messenger.compose.view.theme.components.CheckboxStyle
 import de.connect2x.messenger.compose.view.theme.components.ChipStyle
 import de.connect2x.messenger.compose.view.theme.components.DialogStyle
 import de.connect2x.messenger.compose.view.theme.components.DividerStyle
@@ -30,9 +36,12 @@ import de.connect2x.messenger.compose.view.theme.components.DropdownMenuItemStyl
 import de.connect2x.messenger.compose.view.theme.components.FloatingActionButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
+import de.connect2x.messenger.compose.view.theme.components.LibraryStyle
+import de.connect2x.messenger.compose.view.theme.components.ListItemStyle
 import de.connect2x.messenger.compose.view.theme.components.LocalContent
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.CircularProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
+import de.connect2x.messenger.compose.view.theme.components.RadioButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.SelectionStyle
 import de.connect2x.messenger.compose.view.theme.components.SliderStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
@@ -176,6 +185,9 @@ class ThemeComponentsImpl : ThemeComponents {
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSecondary),
         ),
         // other inputs
+        listItem = ListItemStyle.default(),
+        checkbox = CheckboxStyle.default(),
+        radioButton = RadioButtonStyle.default(),
         switch = SwitchStyle.default(),
         // surfaces
         background = SurfaceStyle.default(),
@@ -423,5 +435,22 @@ class ThemeComponentsImpl : ThemeComponents {
         // selection
         selectionOnSurface = SelectionStyle.onSurface(),
         selectionOnPrimary = SelectionStyle.onPrimary(),
+        // other
+        settingsItem = ListItemStyle.default(
+            colors = ListItemDefaults.colors(
+                containerColor = Color.Transparent,
+            )
+        ),
+        library = LibraryStyle.default(
+            colors = LibraryDefaults.libraryColors(
+                backgroundColor = Color.Transparent,
+                licenseChipColors = LibraryDefaults.chipColors(),
+            ),
+            textStyles = LibraryDefaults.libraryTextStyles(
+                defaultOverflow = TextOverflow.Ellipsis,
+                nameMaxLines = 10,
+                versionMaxLines = 2
+            ),
+        ),
     )
 }

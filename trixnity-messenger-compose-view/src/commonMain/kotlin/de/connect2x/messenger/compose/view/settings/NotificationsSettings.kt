@@ -28,12 +28,14 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
-import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.common.ExpandableSection
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModel
@@ -81,10 +83,11 @@ fun NotificationSettingsSingleAccount(
 
     val enabledForThisDevice by viewModel.enabledForThisDevice.collectAsState()
     SettingsAccountCard(viewModel.account) {
-        Setting(
-            text = i18n.notificationsSettingsEnabledForThisDevice(),
-            value = enabledForThisDevice,
-            toggle = { viewModel.toggleEnabledForThisDevice() }
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.notificationsSettingsEnabledForThisDevice()) },
+            selected = enabledForThisDevice,
+            onChange = { viewModel.toggleEnabledForThisDevice() },
         )
         Spacer(Modifier.size(16.dp))
         PlatformNotificationSettings(viewModel, enabledForThisDevice)
@@ -122,99 +125,153 @@ fun ColumnScope.PlatformNotificationAccountSettings(
         options = mapOf(
             NotificationSettings.DefaultLevel.ROOM to RadioSettingOption(
                 text = i18n.notificationsSettingsAccountDefaultLevelRoom(),
-                enabled = canChangeSettings,
                 style = MaterialTheme.typography.labelLarge
             ),
             NotificationSettings.DefaultLevel.DM to RadioSettingOption(
                 text = i18n.notificationsSettingsAccountDefaultLevelDM(),
-                enabled = canChangeSettings,
                 style = MaterialTheme.typography.labelLarge
             ),
             NotificationSettings.DefaultLevel.MENTION to RadioSettingOption(
                 text = i18n.notificationsSettingsAccountDefaultLevelMention(),
-                enabled = canChangeSettings,
                 style = MaterialTheme.typography.labelLarge
             ),
             NotificationSettings.DefaultLevel.NONE to RadioSettingOption(
                 text = i18n.notificationsSettingsAccountDefaultLevelNone(),
-                enabled = canChangeSettings,
                 style = MaterialTheme.typography.labelLarge
             ),
         ),
+        enabled = canChangeSettings,
         value = settings.defaultLevel,
         set = { viewModel.updateAccountSettings(settings.copy(defaultLevel = it)) },
     )
 
     MiddleSpacer()
 
-    MoreOptions(
-        title = { Text(i18n.notificationsSettingsAccountSound(), style = MaterialTheme.typography.titleSmall) },
-        icon = Icons.Filled.NotificationsActive,
+    ExpandableSection(
+        heading = { Text(i18n.notificationsSettingsAccountSound(), style = MaterialTheme.typography.titleSmall) },
+        icon = Icons.Filled.NotificationsActive
     ) {
-        Setting(
-            text = i18n.notificationsSettingsAccountSoundRoom(),
-            value = settings.sound.room,
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.notificationsSettingsAccountSoundRoom()) },
+            selected = settings.sound.room,
             enabled = canChangeSettings && settings.defaultLevel >= NotificationSettings.DefaultLevel.ROOM,
-            toggle = { viewModel.updateAccountSettings(settings.copy(sound = settings.sound.copy(room = !settings.sound.room))) }
+            onChange = { viewModel.updateAccountSettings(settings.copy(sound = settings.sound.copy(room = !settings.sound.room))) },
         )
-        Setting(
-            text = i18n.notificationsSettingsAccountSoundDM(),
-            value = settings.sound.dm,
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.notificationsSettingsAccountSoundDM()) },
+            selected = settings.sound.dm,
             enabled = canChangeSettings && settings.defaultLevel >= NotificationSettings.DefaultLevel.DM,
-            toggle = { viewModel.updateAccountSettings(settings.copy(sound = settings.sound.copy(dm = !settings.sound.dm))) }
+            onChange = { viewModel.updateAccountSettings(settings.copy(sound = settings.sound.copy(dm = !settings.sound.dm))) },
         )
-        Setting(
-            text = i18n.notificationsSettingsAccountSoundMention(),
-            value = settings.sound.mention,
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.notificationsSettingsAccountSoundMention()) },
+            selected = settings.sound.mention,
             enabled = canChangeSettings && settings.defaultLevel >= NotificationSettings.DefaultLevel.MENTION,
-            toggle = { viewModel.updateAccountSettings(settings.copy(sound = settings.sound.copy(mention = !settings.sound.mention))) }
+            onChange = {
+                viewModel.updateAccountSettings(
+                    settings.copy(
+                        sound = settings.sound.copy(
+                            mention = !settings.sound.mention
+                        )
+                    )
+                )
+            },
         )
-        Setting(
-            text = i18n.notificationsSettingsAccountSoundCall(),
-            value = settings.sound.call,
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.notificationsSettingsAccountSoundCall()) },
+            selected = settings.sound.call,
             enabled = canChangeSettings && settings.defaultLevel > NotificationSettings.DefaultLevel.NONE,
-            toggle = { viewModel.updateAccountSettings(settings.copy(sound = settings.sound.copy(call = !settings.sound.call))) }
+            onChange = { viewModel.updateAccountSettings(settings.copy(sound = settings.sound.copy(call = !settings.sound.call))) },
         )
     }
 
     MiddleSpacer()
-    MoreOptions(
-        title = { Text(i18n.notificationsSettingsAccountOthers(), style = MaterialTheme.typography.titleSmall) },
-        icon = Icons.Filled.Notifications,
+    ExpandableSection(
+        heading = { Text(i18n.notificationsSettingsAccountOthers(), style = MaterialTheme.typography.titleSmall) },
+        icon = Icons.Filled.Notifications
     ) {
-        Setting(
-            text = i18n.notificationsSettingsAccountActivityInvite(),
-            value = settings.activity.invite,
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.notificationsSettingsAccountActivityInvite()) },
+            selected = settings.activity.invite,
             enabled = canChangeSettings && settings.defaultLevel > NotificationSettings.DefaultLevel.NONE,
-            toggle = { viewModel.updateAccountSettings(settings.copy(activity = settings.activity.copy(invite = !settings.activity.invite))) }
+            onChange = {
+                viewModel.updateAccountSettings(
+                    settings.copy(
+                        activity = settings.activity.copy(
+                            invite = !settings.activity.invite
+                        )
+                    )
+                )
+            },
         )
 
-        Setting(
-            text = i18n.notificationsSettingsAccountActivityStatus(),
-            value = settings.activity.status,
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.notificationsSettingsAccountActivityStatus()) },
+            selected = settings.activity.status,
             enabled = canChangeSettings && settings.defaultLevel > NotificationSettings.DefaultLevel.NONE,
-            toggle = { viewModel.updateAccountSettings(settings.copy(activity = settings.activity.copy(status = !settings.activity.status))) }
+            onChange = {
+                viewModel.updateAccountSettings(
+                    settings.copy(
+                        activity = settings.activity.copy(
+                            status = !settings.activity.status
+                        )
+                    )
+                )
+            },
         )
 
-        Setting(
-            text = i18n.notificationsSettingsAccountActivityNotice(),
-            value = settings.activity.notice,
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.notificationsSettingsAccountActivityNotice()) },
+            selected = settings.activity.notice,
             enabled = canChangeSettings && settings.defaultLevel > NotificationSettings.DefaultLevel.NONE,
-            toggle = { viewModel.updateAccountSettings(settings.copy(activity = settings.activity.copy(notice = !settings.activity.notice))) }
+            onChange = {
+                viewModel.updateAccountSettings(
+                    settings.copy(
+                        activity = settings.activity.copy(
+                            notice = !settings.activity.notice
+                        )
+                    )
+                )
+            },
         )
 
-        Setting(
-            text = i18n.notificationsSettingsAccountMentionUser(viewModel.account),
-            value = settings.mention.user,
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.notificationsSettingsAccountMentionUser(viewModel.account)) },
+            selected = settings.mention.user,
             enabled = canChangeSettings && settings.defaultLevel >= NotificationSettings.DefaultLevel.MENTION,
-            toggle = { viewModel.updateAccountSettings(settings.copy(mention = settings.mention.copy(user = !settings.mention.user))) }
+            onChange = {
+                viewModel.updateAccountSettings(
+                    settings.copy(
+                        mention = settings.mention.copy(
+                            user = !settings.mention.user
+                        )
+                    )
+                )
+            },
         )
 
-        Setting(
-            text = i18n.notificationsSettingsAccountMentionRoom(),
-            value = settings.mention.room,
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.notificationsSettingsAccountMentionRoom()) },
+            selected = settings.mention.room,
             enabled = canChangeSettings && settings.defaultLevel >= NotificationSettings.DefaultLevel.MENTION,
-            toggle = { viewModel.updateAccountSettings(settings.copy(mention = settings.mention.copy(room = !settings.mention.room))) }
+            onChange = {
+                viewModel.updateAccountSettings(
+                    settings.copy(
+                        mention = settings.mention.copy(
+                            room = !settings.mention.room
+                        )
+                    )
+                )
+            },
         )
 
         // TODO enable as soon as keywords are supported

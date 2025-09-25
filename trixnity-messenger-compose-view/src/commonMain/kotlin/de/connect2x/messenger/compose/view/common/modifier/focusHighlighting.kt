@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
@@ -16,6 +18,7 @@ import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
 fun Modifier.focusHighlighting(
     interactionSource: MutableInteractionSource,
     color: Color = MaterialTheme.colorScheme.onSurface,
+    shape: Shape = RectangleShape,
 ): Modifier {
     val hasFocus = interactionSource.collectIsFocusedAsState().value
 
@@ -24,6 +27,7 @@ fun Modifier.focusHighlighting(
         IsFocusHighlighting.current,
         MaterialTheme.messengerFocusIndicator.borderWidth,
         color,
+        shape,
     )
 }
 
@@ -33,6 +37,7 @@ fun Modifier.focusHighlighting(
     isFocusHighlightingActive: Boolean,
     borderWidth: Dp,
     color: Color,
+    shape: Shape = RectangleShape,
 ): Modifier {
     return this
         .then(
@@ -40,6 +45,7 @@ fun Modifier.focusHighlighting(
                 Modifier.border(
                     width = borderWidth,
                     color = color,
+                    shape = shape,
                 )
             } else Modifier
         )

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -41,7 +42,7 @@ fun RowScope.UserState(
     val i18n = DI.get<I18nView>()
 
     if (isUserBlocked) {
-        Tooltip({ TooltipText(i18n.roomHeaderUserIsBlocked()) }) {
+        Tooltip({ Text(i18n.roomHeaderUserIsBlocked()) }) {
             Icon(
                 Icons.Default.Block,
                 i18n.roomHeaderUserIsBlocked(),

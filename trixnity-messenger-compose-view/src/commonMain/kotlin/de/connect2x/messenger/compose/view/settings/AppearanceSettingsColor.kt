@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,12 +31,12 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.common.deriveFromHue
 import de.connect2x.messenger.compose.view.common.hue
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.theme.DefaultAccentColor
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
@@ -96,14 +97,17 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
             )
         }
 
-        MoreOptions({
-            Text(
-                text = "${text}: ",
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Spacer(Modifier.width(5.dp))
-            AppearanceSettingsColorPreview(currentColor)
-        }) {
+        ExpandableSection(
+            heading = {
+                Text(
+                    text = "${text}: ",
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Spacer(Modifier.width(5.dp))
+                AppearanceSettingsColorPreview(currentColor)
+            },
+            icon = Icons.Default.Settings,
+        ) {
             Row(
                 modifier = Modifier.padding(16.dp).fillMaxSize(),
                 verticalAlignment = Alignment.CenterVertically
@@ -117,7 +121,7 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                         set(defaultAccentColor.deriveFromHue(newHue))
                     },
                     valueRange = 0F..359F,
-                    steps = 359,
+                    steps = 180,
                     modifier = Modifier.weight(1F),
                     style = MaterialTheme.components.slider.let {
                         it.copy(colors = it.colors.copy(thumbColor = currentColor))

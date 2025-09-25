@@ -12,6 +12,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Colorize
 import androidx.compose.material.icons.filled.FormatSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -25,6 +27,8 @@ import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.DefaultAccentColor
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModel
 
 interface AppearanceSettingsView {
@@ -68,20 +72,20 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
                         SettingsCard(title = i18n.appearanceAccessibilityTitle(), icon = Icons.Filled.FormatSize) {
                             AppearanceSettingsSize(appearanceSettingsViewModel)
                             Spacer(Modifier.height(15.dp))
-                            Setting(
-                                text = i18n.appearanceHighContrastHeading(),
-                                explanation = i18n.appearanceHighContrastExplanation(),
-                                value = isHighContrast
-                            ) {
-                                appearanceSettingsViewModel.toggleHighContrast()
-                            }
-                            Setting(
-                                text = i18n.appearanceFocusHighlightingHeading(),
-                                explanation = i18n.appearanceFocusHighlightingExplanation(),
-                                value = isFocusHighlighting,
-                            ) {
-                                appearanceSettingsViewModel.toggleFocusHighlighting()
-                            }
+                            ThemedListItemSwitch(
+                                style = MaterialTheme.components.settingsItem,
+                                headlineContent = { Text(i18n.appearanceHighContrastHeading()) },
+                                supportingContent = { Text(i18n.appearanceHighContrastExplanation()) },
+                                selected = isHighContrast,
+                                onChange = { appearanceSettingsViewModel.toggleHighContrast() },
+                            )
+                            ThemedListItemSwitch(
+                                style = MaterialTheme.components.settingsItem,
+                                headlineContent = { Text(i18n.appearanceFocusHighlightingHeading()) },
+                                supportingContent = { Text(i18n.appearanceFocusHighlightingExplanation()) },
+                                selected = isFocusHighlighting,
+                                onChange = { appearanceSettingsViewModel.toggleFocusHighlighting() },
+                            )
                         }
                     }
                     VerticalScrollbar(
