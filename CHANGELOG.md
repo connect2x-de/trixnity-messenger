@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Technical: Don't override siblings or children in the deep nested settings view
 - Fix Emoji Regex in Kotlin/JS
+- Correctly show profiles
 
 ### Security
 
