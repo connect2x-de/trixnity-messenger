@@ -16,8 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Added Space in the bottom of the RoomList to account for new chat button overlapping UI elements
-
 - Use SQLitenity as Room implementation
+- Improve keyboard accessibility of profile selection and blocked user settings
 
 ### Deprecated
 
@@ -83,6 +83,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Emoji Regex in Kotlin/JS
 - Correctly show profiles
 
+### Security
+
 ## 3.8.5
 
 ### Added
@@ -105,6 +107,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 - rename loadMediaResult to loadMediaResultBytes in FileBased RoomMessageEventContent
+
+### Removed
 
 ### Fixed
 
