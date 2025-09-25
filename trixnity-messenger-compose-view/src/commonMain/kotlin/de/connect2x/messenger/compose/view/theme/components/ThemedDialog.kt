@@ -240,11 +240,12 @@ fun ColumnScope.AdaptiveDialogContent(
 
 @Composable
 fun ColumnScope.AdaptiveDialogScrollContent(
+    modifier: Modifier = Modifier,
     style: DialogStyle = MaterialTheme.components.adaptiveDialog,
     scrollState: ScrollState = rememberScrollState(),
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Box(Modifier.weight(weight = 1f, fill = true).align(Alignment.Start)) {
+    Box(modifier.weight(weight = 1f, fill = true).align(Alignment.Start)) {
         Column(Modifier.padding(style.container.contentPadding).verticalScroll(scrollState)) {
             content()
         }
