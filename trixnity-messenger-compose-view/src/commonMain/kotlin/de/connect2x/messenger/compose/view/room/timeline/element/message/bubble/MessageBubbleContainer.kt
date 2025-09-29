@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message.bubble
 
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -13,7 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -36,12 +37,14 @@ fun MessageBubbleContainer(
     reactionsOpen: MutableState<Boolean>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
     isPreview: Boolean,
+    interactionSource: MutableInteractionSource,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
     val isFirstInUserSequence = holder.isFirstInUserSequence.collectAsState().value == true
     val showActionMenu = remember { mutableStateOf(false) }
     val hoverMessage = remember { mutableStateOf(false) }
+    val isFocused = remember { mutableStateOf(false) }
 
     val messagePadding = remember(holder.isByMe) {
         if (holder.isByMe) Modifier else Modifier.padding(start = 8.dp)
@@ -72,7 +75,10 @@ fun MessageBubbleContainer(
         ) {
             ThemedSurface(
                 style = messageBubbleStyle,
+                focused = isFocused.value,
                 modifier = Modifier
+                    // We want to explicitly listen for focus on children as well
+                    .onFocusChanged { isFocused.value = it.hasFocus }
                     .then(messagePadding)
                     .drawWithCache {
                         onDrawBehind {
@@ -82,20 +88,20 @@ fun MessageBubbleContainer(
                         }
                     },
             ) {
-                MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = true }, content)
-            }
+                if (!isPreview) {
+                    MessageBubbleActionMenu(
+                        holder,
+                        showActionMenu,
+                        onOpenMetadata = {
+                            if (holder is TimelineElementHolderViewModel) holder.openTimelineElementMetadata()
+                        },
+                        onReactToMessage = { reactionsOpen.value = true },
+                        interactionSource,
+                        additionalContextActions,
+                    )
+                }
 
-            if (!isPreview) {
-                MessageBubbleActionMenu(
-                    holder,
-                    hoverMessage,
-                    showActionMenu,
-                    onOpenMetadata = {
-                        if (holder is TimelineElementHolderViewModel) holder.openTimelineElementMetadata()
-                    },
-                    onReactToMessage = { reactionsOpen.value = true },
-                    additionalContextActions,
-                )
+                MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = true }, content)
             }
         }
     }

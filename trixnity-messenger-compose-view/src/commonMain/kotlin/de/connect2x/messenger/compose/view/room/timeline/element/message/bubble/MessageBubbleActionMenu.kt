@@ -1,10 +1,16 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message.bubble
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.rememberTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -12,6 +18,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -20,26 +27,32 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.room.timeline.element.message.contextMenuActions
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenu
+import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
+import de.connect2x.messenger.compose.view.util.LocalRovingFocus
+import de.connect2x.messenger.compose.view.util.LocalRovingFocusItem
+import de.connect2x.messenger.compose.view.util.rovingFocusItem
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import kotlinx.coroutines.launch
 
@@ -47,10 +60,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun BoxScope.MessageBubbleActionMenu(
     holder: BaseTimelineElementHolderViewModel,
-    hoverMessage: State<Boolean>,
     showActionMenu: MutableState<Boolean>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
+    interactionSource: MutableInteractionSource,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     when {
@@ -59,15 +72,16 @@ fun BoxScope.MessageBubbleActionMenu(
             showActionMenu,
             onOpenMetadata,
             onReactToMessage,
+            interactionSource,
             additionalContextActions,
         )
 
         else -> MessageBubbleActionMenuDefault(
             holder,
-            hoverMessage,
             showActionMenu,
             onOpenMetadata,
             onReactToMessage,
+            interactionSource,
             additionalContextActions,
         )
     }
@@ -76,40 +90,60 @@ fun BoxScope.MessageBubbleActionMenu(
 @Composable
 private fun BoxScope.MessageBubbleActionMenuDefault(
     holder: BaseTimelineElementHolderViewModel,
-    hoverMessage: State<Boolean>,
     showActionMenu: MutableState<Boolean>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
+    interactionSource: MutableInteractionSource,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
+    val focus = interactionSource.collectIsFocusedAsState()
+    val hover = interactionSource.collectIsHoveredAsState()
+    val isVisible: MutableTransitionState<Boolean> =
+        remember { MutableTransitionState(showActionMenu.value || focus.value || hover.value) }
+
+    LaunchedEffect(showActionMenu.value, focus.value, hover.value) {
+        isVisible.targetState = showActionMenu.value || focus.value || hover.value
+    }
+
+    val transition = rememberTransition(isVisible)
+    val opacity = transition.animateFloat { if (it) 0.1f else 0f }
+
+    val focusContainer = LocalRovingFocus.current
+    val focusItem = LocalRovingFocusItem.current
+
     val i18n = DI.get<I18nView>()
     val onClose = {
         showActionMenu.value = false
     }
     Box(
-        Modifier.Companion
+        modifier = Modifier
+            .zIndex(1f)
             .align(Alignment.TopEnd)
             .padding(
                 top = 4.dp,
                 end = if (holder.isByMe) 14.dp else 4.dp
             )
-            .defaultMinSize(minHeight = 24.dp, minWidth = 24.dp) // 24dp Material Icon
     ) {
-        AnimatedVisibility(
-            hoverMessage.value,
+        Surface(
+            shape = CircleShape,
+            color = Color.Black.copy(alpha = opacity.value),
+            interactionSource = interactionSource,
+            border = if (IsFocusHighlighting.current && focus.value) {
+                BorderStroke(MaterialTheme.messengerFocusIndicator.borderWidth, MaterialTheme.colorScheme.onSurface)
+            } else null,
+            onClick = {
+                showActionMenu.value = showActionMenu.value.not()
+                focusContainer?.selectItem(focusItem?.key, shouldFocus = true)
+            },
             modifier = Modifier
-                .align(Alignment.Center)
-                .clip(CircleShape),
+                .size(28.dp)
+                .rovingFocusItem()
         ) {
-            Box(
-                Modifier
-                    .background(Color.Black.copy(alpha = 0.1f))
-                    .clickable { showActionMenu.value = showActionMenu.value.not() }
-                    .pointerHoverIcon(PointerIcon.Hand)
-                    .indication(
-                        indication = null,
-                        interactionSource = MutableInteractionSource()
-                    )
+            transition.AnimatedVisibility(
+                modifier = Modifier.buttonPointerModifier(enabled = true),
+                visible = { it },
+                enter = fadeIn(),
+                exit = fadeOut(),
             ) {
                 Icon(Icons.Default.ExpandMore, i18n.commonContextMenu(), tint = Color.White)
             }
@@ -135,6 +169,7 @@ private fun MessageBubbleActionMenuMobile(
     showActionMenu: MutableState<Boolean>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
+    interactionSource: MutableInteractionSource,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     val i18n = DI.get<I18nView>()

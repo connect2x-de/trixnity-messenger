@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.MoonShape
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -89,7 +88,7 @@ fun ThemedUserAvatar(
 
     val tooltip = presenceText(presence)
     tooltip?.let {
-        Tooltip({ TooltipText(tooltip) }) {
+        Tooltip({ Text(tooltip) }) {
             ThemedAvatar(size, modifier, style, overlay) {
                 if (bitmap != null) {
                     AvatarContentImage(bitmap, size)

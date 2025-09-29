@@ -24,7 +24,6 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.files.SaveFileDialog
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -35,6 +34,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.util.ifNotNull
+import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
@@ -117,7 +117,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
         additionalContextActions = { onClose ->
             // name
             Tooltip(
-                { TooltipText("${element.name}${element.size.ifNotNull { " $it" }}") } // full name
+                { Text("${element.name}${element.size.ifNotNull { " $it" }}") } // full name
             ) {
                 Text(
                     "${shortenFileName(element)}${element.size.ifNotNull { " $it" }}", // shortened name
@@ -173,6 +173,7 @@ internal fun FileBasedView(
     Box {
         Column(
             Modifier
+                .rovingFocusChild()
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onTap = {
@@ -181,7 +182,8 @@ internal fun FileBasedView(
                         onLongPress = { showActionMenu() },
                     )
                 }
-                .buttonPointerModifier().then(
+                .buttonPointerModifier()
+                .then(
                     if (isPreview) Modifier
                     else Modifier.pointerMoveFilter(
                         onEnter = {

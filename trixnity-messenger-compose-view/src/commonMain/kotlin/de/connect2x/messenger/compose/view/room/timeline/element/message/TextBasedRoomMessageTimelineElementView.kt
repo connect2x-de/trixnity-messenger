@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +34,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectionContainer
 import de.connect2x.messenger.compose.view.theme.messengerColors
+import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -63,7 +65,8 @@ fun TextRoomMessageTimelineElementView(
     // on Android and iOS, this will consume long tap events, which we use for the context menu
     when (Platform.current) {
         PlatformType.DESKTOP, PlatformType.WEB -> ThemedSelectionContainer(
-            if (holder.isByMe) MaterialTheme.components.selectionOnPrimary else MaterialTheme.components.selectionOnSurface
+            modifier = Modifier.rovingFocusChild(),
+            style = if (holder.isByMe) MaterialTheme.components.selectionOnPrimary else MaterialTheme.components.selectionOnSurface
         ) {
             MessageTextContent(holder, element, showActionMenu)
         }
@@ -129,9 +132,13 @@ private fun MessageTextContent(
 fun TextReplyInTimeline(
     holder: TimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.TextBased<*>,
+    modifier: Modifier,
+    interactionSource: MutableInteractionSource,
 ) {
     ReferencedMessagePill(
         holder = holder,
+        modifier = modifier,
+        interactionSource = interactionSource,
         content = {
             TextReply(element, 4)
         }
@@ -141,10 +148,14 @@ fun TextReplyInTimeline(
 @Composable
 fun TextReplyInSendMessage(
     holder: TimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.TextBased<*>
+    element: RoomMessageTimelineElementViewModel.TextBased<*>,
+    modifier: Modifier,
+    interactionSource: MutableInteractionSource,
 ) {
     ReferencedMessagePill(
         holder = holder,
+        modifier = modifier,
+        interactionSource = interactionSource,
         content = {
             TextReply(element, 2)
         }

@@ -116,9 +116,11 @@ fun Tooltip(
             Modifier
                 .onFocusChanged { focusState ->
                     if (focusState.isFocused) {
-                        scope.launch(start = CoroutineStart.UNDISPATCHED) {
-                            delay(hoverShowDelay)
-                            tooltipState.show()
+                        if (enabled) {
+                            scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                                delay(hoverShowDelay)
+                                tooltipState.show()
+                            }
                         }
                     } else {
                         scope.launch(start = CoroutineStart.UNDISPATCHED) {

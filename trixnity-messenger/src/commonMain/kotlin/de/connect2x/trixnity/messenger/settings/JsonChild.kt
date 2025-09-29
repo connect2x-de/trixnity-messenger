@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.settings
 
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
 
 internal fun getJsonChild(
     source: JsonObject,
@@ -31,23 +32,7 @@ internal fun putJsonChild(
     value: JsonObject,
     keys: List<String>
 ): JsonObject {
-    if (keys.isEmpty()) return JsonObject(source + value)
-
-    var nextProperty = source
-    val segmentsToProperty = keys.mapIndexed { index, segment ->
-        nextProperty =
-            if (index == keys.lastIndex) value
-            else nextProperty[segment] as? JsonObject ?: JsonObject(mapOf())
-        segment to nextProperty
-    }.asReversed()
-
-    var target = JsonObject(mapOf())
-    segmentsToProperty.forEachIndexed { index, (segment, property) ->
-        val parent =
-            if (index == segmentsToProperty.lastIndex) source
-            else segmentsToProperty[index + 1].second
-        val siblings = parent[segment] as? JsonObject ?: JsonObject(mapOf())
-        target = JsonObject(parent + (segment to JsonObject(siblings + property + target)))
-    }
-    return target
+    val update =
+        keys.asReversed().fold(value) { child, segment -> buildJsonObject { put(segment, child) } }
+    return jsonMerge(source, update, keys)
 }

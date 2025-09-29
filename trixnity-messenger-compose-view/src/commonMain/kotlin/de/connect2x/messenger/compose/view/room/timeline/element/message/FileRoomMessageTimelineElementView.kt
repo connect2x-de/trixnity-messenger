@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -47,6 +48,8 @@ class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementVie
         // NO-OP (has default size)
     }
 
+    override fun isFocusable(): Boolean = true
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
@@ -76,16 +79,20 @@ class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementVie
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
         element: File,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
-        FileReplyElement(holder, element)
+        FileReplyElement(holder, interactionSource, modifier, element)
     }
 
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
         element: File,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
-        FileReplyElement(holder, element)
+        FileReplyElement(holder, interactionSource, modifier, element)
     }
 
     @Composable
@@ -138,10 +145,17 @@ internal fun MessageFile(
 }
 
 @Composable
-internal fun FileReplyElement(holder: TimelineElementHolderViewModel, element: File) {
+internal fun FileReplyElement(
+    holder: TimelineElementHolderViewModel,
+    interactionSource: MutableInteractionSource,
+    modifier: Modifier,
+    element: File,
+) {
     val i18n = DI.get<I18nView>()
     ReferencedMessagePill(
         holder = holder,
+        modifier = modifier,
+        interactionSource = interactionSource,
         content = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(

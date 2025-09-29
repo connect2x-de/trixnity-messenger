@@ -1,11 +1,9 @@
 package de.connect2x.messenger.compose.view.roomlist.search
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,12 +33,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -49,8 +45,14 @@ import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogFooter
 import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedAdaptiveDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.messenger.compose.view.util.RovingFocusContainer
+import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.inputFocusNavigation
+import de.connect2x.messenger.compose.view.util.rovingFocusItem
+import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.util.isKnock
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel.SearchGroup
@@ -134,7 +136,10 @@ fun SearchGroupSearchBar(searchGroupViewModel: SearchGroupViewModel) {
     OutlinedTextField(
         searchTerm,
         { searchTerm = it },
-        modifier = Modifier.fillMaxWidth().padding(10.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(10.dp)
+            .inputFocusNavigation(),
         label = { Text(i18n.searchGroupSearch()) },
         keyboardOptions = KeyboardOptions(
             imeAction = ImeAction.Search,
@@ -164,21 +169,51 @@ fun SearchGroupResults(
                 MaterialTheme.components.linearProgressIndicator
             )
         } else {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .padding(20.dp),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(Modifier.fillMaxSize()) {
                 if (foundGroups.isEmpty()) {
                     Text(i18n.searchGroupNotFound())
                 } else {
-                    LazyColumn(Modifier.fillMaxSize(), listState) {
-                        items(foundGroups, { group -> group.roomId.full }) { group ->
-                            SearchGroupResult(group, searchGroupViewModel, knockGroupModalShownFor)
+                    val references = remember(foundGroups) {
+                        foundGroups.map { it.roomId.full }
+                    }
+                    val defaultItem = references.firstOrNull()
+
+                    RovingFocusContainer {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize()
+                                .verticalRovingFocus(
+                                    default = defaultItem,
+                                    scroll = { item ->
+                                        val index = references.indexOf(item)
+                                        if (index != -1) {
+                                            listState.scrollToItem(index)
+                                        }
+                                    },
+                                    up = {
+                                        val currentItem = activeRef.value ?: defaultItem
+                                        val currentIndex = references.indexOf(currentItem)
+                                        val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
+                                        references[nextIndex]
+                                    },
+                                    down = {
+                                        val currentItem = activeRef.value ?: defaultItem
+                                        val currentIndex = references.indexOf(currentItem)
+                                        val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
+                                        references[nextIndex]
+                                    },
+                                ),
+                            state = listState,
+                        ) {
+                            items(foundGroups, { group -> group.roomId.full }) { group ->
+                                RovingFocusItem(group.roomId.full, defaultItem) {
+                                    SearchGroupResult(group, searchGroupViewModel, knockGroupModalShownFor)
+                                }
+                            }
                         }
                     }
-                    VerticalScrollbar(Modifier.align(Alignment.CenterEnd), listState, false)
+                    if (listState.canScrollForward || listState.canScrollBackward) {
+                        VerticalScrollbar(Modifier.align(Alignment.CenterEnd), listState, false)
+                    }
                 }
             }
         }
@@ -186,37 +221,26 @@ fun SearchGroupResults(
 }
 
 @Composable
-fun SearchGroupResult(
+private fun SearchGroupResult(
     group: SearchGroup,
     searchGroupViewModel: SearchGroupViewModel,
     knockGroupModalShownFor: MutableState<SearchGroup?>
 ) {
     val image = group.image.collectAsState().value
 
-    Tooltip({ TooltipText(group.groupName) }) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .clickable {
-                    if (group.joinRule.isKnock) {
-                        knockGroupModalShownFor.value = group
-                    } else {
-                        searchGroupViewModel.enterGroup(group.roomId)
-                    }
-                }
-                .buttonPointerModifier()
-                .padding(bottom = 20.dp)
-        ) {
-            ThemedUserAvatar(group.initials, image)
-            Spacer(Modifier.size(10.dp))
-            Column {
+    Tooltip({ Text(group.groupName) }) {
+        ThemedListItemButton(
+            modifier = Modifier.rovingFocusItem(),
+            leadingContent = { ThemedUserAvatar(group.initials, image) },
+            headlineContent = {
                 Text(
                     group.groupName,
-                    style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                group.topic?.let {
+            },
+            supportingContent = group.topic?.let {
+                {
                     Text(
                         it,
                         style = MaterialTheme.typography.bodyMedium,
@@ -224,7 +248,14 @@ fun SearchGroupResult(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-            }
-        }
+            },
+            onClick = {
+                if (group.joinRule.isKnock) {
+                    knockGroupModalShownFor.value = group
+                } else {
+                    searchGroupViewModel.enterGroup(group.roomId)
+                }
+            },
+        )
     }
 }

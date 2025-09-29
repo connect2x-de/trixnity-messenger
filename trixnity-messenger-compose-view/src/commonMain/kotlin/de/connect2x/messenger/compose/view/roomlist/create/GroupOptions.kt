@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -23,13 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.MoreOptions
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.i18n.getExplanation
 import de.connect2x.messenger.compose.view.i18n.getExplanationWhenEncrypted
 import de.connect2x.messenger.compose.view.i18n.getStateName
+import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.theme.components.ThemedSwitch
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
@@ -119,12 +120,12 @@ class CreateGroupOptionsViewImpl : CreateGroupOptionsView {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column {
-                        MoreOptions(
-                            "${i18n.chatHistoryVisibility()}: ${
+                        ExpandableSection(
+                            heading = "${i18n.chatHistoryVisibility()}: ${
                                 historyVisibility?.getStateName(i18n)
                                     ?: HistoryVisibilityEventContent.HistoryVisibility.SHARED.getStateName(i18n)
                             }",
-                            expanded = historyExpanded
+                            icon = Icons.Default.Settings,
                         ) {
                             for (visibility in createNewGroupViewModel.availableRoomHistoryVisibilities) {
                                 CreateGroupVisibilityOption(visibility, createNewGroupViewModel)

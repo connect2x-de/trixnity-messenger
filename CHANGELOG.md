@@ -20,8 +20,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix db keys not deleted on account remove
+- Correctly send and display strikethrough text via the del-tag
 
 ### Security
+
+## 3.8.6
+
+### Added
+
+- UI: Implement Keyboard navigation
+
+### Fixed
+
+- Technical: Don't override siblings or children in the deep nested settings view
+- Fix Emoji Regex in Kotlin/JS
+- Correctly show profiles
 
 ## 3.8.5
 
@@ -45,8 +58,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 - rename loadMediaResult to loadMediaResultBytes in FileBased RoomMessageEventContent
-
-### Removed
 
 ### Fixed
 

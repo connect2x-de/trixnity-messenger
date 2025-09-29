@@ -706,7 +706,7 @@ class InputAreaViewModelTest {
             ```
             
             The empire of Playstation however is based on a group of coders developing the devilish Unix flavour.
-            The republic of Germany however does not rely on them due to ancient technology for which the people of
+            The republic of Germany does not rely on them due to ~~ancient~~ traditionally proven technology for which the people of
             the Tube mock them. There are three Locations which get endorsed by them for their advanced technology:
             
             1. North America
@@ -731,7 +731,7 @@ class InputAreaViewModelTest {
                 println(&quot;Hello World 👋👋👋&quot;)
             }
             </code></pre><p>The empire of Playstation however is based on a group of coders developing the devilish Unix flavour.
-            The republic of Germany however does not rely on them due to ancient technology for which the people of
+            The republic of Germany does not rely on them due to <del>ancient</del> traditionally proven technology for which the people of
             the Tube mock them. There are three Locations which get endorsed by them for their advanced technology:</p><ol><li>North America</li><li>China</li><li>Baltics</li></ol><p>The Deutsch Bahn didn't like that. So they rolled out the Deutschlandticket and began modernising their
             infrastructure. This way the people of the Tube are able to produce more Europe Transport &gt; America Transport
             video and ignore the technological issues.</p><p>At this point I forgot what the story was about but I markdown complete now. 

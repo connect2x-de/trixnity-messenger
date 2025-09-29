@@ -21,7 +21,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 
@@ -84,9 +83,7 @@ fun Indicator(
 
 @Composable
 fun IndicatorText(message: String, color: Color) {
-    Tooltip(tooltip = {
-        TooltipText(message)
-    }) {
+    Tooltip({ Text(message) }) {
         Text(
             message,
             color = color,
