@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Introduce Worker to schedule work when messenger is started
+
 ### Changed
 
 ### Deprecated
@@ -17,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix db keys not deleted on account remove
 - Correctly send and display strikethrough text via the del-tag
 
 ### Security
@@ -32,8 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Technical: Don't override siblings or children in the deep nested settings view
 - Fix Emoji Regex in Kotlin/JS
 - Correctly show profiles
-
-### Security
 
 ## 3.8.5
 
@@ -57,8 +58,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 - rename loadMediaResult to loadMediaResultBytes in FileBased RoomMessageEventContent
-
-### Removed
 
 ### Fixed
 

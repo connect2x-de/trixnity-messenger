@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrays
+import de.connect2x.trixnity.messenger.secrets.getDatabaseKey
+import de.connect2x.trixnity.messenger.secrets.setDatabaseKey
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import net.folivo.trixnity.client.MatrixClient
@@ -30,7 +32,6 @@ interface MatrixClientFactory {
 class MatrixClientFactoryImpl(
     private val repositoriesModuleCreation: CreateRepositoriesModule,
     private val createMediaStoreModule: CreateMediaStoreModule,
-    private val settings: MatrixMessengerSettingsHolder,
     private val secretByteArrays: SecretByteArrays,
     private val configurer: List<ConfigureMatrixClientConfiguration>,
     private val coroutineContext: CoroutineContext,
@@ -107,17 +108,13 @@ class MatrixClientFactoryImpl(
         return repositoriesModule
     }
 
-    companion object {
-        private const val ID = "de.connect2x.trixnity.messenger.secrets.database"
-    }
-
     private suspend fun getDatabaseKey(userId: UserId, createNew: Boolean): ByteArray? {
         return if (createNew) {
             val newKey = repositoriesModuleCreation.generateDatabaseKey() ?: return null
-            secretByteArrays.set("$ID-$userId", newKey)
+            secretByteArrays.setDatabaseKey(userId, newKey)
             newKey
         } else {
-            secretByteArrays.get("$ID-$userId") ?: secretByteArrays.get(ID)
+            secretByteArrays.getDatabaseKey(userId)
         }
     }
 

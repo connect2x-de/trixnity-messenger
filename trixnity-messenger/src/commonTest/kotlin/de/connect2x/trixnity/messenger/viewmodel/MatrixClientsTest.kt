@@ -10,9 +10,9 @@ import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.testDispatcher
+import de.connect2x.trixnity.messenger.firstWithClue
+import de.connect2x.trixnity.messenger.secrets.SecretByteArrays
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -28,9 +28,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.job
-import kotlinx.coroutines.plus
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
@@ -58,6 +57,7 @@ class MatrixClientsTest {
     private val authenticationApiClient = mock<AuthenticationApiClient>()
     private val matrixClientFactory = mock<MatrixClientFactory>()
     private val deleteAccountData = mock<DeleteAccountData>()
+    private val secretByteArrays = mock<SecretByteArrays>()
 
     private val settings: MatrixMessengerSettingsHolder = createTestMatrixMessengerSettingsHolder()
 
@@ -122,6 +122,7 @@ class MatrixClientsTest {
             logoutCalled = true
             Result.success(Unit)
         }
+        everySuspend { secretByteArrays.set(any(), any()) } returns Unit
         everySuspend {
             authenticationApiClient.login(
                 identifier = any(),
@@ -292,6 +293,7 @@ class MatrixClientsTest {
     @Test
     fun `external logout » remove matrix client`() = runTest {
         val cut = createCut()
+        backgroundScope.launch { cut.doWork() }
         settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
         mutableMatrixClients.value = mapOf(
             UserId("test1", "server") to matrixClientMock1,
@@ -299,15 +301,15 @@ class MatrixClientsTest {
 
         loginState.value = MatrixClient.LoginState.LOGGED_OUT
 
-        cut.filterNotNull().first { it.isEmpty() }
+        cut.filterNotNull().firstWithClue { emptyMap() }
         logoutCalled shouldBe false
         settings.value.base.accounts.keys shouldBe setOf()
         verifySuspend {
             matrixClientMock1.closeSuspending()
+            secretByteArrays.set(any(), null)
             deleteAccountData.invoke(UserId("test1", "server"))
         }
     }
-
 
     @Test
     fun `remove » remove matrix client`() = runTest {
@@ -328,12 +330,13 @@ class MatrixClientsTest {
         settings.value.base.accounts.keys shouldBe setOf(UserId("test2", "server"))
         verifySuspend {
             matrixClientMock1.closeSuspending()
+            secretByteArrays.set(any(), null)
             deleteAccountData.invoke(UserId("test1", "server"))
         }
     }
 
 
-    private fun TestScope.createCut(): MatrixClients = MatrixClientsImpl(
+    private fun TestScope.createCut(): MatrixClientsImpl = MatrixClientsImpl(
         factory = matrixClientFactory,
         deleteAccountData = deleteAccountData,
         settings = settings,
@@ -345,7 +348,7 @@ class MatrixClientsTest {
                 }
             }
         },
-        coroutineScope = backgroundScope + ImmediateDispatcherElement(testDispatcher),
+        secretByteArrays = secretByteArrays,
         matrixClients = mutableMatrixClients,
     )
 }
