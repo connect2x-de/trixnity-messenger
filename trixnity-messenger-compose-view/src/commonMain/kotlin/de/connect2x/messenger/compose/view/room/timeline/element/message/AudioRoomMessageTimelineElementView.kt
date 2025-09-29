@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -47,6 +48,8 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
         // no-op (has default size)
     }
 
+    override fun isFocusable(): Boolean = true
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
@@ -77,17 +80,21 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
     @Composable
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
-        element: Audio
+        element: Audio,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
-        ReplyMessageAudio(holder, element)
+        ReplyMessageAudio(holder, element, modifier, interactionSource)
     }
 
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
-        element: Audio
+        element: Audio,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
-        ReplyMessageAudio(holder, element)
+        ReplyMessageAudio(holder, element, modifier, interactionSource)
     }
 
     @Composable
@@ -144,10 +151,17 @@ internal fun MessageAudio(
 }
 
 @Composable
-internal fun ReplyMessageAudio(holder: TimelineElementHolderViewModel, element: Audio) {
+internal fun ReplyMessageAudio(
+    holder: TimelineElementHolderViewModel,
+    element: Audio,
+    modifier: Modifier,
+    interactionSource: MutableInteractionSource,
+) {
     val i18n = DI.get<I18nView>()
     ReferencedMessagePill(
         holder = holder,
+        modifier = modifier,
+        interactionSource = interactionSource,
         content = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(

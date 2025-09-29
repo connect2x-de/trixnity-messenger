@@ -19,6 +19,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## 3.8.6
+
+### Added
+
+- UI: Implement Keyboard navigation
+
+### Fixed
+
+- Technical: Don't override siblings or children in the deep nested settings view
+- Fix Emoji Regex in Kotlin/JS
+- Correctly show profiles
+
+### Security
+
 ## 3.8.5
 
 ### Added
@@ -26,7 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Technical: Support deep nested settings view
 - Copy message content
 - Captions for Media messages
-- 
+-
+
 ### Changed
 
 - UI (Desktop, Web): tooltips are WCAG compliant (tooltip itself can be hovered, tooltips can be closed with Esc key,

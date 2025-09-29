@@ -2,10 +2,10 @@ package de.connect2x.messenger.compose.view.common
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
-import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -24,46 +24,105 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.modifier.customClickable
 import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
+import de.connect2x.messenger.compose.view.util.LocalRovingFocus
+import de.connect2x.messenger.compose.view.util.LocalRovingFocusItem
+import de.connect2x.messenger.compose.view.util.RovingFocusContainer
+import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.rovingFocus2D
+import de.connect2x.messenger.compose.view.util.rovingFocusItem
+import kotlin.math.ceil
+import kotlin.math.max
 
 
 @Composable
 fun EmojiSelector(
     modifier: Modifier = Modifier,
     onTextAdded: (String) -> Unit,
+    onDismiss: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
+    val defaultItem = emojis.firstOrNull()
 
     Box(modifier) {
         Row(modifier = Modifier.verticalScroll(scrollState), horizontalArrangement = Arrangement.Center) {
-            EmojiTable(onTextAdded, modifier.wrapContentWidth(align = Alignment.CenterHorizontally).padding(12.dp))
+            BoxWithConstraints(Modifier.padding(12.dp)) {
+                val calculatedEmojiSize = with (LocalDensity.current) { 48.dp.roundToPx() }
+                val columns = constraints.maxWidth / calculatedEmojiSize
+
+                RovingFocusContainer {
+                    FlowRow(
+                        modifier = Modifier.wrapContentWidth(align = Alignment.CenterHorizontally)
+                            .onKeyEvent { event ->
+                                when (event.key) {
+                                    Key.Escape -> {
+                                        if (event.type == KeyEventType.KeyDown) {
+                                            onDismiss()
+                                        }
+                                        true
+                                    }
+                                    else -> false
+                                }
+                            }
+                            .rovingFocus2D(
+                                default = defaultItem,
+                                scroll = {},
+                                up = {
+                                    val currentItem = activeRef.value ?: defaultItem
+                                    val currentIndex = emojis.indexOf(currentItem)
+                                    val nextIndex = currentIndex.minus(columns)
+                                    val rows = emojis.lastIndex.toDouble().div(columns).let(::ceil).toInt()
+                                    if ((0..columns.times(rows)).contains(nextIndex)) emojis[nextIndex.coerceIn(emojis.indices)]
+                                    else emojis[currentIndex]
+                                },
+                                down = {
+                                    val currentItem = activeRef.value ?: defaultItem
+                                    val currentIndex = emojis.indexOf(currentItem)
+                                    val nextIndex = currentIndex.plus(columns)
+                                    val rows = emojis.lastIndex.toDouble().div(columns).let(::ceil).toInt()
+                                    if ((0..columns.times(rows)).contains(nextIndex)) emojis[nextIndex.coerceIn(emojis.indices)]
+                                    else emojis[currentIndex]
+                                },
+                                left = {
+                                    val currentItem = activeRef.value ?: defaultItem
+                                    val currentIndex = emojis.indexOf(currentItem)
+                                    val nextIndex = currentIndex.minus(1).coerceIn(emojis.indices)
+                                    emojis[nextIndex]
+                                },
+                                right = {
+                                    val currentItem = activeRef.value ?: defaultItem
+                                    val currentIndex = emojis.indexOf(currentItem)
+                                    val nextIndex = currentIndex.plus(1).coerceIn(emojis.indices)
+                                    emojis[nextIndex]
+                                },
+                            ),
+                    ) {
+                        for (emoji in emojis) {
+                            RovingFocusItem(emoji, defaultItem) {
+                                EmojiButton(
+                                    label = emoji,
+                                    onClick = { onTextAdded(emoji) },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
         VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalLayoutApi::class)
-@Composable
-fun EmojiTable(
-    onTextAdded: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val firstItemFocusRequester = remember { FocusRequester() }
-    FlowRow(modifier.focusGroup().focusRestorer(firstItemFocusRequester)) {
-        emojis.forEachIndexed { index, emoji ->
-            EmojiButton(
-                label = emoji,
-                onClick = { onTextAdded(emoji) },
-                if (index == 0) firstItemFocusRequester else null,
-            )
-        }
     }
 }
 
@@ -73,17 +132,25 @@ fun EmojiTable(
 fun EmojiButton(
     label: String,
     onClick: () -> Unit,
-    focusRequester: FocusRequester?,
 ) {
+    val focusContainer = LocalRovingFocus.current
+    val focusItem = LocalRovingFocusItem.current
     LaunchedEffect(Unit) {
-        focusRequester?.requestFocus()
+        focusContainer?.let { container ->
+            focusItem?.let { item ->
+                val currentItem = container.activeRef.value ?: item.default
+                if (item.key == currentItem) {
+                    container.selectItem(item.key, shouldFocus = true)
+                }
+            }
+        }
     }
 
     Box(
         modifier = Modifier
             .requiredSize(48.dp)
+            .rovingFocusItem()
             .customClickable(
-                focusRequester = focusRequester ?: remember { FocusRequester() },
                 indication = ripple(bounded = false, radius = 24.dp),
                 onClick = onClick,
                 onFocus = Modifier.border(

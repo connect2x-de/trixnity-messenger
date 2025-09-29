@@ -1,6 +1,8 @@
 package de.connect2x.messenger.compose.view.room.timeline.element
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -11,6 +13,8 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
     val supports: KClass<out V>
 
     suspend fun waitFor(element: V)
+
+    fun isFocusable(): Boolean
 
     @Composable
     fun createInTimeline(
@@ -28,12 +32,16 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
     fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
         element: V,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     )
 
     @Composable
     fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
         element: V,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     )
 
     @Composable
@@ -49,6 +57,8 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*
 
 
     override suspend fun waitFor(element: TimelineElementViewModel<*>) {}
+
+    override fun isFocusable(): Boolean = false
 
     @Composable
     override fun createInTimeline(
@@ -67,7 +77,9 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
-        element: TimelineElementViewModel<*>
+        element: TimelineElementViewModel<*>,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
     }
 
@@ -80,7 +92,9 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*
     @Composable
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
-        element: TimelineElementViewModel<*>
+        element: TimelineElementViewModel<*>,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
     }
 }

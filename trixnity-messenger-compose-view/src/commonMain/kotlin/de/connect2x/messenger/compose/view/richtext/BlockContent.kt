@@ -1,6 +1,9 @@
 package de.connect2x.messenger.compose.view.richtext
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -43,6 +46,9 @@ import de.connect2x.messenger.compose.view.common.BlockWithHeaderMeasurePolicy
 import de.connect2x.messenger.compose.view.common.HorizontalScrollableMeasurePolicy
 import de.connect2x.messenger.compose.view.richtext.html.ListScope
 import de.connect2x.messenger.compose.view.richtext.html.TableContent
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
+import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
+import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import kotlinx.coroutines.flow.StateFlow
 
@@ -266,7 +272,7 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
                                             onClick = {
                                                 context.onCopy(highlightedCode.content.text)
                                             },
-                                            modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
+                                            modifier = Modifier.rovingFocusChild().pointerHoverIcon(PointerIcon.Hand)
                                         ) {
                                             Icon(
                                                 Icons.Default.ContentCopy,
@@ -315,14 +321,20 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
         "details" -> {
             val summary = node.children.filterIsInstance<RichText.Block>().firstOrNull { it.tag == "summary" }
             val children = node.children.filter { it != summary }
+            val interactionSource = remember { MutableInteractionSource() }
+            val isFocused = interactionSource.collectIsFocusedAsState()
 
             Surface(
                 tonalElevation = 4.dp,
                 shadowElevation = 2.dp,
                 shape = MaterialTheme.shapes.small,
                 contentColor = MaterialTheme.colorScheme.onSurface,
+                border = if (IsFocusHighlighting.current && isFocused.value) {
+                    BorderStroke(MaterialTheme.messengerFocusIndicator.borderWidth, MaterialTheme.colorScheme.onSurface)
+                } else null,
             ) {
                 DetailsSummaryLayout(
+                    interactionSource = interactionSource,
                     summary = {
                         if (summary != null) {
                             BlockContent(summary, context)

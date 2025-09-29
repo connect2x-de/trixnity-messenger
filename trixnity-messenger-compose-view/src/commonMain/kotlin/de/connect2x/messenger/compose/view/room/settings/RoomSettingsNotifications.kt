@@ -1,9 +1,6 @@
 package de.connect2x.messenger.compose.view.room.settings
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.NotificationImportant
 import androidx.compose.material.icons.filled.Notifications
@@ -13,19 +10,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.RadioSetting
 import de.connect2x.messenger.compose.view.common.RadioSettingOption
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.NotificationLevels
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNotificationsViewModel
@@ -55,19 +49,21 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
         val roomNotificationLevelSilent = roomNotificationLevels.getValue(NotificationLevels.SILENT)
 
         Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = i18n.commonNotifications().capitalize(Locale.current),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-            Spacer(Modifier.size(10.dp))
+            ThemedListItem(
+                headlineContent = {
+                    Text(
+                        i18n.commonNotifications().capitalize(Locale.current),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                },
+                style = MaterialTheme.components.settingsItem,
+            )
             RadioSetting(
                 title = {
                     if (isLoading) {
                         ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
                     } else {
-                        Tooltip(tooltip = { TooltipText { selectedLevelExplanation } }) {
+                        Tooltip({ Text(selectedLevelExplanation) }) {
                             Text(selectedLevelName, style = MaterialTheme.typography.titleSmall)
                         }
                     }

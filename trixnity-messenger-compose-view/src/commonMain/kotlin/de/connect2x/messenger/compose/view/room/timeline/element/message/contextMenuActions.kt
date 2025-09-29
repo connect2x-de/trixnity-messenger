@@ -13,9 +13,7 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
@@ -139,22 +137,11 @@ class BaseTimelineElementHolderContextMenuAction(
         val i18n = DI.get<I18nView>()
         Tooltip(
             enabled = !isEnabled,
-            tooltip = {
-                TooltipText { i18n.commonButtonDisabled() }
-            }
+            tooltip = { Text(i18n.commonButtonDisabled()) },
         ) {
             ThemedDropdownMenuItem(
                 enabled = isEnabled,
-                modifier = Modifier.buttonPointerModifier(),
-                text = {
-                    Text(
-                        label,
-                        color = if (isEnabled)
-                            MaterialTheme.colorScheme.onBackground
-                        else
-                            MaterialTheme.colorScheme.onBackground.copy(alpha = 0.38f),
-                    )
-                },
+                text = { Text(label) },
                 onClick = {
                     onClose()
                     action()
@@ -170,9 +157,7 @@ class BaseTimelineElementHolderContextMenuAction(
         val i18n = DI.get<I18nView>()
         Tooltip(
             enabled = !isEnabled,
-            tooltip = {
-                TooltipText { i18n.commonButtonDisabled() }
-            }
+            tooltip = { Text(i18n.commonButtonDisabled()) }
         ) {
             Text(
                 label,

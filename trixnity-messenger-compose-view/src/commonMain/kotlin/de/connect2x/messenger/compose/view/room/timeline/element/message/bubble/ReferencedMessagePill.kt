@@ -1,5 +1,7 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message.bubble
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -22,12 +24,18 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 @Composable
 fun ReferencedMessagePill(
     holder: TimelineElementHolderViewModel,
+    modifier: Modifier,
+    interactionSource: MutableInteractionSource,
     content: @Composable () -> Unit,
 ) {
     val sender = holder.sender.collectAsState().value
     val senderNameColor = sender?.let { MaterialTheme.messengerColors.getUserColor(sender.userId) } ?: Color.Unspecified
     val outlineColor = MaterialTheme.colorScheme.outline
+    val isFocused = interactionSource.collectIsFocusedAsState()
+
     ThemedSurface(
+        modifier = modifier,
+        focused = isFocused.value,
         style = MaterialTheme.components.messageReference,
     ) {
         Column(

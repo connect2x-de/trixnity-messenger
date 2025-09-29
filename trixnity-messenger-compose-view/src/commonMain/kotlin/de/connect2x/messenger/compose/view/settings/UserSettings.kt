@@ -1,16 +1,9 @@
 package de.connect2x.messenger.compose.view.settings
 
-import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Notifications
@@ -21,18 +14,15 @@ import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModel
@@ -70,50 +60,55 @@ class UserSettingsViewImpl : UserSettingsView {
 @Composable
 fun ProfileInfo(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
-    SettingItem(
-        { Icon(Icons.Default.Person, i18n.profileTitle()) },
-        i18n.profileTitle(),
-        userSettingsViewModel::showProfile,
+    ThemedListItemButton(
+        leadingContent = { Icon(Icons.Default.Person, null) },
+        headlineContent = { Text(i18n.profileTitle()) },
+        onClick = { userSettingsViewModel.showProfile() },
+        modifier = Modifier.heightIn(min = 72.dp),
     )
 }
 
 @Composable
 fun AppearanceSettings(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
-    SettingItem(
-        { Icon(Icons.Default.Palette, i18n.appearanceTitle()) },
-        i18n.appearanceTitle(),
-        userSettingsViewModel::showAppearanceSettings,
+    ThemedListItemButton(
+        leadingContent = { Icon(Icons.Default.Palette, null) },
+        headlineContent = { Text(i18n.appearanceTitle()) },
+        onClick = { userSettingsViewModel.showAppearanceSettings() },
+        modifier = Modifier.heightIn(min = 72.dp),
     )
 }
 
 @Composable
 fun PrivacySettings(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
-    SettingItem(
-        { Icon(Icons.Default.PrivacyTip, i18n.privacyTitle()) },
-        i18n.privacyTitle(),
-        userSettingsViewModel::showPrivacySettings,
+    ThemedListItemButton(
+        leadingContent = { Icon(Icons.Default.PrivacyTip, null) },
+        headlineContent = { Text(i18n.privacyTitle()) },
+        onClick = { userSettingsViewModel.showPrivacySettings() },
+        modifier = Modifier.heightIn(min = 72.dp),
     )
 }
 
 @Composable
 fun DevicesSettings(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
-    SettingItem(
-        { Icon(Icons.Default.Devices, i18n.devicesTitle()) },
-        i18n.devicesTitle(),
-        userSettingsViewModel::showDevicesSettings,
+    ThemedListItemButton(
+        leadingContent = { Icon(Icons.Default.Devices, null) },
+        headlineContent = { Text(i18n.devicesTitle()) },
+        onClick = { userSettingsViewModel.showDevicesSettings() },
+        modifier = Modifier.heightIn(min = 72.dp),
     )
 }
 
 @Composable
 fun NotificationsSettings(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
-    SettingItem(
-        { Icon(Icons.Default.Notifications, i18n.commonNotifications()) },
-        i18n.commonNotifications().capitalize(Locale.current),
-        userSettingsViewModel::showNotificationsSettings,
+    ThemedListItemButton(
+        leadingContent = { Icon(Icons.Default.Notifications, null) },
+        headlineContent = { Text(i18n.commonNotifications().capitalize(Locale.current)) },
+        onClick = { userSettingsViewModel.showNotificationsSettings() },
+        modifier = Modifier.heightIn(min = 72.dp),
     )
 }
 
@@ -122,32 +117,11 @@ fun AccountSetupSettings(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     val account = DI.get<MatrixMessengerSettingsHolder>().value.base.selectedAccount
     if (account != null) {
-        SettingItem(
-            { Icon(Icons.Default.SettingsSuggest, i18n.accountSetupWizardReset()) },
-            i18n.accountSetupWizardReset().capitalize(Locale.current),
-            { userSettingsViewModel.showAccountSetup(account) }
+        ThemedListItemButton(
+            leadingContent = { Icon(Icons.Default.SettingsSuggest, null) },
+            headlineContent = { Text(i18n.accountSetupWizardReset().capitalize(Locale.current)) },
+            onClick = { userSettingsViewModel.showAccountSetup(account) },
+            modifier = Modifier.heightIn(min = 72.dp),
         )
     }
 }
-
-@Composable
-fun SettingItem(icon: @Composable () -> Unit, text: String, action: () -> Unit) {
-    val interactionSource = remember { MutableInteractionSource() }
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .clickable(interactionSource, LocalIndication.current) { action() }
-            .focusHighlighting(interactionSource)
-            .buttonPointerModifier()
-    ) {
-        Row(
-            Modifier.padding(horizontal = 20.dp, vertical = 30.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            icon()
-            Spacer(Modifier.size(20.dp))
-            Text(text)
-        }
-    }
-}
-

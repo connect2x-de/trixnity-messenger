@@ -9,7 +9,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,9 +40,11 @@ import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.util.animateRotation
+import de.connect2x.messenger.compose.view.util.rovingFocusChild
 
 @Composable
 fun DetailsSummaryLayout(
+    interactionSource: MutableInteractionSource,
     summary: @Composable @UiComposable ColumnScope.() -> Unit,
     details: @Composable @UiComposable ColumnScope.() -> Unit
 ) {
@@ -56,7 +60,10 @@ fun DetailsSummaryLayout(
                 shadowElevation = 2.dp,
                 modifier = Modifier
                     .layoutId(DetailsSummaryMeasurePolicy.LayoutId.SUMMARY)
-                    .clickable { expanded.targetState = !expanded.targetState }
+                    .rovingFocusChild()
+                    .clickable(interactionSource, LocalIndication.current) {
+                        expanded.targetState = !expanded.targetState
+                    }
                     .buttonPointerModifier(),
                 contentColor = MaterialTheme.colorScheme.onSurface,
             ) {

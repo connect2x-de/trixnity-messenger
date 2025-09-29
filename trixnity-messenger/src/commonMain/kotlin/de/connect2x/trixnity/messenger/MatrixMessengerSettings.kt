@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.secrets.SecretByteArrayKeyInfo
 import de.connect2x.trixnity.messenger.settings.JsonDelegateSerializer
 import de.connect2x.trixnity.messenger.settings.MutableSettings
 import de.connect2x.trixnity.messenger.settings.MutableSettingsImpl
+import de.connect2x.trixnity.messenger.settings.NestedSettingsView
 import de.connect2x.trixnity.messenger.settings.SettingsHolder
 import de.connect2x.trixnity.messenger.settings.SettingsHolderImpl
 import de.connect2x.trixnity.messenger.settings.SettingsImpl
@@ -32,7 +33,6 @@ private val log = KotlinLogging.logger { }
 
 @Serializable
 data class MatrixMessengerSettingsBase(
-    val secretByteArrays: SecretByteArraySettings? = null,
     val accounts: Map<UserId, MatrixMessengerAccountSettings> = mapOf(),
     val preferredLang: String? = null,
     val selectedAccount: UserId? = null, // TODO should be saved via decompose state preservation
@@ -54,12 +54,13 @@ data class MatrixMessengerSettingsBase(
     val applySystemSizes: Boolean = true,
 ) : SettingsView<MatrixMessengerSettings>
 
-@Serializable
+@Serializable()
+@NestedSettingsView("secretByteArrays")
 data class SecretByteArraySettings(
-    val secrets: Map<String, SecretByteArray>,
-    val keyInfo: Map<String, SecretByteArrayKeyInfo>,
-    val mac: @Serializable(with = ByteArrayBase64Serializer::class) ByteArray?,
-) {
+    val secrets: Map<String, SecretByteArray>? = null,
+    val keyInfo: Map<String, SecretByteArrayKeyInfo>? = null,
+    val mac: @Serializable(with = ByteArrayBase64Serializer::class) ByteArray? = null,
+) : SettingsView<MatrixMessengerSettings> {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
@@ -109,6 +110,7 @@ data class MatrixMessengerSettings(
     private val delegate: Map<String, JsonElement>
 ) : SettingsImpl<MatrixMessengerSettings>(delegate) {
     val base by lazy { get<MatrixMessengerSettings, MatrixMessengerSettingsBase>() }
+    val secretByteArrays by lazy { get<MatrixMessengerSettings, SecretByteArraySettings>() }
 }
 
 @Serializable(MatrixMessengerAccountSettingsSerializer::class)

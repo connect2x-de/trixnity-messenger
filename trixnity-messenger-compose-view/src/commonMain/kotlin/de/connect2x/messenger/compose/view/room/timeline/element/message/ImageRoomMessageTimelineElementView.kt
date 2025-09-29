@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -72,6 +73,8 @@ class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementV
         // NO-OP (has default size)
     }
 
+    override fun isFocusable(): Boolean = true
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
@@ -108,14 +111,23 @@ class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementV
     }
 
     @Composable
-    override fun createReplyInTimeline(holder: TimelineElementHolderViewModel, element: Image) {
-
-        ImageReplyElement(holder, element)
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: Image,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
+    ) {
+        ImageReplyElement(holder, element, modifier, interactionSource)
     }
 
     @Composable
-    override fun createReplyInSendMessage(holder: TimelineElementHolderViewModel, element: Image) {
-        ImageReplyElement(holder, element)
+    override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: Image,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
+    ) {
+        ImageReplyElement(holder, element, modifier, interactionSource)
     }
 
     @Composable
@@ -213,10 +225,17 @@ internal fun ColumnScope.MessageImage(
 
 @Composable
 @OptIn(ExperimentalResourceApi::class)
-internal fun ImageReplyElement(holder: TimelineElementHolderViewModel, element: Image) {
+internal fun ImageReplyElement(
+    holder: TimelineElementHolderViewModel,
+    element: Image,
+    modifier: Modifier,
+    interactionSource: MutableInteractionSource,
+) {
     val i18n = DI.get<I18nView>()
     ReferencedMessagePill(
         holder = holder,
+        modifier = modifier,
+        interactionSource = interactionSource,
         content = {
             val thumbnail = rememberImagePainter(element)
             val fallback = rememberFallbackPainter(element)

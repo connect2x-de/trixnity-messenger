@@ -1,14 +1,9 @@
 package de.connect2x.messenger.compose.view.search
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
@@ -25,12 +20,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.rovingFocusItem
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 
 interface UserSearchResultListView {
@@ -93,7 +90,10 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
                         }
                     } else {
                         items(state.users, key = { it.userId.toString() }) { user ->
-                            UserElement(user, onClick = { userClickReaction(user) })
+                            val defaultItem = state.users.firstOrNull()?.userId?.full
+                            RovingFocusItem(user.userId.full, defaultItem) {
+                                UserElement(user, onClick = { userClickReaction(user) })
+                            }
                         }
                     }
                 }
@@ -110,35 +110,30 @@ private fun UserElement(
 ) {
     val presence by user.presence.collectAsState()
 
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .buttonPointerModifier()
-    ) {
-        Row(
-            Modifier.padding(horizontal = 10.dp, vertical = 20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+    ThemedListItemButton(
+        leadingContent = {
             ThemedUserAvatar(user.initials, user.image) {
                 AvatarPresenceBadge(presence)
             }
-            Spacer(Modifier.size(10.dp))
-            Column {
-                Text(
-                    user.displayName,
-                    maxLines = 1,
-                    style = MaterialTheme.typography.labelLarge,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    user.userId.full,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.labelMedium,
-                )
-            }
-        }
-    }
+        },
+        headlineContent = {
+            Text(
+                user.displayName,
+                maxLines = 1,
+                style = MaterialTheme.typography.labelLarge,
+                overflow = TextOverflow.Ellipsis,
+            )
+        },
+        supportingContent = {
+            Text(
+                user.userId.full,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.labelMedium,
+            )
+        },
+        modifier = Modifier.rovingFocusItem(),
+        onClick = onClick,
+    )
     HorizontalDivider(Modifier.fillMaxWidth().width(1.dp).padding(horizontal = 10.dp))
 }

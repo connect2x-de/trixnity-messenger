@@ -1,6 +1,8 @@
 package de.connect2x.messenger.compose.view.verification
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -29,6 +32,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -43,15 +47,16 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
-import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.RunningText
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
 import de.connect2x.messenger.compose.view.common.WizardStep
+import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.messengerColors
@@ -180,7 +185,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                         Text(text = i18n.selfVerificationHelpOtherDevice())
                         Text(text = i18n.selfVerificationHelpVerifyThis())
                         Spacer(Modifier.size(20.dp))
-                        MoreInfo(i18n.selfVerificationHelpReasonTitle()) {
+                        ExpandableSection(heading = i18n.selfVerificationHelpReasonTitle(), icon = Icons.Default.Info,) {
                             RunningText(text = i18n.selfVerificationHelpReason1())
                             RunningText(text = i18n.selfVerificationHelpReason2())
                             RunningText(text = i18n.selfVerificationHelpReason3())
@@ -240,106 +245,108 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                     if (methodsLoaded) {
                         Text(i18n.selfVerificationMethodsTitle())
                         Spacer(Modifier.size(10.dp))
-                        selfVerificationMethods.value.forEachIndexed { _, method ->
-                            when (method) {
-                                is SelfVerificationMethod.CrossSignedDeviceVerification -> {
-                                    EntryContainer(
-                                        header = {
-                                            Text(
-                                                text = i18n.selfVerificationMethodsOtherDevice(),
-                                                style = MaterialTheme.typography.titleSmall,
-                                            )
-                                        },
-                                        description = { Text(i18n.selfVerificationMethodsOtherDeviceInfo()) },
-                                        onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
-                                        selected = selectedMethod.value == SelectSelfVerificationMethod(method)
-                                    )
-                                }
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            selfVerificationMethods.value.forEachIndexed { _, method ->
+                                when (method) {
+                                    is SelfVerificationMethod.CrossSignedDeviceVerification -> {
+                                        EntryContainer(
+                                            header = {
+                                                Text(
+                                                    text = i18n.selfVerificationMethodsOtherDevice(),
+                                                    style = MaterialTheme.typography.titleSmall,
+                                                )
+                                            },
+                                            description = { Text(i18n.selfVerificationMethodsOtherDeviceInfo()) },
+                                            onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
+                                            selected = selectedMethod.value == SelectSelfVerificationMethod(method)
+                                        )
+                                    }
 
-                                is SelfVerificationMethod.AesHmacSha2RecoveryKey -> {
-                                    EntryContainer(
-                                        header = {
-                                            Text(
-                                                i18n.selfVerificationMethodsRecoveryKey(),
-                                                style = MaterialTheme.typography.titleSmall,
-                                            )
-                                        },
-                                        description = { Text(i18n.selfVerificationMethodsRecoveryKeyInfo()) },
-                                        onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
-                                        selected = selectedMethod.value == SelectSelfVerificationMethod(method)
-                                    )
-                                }
+                                    is SelfVerificationMethod.AesHmacSha2RecoveryKey -> {
+                                        EntryContainer(
+                                            header = {
+                                                Text(
+                                                    i18n.selfVerificationMethodsRecoveryKey(),
+                                                    style = MaterialTheme.typography.titleSmall,
+                                                )
+                                            },
+                                            description = { Text(i18n.selfVerificationMethodsRecoveryKeyInfo()) },
+                                            onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
+                                            selected = selectedMethod.value == SelectSelfVerificationMethod(method)
+                                        )
+                                    }
 
-                                is SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase -> {
-                                    EntryContainer(
-                                        header = {
-                                            Text(
-                                                i18n.selfVerificationMethodsRecoveryPassphrase(),
-                                                style = MaterialTheme.typography.titleSmall,
-                                            )
-                                        },
-                                        description = { Text(i18n.selfVerificationMethodsRecoveryPassphraseInfo()) },
-                                        onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
-                                        selected = selectedMethod.value == SelectSelfVerificationMethod(method)
-                                    )
+                                    is SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase -> {
+                                        EntryContainer(
+                                            header = {
+                                                Text(
+                                                    i18n.selfVerificationMethodsRecoveryPassphrase(),
+                                                    style = MaterialTheme.typography.titleSmall,
+                                                )
+                                            },
+                                            description = { Text(i18n.selfVerificationMethodsRecoveryPassphraseInfo()) },
+                                            onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
+                                            selected = selectedMethod.value == SelectSelfVerificationMethod(method)
+                                        )
+                                    }
                                 }
                             }
-                        }
 
-                        EntryContainer(
-                            header = {
-                                Icon(
-                                    Icons.Default.Warning,
-                                    i18n.commonWarning(),
-                                    Modifier.size(16.dp),
-                                    MaterialTheme.colorScheme.error
-                                )
-                                SmallSpacer()
-                                Text(
-                                    i18n.selfVerificationResetRecoveryWarningTitle(selfVerificationViewModel.userId),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.error,
-                                )
-                            },
-                            description = {
-                                Text(buildAnnotatedString {
-                                    append("${i18n.selfVerificationResetRecoveryKey()}. ")
-                                    pushStyle(SpanStyle(fontWeight = Bold))
-                                    append("${i18n.commonWarning().capitalize(Locale.current)}: ")
-                                    append(i18n.selfVerificationResetRecoveryKeyDescription())
-                                    pop()
-                                })
-                            },
-                            onClick = {
-                                selectedMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey
-                            },
-                            selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectResetRecoveryKey
-                        )
-                        EntryContainer(
-                            header = {
-                                Icon(
-                                    Icons.Default.Warning,
-                                    i18n.commonWarning(),
-                                    Modifier.size(16.dp),
-                                    MaterialTheme.colorScheme.error
-                                )
-                                SmallSpacer()
-                                Text(
-                                    i18n.redoSelfVerificationContinueWithoutVerification(),
-                                    color = MaterialTheme.colorScheme.error,
-                                )
-                            },
-                            description = {
-                                Text(
-                                    text = i18n.redoSelfVerificationDoItLater(),
-                                )
-                            },
-                            onClick = {
+                            EntryContainer(
+                                header = {
+                                    Icon(
+                                        Icons.Default.Warning,
+                                        i18n.commonWarning(),
+                                        Modifier.size(16.dp),
+                                        MaterialTheme.colorScheme.error
+                                    )
+                                    SmallSpacer()
+                                    Text(
+                                        i18n.selfVerificationResetRecoveryWarningTitle(selfVerificationViewModel.userId),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.error,
+                                    )
+                                },
+                                description = {
+                                    Text(buildAnnotatedString {
+                                        append("${i18n.selfVerificationResetRecoveryKey()}. ")
+                                        pushStyle(SpanStyle(fontWeight = Bold))
+                                        append("${i18n.commonWarning().capitalize(Locale.current)}: ")
+                                        append(i18n.selfVerificationResetRecoveryKeyDescription())
+                                        pop()
+                                    })
+                                },
+                                onClick = {
+                                    selectedMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey
+                                },
+                                selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectResetRecoveryKey
+                            )
+                            EntryContainer(
+                                header = {
+                                    Icon(
+                                        Icons.Default.Warning,
+                                        i18n.commonWarning(),
+                                        Modifier.size(16.dp),
+                                        MaterialTheme.colorScheme.error
+                                    )
+                                    SmallSpacer()
+                                    Text(
+                                        i18n.redoSelfVerificationContinueWithoutVerification(),
+                                        color = MaterialTheme.colorScheme.error,
+                                    )
+                                },
+                                description = {
+                                    Text(
+                                        text = i18n.redoSelfVerificationDoItLater(),
+                                    )
+                                },
+                                onClick = {
                                 selectedMethod.value =
-                                    SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
-                            },
-                            selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
-                        )
+                                        SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
+                                },
+                                selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
+                            )
+                        }
                     } else {
                         Text(i18n.selfVerificationWaitingForMethods())
                         LoadingSpinner()
@@ -662,18 +669,29 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
         onClick: () -> Unit,
         selected: Boolean,
     ) {
+        val interactionSource = remember { MutableInteractionSource() }
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHighest,
             shape = MaterialTheme.shapes.medium,
             onClick = onClick,
-            modifier = Modifier.padding(vertical = MaterialTheme.messengerDpConstants.small).buttonPointerModifier()
+            interactionSource = interactionSource,
+            modifier = Modifier
+                .buttonPointerModifier()
+                .focusHighlighting(interactionSource, shape = MaterialTheme.shapes.medium)
+                .focusProperties {
+                    canFocus = false
+                }
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
                     .padding(MaterialTheme.messengerDpConstants.small)
             ) {
-                RadioButton(onClick = onClick, selected = selected)
+                RadioButton(
+                    onClick = onClick,
+                    selected = selected,
+                    interactionSource = interactionSource,
+                )
                 Column {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

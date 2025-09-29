@@ -21,6 +21,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModel
@@ -151,20 +152,20 @@ private fun wizardStepAccessibility(
             Column {
                 AppearanceSettingsSize(viewModel.appearanceSettingsViewModel)
                 Spacer(Modifier.height(15.dp))
-                Setting(
-                    text = i18n.appearanceHighContrastHeading(),
-                    explanation = i18n.appearanceHighContrastExplanation(),
-                    value = isHighContrast
-                ) {
-                    viewModel.appearanceSettingsViewModel.toggleHighContrast()
-                }
-                Setting(
-                    text = i18n.appearanceFocusHighlightingHeading(),
-                    explanation = i18n.appearanceFocusHighlightingExplanation(),
-                    value = isFocusHighlighting,
-                ) {
-                    viewModel.appearanceSettingsViewModel.toggleFocusHighlighting()
-                }
+                ThemedListItemSwitch(
+                    style = MaterialTheme.components.settingsItem,
+                    headlineContent = { Text(i18n.appearanceHighContrastHeading()) },
+                    supportingContent = { Text(i18n.appearanceHighContrastExplanation()) },
+                    selected = isHighContrast,
+                    onChange = { viewModel.appearanceSettingsViewModel.toggleHighContrast() },
+                )
+                ThemedListItemSwitch(
+                    style = MaterialTheme.components.settingsItem,
+                    headlineContent = { Text(i18n.appearanceFocusHighlightingHeading()) },
+                    supportingContent = { Text(i18n.appearanceFocusHighlightingExplanation()) },
+                    selected = isFocusHighlighting,
+                    onChange = { viewModel.appearanceSettingsViewModel.toggleFocusHighlighting() },
+                )
             }
         }
     )
@@ -182,10 +183,12 @@ private fun wizardStepNotification(
         content = {
             val enabledOnDevice = notificationSettingsViewModel.enabledForThisDevice.collectAsState().value
             Column {
-                Setting(
-                    text = i18n.notificationsSettingsEnabledForThisDevice(),
-                    value = enabledOnDevice,
-                    toggle = { notificationSettingsViewModel.toggleEnabledForThisDevice() })
+                ThemedListItemSwitch(
+                    style = MaterialTheme.components.settingsItem,
+                    headlineContent = { Text(i18n.notificationsSettingsEnabledForThisDevice()) },
+                    selected = enabledOnDevice,
+                    onChange = { notificationSettingsViewModel.toggleEnabledForThisDevice() },
+                )
                 MiddleSpacer()
                 PlatformNotificationSettings(notificationSettingsViewModel, enabledOnDevice)
                 MiddleSpacer()
@@ -226,21 +229,27 @@ private fun wizardStepPrivacy(
         val publicTyping = privacySettingsViewModel.typingIsPublic.collectAsState().value
         val publicRead = privacySettingsViewModel.readMarkerIsPublic.collectAsState().value
         Column {
-            Setting(
-                text = i18n.privacyPresenceIsPublic(),
-                explanation = i18n.privacyPresenceIsPublicExplanation(di.get<MatrixMessengerConfiguration>().appName),
-                value = publicPresence,
-                toggle = { privacySettingsViewModel.togglePresenceIsPublic() })
-            Setting(
-                text = i18n.privacyReadMarkerIsPublic(),
-                explanation = i18n.privacyReadMarkerIsPublicExplanation(),
-                value = publicRead,
-                toggle = { privacySettingsViewModel.toggleReadMarkerIsPublic() })
-            Setting(
-                text = i18n.privacyTypingIsPublic(),
-                explanation = i18n.privacyTypingIsPublicExplanation(),
-                value = publicTyping,
-                toggle = { privacySettingsViewModel.toggleTypingIsPublic() })
+            ThemedListItemSwitch(
+                style = MaterialTheme.components.settingsItem,
+                headlineContent = { Text(i18n.privacyPresenceIsPublic()) },
+                supportingContent = { Text(i18n.privacyPresenceIsPublicExplanation(di.get<MatrixMessengerConfiguration>().appName)) },
+                selected = publicPresence,
+                onChange = { privacySettingsViewModel.togglePresenceIsPublic() },
+            )
+            ThemedListItemSwitch(
+                style = MaterialTheme.components.settingsItem,
+                headlineContent = { Text(i18n.privacyReadMarkerIsPublic()) },
+                supportingContent = { Text(i18n.privacyReadMarkerIsPublicExplanation()) },
+                selected = publicRead,
+                onChange = { privacySettingsViewModel.toggleReadMarkerIsPublic() },
+            )
+            ThemedListItemSwitch(
+                style = MaterialTheme.components.settingsItem,
+                headlineContent = { Text(i18n.privacyTypingIsPublic()) },
+                supportingContent = { Text(i18n.privacyTypingIsPublicExplanation()) },
+                selected = publicTyping,
+                onChange = { privacySettingsViewModel.toggleTypingIsPublic() },
+            )
         }
     })
 }

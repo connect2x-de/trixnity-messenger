@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -59,6 +60,8 @@ class VideoRoomMessageTimelineElementViewImpl : VideoRoomMessageTimelineElementV
         // no-op (has default size)
     }
 
+    override fun isFocusable(): Boolean = true
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
@@ -96,16 +99,20 @@ class VideoRoomMessageTimelineElementViewImpl : VideoRoomMessageTimelineElementV
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
         element: Video,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
-        VideoReplyElement(holder, element)
+        VideoReplyElement(holder, element, interactionSource, modifier)
     }
 
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
         element: Video,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
-        VideoReplyElement(holder, element)
+        VideoReplyElement(holder, element, interactionSource, modifier)
     }
 
     @Composable
@@ -188,11 +195,13 @@ private fun Modifier.openVideoOnTouch(
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-internal fun VideoReplyElement(holder: TimelineElementHolderViewModel, element: Video) {
+internal fun VideoReplyElement(holder: TimelineElementHolderViewModel, element: Video, interactionSource: MutableInteractionSource, modifier: Modifier) {
     val i18n = DI.get<I18nView>()
     val videoImage = element.thumbnail.collectAsState().value
     ReferencedMessagePill(
         holder = holder,
+        modifier = modifier,
+        interactionSource = interactionSource,
         content = {
             Column {
                 videoImage?.toImageBitmap()?.let { videoImage ->
