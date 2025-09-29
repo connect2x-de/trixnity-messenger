@@ -359,12 +359,6 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
             Children(node, context)
         }
 
-        "del" -> {
-            CompositionLocalProvider(LocalTextStyle provides LocalTextStyle.current.copy(textDecoration = TextDecoration.LineThrough)) {
-                Children(node, context)
-            }
-        }
-
         "img" -> {
             // TODO
         }
