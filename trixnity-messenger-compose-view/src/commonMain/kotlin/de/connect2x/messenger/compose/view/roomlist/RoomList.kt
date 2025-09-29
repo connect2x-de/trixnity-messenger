@@ -40,6 +40,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingAction
 import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.scrollIntoView
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -108,7 +109,7 @@ class RoomListViewImpl : RoomListView {
                         rovingFocusState?.selectItem(defaultItem.value) {
                             val index = allRooms.indexOfFirst { it.roomId == defaultItem.value }
                             if (index != -1) {
-                                state.scrollToItem(index)
+                                state.scrollIntoView(index)
                             }
                         }
                     }
@@ -119,7 +120,7 @@ class RoomListViewImpl : RoomListView {
                             scroll = { item ->
                                 val index = allRooms.indexOfFirst { it.roomId == item }
                                 if (index != -1) {
-                                    state.scrollToItem(index)
+                                    state.scrollIntoView(index)
                                 }
                             },
                             up = {

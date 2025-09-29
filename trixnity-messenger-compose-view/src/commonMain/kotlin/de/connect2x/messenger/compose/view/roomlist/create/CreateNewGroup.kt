@@ -56,6 +56,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndica
 import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
+import de.connect2x.messenger.compose.view.util.scrollIntoView
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 
@@ -134,7 +135,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             scroll = { item ->
                                 val index = references.indexOf(item)
                                 if (index != -1) {
-                                    lazyListState.scrollToItem(index)
+                                    lazyListState.scrollIntoView(index)
                                 }
                             },
                             up = {
