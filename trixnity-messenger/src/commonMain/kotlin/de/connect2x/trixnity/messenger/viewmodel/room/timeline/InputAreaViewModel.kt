@@ -64,10 +64,16 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import net.folivo.trixnity.utils.concurrentMutableMap
+import org.intellij.markdown.IElementType
 import org.intellij.markdown.ast.ASTNode
+import org.intellij.markdown.flavours.gfm.GFMElementTypes
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
+import org.intellij.markdown.html.GeneratingProvider
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.html.HtmlGenerator.TagRenderer
+import org.intellij.markdown.html.SimpleInlineTagProvider
+import org.intellij.markdown.html.URI
+import org.intellij.markdown.parser.LinkMap
 import org.intellij.markdown.parser.MarkdownParser
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
@@ -200,7 +206,18 @@ open class InputAreaViewModelImpl(
     override val listOfMentionsLoading: StateFlow<Boolean> = _listOfMentionsLoading.asStateFlow()
 
     override val useMarkdown = MutableStateFlow(true)
-    private val markdownFlavourDescriptor = GFMFlavourDescriptor()
+    private val markdownFlavourDescriptor = object : GFMFlavourDescriptor() {
+        override fun createHtmlGeneratingProviders(
+            linkMap: LinkMap,
+            baseURI: URI?
+        ): Map<IElementType, GeneratingProvider> {
+            return super.createHtmlGeneratingProviders(
+                linkMap,
+                baseURI
+            ) + hashMapOf(GFMElementTypes.STRIKETHROUGH to object : SimpleInlineTagProvider("del", 2, -2) {
+            })
+        }
+    }
     private val markdownParser = MarkdownParser(markdownFlavourDescriptor)
 
     private class HtmlTagRenderer() : TagRenderer {
