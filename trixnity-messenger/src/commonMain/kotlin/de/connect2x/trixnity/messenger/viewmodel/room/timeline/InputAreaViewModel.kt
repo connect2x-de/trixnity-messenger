@@ -6,6 +6,7 @@ import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavour
 import de.connect2x.trixnity.messenger.util.html.toLink
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
@@ -206,18 +207,7 @@ open class InputAreaViewModelImpl(
     override val listOfMentionsLoading: StateFlow<Boolean> = _listOfMentionsLoading.asStateFlow()
 
     override val useMarkdown = MutableStateFlow(true)
-    private val markdownFlavourDescriptor = object : GFMFlavourDescriptor() {
-        override fun createHtmlGeneratingProviders(
-            linkMap: LinkMap,
-            baseURI: URI?
-        ): Map<IElementType, GeneratingProvider> {
-            return super.createHtmlGeneratingProviders(
-                linkMap,
-                baseURI
-            ) + hashMapOf(GFMElementTypes.STRIKETHROUGH to object : SimpleInlineTagProvider("del", 2, -2) {
-            })
-        }
-    }
+    private val markdownFlavourDescriptor = get<MatrixMarkdownFlavour>()
     private val markdownParser = MarkdownParser(markdownFlavourDescriptor)
 
     private class HtmlTagRenderer() : TagRenderer {
