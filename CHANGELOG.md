@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Correctly send and display strikethrough text via the del-tag
+
 ### Security
 
 ## 3.8.6
