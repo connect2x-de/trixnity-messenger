@@ -160,6 +160,7 @@ fun Modifier.verticalRovingFocus(
         }
         .focusable(interactionSource = interactionSource)
         .onKeyEvent { event ->
+            println("Key Event: $event")
             when (event.key) {
                 Key.DirectionUp -> {
                     if (event.type == KeyEventType.KeyDown) {
