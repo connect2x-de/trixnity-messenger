@@ -26,11 +26,11 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.EmojiPopup
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
@@ -156,12 +156,12 @@ internal fun MessageReactionButton(
     onAddReaction: (reaction: String) -> Unit,
     onRemoveReaction: () -> Unit,
 ) {
-    Tooltip({ TooltipText(reactionEvents.joinToString { it.sender.name }) }) {
+    Tooltip({ Text(reactionEvents.joinToString { it.sender.name }) }) {
         if (myReaction) {
             ThemedButton(
                 onClick = { onRemoveReaction() },
                 style = MaterialTheme.components.selectedReactionButton,
-                modifier = buttonModifier,
+                modifier = buttonModifier.rovingFocusChild(),
             ) {
                 MessageReactionDisplay(reaction)
                 Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
@@ -171,7 +171,7 @@ internal fun MessageReactionButton(
             ThemedButton(
                 onClick = { onAddReaction(reaction) },
                 style = MaterialTheme.components.reactionButton,
-                modifier = buttonModifier,
+                modifier = buttonModifier.rovingFocusChild(),
             ) {
                 MessageReactionDisplay(reaction)
                 Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
@@ -186,7 +186,7 @@ internal fun MessageAddReactionButton(onClick: () -> Unit, label: String) {
     ThemedButton(
         onClick = onClick,
         style = MaterialTheme.components.reactionButton,
-        modifier = buttonModifier,
+        modifier = buttonModifier.rovingFocusChild(),
     ) {
         Icon(
             Icons.Outlined.AddReaction,

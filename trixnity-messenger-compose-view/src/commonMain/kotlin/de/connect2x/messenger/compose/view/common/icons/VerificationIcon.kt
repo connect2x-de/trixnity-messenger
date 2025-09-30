@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.GppGood
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,7 +17,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel.DEVICE
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel.TIMELINE_EVENT
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel.USER
@@ -33,8 +33,8 @@ fun VerifiedIcon(verificationLevel: VerificationLevel, size: Dp = 24.dp) {
     val i18n = DI.get<I18nView>()
     Tooltip(tooltip = {
         when (verificationLevel) {
-            DEVICE -> TooltipText(i18n.verificationVerifiedDevice())
-            USER -> TooltipText(i18n.verificationVerifiedUser())
+            DEVICE -> Text(i18n.verificationVerifiedDevice())
+            USER -> Text(i18n.verificationVerifiedUser())
             TIMELINE_EVENT -> Box {}
         }
     }) {
@@ -54,8 +54,8 @@ fun NotVerifiedIcon(verificationLevel: VerificationLevel, size: Dp = 24.dp) {
     val i18n = DI.get<I18nView>()
     Tooltip(tooltip = {
         when (verificationLevel) {
-            DEVICE -> TooltipText(i18n.verificationNotVerifiedDevice())
-            USER -> TooltipText(i18n.verificationNotVerifiedUser())
+            DEVICE -> Text(i18n.verificationNotVerifiedDevice())
+            USER -> Text(i18n.verificationNotVerifiedUser())
             TIMELINE_EVENT -> Box { }
         }
     }) {
@@ -76,7 +76,7 @@ fun NeutralVerifiedIcon(verificationLevel: VerificationLevel, size: Dp = 24.dp) 
     Tooltip(tooltip = {
         when (verificationLevel) {
             DEVICE -> Box { }
-            USER -> TooltipText(i18n.verificationNeutralUser())
+            USER -> Text(i18n.verificationNeutralUser())
             TIMELINE_EVENT -> Box { }
         }
     }) {

@@ -17,6 +17,8 @@ import de.connect2x.trixnity.messenger.util.EnterRoom
 import de.connect2x.trixnity.messenger.util.EnterRoomImpl
 import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.util.LeaveRoomImpl
+import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavour
+import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavourImpl
 import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
@@ -170,6 +172,7 @@ import net.folivo.trixnity.client.ModuleFactory
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
 import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
 import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
+import org.intellij.markdown.flavours.MarkdownFlavourDescriptor
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named
@@ -254,6 +257,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<RunInitialSync> { RunInitialSyncImpl }
             single<DragAndDropHandler> { DragAndDropHandlerBase() }
             single<AccountSetupViewModelFactory> { AccountSetupViewModelFactory }
+            single<MatrixMarkdownFlavour> { MatrixMarkdownFlavourImpl() }
 
             single<RootViewModelFactory> { RootViewModelFactory }
             single<MainViewModelFactory> { MainViewModelFactory }

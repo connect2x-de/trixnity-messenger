@@ -14,13 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.icons.UnencryptedIcon
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
 fun RoomName(roomName: String?, modifier: Modifier = Modifier) {
-    Tooltip({ TooltipText(roomName ?: " ") }) {
+    Tooltip({ Text(roomName ?: " ") }) {
         Row(modifier) {
             Text( // cannot be SelectableText as this will require focus and tabbing through the room list is painful
                 text = roomName ?: " ",

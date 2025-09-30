@@ -1,8 +1,10 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.state
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import de.connect2x.messenger.compose.view.room.timeline.Indicator
 import de.connect2x.messenger.compose.view.room.timeline.IndicatorText
@@ -24,6 +26,9 @@ class NameStateTimelineElementViewImpl : NameStateTimelineElementView {
         element.changeMessage.filterNotNull().first()
     }
 
+    // FIXME
+    override fun isFocusable(): Boolean = false
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
@@ -43,10 +48,14 @@ class NameStateTimelineElementViewImpl : NameStateTimelineElementView {
     @Composable
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
-        element: NameStateTimelineElementViewModel
+        element: NameStateTimelineElementViewModel,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
         ReferencedMessagePill(
             holder = holder,
+            modifier = modifier,
+            interactionSource = interactionSource,
             content = {
                 StateElement(element)
             }
@@ -56,10 +65,14 @@ class NameStateTimelineElementViewImpl : NameStateTimelineElementView {
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
-        element: NameStateTimelineElementViewModel
+        element: NameStateTimelineElementViewModel,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
         ReferencedMessagePill(
             holder = holder,
+            modifier = modifier,
+            interactionSource = interactionSource,
             content = {
                 StateElement(element)
             }

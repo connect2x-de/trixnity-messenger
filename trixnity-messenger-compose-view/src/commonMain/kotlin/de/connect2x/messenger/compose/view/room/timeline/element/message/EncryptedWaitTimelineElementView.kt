@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -38,6 +39,8 @@ class EncryptedWaitTimelineElementViewImpl : EncryptedWaitTimelineElementView {
         // no-op (has default size)
     }
 
+    override fun isFocusable(): Boolean = true
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
@@ -70,9 +73,13 @@ class EncryptedWaitTimelineElementViewImpl : EncryptedWaitTimelineElementView {
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
         element: EncryptedWaitTimelineElementViewModel,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
         ReferencedMessagePill(
             holder = holder,
+            modifier = modifier,
+            interactionSource = interactionSource,
             content = {
                 EncryptedMessageWaitElement()
             }
@@ -83,9 +90,13 @@ class EncryptedWaitTimelineElementViewImpl : EncryptedWaitTimelineElementView {
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
         element: EncryptedWaitTimelineElementViewModel,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
         ReferencedMessagePill(
             holder = holder,
+            modifier = modifier,
+            interactionSource = interactionSource,
             content = {
                 EncryptedMessageWaitElement()
             }

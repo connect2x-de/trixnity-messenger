@@ -34,7 +34,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -70,7 +69,6 @@ import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
 import de.connect2x.messenger.compose.view.common.FilePickerType.VIDEO_CAPTURE
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.modifier.customKeyNavigation
 import de.connect2x.messenger.compose.view.files.EmptyFileListException
 import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.NotPasteableException
@@ -92,12 +90,11 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.theme.messengerIcons
+import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
-import kotlinx.coroutines.delay
 import okio.FileSystem
 import kotlin.math.abs
-import kotlin.time.Duration.Companion.milliseconds
 
 private fun TextFieldValue.insert(insertion: String): TextFieldValue =
     TextFieldValue(
@@ -126,7 +123,7 @@ class InputAreaViewImpl : InputAreaView {
         val isEdit = inputAreaViewModel.isReplace.collectAsState().value
         val emojisOpen = remember { mutableStateOf(false) }
         val focusRequester = remember { FocusRequester() }
-        val textField = inputAreaViewModel.textField.collectAsTextFieldValueState(focusRequester)
+        val textField = inputAreaViewModel.textField.collectAsTextFieldValueState()
 
         ThemedSurface(
             style = MaterialTheme.components.inputAreaSurface,
@@ -138,10 +135,17 @@ class InputAreaViewImpl : InputAreaView {
                 }
                 if (emojisOpen.value) {
                     Box(Modifier.fillMaxWidth().height(120.dp)) {
-                        EmojiSelector(Modifier.fillMaxSize().customKeyNavigation()) {
-                            textField.value = textField.value.insert(it)
-                            focusRequester.requestFocus()
-                        }
+                        EmojiSelector(
+                            modifier = Modifier.fillMaxSize(),
+                            onTextAdded = {
+                                textField.value = textField.value.insert(it)
+                                focusRequester.requestFocus()
+                            },
+                            onDismiss = {
+                                emojisOpen.value = false
+                                focusRequester.requestFocus()
+                            }
+                        )
                     }
                 }
 
@@ -238,13 +242,6 @@ fun RowScope.InputAreaTextField(
 
     val maxAttachmentSize = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
-    if (Platform.current.isMobile.not()) {
-        LaunchedEffect(Unit) {
-            delay(500.milliseconds)
-            focusRequester.requestFocus()
-        }
-    }
-
     Box(
         Modifier
             .fillMaxWidth()
@@ -277,6 +274,7 @@ fun RowScope.InputAreaTextField(
         BasicTextField(
             cursorBrush = SolidColor(style.colors.cursorColor),
             modifier = Modifier
+                .inputFocusNavigation()
                 .focusRequester(focusRequester)
                 .fillMaxWidth()
                 .onPreviewKeyEvent {

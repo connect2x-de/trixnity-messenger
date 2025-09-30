@@ -2,10 +2,12 @@ package de.connect2x.messenger.compose.view.room.settings
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.ApprovableTextField
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModel
 
 interface RoomSettingsNameView {
@@ -28,6 +30,7 @@ class RoomSettingsNameViewImpl : RoomSettingsNameView {
             textCaption = i18n.roomSettingsRoomName(),
             textPlaceholder = i18n.roomSettingsRoomNamePlaceholder(),
             textInfoCannotChange = i18n.roomSettingsRoomNameCannotChange(),
+            modifier = Modifier.inputFocusNavigation(),
         )
     }
 }

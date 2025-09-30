@@ -4,12 +4,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonAdd
@@ -17,8 +17,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -31,6 +32,11 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
+import de.connect2x.messenger.compose.view.util.RovingFocusContainer
+import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.rovingFocusItem
+import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 import net.folivo.trixnity.core.model.UserId
@@ -57,28 +63,32 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
             memberListViewModel.elements.collectAsState().value
         val joinedMemberCount = memberListViewModel.membershipCounts.collectAsState().value[Membership.JOIN]
 
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "${i18n.roomSettingsMembers()} ${joinedMemberCount?.let { "($it)" }}",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1.0f, false).fillMaxWidth(),
-            )
-            if (hasPowerToInvite) {
-                Tooltip(
-                    tooltip = { Text(i18n.addMembers()) }
-                ) {
-                    ThemedIconButton(
-                        style = MaterialTheme.components.commonIconButton,
-                        onClick = { roomSettingsViewModel.openAddMembersView() },
+        ThemedListItem(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = {
+                Text(
+                    "${i18n.roomSettingsMembers()} ${joinedMemberCount?.let { "($it)" }}",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            },
+            trailingContent = if (hasPowerToInvite) {
+                {
+                    Tooltip(
+                        tooltip = { Text(i18n.addMembers()) }
                     ) {
-                        Icon(
-                            Icons.Default.PersonAdd,
-                            i18n.addMembers(),
-                        )
+                        ThemedIconButton(
+                            style = MaterialTheme.components.commonIconButton,
+                            onClick = { roomSettingsViewModel.openAddMembersView() },
+                        ) {
+                            Icon(
+                                Icons.Default.PersonAdd,
+                                i18n.addMembers(),
+                            )
+                        }
                     }
                 }
-            }
-        }
+            } else null
+        )
 
         FlowRow(Modifier.fillMaxWidth()) {
             ToggleableFilterChip(
@@ -121,45 +131,64 @@ fun MemberList(
     memberListViewModel: MemberListViewModel,
     onClickUser: (UserId) -> Unit,
 ) {
-    val members = memberListViewModel.elements.collectAsState().value
+    val members = memberListViewModel.elements.collectAsState()
     val state = rememberLazyListState()
     val showLoadingSpinner = memberListViewModel.showLoadingSpinner.collectAsState().value
-
-    Box(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
-        LazyColumn(Modifier.fillMaxWidth(), state) {
-            members.forEach { memberListElementViewModel ->
-                val userId = memberListElementViewModel.memberUserId
-                item(key = userId.full) {
-                    RoomSettingsMemberListElement(
-                        memberListViewModel,
-                        userId,
-                        memberListElementViewModel,
-                        onClick = {
-                            onClickUser(userId)
-                        },
-                    )
-                }
-            }
-            if (showLoadingSpinner) {
-                item(key = "loadingSpinner") {
-                    LoadingSpinner()
-                }
-            }
-        }
-
-        // The VerticalScrollbar causes the size of the box to always be maximum and thus no longer adapts to the content.
-        // TODO: Consider using the approach used in UnifiedTimelineElementMetadata.kt for the user interactions list.
-        if (members.count() > 4) {
-            VerticalScrollbar(
-                Modifier,
-                state,
-                false,
-            )
+    val references = remember {
+        derivedStateOf {
+            members.value.map { it.memberUserId }
         }
     }
-    LaunchedEffect(members) {
-        if (state.layoutInfo.visibleItemsInfo.any { it.index == 1 }) { // This has been the first element before.
-            state.animateScrollToItem(0)
+    val defaultItem = references.value.firstOrNull()
+
+    Box(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
+        RovingFocusContainer {
+            LazyColumn(
+                Modifier.fillMaxWidth().verticalRovingFocus(
+                    default = defaultItem,
+                    scroll = { item ->
+                        val index = references.value.indexOf(item)
+                        if (index != -1) {
+                            state.scrollToItem(index)
+                        }
+                    },
+                    up = {
+                        val currentItem = activeRef.value ?: defaultItem
+                        val currentIndex = references.value.indexOf(currentItem)
+                        val nextIndex = currentIndex.minus(1).coerceIn(references.value.indices)
+                        references.value[nextIndex]
+                    },
+                    down = {
+                        val currentItem = activeRef.value ?: defaultItem
+                        val currentIndex = references.value.indexOf(currentItem)
+                        val nextIndex = currentIndex.plus(1).coerceIn(references.value.indices)
+                        references.value[nextIndex]
+                    },
+                ),
+                state
+            ) {
+                items(members.value, key = { it.memberUserId }) { member ->
+                    RovingFocusItem(member.memberUserId, defaultItem) {
+                        RoomSettingsMemberListElement(
+                            memberListViewModel,
+                            member.memberUserId,
+                            member,
+                            modifier = Modifier.rovingFocusItem(),
+                            onClick = {
+                                onClickUser(member.memberUserId)
+                            },
+                        )
+                    }
+                }
+                if (showLoadingSpinner) {
+                    item(key = "loadingSpinner") {
+                        LoadingSpinner()
+                    }
+                }
+            }
+        }
+        if (state.canScrollForward || state.canScrollBackward) {
+            VerticalScrollbar(Modifier.align(Alignment.CenterEnd), state, false)
         }
     }
 }
