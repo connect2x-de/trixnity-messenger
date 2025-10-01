@@ -15,7 +15,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.Tooltip import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.common.Tooltip
+import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
@@ -102,6 +103,13 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                     )
                 }
                 ModalDialogFooter {
+                    ThemedButton(
+                        style = MaterialTheme.components.commonButton,
+                        onClick = { showReject = false },
+                        enabled = !rejectionInProgress
+                    ) {
+                        Text(i18n.actionCancel())
+                    }
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = { roomListElementViewModel.rejectInvitationAndBlockInviter() },

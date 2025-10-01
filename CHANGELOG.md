@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Introduce Worker to schedule work when messenger is started
+- Add a cancel button to abort the reject invitation dialog
 
 ### Changed
 
