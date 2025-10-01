@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.roomlist.create
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,6 +30,7 @@ import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.MoreInfo
+import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.searchResults
@@ -57,6 +59,7 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
             val searchResults = createNewChatViewModel.searchUserViewModel.searchResult.collectAsState().value
             val providerSearchActive =
                 createNewChatViewModel.searchUserViewModel.providerSearchActive.collectAsState().value
+            val providerSettings = createNewChatViewModel.searchUserViewModel.providerSettings.collectAsState().value
             val listState = rememberLazyListState()
 
             Box(Modifier.fillMaxSize()) {
@@ -111,16 +114,28 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
                                         Modifier.fillMaxWidth()
 
                                     ) {
-                                        OutlinedTextField(
-                                            value = searchTerm,
-                                            onValueChange = { searchTerm = it },
+                                        Column(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .padding(20.dp),
-                                        )
+                                                .padding(20.dp)
+                                        ) {
+                                            OutlinedTextField(
+                                                value = searchTerm,
+                                                onValueChange = { searchTerm = it },
+                                                modifier = Modifier.fillMaxWidth(),
+                                            )
+                                            providerSettings?.let { settings ->
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Text("Settings", style = MaterialTheme.typography.bodyLarge)
+                                                    SmallSpacer()
+                                                    Text(settings, style = MaterialTheme.typography.bodyMedium)
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                                 searchResults(
+                                    searchUserProviders = createNewChatViewModel.searchUserViewModel.searchUserProviders,
                                     createNewChatViewModel = createNewChatViewModel,
                                     searchTerm = searchTerm.text,
                                     providerSearchActive = providerSearchActive,

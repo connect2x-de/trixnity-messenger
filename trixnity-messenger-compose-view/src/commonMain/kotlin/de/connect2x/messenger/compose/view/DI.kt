@@ -208,6 +208,9 @@ import de.connect2x.messenger.compose.view.roomlist.search.SearchGroupViewImpl
 import de.connect2x.messenger.compose.view.roomlist.search.SearchResultView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchResultViewSelector
 import de.connect2x.messenger.compose.view.roomlist.search.SearchResultViewSelectorImpl
+import de.connect2x.messenger.compose.view.roomlist.search.SearchUserProviderSettingsView
+import de.connect2x.messenger.compose.view.roomlist.search.SearchUserProviderSettingsViewSelector
+import de.connect2x.messenger.compose.view.roomlist.search.SearchUserProviderSettingsViewSelectorImpl
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersViewImpl
 import de.connect2x.messenger.compose.view.roomlist.search.homeserver.HomeserverSearchResultView
@@ -415,6 +418,10 @@ inline fun <reified F : SearchResultView<*>> Module.searchResultView(
     noinline definition: Scope.(ParametersHolder) -> F
 ) = single<F>(named<F>(), definition = definition).bind<SearchResultView<*>>()
 
+inline fun <reified F : SearchUserProviderSettingsView<*>> Module.searchUserProviderSettingsView(
+    noinline definition: Scope.(ParametersHolder) -> F
+) = single<F>(named<F>(), definition = definition).bind<SearchUserProviderSettingsView<*>>()
+
 fun createRoomsViewModule() = module {
     single<CreateNewChatView> { CreateNewChatViewImpl() }
     single<CreateNewGroupView> { CreateNewGroupViewImpl() }
@@ -425,6 +432,7 @@ fun createRoomsViewModule() = module {
     searchResultView<HomeserverSearchResultView> { HomeserverSearchResultView() }
     single<SearchResultViewSelector> { SearchResultViewSelectorImpl(getAll()) }
     single<CreateNewChatView> { CreateNewChatNewSearchViewImpl() }
+    single<SearchUserProviderSettingsViewSelector> { SearchUserProviderSettingsViewSelectorImpl(getAll()) }
 }
 
 fun searchViewModule() = module {

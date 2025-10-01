@@ -39,8 +39,10 @@ interface SearchUserViewModelFactory {
 
 interface SearchUserViewModel {
     val searchTerm: TextFieldViewModel
+    val searchUserProviders: List<SearchUserProvider>
     val searchResult: StateFlow<List<SearchResult>?>
     val providerSearchActive: StateFlow<List<Boolean>>
+    val providerSettings: StateFlow<String?>
     fun setProvider(provider: Int, active: Boolean)
 }
 
@@ -51,7 +53,7 @@ class SearchUserViewModelImpl(
     matrixClientViewModelContext: MatrixClientViewModelContext,
     private val debounceDuration: Duration = 300.toDuration(DurationUnit.MILLISECONDS),
 ) : SearchUserViewModel, MatrixClientViewModelContext by matrixClientViewModelContext {
-    private val searchUserProviders: List<SearchUserProvider> = getKoin().getAll<SearchUserProvider>()
+    override val searchUserProviders: List<SearchUserProvider> = getKoin().getAll<SearchUserProvider>()
     private val providerSearchResult = searchUserProviders.map { MutableStateFlow<ProviderSearchResult?>(null) }
     private val providerSearchLoading = searchUserProviders.map { MutableStateFlow(false) }
 
@@ -74,6 +76,16 @@ class SearchUserViewModelImpl(
         }
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
+    override val providerSettings: StateFlow<String?> = combine(
+        providerSearchActive,
+        combine(searchUserProviders.map { searchUserProvider -> searchUserProvider.settingsDisplay }) { it },
+    ) { active, settings ->
+        active.foldIndexed("") { index, acc, active ->
+            if (active && settings[index] != null) {
+                if (acc.isBlank()) settings[index]!! else "$acc, ${settings[index]}"
+            } else acc
+        }.ifBlank { null }
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     init {
         log.debug { "searchUserProviders: $searchUserProviders" }
