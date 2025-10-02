@@ -22,10 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.ReusableComposeNode
-import androidx.compose.runtime.ReusableContentHost
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +43,7 @@ import de.connect2x.messenger.compose.view.common.WizardButtons.NextButton
 import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.settings.LegalFooter
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
@@ -136,11 +134,17 @@ fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
                         Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background,
                     ) {
-                        BoxWithConstraints(
-                            Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center,
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(bottom = MaterialTheme.messengerDpConstants.small)
                         ) {
-                            WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
+                            BoxWithConstraints(
+                                Modifier.fillMaxWidth().weight(1f),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
+                            }
+                            LegalFooter()
                         }
                     }
                 }
