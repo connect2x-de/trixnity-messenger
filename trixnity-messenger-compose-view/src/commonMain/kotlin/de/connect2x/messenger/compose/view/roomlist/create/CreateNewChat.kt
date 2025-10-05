@@ -25,7 +25,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -77,10 +79,16 @@ class CreateNewChatViewImpl : CreateNewChatView {
         val userSearchResultView = DI.get<UserSearchResultListView>()
         val searchUsersResults = collectUserSearchResult(createNewChatViewModel.createNewRoomViewModel.searchHandler)
         val listState = rememberLazyListState()
-        val references = remember(searchUsersResults) {
-            (searchUsersResults as? SearchResultState.Results)?.users?.map { it.userId.full }
+        var references by remember {
+            mutableStateOf(listOf<String>())
         }
-        val defaultItem = references?.firstOrNull()
+
+        LaunchedEffect(searchUsersResults) {
+            if (searchUsersResults is SearchResultState.Results) {
+                references = searchUsersResults.users.map { it.userId.full }
+            }
+        }
+        val defaultItem = references.firstOrNull()
 
         Column(Modifier.fillMaxSize()) {
             Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
@@ -88,16 +96,15 @@ class CreateNewChatViewImpl : CreateNewChatView {
                 RovingFocusContainer {
                     val focusContainer = LocalRovingFocus.current
                     val currentRef = focusContainer?.activeRef?.value
-                    LaunchedEffect(currentRef) {
+                    LaunchedEffect(references) {
                         if (currentRef != null) {
-                            if (references?.contains(currentRef) != true) {
+                            if (!references.contains(currentRef)) {
                                 focusContainer.activeRef.value = null
                             }
                         }
                     }
 
-                    val focusModifier = if (references != null) Modifier.verticalRovingFocus(
-                        default = defaultItem,
+                    val focusModifier = Modifier.verticalRovingFocus(
                         scroll = { item ->
                             val index = references.indexOf(item)
                             if (index != -1) {
@@ -116,7 +123,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
                             val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
                             references[nextIndex]
                         },
-                    ) else Modifier
+                    )
 
                     LazyColumn(
                         modifier = Modifier.then(focusModifier),
