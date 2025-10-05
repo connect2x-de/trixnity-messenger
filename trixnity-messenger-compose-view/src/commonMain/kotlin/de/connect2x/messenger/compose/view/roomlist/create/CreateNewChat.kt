@@ -99,7 +99,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
                     LaunchedEffect(references) {
                         if (currentRef != null) {
                             if (!references.contains(currentRef)) {
-                                focusContainer.activeRef.value = null
+                                focusContainer.activeRef.value = defaultItem
                             }
                         }
                     }

@@ -21,12 +21,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
@@ -58,6 +60,7 @@ import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
+import kotlin.collections.contains
 
 interface CreateNewGroupView {
     @Composable
@@ -97,13 +100,18 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
             }
             append(roomType)
         }
-        val references = remember(userSearchResults) {
-            derivedStateOf {
-                (userSearchResults as? SearchResultState.Results)?.users?.map { it.userId.full }
-                    ?.minus(selectedUsers.value.map { it.userId }.toSet())
+
+        var references by remember {
+            mutableStateOf(listOf<String>())
+        }
+
+        LaunchedEffect(userSearchResults) {
+            if (userSearchResults is SearchResultState.Results) {
+                references = userSearchResults.users.map { it.userId.full }.minus(selectedUsers.value.map { it.userId.full }
+                    .toSet())
             }
-        }.value
-        val defaultItem = references?.firstOrNull()
+        }
+        val defaultItem = references.firstOrNull()
 
         Box(Modifier.fillMaxSize()) {
             Column(
@@ -129,8 +137,15 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                     val expandHistoryOptions = remember { mutableStateOf(false) }
                     RovingFocusContainer {
                         val focusContainer = LocalRovingFocus.current
-                        val focusModifier = if (references != null) Modifier.verticalRovingFocus(
-                            default = defaultItem,
+                        val currentRef = focusContainer?.activeRef?.value
+                        LaunchedEffect(references) {
+                            if (currentRef != null) {
+                                if (!references.contains(currentRef)) {
+                                    focusContainer.activeRef.value = defaultItem
+                                }
+                            }
+                        }
+                        val focusModifier = Modifier.verticalRovingFocus(
                             scroll = { item ->
                                 val index = references.indexOf(item)
                                 if (index != -1) {
@@ -149,7 +164,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                                 val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
                                 references[nextIndex]
                             },
-                        ) else Modifier
+                        )
 
                         LazyColumn(
                             modifier = Modifier.then(focusModifier),
