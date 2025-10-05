@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -82,8 +83,10 @@ fun ExpandableSection(
                     Icon(icon, contentDescription = null)
                     Spacer(Modifier.size(10.dp))
                 }
-                heading()
-                Spacer(Modifier.weight(1F).padding(end = 10.dp))
+                Box(Modifier.weight(1F)) {
+                    heading()
+                }
+                Spacer(Modifier.weight(0.1F).padding(end = 10.dp))
                 Icon(
                     Icons.Default.ArrowDropDown,
                     contentDescription = null,
