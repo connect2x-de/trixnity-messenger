@@ -57,6 +57,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
+import de.connect2x.messenger.compose.view.util.RovingFocusState
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
@@ -105,10 +106,11 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
             mutableStateOf(listOf<String>())
         }
 
-        LaunchedEffect(userSearchResults) {
+        LaunchedEffect(userSearchResults, selectedUsers.value) {
             if (userSearchResults is SearchResultState.Results) {
-                references = userSearchResults.users.map { it.userId.full }.minus(selectedUsers.value.map { it.userId.full }
-                    .toSet())
+                references =
+                    userSearchResults.users.map { it.userId.full }.minus(selectedUsers.value.map { it.userId.full }
+                        .toSet())
             }
         }
         val defaultItem = references.firstOrNull()
@@ -145,6 +147,18 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                                 }
                             }
                         }
+                        val up: RovingFocusState.() -> String = {
+                            val currentItem = focusContainer?.activeRef?.value ?: defaultItem
+                            val currentIndex = references.indexOf(currentItem)
+                            val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
+                            references[nextIndex]
+                        }
+                        val down: RovingFocusState.() -> String = {
+                            val currentItem = focusContainer?.activeRef?.value ?: defaultItem
+                            val currentIndex = references.indexOf(currentItem)
+                            val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
+                            references[nextIndex]
+                        }
                         val focusModifier = Modifier.verticalRovingFocus(
                             scroll = { item ->
                                 val index = references.indexOf(item)
@@ -152,18 +166,8 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                                     lazyListState.scrollToItem(index)
                                 }
                             },
-                            up = {
-                                val currentItem = activeRef.value ?: defaultItem
-                                val currentIndex = references.indexOf(currentItem)
-                                val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
-                                references[nextIndex]
-                            },
-                            down = {
-                                val currentItem = activeRef.value ?: defaultItem
-                                val currentIndex = references.indexOf(currentItem)
-                                val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
-                                references[nextIndex]
-                            },
+                            up = up,
+                            down = down,
                         )
 
                         LazyColumn(
@@ -196,8 +200,10 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                                 createNewGroupViewModel.createNewRoomViewModel,
                                 {
                                     createNewGroupViewModel.onUserClick(it)
-                                    if (focusContainer != null) {
-                                        focusContainer.activeRef.value = null
+                                    if (references.indexOf(it.userId.full) < references.lastIndex) {
+                                        focusContainer?.selectItem(focusContainer.down())
+                                    } else {
+                                        focusContainer?.selectItem(focusContainer.up())
                                     }
                                 },
                                 userSearchResults,
