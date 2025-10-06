@@ -58,9 +58,14 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndica
 import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusState
+import de.connect2x.messenger.compose.view.util.getNextItem
+import de.connect2x.messenger.compose.view.util.getPreviousItem
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
+import de.connect2x.messenger.compose.view.util.moveDown
+import de.connect2x.messenger.compose.view.util.moveUp
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlin.collections.contains
 
 interface CreateNewGroupView {
@@ -147,27 +152,16 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                                 }
                             }
                         }
-                        val up: RovingFocusState.() -> String = {
-                            val currentItem = focusContainer?.activeRef?.value ?: defaultItem
-                            val currentIndex = references.indexOf(currentItem)
-                            val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
-                            references[nextIndex]
-                        }
-                        val down: RovingFocusState.() -> String = {
-                            val currentItem = focusContainer?.activeRef?.value ?: defaultItem
-                            val currentIndex = references.indexOf(currentItem)
-                            val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
-                            references[nextIndex]
+                        val scroll: suspend CoroutineScope.(Any?) -> Unit = { item ->
+                            val index = references.indexOf(item)
+                            if (index != -1) {
+                                lazyListState.scrollToItem(index)
+                            }
                         }
                         val focusModifier = Modifier.verticalRovingFocus(
-                            scroll = { item ->
-                                val index = references.indexOf(item)
-                                if (index != -1) {
-                                    lazyListState.scrollToItem(index)
-                                }
-                            },
-                            up = up,
-                            down = down,
+                            scroll = scroll,
+                            up = { focusContainer?.getPreviousItem(defaultItem, references) },
+                            down = { focusContainer?.getNextItem(defaultItem, references) },
                         )
 
                         LazyColumn(
@@ -201,9 +195,9 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                                 {
                                     createNewGroupViewModel.onUserClick(it)
                                     if (references.indexOf(it.userId.full) < references.lastIndex) {
-                                        focusContainer?.selectItem(focusContainer.down())
+                                        focusContainer?.moveDown(defaultItem, references, scroll)
                                     } else {
-                                        focusContainer?.selectItem(focusContainer.up())
+                                        focusContainer?.moveUp(defaultItem, references, scroll)
                                     }
                                 },
                                 userSearchResults,
