@@ -17,23 +17,35 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 
 
+interface LegalFooterView {
+    @Composable
+    fun create()
+}
+
 @Composable
-internal fun LegalFooter() {
-    val i18n = DI.get<I18nView>()
+fun LegalFooter() {
+    DI.get<LegalFooterView>().create()
+}
 
-    var showPrivacy by remember { mutableStateOf(false) }
-    if (showPrivacy) Privacy { showPrivacy = false }
+class LegalFooterViewImpl : LegalFooterView {
+    @Composable
+    override fun create() {
+        val i18n = DI.get<I18nView>()
 
-    var showImprint by remember { mutableStateOf(false) }
-    if (showImprint) Imprint { showImprint = false }
+        var showPrivacy by remember { mutableStateOf(false) }
+        if (showPrivacy) Privacy(onClose = { showPrivacy = false })
 
-    var showLicenses by remember { mutableStateOf(false) }
-    if (showLicenses) Licenses { showLicenses = false }
+        var showImprint by remember { mutableStateOf(false) }
+        if (showImprint) Imprint(onClose = { showImprint = false })
 
-    Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-        TooltipText(i18n.appInfoPrivacy(), i18n.appInfoPrivacyLink()) { showPrivacy = true }
-        TooltipText(i18n.appInfoImprint(), i18n.appInfoImprintLink()) { showImprint = true }
-        TooltipText(i18n.appInfoLicenses(), i18n.appInfoLicensesLink()) { showLicenses = true }
+        var showLicenses by remember { mutableStateOf(false) }
+        if (showLicenses) Licenses(onClose = { showLicenses = false })
+
+        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+            TooltipText(i18n.appInfoPrivacy(), i18n.appInfoPrivacyLink(), onClick = { showPrivacy = true })
+            TooltipText(i18n.appInfoImprint(), i18n.appInfoImprintLink(), onClick = { showImprint = true })
+            TooltipText(i18n.appInfoLicenses(), i18n.appInfoLicensesLink(), onClick = { showLicenses = true })
+        }
     }
 }
 
