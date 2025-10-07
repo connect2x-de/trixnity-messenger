@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduce Worker to schedule work when messenger is started
 - Add a cancel button to abort the reject invitation dialog
 - Add a footer containing legal information to the login wizard
+- Added a notification to the timeline when a user's power level changes
 - Introduce new UI component for dropdown select
 
 ### Changed

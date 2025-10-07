@@ -250,6 +250,43 @@ open class I18n(
         DE - "$username hat die Beschreibung $groupOrChat ${from}zu '$roomName' geändert"
     }
 
+    open fun eventPowerLevelChange(
+        whoChanged: String,
+        whoWasChanged: String,
+        newPowerLevel: Long,
+        oldPowerLevel: Long? = null,
+    ) = translate {
+        fun renderPowerLevel(powerLevel: Long?): String = translate {
+            EN - when (powerLevel) {
+                0L -> "user"
+                50L -> "moderator"
+                100L -> "admin"
+                else -> "default($powerLevel)"
+            }
+            DE - when (powerLevel) {
+                0L -> "Nutzer"
+                50L -> "Moderator"
+                100L -> "Administrator"
+                else -> "default($powerLevel)"
+            }
+        }
+
+        val renderedOldPowerLevel = renderPowerLevel(oldPowerLevel)
+        val renderedNewPowerLevel = renderPowerLevel(newPowerLevel)
+        when (oldPowerLevel) {
+            null -> {
+                EN - "$whoChanged changed the power level of $whoWasChanged to $renderedNewPowerLevel"
+                DE - "$whoChanged hat das Berechtigungslevel von $whoWasChanged zu $renderedNewPowerLevel geändert"
+            }
+
+            else -> {
+                EN - "$whoChanged changed the power level of $whoWasChanged from $renderedOldPowerLevel to $renderedNewPowerLevel"
+                DE - "$whoChanged hat das Berechtigungslevel von $whoWasChanged von $renderedOldPowerLevel zu $renderedNewPowerLevel geändert"
+            }
+        }
+    }
+
+
     open fun setAsMainAlias(username: String, alias: String) = translate {
         EN - "$username set main alias to $alias"
         DE - "$username hat $alias als Hauptalias festgelegt"
