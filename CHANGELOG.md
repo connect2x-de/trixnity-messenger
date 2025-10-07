@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix room settings crashing on opening when using Android
 - Whitespace is stripped when searching for mxids
 - Fix focus handling in chat/group creation user list
+- Show dropdown icon in group creation history visibility menu
 
 ### Security
 
