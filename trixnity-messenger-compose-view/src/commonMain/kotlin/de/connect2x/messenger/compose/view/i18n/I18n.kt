@@ -1612,6 +1612,11 @@ open class I18nView(
         DE - "Lizenzen"
     }
 
+    open fun appInfoLicensesLink() = translate {
+        EN - "Show Licenses"
+        DE - "Zu Lizenzen"
+    }
+
     open fun configureNotificationsSettings() = translate {
         EN - "Notification settings"
         DE - "Benachrichtigungseinstellungen"
