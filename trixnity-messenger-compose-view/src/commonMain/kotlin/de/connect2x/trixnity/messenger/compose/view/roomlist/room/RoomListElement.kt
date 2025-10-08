@@ -1,0 +1,95 @@
+package de.connect2x.trixnity.messenger.compose.view.roomlist.room
+
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.IntOffset
+import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
+import de.connect2x.trixnity.messenger.compose.view.get
+import de.connect2x.trixnity.messenger.compose.view.theme.components
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedHorizontalDivider
+import de.connect2x.trixnity.messenger.compose.view.theme.components.themedSurface
+import de.connect2x.trixnity.messenger.compose.view.util.rovingFocusItem
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
+import net.folivo.trixnity.core.model.RoomId
+
+interface RoomListElementContainerView {
+    @Composable
+    fun LazyItemScope.create(
+        roomId: RoomId,
+        roomListViewModel: RoomListViewModel,
+        roomListElementViewModel: RoomListElementViewModel
+    )
+}
+
+@Composable
+fun LazyItemScope.RoomListElementContainer(
+    roomId: RoomId,
+    roomListViewModel: RoomListViewModel,
+    roomListElementViewModel: RoomListElementViewModel,
+) {
+    with(DI.get<RoomListElementContainerView>()) { create(roomId, roomListViewModel, roomListElementViewModel) }
+}
+
+class RoomListElementContainerViewImpl : RoomListElementContainerView {
+    @Composable
+    override fun LazyItemScope.create(
+        roomId: RoomId,
+        roomListViewModel: RoomListViewModel,
+        roomListElementViewModel: RoomListElementViewModel,
+    ) {
+        val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState().value
+        val roomName = roomListElementViewModel.roomName.collectAsState().value
+        val isInvite = roomListElementViewModel.isInvite.collectAsState().value
+        val interactionSource = remember { MutableInteractionSource() }
+        val hasFocus = interactionSource.collectIsFocusedAsState().value
+        val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
+        val hoverable = roomName != null && isInvite != true && !isKnock
+
+        Box(
+            Modifier.animateItem(
+                fadeInSpec = null,
+                fadeOutSpec = null,
+                placementSpec = spring(
+                    stiffness = Spring.StiffnessMediumLow,
+                    visibilityThreshold = IntOffset.VisibilityThreshold
+                )
+            )
+                .rovingFocusItem()
+                .then(
+                    if (roomId == selectedRoomId) Modifier.Companion.themedSurface(MaterialTheme.components.roomListSelection, focused = hasFocus)
+                    else Modifier.themedSurface(MaterialTheme.components.roomListElement, focused = hasFocus)
+                )
+                .clickable(interactionSource, LocalIndication.current) {
+                    if (hoverable) {
+                        roomListViewModel.selectRoom(roomId)
+                    }
+                }
+                .buttonPointerModifier(enabled = isInvite != true)
+        ) {
+            CompositionLocalProvider(
+                LocalContentColor provides if (roomId == selectedRoomId) MaterialTheme.components.roomListSelection.contentColor else LocalContentColor.current
+            ) {
+                RoomListElement(roomListViewModel, roomListElementViewModel)
+            }
+        }
+        ThemedHorizontalDivider(
+            style = MaterialTheme.components.roomListDivider
+        )
+    }
+}

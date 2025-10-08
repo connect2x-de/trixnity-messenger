@@ -1,0 +1,41 @@
+package de.connect2x.trixnity.messenger.compose.view.room.settings
+
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.common.ApprovableTextField
+import de.connect2x.trixnity.messenger.compose.view.get
+import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModel
+
+interface RoomSettingsTopicView {
+    @Composable
+    fun create(roomSettingsTopicViewModel: RoomSettingsTopicViewModel)
+}
+
+@Composable
+fun RoomSettingsTopic(roomSettingsTopicViewModel: RoomSettingsTopicViewModel) {
+    DI.get<RoomSettingsTopicView>().create(roomSettingsTopicViewModel)
+}
+
+class RoomSettingsTopicViewImpl : RoomSettingsTopicView {
+    @Composable
+    override fun create(roomSettingsTopicViewModel: RoomSettingsTopicViewModel) {
+        val i18n = DI.get<I18nView>()
+        ApprovableTextField(
+            viewModel = roomSettingsTopicViewModel.roomTopic,
+            isEditable = roomSettingsTopicViewModel.canChangeRoomTopic.collectAsState().value,
+            textCaption = i18n.roomSettingsRoomTopic(),
+            textPlaceholder = i18n.roomSettingsRoomTopicPlaceholder(),
+            textInfoCannotChange = i18n.roomSettingsRoomTopicCannotChange(),
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+            ),
+            modifier = Modifier.Companion.inputFocusNavigation(),
+        )
+    }
+}

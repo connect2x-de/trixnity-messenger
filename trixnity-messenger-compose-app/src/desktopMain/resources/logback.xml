@@ -7,7 +7,7 @@
     </encoder>
   </appender>
 
-  <define name="messengerFolder" class="de.connect2x.messenger.MessengerFolderPropertyDefiner"/>
+  <define name="messengerFolder" class="de.connect2x.trixnity.messenger.compose.app.MessengerFolderPropertyDefiner"/>
 
   <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
     <file>${messengerFolder}/messenger.log</file>

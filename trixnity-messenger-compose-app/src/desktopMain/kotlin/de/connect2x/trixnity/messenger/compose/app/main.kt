@@ -1,0 +1,10 @@
+package de.connect2x.trixnity.messenger.compose.app
+
+import de.connect2x.trixnity.messenger.compose.view.startMultiMessenger
+
+fun main(args: Array<String>) = startMultiMessenger(
+    configuration = {
+        configure()
+    },
+    args = args,
+)
