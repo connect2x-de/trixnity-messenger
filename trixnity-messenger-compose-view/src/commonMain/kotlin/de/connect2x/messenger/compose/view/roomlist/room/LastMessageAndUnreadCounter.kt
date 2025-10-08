@@ -2,8 +2,11 @@ package de.connect2x.messenger.compose.view.roomlist.room
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -22,25 +25,43 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewMod
 fun LastMessageAndUnreadMessagesCounter(roomListElementViewModel: RoomListElementViewModel) {
     val lastMessage = roomListElementViewModel.lastMessage.collectAsState().value
     val usersTyping = roomListElementViewModel.usersTyping.collectAsState().value
-    val unreadMessages = roomListElementViewModel.unreadMessages.collectAsState().value
+    val isUnread = roomListElementViewModel.isUnread.collectAsState().value
+    val notificationCount = roomListElementViewModel.notificationCount.collectAsState().value
 
     Tooltip({ Text(usersTyping ?: lastMessage ?: " ") }) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Box(Modifier.fillMaxWidth().weight(1.0f, false).alignByBaseline()) {
                 LastMessage(lastMessage, usersTyping)
             }
-            if (unreadMessages != null) {
-                Surface(
-                    shape = CircleShape,
-                    modifier = Modifier.alignByBaseline(),
-                    color = MaterialTheme.colorScheme.primary,
-                ) {
-                    Text(
-                        unreadMessages,
-                        Modifier.padding(horizontal = 4.dp),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.labelMedium,
-                    )
+            when {
+                notificationCount != null -> {
+                    Surface(
+                        shape = CircleShape,
+                        modifier = Modifier
+                            .defaultMinSize(minWidth = 16.dp)
+                            .height(16.dp)
+                            .alignByBaseline(),
+                        color = MaterialTheme.colorScheme.primary,
+                    ) {
+                        Text(
+                            notificationCount,
+                            Modifier.padding(horizontal = 4.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            maxLines = 1,
+                        )
+                    }
+                }
+
+                isUnread == true -> {
+                    Surface(
+                        shape = CircleShape,
+                        modifier = Modifier
+                            .size(16.dp)
+                            .alignByBaseline(),
+                        color = MaterialTheme.colorScheme.onSurface,
+                    ) {}
                 }
             }
         }

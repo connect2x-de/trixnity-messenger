@@ -28,7 +28,6 @@ class HistoryVisibilityStateTimelineElementViewImpl : HistoryVisibilityStateTime
         element.changeMessage.filterNotNull().first()
     }
 
-    // FIXME
     override fun isFocusable(): Boolean = false
 
     @Composable

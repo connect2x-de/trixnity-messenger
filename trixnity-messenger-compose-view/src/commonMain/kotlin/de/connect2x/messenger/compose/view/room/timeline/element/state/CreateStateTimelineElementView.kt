@@ -26,7 +26,6 @@ class CreateStateTimelineElementViewImpl : CreateStateTimelineElementView {
         element.message.filterNotNull().first()
     }
 
-    // FIXME
     override fun isFocusable(): Boolean = false
 
     @Composable

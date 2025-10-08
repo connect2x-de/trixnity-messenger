@@ -12,8 +12,8 @@ import java.awt.datatransfer.StringSelection
 @Composable
 actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
     val transferable = when (this) {
-        is FileBased -> null // FIXME should deliver caption
-        is Location -> StringSelection(this.coordinates) // FIXME should deliver proper location description (placename, coordinates)
+        is FileBased -> null // TODO should deliver caption
+        is Location -> StringSelection(this.coordinates) // TODO should deliver proper location description (placename, coordinates)
         is TextBased -> StringSelection(this.body)
         is RoomMessageTimelineElementViewModel.Unknown, is RoomMessageTimelineElementViewModel.VerificationRequest -> null
     }

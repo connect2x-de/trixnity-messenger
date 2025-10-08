@@ -16,12 +16,12 @@ actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
     val i18n = DI.get<I18nView>()
 
     val clipData = when (this) {
-        is FileBased -> null // FIXME should deliver caption
+        is FileBased -> null // TODO should deliver caption
 
         is Location ->
             ClipData.newPlainText(
                 i18n.commonLocation(),
-                this.coordinates // FIXME should deliver proper location description (placename, coordinates)
+                this.coordinates // TODO should deliver proper location description (placename, coordinates)
             )
 
         is TextBased ->

@@ -26,7 +26,6 @@ class AvatarStateTimelineElementViewImpl : AvatarStateTimelineElementView {
         element.changeMessage.filterNotNull().first()
     }
 
-    // FIXME
     override fun isFocusable(): Boolean = false
 
     @Composable

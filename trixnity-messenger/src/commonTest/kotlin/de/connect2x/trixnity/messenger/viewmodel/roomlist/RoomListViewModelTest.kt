@@ -11,9 +11,7 @@ import de.connect2x.trixnity.messenger.isNot
 import de.connect2x.trixnity.messenger.isRoomOf
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.update
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -1175,7 +1173,7 @@ class RoomListViewModelTest {
             viewModelContext = ViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycleRegistry),
                 di = koin,
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
+                coroutineContext = backgroundScope.coroutineContext
             ),
             selectedRoomId = MutableStateFlow(RoomId("!roomId")),
             onRoomSelected = onRoomSelectedMock,

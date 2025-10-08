@@ -411,11 +411,6 @@ open class I18nView(
         DE - "Kontakt"
     }
 
-    open fun newMessage() = translate {
-        EN - "new message"
-        DE - "neue Nachricht"
-    }
-
     open fun addAlias() = translate {
         EN - "add alias"
         DE - "Alias hinzufügen"
@@ -1698,8 +1693,8 @@ open class I18nView(
     }
 
     open fun notificationSettingsPlatformEnablePermissionsWarning() = translate {
-        EN - "Please enable notifications via the device settings"
-        DE - "Bitte erlauben Sie das Senden von Benachrichtigungen in den Geräteeinstellungen"
+        EN - "The app does not have permission to send notifications. Please go to your device settings."
+        DE - "Der App fehlen die Berechtigungen zum Senden von Benachrichtigungen. Bitte gehen Sie in die Geräteeinstellungen."
     }
 
     open fun notificationsSettingsPlatformPushMode(mode: String) = translate {
@@ -1737,9 +1732,9 @@ open class I18nView(
         DE - "Zeige Popup"
     }
 
-    open fun notificationsSettingsPlatformShowText() = translate {
-        EN - "Show text preview"
-        DE - "Textvorschau zeigen"
+    open fun notificationsSettingsPlatformShowDetails() = translate {
+        EN - "Show message details"
+        DE - "Nachrichtendetails zeigen"
     }
 
 

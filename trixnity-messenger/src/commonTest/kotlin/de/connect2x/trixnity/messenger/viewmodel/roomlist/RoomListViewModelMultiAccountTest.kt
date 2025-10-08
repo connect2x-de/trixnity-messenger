@@ -9,8 +9,6 @@ import de.connect2x.trixnity.messenger.isNot
 import de.connect2x.trixnity.messenger.isRoomOf
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.testDispatcher
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelImpl
@@ -833,7 +831,7 @@ class RoomListViewModelMultiAccountTest {
                 componentContext = DefaultComponentContext(lifecycleRegistry),
                 di = di,
                 userId = UserId("test1", "server"),
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
+                coroutineContext = backgroundScope.coroutineContext
             ),
             selectedRoomId = MutableStateFlow(RoomId("!roomId")),
             onRoomSelected = onRoomSelectedMock,

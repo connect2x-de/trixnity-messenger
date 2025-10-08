@@ -33,11 +33,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
@@ -80,6 +82,7 @@ fun ColumnScope.Timeline(timelineViewModel: TimelineViewModel) {
 }
 
 private const val additionalEndPadding = 8
+
 class TimelineViewImpl : TimelineView {
     @Composable
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
@@ -186,7 +189,8 @@ class TimelineViewImpl : TimelineView {
                         } ?: 0
                 }
 
-                val initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else initialIndex
+                val initialFirstVisibleItemIndex =
+                    if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else initialIndex
                 val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialFirstVisibleItemIndex)
 
                 val lastItem = remember {
@@ -394,7 +398,7 @@ fun updateVisibleItems(
     visible: State<Pair<String, String>?>,
     timelineElementHolderViewModels: State<List<BaseTimelineElementHolderViewModel>>,
 ) {
-    val isFocused = IsFocused.current
+    val lifecycleState = LocalLifecycleOwner.current.lifecycle.currentStateAsState()
     val viewState = remember {
         derivedStateOf {
             visible.value?.let {
@@ -403,7 +407,7 @@ fun updateVisibleItems(
                     lastVisibleElement = it.second,
                     firstLoadedElement = timelineElementHolderViewModels.value.last().key,
                     lastLoadedElement = timelineElementHolderViewModels.value.first().key,
-                    windowIsFocused = isFocused,
+                    timelineIsFocused = lifecycleState.value.isAtLeast(Lifecycle.State.RESUMED),
                 )
             }
         }

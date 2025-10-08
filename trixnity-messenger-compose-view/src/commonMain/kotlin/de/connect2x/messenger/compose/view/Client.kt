@@ -36,7 +36,6 @@ val PlatformType.isDesktop
     get() = this == PlatformType.DESKTOP
 
 val Platform = compositionLocalOf<PlatformType> { error("compositionLocal not defined") }
-val IsFocused = compositionLocalOf<Boolean> { error("compositionLocal not defined") }
 val DI = compositionLocalOf<Koin> { error("DI is not defined as compositionLocal") }
 
 /**

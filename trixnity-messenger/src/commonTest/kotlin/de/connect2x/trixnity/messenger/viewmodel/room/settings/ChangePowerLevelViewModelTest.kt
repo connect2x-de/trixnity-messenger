@@ -6,8 +6,6 @@ import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.runTestWithCoroutineScope
-import de.connect2x.trixnity.messenger.testDispatcher
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
@@ -436,7 +434,7 @@ class ChangePowerLevelViewModelTest {
                     )
                 }.koin,
                 userId = userId,
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
+                coroutineContext = backgroundScope.coroutineContext,
             ),
             targetUser = userId,
             error = MutableStateFlow(null),

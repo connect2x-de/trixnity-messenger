@@ -29,7 +29,6 @@ class UnknownRoomMessageTimelineElementViewImpl : UnknownRoomMessageTimelineElem
         // NO-OP (has default size)
     }
 
-    // FIXME
     override fun isFocusable(): Boolean = false
 
     @Composable

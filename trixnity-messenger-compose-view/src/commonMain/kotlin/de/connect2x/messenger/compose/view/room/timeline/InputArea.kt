@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,7 +58,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -238,6 +238,7 @@ fun RowScope.InputAreaTextField(
     val i18n = DI.get<I18nView>()
     val fileSystem = DI.getOrNull<FileSystem>() // TODO this does not work in Web
     val interactionSource = remember { MutableInteractionSource() }
+    val hasFocus = interactionSource.collectIsFocusedAsState().value
     val showUploadError = remember { mutableStateOf<Throwable?>(null) }
 
     val maxAttachmentSize = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
@@ -318,7 +319,7 @@ fun RowScope.InputAreaTextField(
                 color = style.textColor(
                     enabled = true,
                     isError = false,
-                    focused = IsFocused.current
+                    focused = hasFocus
                 )
             ),
             keyboardOptions = KeyboardOptions(
@@ -340,7 +341,7 @@ fun RowScope.InputAreaTextField(
                             color = style.placeholderColor(
                                 enabled = true,
                                 isError = false,
-                                focused = IsFocused.current
+                                focused = hasFocus
                             )
                         ),
                     )

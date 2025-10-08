@@ -45,7 +45,6 @@ class VerificationDoneMessageTimelineElementViewImpl : VerificationDoneMessageTi
         // NO-OP (has default size)
     }
 
-    // FIXME
     override fun isFocusable(): Boolean = false
 
     @Composable

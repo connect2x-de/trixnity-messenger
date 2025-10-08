@@ -107,6 +107,7 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
+import net.folivo.trixnity.core.model.events.m.MarkedUnreadEventContent
 import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
 import kotlin.time.Duration
@@ -205,7 +206,7 @@ interface TimelineViewModel {
         val lastVisibleElement: String,
         val firstLoadedElement: String,
         val lastLoadedElement: String,
-        val windowIsFocused: Boolean,
+        val timelineIsFocused: Boolean,
     )
 
     sealed class Wrapper {
@@ -454,9 +455,9 @@ class TimelineViewModelImpl(
             } else {
                 log.trace { "skipped setting readEventMarker, because timeline is fully read" }
             }
-            viewState.filterNotNull().map { it.windowIsFocused }
-                .collectLatest { windowIsFocused ->
-                    if (windowIsFocused.not()) {
+            viewState.filterNotNull().map { it.timelineIsFocused }
+                .collectLatest { timelineIsFocused ->
+                    if (timelineIsFocused.not()) {
                         log.trace { "start setting readEventMarker" }
                         readEvent.collect {
                             readEventMarker.value = it
@@ -535,11 +536,11 @@ class TimelineViewModelImpl(
         coroutineScope.launch {
             viewState
                 .filterNotNull()
-                .map { it.lastVisibleElement to it.windowIsFocused }
+                .map { it.lastVisibleElement to it.timelineIsFocused }
                 .distinctUntilChanged()
                 .throttleFirst(500.milliseconds) // we don't want to spam the server
-                .collect { (lastVisibleTimelineElement, windowIsFocused) ->
-                    if (windowIsFocused) {
+                .collect { (lastVisibleTimelineElement, timelineIsFocused) ->
+                    if (timelineIsFocused) {
                         log.debug { "mark the last visible element as read: $lastVisibleTimelineElement" }
                         markAsRead(lastVisibleTimelineElement)
                     }
@@ -882,7 +883,7 @@ class TimelineViewModelImpl(
                         }
 
                         if (timelineStateChange.addedElements.isNotEmpty()
-                            && viewState.value?.windowIsFocused == true
+                            && viewState.value?.timelineIsFocused == true
                             && indexOfLastEventIdBeforeChange == indexOfLastVisibleTimelineElement
                         ) {
                             val newLastEvent = timelineStateChange.addedElements.last().key
@@ -1043,13 +1044,22 @@ class TimelineViewModelImpl(
         outerScope.launch {
             // we have to execute this in the outerScope, since otherwise the view model would be cleaned up and with
             // it the scope where this code is executed
-            matrixClient.api.room.setReadMarkers(
-                roomId = nextReadUntilRoomId,
-                read = if (readMarkerIsPublic) nextReadUntil else null,
-                fullyRead = nextReadUntil,
-                privateRead = nextReadUntil,
-            ).onFailure { log.error(it) { "cannot set read marker for event $nextReadUntil in $nextReadUntilRoomId" } }
-                .onSuccess { log.debug { "successfully set read marker for message: $nextReadUntil in $nextReadUntilRoomId" } }
+            launch {
+                matrixClient.api.room.setReadMarkers(
+                    roomId = nextReadUntilRoomId,
+                    read = if (readMarkerIsPublic) nextReadUntil else null,
+                    fullyRead = nextReadUntil,
+                    privateRead = nextReadUntil,
+                )
+                    .onFailure { log.error(it) { "cannot set read marker for event $nextReadUntil in $nextReadUntilRoomId" } }
+                    .onSuccess { log.debug { "successfully set read marker for message: $nextReadUntil in $nextReadUntilRoomId" } }
+            }
+            launch {
+                matrixClient.api.room.setAccountData(MarkedUnreadEventContent(false), roomId, userId)
+                    .onFailure { log.warn(it) { "could not reset unread in $roomId" } }
+                    .onSuccess { log.debug { "successfully reset unread in $roomId" } }
+            }
+
         }.join()
     }
 

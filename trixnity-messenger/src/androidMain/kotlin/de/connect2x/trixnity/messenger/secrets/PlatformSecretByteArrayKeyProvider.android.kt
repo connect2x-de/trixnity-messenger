@@ -4,6 +4,10 @@ package de.connect2x.trixnity.messenger.secrets
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
+import de.connect2x.trixnity.messenger.util.ContextGetter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.util.*
 import kotlinx.serialization.json.JsonObject
@@ -11,15 +15,12 @@ import net.folivo.trixnity.crypto.core.SecureRandom
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import androidx.core.content.edit
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
 
 private val log = KotlinLogging.logger {}
 
 actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
     single<SecretByteArrayKeyProvider>(named(PLATFORM_SECRET_BYTE_ARRAY_KEY_PROVIDER_ID)) {
-        val context = get<Context>()
+        val contextGetter = get<ContextGetter>()
         object : SecretByteArrayKeyProvider {
             override val id = PLATFORM_SECRET_BYTE_ARRAY_KEY_PROVIDER_ID
             override val level: Int = 0
@@ -27,7 +28,7 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
             override suspend fun get(extra: JsonObject?, getInputKey: GetKey?): GetKey {
                 return GetKey { size ->
                     try {
-                        val encryptedSharedPreferences = getEncryptedSharedPreferences(context)
+                        val encryptedSharedPreferences = getEncryptedSharedPreferences(contextGetter())
                         val existingKey = encryptedSharedPreferences.getString(id, null)?.decodeBase64Bytes()
                         val key = when {
                             existingKey == null -> {
@@ -69,7 +70,7 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
 
             @Deprecated("for backwards compatibility")
             override suspend fun getLegacy(): ByteArray? {
-                val encryptedSharedPreferences = getEncryptedSharedPreferences(context)
+                val encryptedSharedPreferences = getEncryptedSharedPreferences(contextGetter())
                 return encryptedSharedPreferences
                     .getString("secret_byte_array_key_key", null)?.decodeBase64Bytes()
             }

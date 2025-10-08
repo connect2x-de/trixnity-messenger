@@ -12,8 +12,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 @OptIn(ExperimentalComposeUiApi::class)
 actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
     return when (this) {
-        is FileBased -> null // FIXME should deliver caption
-        is Location -> ClipEntry.withPlainText(this.coordinates) // FIXME should deliver proper location description (placename, coordinates)
+        is FileBased -> null // TODO should deliver caption
+        is Location -> ClipEntry.withPlainText(this.coordinates) // TODO should deliver proper location description (placename, coordinates)
         is TextBased -> ClipEntry.withPlainText(this.body)
         is RoomMessageTimelineElementViewModel.Unknown, is RoomMessageTimelineElementViewModel.VerificationRequest -> null
     }

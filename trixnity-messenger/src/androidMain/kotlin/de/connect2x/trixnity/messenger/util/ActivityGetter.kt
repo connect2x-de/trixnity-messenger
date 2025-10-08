@@ -1,14 +1,16 @@
 package de.connect2x.trixnity.messenger.util
 
-import android.app.Activity
+import androidx.activity.ComponentActivity
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 
-class ActivityGetter : () -> Activity? {
-    private var backingField: () -> Activity? = { null }
+class ActivityGetter : () -> ComponentActivity? {
+    private var backingField: (() -> ComponentActivity)? = null
 
-    override operator fun invoke(): Activity? = backingField()
-    operator fun invoke(value: () -> Activity?) {
+    override operator fun invoke(): ComponentActivity =
+        checkNotNull(backingField) { "ActivityGetter has not been set. Use MatrixMessenger.defaultActivityGetter or MatrixMultiMessenger.defaultActivityGetter to set it." }()
+
+    operator fun invoke(value: () -> ComponentActivity) {
         backingField = value
     }
 }

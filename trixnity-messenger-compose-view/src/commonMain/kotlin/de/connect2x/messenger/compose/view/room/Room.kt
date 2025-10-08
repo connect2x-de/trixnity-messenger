@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -20,6 +21,9 @@ import de.connect2x.messenger.compose.view.room.timeline.RoomContentSwitch
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
+import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
+import kotlinx.coroutines.flow.map
 
 
 const val TIMELINE_WEIGHT = 0.6f
@@ -40,8 +44,14 @@ class RoomViewImpl : RoomView {
     override fun create(roomViewModel: RoomViewModel) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val isSinglePane = this@BoxWithConstraints.maxWidth < TWO_PANE_THRESHOLD.dp
-            val isSettingsShown = roomViewModel.isRoomSettingsShown.collectAsState().value
-            val isExtrasShown = roomViewModel.isShown.collectAsState().value
+            
+            val isSettingsShown = remember {
+                roomViewModel.extrasStack.toFlow().map { it.active.configuration is ExtrasRouter.Config.RoomSettings }
+            }.collectAsState(initial = false).value
+            val isExtrasShown = remember {
+                roomViewModel.extrasStack.toFlow().map { it.active.configuration !is ExtrasRouter.Config.None }
+            }.collectAsState(initial = false).value
+
             Row(modifier = Modifier.fillMaxSize()) {
 
                 // Timeline Column

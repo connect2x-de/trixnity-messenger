@@ -7,9 +7,7 @@ import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.DownloadManager
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
@@ -402,7 +400,7 @@ class RoomViewModelTest {
                         })
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
+                coroutineContext = backgroundScope.coroutineContext
             ),
             roomId = roomId,
             onOpenRoom = mock(),

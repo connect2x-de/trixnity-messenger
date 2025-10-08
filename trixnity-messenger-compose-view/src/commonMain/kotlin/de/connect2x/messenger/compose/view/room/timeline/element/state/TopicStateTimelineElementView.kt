@@ -26,7 +26,6 @@ class TopicStateTimelineElementViewImpl : TopicStateTimelineElementView {
         element.changeMessage.filterNotNull().first()
     }
 
-    // FIXME
     override fun isFocusable(): Boolean = false
 
     @Composable

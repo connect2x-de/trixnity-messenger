@@ -1,9 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.DefaultUserSearchHandler
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.Search
 import dev.mokkery.answering.returns
 import dev.mokkery.everySuspend
@@ -15,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -106,7 +103,7 @@ class UserSearchHandlerTest {
 
     fun TestScope.defaultUserSearchHandler(filterNotUsers: Flow<Set<UserId>> = flowOf(setOf())): DefaultUserSearchHandler {
         val result = DefaultUserSearchHandler(
-            coroutineScope = backgroundScope + ImmediateDispatcherElement(testDispatcher),
+            coroutineScope = backgroundScope,
             search = searchMock,
             client = matrixClientMock,
             filterNotUsers = filterNotUsers,

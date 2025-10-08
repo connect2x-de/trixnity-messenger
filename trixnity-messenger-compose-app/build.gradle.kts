@@ -138,14 +138,18 @@ kotlin {
         }
         androidMain {
             dependencies {
+                implementation(projects.trixnityMessenger.trixnityMessengerNotificationFirebase)
                 implementation(compose.uiTooling)
                 implementation(sharedLibs.androidx.appcompat)
                 implementation(sharedLibs.androidx.work.runtime.ktx)
-                implementation(sharedLibs.androidx.lifecycle.livedata.ktx)
                 implementation(sharedLibs.androidx.activity.compose)
                 implementation(libs.logback.android)
                 implementation(libs.slf4j.api)
-                implementation(sharedLibs.firebase.messaging)
+            }
+        }
+        iosMain {
+            dependencies {
+                implementation(projects.trixnityMessenger.trixnityMessengerNotificationApns)
             }
         }
         val webMain by getting {
@@ -164,7 +168,7 @@ val distributionJavaHome = System.getenv("DIST_JAVA_HOME") ?: javaToolchains.lau
 compose {
     desktop {
         application {
-            mainClass = "$appId.desktop.MainKt"
+            mainClass = "$appId.MainKt"
             jvmArgs("-Xmx1G", "-XX:+HeapDumpOnOutOfMemoryError")
             javaHome = distributionJavaHome
             buildTypes.release.proguard {
@@ -202,6 +206,7 @@ android {
     }
     defaultConfig {
         minSdk = sharedLibs.versions.androidMinimalSDK.get().toInt()
+        targetSdk = sharedLibs.versions.androidTargetSDK.get().toInt()
         resValue("string", "app_name", appName)
         resValue("string", "scheme", appId)
     }

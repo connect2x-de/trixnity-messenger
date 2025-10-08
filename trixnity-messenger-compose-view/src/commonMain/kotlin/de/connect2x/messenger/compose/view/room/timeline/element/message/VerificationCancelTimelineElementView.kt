@@ -46,7 +46,6 @@ class VerificationCancelTimelineElementViewImpl : VerificationCancelTimelineElem
         // NO-OP (has default size)
     }
 
-    // FIXME
     override fun isFocusable(): Boolean = false
 
     @Composable

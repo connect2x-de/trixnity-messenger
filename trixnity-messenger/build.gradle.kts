@@ -89,6 +89,7 @@ kotlin {
                 api(sharedLibs.kotlinx.serialization.core)
                 api(sharedLibs.kotlinx.serialization.json)
                 api(sharedLibs.kotlinx.datetime)
+                implementation(libs.sysnotify)
                 implementation(libs.okio)
                 implementation(libs.kim)
                 implementation(libs.markdown)
@@ -129,6 +130,8 @@ kotlin {
                 implementation(sharedLibs.androidx.activity.ktx)
                 implementation(sharedLibs.androidx.security.crypto)
                 implementation(sharedLibs.androidx.browser)
+                implementation(sharedLibs.androidx.work.runtime.ktx)
+                implementation(sharedLibs.androidx.lifecycle.livedata.ktx)
             }
         }
         nativeMain {
@@ -193,8 +196,6 @@ android {
         named("main") {
 
             manifest.srcFile("src/androidMain/AndroidManifest.xml")
-            assets.srcDir(File(layout.buildDirectory.asFile.get(), "generated/moko/androidMain/assets"))
-            res.srcDir(File(layout.buildDirectory.asFile.get(), "generated/moko/androidMain/res"))
         }
     }
     buildTypes {

@@ -79,7 +79,7 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
 
         val references = remember {
             derivedStateOf {
-                accounts.value.map { it.userId }
+                accounts.value.map { it.userId.full }
             }
         }
 
@@ -89,23 +89,25 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
             Header(accountsOverviewViewModel::close, i18n.accountYourAccounts().capitalize(Locale.current))
             Box(Modifier.fillMaxSize()) {
                 RovingFocusContainer {
-                    Column(Modifier.verticalRovingFocus(
-                        default = defaultItem,
-                        up = {
-                            val currentItem = activeRef.value ?: defaultItem
-                            val currentIndex = references.value.indexOf(currentItem)
-                            val nextIndex = currentIndex.minus(1).coerceIn(references.value.indices)
-                            references.value[nextIndex]
-                        },
-                        down = {
-                            val currentItem = activeRef.value ?: defaultItem
-                            val currentIndex = references.value.indexOf(currentItem)
-                            val nextIndex = currentIndex.plus(1).coerceIn(references.value.indices)
-                            references.value[nextIndex]
-                        },
-                    ).verticalScroll(scrollState)) {
+                    Column(
+                        Modifier.verticalRovingFocus(
+                            default = defaultItem,
+                            up = {
+                                val currentItem = activeRef.value ?: defaultItem
+                                val currentIndex = references.value.indexOf(currentItem)
+                                val nextIndex = currentIndex.minus(1).coerceIn(references.value.indices)
+                                references.value[nextIndex]
+                            },
+                            down = {
+                                val currentItem = activeRef.value ?: defaultItem
+                                val currentIndex = references.value.indexOf(currentItem)
+                                val nextIndex = currentIndex.plus(1).coerceIn(references.value.indices)
+                                references.value[nextIndex]
+                            },
+                        ).verticalScroll(scrollState)
+                    ) {
                         accounts.value.map { accountInfo ->
-                            key(accountInfo.userId) {
+                            key(accountInfo.userId.full) {
                                 val displayColor = accountInfo.displayColor?.let { Color(it) }
                                 val interactionSource = remember { MutableInteractionSource() }
                                 val isFocused = interactionSource.collectIsFocusedAsState()
@@ -117,7 +119,7 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                                         )
                                     } else Modifier
 
-                                RovingFocusItem(accountInfo.userId, defaultItem) {
+                                RovingFocusItem(accountInfo.userId.full, defaultItem) {
                                     ListItem(
                                         headlineContent = {
                                             Tooltip({ Text(accountInfo.displayName) }) {

@@ -306,11 +306,6 @@ open class I18n(
         DE - "$username hat den Avatar $groupOrChat geändert"
     }
 
-    open fun invitationFrom(inviter: String) = translate {
-        EN - "(Invitation from $inviter)"
-        DE - "(Einladung von $inviter)"
-    }
-
     open fun bootstrapErrorAccount(message: String? = commonUnknown()) = translate {
         EN - "Account creation failed: ${message ?: commonUnknown()}"
         DE - "Einrichtung des Kontos fehlgeschlagen: ${message ?: commonUnknown()}"
@@ -971,6 +966,16 @@ open class I18n(
         DE - "Daten erfolgreich geladen."
     }
 
+    open fun initialSyncNotificationTitle() = translate {
+        EN - "initial sync"
+        DE - "initiale Synchronisierung"
+    }
+
+    open fun initialSyncNotificationDescription() = translate {
+        EN - "Your account data is loading."
+        DE - "Ihre Kontodaten werden geladen."
+    }
+
     open fun timelineLeaveRoomErrorOffline() = settingsRoomLeaveRoomErrorOffline()
     open fun timelineLeaveRoomError(groupOrChat: String) = settingsRoomLeaveRoomError(groupOrChat)
 
@@ -1350,6 +1355,16 @@ open class I18n(
     open fun deactivateAccountError(message: String) = translate {
         EN - "Account could not be deactivated: $message"
         DE - "Der Account konnte nicht deaktiviert werden: $message"
+    }
+
+    open fun newMessageTitle() = translate {
+        EN - "new messages"
+        DE - "neue Nachrichten"
+    }
+
+    open fun newMessageDescription() = translate {
+        EN - "You have new messages."
+        DE - "Sie haben neue Nachrichten."
     }
 }
 

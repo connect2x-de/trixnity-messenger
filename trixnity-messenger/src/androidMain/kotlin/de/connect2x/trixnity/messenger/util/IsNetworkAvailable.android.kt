@@ -8,10 +8,10 @@ import org.koin.dsl.module
 
 actual fun platformIsNetworkAvailableModule(): Module = module {
     single<IsNetworkAvailable> {
-        val context = get<Context>()
+        val contextGetter = get<ContextGetter>()
         IsNetworkAvailable {
             val connectivityManager =
-                context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                contextGetter().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             val networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
             networkCapabilities != null &&
                     networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)

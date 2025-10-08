@@ -54,7 +54,7 @@ data class MatrixMessengerSettingsBase(
     val applySystemSizes: Boolean = true,
 ) : SettingsView<MatrixMessengerSettings>
 
-@Serializable()
+@Serializable
 @NestedSettingsView("secretByteArrays")
 data class SecretByteArraySettings(
     val secrets: Map<String, SecretByteArray>? = null,
@@ -86,7 +86,6 @@ data class SecretByteArraySettings(
 data class MatrixMessengerAccountSettingsBase(
     val displayName: String? = null,
     val displayColor: Long? = null,
-    val notificationsEnabled: Boolean = false,
     val presenceIsPublic: Boolean = true,
     val readMarkerIsPublic: Boolean = true,
     val typingIsPublic: Boolean = true,
@@ -106,6 +105,13 @@ data class MatrixMessengerAccountSettingsBase(
     }
 }
 
+@Serializable
+@NestedSettingsView("notification")
+data class MatrixMessengerAccountNotificationSettings(
+    val playSound: Boolean = true,
+    val showDetails: Boolean = true,
+) : SettingsView<MatrixMessengerAccountSettings>
+
 data class MatrixMessengerSettings(
     private val delegate: Map<String, JsonElement>
 ) : SettingsImpl<MatrixMessengerSettings>(delegate) {
@@ -118,6 +124,7 @@ data class MatrixMessengerAccountSettings(
     private val delegate: Map<String, JsonElement>
 ) : SettingsImpl<MatrixMessengerAccountSettings>(delegate) {
     val base by lazy { get<MatrixMessengerAccountSettings, MatrixMessengerAccountSettingsBase>() }
+    val notification by lazy { get<MatrixMessengerAccountSettings, MatrixMessengerAccountNotificationSettings>() }
 }
 
 internal object MatrixMessengerAccountSettingsSerializer : JsonDelegateSerializer<MatrixMessengerAccountSettings>(

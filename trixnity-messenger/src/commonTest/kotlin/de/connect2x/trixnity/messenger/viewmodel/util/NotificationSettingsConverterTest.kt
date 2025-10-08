@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettings
-import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettings.Activity
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountNotificationSettings
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountNotificationSettings.Activity
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
@@ -18,8 +18,8 @@ class NotificationSettingsConverterTest {
     fun `parse push rules 1`() = runTest {
         val pushRulSet = json.decodeFromString<PushRulesEventContent>(notificationSettingsConverterJsonSample1).global
         pushRulSet.shouldNotBeNull()
-        pushRulSet.toNotificationSettings() shouldBe NotificationSettings(
-            defaultLevel = NotificationSettings.DefaultLevel.ROOM, sound = NotificationSettings.Sound(
+        pushRulSet.toNotificationSettings() shouldBe AccountNotificationSettings(
+            defaultLevel = AccountNotificationSettings.DefaultLevel.ROOM, sound = AccountNotificationSettings.Sound(
                 room = false,
                 dm = true,
                 mention = true,
@@ -28,7 +28,7 @@ class NotificationSettingsConverterTest {
                 invite = true,
                 status = true,
                 notice = false,
-            ), mention = NotificationSettings.Mention(
+            ), mention = AccountNotificationSettings.Mention(
                 user = true,
                 room = true,
                 keyword = true,
@@ -40,8 +40,8 @@ class NotificationSettingsConverterTest {
     fun `parse push rules 2`() = runTest {
         val pushRulSet = json.decodeFromString<PushRulesEventContent>(notificationSettingsConverterJsonSample2).global
         pushRulSet.shouldNotBeNull()
-        pushRulSet.toNotificationSettings() shouldBe NotificationSettings(
-            defaultLevel = NotificationSettings.DefaultLevel.DM, sound = NotificationSettings.Sound(
+        pushRulSet.toNotificationSettings() shouldBe AccountNotificationSettings(
+            defaultLevel = AccountNotificationSettings.DefaultLevel.DM, sound = AccountNotificationSettings.Sound(
                 room = false,
                 dm = false,
                 mention = false,
@@ -50,7 +50,7 @@ class NotificationSettingsConverterTest {
                 invite = false,
                 status = false,
                 notice = false,
-            ), mention = NotificationSettings.Mention(
+            ), mention = AccountNotificationSettings.Mention(
                 user = false,
                 room = false,
                 keyword = false,
@@ -62,8 +62,8 @@ class NotificationSettingsConverterTest {
     fun `parse push rules 3`() = runTest {
         val pushRulSet = json.decodeFromString<PushRulesEventContent>(notificationSettingsConverterJsonSample3).global
         pushRulSet.shouldNotBeNull()
-        pushRulSet.toNotificationSettings() shouldBe NotificationSettings(
-            defaultLevel = NotificationSettings.DefaultLevel.NONE, sound = NotificationSettings.Sound(
+        pushRulSet.toNotificationSettings() shouldBe AccountNotificationSettings(
+            defaultLevel = AccountNotificationSettings.DefaultLevel.NONE, sound = AccountNotificationSettings.Sound(
                 room = false,
                 dm = false,
                 mention = true,
@@ -72,7 +72,7 @@ class NotificationSettingsConverterTest {
                 invite = true,
                 status = true,
                 notice = true,
-            ), mention = NotificationSettings.Mention(
+            ), mention = AccountNotificationSettings.Mention(
                 user = true,
                 room = true,
                 keyword = false,
@@ -82,8 +82,8 @@ class NotificationSettingsConverterTest {
 
     @Test
     fun `parse NotificationSettings 1`() = runTest {
-        val notificationSettings = NotificationSettings(
-            defaultLevel = NotificationSettings.DefaultLevel.ROOM, sound = NotificationSettings.Sound(
+        val accountNotificationSettings = AccountNotificationSettings(
+            defaultLevel = AccountNotificationSettings.DefaultLevel.ROOM, sound = AccountNotificationSettings.Sound(
                 room = true,
                 dm = true,
                 mention = true,
@@ -92,19 +92,19 @@ class NotificationSettingsConverterTest {
                 invite = true,
                 status = true,
                 notice = false,
-            ), mention = NotificationSettings.Mention(
+            ), mention = AccountNotificationSettings.Mention(
                 user = true,
                 room = true,
                 keyword = true,
             ), keywords = setOf("keyword1", "keyword2")
         )
-        notificationSettings.toPushRuleSet(userId).toNotificationSettings() shouldBe notificationSettings
+        accountNotificationSettings.toPushRuleSet(userId).toNotificationSettings() shouldBe accountNotificationSettings
     }
 
     @Test
     fun `parse NotificationSettings 2`() = runTest {
-        val notificationSettings = NotificationSettings(
-            defaultLevel = NotificationSettings.DefaultLevel.DM, sound = NotificationSettings.Sound(
+        val accountNotificationSettings = AccountNotificationSettings(
+            defaultLevel = AccountNotificationSettings.DefaultLevel.DM, sound = AccountNotificationSettings.Sound(
                 room = false,
                 dm = false,
                 mention = false,
@@ -113,20 +113,20 @@ class NotificationSettingsConverterTest {
                 invite = false,
                 status = false,
                 notice = false,
-            ), mention = NotificationSettings.Mention(
+            ), mention = AccountNotificationSettings.Mention(
                 user = false,
                 room = false,
                 keyword = false,
             ), keywords = setOf()
         )
 
-        notificationSettings.toPushRuleSet(userId).toNotificationSettings() shouldBe notificationSettings
+        accountNotificationSettings.toPushRuleSet(userId).toNotificationSettings() shouldBe accountNotificationSettings
     }
 
     @Test
     fun `parse NotificationSettings 3`() = runTest {
-        val notificationSettings = NotificationSettings(
-            defaultLevel = NotificationSettings.DefaultLevel.NONE, sound = NotificationSettings.Sound(
+        val accountNotificationSettings = AccountNotificationSettings(
+            defaultLevel = AccountNotificationSettings.DefaultLevel.NONE, sound = AccountNotificationSettings.Sound(
                 room = true,
                 dm = false,
                 mention = true,
@@ -135,13 +135,13 @@ class NotificationSettingsConverterTest {
                 invite = true,
                 status = true,
                 notice = true,
-            ), mention = NotificationSettings.Mention(
+            ), mention = AccountNotificationSettings.Mention(
                 user = true,
                 room = true,
                 keyword = false,
             ), keywords = setOf()
         )
 
-        notificationSettings.toPushRuleSet(userId).toNotificationSettings() shouldBe notificationSettings
+        accountNotificationSettings.toPushRuleSet(userId).toNotificationSettings() shouldBe accountNotificationSettings
     }
 }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -17,6 +18,9 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.room.RoomSwitch
 import de.connect2x.messenger.compose.view.roomlist.RoomListSwitch
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
+import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
+import kotlinx.coroutines.flow.map
 
 
 interface MessengerView {
@@ -32,7 +36,9 @@ fun Messenger(mainViewModel: MainViewModel, isSinglePane: Boolean) {
 class MessengerViewImpl : MessengerView {
     @Composable
     override fun create(mainViewModel: MainViewModel, isSinglePane: Boolean) {
-        val isRoomShown = mainViewModel.isRoomShown.collectAsState().value
+        val isRoomShown = remember {
+            mainViewModel.roomRouterStack.toFlow().map { it.active.configuration !is RoomRouter.Config.None }
+        }.collectAsState(initial = false).value
         Row(modifier = Modifier.fillMaxSize()) {
 
             // Room List

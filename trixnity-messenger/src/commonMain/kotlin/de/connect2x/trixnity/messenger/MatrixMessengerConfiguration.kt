@@ -38,7 +38,6 @@ data class MatrixMessengerConfiguration(
     var defaultTypingIsPublic: Boolean = true,
 
     var databaseEncryptionEnabled: Boolean = true,
-    var notificationsEnabled: Boolean = false,
 
     val features: MatrixMessengerFeatures = MatrixMessengerFeatures(
         enablePdfReader = true,
@@ -96,6 +95,7 @@ data class MatrixMessengerConfiguration(
     override var licenses: String? = null,
 
     override var pushUrl: String? = null,
+    override var isDebugEnabled: Boolean = false,
 
     var downloadsDisabled: Boolean = false,
 

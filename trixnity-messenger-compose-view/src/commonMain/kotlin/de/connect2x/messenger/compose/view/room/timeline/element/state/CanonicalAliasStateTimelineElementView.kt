@@ -27,7 +27,6 @@ class CanonicalAliasStateTimelineElementViewImpl : CanonicalAliasStateTimelineEl
         element.changeMessage.filterNotNull().first()
     }
 
-    // FIXME
     override fun isFocusable(): Boolean = false
 
     @Composable

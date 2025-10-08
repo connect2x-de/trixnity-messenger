@@ -73,11 +73,11 @@ kotlin {
                 api(sharedLibs.decompose)
                 api(sharedLibs.decompose.extensions)
                 api(sharedLibs.aboutLibraries.compose.m3)
+                api(sharedLibs.androidx.lifecycle.runtime.compose)
                 implementation(sharedLibs.kotlinx.datetime)
                 implementation(sharedLibs.androidx.annotation)
                 implementation(libs.okio)
                 implementation(compose.uiUtil)
-                implementation(libs.sysnotify)
                 implementation(libs.highlights)
 
                 // FileKit
@@ -101,7 +101,6 @@ kotlin {
                 implementation(compose.uiTooling)
                 implementation(sharedLibs.androidx.appcompat)
                 implementation(sharedLibs.androidx.work.runtime.ktx)
-                implementation(sharedLibs.androidx.lifecycle.livedata.ktx)
                 implementation(sharedLibs.androidx.activity.compose)
                 implementation(libs.logback.android)
                 implementation(compose.preview)

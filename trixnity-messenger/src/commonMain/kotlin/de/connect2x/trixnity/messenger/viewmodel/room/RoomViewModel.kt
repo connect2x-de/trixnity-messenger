@@ -13,8 +13,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
@@ -62,22 +60,6 @@ interface RoomViewModel {
     val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>>
 
     /**
-     * Indicates whether any actual content should be shown.
-     * @return `true` if any or more configs besides
-     * [ExtrasRouter.Config.None] are currently active.
-     */
-    val isShown: StateFlow<Boolean>
-
-    /**
-     * Indicates whether any of the room settings should be shown.
-     * @return `true` if any of the following configs are active:
-     * * [RoomSettings.Main]
-     * * [RoomSettings.AddMembers]
-     * * [RoomSettings.ExportRoom]
-     */
-    val isRoomSettingsShown: StateFlow<Boolean>
-
-    /**
      * Requests to close the currently selected room.
      */
     fun closeRoom()
@@ -108,9 +90,6 @@ open class RoomViewModelImpl(
     onOpenMention: OpenMentionCallback,
     onOpenAvatarCutter: OpenAvatarCutterCallback,
 ) : MatrixClientViewModelContext by viewModelContext, RoomViewModel {
-
-    override val isRoomSettingsShown = MutableStateFlow(false)
-    override val isShown = MutableStateFlow(false)
 
     override fun closeRoom() {
         onCloseRoom()
@@ -151,10 +130,6 @@ open class RoomViewModelImpl(
     init {
         log.debug { "create RoomViewModel for: ${roomId.full} " }
         coroutineScope.launch { timelineRouter.openTimeline(roomId) }
-        extrasStack.subscribe {
-            isRoomSettingsShown.value = it.active.configuration is RoomSettings
-            isShown.value = it.active.configuration !is ExtrasNone
-        }
     }
 
     private fun onCloseRoom() {
@@ -196,8 +171,7 @@ class PreviewRoomViewModel : RoomViewModel {
                 )
             )
         )
-    override val isRoomSettingsShown = MutableStateFlow(false)
-    override val isShown = MutableStateFlow(false)
+
     override fun closeRoom() {}
     override fun openRoomSettings() {}
     override fun openUserProfile(userId: UserId) {}

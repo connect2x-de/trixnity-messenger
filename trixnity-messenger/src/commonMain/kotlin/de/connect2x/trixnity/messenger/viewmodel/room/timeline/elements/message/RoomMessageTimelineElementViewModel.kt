@@ -46,8 +46,6 @@ import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import net.folivo.trixnity.core.model.events.m.room.formattedBodyWithoutFallback
 import net.folivo.trixnity.core.util.Reference
 import org.koin.core.component.get
-import kotlin.collections.component1
-import kotlin.collections.component2
 
 sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C> {
     /**
@@ -68,7 +66,7 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
     /**
      * Users, Events and Room mentioned in the event's message
      */
-    val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>>
+    val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>> // TODO typing should be consistent to mentionsInFormattedBody
 
     /**
      * Users, Events and Room mentioned in the event's formatted body

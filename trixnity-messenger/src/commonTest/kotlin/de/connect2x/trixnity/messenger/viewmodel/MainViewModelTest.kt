@@ -12,11 +12,9 @@ import de.connect2x.trixnity.messenger.continually
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.eventually
-import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
@@ -710,7 +708,7 @@ class MainViewModelTest {
                             }
                         })
                 }.koin,
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
+                coroutineContext = backgroundScope.coroutineContext,
             ),
             onCreateNewAccount = {},
             onRemoveAccount = {},
