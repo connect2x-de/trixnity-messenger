@@ -59,6 +59,15 @@ class UserSearchHandlerTest {
     }
 
     @Test
+    fun `should search for Matrix IDs with lowercase and whitespace`() = runTest {
+        val cut = defaultUserSearchHandler()
+        cut.searchTerm.update("  @USER:LocAl.local  \t")
+        delay(400.milliseconds) // debounce is 300 ms
+
+        cut.foundUsers.value shouldBe listOf(searchUser)
+    }
+
+    @Test
     fun `should return found users`(): TestResult = runTest {
         val otherUser = Search.SearchUserElementImpl("Other user", "Ou", null, UserId("ou:local.local"))
         everySuspend { searchMock.searchUsers(any(), matrixClientMock, "us", any()) } returns

@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Introduce Worker to schedule work when messenger is started
+- Add a cancel button to abort the reject invitation dialog
+- Add a footer containing legal information to the login wizard
 
 ### Changed
 
@@ -21,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix db keys not deleted on account remove
 - Correctly send and display strikethrough text via the del-tag
+- Fix room settings crashing on opening when using Android
+- Whitespace is stripped when searching for mxids
 
 ### Security
 

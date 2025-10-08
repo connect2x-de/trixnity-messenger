@@ -167,7 +167,7 @@ fun MemberList(
                 ),
                 state
             ) {
-                items(members.value, key = { it.memberUserId }) { member ->
+                items(members.value, key = { it.memberUserId.full }) { member ->
                     RovingFocusItem(member.memberUserId, defaultItem) {
                         RoomSettingsMemberListElement(
                             memberListViewModel,

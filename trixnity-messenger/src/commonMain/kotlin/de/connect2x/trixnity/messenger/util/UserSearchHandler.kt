@@ -69,15 +69,9 @@ class DefaultUserSearchHandler(
 
     private suspend fun searchUsers() {
         searchTerm
-            .map { it.text }
+            .map { it.text.lowercase().trim() }
             .distinctUntilChanged()
             .debounce(debounceDuration)
-            .map {
-                if (UserId.isValid(it.lowercase())) {
-                    log.trace { "found matrix id" }
-                    it.lowercase()
-                } else it
-            }
             .scopedCollectLatest {
                 if (it.isNotBlank()) {
                     log.trace { "search for users" }
