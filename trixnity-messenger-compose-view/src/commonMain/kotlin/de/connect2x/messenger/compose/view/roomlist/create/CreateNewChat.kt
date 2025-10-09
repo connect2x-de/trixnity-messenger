@@ -39,6 +39,7 @@ import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.common.ExpandableSection
+import de.connect2x.messenger.compose.view.common.LazyRovingFocusColumn
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
 import de.connect2x.messenger.compose.view.search.SearchResultState
 import de.connect2x.messenger.compose.view.search.UserSearchResultListView
@@ -97,32 +98,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
             Box(Modifier.fillMaxSize()) {
                 RovingFocusContainer {
                     val focusContainer = LocalRovingFocus.current
-                    val currentRef = focusContainer?.activeRef?.value
-                    LaunchedEffect(references) {
-                        if (currentRef != null && !references.contains(currentRef)) {
-                            focusContainer.activeRef.value = defaultItem
-                        }
-                    }
-
-                    val focusModifier = Modifier.verticalRovingFocus(
-                        scroll = { item ->
-                            val index = references.indexOf(item)
-                            if (index != -1) {
-                                listState.scrollToItem(index)
-                            }
-                        },
-                        up = {
-                            focusContainer?.getPreviousItem(defaultItem, references)
-                        },
-                        down = {
-                            focusContainer?.getNextItem(defaultItem, references)
-                        },
-                    )
-
-                    LazyColumn(
-                        modifier = Modifier.then(focusModifier),
-                        state = listState,
-                    ) {
+                    LazyRovingFocusColumn(defaultItem, references, listState, focusContainer) {
                         item(key = "CreatingIndicator") {
                             if (isCreating) {
                                 ThemedProgressIndicator(

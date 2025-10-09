@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -40,6 +39,7 @@ import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.LazyRovingFocusColumn
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
@@ -56,12 +56,9 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
-import de.connect2x.messenger.compose.view.util.getNextItem
-import de.connect2x.messenger.compose.view.util.getPreviousItem
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.messenger.compose.view.util.moveDown
 import de.connect2x.messenger.compose.view.util.moveUp
-import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 import kotlinx.coroutines.CoroutineScope
 
@@ -136,7 +133,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             MaterialTheme.components.linearProgressIndicator
                         )
                     }
-                    val lazyListState = rememberLazyListState()
+                    val listState = rememberLazyListState()
                     val expandHistoryOptions = remember { mutableStateOf(false) }
                     RovingFocusContainer {
                         val focusContainer = LocalRovingFocus.current
@@ -149,19 +146,11 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                         val scroll: suspend CoroutineScope.(Any?) -> Unit = { item ->
                             val index = references.indexOf(item)
                             if (index != -1) {
-                                lazyListState.scrollToItem(index)
+                                listState.scrollToItem(index)
                             }
                         }
-                        val focusModifier = Modifier.verticalRovingFocus(
-                            scroll = scroll,
-                            up = { focusContainer?.getPreviousItem(defaultItem, references) },
-                            down = { focusContainer?.getNextItem(defaultItem, references) },
-                        )
 
-                        LazyColumn(
-                            modifier = Modifier.then(focusModifier),
-                            state = lazyListState,
-                        ) {
+                        LazyRovingFocusColumn(defaultItem, references, listState, focusContainer) {
                             item(key = "MoreOptions") {
                                 Column {
                                     ExpandableSection(
@@ -202,7 +191,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                     }
                     VerticalScrollbar(
                         Modifier.fillMaxHeight().align(Alignment.CenterEnd),
-                        lazyListState,
+                        listState,
                         false
                     )
                 }
