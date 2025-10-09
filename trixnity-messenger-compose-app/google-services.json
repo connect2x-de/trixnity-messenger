@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "531860684859",
+    "project_id": "trixnity-messenger-compose-app",
+    "storage_bucket": "trixnity-messenger-compose-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:531860684859:android:f63340a5ca0525fde7dc1e",
+        "android_client_info": {
+          "package_name": "de.connect2x.trixnity.messenger.compose.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7QI28JkNYbuWvDjChgZtBIf_3SVolkWI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

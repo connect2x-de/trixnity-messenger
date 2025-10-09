@@ -199,7 +199,7 @@ compose {
 }
 
 android {
-    namespace = appId
+    namespace = "${appId}.android"
     compileSdk = sharedLibs.versions.androidCompileSDK.get().toInt()
     buildFeatures {
         compose = true
