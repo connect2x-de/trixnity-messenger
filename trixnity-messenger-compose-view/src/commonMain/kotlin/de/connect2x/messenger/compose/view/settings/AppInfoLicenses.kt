@@ -48,82 +48,83 @@ fun AppInfoLicenses(appInfoViewModel: AppInfoViewModel) {
 class AppInfoLicensesViewImpl : AppInfoLicensesView {
     @Composable
     override fun create(appInfoViewModel: AppInfoViewModel) {
-        val style = MaterialTheme.components.library
+        Licenses { appInfoViewModel.showLicenses.value = false }
+    }
+}
 
-        val i18n = DI.get<I18nView>()
-        val licences = DI.get<MatrixMessengerConfiguration>().licenses
-        if (licences != null) {
-            val lazyListState = rememberLazyListState()
-            val libraries = remember(licences) {
-                Libs.Builder().withJson(licences).build()
-            }
-            val references = remember(libraries) {
-                libraries.libraries.map { it.uniqueId }
-            }
-            val defaultItem = references.firstOrNull()
-            var openLibrary by remember { mutableStateOf<Library?>(null) }
+@Composable
+internal fun Licenses(onClose: () -> Unit) {
+    val style = MaterialTheme.components.library
 
-            ThemedAdaptiveDialog({ appInfoViewModel.showLicenses.value = false }) {
-                AdaptiveDialogHeader(onClose = { appInfoViewModel.showLicenses.value = false }) {
-                    Text(i18n.appInfoLicenses())
-                }
-                RovingFocusContainer {
-                    val focusContainer = LocalRovingFocus.current
-                    AdaptiveDialogScrollContent(scrollState = lazyListState) {
-                        LazyColumn(
-                            modifier = Modifier.verticalRovingFocus(
-                                default = defaultItem,
-                                scroll = { item ->
-                                    val index = references.indexOf(item)
-                                    if (index != -1) {
-                                        lazyListState.scrollToItem(index)
-                                    }
-                                },
-                                up = {
-                                    val currentItem = activeRef.value ?: defaultItem
-                                    val currentIndex = references.indexOf(currentItem)
-                                    val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
-                                    references[nextIndex]
-                                },
-                                down = {
-                                    val currentItem = activeRef.value ?: defaultItem
-                                    val currentIndex = references.indexOf(currentItem)
-                                    val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
-                                    references[nextIndex]
-                                },
-                            ),
-                            verticalArrangement = Arrangement.spacedBy(style.dimensions.itemSpacing),
-                            state = lazyListState,
-                        ) {
-                            items(libraries.libraries) { library ->
-                                RovingFocusItem(library.uniqueId, defaultItem) {
-                                    val interactionSource = remember { MutableInteractionSource() }
-                                    val focusItem = LocalRovingFocusItem.current
-                                    LibraryItem(
-                                        library = library,
-                                        modifier = Modifier
-                                            .focusHighlighting(interactionSource)
-                                            .rovingFocusItem()
-                                            .clickable(interactionSource, LocalIndication.current) {
-                                                openLibrary = library
-                                                focusContainer?.selectItem(focusItem?.key, shouldFocus = true)
-                                            }.buttonPointerModifier(),
-                                        style = style,
-                                    )
+    val i18n = DI.get<I18nView>()
+    val licences = DI.get<MatrixMessengerConfiguration>().licenses
+    if (licences != null) {
+        val lazyListState = rememberLazyListState()
+        val libraries = remember(licences) { Libs.Builder().withJson(licences).build() }
+        val references = remember(libraries) { libraries.libraries.map { it.uniqueId } }
+        val defaultItem = references.firstOrNull()
+        var openLibrary by remember { mutableStateOf<Library?>(null) }
+
+        ThemedAdaptiveDialog(onClose) {
+            AdaptiveDialogHeader(onClose = onClose) {
+                Text(i18n.appInfoLicenses())
+            }
+            RovingFocusContainer {
+                val focusContainer = LocalRovingFocus.current
+                AdaptiveDialogScrollContent(scrollState = lazyListState) {
+                    LazyColumn(
+                        modifier = Modifier.verticalRovingFocus(
+                            default = defaultItem,
+                            scroll = { item ->
+                                val index = references.indexOf(item)
+                                if (index != -1) {
+                                    lazyListState.scrollToItem(index)
                                 }
+                            },
+                            up = {
+                                val currentItem = activeRef.value ?: defaultItem
+                                val currentIndex = references.indexOf(currentItem)
+                                val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
+                                references[nextIndex]
+                            },
+                            down = {
+                                val currentItem = activeRef.value ?: defaultItem
+                                val currentIndex = references.indexOf(currentItem)
+                                val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
+                                references[nextIndex]
+                            },
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(style.dimensions.itemSpacing),
+                        state = lazyListState,
+                    ) {
+                        items(libraries.libraries) { library ->
+                            RovingFocusItem(library.uniqueId, defaultItem) {
+                                val interactionSource = remember { MutableInteractionSource() }
+                                val focusItem = LocalRovingFocusItem.current
+                                LibraryItem(
+                                    library = library,
+                                    modifier = Modifier
+                                        .focusHighlighting(interactionSource)
+                                        .rovingFocusItem()
+                                        .clickable(interactionSource, LocalIndication.current) {
+                                            openLibrary = library
+                                            focusContainer?.selectItem(focusItem?.key, shouldFocus = true)
+                                        }.buttonPointerModifier(),
+                                    style = style,
+                                )
                             }
                         }
                     }
                 }
             }
-            openLibrary?.let { library ->
-                ThemedAdaptiveDialog({ openLibrary = null }) {
-                    AdaptiveDialogHeader(onClose = { openLibrary = null }) {
-                        Text(library.name)
-                    }
-                    AdaptiveDialogScrollContent {
-                        Text(library.licenses.firstOrNull()?.licenseContent ?: "")
-                    }
+        }
+        openLibrary?.let { library ->
+            ThemedAdaptiveDialog({ openLibrary = null }) {
+                AdaptiveDialogHeader(onClose = { openLibrary = null }) {
+                    Text(library.name)
+                }
+                AdaptiveDialogScrollContent {
+                    Text(library.licenses.firstOrNull()?.licenseContent ?: "")
                 }
             }
         }

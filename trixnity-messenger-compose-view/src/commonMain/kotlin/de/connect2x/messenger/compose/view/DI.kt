@@ -246,6 +246,8 @@ import de.connect2x.messenger.compose.view.settings.BlockedContactsSettingsView
 import de.connect2x.messenger.compose.view.settings.BlockedContactsSettingsViewImpl
 import de.connect2x.messenger.compose.view.settings.DevicesSettingsView
 import de.connect2x.messenger.compose.view.settings.DevicesSettingsViewImpl
+import de.connect2x.messenger.compose.view.settings.LegalFooterView
+import de.connect2x.messenger.compose.view.settings.LegalFooterViewImpl
 import de.connect2x.messenger.compose.view.settings.NotificationsSettingsView
 import de.connect2x.messenger.compose.view.settings.NotificationsSettingsViewImpl
 import de.connect2x.messenger.compose.view.settings.PrivacySettingsView
@@ -374,6 +376,7 @@ fun connectingViewModule() = module {
     single<MatrixClientInitializationFailureView> { MatrixClientInitializationFailureViewImpl() }
     single<AdditionalConnectingWizardStep> { AdditionalConnectingWizardStepImpl() }
     single<SyncOverlayView> { SyncOverlayViewImpl() }
+    single<LegalFooterView> { LegalFooterViewImpl() }
 }
 
 fun filesViewModule() = module {
