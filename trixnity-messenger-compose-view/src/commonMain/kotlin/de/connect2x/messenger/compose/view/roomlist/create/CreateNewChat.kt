@@ -54,6 +54,8 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
+import de.connect2x.messenger.compose.view.util.getNextItem
+import de.connect2x.messenger.compose.view.util.getPreviousItem
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -97,10 +99,8 @@ class CreateNewChatViewImpl : CreateNewChatView {
                     val focusContainer = LocalRovingFocus.current
                     val currentRef = focusContainer?.activeRef?.value
                     LaunchedEffect(references) {
-                        if (currentRef != null) {
-                            if (!references.contains(currentRef)) {
-                                focusContainer.activeRef.value = defaultItem
-                            }
+                        if (currentRef != null && !references.contains(currentRef)) {
+                            focusContainer.activeRef.value = defaultItem
                         }
                     }
 
@@ -112,16 +112,10 @@ class CreateNewChatViewImpl : CreateNewChatView {
                             }
                         },
                         up = {
-                            val currentItem = activeRef.value ?: defaultItem
-                            val currentIndex = references.indexOf(currentItem)
-                            val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
-                            references[nextIndex]
+                            focusContainer?.getPreviousItem(defaultItem, references)
                         },
                         down = {
-                            val currentItem = activeRef.value ?: defaultItem
-                            val currentIndex = references.indexOf(currentItem)
-                            val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
-                            references[nextIndex]
+                            focusContainer?.getNextItem(defaultItem, references)
                         },
                     )
 

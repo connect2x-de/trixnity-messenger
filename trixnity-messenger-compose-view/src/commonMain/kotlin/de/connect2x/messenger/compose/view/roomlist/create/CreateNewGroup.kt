@@ -142,10 +142,8 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                         val focusContainer = LocalRovingFocus.current
                         val currentRef = focusContainer?.activeRef?.value
                         LaunchedEffect(references) {
-                            if (currentRef != null) {
-                                if (!references.contains(currentRef)) {
-                                    focusContainer.activeRef.value = defaultItem
-                                }
+                            if (currentRef != null && !references.contains(currentRef)) {
+                                focusContainer.activeRef.value = defaultItem
                             }
                         }
                         val scroll: suspend CoroutineScope.(Any?) -> Unit = { item ->
