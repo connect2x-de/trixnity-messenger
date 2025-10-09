@@ -7,12 +7,15 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
+import de.connect2x.messenger.compose.view.common.LazyRovingFocusColumn
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.search.SearchResultState
 import de.connect2x.messenger.compose.view.search.UserSearchResultListView
@@ -20,7 +23,6 @@ import de.connect2x.messenger.compose.view.search.collectUserSearchResult
 import de.connect2x.messenger.compose.view.search.searchUsersLocally
 import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
-import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModel
 
@@ -50,44 +52,20 @@ class SearchUsersSettingsViewImpl : SearchUsersSettingsView {
         val userSearchResultList = DI.get<UserSearchResultListView>()
         val userSearchResults = collectUserSearchResult(potentialMembersViewModel.searchHandler)
         val selectedUsers = potentialMembersViewModel.searchHandler.selectedUsers.collectAsState()
-        val references = remember(userSearchResults) {
-            derivedStateOf {
-                (userSearchResults as? SearchResultState.Results)?.users?.map { it.userId.full }
-                    ?.minus(selectedUsers.value.map { it.userId }.toSet())
+        var references by remember { mutableStateOf(listOf<String>()) }
+        LaunchedEffect(userSearchResults) {
+            if (userSearchResults is SearchResultState.Results) {
+                references = userSearchResults.users.map { it.userId.full }
+                    .minus(selectedUsers.value.map { it.userId.full }.toSet())
             }
-        }.value
-        val defaultItem = references?.firstOrNull()
+        }
+        val defaultItem = references.firstOrNull()
 
         Box {
             RovingFocusContainer {
                 val focusContainer = LocalRovingFocus.current
 
-                val focusModifier = if (references != null) Modifier.verticalRovingFocus(
-                    default = defaultItem,
-                    scroll = { item ->
-                        val index = references.indexOf(item)
-                        if (index != -1) {
-                            listState.scrollToItem(index)
-                        }
-                    },
-                    up = {
-                        val currentItem = activeRef.value ?: defaultItem
-                        val currentIndex = references.indexOf(currentItem)
-                        val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
-                        references[nextIndex]
-                    },
-                    down = {
-                        val currentItem = activeRef.value ?: defaultItem
-                        val currentIndex = references.indexOf(currentItem)
-                        val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
-                        references[nextIndex]
-                    },
-                ) else Modifier
-
-                LazyColumn(
-                    modifier = Modifier.then(focusModifier),
-                    state = listState,
-                ) {
+                LazyRovingFocusColumn(defaultItem, references, listState, focusContainer) {
                     searchUsersLocally(
                         potentialMembersViewModel.searchHandler,
                         {
