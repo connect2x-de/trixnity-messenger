@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.compose.view.components
+package de.connect2x.trixnity.messenger.compose.view.theme.components
 
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -7,7 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.toArgb
-import de.connect2x.trixnity.messenger.compose.view.theme.components.SystemUiStyle
 
 @Composable
 actual fun ApplySystemUiTheme(style: SystemUiStyle) {

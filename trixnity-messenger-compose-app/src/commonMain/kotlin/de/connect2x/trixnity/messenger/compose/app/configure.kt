@@ -55,7 +55,6 @@ fun MatrixMultiMessengerConfiguration.configure() {
     messengerConfiguration {
         modulesFactories += { composeViewModule(this) }
         defaultHomeServer = "demo.timmy-messenger.de"
-        databaseEncryptionEnabled = false
     }
 }
 
