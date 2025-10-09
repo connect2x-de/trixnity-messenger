@@ -27,7 +27,6 @@ class OnNewTokenWorker(
                 .setConstraints(
                     Constraints.Builder()
                         .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .setRequiresBatteryNotLow(true)
                         .build()
                 )
                 .build()
@@ -38,7 +37,7 @@ class OnNewTokenWorker(
 
     override suspend fun doWork(): Result {
         val pushKey = inputData.getString("pushKey") ?: return Result.failure()
-        withFirebasePushNotificationProvider(context) {
+        withFcmPushNotificationProviderPushKeyUpdater(context) {
             it.onPushKeyUpdate(pushKey)
         }
         return Result.success()

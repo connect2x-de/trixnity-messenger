@@ -166,13 +166,13 @@ polling would be also a szenario. There are a few default implementations:
 
 - `NoOpNotificationProvider` does nothing and can be used when no other provider is needed (usually on Desktop).
 - `PushNotificationProvider` can be inherited to implement a push based notification provider.
-    - `FirebasePushNotificationProvider` (dependency `de.connect2x:trixnity-messenger-notification-firebase`)
+    - `FcmPushNotificationProvider` (dependency `de.connect2x:trixnity-messenger-notification-fcm`)
     - `ApnPushNotificationProvider` (dependency `de.connect2x:trixnity-messenger-notification-apn`)
 
 To set a notification provider, a DSL in `MatrixMessengerConfiguration` can be used. For example:
 
 ```kotlin
-addFirebasePushNotificationProvider()
+addFcmPushNotificationProvider()
 ```
 
 ### Adjusting the log level

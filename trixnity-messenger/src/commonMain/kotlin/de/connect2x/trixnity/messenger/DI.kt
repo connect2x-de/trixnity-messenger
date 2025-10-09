@@ -174,7 +174,6 @@ import net.folivo.trixnity.client.ModuleFactory
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
 import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
 import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
-import org.intellij.markdown.flavours.MarkdownFlavourDescriptor
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named

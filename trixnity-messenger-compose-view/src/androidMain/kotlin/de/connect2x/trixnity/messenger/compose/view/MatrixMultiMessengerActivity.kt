@@ -16,14 +16,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.core.net.toUri
 import com.arkivanov.decompose.defaultComponentContext
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.MatrixMultiMessengerServiceConnection
 import de.connect2x.trixnity.messenger.compose.view.profiles.Profiles
 import de.connect2x.trixnity.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.trixnity.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.trixnity.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.trixnity.messenger.compose.view.theme.MessengerTheme
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.MatrixMultiMessengerService
-import de.connect2x.trixnity.messenger.SingletonServiceConnection
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.defaultActivityGetter
 import de.connect2x.trixnity.messenger.util.defaultSharedDataHandler
@@ -40,8 +39,7 @@ import kotlinx.coroutines.withContext
 
 class MatrixMultiMessengerActivity : AppCompatActivity() {
     private val log = KotlinLogging.logger { }
-    private val matrixMultiMessengerServiceConnection =
-        SingletonServiceConnection(MatrixMultiMessengerService::class.java)
+    private val matrixMultiMessengerServiceConnection = MatrixMultiMessengerServiceConnection()
     private val scope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, exception ->
         log.error(exception) { "Exception in MatrixMultiMessengerActivity coroutine" }
     })

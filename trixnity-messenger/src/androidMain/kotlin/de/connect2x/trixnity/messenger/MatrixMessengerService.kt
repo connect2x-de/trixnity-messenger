@@ -21,10 +21,15 @@ class MatrixMessengerService : SingletonService<MatrixMessenger>(
     }
 }
 
+class MatrixMessengerServiceConnection :
+    SingletonServiceConnection<MatrixMessenger, MatrixMessengerService>(MatrixMessengerService::class.java)
+
 fun isMatrixMessengerServiceEnabled(context: Context) =
-    context.packageManager.getComponentEnabledSetting(ComponentName(context, MatrixMessengerService::class.java)).let {
-        it == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT ||
-                it == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+    try {
+        context.packageManager.getServiceInfo(ComponentName(context, MatrixMessengerService::class.java), 0)
+            .enabled
+    } catch (_: PackageManager.NameNotFoundException) {
+        false
     }
 
 suspend fun <T> withMatrixMessengerFromService(
@@ -32,7 +37,10 @@ suspend fun <T> withMatrixMessengerFromService(
     block: suspend (matrixMessenger: MatrixMessenger) -> T
 ): T =
     when {
-        isMatrixMessengerServiceEnabled(context) -> withSingletonService(context, block)
+        isMatrixMessengerServiceEnabled(context) -> {
+            withSingletonService<T, MatrixMessenger, MatrixMessengerService>(context, block)
+        }
+
         isMatrixMultiMessengerServiceEnabled(context) ->
             withSingletonService<T, MatrixMultiMessenger, MatrixMultiMessengerService>(context) { matrixMultiMessenger ->
                 if (matrixMultiMessenger.activeProfile.value == null)

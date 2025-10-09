@@ -17,7 +17,6 @@ fun MatrixMultiMessengerConfiguration.configure() {
     appId = BuildConfig.appId
     privacyInfo = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
     imprint = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
-    pushUrl = "https://sygnal.demo.timmy-messenger.de/_matrix/push/v1/notify"
     licenses = BuildConfig.licenses
     sendLogsEmailAddress = null
     urlProtocol = BuildConfig.appId

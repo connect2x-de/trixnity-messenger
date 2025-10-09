@@ -8,7 +8,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettings
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.multi.update
 import de.connect2x.trixnity.messenger.settings.NestedSettingsView
 import de.connect2x.trixnity.messenger.settings.SettingsView
 import de.connect2x.trixnity.messenger.settings.settingsView
@@ -21,7 +20,6 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -42,9 +40,8 @@ import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.utils.retry
-import kotlin.time.Duration.Companion.minutes
 
-private val log = KotlinLogging.logger("de.connect2x.trixnity.messenger.notification.PushNotificationProviderImpl")
+private val log = KotlinLogging.logger {}
 
 @Serializable
 @NestedSettingsView("notification", "provider", "push")
@@ -74,6 +71,11 @@ data class MatrixMessengerAccountNotificationProviderPushSettings(
 val MatrixMessengerAccountSettings.notificationProviderPush
         by settingsView<MatrixMessengerAccountSettings, MatrixMessengerAccountNotificationProviderPushSettings>()
 
+/**
+ * Basic implementation for push-based notifications.
+ *
+ * For it to work, you must implement and use [PushNotificationProviderPushKeyUpdater] too.
+ */
 abstract class PushNotificationProvider(
     private val config: MatrixMessengerConfiguration,
     private val multiSettings: MatrixMultiMessengerSettingsHolder?,
@@ -82,11 +84,10 @@ abstract class PushNotificationProvider(
     private val matrixClients: MatrixClients,
     coroutineScope: CoroutineScope,
 ) : NotificationProvider, Worker {
-
     private val currentPushKey =
         (multiSettings?.map { it.notificationProviderPush.pushKey }
             ?: settings.map { it.notificationProviderPush.pushKey })
-            .shareIn(coroutineScope, SharingStarted.WhileSubscribed(1.minutes, 1.minutes), replay = 1)
+            .shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
 
     override suspend fun doWork() {
         deliverPushKeys()
@@ -115,6 +116,7 @@ abstract class PushNotificationProvider(
             coroutineScope {
                 for ((account, currentSettings) in accountsWithUndeliveredPushKey) {
                     launch {
+                        log.debug { "try set pusher for $account ($profile)" }
                         retry(
                             onError = { error, delay -> log.warn(error) { "could not set pusher for $account, retry again in $delay" } }
                         ) {
@@ -133,6 +135,7 @@ abstract class PushNotificationProvider(
                                 it.copy(deliveredPushKey = if (currentSettings.enabled) currentPushKey else null)
                             }
                         }
+                        log.debug { "finished set pusher for $account ($profile)" }
                     }
                 }
             }
@@ -172,6 +175,7 @@ abstract class PushNotificationProvider(
     suspend fun possiblySyncAndProcessPending() {
         waitForStartup()
         updateMutex.withLock {
+            log.debug { "possible sync and process pending notifications" }
             coroutineScope {
                 matrixClients.value.values.forEach { matrixClient ->
                     if (!matrixClient.initialSyncDone.value) return@forEach
@@ -184,6 +188,7 @@ abstract class PushNotificationProvider(
                     }
                 }
             }
+            log.debug { "finished possible sync and process pending notifications" }
         }
     }
 
@@ -192,12 +197,20 @@ abstract class PushNotificationProvider(
      */
     suspend fun processPending(profile: String?, account: UserId?) {
         waitForStartup()
+        log.debug { "process pending notifications" }
         when {
-            multiSettings?.value?.base?.activeProfile != profile -> return
+            profile != null && multiSettings?.value?.base?.activeProfile != profile -> return
             account != null -> matrixClients.value[account]?.notification?.processPending()
-            else -> matrixClients.value.values
-                .map { matrixClient -> matrixClient.notification.processPending() }
+            else -> coroutineScope {
+                matrixClients.value.values
+                    .forEach { matrixClient ->
+                        launch {
+                            matrixClient.notification.processPending()
+                        }
+                    }
+            }
         }
+        log.debug { "finished process pending notifications" }
     }
 
     /**
@@ -205,27 +218,13 @@ abstract class PushNotificationProvider(
      */
     suspend fun onPush(profile: String?, account: UserId?, roomId: RoomId, eventId: EventId?): Boolean {
         waitForStartup()
+        log.debug { "got push notification" }
         return when {
             multiSettings?.value?.base?.activeProfile != profile -> true
             account != null -> matrixClients.value[account]?.notification?.onPush(roomId, eventId) ?: true
             else -> matrixClients.value.values
                 .map { matrixClient -> matrixClient.notification.onPush(roomId, eventId) }
                 .any { it }
-        }
-    }
-
-    /**
-     * This must be called, when the push key changed.
-     */
-    suspend fun onPushKeyUpdate(pushKey: String) {
-        if (multiSettings != null) {
-            multiSettings.update<MatrixMultiMessengerNotificationProviderPushSettings> {
-                it.copy(pushKey = pushKey)
-            }
-        } else {
-            settings.update<MatrixMessengerNotificationProviderPushSettings> {
-                it.copy(pushKey = pushKey)
-            }
         }
     }
 
@@ -244,9 +243,12 @@ abstract class PushNotificationProvider(
     }
 
     private suspend fun enableOrDisableService() {
-        if (settings.value.base.accounts.values.all { it.notificationProviderPush.enabled }) {
+        val enabled = settings.value.base.accounts.values.any { account -> account.notificationProviderPush.enabled }
+        if (enabled) {
+            log.info { "enable push service" }
             enableService()
         } else {
+            log.info { "disable push service" }
             disableService()
         }
     }
@@ -258,7 +260,7 @@ abstract class PushNotificationProvider(
             ?: return Result.failure(IllegalStateException("cannot set pusher, because MatrixClient not present"))
         return matrixClient.api.push.setPushers(
             SetPushers.Request.Set(
-                appId = config.appId,
+                appId = config.pushAppId ?: config.appId,
                 appDisplayName = config.appName,
                 data = PusherData(
                     url = pushUrl,
@@ -278,7 +280,7 @@ abstract class PushNotificationProvider(
     private suspend fun removePusher(userId: UserId, pushKey: String): Result<Unit> =
         matrixClients.value[userId]?.api?.push?.setPushers(
             SetPushers.Request.Remove(
-                appId = config.appId,
+                appId = config.pushAppId ?: config.appId,
                 pushkey = pushKey,
             )
         ) ?: Result.success(Unit)

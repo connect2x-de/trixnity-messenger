@@ -22,7 +22,6 @@ interface MatrixMessengerBaseConfiguration {
      */
     var imprint: String?
     var licenses: String?
-    var pushUrl: String?
     var isDebugEnabled: Boolean
 
     var httpClientEngine: HttpClientEngine?
@@ -38,7 +37,6 @@ interface MatrixMessengerBaseConfiguration {
         other.privacyInfo = privacyInfo
         other.imprint = imprint
         other.licenses = licenses
-        other.pushUrl = pushUrl
         other.isDebugEnabled = isDebugEnabled
         other.httpClientEngine = httpClientEngine
         other.httpClientConfig = httpClientConfig

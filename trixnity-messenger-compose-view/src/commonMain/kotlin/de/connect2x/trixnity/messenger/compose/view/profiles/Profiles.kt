@@ -14,8 +14,8 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettings
 import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModelImpl
-import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 
 
 interface ProfilesView {
@@ -79,6 +79,12 @@ fun createOrSelectManualUserProfile(
 @Composable
 fun createAndUseDefaultUserProfile(matrixMultiMessenger: MatrixMultiMessenger) {
     LaunchedEffect(Unit) {
-        matrixMultiMessenger.singleModeMatrixMessenger().first()
+        withContext(NonCancellable) {
+            if (matrixMultiMessenger.activeProfile.value == null) {
+                val profile = matrixMultiMessenger.profiles.value.keys.firstOrNull()
+                    ?: matrixMultiMessenger.createProfile()
+                matrixMultiMessenger.selectProfile(profile)
+            }
+        }
     }
 }

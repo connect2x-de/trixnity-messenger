@@ -23,6 +23,18 @@ class SyncAndProcessPendingWorker(
             "de.connect2x.trixnity.messenger.notification.fcm.SyncAndProcessPendingInterval"
 
         fun enqueueUniquePeriodicWork(context: Context) {
+            val serviceEnabled =
+                try {
+                    context.packageManager.getServiceInfo(
+                        ComponentName(
+                            context,
+                            TrixnityMessengerFirebaseMessagingService::class.java
+                        ), 0
+                    ).enabled
+                } catch (_: PackageManager.NameNotFoundException) {
+                    false
+                }
+            if (serviceEnabled.not()) return
             val interval = context.packageManager.getServiceInfo(
                 ComponentName(context, TrixnityMessengerFirebaseMessagingService::class.java),
                 PackageManager.GET_META_DATA
@@ -45,9 +57,9 @@ class SyncAndProcessPendingWorker(
     }
 
     override suspend fun doWork(): Result {
-        withFirebasePushNotificationProvider(context) {
+        withFcmPushNotificationProvider(context) {
             if (it.isEnabled.value) it.possiblySyncAndProcessPending()
-            else stopUniquePeriodicWork(context)
+            else stopUniquePeriodicWork(context) // BroadcastReceiver may not know that we are not active
         }
 
         return Result.success()

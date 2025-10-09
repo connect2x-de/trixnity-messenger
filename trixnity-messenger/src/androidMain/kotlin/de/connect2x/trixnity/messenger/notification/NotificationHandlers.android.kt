@@ -7,6 +7,7 @@ import de.connect2x.sysnotify.withActivationFactory
 import de.connect2x.sysnotify.withActivity
 import de.connect2x.sysnotify.withContext
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.util.ActivityGetter
 import de.connect2x.trixnity.messenger.util.ContextGetter
 import org.koin.core.module.Module
@@ -19,7 +20,8 @@ actual fun platformNotificationHandlersModule(): Module = module {
         NotificationHandlersImpl(
             config = config,
             notificationProviders = get(),
-            multiSettings = getOrNull()
+            multiSettings = getOrNull(),
+            matrixClients = get(),
         ) { name, id, isDebugEnabled, appId ->
             NotificationHandler(
                 name = name,
@@ -35,5 +37,8 @@ actual fun platformNotificationHandlersModule(): Module = module {
                     )
                 }
         }
-    }.bind<AutoCloseable>()
+    }.apply {
+        bind<AutoCloseable>()
+        bind<Worker>()
+    }
 }

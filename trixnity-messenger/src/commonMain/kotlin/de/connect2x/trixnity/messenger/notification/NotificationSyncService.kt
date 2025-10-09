@@ -67,8 +67,8 @@ class NotificationSyncService(
             }) {
                 it.toList()
             }
-        }.scopedCollectLatest { syncNotificationsForAccountDatas ->
-            syncNotificationsForAccountDatas.forEach { syncNotificationsForAccount ->
+        }.scopedCollectLatest { syncNotificationsForAccountData ->
+            syncNotificationsForAccountData.forEach { syncNotificationsForAccount ->
                 launch {
                     syncNotificationsForAccount(
                         notificationSettings = syncNotificationsForAccount.notificationSettings,
@@ -123,6 +123,7 @@ class NotificationSyncService(
         when (this) {
             is NotificationUpdate.New -> {
                 val notificationData = content.toNotificationData(matrixClient)
+                log.debug { "push new notification in system (tag=$id)" }
                 notificationHandler.push(
                     tag = id,
                     notification = Notification(
@@ -136,6 +137,7 @@ class NotificationSyncService(
 
             is NotificationUpdate.Update -> {
                 val notificationData = content.toNotificationData(matrixClient)
+                log.debug { "update notification in system (tag=$id)" }
                 notificationHandler.update(
                     tag = id,
                     notification = Notification(
@@ -148,6 +150,7 @@ class NotificationSyncService(
             }
 
             is NotificationUpdate.Remove -> {
+                log.debug { "remove notification in system (tag=$id)" }
                 notificationHandler.pop(tag = id)
             }
         }

@@ -7,5 +7,9 @@ fun main(args: Array<String>) {
     startMultiMessenger(args) {
         configure()
         addApnsPushNotificationProvider()
+        messengerConfiguration {
+            pushUrl = "https://sygnal.demo.timmy-messenger.de/_matrix/push/v1/notify"
+            pushAppId = "$appId.apns"
+        }
     }
 }

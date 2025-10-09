@@ -2,12 +2,15 @@ package de.connect2x.trixnity.messenger.notification.apns
 
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerService
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.MatrixMultiMessengerService
+import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.notification.NotificationProvider
-import de.connect2x.trixnity.messenger.notification.NotificationProviders
 import de.connect2x.trixnity.messenger.notification.PushNotificationProvider
+import de.connect2x.trixnity.messenger.notification.PushNotificationProviderPushKeyUpdater
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.withMatrixMessengerFromService
 import kotlinx.coroutines.CoroutineScope
@@ -74,7 +77,7 @@ class ApnsPushNotificationProvider(
         override fun application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken: NSData) {
             val pushKey = didRegisterForRemoteNotificationsWithDeviceToken.toByteString().toHexString()
             runBlocking {
-                withApnsPushNotificationProvider {
+                withApnsPushNotificationProviderPushKeyUpdater {
                     it.onPushKeyUpdate(pushKey)
                 }
             }
@@ -90,13 +93,11 @@ class ApnsPushNotificationProvider(
             val roomId = (didReceiveRemoteNotification["room_id"] as? String)?.let(::RoomId)
             val eventId = (didReceiveRemoteNotification["event_id"] as? String)?.let(::EventId)
             if (roomId != null) {
-                runBlocking {
+                runBlocking { // FIXME should be a background task
                     withApnsPushNotificationProvider {
-                        it.onPush(profile, account, roomId, eventId)
+                        val didAlreadyProcessOnPush = it.onPush(profile, account, roomId, eventId)
+                        if (!didAlreadyProcessOnPush) it.processPending(profile, account)
                     }
-                }
-                if (!didAlreadyProcessOnPush) {
-                    // FIXME enqueue process pending
                 }
             }
             fetchCompletionHandler(UIBackgroundFetchResult.UIBackgroundFetchResultNoData)
@@ -107,52 +108,58 @@ class ApnsPushNotificationProvider(
 internal suspend fun <T> withApnsPushNotificationProvider(
     block: suspend (ApnsPushNotificationProvider) -> T
 ): T = withMatrixMessengerFromService {
-    val apnsPushNotificationProvider = it.di.get<NotificationProviders>()
-        .first { it is ApnsPushNotificationProvider } as? ApnsPushNotificationProvider
-    if (apnsPushNotificationProvider != null) block(apnsPushNotificationProvider)
-    else throw IllegalStateException("ApnsPushNotificationProvider not found in DI")
+    val apnsPushNotificationProvider = it.di.get<ApnsPushNotificationProvider>()
+    block(apnsPushNotificationProvider)
+}
+
+internal suspend fun <T> withApnsPushNotificationProviderPushKeyUpdater(
+    block: suspend (PushNotificationProviderPushKeyUpdater) -> T
+): T {
+    val matrixMultiMessenger = MatrixMultiMessengerService.get()
+    if (matrixMultiMessenger != null) {
+        return block(matrixMultiMessenger.di.get<PushNotificationProviderPushKeyUpdater>())
+    } else {
+        val matrixMessenger = MatrixMessengerService.get()
+            ?: throw IllegalStateException("no service enabled")
+        return block(matrixMessenger.di.get<PushNotificationProviderPushKeyUpdater>())
+    }
+}
+
+private fun apnsPushNotificationProviderModule() = module {
+    single<ApnsPushNotificationProvider> {
+        ApnsPushNotificationProvider(
+            config = get(),
+            multiSettings = getOrNull(),
+            settings = get(),
+            getDefaultDeviceDisplayName = get(),
+            matrixClients = get(),
+            coroutineScope = get(),
+        )
+    }.apply {
+        bind<NotificationProvider>()
+        bind<Worker>()
+    }
+}
+
+private fun apnsPushNotificationProviderPushKeyUpdaterModule() = module {
+    single { PushNotificationProviderPushKeyUpdater(getOrNull(), getOrNull()) }
+}
+
+private fun apnsPushNotificationProviderUIApplicationDelegateModule() = module {
+    single(named<ApnsPushNotificationProvider.UIApplicationDelegate>()) { ApnsPushNotificationProvider.UIApplicationDelegate() }
+        .bind<UIApplicationDelegateProtocol>()
 }
 
 fun MatrixMultiMessengerConfiguration.addApnsPushNotificationProvider() {
-    modulesFactories += {
-        module {
-            single(named<ApnsPushNotificationProvider.UIApplicationDelegate>()) { ApnsPushNotificationProvider.UIApplicationDelegate() }
-                .bind<UIApplicationDelegateProtocol>()
-        }
-    }
+    modulesFactories += ::apnsPushNotificationProviderUIApplicationDelegateModule
+    modulesFactories += ::apnsPushNotificationProviderPushKeyUpdaterModule
     messengerConfiguration {
-        modulesFactories += {
-            module {
-                single<ApnsPushNotificationProvider>(named<ApnsPushNotificationProvider>()) {
-                    ApnsPushNotificationProvider(
-                        config = get(),
-                        multiSettings = getOrNull(),
-                        settings = get(),
-                        getDefaultDeviceDisplayName = get(),
-                        matrixClients = get(),
-                        coroutineScope = get(),
-                    )
-                }.bind<NotificationProvider>()
-            }
-        }
+        modulesFactories += ::apnsPushNotificationProviderModule
     }
 }
 
 fun MatrixMessengerConfiguration.addApnsPushNotificationProvider() {
-    modulesFactories += {
-        module {
-            single(named<ApnsPushNotificationProvider.UIApplicationDelegate>()) { ApnsPushNotificationProvider.UIApplicationDelegate() }
-                .bind<UIApplicationDelegateProtocol>()
-            single<ApnsPushNotificationProvider>(named<ApnsPushNotificationProvider>()) {
-                ApnsPushNotificationProvider(
-                    config = get(),
-                    multiSettings = getOrNull(),
-                    settings = get(),
-                    getDefaultDeviceDisplayName = get(),
-                    matrixClients = get(),
-                    coroutineScope = get(),
-                )
-            }.bind<NotificationProvider>()
-        }
-    }
+    modulesFactories += ::apnsPushNotificationProviderUIApplicationDelegateModule
+    modulesFactories += ::apnsPushNotificationProviderPushKeyUpdaterModule
+    modulesFactories += ::apnsPushNotificationProviderModule
 }

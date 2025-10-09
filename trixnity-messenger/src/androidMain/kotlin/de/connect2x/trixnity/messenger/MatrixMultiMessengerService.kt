@@ -20,16 +20,22 @@ class MatrixMultiMessengerService : SingletonService<MatrixMultiMessenger>(
     }
 }
 
+class MatrixMultiMessengerServiceConnection :
+    SingletonServiceConnection<MatrixMultiMessenger, MatrixMultiMessengerService>(MatrixMultiMessengerService::class.java)
+
+
 fun isMatrixMultiMessengerServiceEnabled(context: Context) =
-    context.packageManager.getComponentEnabledSetting(ComponentName(context, MatrixMultiMessengerService::class.java))
-        .let {
-            it == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT ||
-                    it == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-        }
+    try {
+        context.packageManager.getServiceInfo(ComponentName(context, MatrixMultiMessengerService::class.java), 0)
+            .enabled
+    } catch (_: PackageManager.NameNotFoundException) {
+        false
+    }
 
 suspend fun <T> withMatrixMultiMessengerFromService(
     context: Context,
     block: suspend (matrixMultiMessenger: MatrixMultiMessenger) -> T
 ): T =
-    if (isMatrixMessengerServiceEnabled(context)) withSingletonService(context, block)
+    if (isMatrixMultiMessengerServiceEnabled(context))
+        withSingletonService<T, MatrixMultiMessenger, MatrixMultiMessengerService>(context, block)
     else throw IllegalStateException("MatrixMultiMessengerService is not enabled")

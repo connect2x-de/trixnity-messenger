@@ -12,8 +12,7 @@ plugins {
     alias(sharedLibs.plugins.compose.multiplatform)
     alias(sharedLibs.plugins.compose.compiler)
     alias(sharedLibs.plugins.aboutLibraries.plugin)
-    // TODO active when you want to use google-services for notifications (needs google-services.json)
-    // alias(sharedLibs.plugins.google.services)
+    alias(sharedLibs.plugins.google.services)
 }
 
 configureJava(sharedLibs.versions.targetJvm)
@@ -138,7 +137,7 @@ kotlin {
         }
         androidMain {
             dependencies {
-                implementation(projects.trixnityMessenger.trixnityMessengerNotificationFirebase)
+                implementation(projects.trixnityMessenger.trixnityMessengerNotificationFcm)
                 implementation(compose.uiTooling)
                 implementation(sharedLibs.androidx.appcompat)
                 implementation(sharedLibs.androidx.work.runtime.ktx)
@@ -199,7 +198,7 @@ compose {
 }
 
 android {
-    namespace = "${appId}.android"
+    namespace = appId
     compileSdk = sharedLibs.versions.androidCompileSDK.get().toInt()
     buildFeatures {
         compose = true

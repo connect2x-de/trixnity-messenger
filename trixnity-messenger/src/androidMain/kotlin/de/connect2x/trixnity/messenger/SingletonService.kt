@@ -77,7 +77,7 @@ open class SingletonService<I : AutoCloseable>(
     }
 }
 
-class SingletonServiceConnection<I : AutoCloseable, S : SingletonService<I>>(
+open class SingletonServiceConnection<I : AutoCloseable, S : SingletonService<I>>(
     private val singletonServiceClass: Class<S>,
 ) : ServiceConnection {
     private val log = KotlinLogging.logger { }
@@ -89,7 +89,7 @@ class SingletonServiceConnection<I : AutoCloseable, S : SingletonService<I>>(
     override fun onServiceConnected(className: ComponentName, rawBinder: IBinder) {
         @Suppress("UNCHECKED_CAST")
         val binder = rawBinder as SingletonService<I>.LocalBinder<I>
-        log.info { "bound ${singletonServiceClass.simpleName}" }
+        log.debug { "bound ${singletonServiceClass.simpleName}" }
         coroutineScope?.cancel()
         coroutineScope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, exception ->
             log.error(exception) { "Exception in ${singletonServiceClass.simpleName} connection coroutine" }
@@ -109,8 +109,6 @@ class SingletonServiceConnection<I : AutoCloseable, S : SingletonService<I>>(
 
     fun bind(context: Context) {
         val intent = Intent(context, singletonServiceClass)
-        log.debug { "start ${singletonServiceClass.simpleName}" }
-        context.startService(intent)
         log.debug { "bind ${singletonServiceClass.simpleName}" }
         context.bindService(intent, this, Context.BIND_AUTO_CREATE)
     }
@@ -126,8 +124,8 @@ private inline fun <T, reified I : AutoCloseable, reified S : SingletonService<I
     block: (connection: SingletonServiceConnection<I, S>) -> T
 ): T {
     val connection = SingletonServiceConnection(S::class.java)
+    connection.bind(context)
     return try {
-        connection.bind(context)
         block(connection)
     } finally {
         connection.unbind(context)

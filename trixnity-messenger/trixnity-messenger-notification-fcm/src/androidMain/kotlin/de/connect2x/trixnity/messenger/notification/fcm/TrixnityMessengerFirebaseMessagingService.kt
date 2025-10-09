@@ -4,8 +4,9 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import io.github.oshai.kotlinlogging.KotlinLogging
 
+private val log = KotlinLogging.logger { }
+
 class TrixnityMessengerFirebaseMessagingService : FirebaseMessagingService() {
-    private val log = KotlinLogging.logger { }
 
     override fun onCreate() {
         log.trace { "onCreate" }
