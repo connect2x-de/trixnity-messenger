@@ -52,6 +52,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
+import de.connect2x.messenger.compose.view.util.scrollIntoView
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -101,7 +102,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
                         scroll = { item ->
                             val index = references.indexOf(item)
                             if (index != -1) {
-                                listState.scrollToItem(index)
+                                listState.scrollIntoView(index)
                             }
                         },
                         up = {

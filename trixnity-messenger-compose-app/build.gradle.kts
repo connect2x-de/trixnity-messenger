@@ -202,6 +202,7 @@ android {
     }
     defaultConfig {
         minSdk = sharedLibs.versions.androidMinimalSDK.get().toInt()
+        targetSdk = sharedLibs.versions.androidTargetSDK.get().toInt()
         resValue("string", "app_name", appName)
         resValue("string", "scheme", appId)
     }

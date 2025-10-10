@@ -31,6 +31,7 @@ import de.connect2x.messenger.compose.view.util.LocalRovingFocusItem
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
 import de.connect2x.messenger.compose.view.util.rovingFocusItem
+import de.connect2x.messenger.compose.view.util.scrollIntoView
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
@@ -78,7 +79,7 @@ internal fun Licenses(onClose: () -> Unit) {
                             scroll = { item ->
                                 val index = references.indexOf(item)
                                 if (index != -1) {
-                                    lazyListState.scrollToItem(index)
+                                    lazyListState.scrollIntoView(index)
                                 }
                             },
                             up = {
