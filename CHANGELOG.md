@@ -12,9 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduce Worker to schedule work when messenger is started
 - Add a cancel button to abort the reject invitation dialog
 - Add a footer containing legal information to the login wizard
-- Explicitly draw system bars for edge to edge UI
+- Introduce new UI component for dropdown select
 
 ### Changed
+
+- Explicitly draw system bars for edge to edge UI
 
 ### Deprecated
 

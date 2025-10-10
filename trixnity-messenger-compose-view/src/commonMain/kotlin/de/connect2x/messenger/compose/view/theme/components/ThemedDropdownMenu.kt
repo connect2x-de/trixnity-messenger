@@ -47,6 +47,32 @@ fun ThemedDropdownMenu(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ExposedDropdownMenuBoxScope.ThemedExposedDropdownMenu(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    scrollState: ScrollState = rememberScrollState(),
+    matchTextFieldWidth: Boolean = true,
+    style: SurfaceStyle = MaterialTheme.components.dropdownMenu,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    ExposedDropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismissRequest,
+        modifier = modifier,
+        scrollState = scrollState,
+        matchTextFieldWidth = matchTextFieldWidth,
+        shape = style.shape,
+        containerColor = style.color,
+        tonalElevation = style.tonalElevation,
+        border = style.border,
+        shadowElevation = style.shadowElevation,
+        content = content,
+    )
+}
+
 @Immutable
 data class DropdownMenuItemStyle(
     val colors: MenuItemColors,
