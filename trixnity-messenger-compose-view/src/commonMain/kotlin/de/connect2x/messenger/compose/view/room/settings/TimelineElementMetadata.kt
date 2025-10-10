@@ -58,6 +58,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
 import de.connect2x.messenger.compose.view.util.rovingFocusItem
+import de.connect2x.messenger.compose.view.util.scrollIntoView
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -235,7 +236,7 @@ fun ColumnScope.ReadersAndReactions(
                                 val index = references.indexOf(item)
                                 if (index != -1) {
                                     parentScrollState.scrollTo(parentScrollState.maxValue)
-                                    state.scrollToItem(index)
+                                    state.scrollIntoView(index)
                                 }
                             },
                             up = {
