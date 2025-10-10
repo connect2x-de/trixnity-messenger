@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Turn UiaModalBox into a Dialog so it no longer draws behind the ConnectingWizard
 - UiaActionConfirmations without message are no longer being shown
 - Make Imprint, Privacy and Licenses depend on MatrixMessengerBaseConfiguration instead of MatrixMessengerConfiguration
+- The version number of a library in the licenses has the proper font color now
 
 ### Security
 
