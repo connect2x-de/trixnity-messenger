@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Whitespace is stripped when searching for mxids
 - Turn UiaModalBox into a Dialog so it no longer draws behind the ConnectingWizard
 - UiaActionConfirmations without message are no longer being shown
+- Make Imprint, Privacy and Licenses depend on MatrixMessengerBaseConfiguration instead of MatrixMessengerConfiguration
 
 ### Security
 

@@ -32,7 +32,7 @@ import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
 import de.connect2x.messenger.compose.view.util.rovingFocusItem
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 
 interface AppInfoLicensesView {
@@ -57,7 +57,7 @@ internal fun Licenses(onClose: () -> Unit) {
     val style = MaterialTheme.components.library
 
     val i18n = DI.get<I18nView>()
-    val licences = DI.get<MatrixMessengerConfiguration>().licenses
+    val licences = DI.get<MatrixMessengerBaseConfiguration>().licenses
     if (licences != null) {
         val lazyListState = rememberLazyListState()
         val libraries = remember(licences) { Libs.Builder().withJson(licences).build() }
