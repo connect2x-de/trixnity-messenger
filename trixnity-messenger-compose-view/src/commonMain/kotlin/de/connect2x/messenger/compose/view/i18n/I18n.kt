@@ -2945,6 +2945,146 @@ open class I18nView(
         DE - "Nachricht in $roomName"
     }
 
+    open fun userProfileRoleCustom() = translate {
+        EN - "custom"
+        DE - "Selbstdefiniert"
+    }
+
+    open fun mRoomAvatarPowerLevelHeading() = translate {
+        EN - "Change room avatar"
+        DE - "Raumavatar ändern"
+    }
+
+    open fun mRoomNameHeading() = translate {
+        EN - "Change room name"
+        DE - "Raumnamen ändern"
+    }
+
+    open fun mRoomTopicHeading() = translate {
+        EN - "Change room topic"
+        DE - "Raumthema ändern"
+    }
+
+    open fun mRoomMemberHeading() = translate {
+        EN - "Change membership"
+        DE - "Mitgliedschaft ändern"
+    }
+
+    open fun mRoomPowerLevelsHeading() = translate {
+        EN - "Change power levels"
+        DE - "Berechtigungslevel ändern"
+    }
+
+    open fun mRoomJoinRulesHeading() = translate {
+        EN - "Change join rules"
+        DE - "Beitrittsregeln ändern"
+    }
+
+    open fun mRoomHistoryVisibilityHeading() = translate {
+        EN - "Change history visibility"
+        DE - "Sichtbarkeit der Historie ändern"
+    }
+
+    open fun mRoomEncryptionHeading() = translate {
+        EN - "Enable encryption"
+        DE - "Verschlüsselung aktivieren"
+    }
+
+    open fun mRoomPinnedEventsHeading() = translate {
+        EN - "Update pinned messages"
+        DE - "Markierte Nachrichten aktualisieren"
+    }
+
+    open fun mRoomCanonicalAliasHeading() = translate {
+        EN - "Change main room address"
+        DE - "Hauptadresse des Raums ändern"
+    }
+
+    open fun mRoomServerAclHeading() = translate {
+        EN - "Change server access rules"
+        DE - "Serverzugriffsregeln ändern"
+    }
+
+    open fun mRoomTombstoneHeading() = translate {
+        EN - "Change linked replacement room"
+        DE - "Verknüpften Ersatzraum ändern"
+    }
+
+    open fun mRoomUserDefaultHeading() = translate {
+        EN - "Default power level for users"
+        DE - "Standard-Berechtigungslevel für Benutzer"
+    }
+
+    open fun mRoomStateDefaultHeading() = translate {
+        EN - "Default power level for state events"
+        DE - "Standard-Berechtigungslevel für Statusereignisse"
+    }
+
+    open fun mRoomEventDefaultHeading() = translate {
+        EN - "Default power level for events"
+        DE - "Standard-Berechtigungslevel für Ereignisse"
+    }
+
+    open fun mRoomBanHeading() = translate {
+        EN - "Ban users"
+        DE - "Benutzer bannen"
+    }
+
+    open fun mRoomInviteHeading() = translate {
+        EN - "Invite users"
+        DE - "Benutzer einladen"
+    }
+
+    open fun mRoomKickHeading() = translate {
+        EN - "Remove users"
+        DE - "Benutzer entfernen"
+    }
+
+    open fun mRoomRedactHeading() = translate {
+        EN - "Redact messages"
+        DE - "Nachrichten löschen"
+    }
+
+    open fun changePowerLevelHeader() = translate {
+        EN - "Change Power Levels"
+        DE - "Berechtigungslevel ändern"
+    }
+
+    open fun cannotChangePowerLevels() = translate {
+        EN - "You don't have permission to change power levels"
+        DE - "Sie haben nicht die Rechte um Berechtigungslevel zu ändern"
+    }
+
+    open fun powerLevelLabel() = translate {
+        EN - "Power level"
+        DE - "Berechtigungslevel"
+    }
+
+    open fun powerLevelInputErrNotANumber() = translate {
+        EN - "not a number"
+        DE - "keine Zahl"
+    }
+
+    open fun powerLevelInputErrAboveAllowedPowerLevel(maxPowerLevel: Long) = translate {
+        EN - "power level is above $maxPowerLevel"
+        DE - "Berechtigungslevel ist über $maxPowerLevel"
+    }
+
+    open fun roleLabel() = translate {
+        EN - "Role"
+        DE - "Rolle"
+    }
+
+    open fun newEventAlreadyExistsErr() = translate {
+        EN - "This event id exists already"
+        DE - "Diese Event Id existiert bereits"
+    }
+
+    open fun newEventIdLabel() = translate{
+        EN - "New event id"
+        DE - "Neue Event Id"
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)

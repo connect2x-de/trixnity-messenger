@@ -33,6 +33,7 @@ interface RoomSettingsViewModelFactory {
         onCloseRoomSettings: () -> Unit,
         onOpenUserProfile: (UserId) -> Unit,
         onOpenAvatarCutter: OpenAvatarCutterCallback,
+        onOpenPowerLevel: () -> Unit,
         onOpenMention: OpenMentionCallback,
     ): RoomSettingsViewModel = RoomSettingsViewModelImpl(
         viewModelContext = viewModelContext,
@@ -43,6 +44,7 @@ interface RoomSettingsViewModelFactory {
         onOpenAvatarCutter = onOpenAvatarCutter,
         onCloseRoom = onCloseRoom,
         onOpenUserProfile = onOpenUserProfile,
+        onOpenPowerLevel = onOpenPowerLevel,
         onOpenMention = onOpenMention,
     )
 
@@ -60,6 +62,7 @@ interface RoomSettingsViewModel {
     val roomSettingsSecurityViewModel: RoomSettingsSecurityViewModel
     val roomSettingsAliasViewModel: RoomSettingsAliasViewModel
     val memberListViewModel: MemberListViewModel
+    val roomSettingsPowerLevelViewModel: RoomSettingsPowerlevelViewModel
     val hasPowerToInvite: StateFlow<Boolean>
     val isDirect: StateFlow<Boolean>
     val isLeave: StateFlow<Boolean>
@@ -74,6 +77,7 @@ interface RoomSettingsViewModel {
 
     fun openAddMembersView()
     fun openExportRoomView()
+    fun openPowerLevelView()
     fun leaveRoom()
     fun forgetRoom()
     fun openLeaveRoomWarningDialog()
@@ -91,6 +95,7 @@ class RoomSettingsViewModelImpl(
     private val onCloseRoom: () -> Unit,
     private val onOpenAvatarCutter: OpenAvatarCutterCallback,
     private val onOpenUserProfile: (UserId) -> Unit,
+    private val onOpenPowerLevel: () -> Unit,
     private val onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
     private val leaveRoom: LeaveRoom = get()
@@ -142,6 +147,10 @@ class RoomSettingsViewModelImpl(
     override val roomSettingsAliasViewModel: RoomSettingsAliasViewModel by lazy {
         get<RoomSettingsAliasViewModelFactory>()
             .create(viewModelContext, selectedRoomId, isDirect, error, error, error)
+    }
+
+    override val roomSettingsPowerLevelViewModel: RoomSettingsPowerlevelViewModel by lazy {
+        get<RoomSettingsPowerlevelViewModelFactory>().create(viewModelContext)
     }
 
     override val leaveRoomSettingEntryText = MutableStateFlow("")
@@ -261,6 +270,10 @@ class RoomSettingsViewModelImpl(
     override fun openUserProfile(userId: UserId) {
         onOpenUserProfile(userId)
     }
+
+    override fun openPowerLevelView() {
+        onOpenPowerLevel()
+    }
 }
 
 class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
@@ -271,6 +284,7 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val roomSettingsHistoryVisibilityViewModel = PreviewRoomSettingsHistoryVisibilityViewModel()
     override val roomSettingsJoinRulesViewModel = PreviewRoomSettingsJoinRulesViewModel()
     override val roomSettingsSecurityViewModel = PreviewRoomSettingsSecurityViewModel()
+    override val roomSettingsPowerLevelViewModel = PreviewRoomSettingsPowerlevelViewModel()
     override val error = MutableStateFlow(null)
     override val changeRoomAvatarViewModel = PreviewChangeAvatarViewModel()
     override val leaveRoomSettingEntryText = MutableStateFlow("leave room")
@@ -285,6 +299,7 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val isLeave = MutableStateFlow(false)
     override fun openAddMembersView() {}
     override fun openExportRoomView() {}
+    override fun openPowerLevelView() {}
     override fun openUserProfile(userId: UserId) {}
     override fun leaveRoom() {}
     override fun forgetRoom() {}

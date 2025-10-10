@@ -114,6 +114,8 @@ class RoomSettingsViewImpl : RoomSettingsView {
                     Spacer(Modifier.size(10.dp))
                     HorizontalDivider()
                     Spacer(Modifier.size(20.dp))
+                    RoomSettingsPowerlevel(roomSettingsViewModel)
+                    Spacer(Modifier.size(20.dp))
                     RoomSettingsExportRoom(roomSettingsViewModel)
                     Spacer(Modifier.size(20.dp))
                     RoomSettingsLeaveRoom(roomSettingsViewModel)

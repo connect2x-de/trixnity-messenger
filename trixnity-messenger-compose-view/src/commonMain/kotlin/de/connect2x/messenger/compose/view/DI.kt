@@ -36,6 +36,8 @@ import de.connect2x.messenger.compose.view.room.RoomView
 import de.connect2x.messenger.compose.view.room.RoomViewImpl
 import de.connect2x.messenger.compose.view.room.settings.AddMembersToRoomView
 import de.connect2x.messenger.compose.view.room.settings.AddMembersToRoomViewImpl
+import de.connect2x.messenger.compose.view.room.settings.ChangePowerLevelView
+import de.connect2x.messenger.compose.view.room.settings.ChangePowerLevelViewImpl
 import de.connect2x.messenger.compose.view.room.settings.ChangeRoomAvatarView
 import de.connect2x.messenger.compose.view.room.settings.ChangeRoomAvatarViewImpl
 import de.connect2x.messenger.compose.view.room.settings.ExportRoomView
@@ -56,6 +58,8 @@ import de.connect2x.messenger.compose.view.room.settings.RoomSettingsNameView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsNameViewImpl
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsNotificationsView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsNotificationsViewImpl
+import de.connect2x.messenger.compose.view.room.settings.RoomSettingsPowerlevelView
+import de.connect2x.messenger.compose.view.room.settings.RoomSettingsPowerlevelViewImpl
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsSecurityView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsSecurityViewImpl
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsTopicView
@@ -442,8 +446,10 @@ fun roomSettingsViewModule() = module {
     single<RoomSettingsLeaveRoomView> { RoomSettingsLeaveRoomViewImpl() }
     single<RoomSettingsHistoryVisibilityView> { RoomSettingsHistoryVisibilityViewImpl() }
     single<RoomSettingsJoinRulesView> { RoomSettingsJoinRulesViewImpl() }
+    single<RoomSettingsPowerlevelView> { RoomSettingsPowerlevelViewImpl() }
     single<ExportRoomView> { ExportRoomViewImpl() }
     single<AddMembersToRoomView> { AddMembersToRoomViewImpl() }
+    single<ChangePowerLevelView> { ChangePowerLevelViewImpl() }
     single<UserProfileView> { UserProfileViewImpl() }
 }
 
