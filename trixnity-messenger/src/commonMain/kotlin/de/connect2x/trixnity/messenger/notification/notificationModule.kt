@@ -11,8 +11,10 @@ fun notificationModule(): Module = module {
             matrixClients = get(),
             notificationHandlers = get(),
             notificationProviders = get(),
+            config = get(),
             settings = get(),
             roomName = get(),
+            getNotificationIcon = getOrNull(),
             i18n = get(),
         )
     }.bind<Worker>()

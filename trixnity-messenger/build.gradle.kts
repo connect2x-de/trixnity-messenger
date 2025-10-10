@@ -89,7 +89,7 @@ kotlin {
                 api(sharedLibs.kotlinx.serialization.core)
                 api(sharedLibs.kotlinx.serialization.json)
                 api(sharedLibs.kotlinx.datetime)
-                implementation(libs.sysnotify)
+                api(libs.sysnotify)
                 implementation(libs.okio)
                 implementation(libs.kim)
                 implementation(libs.markdown)

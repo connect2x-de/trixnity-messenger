@@ -2,12 +2,15 @@ package de.connect2x.trixnity.messenger.notification
 
 import de.connect2x.sysnotify.Notification
 import de.connect2x.sysnotify.NotificationHandler
+import de.connect2x.sysnotify.NotificationIcon
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountNotificationSettings
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,15 +21,20 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.notification
 import net.folivo.trixnity.client.notification.NotificationUpdate
+import net.folivo.trixnity.client.store.avatarUrl
 import net.folivo.trixnity.client.store.roomId
 import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import net.folivo.trixnity.utils.toByteArray
+import kotlin.time.Duration.Companion.milliseconds
 
 private val log = KotlinLogging.logger("de.connect2x.trixnity.messenger.notification.NotificationService")
 
@@ -34,8 +42,10 @@ class NotificationSyncService(
     private val matrixClients: MatrixClients,
     private val notificationHandlers: NotificationHandlers,
     private val notificationProviders: NotificationProviders,
+    private val config: MatrixMessengerConfiguration,
     private val settings: MatrixMessengerSettingsHolder,
     private val roomName: RoomName,
+    private val getNotificationIcon: GetNotificationIcon?,
     private val i18n: I18n,
 ) : Worker {
 
@@ -129,6 +139,7 @@ class NotificationSyncService(
                     notification = Notification(
                         title = notificationData.title,
                         description = notificationData.description,
+                        icon = notificationData.icon,
                         callbackData = notificationData.callbackData,
                         playSound = playSound,
                     )
@@ -143,6 +154,7 @@ class NotificationSyncService(
                     notification = Notification(
                         title = notificationData.title,
                         description = notificationData.description,
+                        icon = notificationData.icon,
                         callbackData = notificationData.callbackData,
                         playSound = false,
                     )
@@ -159,30 +171,45 @@ class NotificationSyncService(
     private data class NotificationData(
         val title: String,
         val description: String?,
+        val icon: NotificationIcon?,
         val callbackData: String?,
     )
 
     private suspend fun NotificationUpdate.Content.toNotificationData(matrixClient: MatrixClient): NotificationData {
         val title: String
         val description: String?
+        val senderAvatar: String?
         val roomId: RoomId?
         when (this) {
             is NotificationUpdate.Content.Message -> {
-                val sender = matrixClient.user.getById(timelineEvent.roomId, timelineEvent.sender).first()?.name
-                    ?: timelineEvent.sender.full
+                val sender = matrixClient.user.getById(timelineEvent.roomId, timelineEvent.sender).first()
+                val senderName = sender?.name ?: timelineEvent.sender.full
+                senderAvatar = sender?.avatarUrl?.takeIf { getNotificationIcon != null }
                 title = roomName.getRoomName(timelineEvent.roomId, matrixClient).first()
-                description = "$sender: " + ((timelineEvent.content?.getOrNull() as? RoomMessageEventContent)?.body
+                description = "$senderName: " + ((timelineEvent.content?.getOrNull() as? RoomMessageEventContent)?.body
                     ?: i18n.commonUnknown())
+
                 roomId = timelineEvent.roomId
             }
 
             is NotificationUpdate.Content.State -> {
+                senderAvatar = stateEvent.roomId.takeIf { getNotificationIcon != null }?.let { roomId ->
+                    matrixClient.user.getById(roomId, stateEvent.sender).first()?.avatarUrl
+                }
                 title =
-                    stateEvent.roomId?.let { roomName.getRoomName(it, matrixClient) }?.first() ?: i18n.newMessageTitle()
+                    stateEvent.roomId?.let { roomName.getRoomName(it, matrixClient) }?.first()
+                        ?: i18n.newMessageTitle()
                 description = null
                 roomId = stateEvent.roomId
             }
         }
+        val icon = senderAvatar
+            ?.let {
+                withTimeoutOrNull(300.milliseconds) {
+                    matrixClient.media.getThumbnail(it, avatarSize().toLong(), avatarSize().toLong())
+                        .getOrNull()?.toByteArray(config.maxMediaSizeInMemory)
+                }
+            }?.let { getNotificationIcon?.invoke(it, avatarSize(), avatarSize()) }
         val callbackData =
             if (roomId != null) buildString {
                 append("matrix:roomid/")
@@ -192,6 +219,7 @@ class NotificationSyncService(
         return NotificationData(
             title = title,
             description = description,
+            icon = icon,
             callbackData = callbackData,
         )
     }
