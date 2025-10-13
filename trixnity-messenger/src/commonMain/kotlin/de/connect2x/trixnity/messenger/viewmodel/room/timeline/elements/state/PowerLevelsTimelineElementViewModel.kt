@@ -8,18 +8,14 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transform
 import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.store.sender
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import kotlin.reflect.KClass
@@ -61,33 +57,71 @@ class PowerLevelsTimelineElementViewModelFactoryImpl(
     override val changeMessage = flow {
         val timelineEventSnapshot = matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull().first()
         val event = timelineEventSnapshot.event as? StateEvent ?: return@flow
-        val previousEvent = event.unsigned?.previousContent as? PowerLevelsEventContent ?: return@flow
+        val previousContent = event.unsigned?.previousContent as? PowerLevelsEventContent ?: return@flow
 
-        val userDiff = findMapDifference(previousEvent.users, content.users)
-        emitAll(matrixClient.user.getById(roomId, timelineEventSnapshot.sender).transform { userInfo ->
-            val changer = userInfo?.name ?: timelineEventSnapshot.sender.full
+        val changes: MutableList<String> = mutableListOf()
 
-            userDiff.newEntries.forEach { (userId, newPowerLevel) ->
-                val user = matrixClient.user.getById(roomId, userId).first()?.name ?: userId.full
-                emit(i18n.eventPowerLevelChange(changer, user, newPowerLevel))
+        if (previousContent.ban != content.ban)
+            changes.add(i18n.powerLevelUpdateBan(content.ban))
+        if (previousContent.invite != content.invite)
+            changes.add(i18n.powerLevelUpdateInvite(content.invite))
+        if (previousContent.kick != content.kick) changes
+            .add(i18n.powerLevelUpdateKick(content.kick))
+        if (previousContent.redact != content.redact)
+            changes.add(i18n.powerLevelUpdateRedact(content.redact))
+        if (previousContent.eventsDefault != content.eventsDefault)
+            changes.add(i18n.powerLevelUpdateEventsDefault(content.eventsDefault))
+        if (previousContent.stateDefault != content.stateDefault)
+            changes.add(i18n.powerLevelUpdateStateDefault(content.stateDefault))
+        if (previousContent.usersDefault != content.usersDefault)
+            changes.add(i18n.powerLevelUpdateUsersDefault(content.usersDefault))
+
+        val userDiff = findMapDifference(previousContent.users, content.users)
+        userDiff.newEntries.forEach { (userId, newPowerLevel) ->
+            val user = matrixClient.user.getById(roomId, userId).first()?.name ?: userId.full
+            changes.add(i18n.eventPowerLevelChange(user, newPowerLevel))
+        }
+        userDiff.changedValues.forEach { (userId, levels) ->
+            val (oldPowerLevel, newPowerLevel) = levels
+            val user = matrixClient.user.getById(roomId, userId).first()?.name ?: userId.full
+            changes.add(i18n.eventPowerLevelChange(user, newPowerLevel))
+        }
+        userDiff.removedEntries.forEach { (userId, oldLevel) ->
+            val user = matrixClient.user.getById(roomId, userId).first()?.name ?: userId.full
+            changes.add(i18n.eventPowerLevelChange(user, content.usersDefault))
+        }
+
+        val eventsDiff = findMapDifference(previousContent.events, content.events)
+        eventsDiff.newEntries.forEach { (eventType, newPowerLevel) ->
+            changes.add(i18n.powerLevelUpdateEvent(eventType.name, newPowerLevel))
+        }
+        eventsDiff.changedValues.forEach { (eventType, levels) ->
+            val (oldPowerLevel, newPowerLevel) = levels
+            changes.add(i18n.powerLevelUpdateEvent(eventType.name, newPowerLevel))
+
+        }
+        eventsDiff.removedEntries.forEach { (eventType, oldLevel) ->
+            changes.add(i18n.powerLevelUpdateEvent(eventType.name, content.eventsDefault))
+        }
+
+        emit(
+            when (val len = changes.size) {
+                0 -> null
+                1 -> changes.first()
+                2 -> i18n.commonAnd(changes[0], changes[1])
+                else -> i18n.powerLevelUpdateNChanges(len)
             }
-            userDiff.changedValues.forEach { (userId, levels) ->
-                val (oldPowerLevel, newPowerLevel) = levels
-                val user = matrixClient.user.getById(roomId, userId).first()?.name ?: userId.full
-                emit(i18n.eventPowerLevelChange(changer, user, newPowerLevel, oldPowerLevel))
-            }
-            // userDiff.removedEntries means the user no longer exists so no power level change will be shown
-        })
+        )
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 }
 
-private data class MapDifference(
-    val newEntries: Map<UserId, Long>,
-    val removedEntries: Map<UserId, Long>,
-    val changedValues: Map<UserId, Pair<Long, Long>> // Key -> (Old Value, New Value)
+private data class MapDifference<T, V>(
+    val newEntries: Map<T, V>,
+    val removedEntries: Map<T, V>,
+    val changedValues: Map<T, Pair<V, V>> // Key -> (Old Value, New Value)
 )
 
-private fun findMapDifference(oldMap: Map<UserId, Long>, newMap: Map<UserId, Long>): MapDifference {
+private fun <T, V> findMapDifference(oldMap: Map<T, V>, newMap: Map<T, V>): MapDifference<T, V> {
     // Keys that are in the new map but not in the old one
     val newKeys = newMap.keys.subtract(oldMap.keys)
 
@@ -105,7 +139,7 @@ private fun findMapDifference(oldMap: Map<UserId, Long>, newMap: Map<UserId, Lon
 
     // 3. Find changed values among common keys
     val changedValues = commonKeys.filter { key -> oldMap[key] != newMap[key] }
-        .associateWith { key -> Pair(oldMap[key]!!, newMap[key]!!) } // !! is safe here
+        .associateWith { key -> Pair(oldMap[key]!!, newMap[key]!!) }
 
     return MapDifference(newEntries, removedEntries, changedValues)
 }

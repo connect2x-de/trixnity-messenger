@@ -45,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a notification to the timeline when a user's power level changes
 - Introduce new UI component for dropdown select
 - Add a settings panel for configuring power levels
-
+- Add timeline events for all power level changes
 ### Changed
 
 - Explicitly draw system bars for edge to edge UI
