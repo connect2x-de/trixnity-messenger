@@ -7,10 +7,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,6 +17,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -41,6 +41,8 @@ import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogScrollContent
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
@@ -51,6 +53,8 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.CurrentMax
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PowerlevelViewModel
 import net.folivo.trixnity.core.model.events.EventType
+import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
+import net.folivo.trixnity.core.serialization.events.EventContentSerializerMapping
 
 @Composable
 fun ChangePowerLevelContainer(model: PowerlevelViewModel) {
@@ -76,91 +80,104 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
 
         val canChangePowerLevels by model.canChangePowerLevels.collectAsState()
 
-        var newContent by remember(content) { mutableStateOf(content.copy()) }
+        var newContent by remember { mutableStateOf(content.copy()) }
+        val eventStrings: Set<String> = newContent.events.keys.mapTo(mutableSetOf()) { it.toString() }
 
         ErrorModal(model)
 
         Column {
             Header(onBack = model::back, title = i18n.changePowerLevelHeader())
-            Column(Modifier.padding(12.dp)) {
-                if (!canChangePowerLevels) {
-                    ThemedSurface(style = MaterialTheme.components.sidebar) {
-                        Text(i18n.cannotChangePowerLevels())
-                    }
-                    Spacer(Modifier.height(12.dp))
+
+            if (!canChangePowerLevels) {
+                ThemedSurface(style = MaterialTheme.components.sidebar) {
+                    Text(i18n.cannotChangePowerLevels())
                 }
+                Spacer(Modifier.height(12.dp))
+            }
 
-                Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+            AdaptiveDialogScrollContent {
+                PowerLevelInput(
+                    label = i18n.mRoomUserDefaultHeading(),
+                    value = newContent.usersDefault,
+                    enabled = canChangePowerLevels,
+                    update = {
+                        newContent = newContent.copy(usersDefault = newContent.usersDefault.copy(current = it))
+                    })
+                PowerLevelInput(
+                    label = i18n.mRoomEventDefaultHeading(),
+                    value = newContent.eventsDefault,
+                    enabled = canChangePowerLevels,
+                    update = {
+                        newContent = newContent.copy(eventsDefault = newContent.eventsDefault.copy(current = it))
+                    })
+                PowerLevelInput(
+                    label = i18n.mRoomStateDefaultHeading(),
+                    value = newContent.stateDefault,
+                    enabled = canChangePowerLevels,
+                    update = {
+                        newContent = newContent.copy(stateDefault = newContent.stateDefault.copy(current = it))
+                    })
+
+                PowerLevelInput(
+                    label = i18n.mRoomBanHeading(),
+                    value = newContent.ban,
+                    enabled = canChangePowerLevels,
+                    update = { newContent = newContent.copy(ban = newContent.ban.copy(current = it)) })
+                PowerLevelInput(
+                    label = i18n.mRoomInviteHeading(),
+                    value = newContent.invite,
+                    enabled = canChangePowerLevels,
+                    update = { newContent = newContent.copy(invite = newContent.invite.copy(current = it)) })
+                PowerLevelInput(
+                    label = i18n.mRoomKickHeading(),
+                    value = newContent.kick,
+                    enabled = canChangePowerLevels,
+                    update = { newContent = newContent.copy(kick = newContent.kick.copy(current = it)) })
+                PowerLevelInput(
+                    label = i18n.mRoomRedactHeading(),
+                    value = newContent.redact,
+                    enabled = canChangePowerLevels,
+                    update = { newContent = newContent.copy(redact = newContent.redact.copy(current = it)) })
+
+                newContent.events.forEach { (eventType, value) ->
                     PowerLevelInput(
-                        label = i18n.mRoomUserDefaultHeading(),
-                        value = newContent.usersDefault,
+                        label = translateEventHeading(eventType.toString()),
                         enabled = canChangePowerLevels,
+                        value = value,
                         update = {
-                            newContent = newContent.copy(usersDefault = newContent.usersDefault.copy(current = it))
-                        })
-                    PowerLevelInput(
-                        label = i18n.mRoomEventDefaultHeading(),
-                        value = newContent.eventsDefault,
-                        enabled = canChangePowerLevels,
-                        update = {
-                            newContent = newContent.copy(eventsDefault = newContent.eventsDefault.copy(current = it))
-                        })
-                    PowerLevelInput(
-                        label = i18n.mRoomStateDefaultHeading(),
-                        value = newContent.stateDefault,
-                        enabled = canChangePowerLevels,
-                        update = {
-                            newContent = newContent.copy(stateDefault = newContent.stateDefault.copy(current = it))
-                        })
-
-                    PowerLevelInput(
-                        label = i18n.mRoomBanHeading(),
-                        value = newContent.ban,
-                        enabled = canChangePowerLevels,
-                        update = { newContent = newContent.copy(ban = newContent.ban.copy(current = it)) })
-                    PowerLevelInput(
-                        label = i18n.mRoomInviteHeading(),
-                        value = newContent.invite,
-                        enabled = canChangePowerLevels,
-                        update = { newContent = newContent.copy(invite = newContent.invite.copy(current = it)) })
-                    PowerLevelInput(
-                        label = i18n.mRoomKickHeading(),
-                        value = newContent.kick,
-                        enabled = canChangePowerLevels,
-                        update = { newContent = newContent.copy(kick = newContent.kick.copy(current = it)) })
-                    PowerLevelInput(
-                        label = i18n.mRoomRedactHeading(),
-                        value = newContent.redact,
-                        enabled = canChangePowerLevels,
-                        update = { newContent = newContent.copy(redact = newContent.redact.copy(current = it)) })
-
-                    newContent.events.forEach { (eventType, value) ->
-                        PowerLevelInput(
-                            label = translateEventHeading(eventType),
-                            enabled = canChangePowerLevels,
-                            value = value,
-                            update = {
-                                newContent = newContent.copy(
-                                    events = newContent.events + (eventType to newContent.events[eventType]!!.copy(
-                                        current = it
-                                    ))
-                                )
-                            })
-                    }
-
-                    Spacer(Modifier.height(8.dp))
-                    HorizontalDivider()
-                    Spacer(Modifier.height(8.dp))
-
-                    NewPowerLevel(
-                        enabled = canChangePowerLevels, existingEvents = newContent.events.keys.toList(), newEvent = {
                             newContent = newContent.copy(
-                                events = newContent.events + (EventType(null, it) to newContent.eventsDefault)
+                                events = newContent.events + (eventType to newContent.events[eventType]!!.copy(
+                                    current = it
+                                ))
                             )
                         })
                 }
 
-                Row(modifier = Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                HorizontalDivider(Modifier.padding(vertical = 8.dp))
+
+                KnownUnsetEvents(
+                    enabled = canChangePowerLevels,
+                    mappings = DefaultEventContentSerializerMappings.message.filter { !eventStrings.contains(it.type) }
+                        .sortedBy { it.type }.toList(),
+                    onCreate = {
+                        newContent = newContent.copy(
+                            events = newContent.events + (EventType(it.kClass, it.type) to newContent.eventsDefault)
+                        )
+                    },
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                NewPowerLevel(
+                    enabled = canChangePowerLevels, existingEvents = eventStrings, newEvent = {
+                        newContent = newContent.copy(
+                            events = newContent.events + (EventType(null, it) to newContent.eventsDefault)
+                        )
+                    })
+            }
+
+            if (canChangePowerLevels) {
+                AdaptiveDialogFooter(style = MaterialTheme.components.modalDialog) {
                     ThemedButton(
                         onClick = { newContent = content.copy() },
                         enabled = newContent != content,
@@ -177,31 +194,61 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
     }
 }
 
+
 @Composable
-private fun NewPowerLevel(enabled: Boolean, existingEvents: List<EventType>, newEvent: (String) -> Unit) {
+private fun KnownUnsetEvents(
+    enabled: Boolean,
+    mappings: List<EventContentSerializerMapping<*>>,
+    onCreate: (EventContentSerializerMapping<*>) -> Unit
+) {
+    val i18n = DI.get<I18nView>()
+    var selected by remember { mutableStateOf(mappings[0]) }
+
+    Column(Modifier.fillMaxWidth()) {
+        Text("Set powerlevel for known event")
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            ThemedSelect(
+                value = selected,
+                enabled = enabled,
+                onValueChange = { selected = it },
+                options = mappings,
+                render = { translateEventHeading(it.type) })
+            Spacer(Modifier.weight(1f))
+            ThemedButton(
+                style = MaterialTheme.components.primaryButton,
+                enabled = enabled,
+                onClick = { onCreate(selected) },
+                content = { Text(i18n.actionCreate()) })
+            Spacer(Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun NewPowerLevel(enabled: Boolean, existingEvents: Set<String>, newEvent: (String) -> Unit) {
     val i18n = DI.get<I18nView>()
     var customValue by remember { mutableStateOf("") }
-    val eventStrings = existingEvents.map { it.toString() }
-    fun isErr(): Boolean = eventStrings.contains(customValue)
+    fun isErr(): Boolean = existingEvents.contains(customValue)
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        OutlinedTextField(
-            modifier = Modifier.weight(1f),
-            value = customValue,
-            onValueChange = { customValue = it },
-            enabled = enabled,
-            label = { Text(i18n.newEventIdLabel()) },
-            isError = isErr(),
-            supportingText = { Text(if (isErr()) i18n.newEventAlreadyExistsErr() else "") })
-        ThemedButton(
-            style = MaterialTheme.components.primaryButton,
-            enabled = enabled && !isErr(),
-            onClick = { if (!isErr()) newEvent(customValue) },
-            content = { Text(i18n.actionCreate()) })
+    Column(Modifier.fillMaxWidth()) {
+        Text("Set powerlevel for unknown event")
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(
+                modifier = Modifier.widthIn(min = OutlinedTextFieldDefaults.MinWidth),
+                value = customValue,
+                onValueChange = { customValue = it },
+                enabled = enabled,
+                label = { Text(i18n.newEventIdLabel()) },
+                isError = isErr(),
+                supportingText = { Text(if (isErr()) i18n.newEventAlreadyExistsErr() else "") })
+            Spacer(Modifier.weight(1f))
+            ThemedButton(
+                style = MaterialTheme.components.primaryButton,
+                enabled = enabled && !isErr(),
+                onClick = { if (!isErr()) newEvent(customValue) },
+                content = { Text(i18n.actionCreate()) })
+            Spacer(Modifier.weight(1f))
+        }
     }
 }
 
@@ -263,7 +310,6 @@ private fun PowerLevelInput(label: String, enabled: Boolean, value: CurrentMax, 
         Text(label)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             ThemedSelect(
-                modifier = Modifier.widthIn(max = 200.dp),
                 label = { Text(i18n.roleLabel()) },
                 options = options,
                 value = options[initialIndex],
@@ -314,9 +360,9 @@ private fun PowerLevelInput(label: String, enabled: Boolean, value: CurrentMax, 
 }
 
 @Composable
-private fun translateEventHeading(event: EventType): String {
+private fun translateEventHeading(event: String): String {
     val i18n = DI.get<I18nView>()
-    return when (event.toString()) {
+    return when (event) {
         "m.room.avatar" -> i18n.mRoomAvatarPowerLevelHeading()
         "m.room.name" -> i18n.mRoomNameHeading()
         "m.room.topic" -> i18n.mRoomTopicHeading()
@@ -329,6 +375,29 @@ private fun translateEventHeading(event: EventType): String {
         "m.room.canonical_alias" -> i18n.mRoomCanonicalAliasHeading()
         "m.room.server_acl" -> i18n.mRoomServerAclHeading()
         "m.room.tombstone" -> i18n.mRoomTombstoneHeading()
-        else -> event.toString()
+
+        "m.room.message" -> i18n.mRoomMessageHeading()
+        "m.reaction" -> i18n.mReactionHeading()
+        "m.room.redaction" -> i18n.mRoomRedactionHeading()
+        "m.room.encrypted" -> i18n.mRoomEncryptedHeading()
+
+        "m.key.verification.start" -> i18n.mKeyVerificationStartHeading()
+        "m.key.verification.ready" -> i18n.mKeyVerificationReadyHeading()
+        "m.key.verification.accept" -> i18n.mKeyVerificationAcceptHeading()
+        "m.key.verification.key" -> i18n.mKeyVerificationKeyHeading()
+        "m.key.verification.mac" -> i18n.mKeyVerificationMacHeading()
+        "m.key.verification.done" -> i18n.mKeyVerificationDoneHeading()
+        "m.key.verification.cancel" -> i18n.mKeyVerificationCancelHeading()
+
+        "m.call.invite" -> i18n.mCallInviteHeading()
+        "m.call.candidates" -> i18n.mCallCandidatesHeading()
+        "m.call.answer" -> i18n.mCallAnswerHeading()
+        "m.call.hangup" -> i18n.mCallHangupHeading()
+        "m.call.negotiate" -> i18n.mCallNegotiateHeading()
+        "m.call.reject" -> i18n.mCallRejectHeading()
+        "m.call.select_answer" -> i18n.mCallSelectAnswerHeading()
+        "m.call.sdp_stream_metadata_changed" -> i18n.mCallSdpStreamMetadataChangedHeading()
+
+        else -> event
     }
 }

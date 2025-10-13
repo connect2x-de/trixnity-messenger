@@ -78,7 +78,7 @@ fun <T> ThemedSelect(
     label: @Composable (() -> Unit)? = null,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     leadingIcon: @Composable ((T) -> Unit)? = null,
-    render: (T) -> String,
+    render: @Composable (T) -> String,
 ) {
     val expanded = remember { mutableStateOf(false) }
 

@@ -3085,6 +3085,104 @@ open class I18nView(
         DE - "Neue Event Id"
     }
 
+    open fun mRoomMessageHeading() = translate {
+        EN - "Send messages"
+        DE - "Nachrichten senden"
+    }
+
+    open fun mReactionHeading() = translate {
+        EN - "Send reactions"
+        DE - "Reaktionen senden"
+    }
+
+    open fun mRoomRedactionHeading() = translate {
+        EN - "Remove messages"
+        DE - "Nachrichten entfernen"
+    }
+
+    open fun mRoomEncryptedHeading() = translate {
+        EN - "Send encrypted messages"
+        DE - "Verschlüsselte Nachrichten senden"
+    }
+
+    open fun mKeyVerificationStartHeading() = translate {
+        EN - "Start verification"
+        DE - "Verifizierung starten"
+    }
+
+    open fun mKeyVerificationReadyHeading() = translate {
+        EN - "Be ready for verification"
+        DE - "Zur Verifizierung bereit sein"
+    }
+
+    open fun mKeyVerificationAcceptHeading() = translate {
+        EN - "Accept verification"
+        DE - "Verifizierung akzeptieren"
+    }
+
+    open fun mKeyVerificationKeyHeading() = translate {
+        EN - "Send verification key"
+        DE - "Verifizierungsschlüssel senden"
+    }
+
+    open fun mKeyVerificationMacHeading() = translate {
+        EN - "Send verification MAC"
+        DE - "Verifizierungs-MAC senden"
+    }
+
+    open fun mKeyVerificationDoneHeading() = translate {
+        EN - "Complete verification"
+        DE - "Verifizierung abschließen"
+    }
+
+    open fun mKeyVerificationCancelHeading() = translate {
+        EN - "Cancel verification"
+        DE - "Verifizierung abbrechen"
+    }
+
+    open fun mCallInviteHeading() = translate {
+        EN - "Start calls"
+        DE - "Anrufe starten"
+    }
+
+    open fun mCallCandidatesHeading() = translate {
+        EN - "Exchange call candidates"
+        DE - "Anrufkandidaten austauschen"
+    }
+
+    open fun mCallAnswerHeading() = translate {
+        EN - "Answer calls"
+        DE - "Anrufe annehmen"
+    }
+
+    open fun mCallHangupHeading() = translate {
+        EN - "End calls"
+        DE - "Anrufe beenden"
+    }
+
+    open fun mCallNegotiateHeading() = translate {
+        EN - "Negotiate call parameters"
+        DE - "Anrufparameter aushandeln"
+    }
+
+    open fun mCallRejectHeading() = translate {
+        EN - "Reject calls"
+        DE - "Anrufe ablehnen"
+    }
+
+    open fun mCallSelectAnswerHeading() = translate {
+        EN - "Select call answer"
+        DE - "Anrufantwort auswählen"
+    }
+
+    open fun mCallSdpStreamMetadataChangedHeading() = translate {
+        EN - "Update call stream metadata"
+        DE - "Anruf-Stream-Metadaten aktualisieren"
+    }
+
+
+
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)
