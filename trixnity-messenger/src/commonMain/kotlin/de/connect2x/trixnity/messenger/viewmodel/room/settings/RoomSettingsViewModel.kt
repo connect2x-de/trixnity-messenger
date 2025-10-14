@@ -62,7 +62,6 @@ interface RoomSettingsViewModel {
     val roomSettingsSecurityViewModel: RoomSettingsSecurityViewModel
     val roomSettingsAliasViewModel: RoomSettingsAliasViewModel
     val memberListViewModel: MemberListViewModel
-    val roomSettingsPowerLevelViewModel: RoomSettingsPowerlevelViewModel
     val hasPowerToInvite: StateFlow<Boolean>
     val isDirect: StateFlow<Boolean>
     val isLeave: StateFlow<Boolean>
@@ -147,10 +146,6 @@ class RoomSettingsViewModelImpl(
     override val roomSettingsAliasViewModel: RoomSettingsAliasViewModel by lazy {
         get<RoomSettingsAliasViewModelFactory>()
             .create(viewModelContext, selectedRoomId, isDirect, error, error, error)
-    }
-
-    override val roomSettingsPowerLevelViewModel: RoomSettingsPowerlevelViewModel by lazy {
-        get<RoomSettingsPowerlevelViewModelFactory>().create(viewModelContext)
     }
 
     override val leaveRoomSettingEntryText = MutableStateFlow("")
@@ -284,7 +279,6 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val roomSettingsHistoryVisibilityViewModel = PreviewRoomSettingsHistoryVisibilityViewModel()
     override val roomSettingsJoinRulesViewModel = PreviewRoomSettingsJoinRulesViewModel()
     override val roomSettingsSecurityViewModel = PreviewRoomSettingsSecurityViewModel()
-    override val roomSettingsPowerLevelViewModel = PreviewRoomSettingsPowerlevelViewModel()
     override val error = MutableStateFlow(null)
     override val changeRoomAvatarViewModel = PreviewChangeAvatarViewModel()
     override val leaveRoomSettingEntryText = MutableStateFlow("leave room")
