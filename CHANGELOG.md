@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [Unreleased]
+
+### Added
+
 - Introduce Worker to schedule work when messenger is started
 - Add a cancel button to abort the reject invitation dialog
 - Add a footer containing legal information to the login wizard
@@ -17,10 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Explicitly draw system bars for edge to edge UI
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -33,8 +43,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make Imprint, Privacy and Licenses depend on MatrixMessengerBaseConfiguration instead of MatrixMessengerConfiguration
 - The version number of a library in the licenses has the proper font color now
 - Fix room list scrolling unnecessary on selection or focus navigation
-
-### Security
 
 ## 3.8.6
 
