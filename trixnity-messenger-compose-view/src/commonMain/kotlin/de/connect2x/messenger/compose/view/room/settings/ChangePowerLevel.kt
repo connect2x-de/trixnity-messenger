@@ -2,12 +2,12 @@ package de.connect2x.messenger.compose.view.room.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -17,7 +17,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -168,7 +167,7 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
 
                 Spacer(Modifier.height(16.dp))
 
-                NewPowerLevel(
+                PowerLevelUnknownEvent(
                     enabled = canChangePowerLevels, existingEvents = eventStrings, newEvent = {
                         newContent = newContent.copy(
                             events = newContent.events + (EventType(null, it) to newContent.eventsDefault)
@@ -205,49 +204,49 @@ private fun KnownUnsetEvents(
     var selected by remember { mutableStateOf(mappings[0]) }
 
     Column(Modifier.fillMaxWidth()) {
-        Text("Set powerlevel for known event")
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(i18n.powerLevelChangeUnsetKnownEventHeading())
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
             ThemedSelect(
                 value = selected,
                 enabled = enabled,
                 onValueChange = { selected = it },
                 options = mappings,
                 render = { translateEventHeading(it.type) })
-            Spacer(Modifier.weight(1f))
             ThemedButton(
                 style = MaterialTheme.components.primaryButton,
                 enabled = enabled,
                 onClick = { onCreate(selected) },
                 content = { Text(i18n.actionCreate()) })
-            Spacer(Modifier.weight(1f))
         }
     }
 }
 
 @Composable
-private fun NewPowerLevel(enabled: Boolean, existingEvents: Set<String>, newEvent: (String) -> Unit) {
+private fun PowerLevelUnknownEvent(enabled: Boolean, existingEvents: Set<String>, newEvent: (String) -> Unit) {
     val i18n = DI.get<I18nView>()
     var customValue by remember { mutableStateOf("") }
     fun isErr(): Boolean = existingEvents.contains(customValue)
 
     Column(Modifier.fillMaxWidth()) {
-        Text("Set powerlevel for unknown event")
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(i18n.powerLevelChangeNewEventHeading())
+        Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(4.dp), Alignment.CenterVertically) {
             OutlinedTextField(
-                modifier = Modifier.widthIn(min = OutlinedTextFieldDefaults.MinWidth),
+                modifier = Modifier.weight(1f),
                 value = customValue,
                 onValueChange = { customValue = it },
                 enabled = enabled,
                 label = { Text(i18n.newEventIdLabel()) },
                 isError = isErr(),
                 supportingText = { Text(if (isErr()) i18n.newEventAlreadyExistsErr() else "") })
-            Spacer(Modifier.weight(1f))
             ThemedButton(
                 style = MaterialTheme.components.primaryButton,
                 enabled = enabled && !isErr(),
                 onClick = { if (!isErr()) newEvent(customValue) },
                 content = { Text(i18n.actionCreate()) })
-            Spacer(Modifier.weight(1f))
         }
     }
 }
@@ -310,6 +309,7 @@ private fun PowerLevelInput(label: String, enabled: Boolean, value: CurrentMax, 
         Text(label)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             ThemedSelect(
+                modifier = Modifier.widthIn(max = 200.dp),
                 label = { Text(i18n.roleLabel()) },
                 options = options,
                 value = options[initialIndex],

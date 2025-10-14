@@ -3080,9 +3080,9 @@ open class I18nView(
         DE - "Diese Event Id existiert bereits"
     }
 
-    open fun newEventIdLabel() = translate{
-        EN - "New event id"
-        DE - "Neue Event Id"
+    open fun newEventIdLabel() = translate {
+        EN - "Event id"
+        DE - "Event Id"
     }
 
     open fun mRoomMessageHeading() = translate {
@@ -3180,7 +3180,15 @@ open class I18nView(
         DE - "Anruf-Stream-Metadaten aktualisieren"
     }
 
+    open fun powerLevelChangeUnsetKnownEventHeading() = translate {
+        EN - "Create known event"
+        DE - "Bekanntes Ereignis erstellen"
+    }
 
+    open fun powerLevelChangeNewEventHeading() = translate {
+        EN - "Create unknown event"
+        DE - "Unbekanntes Ereignis erstellen"
+    }
 
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)
