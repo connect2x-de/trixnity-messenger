@@ -52,6 +52,7 @@ import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.messenger.compose.view.util.rovingFocusItem
+import de.connect2x.messenger.compose.view.util.scrollIntoView
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.util.isKnock
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel
@@ -186,7 +187,7 @@ fun SearchGroupResults(
                                     scroll = { item ->
                                         val index = references.indexOf(item)
                                         if (index != -1) {
-                                            listState.scrollToItem(index)
+                                            listState.scrollIntoView(index)
                                         }
                                     },
                                     up = {

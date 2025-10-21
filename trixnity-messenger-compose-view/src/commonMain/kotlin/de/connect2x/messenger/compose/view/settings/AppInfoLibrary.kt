@@ -34,22 +34,15 @@ internal fun LibraryItem(
         },
         version = {
             library.artifactVersion?.let { version ->
-                LibraryChip(
-                    modifier = Modifier.padding(style.padding.versionPadding.containerPadding),
-                    minHeight = style.dimensions.chipMinHeight,
-                    containerColor = style.colors.versionChipColors.containerColor,
-                    contentColor = style.colors.versionChipColors.contentColor,
-                    shape = style.shapes.chipShape,
-                ) {
-                    Text(
-                        modifier = Modifier.padding(style.padding.versionPadding.contentPadding),
-                        text = version,
-                        style = style.textStyles.versionTextStyle ?: style.typography.bodyMedium,
-                        maxLines = style.textStyles.versionMaxLines,
-                        textAlign = TextAlign.Center,
-                        overflow = style.textStyles.defaultOverflow,
-                    )
-                }
+                Text(
+                    modifier = Modifier.padding(style.padding.versionPadding.contentPadding),
+                    text = version,
+                    style = style.textStyles.versionTextStyle ?: style.typography.bodyMedium,
+                    maxLines = style.textStyles.versionMaxLines,
+                    textAlign = TextAlign.Center,
+                    overflow = style.textStyles.defaultOverflow,
+                    color = style.colors.contentColor,
+                )
             }
         },
         author = {

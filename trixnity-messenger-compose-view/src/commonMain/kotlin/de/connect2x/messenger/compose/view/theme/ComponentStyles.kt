@@ -18,6 +18,7 @@ import de.connect2x.messenger.compose.view.theme.components.ListItemStyle
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.CircularProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.RadioButtonStyle
+import de.connect2x.messenger.compose.view.theme.components.SelectStyle
 import de.connect2x.messenger.compose.view.theme.components.SelectionStyle
 import de.connect2x.messenger.compose.view.theme.components.SliderStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
@@ -103,6 +104,8 @@ data class ComponentStyles(
     // dropdown
     val dropdownMenu: SurfaceStyle,
     val dropdownMenuItem: DropdownMenuItemStyle,
+    // select, like HTML <select>
+    val select: SelectStyle,
     // selection
     val selectionOnSurface: SelectionStyle,
     val selectionOnPrimary: SelectionStyle,

@@ -9,15 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Introduce Worker to schedule work when messenger is started
-- Add a cancel button to abort the reject invitation dialog
-- Add a footer containing legal information to the login wizard
-
 ### Changed
 
 ### Deprecated
 
 ### Removed
+
+### Fixed
+
+- Fix focus handling in chat/group creation user list
+- Show dropdown icon in group creation history visibility menu
+
+### Security
+
+## 3.8.7
+
+### Added
+
+- Introduce Worker to schedule work when messenger is started
+- Add a cancel button to abort the reject invitation dialog
+- Add a footer containing legal information to the login wizard
+- Introduce new UI component for dropdown select
+
+### Changed
+
+- Explicitly draw system bars for edge to edge UI
 
 ### Fixed
 
@@ -27,10 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Whitespace is stripped when searching for mxids
 - Turn UiaModalBox into a Dialog so it no longer draws behind the ConnectingWizard
 - UiaActionConfirmations without message are no longer being shown
-- Fix focus handling in chat/group creation user list
-- Show dropdown icon in group creation history visibility menu
-
-### Security
+- Make Imprint, Privacy and Licenses depend on MatrixMessengerBaseConfiguration instead of MatrixMessengerConfiguration
+- The version number of a library in the licenses has the proper font color now
+- Fix room list scrolling unnecessary on selection or focus navigation
 
 ## 3.8.6
 
