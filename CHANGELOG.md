@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add a settings panel for configuring power levels
+- Add timeline events for all power level changes
+- Added a message bubble to the timeline when a user's power level changes
+
 ### Changed
 
 - Added Space in the bottom of the RoomList to account for new chat button overlapping UI elements
@@ -42,10 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduce Worker to schedule work when messenger is started
 - Add a cancel button to abort the reject invitation dialog
 - Add a footer containing legal information to the login wizard
-- Added a notification to the timeline when a user's power level changes
 - Introduce new UI component for dropdown select
-- Add a settings panel for configuring power levels
-- Add timeline events for all power level changes
+
 ### Changed
 
 - Explicitly draw system bars for edge to edge UI
