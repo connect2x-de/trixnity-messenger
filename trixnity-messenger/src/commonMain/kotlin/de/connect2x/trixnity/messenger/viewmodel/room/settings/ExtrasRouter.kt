@@ -18,6 +18,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Conf
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.AddMembers
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.ExportRoom
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -85,6 +86,7 @@ class ExtrasRouterImpl(
     private val onOpenRoom: (UserId, RoomId) -> Unit,
     private val onCloseRoom: () -> Unit,
     private val onOpenAvatarCutter: OpenAvatarCutterCallback,
+    private val onOpenMention: OpenMentionCallback,
 ) : ExtrasRouter {
 
     private val extrasNavigation = StackNavigation<Config>()
@@ -163,6 +165,7 @@ class ExtrasRouterImpl(
                 onCloseRoomSettings = ::onCloseRoomSettings,
                 onOpenAvatarCutter = onOpenAvatarCutter,
                 onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
+                onOpenMention = onOpenMention,
             )
         )
 
