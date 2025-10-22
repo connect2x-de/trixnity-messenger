@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.messenger.util.html.AutoLinkifyVisitor
+import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -39,6 +41,7 @@ interface RoomSettingsTopicViewModel {
 
     /** Access the state and value of the room topic. */
     val roomTopic: ApprovableTextFieldViewModel
+    val formattedRoomTopic: StateFlow<HtmlNode.HtmlElement>
 }
 
 class RoomSettingsTopicViewModelImpl(
@@ -70,10 +73,21 @@ class RoomSettingsTopicViewModelImpl(
                 )
             },
         )
+
+    override val formattedRoomTopic: StateFlow<HtmlNode.HtmlElement> = roomTopic
+        .map { formatContent(it.text) }
+        .stateIn(coroutineScope, WhileSubscribed(), formatContent(roomTopic.value.text))
+
+    private fun formatContent(body: String): HtmlNode.HtmlElement =
+        HtmlNode.HtmlElement("#root", emptyMap(), listOf(HtmlNode.TextContent(body)))
+            .let(AutoLinkifyVisitor::process)
 }
 
 class PreviewRoomSettingsTopicViewModel : RoomSettingsTopicViewModel {
     override val roomTopic: ApprovableTextFieldViewModel = PreviewApprovableTextFieldViewModel()
     override val canChangeRoomTopic: StateFlow<Boolean> = MutableStateFlow(true)
     override val canViewRoomTopic: StateFlow<Boolean> = MutableStateFlow(true)
+    override val formattedRoomTopic: StateFlow<HtmlNode.HtmlElement> = MutableStateFlow(
+        HtmlNode.HtmlElement("#root", emptyMap(), listOf(HtmlNode.TextContent("")))
+    )
 }
