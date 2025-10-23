@@ -3066,8 +3066,8 @@ open class I18nView(
     }
 
     open fun powerLevelInputErrAboveAllowedPowerLevel(maxPowerLevel: Long) = translate {
-        EN - "power level is above $maxPowerLevel"
-        DE - "Berechtigungslevel ist über $maxPowerLevel"
+        EN - "power level has to be below $maxPowerLevel"
+        DE - "Berechtigungslevel muss unter $maxPowerLevel sein"
     }
 
     open fun roleLabel() = translate {

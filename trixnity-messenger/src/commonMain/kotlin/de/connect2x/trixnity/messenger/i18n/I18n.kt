@@ -254,7 +254,7 @@ open class I18n(
         EN - when (newPowerLevel) {
             0L -> "$user is now a user"
             50L -> "$user is now a moderator"
-            100L -> "$user is now a administrator"
+            100L -> "$user is now an administrator"
             else -> "power level $newPowerLevel"
         }
         DE - when (newPowerLevel) {
@@ -1570,7 +1570,21 @@ open class I18n(
 
             else -> "Berechtigungslevel für $event auf $rendered gesetzt"
         }
+    }
 
+    open fun powerLevelWronglyConfiguredError() = translate {
+        EN - "The power levels were wrongly configured"
+        DE - "Die Berechtigungslevel sind falsch konfiguriert"
+    }
+
+    open fun powerLevelInputErrNotANumber() = translate {
+        EN - "not a number"
+        DE - "keine Zahl"
+    }
+
+    open fun powerLevelInputErrAboveAllowedPowerLevel(maxPowerLevel: Long) = translate {
+        EN - "power level has to be below $maxPowerLevel"
+        DE - "Berechtigungslevel muss unter $maxPowerLevel sein"
     }
 }
 

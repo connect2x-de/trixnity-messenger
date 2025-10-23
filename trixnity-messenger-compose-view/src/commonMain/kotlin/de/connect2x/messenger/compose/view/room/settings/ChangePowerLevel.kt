@@ -35,6 +35,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.get
@@ -49,16 +50,10 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelect
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.CurrentMax
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PowerlevelViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.Value
 import net.folivo.trixnity.core.model.events.EventType
-import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
 import net.folivo.trixnity.core.serialization.events.EventContentSerializerMapping
-
-@Composable
-fun ChangePowerLevelContainer(model: PowerlevelViewModel) {
-    ChangePowerLevel(model)
-}
 
 interface ChangePowerLevelView {
     @Composable
@@ -74,13 +69,17 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
     @Composable
     override fun create(model: PowerlevelViewModel) {
         val i18n = DI.get<I18nView>()
-        val contentMaybeNull by model.powerLevels.collectAsState()
-        val content = contentMaybeNull ?: return
 
         val canChangePowerLevels by model.canChangePowerLevels.collectAsState()
+        val isAnyInputModified by model.isAnyInputModified.collectAsState()
+        val inputError by model.inputError.collectAsState()
 
-        var newContent by remember { mutableStateOf(content.copy()) }
-        val eventStrings: Set<String> = newContent.events.keys.mapTo(mutableSetOf()) { it.toString() }
+        val events by model.events.collectAsState()
+        val knownEvents by model.knownEvents.collectAsState()
+
+        val eventStrings by remember(events) {
+            mutableStateOf(events.keys.mapTo(mutableSetOf()) { it.toString() })
+        }
 
         ErrorModal(model)
 
@@ -95,96 +94,45 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
             }
 
             AdaptiveDialogScrollContent {
-                PowerLevelInput(
-                    label = i18n.mRoomUserDefaultHeading(),
-                    value = newContent.usersDefault,
-                    enabled = canChangePowerLevels,
-                    update = {
-                        newContent = newContent.copy(usersDefault = newContent.usersDefault.copy(current = it))
-                    })
-                PowerLevelInput(
-                    label = i18n.mRoomEventDefaultHeading(),
-                    value = newContent.eventsDefault,
-                    enabled = canChangePowerLevels,
-                    update = {
-                        newContent = newContent.copy(eventsDefault = newContent.eventsDefault.copy(current = it))
-                    })
-                PowerLevelInput(
-                    label = i18n.mRoomStateDefaultHeading(),
-                    value = newContent.stateDefault,
-                    enabled = canChangePowerLevels,
-                    update = {
-                        newContent = newContent.copy(stateDefault = newContent.stateDefault.copy(current = it))
-                    })
+                PowerLevelInput(i18n.mRoomUserDefaultHeading(), model.usersDefault, canChangePowerLevels)
+                PowerLevelInput(i18n.mRoomEventDefaultHeading(), model.eventsDefault, canChangePowerLevels)
+                PowerLevelInput(i18n.mRoomStateDefaultHeading(), model.stateDefault, canChangePowerLevels)
 
-                PowerLevelInput(
-                    label = i18n.mRoomBanHeading(),
-                    value = newContent.ban,
-                    enabled = canChangePowerLevels,
-                    update = { newContent = newContent.copy(ban = newContent.ban.copy(current = it)) })
-                PowerLevelInput(
-                    label = i18n.mRoomInviteHeading(),
-                    value = newContent.invite,
-                    enabled = canChangePowerLevels,
-                    update = { newContent = newContent.copy(invite = newContent.invite.copy(current = it)) })
-                PowerLevelInput(
-                    label = i18n.mRoomKickHeading(),
-                    value = newContent.kick,
-                    enabled = canChangePowerLevels,
-                    update = { newContent = newContent.copy(kick = newContent.kick.copy(current = it)) })
-                PowerLevelInput(
-                    label = i18n.mRoomRedactHeading(),
-                    value = newContent.redact,
-                    enabled = canChangePowerLevels,
-                    update = { newContent = newContent.copy(redact = newContent.redact.copy(current = it)) })
+                PowerLevelInput(i18n.mRoomBanHeading(), model.ban, canChangePowerLevels)
+                PowerLevelInput(i18n.mRoomInviteHeading(), model.invite, canChangePowerLevels)
+                PowerLevelInput(i18n.mRoomKickHeading(), model.kick, canChangePowerLevels)
+                PowerLevelInput(i18n.mRoomRedactHeading(), model.redact, canChangePowerLevels)
 
-                newContent.events.forEach { (eventType, value) ->
-                    PowerLevelInput(
-                        label = translateEventHeading(eventType.toString()),
-                        enabled = canChangePowerLevels,
-                        value = value,
-                        update = {
-                            newContent = newContent.copy(
-                                events = newContent.events + (eventType to newContent.events[eventType]!!.copy(
-                                    current = it
-                                ))
-                            )
-                        })
+                events.forEach { (eventType, value) ->
+                    PowerLevelInput(translateEventHeading(eventType.toString()), value, canChangePowerLevels)
                 }
 
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
                 KnownUnsetEvents(
                     enabled = canChangePowerLevels,
-                    mappings = DefaultEventContentSerializerMappings.message.filter { !eventStrings.contains(it.type) }
-                        .sortedBy { it.type }.toList(),
-                    onCreate = {
-                        newContent = newContent.copy(
-                            events = newContent.events + (EventType(it.kClass, it.type) to newContent.eventsDefault)
-                        )
-                    },
+                    mappings = knownEvents.filter { !eventStrings.contains(it.type) }.sortedBy { it.type }.toList(),
+                    onCreate = { model.newEvent(EventType(it.kClass, it.type)) },
                 )
 
                 Spacer(Modifier.height(16.dp))
 
                 PowerLevelUnknownEvent(
-                    enabled = canChangePowerLevels, existingEvents = eventStrings, newEvent = {
-                        newContent = newContent.copy(
-                            events = newContent.events + (EventType(null, it) to newContent.eventsDefault)
-                        )
-                    })
+                    enabled = canChangePowerLevels,
+                    existingEvents = eventStrings,
+                    newEvent = { model.newEvent(EventType(null, it)) })
             }
 
             if (canChangePowerLevels) {
                 AdaptiveDialogFooter(style = MaterialTheme.components.modalDialog) {
                     ThemedButton(
-                        onClick = { newContent = content.copy() },
-                        enabled = newContent != content,
+                        onClick = { model.resetPowerLevels() },
+                        enabled = isAnyInputModified,
                         style = MaterialTheme.components.secondaryButton,
                         content = { Text(i18n.actionCancel()) })
                     ThemedButton(
-                        onClick = { model.setPowerLevels(newContent) },
-                        enabled = newContent != content,
+                        onClick = { model.setPowerLevels() },
+                        enabled = !inputError && isAnyInputModified,
                         style = MaterialTheme.components.primaryButton,
                         content = { Text(i18n.actionConfirm()) })
                 }
@@ -200,8 +148,10 @@ private fun KnownUnsetEvents(
     mappings: List<EventContentSerializerMapping<*>>,
     onCreate: (EventContentSerializerMapping<*>) -> Unit
 ) {
+    if (mappings.isEmpty()) return
+
     val i18n = DI.get<I18nView>()
-    var selected by remember { mutableStateOf(mappings[0]) }
+    var selected by remember(mappings) { mutableStateOf(mappings[0]) }
 
     Column(Modifier.fillMaxWidth()) {
         Text(i18n.powerLevelChangeUnsetKnownEventHeading())
@@ -269,40 +219,29 @@ private fun ErrorModal(model: PowerlevelViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PowerLevelInput(label: String, enabled: Boolean, value: CurrentMax, update: (Long) -> Unit) {
+private fun PowerLevelInput(label: String, value: Value, enabled: Boolean) {
     val i18n = DI.get<I18nView>()
-    val options = listOf("User", "Moderator", "Admin", "Custom")
-    val defaultVals = listOf(0L, 50L, 100L, value.current)
-    val initialIndex = defaultVals.indexOf(value.current)
 
-    var customValue by remember { mutableStateOf(TextFieldValue(value.current.toString())) }
-    var isCustomSelected by remember { mutableStateOf(initialIndex == 3) }
-    var isValidLong by remember { mutableStateOf(true) }
-    var isUnderMaxPowerLevel by remember { mutableStateOf(true) }
+    var textFieldValue by value.input.collectAsTextFieldValueState()
+    val isModified by value.isModified.collectAsState()
+    val isValidLong by value.isValidLong.collectAsState()
+    val isUnderMaxPowerLevel by value.isUnderMaxPowerLevel.collectAsState()
+    val isError by value.error.collectAsState()
+    val old by value.old.collectAsState()
+    val max by value.max.collectAsState()
+
+    val options = listOf("User", "Moderator", "Admin", "Custom")
+    val defaultVals = listOf(0L, 50L, 100L, textFieldValue.text.toLongOrNull() ?: old)
+    val initialIndex = defaultVals.indexOf(textFieldValue.text.toLongOrNull() ?: old)
+
+    var isCustomSelected by remember(initialIndex) { mutableStateOf(initialIndex == 3) }
     val focusRequester = remember { FocusRequester() }
 
-    fun newText(newText: TextFieldValue) {
-        customValue = newText
-        when (val l = customValue.text.toLongOrNull()) {
-            null -> isValidLong = false
-            else -> {
-                isValidLong = true
-                if (value.max != null && value.max!! < l) {
-                    isUnderMaxPowerLevel = false
-                } else {
-                    isUnderMaxPowerLevel = true
-                    update(l)
-                }
-            }
-        }
-    }
-
-    fun errorMsg(): String = if (!isValidLong) {
-        i18n.powerLevelInputErrNotANumber()
-    } else if (!isUnderMaxPowerLevel) {
-        i18n.powerLevelInputErrAboveAllowedPowerLevel(value.max!!)
-    } else {
-        ""
+    fun errorMsg(): String = when {
+        !isModified -> "" // don't show error messages on unmodified entries
+        !isValidLong -> i18n.powerLevelInputErrNotANumber()
+        !isUnderMaxPowerLevel -> i18n.powerLevelInputErrAboveAllowedPowerLevel(max ?: old)
+        else -> ""
     }
 
     Column(Modifier.fillMaxWidth()) {
@@ -313,7 +252,7 @@ private fun PowerLevelInput(label: String, enabled: Boolean, value: CurrentMax, 
                 label = { Text(i18n.roleLabel()) },
                 options = options,
                 value = options[initialIndex],
-                enabled = enabled,
+                enabled = enabled && max != null && old < (max ?: old),
                 render = {
                     when (it) {
                         "User" -> i18n.userProfileRoleUser()
@@ -327,24 +266,25 @@ private fun PowerLevelInput(label: String, enabled: Boolean, value: CurrentMax, 
                     val v = defaultVals[options.indexOf(it)].toString()
                     if (it == "Custom") {
                         isCustomSelected = true
-                        newText(TextFieldValue(v, TextRange(0, v.length)))
+                        textFieldValue = TextFieldValue(v, TextRange(0, v.length))
                         focusRequester.requestFocus()
                     } else {
                         isCustomSelected = false
-                        newText(TextFieldValue(v))
+                        textFieldValue = TextFieldValue(v)
                     }
                 })
+
             OutlinedTextField(
                 modifier = Modifier.weight(2f).focusRequester(focusRequester).pointerHoverIcon(PointerIcon.Default),
-                value = customValue,
+                value = textFieldValue,
                 enabled = enabled && isCustomSelected,
                 readOnly = !isCustomSelected,
-                onValueChange = { newText(it) },
-                isError = !isValidLong || !isUnderMaxPowerLevel,
+                onValueChange = { textFieldValue = it },
+                isError = isError && isModified,
                 label = { Text(i18n.powerLevelLabel()) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 trailingIcon = {
-                    if (!isValidLong || !isUnderMaxPowerLevel) {
+                    if (isError && isModified) {
                         Tooltip(tooltip = { Text(errorMsg()) }, content = {
                             Icon(
                                 imageVector = Icons.Default.Error,

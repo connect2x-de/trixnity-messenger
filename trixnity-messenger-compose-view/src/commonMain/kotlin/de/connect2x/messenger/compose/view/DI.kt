@@ -311,6 +311,8 @@ import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWiza
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardView
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardViewImpl
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
+import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named
@@ -450,6 +452,7 @@ fun roomSettingsViewModule() = module {
     single<ExportRoomView> { ExportRoomViewImpl() }
     single<AddMembersToRoomView> { AddMembersToRoomViewImpl() }
     single<ChangePowerLevelView> { ChangePowerLevelViewImpl() }
+    single<EventContentSerializerMappings> { DefaultEventContentSerializerMappings }
     single<UserProfileView> { UserProfileViewImpl() }
 }
 
