@@ -3,10 +3,11 @@ package de.connect2x.trixnity.messenger
 import androidx.room.RoomDatabase
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.SQLiteDriver
-import androidx.sqlitemc.driver.bundled.BundledSQLiteDriver
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException.DatabaseAccessException
 import de.connect2x.trixnity.messenger.util.RootPath
 import io.github.oshai.kotlinlogging.KotlinLogging
+import net.folivo.sqlitenity.bundled.BundledSQLitenityDriver
+import net.folivo.sqlitenity.compat.SQLitenityCompatDriver
 import net.folivo.trixnity.client.store.repository.room.TrixnityRoomDatabase
 import net.folivo.trixnity.client.store.repository.room.createRoomRepositoriesModule
 import net.folivo.trixnity.core.model.UserId
@@ -39,12 +40,7 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
             private fun db(userId: UserId, databaseKey: ByteArray?): RoomDatabase.Builder<TrixnityRoomDatabase> =
                 roomDatabaseBuilder<TrixnityRoomDatabase>(
                     rootPath.forAccountDatabase(userId).resolve("database").toString()
-                ).apply {
-                    setDriver(
-                        databaseKey?.let(::EncryptedSQLiteDriver)
-                            ?: BundledSQLiteDriver()
-                    )
-                }
+                ).setDriver(EncryptedSQLiteDriver(databaseKey))
         }
     }
 }
@@ -54,7 +50,7 @@ internal expect inline fun <reified T : RoomDatabase> Scope.roomDatabaseBuilder(
 ): RoomDatabase.Builder<T>
 
 private class EncryptedSQLiteDriver(
-    key: ByteArray
+    key: ByteArray?
 ) : SQLiteDriver {
     private val log = KotlinLogging.logger("de.connect2x.trixnity.messenger.EncryptedSQLiteDriver")
 
@@ -63,33 +59,41 @@ private class EncryptedSQLiteDriver(
         const val SALT_SIZE = 16
     }
 
+    private val usePlaintextHeader = when (key?.size) {
+        KEY_SIZE + SALT_SIZE -> true
+        KEY_SIZE -> false
+        null -> null
+        else -> {
+            throw DatabaseAccessException("Invalid key size: want ${KEY_SIZE}, got ${key.size}")
+        }
+    }
+
     init {
-        when (key.size) {
-            KEY_SIZE + SALT_SIZE -> {
-                log.debug { "Opening database with plaintext header" }
-            }
-
-            KEY_SIZE -> {
-                log.debug { "Opening database with encrypted header" }
-            }
-
-            else -> {
-                throw DatabaseAccessException("Invalid key size: want ${KEY_SIZE}, got ${key.size}")
-            }
+        when (usePlaintextHeader) {
+            true -> log.debug { "Opening database with plaintext header" }
+            false -> log.debug { "Opening database with encrypted header" }
+            null -> log.debug { "Opening database without encryption" }
         }
     }
 
     @ExperimentalStdlibApi
-    private val rawKey = key.toHexString()
+    private val rawKey = key?.toHexString()
 
-    private val driver = BundledSQLiteDriver()
+    private val driver = SQLitenityCompatDriver(BundledSQLitenityDriver())
 
     @ExperimentalStdlibApi
     override fun open(fileName: String): SQLiteConnection =
         driver.open(fileName).apply {
-            prepare("PRAGMA key = 'raw:$rawKey'").use {
-                if (!it.step() || it.getColumnNames().getOrNull(0) != "ok")
-                    throw DatabaseAccessException("Database does not support Encryption")
-            }
+            if (usePlaintextHeader == true)
+                prepare("PRAGMA plaintext_header_size=24").use {
+                    if (!it.step() || it.getColumnNames().getOrNull(0) != "24")
+                        throw DatabaseAccessException("Database does not support Plaintext Header")
+                }
+
+            if (rawKey != null)
+                prepare("PRAGMA key = 'raw:$rawKey'").use {
+                    if (!it.step() || it.getColumnNames().getOrNull(0) != "ok")
+                        throw DatabaseAccessException("Database does not support Encryption")
+                }
         }
 }

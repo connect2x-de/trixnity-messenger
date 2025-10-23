@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added Space in the bottom of the RoomList to account for new chat button overlapping UI elements
 
+- Use SQLitenity as Room implementation
+
 ### Deprecated
 
 ### Removed
@@ -22,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The sticky header now correctly displays the date of the topmost message
 - Fix focus handling in chat/group creation user list and add members view
 - Show dropdown icon in group creation history visibility menu
+- No more Linux segfaults
 
 ### Security
 

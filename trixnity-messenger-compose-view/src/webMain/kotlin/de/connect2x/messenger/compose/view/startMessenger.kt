@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.CanvasBasedWindow
+import androidx.compose.ui.window.ComposeViewport
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
@@ -122,7 +123,7 @@ suspend fun startMessenger(
     coroutineScope {
         try {
             onWasmReady {
-                CanvasBasedWindow(config.appName) {
+                ComposeViewport {
                     // As this is hopefully only temporary until FontFallback works automatically on Web with
                     // Browser installed fonts, this is just put here instead of complicating the Theme definition
                     // commonMain/kotlin/de/connect2x/messenger/compose/view/theme/Theme.kt with platform specific

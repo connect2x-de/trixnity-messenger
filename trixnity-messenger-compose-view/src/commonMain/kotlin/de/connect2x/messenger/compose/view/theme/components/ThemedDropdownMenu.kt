@@ -11,10 +11,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
@@ -54,7 +52,7 @@ fun ExposedDropdownMenuBoxScope.ThemedExposedDropdownMenu(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     scrollState: ScrollState = rememberScrollState(),
-    matchTextFieldWidth: Boolean = true,
+    matchAnchorWidth: Boolean = true,
     style: SurfaceStyle = MaterialTheme.components.dropdownMenu,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -63,7 +61,7 @@ fun ExposedDropdownMenuBoxScope.ThemedExposedDropdownMenu(
         onDismissRequest = onDismissRequest,
         modifier = modifier,
         scrollState = scrollState,
-        matchTextFieldWidth = matchTextFieldWidth,
+        matchAnchorWidth = matchAnchorWidth,
         shape = style.shape,
         containerColor = style.color,
         tonalElevation = style.tonalElevation,
