@@ -93,7 +93,7 @@ class ApnsPushNotificationProvider(
             val roomId = (didReceiveRemoteNotification["room_id"] as? String)?.let(::RoomId)
             val eventId = (didReceiveRemoteNotification["event_id"] as? String)?.let(::EventId)
             if (roomId != null) {
-                runBlocking { // FIXME should be a background task
+                runBlocking {
                     withApnsPushNotificationProvider {
                         val didAlreadyProcessOnPush = it.onPush(profile, account, roomId, eventId)
                         if (!didAlreadyProcessOnPush) it.processPending(profile, account)
