@@ -33,7 +33,8 @@ interface RoomListElementContainerView {
     fun LazyItemScope.create(
         roomId: RoomId,
         roomListViewModel: RoomListViewModel,
-        roomListElementViewModel: RoomListElementViewModel
+        roomListElementViewModel: RoomListElementViewModel,
+        index: Int
     )
 }
 
@@ -42,8 +43,9 @@ fun LazyItemScope.RoomListElementContainer(
     roomId: RoomId,
     roomListViewModel: RoomListViewModel,
     roomListElementViewModel: RoomListElementViewModel,
+    index: Int,
 ) {
-    with(DI.get<RoomListElementContainerView>()) { create(roomId, roomListViewModel, roomListElementViewModel) }
+    with(DI.get<RoomListElementContainerView>()) { create(roomId, roomListViewModel, roomListElementViewModel, index) }
 }
 
 class RoomListElementContainerViewImpl : RoomListElementContainerView {
@@ -52,6 +54,7 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
         roomId: RoomId,
         roomListViewModel: RoomListViewModel,
         roomListElementViewModel: RoomListElementViewModel,
+        index: Int,
     ) {
         val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState().value
         val roomName = roomListElementViewModel.roomName.collectAsState().value
@@ -72,7 +75,10 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
             )
                 .rovingFocusItem()
                 .then(
-                    if (roomId == selectedRoomId) Modifier.themedSurface(MaterialTheme.components.roomListSelection, focused = hasFocus)
+                    if (roomId == selectedRoomId) Modifier.themedSurface(
+                        MaterialTheme.components.roomListSelection,
+                        focused = hasFocus
+                    )
                     else Modifier.themedSurface(MaterialTheme.components.roomListElement, focused = hasFocus)
                 )
                 .clickable(interactionSource, LocalIndication.current) {
@@ -85,7 +91,7 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
             CompositionLocalProvider(
                 LocalContentColor provides if (roomId == selectedRoomId) MaterialTheme.components.roomListSelection.contentColor else LocalContentColor.current
             ) {
-                RoomListElement(roomListViewModel, roomListElementViewModel)
+                RoomListElement(roomListViewModel, roomListElementViewModel, index)
             }
         }
         ThemedHorizontalDivider(

@@ -24,6 +24,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.CollectionItemInfo
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.collectionItemInfo
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.icons.PublicIcon
@@ -48,7 +55,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 
 interface RoomListElementView {
     @Composable
-    fun create(roomListViewModel: RoomListViewModel, roomListElementViewModel: RoomListElementViewModel)
+    fun create(roomListViewModel: RoomListViewModel, roomListElementViewModel: RoomListElementViewModel, index: Int)
 }
 
 @Composable
@@ -73,21 +80,28 @@ private fun ErrorModalDialog(error: String, onDismiss: () -> Unit) {
 fun RoomListElement(
     roomListViewModel: RoomListViewModel,
     roomListElementViewModel: RoomListElementViewModel,
+    index: Int,
 ) {
-    DI.get<RoomListElementView>().create(roomListViewModel, roomListElementViewModel)
+    DI.get<RoomListElementView>().create(roomListViewModel, roomListElementViewModel, index)
 }
 
 class RoomListElementViewImpl : RoomListElementView {
     @Composable
-    override fun create(roomListViewModel: RoomListViewModel, roomListElementViewModel: RoomListElementViewModel) {
+    override fun create(
+        roomListViewModel: RoomListViewModel,
+        roomListElementViewModel: RoomListElementViewModel,
+        index: Int
+    ) {
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value
         val isLeave = roomListElementViewModel.isLeave.collectAsState().value
         val isLoaded = roomListElementViewModel.isLoaded.collectAsState().value
         val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
         val error by roomListElementViewModel.error.collectAsState()
+        val roomName = roomListElementViewModel.roomName.collectAsState().value
         error?.let { ErrorModalDialog(it, roomListElementViewModel::clearError) }
 
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+//            ListItem() // FIXME use this to get correct a11y behavior?
             MatrixClientColor(roomListElementViewModel)
             Row(
                 Modifier
@@ -108,7 +122,18 @@ class RoomListElementViewImpl : RoomListElementView {
                     isInvite == true -> Invite(roomListElementViewModel)
                     isLeave == true -> ArchivedRoom(roomListElementViewModel)
                     isKnock == true -> Knock(roomListElementViewModel)
-                    else -> Column(Modifier.align(Alignment.CenterVertically)) {
+                    else -> Column(
+                        Modifier.align(Alignment.CenterVertically)
+                            .clearAndSetSemantics {
+                                text = AnnotatedString(roomName ?: "")
+                                role = Role.Button
+                                collectionItemInfo = CollectionItemInfo(
+                                    rowIndex = index,
+                                    rowSpan = 1,
+                                    columnIndex = 0,
+                                    columnSpan = 0,
+                                )
+                            }) {
                         RoomNameAndTime(roomListElementViewModel)
                         LastMessageAndUnreadMessagesCounter(roomListElementViewModel)
                     }
