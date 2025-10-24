@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Show richtext in room topic
+
 ### Changed
+
+- Improve UI of room name & room topic
 
 ### Deprecated
 

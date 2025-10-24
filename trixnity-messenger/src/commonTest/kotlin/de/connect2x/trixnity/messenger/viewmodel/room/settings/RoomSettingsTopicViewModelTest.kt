@@ -176,6 +176,7 @@ class RoomSettingsTopicViewModelTest {
                 userId = UserId("test", "server"),
             ),
             selectedRoomId = roomId,
+            onOpenMention = { _, _  -> },
         )
     }
 }
