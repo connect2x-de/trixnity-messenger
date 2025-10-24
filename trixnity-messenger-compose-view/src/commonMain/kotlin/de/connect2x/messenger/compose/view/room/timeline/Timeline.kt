@@ -422,7 +422,7 @@ fun ListDateHeader(
 ) {
     val timestamp = remember {
         derivedStateOf {
-            visible.value?.second?.let { lastEventId ->
+            visible.value?.first?.let { lastEventId ->
                 timelineElementHolderViewModels.value
                     .find { it.key == lastEventId }
                     ?.formattedDate
