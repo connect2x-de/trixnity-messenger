@@ -27,6 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -106,10 +111,17 @@ class RoomHeaderViewImpl : RoomHeaderView {
                         ThemedButton(
                             style = MaterialTheme.components.accountSelector,
                             onClick = { roomHeaderViewModel.openRoomSettings() },
+                            modifier = Modifier.semantics(mergeDescendants = true) {
+
+                            }
                         ) {
                             Row(
                                 horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.semantics {
+                                    text = AnnotatedString(roomHeaderElement.roomName)
+                                    role = Role.Button
+                                }
                             ) {
                                 Box {
                                     ThemedUserAvatar(
