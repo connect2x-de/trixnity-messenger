@@ -101,7 +101,6 @@ class RoomListElementViewImpl : RoomListElementView {
         error?.let { ErrorModalDialog(it, roomListElementViewModel::clearError) }
 
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-//            ListItem() // FIXME use this to get correct a11y behavior?
             MatrixClientColor(roomListElementViewModel)
             Row(
                 Modifier
@@ -133,7 +132,8 @@ class RoomListElementViewImpl : RoomListElementView {
                                     columnIndex = 0,
                                     columnSpan = 0,
                                 )
-                            }) {
+                            }
+                    ) {
                         RoomNameAndTime(roomListElementViewModel)
                         LastMessageAndUnreadMessagesCounter(roomListElementViewModel)
                     }

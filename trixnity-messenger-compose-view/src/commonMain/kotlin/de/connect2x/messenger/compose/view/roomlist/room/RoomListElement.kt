@@ -63,6 +63,7 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
         val hasFocus = interactionSource.collectIsFocusedAsState().value
         val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
         val hoverable = roomName != null && isInvite != true && !isKnock
+        val elementsSize = roomListViewModel.elements.collectAsState().value.size
 
         Box(
             Modifier.animateItem(
@@ -94,8 +95,10 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                 RoomListElement(roomListViewModel, roomListElementViewModel, index)
             }
         }
-        ThemedHorizontalDivider(
-            style = MaterialTheme.components.roomListDivider
-        )
+        if (index < elementsSize) {
+            ThemedHorizontalDivider(
+                style = MaterialTheme.components.roomListDivider
+            )
+        }
     }
 }
