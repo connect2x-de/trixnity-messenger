@@ -111,7 +111,17 @@ class RoomListElementViewImpl : RoomListElementView {
                         color = Color.LightGray,
                         shape = RoundedCornerShape(8.dp),
                         highlight = PlaceholderHighlight.fade(highlightColor = Color(0xFFDDDDDD))
-                    ),
+                    )
+                    .clearAndSetSemantics {
+                        text = AnnotatedString(roomName ?: "")
+                        role = Role.Button
+                        collectionItemInfo = CollectionItemInfo(
+                            rowIndex = index,
+                            rowSpan = 1,
+                            columnIndex = 0,
+                            columnSpan = 0,
+                        )
+                    },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 RoomImage(roomListElementViewModel)
@@ -123,16 +133,6 @@ class RoomListElementViewImpl : RoomListElementView {
                     isKnock == true -> Knock(roomListElementViewModel)
                     else -> Column(
                         Modifier.align(Alignment.CenterVertically)
-                            .clearAndSetSemantics {
-                                text = AnnotatedString(roomName ?: "")
-                                role = Role.Button
-                                collectionItemInfo = CollectionItemInfo(
-                                    rowIndex = index,
-                                    rowSpan = 1,
-                                    columnIndex = 0,
-                                    columnSpan = 0,
-                                )
-                            }
                     ) {
                         RoomNameAndTime(roomListElementViewModel)
                         LastMessageAndUnreadMessagesCounter(roomListElementViewModel)
