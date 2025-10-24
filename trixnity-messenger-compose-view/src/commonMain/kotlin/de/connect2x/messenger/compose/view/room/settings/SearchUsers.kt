@@ -2,7 +2,6 @@ package de.connect2x.messenger.compose.view.room.settings
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,8 +22,6 @@ import de.connect2x.messenger.compose.view.search.collectUserSearchResult
 import de.connect2x.messenger.compose.view.search.searchUsersLocally
 import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
-import de.connect2x.messenger.compose.view.util.scrollIntoView
-import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModel
 
@@ -63,6 +60,7 @@ class SearchUsersSettingsViewImpl : SearchUsersSettingsView {
         }
         val defaultItem = references.firstOrNull()
 
+
         Box {
             RovingFocusContainer {
                 val focusContainer = LocalRovingFocus.current
@@ -72,9 +70,6 @@ class SearchUsersSettingsViewImpl : SearchUsersSettingsView {
                         potentialMembersViewModel.searchHandler,
                         {
                             onUserClick(it)
-                            if (focusContainer != null) {
-                                focusContainer.activeRef.value = null
-                            }
                         },
                         userSearchResults,
                         userSearchResultList,

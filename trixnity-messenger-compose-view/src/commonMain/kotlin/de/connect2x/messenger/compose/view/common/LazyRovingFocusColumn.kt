@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.util.RovingFocusState
 import de.connect2x.messenger.compose.view.util.getNextItem
 import de.connect2x.messenger.compose.view.util.getPreviousItem
-import de.connect2x.messenger.compose.view.util.scrollIntoView
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 
 
@@ -33,7 +32,7 @@ fun LazyRovingFocusColumn(
             scroll = { item ->
                 val index = references.indexOf(item)
                 if (index != -1) {
-                    state.scrollIntoView(index)
+                    state.scrollToItem(index)
                 }
             },
             up = {
