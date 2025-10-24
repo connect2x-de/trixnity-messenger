@@ -61,27 +61,21 @@ class PowerLevelsTimelineElementViewModelFactoryImpl(
 
         val changes: MutableList<String> = mutableListOf()
 
-        if (previousContent.ban != content.ban)
-            changes.add(i18n.powerLevelUpdateBan(content.ban))
-        if (previousContent.invite != content.invite)
-            changes.add(i18n.powerLevelUpdateInvite(content.invite))
-        if (previousContent.kick != content.kick) changes
-            .add(i18n.powerLevelUpdateKick(content.kick))
-        if (previousContent.redact != content.redact)
-            changes.add(i18n.powerLevelUpdateRedact(content.redact))
+        if (previousContent.ban != content.ban) changes.add(i18n.powerLevelUpdateBan(content.ban))
+        if (previousContent.invite != content.invite) changes.add(i18n.powerLevelUpdateInvite(content.invite))
+        if (previousContent.kick != content.kick) changes.add(i18n.powerLevelUpdateKick(content.kick))
+        if (previousContent.redact != content.redact) changes.add(i18n.powerLevelUpdateRedact(content.redact))
         if (previousContent.eventsDefault != content.eventsDefault)
             changes.add(i18n.powerLevelUpdateEventsDefault(content.eventsDefault))
-        if (previousContent.stateDefault != content.stateDefault)
-            changes.add(i18n.powerLevelUpdateStateDefault(content.stateDefault))
-        if (previousContent.usersDefault != content.usersDefault)
-            changes.add(i18n.powerLevelUpdateUsersDefault(content.usersDefault))
+        if (previousContent.stateDefault != content.stateDefault) changes.add(i18n.powerLevelUpdateStateDefault(content.stateDefault))
+        if (previousContent.usersDefault != content.usersDefault) changes.add(i18n.powerLevelUpdateUsersDefault(content.usersDefault))
 
         val userDiff = findMapDifference(previousContent.users, content.users)
         userDiff.newEntries.forEach { (userId, newPowerLevel) ->
             val user = matrixClient.user.getById(roomId, userId).first()?.name ?: userId.full
             changes.add(i18n.eventPowerLevelChange(user, newPowerLevel))
         }
-        userDiff.changedValues.forEach { (userId, levels) ->
+        userDiff.changedEntries.forEach { (userId, levels) ->
             val (oldPowerLevel, newPowerLevel) = levels
             val user = matrixClient.user.getById(roomId, userId).first()?.name ?: userId.full
             changes.add(i18n.eventPowerLevelChange(user, newPowerLevel))
@@ -95,7 +89,7 @@ class PowerLevelsTimelineElementViewModelFactoryImpl(
         eventsDiff.newEntries.forEach { (eventType, newPowerLevel) ->
             changes.add(i18n.powerLevelUpdateEvent(eventType.name, newPowerLevel))
         }
-        eventsDiff.changedValues.forEach { (eventType, levels) ->
+        eventsDiff.changedEntries.forEach { (eventType, levels) ->
             val (oldPowerLevel, newPowerLevel) = levels
             changes.add(i18n.powerLevelUpdateEvent(eventType.name, newPowerLevel))
 
@@ -115,32 +109,38 @@ class PowerLevelsTimelineElementViewModelFactoryImpl(
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 }
 
-private data class MapDifference<T, V>(
+private data class MapDifference<T, V : Any>(
     val newEntries: Map<T, V>,
     val removedEntries: Map<T, V>,
-    val changedValues: Map<T, Pair<V, V>> // Key -> (Old Value, New Value)
+    val changedEntries: Map<T, Pair<V, V>> // Key -> (Old Value, New Value)
 )
 
-private fun <T, V> findMapDifference(oldMap: Map<T, V>, newMap: Map<T, V>): MapDifference<T, V> {
-    // Keys that are in the new map but not in the old one
-    val newKeys = newMap.keys.subtract(oldMap.keys)
+private fun <T, V : Any> findMapDifference(oldMap: Map<T, V>, newMap: Map<T, V>): MapDifference<T, V> {
+    val allKeys = (oldMap.keys + newMap.keys).associateWith { key -> oldMap[key] to newMap[key] }
 
-    // Keys that were in the old map but are not in the new one
-    val removedKeys = oldMap.keys.subtract(newMap.keys)
+    val removedEntries = allKeys.mapValueNotNull { (old, new) ->
+        if (new == null) old
+        else null
+    }
+    val newEntries = allKeys.mapValueNotNull { (old, new) ->
+        if (old == null) new
+        else null
+    }
 
-    // Keys that exist in both maps, which we need to check for changes
-    val commonKeys = newMap.keys.intersect(oldMap.keys)
+    val changedEntries = allKeys.mapValueNotNull { (old, new) ->
+        if (old != null && new != null && old != new) old to new
+        else null
+    }
 
-    // 1. Find new entries
-    val newEntries = newMap.filterKeys { it in newKeys }
-
-    // 2. Find removed entries
-    val removedEntries = oldMap.filterKeys { it in removedKeys }
-
-    // 3. Find changed values among common keys
-    val changedValues = commonKeys.filter { key -> oldMap[key] != newMap[key] }
-        .associateWith { key -> Pair(oldMap[key]!!, newMap[key]!!) }
-
-    return MapDifference(newEntries, removedEntries, changedValues)
+    return MapDifference(newEntries, removedEntries, changedEntries)
 }
 
+private inline fun <K, V, R : Any> Map<out K, V>.mapValueNotNull(transform: (V) -> R?): Map<K, R> {
+    return this.mapNotNull { (key, value) ->
+        val newValue = transform(value)
+        when {
+            newValue != null -> key to newValue
+            else -> null
+        }
+    }.toMap()
+}

@@ -1,6 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.GetSystemLang
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import dev.mokkery.answering.returns
@@ -15,6 +19,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
 import net.folivo.trixnity.client.room.RoomService
@@ -140,15 +145,35 @@ class PowerlevelViewModelTest {
         val model = testModel()
 
         backgroundScope.launch { model.error.collect { } }
+        backgroundScope.launch { model.events.collect { } }
         delay(500.milliseconds)
 
         assertNull(model.error.value, "error before interaction")
+        model.newEvent(EventType(null, "foobar")) // some modification
+        delay(500.milliseconds)
         model.setPowerLevels()
         delay(500.milliseconds)
         assertEquals(msg, model.error.value, "no error exists even though sendStateEvent failed")
         model.errorDismiss()
         delay(500.milliseconds)
         assertNull(model.error.value, "error was not cleared")
+    }
+
+    @Test
+    fun `no change in state does not send`() = runTest {
+        everySuspend {
+            roomApiClient.sendStateEvent(any(), any(), any(), any())
+        } returns Result.failure(RuntimeException("some error"))
+
+        val model = testModel()
+
+        backgroundScope.launch { model.error.collect { } }
+        delay(500.milliseconds)
+
+        model.setPowerLevels() // no change
+        delay(500.milliseconds)
+
+        assertNull(model.error.value)
     }
 
     @Test
@@ -160,15 +185,15 @@ class PowerlevelViewModelTest {
         assertTrue(model.canChangePowerLevels.value)
     }
 
-
     @Test
     fun `initialize Value`() = runTest {
         testPowerLevelsValue(
-            Value(backgroundScope, MutableStateFlow(30L), MutableStateFlow(50L)),
-            error = false,
+            old = 30L,
+            max = 50L,
+
             isModified = false,
-            isUnderMaxPowerLevel = true,
-            isValidLong = true,
+            underMaxPowerLevelErrMsg = true,
+            validLongErrMsg = true,
             modifiedValue = 30L,
         )
     }
@@ -176,12 +201,14 @@ class PowerlevelViewModelTest {
     @Test
     fun `change Value-input to a valid Long`() = runTest {
         testPowerLevelsValue(
-            Value(backgroundScope, MutableStateFlow(30L), MutableStateFlow(50L)),
+            old = 30L,
+            max = 50L,
+
             update = "40",
-            error = false,
+
             isModified = true,
-            isUnderMaxPowerLevel = true,
-            isValidLong = true,
+            underMaxPowerLevelErrMsg = true,
+            validLongErrMsg = true,
             modifiedValue = 40L,
         )
     }
@@ -189,12 +216,14 @@ class PowerlevelViewModelTest {
     @Test
     fun `change Value-input to a invalid number`() = runTest {
         testPowerLevelsValue(
-            Value(backgroundScope, MutableStateFlow(30L), MutableStateFlow(50L)),
+            old = 30L,
+            max = 50L,
+
             update = "foo",
-            error = true,
+
             isModified = true,
-            isUnderMaxPowerLevel = false,
-            isValidLong = false,
+            underMaxPowerLevelErrMsg = false,
+            validLongErrMsg = false,
             modifiedValue = null,
         )
     }
@@ -202,12 +231,14 @@ class PowerlevelViewModelTest {
     @Test
     fun `change Value-input to a value that's too high`() = runTest {
         testPowerLevelsValue(
-            Value(backgroundScope, MutableStateFlow(30L), MutableStateFlow(50L)),
+            old = 30L,
+            max = 50L,
+
             update = "100",
-            error = true,
+
             isModified = true,
-            isUnderMaxPowerLevel = false,
-            isValidLong = true,
+            underMaxPowerLevelErrMsg = false,
+            validLongErrMsg = true,
             modifiedValue = 100L,
         )
     }
@@ -215,15 +246,15 @@ class PowerlevelViewModelTest {
     @Test
     fun `initialize Value with max=null`() = runTest {
         testPowerLevelsValue(
-            Value(backgroundScope, MutableStateFlow(30L), MutableStateFlow(null)),
-            error = false,
+            old = 30L,
+            max = null,
+
             isModified = false,
-            isUnderMaxPowerLevel = false,
-            isValidLong = true,
+            underMaxPowerLevelErrMsg = true,
+            validLongErrMsg = true,
             modifiedValue = 30L,
         )
     }
-
 
     @Test
     fun `add events and reset works`() = runTest {
@@ -236,7 +267,7 @@ class PowerlevelViewModelTest {
         delay(500.milliseconds)
         assertNull(model.error.value)
         assertContains(model.events.value, event)
-        model.resetPowerLevels()
+        model.resetAll()
         delay(500.milliseconds)
         assertNull(model.error.value)
         assertFalse(model.events.value.contains(event))
@@ -262,32 +293,55 @@ class PowerlevelViewModelTest {
         roomId = testRoom,
         onBack = onBack,
     )
-}
 
+    private suspend inline fun TestScope.testPowerLevelsValue(
+        old: Long,
+        max: Long?,
 
-suspend inline fun TestScope.testPowerLevelsValue(
-    value: Value,
-    update: String? = null,
-    error: Boolean,
-    isModified: Boolean,
-    isUnderMaxPowerLevel: Boolean,
-    isValidLong: Boolean,
-    modifiedValue: Long?,
-) {
-    backgroundScope.launch { value.input.collect { } }
-    backgroundScope.launch { value.error.collect { } }
-    backgroundScope.launch { value.isModified.collect { } }
-    backgroundScope.launch { value.isUnderMaxPowerLevel.collect { } }
-    backgroundScope.launch { value.isValidLong.collect { } }
-    delay(500.milliseconds)
-    if (update != null) {
-        value.input.update(update)
+        update: String? = null,
+
+        isModified: Boolean,
+        underMaxPowerLevelErrMsg: Boolean,
+        validLongErrMsg: Boolean,
+        modifiedValue: Long?,
+    ) {
+        val i18n = object : I18n(
+            DefaultLanguages,
+            createTestMatrixMessengerSettingsHolder(),
+            GetSystemLang { "en" },
+            TimeZone.of("CET"),
+        ) {}
+
+        val value = PowerlevelViewModelImpl.ValueImpl(
+            scope = backgroundScope,
+            i18n = i18n,
+            old = MutableStateFlow(old),
+            max = MutableStateFlow(max),
+        )
+
+        backgroundScope.launch { value.input.collect { } }
+        backgroundScope.launch { value.error.collect { } }
+        backgroundScope.launch { value.isModified.collect { } }
         delay(500.milliseconds)
-    }
 
-    assertEquals(error, value.error.first(), "error has the wrong value")
-    assertEquals(isModified, value.isModified.first(), "isModified has the wrong value")
-    assertEquals(isUnderMaxPowerLevel, value.isUnderMaxPowerLevel.first(), "isUnderMaxPowerLevel has the wrong value")
-    assertEquals(isValidLong, value.isValidLong.first(), "isValidLong has the wrong value")
-    assertEquals(modifiedValue, value.modifiedValue(), "modifiedValue has the wrong value")
+        if (update != null) {
+            value.input.update(update)
+            delay(500.milliseconds)
+        }
+
+        assertEquals(isModified, value.isModified.first(), "isModified has the wrong value")
+        assertEquals(modifiedValue, value.input.value.text.toLongOrNull(), "modifiedValue has the wrong value")
+
+        val err = value.error.first()
+        when {
+            !validLongErrMsg ->
+                assertEquals(i18n.powerLevelInputErrNotANumber(), err)
+
+            !underMaxPowerLevelErrMsg ->
+                assertEquals(i18n.powerLevelInputErrAboveAllowedPowerLevel(50L), err)
+
+            else ->
+                assertNull(err)
+        }
+    }
 }

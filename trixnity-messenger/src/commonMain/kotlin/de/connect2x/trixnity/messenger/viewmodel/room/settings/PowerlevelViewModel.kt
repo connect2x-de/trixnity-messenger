@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
@@ -22,9 +23,7 @@ import net.folivo.trixnity.client.user.PowerLevel
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.EventType
-import net.folivo.trixnity.core.model.events.StateEventContent
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
-import net.folivo.trixnity.core.serialization.events.EventContentSerializerMapping
 import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
 
 interface PowerlevelViewModelFactory {
@@ -47,13 +46,16 @@ interface PowerlevelViewModel {
 
     fun back()
 
-    val knownEvents: StateFlow<Set<EventContentSerializerMapping<*>>>
+    val availableUnsetEvents: StateFlow<Set<EventType>>
 
     fun setPowerLevels()
-    fun resetPowerLevels()
+    fun resetAll()
 
     val canChangePowerLevels: StateFlow<Boolean>
     fun newEvent(type: EventType)
+
+    val inputError: StateFlow<Boolean>
+    val isAnyInputModified: StateFlow<Boolean>
 
     val ban: Value
     val eventsDefault: Value
@@ -62,9 +64,15 @@ interface PowerlevelViewModel {
     val redact: Value
     val stateDefault: Value
     val usersDefault: Value
-    val inputError: StateFlow<Boolean>
-    val isAnyInputModified: StateFlow<Boolean>
     val events: StateFlow<Map<EventType, Value>>
+
+    interface Value {
+        val input: TextFieldViewModel
+        val isModified: StateFlow<Boolean>
+        val error: StateFlow<String?>
+
+        fun reset()
+    }
 }
 
 class PowerlevelViewModelImpl(
@@ -74,11 +82,10 @@ class PowerlevelViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, PowerlevelViewModel {
     override fun back() = onBack()
 
-    private val i18n = viewModelContext.i18n
+    //private val i18n = viewModelContext.i18n
     private val defaultPowerLevelsEventContent = PowerLevelsEventContent()
 
-    private val state = matrixClient.room.getState(roomId, PowerLevelsEventContent::class)
-        .map { it?.content }
+    private val state = matrixClient.room.getState(roomId, PowerLevelsEventContent::class).map { it?.content }
         .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -86,7 +93,7 @@ class PowerlevelViewModelImpl(
         error.value = null
     }
 
-    private val userPowerLevelLong = matrixClient.user.getPowerLevel(roomId, matrixClient.userId).map {
+    private val maxPowerLevel = matrixClient.user.getPowerLevel(roomId, matrixClient.userId).map {
         when (it) {
             is PowerLevel.Creator -> Long.MAX_VALUE
             is PowerLevel.User -> it.level
@@ -95,9 +102,9 @@ class PowerlevelViewModelImpl(
 
     override val canChangePowerLevels = combine(
         matrixClient.user.canSendEvent(roomId, PowerLevelsEventContent::class),
-        userPowerLevelLong,
-    ) { canSend, powerLevel ->
-        canSend && powerLevel > 0
+        maxPowerLevel,
+    ) { canSend, max ->
+        canSend && max > 0
     }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     private val addedEvents: MutableStateFlow<Map<EventType, Long>> = MutableStateFlow(emptyMap())
@@ -111,7 +118,10 @@ class PowerlevelViewModelImpl(
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun setPowerLevels() {
         coroutineScope.launch {
-            error.value = when (val c = content()) {
+            val c = getModifiedContent()
+            if (c == state.value)
+                return@launch
+            error.value = when (c) {
                 // this means the user tried to submit while a text field had an invalid state
                 null -> i18n.powerLevelWronglyConfiguredError()
                 else -> matrixClient.api.room.sendStateEvent(roomId, c).exceptionOrNull()?.let {
@@ -124,7 +134,7 @@ class PowerlevelViewModelImpl(
         }
     }
 
-    override fun resetPowerLevels() {
+    override fun resetAll() {
         addedEvents.value = emptyMap()
 
         ban.reset()
@@ -138,82 +148,73 @@ class PowerlevelViewModelImpl(
     }
 
     override fun newEvent(type: EventType) {
-        coroutineScope.launch {
-            val content = state.value ?: defaultPowerLevelsEventContent
-            addedEvents.value += type to ((content.events + addedEvents.value)[type] ?: content.stateDefault)
-        }
+        val content = state.value ?: defaultPowerLevelsEventContent
+        addedEvents.value += type to ((content.events + addedEvents.value)[type] ?: content.stateDefault)
     }
 
-    override val knownEvents = flow<Set<EventContentSerializerMapping<*>>> {
-        emit(matrixClient.di.get<EventContentSerializerMappings>().message)
-    }.stateIn(coroutineScope, WhileSubscribed(), setOf())
-
-    override val ban = Value(
-        coroutineScope,
+    override val ban = ValueImpl(
+        coroutineScope, i18n,
         old = state.map {
             it?.ban ?: defaultPowerLevelsEventContent.ban
         }.stateIn(coroutineScope, WhileSubscribed(), defaultPowerLevelsEventContent.ban),
-        max = userPowerLevelLong,
+        max = maxPowerLevel,
     )
-    override val eventsDefault = Value(
-        coroutineScope,
+    override val eventsDefault = ValueImpl(
+        coroutineScope, i18n,
         old = state.map { it?.eventsDefault ?: defaultPowerLevelsEventContent.eventsDefault }
             .stateIn(coroutineScope, WhileSubscribed(), defaultPowerLevelsEventContent.eventsDefault),
-        max = userPowerLevelLong,
+        max = maxPowerLevel,
     )
-    override val invite = Value(
-        coroutineScope,
+    override val invite = ValueImpl(
+        coroutineScope, i18n,
         old = state.map { it?.invite ?: defaultPowerLevelsEventContent.invite }
             .stateIn(coroutineScope, WhileSubscribed(), defaultPowerLevelsEventContent.invite),
-        max = userPowerLevelLong,
+        max = maxPowerLevel,
     )
-    override val kick = Value(
-        coroutineScope,
+    override val kick = ValueImpl(
+        coroutineScope, i18n,
         old = state.map { it?.kick ?: defaultPowerLevelsEventContent.kick }
             .stateIn(coroutineScope, WhileSubscribed(), defaultPowerLevelsEventContent.kick),
-        max = userPowerLevelLong,
+        max = maxPowerLevel,
     )
-    override val redact = Value(
-        coroutineScope,
+    override val redact = ValueImpl(
+        coroutineScope, i18n,
         old = state.map { it?.redact ?: defaultPowerLevelsEventContent.redact }
             .stateIn(coroutineScope, WhileSubscribed(), defaultPowerLevelsEventContent.redact),
-        max = userPowerLevelLong,
+        max = maxPowerLevel,
     )
-    override val stateDefault = Value(
-        coroutineScope,
+    override val stateDefault = ValueImpl(
+        coroutineScope, i18n,
         old = state.map { it?.stateDefault ?: defaultPowerLevelsEventContent.stateDefault }
             .stateIn(coroutineScope, WhileSubscribed(), defaultPowerLevelsEventContent.stateDefault),
-        max = userPowerLevelLong,
+        max = maxPowerLevel,
     )
-    override val usersDefault = Value(
-        coroutineScope,
+    override val usersDefault = ValueImpl(
+        coroutineScope, i18n,
         old = state.map { it?.usersDefault ?: defaultPowerLevelsEventContent.usersDefault }
             .stateIn(coroutineScope, WhileSubscribed(), defaultPowerLevelsEventContent.usersDefault),
-        max = userPowerLevelLong,
+        max = maxPowerLevel,
     )
 
-    override val events = combine(state, addedEvents, userPowerLevelLong) { state, addedEvents, userPowerLevelLong ->
-        Triple(state, addedEvents, userPowerLevelLong)
-    }.scopedMapLatest { (state, addedEvents, userPowerLevelLong) ->
+    override val events = combine(state, addedEvents, maxPowerLevel) { state, addedEvents, maxPowerLevel ->
+        Triple(state, addedEvents, maxPowerLevel)
+    }.scopedMapLatest { (state, addedEvents, maxPowerLevel) ->
         if (state == null) return@scopedMapLatest mapOf()
         val allEvents = state.events + addedEvents
         allEvents.mapValues { (event, pl) ->
-            Value(
+            ValueImpl(
                 scope = this,
-                old = flow {
-                    emit(pl)
-                }.stateIn(this, WhileSubscribed(), allEvents[event] ?: state.stateDefault),
-                max = flow {
-                    emit(maxPowerLevel(event, allEvents, state.stateDefault, userPowerLevelLong))
-                }.stateIn(this, WhileSubscribed(), null)
+                i18n = i18n,
+                old = flow { emit(pl) }.stateIn(this, WhileSubscribed(), allEvents[event] ?: state.stateDefault),
+                max = flow { emit(maxPowerLevel) }.stateIn(this, WhileSubscribed(), null)
             )
         }
     }.stateIn(coroutineScope, WhileSubscribed(), mapOf())
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val eventsInputError: StateFlow<Boolean> = events.map {
-        combine(it.values.map { it.error }) { it.any { it } }
-    }.flattenConcat().stateIn(coroutineScope, WhileSubscribed(), false)
+    private val eventsInputError: StateFlow<String?> = events.map {
+        combine(it.values.map { it.error }) { if (it.any { it != null }) "" else null }
+    }.flattenConcat().stateIn(coroutineScope, WhileSubscribed(), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val eventsIsModified: StateFlow<Boolean> = events.map {
@@ -231,7 +232,9 @@ class PowerlevelViewModelImpl(
             usersDefault.error,
             eventsInputError,
         )
-    ) { it.any { it } }.stateIn(coroutineScope, WhileSubscribed(), false)
+    ) {
+        it.any { it != null }
+    }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val isAnyInputModified = combine(
         listOf(
@@ -247,8 +250,13 @@ class PowerlevelViewModelImpl(
         )
     ) { it.any { it } }.stateIn(coroutineScope, WhileSubscribed(), false)
 
+    override val availableUnsetEvents: StateFlow<Set<EventType>> = events.map { events ->
+        val knownEvents = matrixClient.di.get<EventContentSerializerMappings>().message
+        knownEvents.map { EventType(it.kClass, it.type) }.filter { !events.contains(it) }.toSet()
+    }.stateIn(coroutineScope, WhileSubscribed(), emptySet())
+
     // This function only returns null if a text field does not contain a number
-    private fun content(): PowerLevelsEventContent? {
+    private fun getModifiedContent(): PowerLevelsEventContent? {
         return state.value?.copy(
             ban = ban.modifiedValue() ?: return null,
             eventsDefault = eventsDefault.modifiedValue() ?: return null,
@@ -260,61 +268,54 @@ class PowerlevelViewModelImpl(
             events = events.value.mapValues { (_, v) -> v.modifiedValue() ?: return null },
         )
     }
-}
 
-data class Value(
-    private val scope: CoroutineScope,
-    val old: StateFlow<Long>,
-    val max: StateFlow<Long?>, // null means the value cannot be modified by the user, possibly due top insufficient permissions
-    val input: TextFieldViewModel = TextFieldViewModelImpl(maxLength = 50, old.value.toString()),
-) {
-    init {
-        scope.launch {
-            old.collect {
-                input.update(it.toString())
+    data class ValueImpl(
+        private val scope: CoroutineScope,
+        private val i18n: I18n,
+        val old: StateFlow<Long>,
+        val max: StateFlow<Long?>, // null means the value cannot be modified by the user, possibly due top insufficient permissions
+        override val input: TextFieldViewModel = TextFieldViewModelImpl(maxLength = 50, old.value.toString()),
+    ) : PowerlevelViewModel.Value {
+        init {
+            scope.launch {
+                old.collect {
+                    input.update(it.toString())
+                }
             }
         }
-    }
 
-    fun reset() {
-        input.update(old.value.toString())
-    }
-
-    val isValidLong = input.map { it.text.toLongOrNull() != null }.stateIn(scope, WhileSubscribed(), true)
-
-    val isUnderMaxPowerLevel = combine(input, max, old) { input, max, old ->
-        when (val l = input.text.toLongOrNull()) {
-            null -> false
-            else -> max != null && l < max
+        override fun reset() {
+            input.update(old.value.toString())
         }
-    }.stateIn(scope, WhileSubscribed(), true)
 
-    val isModified = combine(input, old) { input, old ->
-        input.text.toLongOrNull()?.let { it != old } ?: true
-    }.stateIn(scope, WhileSubscribed(), false)
+        val isValidLong = input.map { it.text.toLongOrNull() != null }.stateIn(scope, WhileSubscribed(), true)
 
-    val error =
-        combine(isModified, isValidLong, isUnderMaxPowerLevel) { isModified, isValidLong, isUnderMaxPowerLevel ->
-            isModified && (!isValidLong || !isUnderMaxPowerLevel)
+        val isUnderMaxPowerLevel = combine(input, max, old) { input, max, old ->
+            when (val l = input.text.toLongOrNull()) {
+                null -> false
+                else -> max != null && l < max
+            }
+        }.stateIn(scope, WhileSubscribed(), true)
+
+        override val isModified = combine(input, old) { input, old ->
+            input.text.toLongOrNull()?.let { it != old } ?: true
         }.stateIn(scope, WhileSubscribed(), false)
 
-    // null if [input.text] is not a valid number
-    fun modifiedValue(): Long? = when {
-        isModified.value -> input.value.text.toLongOrNull()
-        else -> old.value
-    }
-}
+        override val error = combine(
+            isModified, isValidLong, isUnderMaxPowerLevel, max, old
+        ) { isModified, isValidLong, isUnderMaxPowerLevel, max, old ->
+            when {
+                !isModified -> null // don't show error messages on unmodified entries
+                !isValidLong -> i18n.powerLevelInputErrNotANumber()
+                !isUnderMaxPowerLevel -> i18n.powerLevelInputErrAboveAllowedPowerLevel(max ?: old)
+                else -> null
+            }
+        }.stateIn(scope, WhileSubscribed(), null)
 
-
-private fun maxPowerLevel(event: EventType, events: Map<EventType, Long>, stateDefault: Long, powerLevel: Long): Long? {
-    if (powerLevel == Long.MAX_VALUE) return powerLevel
-    if (events.containsKey(event)) {
-        return if (events.getValue(event) > powerLevel) null
-        else events.getValue(event)
-    }
-    val klass = event.kClass ?: return null
-    return when (klass) {
-        is StateEventContent -> if (stateDefault > powerLevel) null else stateDefault
-        else -> null
+        // null if [input.text] is not a valid number
+        fun modifiedValue(): Long? = when {
+            isModified.value -> input.value.text.toLongOrNull()
+            else -> old.value
+        }
     }
 }

@@ -3060,16 +3060,6 @@ open class I18nView(
         DE - "Berechtigungslevel"
     }
 
-    open fun powerLevelInputErrNotANumber() = translate {
-        EN - "not a number"
-        DE - "keine Zahl"
-    }
-
-    open fun powerLevelInputErrAboveAllowedPowerLevel(maxPowerLevel: Long) = translate {
-        EN - "power level has to be below $maxPowerLevel"
-        DE - "Berechtigungslevel muss unter $maxPowerLevel sein"
-    }
-
     open fun roleLabel() = translate {
         EN - "Role"
         DE - "Rolle"
