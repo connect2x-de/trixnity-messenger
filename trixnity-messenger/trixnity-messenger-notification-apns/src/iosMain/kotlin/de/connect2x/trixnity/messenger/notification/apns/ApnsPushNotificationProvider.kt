@@ -55,9 +55,13 @@ class ApnsPushNotificationProvider(
     override val id: String = ID
     override val displayName: String = "Apple Push Notification service"
 
-    override suspend fun enableService() {}
+    override suspend fun enableService() {
+        SyncAndProcessPendingWorker.enqueueUniquePeriodicWork()
+    }
 
-    override suspend fun disableService() {}
+    override suspend fun disableService() {
+        SyncAndProcessPendingWorker.stopUniquePeriodicWork()
+    }
 
     override suspend fun getPusherCustomFields(
         profile: String?,
@@ -74,6 +78,11 @@ class ApnsPushNotificationProvider(
         }
 
     open class UIApplicationDelegate : UIApplicationDelegateProtocol, NSObject() {
+        override fun application(application: UIApplication, didFinishLaunchingWithOptions: Map<Any?, *>?): Boolean {
+            SyncAndProcessPendingWorker.registerUniquePeriodicWork()
+            return true
+        }
+
         override fun application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken: NSData) {
             val pushKey = didRegisterForRemoteNotificationsWithDeviceToken.toByteString().toHexString()
             runBlocking {
