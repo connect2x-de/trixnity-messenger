@@ -263,6 +263,7 @@ class RoomSettingsViewModelTest {
             onOpenAddMembers = mock(),
             onOpenExportRoom = mock(),
             onOpenUserProfile = mock(),
+            onOpenMention = { _, _  -> },
         )
     }
 }

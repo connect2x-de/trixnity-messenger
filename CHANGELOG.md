@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Show richtext in room topic
+
 ### Changed
+
+- Improve UI of room name & room topic
 
 ### Deprecated
 
@@ -17,7 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix focus handling in chat/group creation user list
+- The sticky header now correctly displays the date of the topmost message
+- Fix focus handling in chat/group creation user list and add members view
 - Show dropdown icon in group creation history visibility menu
 
 ### Security
