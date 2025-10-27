@@ -46,6 +46,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
+import net.folivo.trixnity.client.notification.NotificationService
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
@@ -58,6 +59,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
+import net.folivo.trixnity.core.model.events.m.MarkedUnreadEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
@@ -113,6 +115,7 @@ class RoomListViewModelTest {
     val keyServiceMock = mock<KeyService>()
 
     val keyServiceMock2 = mock<KeyService>()
+    val notificationService = mock<NotificationService>()
 
     private val onRoomSelectedMock = mock<Function2<UserId, RoomId, Unit>>()
     private val onAccountSelected = mock<Function0<Unit>>()
@@ -141,6 +144,7 @@ class RoomListViewModelTest {
             keyServiceMock2,
             onRoomSelectedMock,
             onAccountSelected,
+            notificationService,
         )
 
         every { matrixClientMock.di } returns koinApplication {
@@ -149,6 +153,7 @@ class RoomListViewModelTest {
                     single { roomServiceMock }
                     single { userServiceMock }
                     single { keyServiceMock }
+                    single { notificationService }
                 }
             )
         }.koin
@@ -230,6 +235,14 @@ class RoomListViewModelTest {
             )
         )
         every { roomServiceMock.usersTyping } returns MutableStateFlow(mapOf())
+        every { roomServiceMock.getAccountData(any(), eq(MarkedUnreadEventContent::class), any()) } returns flowOf(null)
+        every {
+            roomServiceMock2.getAccountData(
+                any(),
+                eq(MarkedUnreadEventContent::class),
+                any()
+            )
+        } returns flowOf(null)
 
         every { onRoomSelectedMock.invoke(any(), any()) } returns Unit
 
@@ -288,6 +301,7 @@ class RoomListViewModelTest {
 
         every { profileManagerMock.profiles } returns MutableStateFlow(emptyMap())
         everySuspend { profileManagerMock.closeProfile() } returns Unit
+        every { notificationService.getCount(any()) } returns flowOf(0)
     }
 
     @Test
@@ -778,6 +792,7 @@ class RoomListViewModelTest {
                 module {
                     single { roomServiceMock2 }
                     single { userServiceMock2 }
+                    single { notificationService }
                 }
             )
         }.koin
@@ -1015,6 +1030,7 @@ class RoomListViewModelTest {
                     single { roomServiceMock2 }
                     single { userServiceMock2 }
                     single { keyServiceMock2 }
+                    single { notificationService }
                 }
             )
         }.koin
@@ -1050,6 +1066,7 @@ class RoomListViewModelTest {
                     single { roomServiceMock }
                     single { userServiceMock }
                     single { keyServiceMock }
+                    single { notificationService }
                 }
             )
         }.koin
@@ -1074,6 +1091,7 @@ class RoomListViewModelTest {
                     single { roomServiceMock }
                     single { userServiceMock }
                     single { keyServiceMock }
+                    single { notificationService }
                 }
             )
         }.koin
@@ -1099,6 +1117,7 @@ class RoomListViewModelTest {
                     single { roomServiceMock }
                     single { userServiceMock }
                     single { keyServiceMock }
+                    single { notificationService }
                 }
             )
         }.koin

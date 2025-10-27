@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
@@ -15,11 +16,14 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.user.UserService
@@ -65,8 +69,9 @@ class RootViewModelTest {
         cut.stack.toFlow().first { it.active.configuration == RootRouter.Config.AddMatrixAccount }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
+    @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
     private fun TestScope.rootViewModel(): RootViewModelImpl {
+        Dispatchers.setMain(testDispatcher)
         val koinApplication = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules() + module {

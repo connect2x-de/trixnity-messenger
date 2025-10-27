@@ -33,6 +33,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
 import kotlinx.serialization.json.JsonObject
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.notification.NotificationService
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
@@ -50,6 +51,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
+import net.folivo.trixnity.core.model.events.m.MarkedUnreadEventContent
 import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
@@ -75,6 +77,7 @@ class RoomListElementViewModelTest {
     val roomServiceMock = mock<RoomService>()
 
     val userServiceMock = mock<UserService>()
+    val notificationService = mock<NotificationService>()
 
     val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
@@ -124,12 +127,14 @@ class RoomListElementViewModelTest {
             userBlockingMock,
             clock,
             onRoomSelectedMock,
+            notificationService,
         )
         every { matrixClientMock.di } returns koinApplication {
             modules(
                 module {
                     single { roomServiceMock }
                     single { userServiceMock }
+                    single { notificationService }
                 })
         }.koin
         every { matrixClientMock.userId } returns me
@@ -168,6 +173,7 @@ class RoomListElementViewModelTest {
                 stateKey = "",
             )
         )
+        every { roomServiceMock.getAccountData(any(), eq(MarkedUnreadEventContent::class), any()) } returns flowOf(null)
 
         every { userServiceMock.getById(eq(roomId1), eq(me)) } returns MutableStateFlow(
             RoomUser(
@@ -221,6 +227,7 @@ class RoomListElementViewModelTest {
 
         every { roomNameMock.getRoomName(any<RoomId>(), eq(matrixClientMock), any()) } returns flowOf("RoomName")
         every { clock.now() } returns Instant.parse("2021-11-03T15:00:00Z")
+        every { notificationService.getCount(any()) } returns flowOf(0)
     }
 
     @Test

@@ -131,6 +131,9 @@ class TimelineViewModelTest {
             roomsApiClientMock.setReadMarkers(any(), any(), any(), any(), eqNull())
         } returns Result.success(Unit)
         everySuspend {
+            roomsApiClientMock.setAccountData(any(), any(), any(), any(), eqNull())
+        } returns Result.success(Unit)
+        everySuspend {
             roomsApiClientMock.setReceipt(any(), any(), any(), any(), eqNull())
         } returns Result.success(Unit)
 

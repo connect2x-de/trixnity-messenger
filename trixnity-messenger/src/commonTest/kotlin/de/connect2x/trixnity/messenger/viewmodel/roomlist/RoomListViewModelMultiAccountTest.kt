@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.notification.NotificationService
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
@@ -52,6 +53,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
+import net.folivo.trixnity.core.model.events.m.MarkedUnreadEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
@@ -105,6 +107,7 @@ class RoomListViewModelMultiAccountTest {
     val roomServiceMock2 = mock<RoomService>()
 
     val roomServiceMock3 = mock<RoomService>()
+    val notificationService = mock<NotificationService>()
 
     val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
@@ -145,6 +148,7 @@ class RoomListViewModelMultiAccountTest {
             roomNameMock,
             profileManagerMock,
             onRoomSelectedMock,
+            notificationService,
         )
 
         // MatrixClient1: room1, room2, space1
@@ -155,6 +159,7 @@ class RoomListViewModelMultiAccountTest {
                 module {
                     single { roomServiceMock1 }
                     single { userServiceMock1 }
+                    single { notificationService }
                 })
         }.koin
         every { matrixClientMock2.di } returns koinApplication {
@@ -162,6 +167,7 @@ class RoomListViewModelMultiAccountTest {
                 module {
                     single { roomServiceMock2 }
                     single { userServiceMock2 }
+                    single { notificationService }
                 })
         }.koin
         every { matrixClientMock3.di } returns koinApplication {
@@ -169,6 +175,7 @@ class RoomListViewModelMultiAccountTest {
                 module {
                     single { roomServiceMock3 }
                     single { userServiceMock3 }
+                    single { notificationService }
                 })
         }.koin
         syncStateMocker1 = every { matrixClientMock1.syncState }
@@ -273,6 +280,27 @@ class RoomListViewModelMultiAccountTest {
                 stateKey = ""
             )
         )
+        every {
+            roomServiceMock1.getAccountData(
+                any(),
+                eq(MarkedUnreadEventContent::class),
+                any()
+            )
+        } returns flowOf(null)
+        every {
+            roomServiceMock2.getAccountData(
+                any(),
+                eq(MarkedUnreadEventContent::class),
+                any()
+            )
+        } returns flowOf(null)
+        every {
+            roomServiceMock3.getAccountData(
+                any(),
+                eq(MarkedUnreadEventContent::class),
+                any()
+            )
+        } returns flowOf(null)
 
         every { onRoomSelectedMock.invoke(any(), any()) } returns Unit
 
@@ -407,6 +435,7 @@ class RoomListViewModelMultiAccountTest {
 
         every { profileManagerMock.profiles } returns MutableStateFlow(emptyMap())
         everySuspend { profileManagerMock.closeProfile() } returns Unit
+        every { notificationService.getCount(any()) } returns flowOf(0)
     }
 
     @Test
