@@ -131,7 +131,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
             title = i18n.timelineElementMetadataTitle(),
             error = null,
             onBack = { viewModel.back() },
-            backButtonType = if (isSinglePane || isBottomOfStack.not()) HeaderBackButtonType.BACK else HeaderBackButtonType.CLOSE,
+            backButtonType = if (isSinglePane || isBottomOfStack.not()) BACK else CLOSE,
         ) {
             if (reactions == null || readers == null || sender == null || lastElement == null || elementHistory.isEmpty()) {
                 LoadingSpinner(Modifier.fillMaxSize())

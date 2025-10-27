@@ -25,11 +25,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.common.placeholder
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.icons.PublicIcon
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.PlaceholderHighlight
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.fade
-import de.connect2x.trixnity.messenger.compose.view.common.placeholder
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components

@@ -348,18 +348,18 @@ class ThemeComponentsImpl : ThemeComponents {
             textStyle = MaterialTheme.typography.bodySmall,
         ),
         // loading spinner
-        circularProgressIndicator = ProgressIndicatorStyle.CircularProgressIndicatorStyle.Companion.default(),
-        smallCircularProgressIndicator = ProgressIndicatorStyle.CircularProgressIndicatorStyle.Companion.default(
+        circularProgressIndicator = CircularProgressIndicatorStyle.default(),
+        smallCircularProgressIndicator = CircularProgressIndicatorStyle.default(
             size = 32.dp,
         ),
-        extraSmallCircularProgressIndicator = ProgressIndicatorStyle.CircularProgressIndicatorStyle.Companion.default(
+        extraSmallCircularProgressIndicator = CircularProgressIndicatorStyle.default(
             size = 24.dp,
         ),
-        switchProgressIndicator = ProgressIndicatorStyle.CircularProgressIndicatorStyle.Companion.default(
+        switchProgressIndicator = CircularProgressIndicatorStyle.default(
             size = 24.dp,
             strokeWidth = 2.dp,
         ),
-        linearProgressIndicator = ProgressIndicatorStyle.LinearProgressIndicatorStyle.Companion.default(),
+        linearProgressIndicator = LinearProgressIndicatorStyle.default(),
         // slider
         slider = SliderStyle.Companion.default(
             colors = SliderDefaults.colors(),

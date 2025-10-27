@@ -86,11 +86,11 @@ data class ComponentStyles(
     // tooltips
     val tooltip: TooltipStyle,
     // progress indicators
-    val circularProgressIndicator: ProgressIndicatorStyle.CircularProgressIndicatorStyle,
-    val smallCircularProgressIndicator: ProgressIndicatorStyle.CircularProgressIndicatorStyle,
-    val extraSmallCircularProgressIndicator: ProgressIndicatorStyle.CircularProgressIndicatorStyle,
-    val switchProgressIndicator: ProgressIndicatorStyle.CircularProgressIndicatorStyle,
-    val linearProgressIndicator: ProgressIndicatorStyle.LinearProgressIndicatorStyle,
+    val circularProgressIndicator: CircularProgressIndicatorStyle,
+    val smallCircularProgressIndicator: CircularProgressIndicatorStyle,
+    val extraSmallCircularProgressIndicator: CircularProgressIndicatorStyle,
+    val switchProgressIndicator: CircularProgressIndicatorStyle,
+    val linearProgressIndicator: LinearProgressIndicatorStyle,
     // slider
     val slider: SliderStyle,
     // avatar
