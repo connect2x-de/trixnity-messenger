@@ -1,7 +1,10 @@
 package de.connect2x.trixnity.messenger.notification
 
 import de.connect2x.sysnotify.NotificationHandler
+import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.createTestMatrixMultiMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.resetMocks
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -26,6 +29,9 @@ import kotlin.time.Duration.Companion.milliseconds
 class NotificationHandlerTest {
 
     lateinit var notificationProviders: List<NotificationProviderMock>
+    lateinit var multiSettings: MatrixMultiMessengerSettingsHolder
+    val matrixClients = mock<MatrixClients>()
+
     lateinit var cut: NotificationHandlers
     var callbackParam: Boolean? = null
     val notificationHandler = mock<NotificationHandler>()
@@ -33,6 +39,7 @@ class NotificationHandlerTest {
     @BeforeTest
     fun setup() {
         resetMocks(notificationHandler)
+        multiSettings = createTestMatrixMultiMessengerSettingsHolder()
         callbackParam = null
         notificationProviders = listOf(
             NotificationProviderMock(),
@@ -40,7 +47,9 @@ class NotificationHandlerTest {
         )
         cut = NotificationHandlersImpl(
             MatrixMessengerConfiguration(),
-            notificationProviders,
+            NotificationProviders(notificationProviders) { throw IllegalStateException() },
+            multiSettings,
+            matrixClients,
             { callbackParam = it }
         ) { _, _, _, _ ->
             notificationHandler
