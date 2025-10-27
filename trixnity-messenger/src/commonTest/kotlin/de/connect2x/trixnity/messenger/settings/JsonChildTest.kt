@@ -119,7 +119,12 @@ class JsonChildTest {
             mapOf(
                 "a" to JsonObject(
                     mapOf(
-                        "b" to simpleObject,
+                        "b" to JsonObject(
+                            mapOf(
+                                "c" to JsonPrimitive("value"),
+                                "dino" to JsonPrimitive("unicorn"),
+                            )
+                        ),
                         "d" to simpleObject,
                     )
                 ),

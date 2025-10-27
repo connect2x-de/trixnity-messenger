@@ -2,11 +2,11 @@
 //
 //import androidx.compose.runtime.Composable
 //import androidx.compose.ui.tooling.preview.Preview
-//import de.connect2x.messenger.compose.view.room.timeline.RoomContent
-//import de.connect2x.messenger.compose.view.room.timeline.RoomHeader
-//import de.connect2x.messenger.compose.view.room.timeline.element.MessageContainer
-//import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolder
-//import de.connect2x.messenger.compose.view.InitMessengerPreview
+//import de.connect2x.trixnity.messenger.compose.view.room.timeline.RoomContent
+//import de.connect2x.trixnity.messenger.compose.view.room.timeline.RoomHeader
+//import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.MessageContainer
+//import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementHolder
+//import de.connect2x.trixnity.messenger.compose.view.InitMessengerPreview
 //import de.connect2x.trixnity.messenger.viewmodel.room.timeline.PreviewTimelineViewModel
 //import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 //import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTextMessageViewModel1

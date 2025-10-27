@@ -37,10 +37,10 @@ import androidx.compose.ui.unit.sp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldValueState
+import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
 import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUsersView
 import de.connect2x.trixnity.messenger.compose.view.search.SearchResultState
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListView
@@ -56,6 +56,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgr
 import de.connect2x.trixnity.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.trixnity.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
+import de.connect2x.trixnity.messenger.compose.view.util.scrollIntoView
 import de.connect2x.trixnity.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 
@@ -134,7 +135,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             scroll = { item ->
                                 val index = references.indexOf(item)
                                 if (index != -1) {
-                                    lazyListState.scrollToItem(index)
+                                    lazyListState.scrollIntoView(index)
                                 }
                             },
                             up = {

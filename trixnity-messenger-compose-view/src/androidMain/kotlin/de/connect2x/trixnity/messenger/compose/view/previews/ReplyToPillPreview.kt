@@ -3,11 +3,11 @@
 //import androidx.compose.material3.Text
 //import androidx.compose.runtime.Composable
 //import androidx.compose.ui.tooling.preview.Preview
-//import de.connect2x.messenger.compose.view.room.timeline.ImageReplyDefault
-//import de.connect2x.messenger.compose.view.room.timeline.ReferencedMessagePill
-//import de.connect2x.messenger.compose.view.room.timeline.ReplyToPill
-//import de.connect2x.messenger.compose.view.room.timeline.TextReply
-//import de.connect2x.messenger.compose.view.InitMessengerPreview
+//import de.connect2x.trixnity.messenger.compose.view.room.timeline.ImageReplyDefault
+//import de.connect2x.trixnity.messenger.compose.view.room.timeline.ReferencedMessagePill
+//import de.connect2x.trixnity.messenger.compose.view.room.timeline.ReplyToPill
+//import de.connect2x.trixnity.messenger.compose.view.room.timeline.TextReply
+//import de.connect2x.trixnity.messenger.compose.view.InitMessengerPreview
 //import de.connect2x.trixnity.messenger.viewmodel.room.timeline.PreviewReplyToViewModel
 //
 //@Preview(showBackground = true, backgroundColor = 0xFFFFFF)

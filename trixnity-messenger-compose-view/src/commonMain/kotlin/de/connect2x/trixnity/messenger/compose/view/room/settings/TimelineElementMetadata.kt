@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.sp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
+import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.BACK
+import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.trixnity.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
@@ -56,9 +58,9 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserA
 import de.connect2x.trixnity.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.trixnity.messenger.compose.view.util.RovingFocusItem
 import de.connect2x.trixnity.messenger.compose.view.util.rovingFocusItem
+import de.connect2x.trixnity.messenger.compose.view.util.scrollIntoView
 import de.connect2x.trixnity.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.compose.view.util.waitForElementWithTimeout
-import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -234,7 +236,7 @@ fun ColumnScope.ReadersAndReactions(
                                 val index = references.indexOf(item)
                                 if (index != -1) {
                                     parentScrollState.scrollTo(parentScrollState.maxValue)
-                                    state.scrollToItem(index)
+                                    state.scrollIntoView(index)
                                 }
                             },
                             up = {

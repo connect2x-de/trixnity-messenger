@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.util.lerp
-import de.connect2x.messenger.compose.view.common.PlaceholderDefaults
+import de.connect2x.trixnity.messenger.compose.view.common.PlaceholderDefaults
 import kotlin.math.max
 
 /**

@@ -53,7 +53,7 @@
 //import de.connect2x.trixnity.messenger.compose.view.VerificationCancelledContent
 //import de.connect2x.trixnity.messenger.compose.view.VerificationRejectedContent
 //import de.connect2x.trixnity.messenger.compose.view.VerificationTimeoutContent
-//import de.connect2x.messenger.compose.view.verification.VerificationWaitForOtherContent
+//import de.connect2x.trixnity.messenger.compose.view.verification.VerificationWaitForOtherContent
 //import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.UserVerificationViewModel
 //import de.connect2x.trixnity.messenger.viewmodel.verification.AcceptSasStartViewModel
 //import de.connect2x.trixnity.messenger.viewmodel.verification.SelectVerificationMethodViewModel

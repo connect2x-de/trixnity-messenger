@@ -55,6 +55,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModal
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.trixnity.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.trixnity.messenger.compose.view.util.scrollIntoView
 import de.connect2x.trixnity.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
@@ -260,7 +261,7 @@ class TimelineViewImpl : TimelineView {
                                             scroll = { item ->
                                                 val index = uiTimelineElements.value.indexOf(item)
                                                 if (index != -1) {
-                                                    listState.scrollToItem(index)
+                                                    listState.scrollIntoView(index)
                                                 }
                                             },
                                             up = {
@@ -425,7 +426,7 @@ fun ListDateHeader(
 ) {
     val timestamp = remember {
         derivedStateOf {
-            visible.value?.second?.let { lastEventId ->
+            visible.value?.first?.let { lastEventId ->
                 timelineElementHolderViewModels.value
                     .find { it.key == lastEventId }
                     ?.formattedDate

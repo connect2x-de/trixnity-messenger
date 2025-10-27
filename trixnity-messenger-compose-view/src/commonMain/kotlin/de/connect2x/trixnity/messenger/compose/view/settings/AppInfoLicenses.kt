@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.entity.Library
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.focusHighlighting
@@ -31,8 +32,8 @@ import de.connect2x.trixnity.messenger.compose.view.util.LocalRovingFocusItem
 import de.connect2x.trixnity.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.trixnity.messenger.compose.view.util.RovingFocusItem
 import de.connect2x.trixnity.messenger.compose.view.util.rovingFocusItem
+import de.connect2x.trixnity.messenger.compose.view.util.scrollIntoView
 import de.connect2x.trixnity.messenger.compose.view.util.verticalRovingFocus
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 
 interface AppInfoLicensesView {
@@ -57,7 +58,7 @@ internal fun Licenses(onClose: () -> Unit) {
     val style = MaterialTheme.components.library
 
     val i18n = DI.get<I18nView>()
-    val licences = DI.get<MatrixMessengerConfiguration>().licenses
+    val licences = DI.get<MatrixMessengerBaseConfiguration>().licenses
     if (licences != null) {
         val lazyListState = rememberLazyListState()
         val libraries = remember(licences) { Libs.Builder().withJson(licences).build() }
@@ -78,7 +79,7 @@ internal fun Licenses(onClose: () -> Unit) {
                             scroll = { item ->
                                 val index = references.indexOf(item)
                                 if (index != -1) {
-                                    lazyListState.scrollToItem(index)
+                                    lazyListState.scrollIntoView(index)
                                 }
                             },
                             up = {

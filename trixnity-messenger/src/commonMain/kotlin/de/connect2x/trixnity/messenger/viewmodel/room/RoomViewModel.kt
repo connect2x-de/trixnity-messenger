@@ -112,6 +112,7 @@ open class RoomViewModelImpl(
         onOpenRoom = onOpenRoom,
         onCloseRoom = ::onCloseRoom,
         onOpenAvatarCutter = onOpenAvatarCutter,
+        onOpenMention = onOpenMention,
     )
     override val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>> =
         extrasRouter.stack

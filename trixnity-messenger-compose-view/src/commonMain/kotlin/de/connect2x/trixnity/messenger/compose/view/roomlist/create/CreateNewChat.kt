@@ -32,11 +32,11 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
+import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
 import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUsersView
 import de.connect2x.trixnity.messenger.compose.view.search.SearchResultState
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListView
@@ -52,6 +52,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModal
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.trixnity.messenger.compose.view.util.RovingFocusContainer
+import de.connect2x.trixnity.messenger.compose.view.util.scrollIntoView
 import de.connect2x.trixnity.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -101,7 +102,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
                         scroll = { item ->
                             val index = references.indexOf(item)
                             if (index != -1) {
-                                listState.scrollToItem(index)
+                                listState.scrollIntoView(index)
                             }
                         },
                         up = {

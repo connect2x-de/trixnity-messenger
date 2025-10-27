@@ -36,6 +36,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListI
 import de.connect2x.trixnity.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.trixnity.messenger.compose.view.util.RovingFocusItem
 import de.connect2x.trixnity.messenger.compose.view.util.rovingFocusItem
+import de.connect2x.trixnity.messenger.compose.view.util.scrollIntoView
 import de.connect2x.trixnity.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
@@ -149,7 +150,7 @@ fun MemberList(
                     scroll = { item ->
                         val index = references.value.indexOf(item)
                         if (index != -1) {
-                            state.scrollToItem(index)
+                            state.scrollIntoView(index)
                         }
                     },
                     up = {

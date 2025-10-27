@@ -3,6 +3,8 @@ package de.connect2x.trixnity.messenger.compose.view.settings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalUriHandler
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
@@ -12,8 +14,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.AdaptiveDia
 import de.connect2x.trixnity.messenger.compose.view.theme.components.AdaptiveDialogScrollContent
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedAdaptiveDialog
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.util.html.AutoLinkifyVisitor
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
@@ -38,9 +38,8 @@ class AppInfoImprintViewImpl : AppInfoImprintView {
 @Composable
 internal fun Imprint(onClose: () -> Unit) {
     val i18n = DI.get<I18nView>()
-    val imprint = DI.get<MatrixMessengerConfiguration>().imprint ?: return
-    val uriCaller = DI.get<UriCaller>()
-
+    val imprint = DI.get<MatrixMessengerBaseConfiguration>().imprint ?: return
+    val uriHandler = LocalUriHandler.current
     val content = AutoLinkifyVisitor.process(HtmlVisitor.process(imprint))
 
     ThemedAdaptiveDialog(onClose) {
@@ -50,8 +49,8 @@ internal fun Imprint(onClose: () -> Unit) {
         AdaptiveDialogScrollContent {
             RichTextDisplay(
                 content,
-                colors = RichTextColors.Companion.default(linkColor = MaterialTheme.messengerColors.link),
-                onLinkClick = { uriCaller.invoke(it, external = true) }
+                colors = RichTextColors.default(linkColor = MaterialTheme.messengerColors.link),
+                onLinkClick = { uriHandler.openUri(it) }
             )
         }
     }

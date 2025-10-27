@@ -39,14 +39,16 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.InputAreaSt
 import de.connect2x.trixnity.messenger.compose.view.theme.components.LibraryStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ListItemStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.LocalContent
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ProgressIndicatorStyle.CircularProgressIndicatorStyle
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.RadioButtonStyle
+import de.connect2x.trixnity.messenger.compose.view.theme.components.SelectStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.SelectionStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.SliderStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.SwitchStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.SystemUiStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.TooltipStyle
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ProgressIndicatorStyle
 
 @Composable
 fun MaterialThemeComponents(
@@ -431,6 +433,8 @@ class ThemeComponentsImpl : ThemeComponents {
             contentPadding = PaddingValues(horizontal = 10.dp),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
         ),
+        // select, like HTML <select>
+        select = SelectStyle.default(),
         // selection
         selectionOnSurface = SelectionStyle.Companion.onSurface(),
         selectionOnPrimary = SelectionStyle.Companion.onPrimary(),

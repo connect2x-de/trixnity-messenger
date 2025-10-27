@@ -59,6 +59,7 @@ class UiaActionConfirmationViewModelImpl(
     override val error = MutableStateFlow<String?>(null)
 
     init {
+        // a ActionConfirmation without message should automatically be accepted
         if (confirmationMessage == null) next()
     }
 

@@ -2,8 +2,8 @@
 //
 //import androidx.compose.runtime.Composable
 //import androidx.compose.ui.tooling.preview.Preview
-//import de.connect2x.messenger.compose.view.room.timeline.element.MessageVideo
-//import de.connect2x.messenger.compose.view.InitMessengerPreview
+//import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.MessageVideo
+//import de.connect2x.trixnity.messenger.compose.view.InitMessengerPreview
 //import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel1
 //import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewVideoMessageViewModel
 //
