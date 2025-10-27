@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.room.settings
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -7,6 +8,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.focused
+import androidx.compose.ui.semantics.imeAction
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.RadioSetting
@@ -37,8 +43,7 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
     override fun create(roomSettingsViewModel: RoomSettingsViewModel) {
         val i18n = DI.get<I18nView>()
         val roomSettingsHistoryVisibilityViewModel = roomSettingsViewModel.roomSettingsHistoryVisibilityViewModel
-        val historyVisibility =
-            roomSettingsHistoryVisibilityViewModel.roomHistoryVisibility.collectAsState().value
+        val historyVisibility = roomSettingsHistoryVisibilityViewModel.roomHistoryVisibility.collectAsState().value
         val canChangeRoomHistoryVisibility =
             roomSettingsHistoryVisibilityViewModel.canChangeRoomHistoryVisibility.collectAsState().value
         val isHistoryVisibilityChanging =
@@ -54,52 +59,73 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
                 },
                 style = MaterialTheme.components.settingsItem,
             )
+
             if (!canChangeRoomHistoryVisibility) {
-                Tooltip({
-                    Text(
-                        if (isEncrypted) historyVisibility.getExplanationWhenEncrypted(i18n)
-                        else historyVisibility.getExplanation(i18n)
-                    )
-                }) {
+                Tooltip(
+                    tooltip = {
+                        Text(
+                            if (isEncrypted) historyVisibility.getExplanationWhenEncrypted(i18n)
+                            else historyVisibility.getExplanation(i18n)
+                        )
+                    },
+                    Modifier.semantics {
+                        focused = false
+                        text = AnnotatedString(
+                            i18n.chatHistoryVisibilitySettings() + ", " + historyVisibility.getStateName(i18n) + " " + i18n.selected()
+                        )
+                    }) {
                     Text(
                         text = historyVisibility.getStateName(i18n),
                         style = MaterialTheme.typography.labelLarge,
                         modifier = Modifier.padding(start = 10.dp)
                     )
                 }
-            } else {
-                RadioSetting(
-                    title = {
-                        if (isHistoryVisibilityChanging) {
-                            ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
-                        } else {
-                            Tooltip({
-                                Text(
-                                    if (isEncrypted) historyVisibility.getExplanationWhenEncrypted(i18n)
-                                    else historyVisibility.getExplanation(i18n)
-                                )
-                            }) {
-                                Text(
-                                    historyVisibility.getStateName(i18n),
-                                    style = MaterialTheme.typography.titleSmall,
-                                )
-                            }
-                        }
-                    },
-                    options = visibilities?.associate {
-                        it to RadioSettingOption(
-                            text = it.getStateName(i18n),
-                            explanation = (if (isEncrypted) it.getExplanationWhenEncrypted(i18n) else it.getExplanation(
-                                i18n
-                            )),
-                            enabled = roomSettingsHistoryVisibilityViewModel.historyVisibilityCanBeChangedTo(it) && isHistoryVisibilityChanging.not()
-                        )
-                    } ?: mapOf(),
-                    set = { roomSettingsHistoryVisibilityViewModel.changeRoomHistoryVisibility(it) },
-                    value = historyVisibility
-                )
+                return
             }
+
+            if (isHistoryVisibilityChanging) {
+                ThemedProgressIndicator(
+                    modifier = Modifier.semantics {
+                        focused = false
+                        text = AnnotatedString(i18n.chatHistoryVisibilitySettings() + ", " + i18n.loading())
+                    }, style = MaterialTheme.components.extraSmallCircularProgressIndicator
+                )
+                return
+            }
+
+            RadioSetting(
+                title = {
+                    Tooltip(
+                        tooltip = {
+                            Text(
+                                if (isEncrypted) historyVisibility.getExplanationWhenEncrypted(i18n)
+                                else historyVisibility.getExplanation(i18n)
+                            )
+                        },
+                        modifier = Modifier.semantics {
+                            text = AnnotatedString(
+                                i18n.chatHistoryVisibilitySettings() + ", " + historyVisibility.getStateName(i18n) + " " + i18n.selected()
+                            )
+                        }) {
+                        Text(
+                            historyVisibility.getStateName(i18n),
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                    }
+                },
+                options = visibilities?.associate {
+                    it to RadioSettingOption(
+                        text = it.getStateName(i18n),
+                        explanation = if (isEncrypted) it.getExplanationWhenEncrypted(i18n)
+                        else it.getExplanation(i18n),
+                        enabled = roomSettingsHistoryVisibilityViewModel.historyVisibilityCanBeChangedTo(it) && isHistoryVisibilityChanging.not()
+                    )
+                } ?: mapOf(),
+                set = { roomSettingsHistoryVisibilityViewModel.changeRoomHistoryVisibility(it) },
+                value = historyVisibility
+            )
         }
+
     }
 }
 

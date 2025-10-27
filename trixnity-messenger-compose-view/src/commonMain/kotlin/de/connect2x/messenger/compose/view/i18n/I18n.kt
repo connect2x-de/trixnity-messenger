@@ -2945,6 +2945,31 @@ open class I18nView(
         DE - "Nachricht in $roomName"
     }
 
+    open fun notificationSettings() = translate {
+        EN - "Notification settings"
+        DE - "Benachrichtigungseinstellungen"
+    }
+
+    open fun chatHistoryVisibilitySettings() = translate {
+        EN - "Chat history visibility settings"
+        DE - "Chatverlaufssichtbarkeitseinstellungen"
+    }
+
+    open fun chatJoinRuleSettings() = translate {
+        EN - "Chat join rule settings"
+        DE - "Gruppenbeitrittseinstellungen"
+    }
+
+    open fun selected() = translate {
+        EN - "selected"
+        DE - "ausgewählt"
+    }
+
+    open fun loading() = translate {
+        EN - "loading"
+        DE - "wird geladen"
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)

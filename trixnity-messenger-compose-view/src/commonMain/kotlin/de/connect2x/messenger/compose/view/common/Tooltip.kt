@@ -22,6 +22,7 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.EscapeKeyPressed
@@ -93,7 +94,7 @@ fun Tooltip(
     }
 
     TooltipBox(
-        modifier = Modifier
+        modifier = modifier
             .tooltipGestures(
                 enabled = enabled,
                 state = tooltipState,
