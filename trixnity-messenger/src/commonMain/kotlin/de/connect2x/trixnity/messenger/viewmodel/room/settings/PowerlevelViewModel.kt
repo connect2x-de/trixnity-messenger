@@ -290,9 +290,9 @@ class PowerlevelViewModelImpl(
             input.update(old.value.toString())
         }
 
-        val isValidLong = input.map { it.text.toLongOrNull() != null }.stateIn(scope, WhileSubscribed(), true)
+        private val isValidLong = input.map { it.text.toLongOrNull() != null }.stateIn(scope, WhileSubscribed(), true)
 
-        val isUnderMaxPowerLevel = combine(input, max) { input, max ->
+        private val isUnderMaxPowerLevel = combine(input, max) { input, max ->
             when (val l = input.text.toLongOrNull()) {
                 null -> false
                 else -> max != null && l < max
