@@ -56,8 +56,10 @@ class NotificationHandlersImpl(
         matrixClients.isInitialized.first { it }
         matrixClients.map { it.keys }.collect { accounts ->
             notificationHandlers.updateAndGet { oldNotificationHandlers ->
-                (oldNotificationHandlers - accounts).forEach {
-                    // notificationHandlers.value[account]?.value?.remove() // FIXME does not exist yet
+                (oldNotificationHandlers - accounts).forEach { (account) ->
+                    val notificationHandler = notificationHandlers.value[account]?.value
+                    notificationHandler?.clearAll()
+                    notificationHandler?.close()
                 }
                 oldNotificationHandlers.filterKeys { it in accounts }
             }

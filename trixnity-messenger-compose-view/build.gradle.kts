@@ -88,8 +88,12 @@ kotlin {
         val desktopAndAndroidMain by creating {
             dependsOn(commonMain)
         }
+        val skiaMain by creating {
+            dependsOn(commonMain)
+        }
         val desktopMain by getting {
             dependsOn(desktopAndAndroidMain)
+            dependsOn(skiaMain)
             dependencies {
                 implementation(sharedLibs.ktor.client.okhttp)
                 implementation(libs.pdfbox)
@@ -112,12 +116,17 @@ kotlin {
             }
         }
         val webMain by getting {
+            dependsOn(skiaMain)
             dependencies {
                 implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
                 implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))
                 implementation(sharedLibs.kotlin.browser)
                 implementation(project(":wrappers-pdfjs"))
             }
+        }
+
+        val iosMain by getting {
+            dependsOn(skiaMain)
         }
 
         commonTest {

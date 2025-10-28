@@ -1,4 +1,4 @@
-package de.connect2x.messenger.previews.components
+package de.connect2x.trixnity.messenger.compose.view.previews
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike

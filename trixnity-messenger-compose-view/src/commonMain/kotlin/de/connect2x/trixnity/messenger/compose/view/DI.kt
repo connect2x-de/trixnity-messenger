@@ -304,8 +304,7 @@ import de.connect2x.trixnity.messenger.compose.view.verification.RedoSelfVerific
 import de.connect2x.trixnity.messenger.compose.view.verification.RedoSelfVerificationWizardViewImpl
 import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationWizardView
 import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationWizardViewImpl
-import de.connect2x.trixnity.messenger.notification.GetNotificationIcon
-import de.connect2x.trixnity.messenger.notification.GetNotificationIconImpl
+import de.connect2x.trixnity.messenger.notification.getPlatformNotificationIconModule
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named
@@ -336,9 +335,7 @@ fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Mo
         settingsViewModule(),
         verificationViewModule(),
         uiaViewModule(),
-        module {
-            single<GetNotificationIcon> { GetNotificationIconImpl() }
-        }
+        getPlatformNotificationIconModule(),
     )
 }
 
