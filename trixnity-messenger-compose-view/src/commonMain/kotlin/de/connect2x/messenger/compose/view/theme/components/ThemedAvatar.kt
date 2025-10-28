@@ -27,6 +27,9 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -160,6 +163,7 @@ fun AvatarContentIcon(icon: ImageVector, size: Dp) {
 fun AvatarContentText(text: String, size: Dp) {
     Text(
         text,
+        modifier = Modifier.semantics { this.text = AnnotatedString("") },
         textAlign = TextAlign.Center,
         fontSize = with(SystemDensity.current) { size.toSp() * 0.4f },
     )

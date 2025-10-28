@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonAdd
@@ -22,6 +22,10 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.CollectionInfo
+import androidx.compose.ui.semantics.CollectionItemInfo
+import androidx.compose.ui.semantics.collectionInfo
+import androidx.compose.ui.semantics.collectionItemInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
@@ -159,42 +163,51 @@ fun MemberList(
     Box(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
         RovingFocusContainer {
             LazyColumn(
-                Modifier.fillMaxWidth().verticalRovingFocus(
-                    default = defaultItem,
-                    scroll = { item ->
-                        val index = references.value.indexOf(item)
-                        if (index != -1) {
-                            state.scrollIntoView(index)
-                        }
+                Modifier
+                    .fillMaxWidth()
+                    .verticalRovingFocus(
+                        default = defaultItem,
+                        scroll = { item ->
+                            val index = references.value.indexOf(item)
+                            if (index != -1) {
+                                state.scrollIntoView(index)
+                            }
+                        },
+                        up = {
+                            val currentItem = activeRef.value ?: defaultItem
+                            val currentIndex = references.value.indexOf(currentItem)
+                            val nextIndex = currentIndex.minus(1).coerceIn(references.value.indices)
+                            references.value[nextIndex]
+                        },
+                        down = {
+                            val currentItem = activeRef.value ?: defaultItem
+                            val currentIndex = references.value.indexOf(currentItem)
+                            val nextIndex = currentIndex.plus(1).coerceIn(references.value.indices)
+                            references.value[nextIndex]
+                        },
+                    )
+                    .semantics {
+                        collectionInfo = CollectionInfo(rowCount = members.value.size, columnCount = 1)
                     },
-                    up = {
-                        val currentItem = activeRef.value ?: defaultItem
-                        val currentIndex = references.value.indexOf(currentItem)
-                        val nextIndex = currentIndex.minus(1).coerceIn(references.value.indices)
-                        references.value[nextIndex]
-                    },
-                    down = {
-                        val currentItem = activeRef.value ?: defaultItem
-                        val currentIndex = references.value.indexOf(currentItem)
-                        val nextIndex = currentIndex.plus(1).coerceIn(references.value.indices)
-                        references.value[nextIndex]
-                    },
-                ),
                 state
             ) {
-                items(members.value, key = { it.memberUserId.full }) { member ->
+                itemsIndexed(members.value, key = { _, item -> item.memberUserId.full }) { i, member ->
                     RovingFocusItem(member.memberUserId, defaultItem) {
                         RoomSettingsMemberListElement(
                             memberListViewModel,
                             member.memberUserId,
                             member,
-                            modifier = Modifier.rovingFocusItem(),
+                            modifier = Modifier.rovingFocusItem().semantics {
+                                collectionItemInfo =
+                                    CollectionItemInfo(rowIndex = i, rowSpan = 1, columnIndex = 0, columnSpan = 1)
+                            },
                             onClick = {
                                 onClickUser(member.memberUserId)
                             },
                         )
                     }
                 }
+
                 if (showLoadingSpinner) {
                     item(key = "loadingSpinner") {
                         LoadingSpinner()
