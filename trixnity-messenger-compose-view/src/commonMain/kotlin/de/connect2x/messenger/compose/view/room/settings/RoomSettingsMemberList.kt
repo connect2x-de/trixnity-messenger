@@ -22,6 +22,9 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
@@ -96,28 +99,39 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
                 memberListViewModel.filterByMemberships,
                 setOf(Membership.JOIN)
             ) {
-                Text(i18n.settingsRoomMemberListJoined())
+                Text(i18n.settingsRoomMemberListJoined(), Modifier.semantics {
+                    text = AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListJoined())
+                })
             }
             Spacer(Modifier.size(5.dp))
             ToggleableFilterChip(
                 memberListViewModel.filterByMemberships,
                 setOf(Membership.KNOCK)
             ) {
-                Text(i18n.settingsRoomMemberListKnocking())
+                Text(i18n.settingsRoomMemberListKnocking(), Modifier.semantics {
+                    text =
+                        AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListKnocking())
+                })
             }
             Spacer(Modifier.size(5.dp))
             ToggleableFilterChip(
                 memberListViewModel.filterByMemberships,
                 setOf(Membership.INVITE)
             ) {
-                Text(i18n.settingsRoomMemberListInvited())
+                Text(i18n.settingsRoomMemberListInvited(), Modifier.semantics {
+                    text =
+                        AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListInvited())
+                })
             }
             Spacer(Modifier.size(5.dp))
             ToggleableFilterChip(
                 memberListViewModel.filterByMemberships,
                 setOf(Membership.BAN)
             ) {
-                Text(i18n.settingsRoomMemberListBanned())
+                Text(i18n.settingsRoomMemberListBanned(), Modifier.semantics {
+                    text =
+                        AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListBanned())
+                })
             }
         }
 

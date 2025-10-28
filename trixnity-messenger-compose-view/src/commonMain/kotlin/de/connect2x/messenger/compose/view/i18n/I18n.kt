@@ -1132,6 +1132,11 @@ open class I18nView(
         DE - "Mitglieder"
     }
 
+    open fun filterBy() = translate {
+        EN - "Filter by"
+        DE - "Filter nach"
+    }
+
     open fun roomSettingsAliases() = translate {
         EN - "Room Aliases"
         DE - "Raumaliase"
