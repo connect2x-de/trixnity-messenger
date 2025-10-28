@@ -9,11 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Show richtext in room topic
-
 ### Changed
-
-- Improve UI of room name & room topic
 
 ### Deprecated
 
@@ -26,6 +22,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show dropdown icon in group creation history visibility menu
 
 ### Security
+
+## 3.8.8
+
+### Added
+
+- Show richtext in room topic
+
+### Changed
+
+- Improve UI of room name & room topic
+
+### Fixed
+
+- The sticky header now correctly displays the date of the topmost message
 
 ## 3.8.7
 
