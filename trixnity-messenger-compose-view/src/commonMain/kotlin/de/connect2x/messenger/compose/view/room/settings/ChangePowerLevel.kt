@@ -84,14 +84,14 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
         Column {
             Header(onBack = model::back, title = i18n.changePowerLevelHeader())
 
-            if (!canChangePowerLevels) {
-                ThemedSurface(style = MaterialTheme.components.sidebar) {
-                    Text(i18n.cannotChangePowerLevels())
-                }
-                Spacer(Modifier.height(12.dp))
-            }
-
             AdaptiveDialogScrollContent {
+                if (!canChangePowerLevels) {
+                    ThemedSurface(style = MaterialTheme.components.sidebar) {
+                        Text(i18n.cannotChangePowerLevels())
+                    }
+                    Spacer(Modifier.height(12.dp))
+                }
+
                 PowerLevelInput(i18n.mRoomUserDefaultHeading(), model.usersDefault, canChangePowerLevels)
                 PowerLevelInput(i18n.mRoomEventDefaultHeading(), model.eventsDefault, canChangePowerLevels)
                 PowerLevelInput(i18n.mRoomStateDefaultHeading(), model.stateDefault, canChangePowerLevels)

@@ -11,9 +11,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flattenConcat
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -82,7 +83,6 @@ class PowerlevelViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, PowerlevelViewModel {
     override fun back() = onBack()
 
-    //private val i18n = viewModelContext.i18n
     private val defaultPowerLevelsEventContent = PowerLevelsEventContent()
 
     private val state = matrixClient.room.getState(roomId, PowerLevelsEventContent::class).map { it?.content }
@@ -205,21 +205,23 @@ class PowerlevelViewModelImpl(
             ValueImpl(
                 scope = this,
                 i18n = i18n,
-                old = flow { emit(pl) }.stateIn(this, WhileSubscribed(), allEvents[event] ?: state.stateDefault),
-                max = flow { emit(maxPowerLevel) }.stateIn(this, WhileSubscribed(), null)
+                old = MutableStateFlow(pl).asStateFlow(),
+                max = MutableStateFlow(maxPowerLevel).asStateFlow()
             )
         }
     }.stateIn(coroutineScope, WhileSubscribed(), mapOf())
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val eventsInputError: StateFlow<String?> = events.map {
-        combine(it.values.map { it.error }) { if (it.any { it != null }) "" else null }
-    }.flattenConcat().stateIn(coroutineScope, WhileSubscribed(), null)
+    private val eventsInputError: StateFlow<String?> = events.flatMapLatest {
+        if (it.isEmpty()) flowOf(null)
+        else combine(it.values.map { it.error }) { if (it.any { it != null }) "" else null }
+    }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val eventsIsModified: StateFlow<Boolean> = events.map {
-        combine(it.values.map { it.isModified }) { it.any { it } }
-    }.flattenConcat().stateIn(coroutineScope, WhileSubscribed(), false)
+    private val eventsIsModified: StateFlow<Boolean> = events.flatMapLatest {
+        if (it.isEmpty()) flowOf(false)
+        else combine(it.values.map { it.isModified }) { it.any { it } }
+    }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val inputError = combine(
         listOf(
@@ -272,8 +274,8 @@ class PowerlevelViewModelImpl(
     data class ValueImpl(
         private val scope: CoroutineScope,
         private val i18n: I18n,
-        val old: StateFlow<Long>,
-        val max: StateFlow<Long?>, // null means the value cannot be modified by the user, possibly due top insufficient permissions
+        private val old: StateFlow<Long>,
+        private val max: StateFlow<Long?>, // null means the value cannot be modified by the user, possibly due top insufficient permissions
         override val input: TextFieldViewModel = TextFieldViewModelImpl(maxLength = 50, old.value.toString()),
     ) : PowerlevelViewModel.Value {
         init {
@@ -290,7 +292,7 @@ class PowerlevelViewModelImpl(
 
         val isValidLong = input.map { it.text.toLongOrNull() != null }.stateIn(scope, WhileSubscribed(), true)
 
-        val isUnderMaxPowerLevel = combine(input, max, old) { input, max, old ->
+        val isUnderMaxPowerLevel = combine(input, max) { input, max ->
             when (val l = input.text.toLongOrNull()) {
                 null -> false
                 else -> max != null && l < max

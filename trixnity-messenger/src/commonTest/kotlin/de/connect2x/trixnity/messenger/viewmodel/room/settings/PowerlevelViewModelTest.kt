@@ -101,14 +101,11 @@ class PowerlevelViewModelTest {
     }
 
     @Test
-    fun `check whether we can modify events`() = runTest {
-        val canModify = EventType(null, "foobar")
-        val cannotModify = EventType(null, "baz")
-        every {
-            roomService.getState(testRoom, PowerLevelsEventContent::class, "")
-        } returns MutableStateFlow(
+    fun `empty event state always results in no error`() = runTest {
+        val event = EventType(null, "foobar")
+        val state = MutableStateFlow(
             StateEvent(
-                content = PowerLevelsEventContent(events = mapOf(canModify to 30, cannotModify to 60)),
+                content = PowerLevelsEventContent(events = mapOf(event to 30)),
                 id = EventId("eventId"),
                 sender = alice,
                 roomId = testRoom,
@@ -118,21 +115,99 @@ class PowerlevelViewModelTest {
             )
         )
 
+        every {
+            roomService.getState(testRoom, PowerLevelsEventContent::class, "")
+        } returns state
+
         val model = testModel()
 
         backgroundScope.launch { model.events.collect { } }
+        backgroundScope.launch { model.inputError.collect { } }
+
         delay(500.milliseconds)
 
-        val events = model.events.value
-        assertContains(events, canModify)
-        assertContains(events, cannotModify)
+        val events1 = model.events.value
+        assertContains(events1, event)
+        assertEquals(1, events1.size)
 
-        backgroundScope.launch { events[canModify]!!.max.collect { } }
-        backgroundScope.launch { events[canModify]!!.max.collect { } }
+        events1.forEach { (_, v) -> v.input.update("notANumber") }
+
         delay(500.milliseconds)
 
-        assertNotNull(events[canModify]!!.max.value)
-        assertNull(events[cannotModify]!!.max.value)
+        events1.forEach { (_, v) -> assertNotNull(v.error.value) }
+        assertTrue(model.inputError.value)
+
+        state.value = StateEvent(
+            content = PowerLevelsEventContent(), // empty events map
+            id = EventId("eventId"),
+            sender = alice,
+            roomId = testRoom,
+            originTimestamp = 456,
+            unsigned = null,
+            stateKey = "",
+        )
+
+        delay(500.milliseconds)
+
+        val events2 = model.events.value
+        assertEquals(mapOf(), events2)
+
+        assertFalse(model.inputError.value)
+    }
+
+    @Test
+    fun `empty event state always results in unmodified`() = runTest {
+        val event = EventType(null, "foobar")
+        val state = MutableStateFlow(
+            StateEvent(
+                content = PowerLevelsEventContent(events = mapOf(event to 30)),
+                id = EventId("eventId"),
+                sender = alice,
+                roomId = testRoom,
+                originTimestamp = 123,
+                unsigned = null,
+                stateKey = "",
+            )
+        )
+
+        every {
+            roomService.getState(testRoom, PowerLevelsEventContent::class, "")
+        } returns state
+
+        val model = testModel()
+
+        backgroundScope.launch { model.events.collect { } }
+        backgroundScope.launch { model.isAnyInputModified.collect { } }
+
+        delay(500.milliseconds)
+
+        val events1 = model.events.value
+        assertContains(events1, event)
+        assertEquals(1, events1.size)
+
+        events1.forEach { (_, v) -> v.input.update("12") }
+
+        delay(500.milliseconds)
+
+        events1.forEach { (_, v) -> assertTrue(v.isModified.value) }
+        assertTrue(model.isAnyInputModified.value)
+
+        state.value = StateEvent(
+            content = PowerLevelsEventContent(), // empty events map
+            id = EventId("eventId"),
+            sender = alice,
+            roomId = testRoom,
+            originTimestamp = 456,
+            unsigned = null,
+            stateKey = "",
+        )
+
+        delay(500.milliseconds)
+
+        val events2 = model.events.value
+        assertEquals(mapOf(), events2)
+
+        assertFalse(model.isAnyInputModified.value)
     }
 
     @Test
