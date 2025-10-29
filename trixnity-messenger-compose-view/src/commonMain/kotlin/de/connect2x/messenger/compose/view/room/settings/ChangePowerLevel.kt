@@ -194,7 +194,12 @@ private fun PowerLevelUnknownEvent(enabled: Boolean, existingEvents: Set<String>
             ThemedButton(
                 style = MaterialTheme.components.primaryButton,
                 enabled = enabled && !isErr(),
-                onClick = { if (!isErr()) newEvent(customValue) },
+                onClick = {
+                    if (!isErr()) {
+                        newEvent(customValue)
+                        customValue = ""
+                    }
+                },
                 content = { Text(i18n.actionCreate()) })
         }
     }
