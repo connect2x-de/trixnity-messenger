@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.Tooltip
@@ -50,7 +51,7 @@ internal actual fun SelectExportDestination(
             result(file.path.toPath())
         }
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.CenterVertically) {
         Text(
             properties?.destination?.toString() ?: "",
             style = MaterialTheme.typography.labelLarge,
@@ -64,7 +65,7 @@ internal actual fun SelectExportDestination(
                 style = MaterialTheme.components.commonIconButton,
                 onClick = { launcher.launch() },
             ) {
-                Icon(Icons.Default.Folder, i18n.commonFile())
+                Icon(Icons.Default.Folder, i18n.selectDirectory())
             }
         }
     }
