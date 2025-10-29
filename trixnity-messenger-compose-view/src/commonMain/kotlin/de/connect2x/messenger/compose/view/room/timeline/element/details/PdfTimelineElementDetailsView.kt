@@ -9,6 +9,7 @@ import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -38,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.key.isCtrlPressed
@@ -46,8 +48,10 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.times
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.VerticalScrollbar
@@ -155,7 +159,6 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                 horizontalScroll.scrollBy(-offset.x)
             }
         }
-        val viewSize = remember { mutableStateOf(IntSize.Zero) }
         val i18n = DI.get<I18nView>()
         val dpi = remember { mutableStateOf<Float?>(null) }
         val pageCacheSize = remember { mutableStateOf(max(2f, min(16f, 8f / zoom.value)).toInt()) }
@@ -174,151 +177,143 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
             onClose,
             additions = { ZoomButtons(zoom, minScale = minZoom, maxScale = maxZoom) }) {
             val focusRequester = remember { FocusRequester() }
-            Column {
-                Box(
-                    Modifier
-                        .background(color = Color.Black)
-                        .fillMaxSize()
-                        .focusRequester(focusRequester)
-                        .focusable()
-                        .onKeyEvent { keyEvent ->
-                            canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
-                            false
+            BoxWithConstraints(
+                Modifier
+                    .background(color = Color.Black)
+                    .fillMaxSize()
+                    .focusRequester(focusRequester)
+                    .focusable()
+                    .onKeyEvent { keyEvent ->
+                        canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
+                        false
+                    }
+                    .zoomModifier(focusRequester, canZoom, state, scope),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                when {
+                    error != null -> {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxSize().padding(32.dp),
+                        ) {
+                            Icon(
+                                MaterialTheme.messengerIcons.typeFile,
+                                i18n.commonFile(),
+                                Modifier.size(96.dp).align(Alignment.CenterHorizontally),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Text(error, color = Color.White)
                         }
-                        .zoomModifier(focusRequester, canZoom, state, scope),
-                ) {
-                    when {
-                        error != null -> {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxSize().padding(32.dp),
-                            ) {
-                                Icon(
-                                    MaterialTheme.messengerIcons.typeFile,
-                                    i18n.commonFile(),
-                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally),
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                                Text(error, color = Color.White)
+                    }
+
+                    progress != null && media == null -> {
+                        DownloadProgress(progress, element::cancelDownloadMedia)
+                    }
+
+                    media != null -> {
+                        val density = LocalDensity.current.density
+                        val reader = remember { mutableStateOf<PDFReader?>(null) }
+                        LaunchedEffect(Unit) {
+                            reader.value =
+                                getPlatformPDFReader(media) { setError(i18n.fileCouldNotBeLoaded()) }
+                        }
+                        DisposableEffect(Unit) {
+                            onDispose {
+                                reader.value?.onDispose()
+                                cache.clear()
                             }
                         }
-
-                        progress != null && media == null -> {
-                            DownloadProgress(progress, element::cancelDownloadMedia)
+                        LaunchedEffect(
+                            reader.value?.documentWidth?.value,
+                            constraints.maxWidth,
+                            constraints.maxHeight,
+                            zoom.value,
+                        ) {
+                            reader.value?.documentWidth?.value?.let {
+                                val maxDpi = 1f / it.toFloat() * 64f * 3600f
+                                val dpiTarget = density * zoom.value
+                                dpi.value = (dpiTarget * it).coerceAtMost(maxDpi)
+                            }
                         }
+                        val numOfPages = reader.value?.numOfPages?.value
+                        val currentReader = reader.value
+                        val dpi = dpi.value
 
-                        media != null -> {
-                            val density = LocalDensity.current.density
-                            val reader = remember { mutableStateOf<PDFReader?>(null) }
+                        if (currentReader != null && numOfPages != null && dpi != null) {
                             LaunchedEffect(Unit) {
-                                reader.value =
-                                    getPlatformPDFReader(media) { setError(i18n.fileCouldNotBeLoaded()) }
-                            }
-                            DisposableEffect(Unit) {
-                                onDispose {
-                                    reader.value?.onDispose()
-                                    cache.clear()
+                                queue.collect {
+                                    pageCacheSize.value = max(3f, min(16f, 8f / zoom.value)).toInt()
+                                    loadImageWithDpi(
+                                        currentReader,
+                                        it,
+                                        dpi,
+                                        pageCacheSize.value,
+                                        lazyListState
+                                    )
                                 }
                             }
-                            LaunchedEffect(
-                                reader.value?.documentWidth?.value,
-                                viewSize.value,
-                                zoom.value,
-                            ) {
-                                reader.value?.documentWidth?.value?.let {
-                                    val maxDpi = 1f / it.toFloat() * 64f * 3600f
-                                    val dpiTarget = density * zoom.value
-                                    dpi.value = (dpiTarget * it).coerceAtMost(maxDpi)
-                                }
-                            }
-
-                            Box(
-                                Modifier
+                            LazyColumn(
+                                modifier = Modifier
+                                    .horizontalScroll(state = horizontalScroll, enabled = canZoom.value.not())
                                     .fillMaxSize()
-                                    .onSizeChanged { viewSize.value = it },
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                val numOfPages = reader.value?.numOfPages?.value
-                                val reader = reader.value
-                                val dpi = dpi.value
-
-                                if (reader != null && numOfPages != null && dpi != null) {
-                                    LaunchedEffect(Unit) {
-                                        queue.collect {
-                                            pageCacheSize.value = max(3f, min(16f, 8f / zoom.value)).toInt()
-                                            loadImageWithDpi(
-                                                reader,
-                                                it,
-                                                dpi,
-                                                pageCacheSize.value,
-                                                lazyListState
-                                            )
+                                    .transformable(state),
+                                verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
+                                contentPadding = PaddingValues(horizontal = MaterialTheme.messengerDpConstants.middle),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                state = lazyListState,
+                                userScrollEnabled = canZoom.value.not(),
+                                content = {
+                                    items(count = numOfPages, key = { it }) { pageId ->
+                                        val image = getCacheElement(pageId, scope).collectAsState().value?.page
+                                        LaunchedEffect(dpi) {
+                                            delay(200)
+                                            queue.emit(pageId)
                                         }
-                                    }
-                                    LazyColumn(
-                                        modifier = Modifier
-                                            .horizontalScroll(state = horizontalScroll, enabled = canZoom.value.not())
-                                            .fillMaxSize()
-                                            .transformable(state),
-                                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
-                                        contentPadding = PaddingValues(horizontal = MaterialTheme.messengerDpConstants.middle),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        state = lazyListState,
-                                        userScrollEnabled = canZoom.value.not(),
-                                        content = {
-                                            items(count = numOfPages, key = { it }) { pageId ->
-                                                val image = getCacheElement(pageId, scope).collectAsState().value?.page
-                                                LaunchedEffect(dpi) {
-                                                    delay(200)
-                                                    queue.emit(pageId)
-                                                }
-                                                if (image != null) {
-                                                    Image(
-                                                        bitmap = image,
-                                                        contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),
-                                                        modifier = Modifier
-                                                            .background(color = Color.White) // Avoid performance drops on transparent images.
-                                                            .width(viewSize.value.width.dp / density * zoom.value - MaterialTheme.messengerDpConstants.middle * 2),
-                                                        contentScale = ContentScale.FillWidth,
-                                                    )
-                                                } else {
-                                                    Box(
-                                                        Modifier.height(viewSize.value.height.dp / density * zoom.value - MaterialTheme.messengerDpConstants.middle * 2)
-                                                            .width(viewSize.value.width.dp / density * zoom.value - MaterialTheme.messengerDpConstants.middle * 2),
-                                                        contentAlignment = Alignment.Center
-                                                    ) {
-                                                        LoadingSpinner()
-                                                    }
-                                                }
+                                        if (image != null) {
+                                            Image(
+                                                bitmap = image,
+                                                contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),
+                                                modifier = Modifier
+                                                    .background(color = Color.White) // Avoid performance drops on transparent images.
+                                                    .width(constraints.maxWidth.dp / density * zoom.value - MaterialTheme.messengerDpConstants.middle * 2),
+                                                contentScale = ContentScale.FillWidth,
+                                            )
+                                        } else {
+                                            Box(
+                                                Modifier.height(constraints.maxHeight.dp / density * zoom.value - MaterialTheme.messengerDpConstants.middle * 2)
+                                                    .width(constraints.maxWidth.dp / density * zoom.value - MaterialTheme.messengerDpConstants.middle * 2),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                LoadingSpinner()
                                             }
                                         }
-                                    )
-                                } else CenteredElement {
-                                    ThemedProgressIndicator(
-                                        style = MaterialTheme.components.circularProgressIndicator
-                                    )
+                                    }
                                 }
-                                HorizontalScrollbar(
-                                    Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
-                                    horizontalScroll,
-                                )
-                                VerticalScrollbar(
-                                    Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                                    lazyListState,
-                                    false
-                                )
-                            }
+                            )
+                        } else CenteredElement {
+                            ThemedProgressIndicator(
+                                style = MaterialTheme.components.circularProgressIndicator
+                            )
                         }
+                        HorizontalScrollbar(
+                            Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
+                            horizontalScroll,
+                        )
+                        VerticalScrollbar(
+                            Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                            lazyListState,
+                            false
+                        )
+                    }
 
-                        else -> {
-                            Column(
-                                modifier = Modifier.align(Alignment.Center),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                            ) {
-                                ThemedProgressIndicator(style = MaterialTheme.components.circularProgressIndicator)
-                            }
+                    else -> {
+                        Column(
+                            modifier = Modifier.align(Alignment.Center),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            ThemedProgressIndicator(style = MaterialTheme.components.circularProgressIndicator)
                         }
                     }
                 }
