@@ -377,6 +377,66 @@ class PowerlevelViewModelTest {
         assertEquals(1, backCalled)
     }
 
+    @Test
+    fun `create unknownEvent`() = runTest {
+        val event = EventType(null, "foobar")
+        val model = testModel()
+
+        backgroundScope.launch { model.unknownEventError.collect { } }
+        delay(500.milliseconds)
+
+        assertNull(model.unknownEventError.value)
+
+        model.unknownEventInput.update(event.name)
+        delay(500.milliseconds)
+
+        assertNull(model.unknownEventError.value)
+
+        model.unknownEventCreate()
+        delay(500.milliseconds)
+
+        assertContains(model.events.value, event)
+        // input was cleared
+        assertEquals("", model.unknownEventInput.value.text)
+    }
+
+    @Test
+    fun `error if unknownEvent already exists`() = runTest {
+        val event = EventType(null, "foobar")
+
+        every {
+            roomService.getState(testRoom, PowerLevelsEventContent::class, "")
+        } returns MutableStateFlow(
+            StateEvent(
+                content = PowerLevelsEventContent(events = mapOf(event to 25L)),
+                id = EventId("eventId"),
+                sender = alice,
+                roomId = testRoom,
+                originTimestamp = 123,
+                unsigned = null,
+                stateKey = "",
+            )
+        )
+
+        val model = testModel()
+
+        backgroundScope.launch { model.unknownEventError.collect { } }
+        delay(500.milliseconds)
+
+        assertNull(model.unknownEventError.value)
+
+        model.unknownEventInput.update(event.name)
+        delay(500.milliseconds)
+
+        assertNotNull(model.unknownEventError.value)
+
+        model.unknownEventCreate()
+        delay(500.milliseconds)
+
+        // input was not cleared due to error
+        assertEquals(event.name, model.unknownEventInput.value.text)
+    }
+
     private fun TestScope.testModel(onBack: () -> Unit = {}): PowerlevelViewModelImpl = PowerlevelViewModelImpl(
         viewModelContext = testMatrixClientViewModelContext(
             userId = alice,

@@ -1586,6 +1586,11 @@ open class I18n(
         EN - "power level has to be below $maxPowerLevel"
         DE - "Berechtigungslevel muss unter $maxPowerLevel sein"
     }
+
+    open fun newEventAlreadyExistsErr() = translate {
+        EN - "This event id exists already"
+        DE - "Diese Event Id existiert bereits"
+    }
 }
 
 internal fun getLang(

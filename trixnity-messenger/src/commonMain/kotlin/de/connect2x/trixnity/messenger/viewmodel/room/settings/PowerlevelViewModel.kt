@@ -58,6 +58,10 @@ interface PowerlevelViewModel {
     val inputError: StateFlow<Boolean>
     val isAnyInputModified: StateFlow<Boolean>
 
+    val unknownEventInput: TextFieldViewModel
+    val unknownEventError: StateFlow<String?>
+    fun unknownEventCreate()
+
     val ban: Value
     val eventsDefault: Value
     val invite: Value
@@ -270,6 +274,18 @@ class PowerlevelViewModelImpl(
             usersDefault = usersDefault.modifiedValue() ?: return null,
             events = events.value.mapValues { (_, v) -> v.modifiedValue() ?: return null },
         )
+    }
+
+    override val unknownEventInput = TextFieldViewModelImpl(maxLength = 255)
+
+    override val unknownEventError = combine(unknownEventInput, events) { input, events ->
+        events[EventType(null, input.text)]?.let { i18n.newEventAlreadyExistsErr() }
+    }.stateIn(coroutineScope, WhileSubscribed(), null)
+
+    override fun unknownEventCreate() {
+        if (unknownEventError.value != null) return
+        newEvent(EventType(null, unknownEventInput.value.text))
+        unknownEventInput.update("")
     }
 
     data class ValueImpl(

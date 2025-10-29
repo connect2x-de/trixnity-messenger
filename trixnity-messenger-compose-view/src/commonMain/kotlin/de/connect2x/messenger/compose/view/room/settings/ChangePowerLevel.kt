@@ -115,10 +115,7 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
 
                 Spacer(Modifier.height(16.dp))
 
-                PowerLevelUnknownEvent(
-                    enabled = canChangePowerLevels,
-                    existingEvents = eventStrings,
-                    newEvent = { model.newEvent(EventType(null, it)) })
+                PowerLevelUnknownEvent(model)
             }
 
             if (canChangePowerLevels) {
@@ -175,31 +172,28 @@ private fun KnownUnsetEvents(
 }
 
 @Composable
-private fun PowerLevelUnknownEvent(enabled: Boolean, existingEvents: Set<String>, newEvent: (String) -> Unit) {
+private fun PowerLevelUnknownEvent(model: PowerlevelViewModel) {
     val i18n = DI.get<I18nView>()
-    var customValue by remember { mutableStateOf("") }
-    fun isErr(): Boolean = existingEvents.contains(customValue)
+    val enabled by model.canChangePowerLevels.collectAsState()
+    var input by model.unknownEventInput.collectAsTextFieldValueState()
+    val errMsg by model.unknownEventError.collectAsState()
+    val isError = errMsg != null
 
     Column(Modifier.fillMaxWidth()) {
         Text(i18n.powerLevelChangeNewEventHeading())
         Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(4.dp), Alignment.CenterVertically) {
             OutlinedTextField(
                 modifier = Modifier.weight(1f),
-                value = customValue,
-                onValueChange = { customValue = it },
+                value = input,
+                onValueChange = { input = it },
                 enabled = enabled,
                 label = { Text(i18n.newEventIdLabel()) },
-                isError = isErr(),
-                supportingText = { Text(if (isErr()) i18n.newEventAlreadyExistsErr() else "") })
+                isError = isError,
+                supportingText = { Text(errMsg ?: "") })
             ThemedButton(
                 style = MaterialTheme.components.primaryButton,
-                enabled = enabled && !isErr(),
-                onClick = {
-                    if (!isErr()) {
-                        newEvent(customValue)
-                        customValue = ""
-                    }
-                },
+                enabled = enabled && !isError && input.text != "",
+                onClick = { model.unknownEventCreate() },
                 content = { Text(i18n.actionCreate()) })
         }
     }

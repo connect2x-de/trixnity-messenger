@@ -3065,19 +3065,14 @@ open class I18nView(
         DE - "Rolle"
     }
 
-    open fun newEventAlreadyExistsErr() = translate {
-        EN - "This event id exists already"
-        DE - "Diese Event Id existiert bereits"
-    }
-
     open fun newEventIdLabel() = translate {
         EN - "Event id"
         DE - "Event Id"
     }
 
     open fun mRoomMessageHeading() = translate {
-        EN - "Send messages"
-        DE - "Nachrichten senden"
+        EN - "Send unencrypted messages"
+        DE - "Unverschlüsselte Nachrichten senden"
     }
 
     open fun mReactionHeading() = translate {
