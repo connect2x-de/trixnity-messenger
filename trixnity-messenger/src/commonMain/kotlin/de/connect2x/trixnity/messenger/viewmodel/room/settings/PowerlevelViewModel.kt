@@ -70,6 +70,7 @@ interface PowerlevelViewModel {
     interface Value {
         val input: TextFieldViewModel
         val isModified: StateFlow<Boolean>
+        val canChange: StateFlow<Boolean>
         val error: StateFlow<String?>
 
         fun reset()
@@ -291,6 +292,11 @@ class PowerlevelViewModelImpl(
         }
 
         private val isValidLong = input.map { it.text.toLongOrNull() != null }.stateIn(scope, WhileSubscribed(), true)
+
+        // we cannot change the power level if the current value is higher than our own power level
+        override val canChange = combine(old, max) { old, max ->
+            max != null && old <= max
+        }.stateIn(scope, WhileSubscribed(), true)
 
         private val isUnderMaxPowerLevel = combine(input, max) { input, max ->
             when (val l = input.text.toLongOrNull()) {

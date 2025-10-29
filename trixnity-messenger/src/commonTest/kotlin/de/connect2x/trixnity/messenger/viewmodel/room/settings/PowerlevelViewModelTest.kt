@@ -267,9 +267,24 @@ class PowerlevelViewModelTest {
             max = 50L,
 
             isModified = false,
-            underMaxPowerLevelErrMsg = true,
-            validLongErrMsg = true,
+            underMaxPowerLevelErrMsg = false,
+            validLongErrMsg = false,
+            canChange = true,
             modifiedValue = 30L,
+        )
+    }
+
+    @Test
+    fun `old higher than max`() = runTest {
+        testPowerLevelsValue(
+            old = 50L,
+            max = 30L,
+
+            isModified = false,
+            underMaxPowerLevelErrMsg = false,
+            validLongErrMsg = false,
+            canChange = false,
+            modifiedValue = 50L,
         )
     }
 
@@ -282,8 +297,9 @@ class PowerlevelViewModelTest {
             update = "40",
 
             isModified = true,
-            underMaxPowerLevelErrMsg = true,
-            validLongErrMsg = true,
+            underMaxPowerLevelErrMsg = false,
+            validLongErrMsg = false,
+            canChange = true,
             modifiedValue = 40L,
         )
     }
@@ -298,7 +314,8 @@ class PowerlevelViewModelTest {
 
             isModified = true,
             underMaxPowerLevelErrMsg = false,
-            validLongErrMsg = false,
+            validLongErrMsg = true,
+            canChange = true,
             modifiedValue = null,
         )
     }
@@ -312,8 +329,9 @@ class PowerlevelViewModelTest {
             update = "100",
 
             isModified = true,
-            underMaxPowerLevelErrMsg = false,
-            validLongErrMsg = true,
+            underMaxPowerLevelErrMsg = true,
+            validLongErrMsg = false,
+            canChange = true,
             modifiedValue = 100L,
         )
     }
@@ -325,8 +343,9 @@ class PowerlevelViewModelTest {
             max = null,
 
             isModified = false,
-            underMaxPowerLevelErrMsg = true,
-            validLongErrMsg = true,
+            underMaxPowerLevelErrMsg = false,
+            validLongErrMsg = false,
+            canChange = false,
             modifiedValue = 30L,
         )
     }
@@ -378,6 +397,7 @@ class PowerlevelViewModelTest {
         isModified: Boolean,
         underMaxPowerLevelErrMsg: Boolean,
         validLongErrMsg: Boolean,
+        canChange: Boolean,
         modifiedValue: Long?,
     ) {
         val i18n = object : I18n(
@@ -397,6 +417,7 @@ class PowerlevelViewModelTest {
         backgroundScope.launch { value.input.collect { } }
         backgroundScope.launch { value.error.collect { } }
         backgroundScope.launch { value.isModified.collect { } }
+        backgroundScope.launch { value.canChange.collect { } }
         delay(500.milliseconds)
 
         if (update != null) {
@@ -406,13 +427,14 @@ class PowerlevelViewModelTest {
 
         assertEquals(isModified, value.isModified.first(), "isModified has the wrong value")
         assertEquals(modifiedValue, value.input.value.text.toLongOrNull(), "modifiedValue has the wrong value")
+        assertEquals(canChange, value.canChange.first(), "canChange has the wrong value")
 
         val err = value.error.first()
         when {
-            !validLongErrMsg ->
+            validLongErrMsg ->
                 assertEquals(i18n.powerLevelInputErrNotANumber(), err)
 
-            !underMaxPowerLevelErrMsg ->
+            underMaxPowerLevelErrMsg ->
                 assertEquals(i18n.powerLevelInputErrAboveAllowedPowerLevel(50L), err)
 
             else ->

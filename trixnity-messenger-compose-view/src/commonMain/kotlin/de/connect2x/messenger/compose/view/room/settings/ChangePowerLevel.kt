@@ -238,6 +238,7 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, ena
 
     val isError = value.error.collectAsState().value != null
     val errorMsg = value.error.collectAsState().value ?: ""
+    val canChange = value.canChange.collectAsState().value
 
     Column(Modifier.fillMaxWidth()) {
         Text(label)
@@ -247,7 +248,7 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, ena
                 label = { Text(i18n.roleLabel()) },
                 options = options,
                 value = options[initialIndex],
-                enabled = enabled,
+                enabled = enabled && canChange,
                 render = {
                     when (it) {
                         "User" -> i18n.userProfileRoleUser()
@@ -272,7 +273,7 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, ena
             OutlinedTextField(
                 modifier = Modifier.weight(2f).focusRequester(focusRequester).pointerHoverIcon(PointerIcon.Default),
                 value = textFieldValue,
-                enabled = enabled && isCustomSelected,
+                enabled = enabled && isCustomSelected && canChange,
                 readOnly = !isCustomSelected,
                 onValueChange = { textFieldValue = it },
                 isError = isError && isModified,
