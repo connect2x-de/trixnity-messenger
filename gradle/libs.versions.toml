@@ -5,7 +5,7 @@ trixnityMessenger = "4.0.0"
 seskar = "4.15.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
 trixnity = "4.23.0-LOCAL" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "2.1.1" # https://gitlab.com/connect2x/sysnotify/-/packages
+sysnotify = "2.2.0" # https://gitlab.com/connect2x/sysnotify/-/packages
 
 okio = "3.16.0" # https://square.github.io/okio/changelog
 jsJoda = "2.22.0" # https://www.npmjs.com/package/@js-joda/timezone

@@ -57,9 +57,7 @@ class NotificationHandlersImpl(
         matrixClients.map { it.keys }.collect { accounts ->
             notificationHandlers.updateAndGet { oldNotificationHandlers ->
                 (oldNotificationHandlers - accounts).forEach { (account) ->
-                    val notificationHandler = notificationHandlers.value[account]?.value
-                    notificationHandler?.clearAll()
-                    notificationHandler?.close()
+                    notificationHandlers.value[account]?.value?.unregister()
                 }
                 oldNotificationHandlers.filterKeys { it in accounts }
             }
