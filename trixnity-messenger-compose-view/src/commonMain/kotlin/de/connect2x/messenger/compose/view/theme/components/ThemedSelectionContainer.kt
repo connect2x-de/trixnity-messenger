@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -72,7 +73,7 @@ fun ThemedSelectableText(
     onTextLayout: ((TextLayoutResult) -> Unit)? = null,
     style: TextStyle = LocalTextStyle.current
 ) {
-    ThemedSelectionContainer(selectionStyle, selectionModifier) {
+    ThemedSelectionContainer(selectionStyle, selectionModifier.semantics(mergeDescendants = true) {}) {
         Text(
             text,
             modifier,
