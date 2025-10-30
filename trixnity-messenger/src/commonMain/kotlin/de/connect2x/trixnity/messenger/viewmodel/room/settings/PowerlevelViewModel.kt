@@ -26,6 +26,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.EventType
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
+import kotlin.collections.plus
 
 interface PowerlevelViewModelFactory {
     companion object : PowerlevelViewModelFactory
@@ -47,20 +48,19 @@ interface PowerlevelViewModel {
 
     fun back()
 
-    val availableUnsetEvents: StateFlow<Set<EventType>>
 
     fun setPowerLevels()
     fun resetAll()
 
     val canChangePowerLevels: StateFlow<Boolean>
-    fun newEvent(type: EventType)
 
     val inputError: StateFlow<Boolean>
     val isAnyInputModified: StateFlow<Boolean>
 
-    val unknownEventInput: TextFieldViewModel
-    val unknownEventError: StateFlow<String?>
-    fun unknownEventCreate()
+    val availableUnsetEvents: StateFlow<Set<String>>
+    val newEventInput: TextFieldViewModel
+    val newEventError: StateFlow<String?>
+    fun newEventCreate()
 
     val ban: Value
     val eventsDefault: Value
@@ -150,11 +150,6 @@ class PowerlevelViewModelImpl(
         stateDefault.reset()
         usersDefault.reset()
         events.value.forEach { (_, v) -> v.reset() }
-    }
-
-    override fun newEvent(type: EventType) {
-        val content = state.value ?: defaultPowerLevelsEventContent
-        addedEvents.value += type to ((content.events + addedEvents.value)[type] ?: content.stateDefault)
     }
 
     override val ban = ValueImpl(
@@ -257,9 +252,10 @@ class PowerlevelViewModelImpl(
         )
     ) { it.any { it } }.stateIn(coroutineScope, WhileSubscribed(), false)
 
-    override val availableUnsetEvents: StateFlow<Set<EventType>> = events.map { events ->
+    override val availableUnsetEvents: StateFlow<Set<String>> = events.map { events ->
         val knownEvents = matrixClient.di.get<EventContentSerializerMappings>().message
-        knownEvents.map { EventType(it.kClass, it.type) }.filter { !events.contains(it) }.toSet()
+        val eventTypes = events.map { it.key.name }
+        knownEvents.map {  it.type }.filter { !eventTypes.contains(it) }.toSet()
     }.stateIn(coroutineScope, WhileSubscribed(), emptySet())
 
     // This function only returns null if a text field does not contain a number
@@ -276,16 +272,18 @@ class PowerlevelViewModelImpl(
         )
     }
 
-    override val unknownEventInput = TextFieldViewModelImpl(maxLength = 255)
+    override val newEventInput = TextFieldViewModelImpl(maxLength = 255)
 
-    override val unknownEventError = combine(unknownEventInput, events) { input, events ->
+    override val newEventError = combine(newEventInput, events) { input, events ->
         events[EventType(null, input.text)]?.let { i18n.newEventAlreadyExistsErr() }
     }.stateIn(coroutineScope, WhileSubscribed(), null)
 
-    override fun unknownEventCreate() {
-        if (unknownEventError.value != null) return
-        newEvent(EventType(null, unknownEventInput.value.text))
-        unknownEventInput.update("")
+    override fun newEventCreate() {
+        if (newEventError.value != null) return
+        val content = state.value ?: defaultPowerLevelsEventContent
+        val eventType = EventType(null, newEventInput.value.text)
+        addedEvents.value += eventType to ((content.events + addedEvents.value)[eventType] ?: content.stateDefault)
+        newEventInput.update("")
     }
 
     data class ValueImpl(

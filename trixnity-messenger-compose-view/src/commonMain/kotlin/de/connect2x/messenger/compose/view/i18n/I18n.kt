@@ -3165,15 +3165,11 @@ open class I18nView(
         DE - "Anruf-Stream-Metadaten aktualisieren"
     }
 
-    open fun powerLevelChangeUnsetKnownEventHeading() = translate {
-        EN - "Create known event"
-        DE - "Bekanntes Ereignis erstellen"
+    open fun powerLevelChangeNewEventHeading() = translate {
+        EN - "Create new event"
+        DE - "Neues Ereignis erstellen"
     }
 
-    open fun powerLevelChangeNewEventHeading() = translate {
-        EN - "Create unknown event"
-        DE - "Unbekanntes Ereignis erstellen"
-    }
 
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)

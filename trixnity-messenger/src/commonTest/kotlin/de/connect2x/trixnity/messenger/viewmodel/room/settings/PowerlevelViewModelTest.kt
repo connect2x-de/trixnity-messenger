@@ -221,10 +221,11 @@ class PowerlevelViewModelTest {
 
         backgroundScope.launch { model.error.collect { } }
         backgroundScope.launch { model.events.collect { } }
+        backgroundScope.launch { model.invite.isModified.collect { } }
         delay(500.milliseconds)
 
         assertNull(model.error.value, "error before interaction")
-        model.newEvent(EventType(null, "foobar")) // some modification
+        model.invite.input.update("12") // some modification
         delay(500.milliseconds)
         model.setPowerLevels()
         delay(500.milliseconds)
@@ -357,7 +358,8 @@ class PowerlevelViewModelTest {
 
         backgroundScope.launch { model.events.collect { } }
         delay(500.milliseconds)
-        model.newEvent(event)
+        model.newEventInput.update(event.name)
+        model.newEventCreate()
         delay(500.milliseconds)
         assertNull(model.error.value)
         assertContains(model.events.value, event)
@@ -382,22 +384,22 @@ class PowerlevelViewModelTest {
         val event = EventType(null, "foobar")
         val model = testModel()
 
-        backgroundScope.launch { model.unknownEventError.collect { } }
+        backgroundScope.launch { model.newEventError.collect { } }
         delay(500.milliseconds)
 
-        assertNull(model.unknownEventError.value)
+        assertNull(model.newEventError.value)
 
-        model.unknownEventInput.update(event.name)
+        model.newEventInput.update(event.name)
         delay(500.milliseconds)
 
-        assertNull(model.unknownEventError.value)
+        assertNull(model.newEventError.value)
 
-        model.unknownEventCreate()
+        model.newEventCreate()
         delay(500.milliseconds)
 
         assertContains(model.events.value, event)
         // input was cleared
-        assertEquals("", model.unknownEventInput.value.text)
+        assertEquals("", model.newEventInput.value.text)
     }
 
     @Test
@@ -420,21 +422,21 @@ class PowerlevelViewModelTest {
 
         val model = testModel()
 
-        backgroundScope.launch { model.unknownEventError.collect { } }
+        backgroundScope.launch { model.newEventError.collect { } }
         delay(500.milliseconds)
 
-        assertNull(model.unknownEventError.value)
+        assertNull(model.newEventError.value)
 
-        model.unknownEventInput.update(event.name)
+        model.newEventInput.update(event.name)
         delay(500.milliseconds)
 
-        assertNotNull(model.unknownEventError.value)
+        assertNotNull(model.newEventError.value)
 
-        model.unknownEventCreate()
+        model.newEventCreate()
         delay(500.milliseconds)
 
         // input was not cleared due to error
-        assertEquals(event.name, model.unknownEventInput.value.text)
+        assertEquals(event.name, model.newEventInput.value.text)
     }
 
     private fun TestScope.testModel(onBack: () -> Unit = {}): PowerlevelViewModelImpl = PowerlevelViewModelImpl(

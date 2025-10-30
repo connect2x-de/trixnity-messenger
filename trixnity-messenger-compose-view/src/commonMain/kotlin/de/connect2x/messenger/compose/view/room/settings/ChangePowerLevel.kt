@@ -2,7 +2,6 @@ package de.connect2x.messenger.compose.view.room.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,7 +50,6 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelect
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PowerlevelViewModel
-import net.folivo.trixnity.core.model.events.EventType
 
 interface ChangePowerLevelView {
     @Composable
@@ -73,11 +71,6 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
         val inputError by model.inputError.collectAsState()
 
         val events by model.events.collectAsState()
-        val availableEvents by model.availableUnsetEvents.collectAsState()
-
-        val eventStrings by remember(events) {
-            mutableStateOf(events.keys.map { it.toString() }.toSet())
-        }
 
         ErrorModal(model)
 
@@ -107,15 +100,7 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
 
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
-                KnownUnsetEvents(
-                    enabled = canChangePowerLevels,
-                    mappings = availableEvents,
-                    onCreate = { model.newEvent(it) },
-                )
-
-                Spacer(Modifier.height(16.dp))
-
-                PowerLevelUnknownEvent(model)
+                NewEvent(model)
             }
 
             if (canChangePowerLevels) {
@@ -136,51 +121,32 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
     }
 }
 
-
 @Composable
-private fun KnownUnsetEvents(
-    enabled: Boolean,
-    mappings: Set<EventType>,
-    onCreate: (EventType) -> Unit
-) {
-    if (mappings.isEmpty()) return
-
+private fun NewEvent(model: PowerlevelViewModel) {
     val i18n = DI.get<I18nView>()
-    val mappingsList by remember(mappings) { mutableStateOf(mappings.toList()) }
-    var selected by remember(mappings) { mutableStateOf(mappingsList[0]) }
 
-    Column(Modifier.fillMaxWidth()) {
-        Text(i18n.powerLevelChangeUnsetKnownEventHeading())
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalArrangement = Arrangement.Center
-        ) {
+    val enabled by model.canChangePowerLevels.collectAsState()
+
+    val mappings by model.availableUnsetEvents.collectAsState()
+    val mappingsList by remember(mappings) { mutableStateOf(mappings.toList()) }
+
+    var input by model.newEventInput.collectAsTextFieldValueState()
+    val errMsg by model.newEventError.collectAsState()
+    val isError = errMsg != null
+
+    Column(Modifier.fillMaxWidth(),Arrangement.spacedBy(4.dp)) {
+        Text(i18n.powerLevelChangeNewEventHeading())
+
+        if (mappingsList.isNotEmpty()) {
+            var selected by remember(mappings) { mutableStateOf(mappingsList[0]) }
             ThemedSelect(
                 value = selected,
                 enabled = enabled,
-                onValueChange = { selected = it },
+                onValueChange = { selected = it; input = TextFieldValue(it) },
                 options = mappingsList,
-                render = { translateEventHeading(it.name) })
-            ThemedButton(
-                style = MaterialTheme.components.primaryButton,
-                enabled = enabled,
-                onClick = { onCreate(selected) },
-                content = { Text(i18n.actionCreate()) })
+                render = { translateEventHeading(it) })
         }
-    }
-}
 
-@Composable
-private fun PowerLevelUnknownEvent(model: PowerlevelViewModel) {
-    val i18n = DI.get<I18nView>()
-    val enabled by model.canChangePowerLevels.collectAsState()
-    var input by model.unknownEventInput.collectAsTextFieldValueState()
-    val errMsg by model.unknownEventError.collectAsState()
-    val isError = errMsg != null
-
-    Column(Modifier.fillMaxWidth()) {
-        Text(i18n.powerLevelChangeNewEventHeading())
         Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(4.dp), Alignment.CenterVertically) {
             OutlinedTextField(
                 modifier = Modifier.weight(1f),
@@ -193,7 +159,7 @@ private fun PowerLevelUnknownEvent(model: PowerlevelViewModel) {
             ThemedButton(
                 style = MaterialTheme.components.primaryButton,
                 enabled = enabled && !isError && input.text != "",
-                onClick = { model.unknownEventCreate() },
+                onClick = { model.newEventCreate() },
                 content = { Text(i18n.actionCreate()) })
         }
     }
