@@ -127,7 +127,7 @@ class PowerlevelViewModelTest {
         delay(500.milliseconds)
 
         val events1 = model.events.value
-        assertContains(events1, event)
+        assertContains(events1, event.name)
         assertEquals(1, events1.size)
 
         events1.forEach { (_, v) -> v.input.update("notANumber") }
@@ -182,7 +182,7 @@ class PowerlevelViewModelTest {
         delay(500.milliseconds)
 
         val events1 = model.events.value
-        assertContains(events1, event)
+        assertContains(events1, event.name)
         assertEquals(1, events1.size)
 
         events1.forEach { (_, v) -> v.input.update("12") }
@@ -362,11 +362,11 @@ class PowerlevelViewModelTest {
         model.newEventCreate()
         delay(500.milliseconds)
         assertNull(model.error.value)
-        assertContains(model.events.value, event)
+        assertContains(model.events.value, event.name)
         model.resetAll()
         delay(500.milliseconds)
         assertNull(model.error.value)
-        assertFalse(model.events.value.contains(event))
+        assertFalse(model.events.value.contains(event.name))
     }
 
     @Test
@@ -397,7 +397,7 @@ class PowerlevelViewModelTest {
         model.newEventCreate()
         delay(500.milliseconds)
 
-        assertContains(model.events.value, event)
+        assertContains(model.events.value, event.name)
         // input was cleared
         assertEquals("", model.newEventInput.value.text)
     }

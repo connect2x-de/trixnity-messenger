@@ -95,7 +95,7 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
                 PowerLevelInput(i18n.mRoomRedactHeading(), model.redact, canChangePowerLevels)
 
                 events.forEach { (eventType, value) ->
-                    PowerLevelInput(translateEventHeading(eventType.toString()), value, canChangePowerLevels)
+                    PowerLevelInput(translateEventHeading(eventType), value, canChangePowerLevels)
                 }
 
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))

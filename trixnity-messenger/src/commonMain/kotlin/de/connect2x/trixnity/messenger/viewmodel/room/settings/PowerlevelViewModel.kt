@@ -69,7 +69,7 @@ interface PowerlevelViewModel {
     val redact: Value
     val stateDefault: Value
     val usersDefault: Value
-    val events: StateFlow<Map<EventType, Value>>
+    val events: StateFlow<Map<String, Value>>
 
     interface Value {
         val input: TextFieldViewModel
@@ -112,7 +112,7 @@ class PowerlevelViewModelImpl(
         canSend && max > 0
     }.stateIn(coroutineScope, WhileSubscribed(), false)
 
-    private val addedEvents: MutableStateFlow<Map<EventType, Long>> = MutableStateFlow(emptyMap())
+    private val addedEvents: MutableStateFlow<Map<String, Long>> = MutableStateFlow(emptyMap())
 
     init {
         coroutineScope.launch {
@@ -200,7 +200,7 @@ class PowerlevelViewModelImpl(
         Triple(state, addedEvents, maxPowerLevel)
     }.scopedMapLatest { (state, addedEvents, maxPowerLevel) ->
         if (state == null) return@scopedMapLatest mapOf()
-        val allEvents = state.events + addedEvents
+        val allEvents = state.events.mapKeys { it.key.name } + addedEvents
         allEvents.mapValues { (event, pl) ->
             ValueImpl(
                 scope = this,
@@ -254,8 +254,8 @@ class PowerlevelViewModelImpl(
 
     override val availableUnsetEvents: StateFlow<Set<String>> = events.map { events ->
         val knownEvents = matrixClient.di.get<EventContentSerializerMappings>().message
-        val eventTypes = events.map { it.key.name }
-        knownEvents.map {  it.type }.filter { !eventTypes.contains(it) }.toSet()
+        val eventTypes = events.map { it.key }
+        knownEvents.map { it.type }.filter { !eventTypes.contains(it) }.toSet()
     }.stateIn(coroutineScope, WhileSubscribed(), emptySet())
 
     // This function only returns null if a text field does not contain a number
@@ -268,20 +268,20 @@ class PowerlevelViewModelImpl(
             redact = redact.modifiedValue() ?: return null,
             stateDefault = stateDefault.modifiedValue() ?: return null,
             usersDefault = usersDefault.modifiedValue() ?: return null,
-            events = events.value.mapValues { (_, v) -> v.modifiedValue() ?: return null },
+            events = events.value.map { (k, v) -> EventType(null, k) to (v.modifiedValue() ?: return null) }.toMap(),
         )
     }
 
     override val newEventInput = TextFieldViewModelImpl(maxLength = 255)
 
     override val newEventError = combine(newEventInput, events) { input, events ->
-        events[EventType(null, input.text)]?.let { i18n.newEventAlreadyExistsErr() }
+        events[input.text]?.let { i18n.newEventAlreadyExistsErr() }
     }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override fun newEventCreate() {
         if (newEventError.value != null) return
         val content = state.value ?: defaultPowerLevelsEventContent
-        val eventType = EventType(null, newEventInput.value.text)
+        val eventType = newEventInput.value.text
         addedEvents.value += eventType to ((content.events + addedEvents.value)[eventType] ?: content.stateDefault)
         newEventInput.update("")
     }
