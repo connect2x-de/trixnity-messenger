@@ -1473,6 +1473,11 @@ open class I18n(
         }
     }
 
+    open fun powerLevelUpdateNoChanges() = translate {
+        EN - "No changes to power levels"
+        DE - "Keine Änderungen der Berechtigungslevel"
+    }
+
     open fun powerLevelUpdateNChanges(n: Int) = translate {
         EN - "$n power level changes occurred"
         DE - "$n Berechtigungslevel wurden geändert"

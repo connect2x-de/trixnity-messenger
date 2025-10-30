@@ -57,20 +57,20 @@ class PowerLevelsTimelineElementViewModelFactoryImpl(
     override val changeMessage = flow {
         val timelineEventSnapshot = matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull().first()
         val event = timelineEventSnapshot.event as? StateEvent ?: return@flow
-        val previousContent = event.unsigned?.previousContent as? PowerLevelsEventContent ?: return@flow
+        val previousContent = event.unsigned?.previousContent as? PowerLevelsEventContent
 
         val changes: MutableList<String> = mutableListOf()
 
-        if (previousContent.ban != content.ban) changes.add(i18n.powerLevelUpdateBan(content.ban))
-        if (previousContent.invite != content.invite) changes.add(i18n.powerLevelUpdateInvite(content.invite))
-        if (previousContent.kick != content.kick) changes.add(i18n.powerLevelUpdateKick(content.kick))
-        if (previousContent.redact != content.redact) changes.add(i18n.powerLevelUpdateRedact(content.redact))
-        if (previousContent.eventsDefault != content.eventsDefault)
+        if (previousContent?.ban != content.ban) changes.add(i18n.powerLevelUpdateBan(content.ban))
+        if (previousContent?.invite != content.invite) changes.add(i18n.powerLevelUpdateInvite(content.invite))
+        if (previousContent?.kick != content.kick) changes.add(i18n.powerLevelUpdateKick(content.kick))
+        if (previousContent?.redact != content.redact) changes.add(i18n.powerLevelUpdateRedact(content.redact))
+        if (previousContent?.eventsDefault != content.eventsDefault)
             changes.add(i18n.powerLevelUpdateEventsDefault(content.eventsDefault))
-        if (previousContent.stateDefault != content.stateDefault) changes.add(i18n.powerLevelUpdateStateDefault(content.stateDefault))
-        if (previousContent.usersDefault != content.usersDefault) changes.add(i18n.powerLevelUpdateUsersDefault(content.usersDefault))
+        if (previousContent?.stateDefault != content.stateDefault) changes.add(i18n.powerLevelUpdateStateDefault(content.stateDefault))
+        if (previousContent?.usersDefault != content.usersDefault) changes.add(i18n.powerLevelUpdateUsersDefault(content.usersDefault))
 
-        val userDiff = findMapDifference(previousContent.users, content.users)
+        val userDiff = findMapDifference(previousContent?.users.orEmpty(), content.users)
         userDiff.newEntries.forEach { (userId, newPowerLevel) ->
             val user = matrixClient.user.getById(roomId, userId).first()?.name ?: userId.full
             changes.add(i18n.eventPowerLevelChange(user, newPowerLevel))
@@ -85,7 +85,7 @@ class PowerLevelsTimelineElementViewModelFactoryImpl(
             changes.add(i18n.eventPowerLevelChange(user, content.usersDefault))
         }
 
-        val eventsDiff = findMapDifference(previousContent.events, content.events)
+        val eventsDiff = findMapDifference(previousContent?.events.orEmpty(), content.events)
         eventsDiff.newEntries.forEach { (eventType, newPowerLevel) ->
             changes.add(i18n.powerLevelUpdateEvent(eventType.name, newPowerLevel))
         }
@@ -100,7 +100,7 @@ class PowerLevelsTimelineElementViewModelFactoryImpl(
 
         emit(
             when (val len = changes.size) {
-                0 -> null
+                0 -> i18n.powerLevelUpdateNoChanges()
                 1 -> changes.first()
                 2 -> i18n.commonAnd(changes[0], changes[1])
                 else -> i18n.powerLevelUpdateNChanges(len)

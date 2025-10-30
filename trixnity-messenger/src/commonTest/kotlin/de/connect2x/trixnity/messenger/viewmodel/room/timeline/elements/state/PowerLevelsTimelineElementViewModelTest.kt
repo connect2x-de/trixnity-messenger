@@ -49,12 +49,12 @@ class PowerLevelsTimelineElementViewModelTest {
     }
 
     @Test
-    fun `no message if no difference`() = runTest {
+    fun `message even if no difference`() = runTest {
         val pl = PowerLevelsEventContent(ban = 123L)
         val model = testModel(pl, pl)
         backgroundScope.launch { model.changeMessage.collect { } }
         delay(500.milliseconds)
-        assertNull(model.changeMessage.value)
+        assertNotNull(model.changeMessage.value)
     }
 
     @Test
