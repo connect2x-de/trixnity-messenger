@@ -77,7 +77,10 @@ interface PowerlevelViewModel {
         val canChange: StateFlow<Boolean>
         val error: StateFlow<String?>
 
-        fun reset()
+        fun resetInput()
+
+        val canBeRemoved: Boolean
+        fun remove()
     }
 }
 
@@ -113,10 +116,14 @@ class PowerlevelViewModelImpl(
     }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     private val addedEvents: MutableStateFlow<Map<String, Long>> = MutableStateFlow(emptyMap())
+    private val removedEvents: MutableStateFlow<Set<String>> = MutableStateFlow(emptySet())
 
     init {
         coroutineScope.launch {
-            state.collect { addedEvents.value = emptyMap() }
+            state.collect {
+                addedEvents.value = emptyMap()
+                removedEvents.value = emptySet()
+            }
         }
     }
 
@@ -141,15 +148,16 @@ class PowerlevelViewModelImpl(
 
     override fun resetAll() {
         addedEvents.value = emptyMap()
+        removedEvents.value = emptySet()
 
-        ban.reset()
-        eventsDefault.reset()
-        invite.reset()
-        kick.reset()
-        redact.reset()
-        stateDefault.reset()
-        usersDefault.reset()
-        events.value.forEach { (_, v) -> v.reset() }
+        ban.resetInput()
+        eventsDefault.resetInput()
+        invite.resetInput()
+        kick.resetInput()
+        redact.resetInput()
+        stateDefault.resetInput()
+        usersDefault.resetInput()
+        events.value.forEach { (_, v) -> v.resetInput() }
     }
 
     override val ban = ValueImpl(
@@ -196,20 +204,22 @@ class PowerlevelViewModelImpl(
         max = maxPowerLevel,
     )
 
-    override val events = combine(state, addedEvents, maxPowerLevel) { state, addedEvents, maxPowerLevel ->
-        Triple(state, addedEvents, maxPowerLevel)
-    }.scopedMapLatest { (state, addedEvents, maxPowerLevel) ->
-        if (state == null) return@scopedMapLatest mapOf()
-        val allEvents = state.events.mapKeys { it.key.name } + addedEvents
-        allEvents.mapValues { (event, pl) ->
-            ValueImpl(
-                scope = this,
-                i18n = i18n,
-                old = MutableStateFlow(pl).asStateFlow(),
-                max = MutableStateFlow(maxPowerLevel).asStateFlow()
-            )
-        }
-    }.stateIn(coroutineScope, WhileSubscribed(), mapOf())
+    override val events =
+        combine(state, addedEvents, removedEvents, maxPowerLevel) { state, addedEvents, removedEvents, maxPowerLevel ->
+            Tuple4(state, addedEvents, removedEvents, maxPowerLevel)
+        }.scopedMapLatest { (state, addedEvents, removedEvents, maxPowerLevel) ->
+            if (state == null) return@scopedMapLatest mapOf()
+            val allEvents = state.events.mapKeys { it.key.name } + addedEvents - removedEvents
+            allEvents.mapValues { (event, pl) ->
+                ValueImpl(
+                    scope = this,
+                    i18n = i18n,
+                    old = MutableStateFlow(pl).asStateFlow(),
+                    max = MutableStateFlow(maxPowerLevel).asStateFlow(),
+                    onRemove = { removeEvent(event) }
+                )
+            }
+        }.stateIn(coroutineScope, WhileSubscribed(), mapOf())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val eventsInputError: StateFlow<String?> = events.flatMapLatest {
@@ -249,13 +259,15 @@ class PowerlevelViewModelImpl(
             usersDefault.isModified,
             eventsIsModified,
             addedEvents.map { it.isNotEmpty() }, // adding an event counts as modification
+            removedEvents.map { it.isNotEmpty() },
         )
     ) { it.any { it } }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val availableUnsetEvents: StateFlow<Set<String>> = events.map { events ->
-        val knownEvents = matrixClient.di.get<EventContentSerializerMappings>().message
-        val eventTypes = events.map { it.key }
-        knownEvents.map { it.type }.filter { !eventTypes.contains(it) }.toSet()
+        val mappings = matrixClient.di.get<EventContentSerializerMappings>()
+        val messageEvents = mappings.message.map { it.type }
+        val stateEvents = mappings.state.map { it.type }
+        (messageEvents + stateEvents).filter { !events.keys.contains(it) }.toSet()
     }.stateIn(coroutineScope, WhileSubscribed(), emptySet())
 
     // This function only returns null if a text field does not contain a number
@@ -280,10 +292,21 @@ class PowerlevelViewModelImpl(
 
     override fun newEventCreate() {
         if (newEventError.value != null) return
-        val content = state.value ?: defaultPowerLevelsEventContent
         val eventType = newEventInput.value.text
-        addedEvents.value += eventType to ((content.events + addedEvents.value)[eventType] ?: content.stateDefault)
+        if (removedEvents.value.contains(eventType)) {
+            removedEvents.value -= eventType
+        } else {
+            val content = state.value ?: defaultPowerLevelsEventContent
+            addedEvents.value += eventType to ((content.events + addedEvents.value)[eventType] ?: content.stateDefault)
+        }
         newEventInput.update("")
+    }
+
+    private fun removeEvent(event: String) {
+        if (addedEvents.value.contains(event))
+            addedEvents.value -= event
+        else
+            removedEvents.value += event
     }
 
     data class ValueImpl(
@@ -292,6 +315,7 @@ class PowerlevelViewModelImpl(
         private val old: StateFlow<Long>,
         private val max: StateFlow<Long?>, // null means the value cannot be modified by the user, possibly due top insufficient permissions
         override val input: TextFieldViewModel = TextFieldViewModelImpl(maxLength = 50, old.value.toString()),
+        private val onRemove: (() -> Unit)? = null,
     ) : PowerlevelViewModel.Value {
         init {
             scope.launch {
@@ -301,7 +325,7 @@ class PowerlevelViewModelImpl(
             }
         }
 
-        override fun reset() {
+        override fun resetInput() {
             input.update(old.value.toString())
         }
 
@@ -339,5 +363,17 @@ class PowerlevelViewModelImpl(
             isModified.value -> input.value.text.toLongOrNull()
             else -> old.value
         }
+
+        override val canBeRemoved = onRemove != null
+        override fun remove() {
+            onRemove?.invoke()
+        }
     }
 }
+
+private data class Tuple4<out T1, out T2, out T3, out T4>(
+    val value1: T1,
+    val value2: T2,
+    val value3: T3,
+    val value4: T4,
+)

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -46,6 +47,7 @@ import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelect
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
@@ -127,23 +129,22 @@ private fun NewEvent(model: PowerlevelViewModel) {
 
     val enabled by model.canChangePowerLevels.collectAsState()
 
-    val mappings by model.availableUnsetEvents.collectAsState()
-    val mappingsList by remember(mappings) { mutableStateOf(mappings.toList()) }
+    val knownEvents = model.availableUnsetEvents.collectAsState().value.toList()
 
     var input by model.newEventInput.collectAsTextFieldValueState()
     val errMsg by model.newEventError.collectAsState()
     val isError = errMsg != null
 
-    Column(Modifier.fillMaxWidth(),Arrangement.spacedBy(4.dp)) {
+    Column(Modifier.fillMaxWidth(), Arrangement.spacedBy(4.dp)) {
         Text(i18n.powerLevelChangeNewEventHeading())
 
-        if (mappingsList.isNotEmpty()) {
-            var selected by remember(mappings) { mutableStateOf(mappingsList[0]) }
+        if (knownEvents.isNotEmpty()) {
+            var selected = knownEvents[0]
             ThemedSelect(
                 value = selected,
                 enabled = enabled,
                 onValueChange = { selected = it; input = TextFieldValue(it) },
-                options = mappingsList,
+                options = knownEvents,
                 render = { translateEventHeading(it) })
         }
 
@@ -203,8 +204,15 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, ena
     Column(Modifier.fillMaxWidth()) {
         Text(label)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            if (value.canBeRemoved) ThemedIconButton(
+                onClick = { value.remove() },
+                Modifier.align(Alignment.CenterVertically)
+            ) {
+                Icon(Icons.Default.Close, i18n.actionRemove())
+            }
+
             ThemedSelect(
-                modifier = Modifier.widthIn(max = 200.dp),
+                modifier = Modifier.widthIn(max = 170.dp),
                 label = { Text(i18n.roleLabel()) },
                 options = options,
                 value = options[initialIndex],
@@ -237,6 +245,7 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, ena
                 readOnly = !isCustomSelected,
                 onValueChange = { textFieldValue = it },
                 isError = isError && isModified,
+                maxLines = 1,
                 label = { Text(i18n.powerLevelLabel()) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 trailingIcon = {
@@ -293,6 +302,16 @@ private fun translateEventHeading(event: String): String {
         "m.call.reject" -> i18n.mCallRejectHeading()
         "m.call.select_answer" -> i18n.mCallSelectAnswerHeading()
         "m.call.sdp_stream_metadata_changed" -> i18n.mCallSdpStreamMetadataChangedHeading()
+
+        "m.room.create" -> i18n.mRoomCreateHeading()
+        "m.room.third_party_invite" -> i18n.mRoomThirdPartyInviteHeading()
+        "m.room.guest_access" -> i18n.mRoomGuestAccessHeading()
+        "m.policy.rule.user" -> i18n.mPolicyRuleUserHeading()
+        "m.policy.rule.room" -> i18n.mPolicyRuleRoomHeading()
+        "m.policy.rule.server" -> i18n.mPolicyRuleServerHeading()
+        "m.space.parent" -> i18n.mSpaceParentHeading()
+        "m.space.child" -> i18n.mSpaceChildHeading()
+
 
         else -> event
     }

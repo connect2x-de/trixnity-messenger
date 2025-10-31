@@ -33,6 +33,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.EventType
 import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
@@ -60,20 +61,6 @@ class PowerlevelViewModelTest {
     init {
         resetMocks(matrixClient, roomService, keyService, userService)
 
-        every {
-            roomService.getState(testRoom, PowerLevelsEventContent::class, "")
-        } returns MutableStateFlow(
-            StateEvent(
-                content = PowerLevelsEventContent(),
-                id = EventId("eventId"),
-                sender = alice,
-                roomId = testRoom,
-                originTimestamp = 123,
-                unsigned = null,
-                stateKey = "",
-            )
-        )
-
         every { userService.getPowerLevel(testRoom, alice) } returns flowOf(alicePowerLevel)
         every {
             userService.canSendEvent(testRoom, PowerLevelsEventContent::class)
@@ -88,6 +75,7 @@ class PowerlevelViewModelTest {
                 single { roomService }
                 single { userService }
                 single { keyService }
+                single { DefaultEventContentSerializerMappings }
             })
         }.koin
     }
@@ -103,21 +91,7 @@ class PowerlevelViewModelTest {
     @Test
     fun `empty event state always results in no error`() = runTest {
         val event = EventType(null, "foobar")
-        val state = MutableStateFlow(
-            StateEvent(
-                content = PowerLevelsEventContent(events = mapOf(event to 30)),
-                id = EventId("eventId"),
-                sender = alice,
-                roomId = testRoom,
-                originTimestamp = 123,
-                unsigned = null,
-                stateKey = "",
-            )
-        )
-
-        every {
-            roomService.getState(testRoom, PowerLevelsEventContent::class, "")
-        } returns state
+        setPowerLevels(PowerLevelsEventContent(events = mapOf(event to 30)))
 
         val model = testModel()
 
@@ -137,15 +111,7 @@ class PowerlevelViewModelTest {
         events1.forEach { (_, v) -> assertNotNull(v.error.value) }
         assertTrue(model.inputError.value)
 
-        state.value = StateEvent(
-            content = PowerLevelsEventContent(), // empty events map
-            id = EventId("eventId"),
-            sender = alice,
-            roomId = testRoom,
-            originTimestamp = 456,
-            unsigned = null,
-            stateKey = "",
-        )
+        setPowerLevels(PowerLevelsEventContent())
 
         delay(500.milliseconds)
 
@@ -158,21 +124,8 @@ class PowerlevelViewModelTest {
     @Test
     fun `empty event state always results in unmodified`() = runTest {
         val event = EventType(null, "foobar")
-        val state = MutableStateFlow(
-            StateEvent(
-                content = PowerLevelsEventContent(events = mapOf(event to 30)),
-                id = EventId("eventId"),
-                sender = alice,
-                roomId = testRoom,
-                originTimestamp = 123,
-                unsigned = null,
-                stateKey = "",
-            )
-        )
 
-        every {
-            roomService.getState(testRoom, PowerLevelsEventContent::class, "")
-        } returns state
+        setPowerLevels(PowerLevelsEventContent(events = mapOf(event to 30)))
 
         val model = testModel()
 
@@ -192,15 +145,7 @@ class PowerlevelViewModelTest {
         events1.forEach { (_, v) -> assertTrue(v.isModified.value) }
         assertTrue(model.isAnyInputModified.value)
 
-        state.value = StateEvent(
-            content = PowerLevelsEventContent(), // empty events map
-            id = EventId("eventId"),
-            sender = alice,
-            roomId = testRoom,
-            originTimestamp = 456,
-            unsigned = null,
-            stateKey = "",
-        )
+        setPowerLevels(PowerLevelsEventContent())
 
         delay(500.milliseconds)
 
@@ -352,6 +297,26 @@ class PowerlevelViewModelTest {
     }
 
     @Test
+    fun `Value calls onRemove on remove()`() = runTest {
+        var called = 0
+        val v = PowerlevelViewModelImpl.ValueImpl(
+            scope = backgroundScope,
+            i18n = I18n(
+                DefaultLanguages,
+                createTestMatrixMessengerSettingsHolder(),
+                { "en" },
+                TimeZone.of("CET"),
+            ),
+            old = MutableStateFlow(25L),
+            max = MutableStateFlow(null),
+            onRemove = { called++ }
+        )
+
+        v.remove()
+        assertEquals(1, called)
+    }
+
+    @Test
     fun `add events and reset works`() = runTest {
         val model = testModel()
         val event = EventType(null, "foobar")
@@ -406,19 +371,7 @@ class PowerlevelViewModelTest {
     fun `error if unknownEvent already exists`() = runTest {
         val event = EventType(null, "foobar")
 
-        every {
-            roomService.getState(testRoom, PowerLevelsEventContent::class, "")
-        } returns MutableStateFlow(
-            StateEvent(
-                content = PowerLevelsEventContent(events = mapOf(event to 25L)),
-                id = EventId("eventId"),
-                sender = alice,
-                roomId = testRoom,
-                originTimestamp = 123,
-                unsigned = null,
-                stateKey = "",
-            )
-        )
+        setPowerLevels(PowerLevelsEventContent(events = mapOf(event to 25L)))
 
         val model = testModel()
 
@@ -437,6 +390,138 @@ class PowerlevelViewModelTest {
 
         // input was not cleared due to error
         assertEquals(event.name, model.newEventInput.value.text)
+    }
+
+    @Test
+    fun `removing a value removes it from events`() = runTest {
+        val event = EventType(null, "foobar")
+
+        setPowerLevels(PowerLevelsEventContent(events = mapOf(event to 25L)))
+
+        val model = testModel()
+
+        backgroundScope.launch { model.events.collect { } }
+        delay(500.milliseconds)
+
+        assertContains(model.events.value, event.name)
+        assertEquals(1, model.events.value.size)
+
+        model.events.value.values.forEach { it.remove() }
+        delay(500.milliseconds)
+
+        assertEquals(0, model.events.value.size)
+    }
+
+    @Test
+    fun `removing an existing event and then resetting brings it back`() = runTest {
+        val event = EventType(null, "foobar")
+
+        setPowerLevels(PowerLevelsEventContent(events = mapOf(event to 25L)))
+
+        val model = testModel()
+
+        backgroundScope.launch { model.events.collect { } }
+        delay(500.milliseconds)
+
+        assertContains(model.events.value, event.name)
+        assertEquals(1, model.events.value.size)
+
+        model.events.value.values.forEach { it.remove() }
+        delay(500.milliseconds)
+
+        assertEquals(0, model.events.value.size)
+
+        model.resetAll()
+        delay(500.milliseconds)
+
+        assertContains(model.events.value, event.name)
+        assertEquals(1, model.events.value.size)
+    }
+
+    @Test
+    fun `removing an existing event counts as a modification`() = runTest {
+        val event = EventType(null, "foobar")
+
+        setPowerLevels(PowerLevelsEventContent(events = mapOf(event to 25L)))
+
+        val model = testModel()
+
+        backgroundScope.launch { model.isAnyInputModified.collect { } }
+        backgroundScope.launch { model.events.collect { } }
+        delay(500.milliseconds)
+
+        assertContains(model.events.value, event.name)
+        assertEquals(1, model.events.value.size)
+
+        model.events.value.values.forEach { it.remove() }
+        delay(500.milliseconds)
+
+        assertTrue(model.isAnyInputModified.value)
+    }
+
+    @Test
+    fun `adding and then removing an event results in no changes`() = runTest {
+        val event = EventType(null, "foobar")
+
+        setPowerLevels(PowerLevelsEventContent())
+
+        val model = testModel()
+
+        backgroundScope.launch { model.isAnyInputModified.collect { } }
+        backgroundScope.launch { model.events.collect { } }
+        delay(500.milliseconds)
+
+        model.newEventInput.update(event.name)
+        model.newEventCreate()
+        delay(500.milliseconds)
+
+        assertContains(model.events.value, event.name)
+        assertTrue(model.isAnyInputModified.value)
+
+        model.events.value.values.forEach { it.remove() }
+        delay(500.milliseconds)
+
+        assertEquals(emptyMap(), model.events.value)
+        assertFalse(model.isAnyInputModified.value)
+    }
+
+    @Test
+    fun `removing an existing event makes it appear in availableUnsetEvents`() = runTest {
+        val event = EventType(null, "m.room.message") // exists in DefaultEventContentSerializerMappings
+        setPowerLevels(PowerLevelsEventContent(events = mapOf(event to 25L)))
+
+        val model = testModel()
+
+        backgroundScope.launch { model.availableUnsetEvents.collect { } }
+        backgroundScope.launch { model.events.collect { } }
+        delay(500.milliseconds)
+
+        assertFalse(model.availableUnsetEvents.value.contains(event.name), "${event.name} in availableUnsetEvents")
+
+        model.events.value.values.forEach { it.remove() }
+        delay(500.milliseconds)
+
+        assertContains(model.availableUnsetEvents.value, event.name)
+    }
+
+    @Test
+    fun `creating an event makes removes it from availableUnsetEvents`() = runTest {
+        val event = EventType(null, "m.room.message") // exists in DefaultEventContentSerializerMappings
+        setPowerLevels(PowerLevelsEventContent())
+
+        val model = testModel()
+
+        backgroundScope.launch { model.availableUnsetEvents.collect { } }
+        backgroundScope.launch { model.events.collect { } }
+        delay(500.milliseconds)
+
+        assertContains(model.availableUnsetEvents.value, event.name)
+
+        model.newEventInput.update(event.name)
+        model.newEventCreate()
+        delay(500.milliseconds)
+
+        assertFalse(model.availableUnsetEvents.value.contains(event.name), "${event.name} in availableUnsetEvents")
     }
 
     private fun TestScope.testModel(onBack: () -> Unit = {}): PowerlevelViewModelImpl = PowerlevelViewModelImpl(
@@ -462,12 +547,12 @@ class PowerlevelViewModelTest {
         canChange: Boolean,
         modifiedValue: Long?,
     ) {
-        val i18n = object : I18n(
+        val i18n = I18n(
             DefaultLanguages,
             createTestMatrixMessengerSettingsHolder(),
             GetSystemLang { "en" },
             TimeZone.of("CET"),
-        ) {}
+        )
 
         val value = PowerlevelViewModelImpl.ValueImpl(
             scope = backgroundScope,
@@ -502,5 +587,37 @@ class PowerlevelViewModelTest {
             else ->
                 assertNull(err)
         }
+    }
+
+    private var step = 1L
+    private val state = MutableStateFlow(
+        StateEvent(
+            content = PowerLevelsEventContent(),
+            id = EventId("eventId"),
+            sender = alice,
+            roomId = testRoom,
+            originTimestamp = step * 100,
+            unsigned = null,
+            stateKey = "",
+        )
+    )
+
+    init {
+        every {
+            roomService.getState(testRoom, PowerLevelsEventContent::class, "")
+        } returns state
+    }
+
+    private fun setPowerLevels(pl: PowerLevelsEventContent) {
+        step++
+        state.value = StateEvent(
+            content = pl,
+            id = EventId("eventId"),
+            sender = alice,
+            roomId = testRoom,
+            originTimestamp = step * 100,
+            unsigned = null,
+            stateKey = "",
+        )
     }
 }

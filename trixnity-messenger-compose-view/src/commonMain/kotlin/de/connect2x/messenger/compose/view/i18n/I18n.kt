@@ -3170,7 +3170,45 @@ open class I18nView(
         DE - "Neues Ereignis erstellen"
     }
 
+    open fun mRoomCreateHeading() = translate {
+        EN - "Create rooms"
+        DE - "Räume erstellen"
+    }
 
+    open fun mRoomThirdPartyInviteHeading() = translate {
+        EN - "Invite third-party users"
+        DE - "Drittbenutzer einladen"
+    }
+
+    open fun mRoomGuestAccessHeading() = translate {
+        EN - "Set guest access"
+        DE - "Gastzugriff festlegen"
+    }
+
+    open fun mPolicyRuleUserHeading() = translate {
+        EN - "Manage user policies"
+        DE - "Benutzerrichtlinien verwalten"
+    }
+
+    open fun mPolicyRuleRoomHeading() = translate {
+        EN - "Manage room policies"
+        DE - "Raumrichtlinien verwalten"
+    }
+
+    open fun mPolicyRuleServerHeading() = translate {
+        EN - "Manage server policies"
+        DE - "Serverrichtlinien verwalten"
+    }
+
+    open fun mSpaceParentHeading() = translate {
+        EN - "Link parent spaces"
+        DE - "Übergeordnete Spaces verknüpfen"
+    }
+
+    open fun mSpaceChildHeading() = translate {
+        EN - "Link child spaces"
+        DE - "Untergeordnete Spaces verknüpfen"
+    }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
