@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Added Space in the bottom of the RoomList to account for new chat button overlapping UI elements
+
 ### Deprecated
 
 ### Removed
