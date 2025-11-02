@@ -31,6 +31,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.key.isCtrlPressed
@@ -138,17 +140,29 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         )
     }
 
+    private fun Size.divideComponents(other: Size): Size {
+        return Size(this.width / other.width, this.height / other.height)
+    }
+
+    private fun Size.multiplyComponents(other: Size): Size {
+        return Size(this.width * other.width, this.height * other.height)
+    }
+
+    private fun Size.subtractComponents(other: Size): Size {
+        return Size(this.width - other.width, this.height - other.height)
+    }
+
     private fun getNewZoomOffsetDelta(
-        viewportWidth: Int,
+        viewportSize: Size,
         oldZoomFactor: Float,
         newZoomFactor: Float
-    ): Float {
-        val oldMaxWidth = viewportWidth * oldZoomFactor
-        val oldCenter = viewportWidth / 2f
-        val newWidth = viewportWidth * newZoomFactor
-        val oldFraction = oldCenter / oldMaxWidth
-        val newCenter = newWidth * oldFraction
-        val newOffset = newCenter - viewportWidth / 2f
+    ): Size {
+        val oldMaxSize = viewportSize * oldZoomFactor
+        val oldCenter = viewportSize / 2f
+        val newSize = viewportSize * newZoomFactor
+        val oldFraction = oldCenter.divideComponents(oldMaxSize)
+        val newCenter = newSize.multiplyComponents(oldFraction)
+        val newOffset = newCenter.subtractComponents(viewportSize / 2f)
         return newOffset
     }
 
@@ -175,20 +189,17 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
             zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, maxZoom)
             val offset = offsetChange * zoom.value
             val newOffset = getNewZoomOffsetDelta(
-                currentConstraints.value.maxWidth,
+                Size(currentConstraints.value.maxWidth.toFloat(), currentConstraints.value.maxHeight.toFloat()),
                 oldZoom,
                 zoom.value
             )
-            val newHeightOffset = getNewZoomOffsetDelta(
-                currentConstraints.value.maxHeight,
-                oldZoom,
-                zoom.value
-            )
+
             scope.launch {
-                delay(5)
+                delay(15)
                 if (zoomChange != 1f) {
-                    println(horizontalScroll.scrollBy(newOffset))
-                    println(lazyListState.scrollBy(newHeightOffset))
+                    val usedWidth = horizontalScroll.scrollBy(newOffset.width)
+                    val usedHeight = lazyListState.scrollBy(newOffset.height)
+                    println("Used $usedWidth/${newOffset.width} and $usedHeight/${newOffset.height}")
                 } else {
                     horizontalScroll.scrollBy(-offset.x)
                     lazyListState.scrollBy(-offset.y)
@@ -314,7 +325,13 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                                 contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),
                                                 modifier = Modifier
                                                     .background(color = Color.White) // Avoid performance drops on transparent images.
-                                                    .width(calcSizeOnZoom(constraints, zoom.value, LocalDensity.current.density).width),
+                                                    .width(
+                                                        calcSizeOnZoom(
+                                                            constraints,
+                                                            zoom.value,
+                                                            LocalDensity.current.density
+                                                        ).width
+                                                    ),
                                                 contentScale = ContentScale.FillWidth,
                                             )
                                         } else {
