@@ -39,19 +39,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
-import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.times
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.VerticalScrollbar
@@ -134,6 +131,26 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         }
     }
 
+    private fun calcSizeOnZoom(constraints: Constraints, zoom: Float, density: Float): DpSize {
+        return DpSize(
+            constraints.maxWidth.dp / density * zoom,
+            constraints.maxHeight.dp / density * zoom
+        )
+    }
+
+    private fun getNewZoomOffsetDelta(
+        viewportWidth: Int,
+        oldZoomFactor: Float,
+        newZoomFactor: Float
+    ): Float {
+        val oldMaxWidth = viewportWidth * oldZoomFactor
+        val oldCenter = viewportWidth / 2f
+        val newWidth = viewportWidth * newZoomFactor
+        val oldFraction = oldCenter / oldMaxWidth
+        val newCenter = newWidth * oldFraction
+        val newOffset = newCenter - viewportWidth / 2f
+        return newOffset
+    }
 
     @Composable
     override fun create(
@@ -141,8 +158,8 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         onSave: () -> Unit,
         onClose: () -> Unit,
     ) {
-        val minZoom = 0.5f
-        val maxZoom = 4f
+        val minZoom = 1f
+        val maxZoom = 2f
         val media = element.loadMediaResultPlatformMedia.collectAsState().value
         val progress = element.loadMediaProgress.collectAsState().value
         val (error, setError) = remember { mutableStateOf<String?>(null) }
@@ -151,12 +168,32 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         val scope = rememberCoroutineScope()
         val lazyListState = rememberLazyListState()
         val horizontalScroll = rememberScrollState()
+        val reader = remember { mutableStateOf<PDFReader?>(null) }
+        val currentConstraints = remember { mutableStateOf(Constraints()) }
         val state = rememberTransformableState { zoomChange, offsetChange, _ ->
+            val oldZoom = zoom.value
             zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, maxZoom)
             val offset = offsetChange * zoom.value
+            val newOffset = getNewZoomOffsetDelta(
+                currentConstraints.value.maxWidth,
+                oldZoom,
+                zoom.value
+            )
+            val newHeightOffset = getNewZoomOffsetDelta(
+                currentConstraints.value.maxHeight,
+                oldZoom,
+                zoom.value
+            )
             scope.launch {
-                lazyListState.scrollBy(-offset.y)
-                horizontalScroll.scrollBy(-offset.x)
+                delay(5)
+                if (zoomChange != 1f) {
+                    println(horizontalScroll.scrollBy(newOffset))
+                    println(lazyListState.scrollBy(newHeightOffset))
+                } else {
+                    horizontalScroll.scrollBy(-offset.x)
+                    lazyListState.scrollBy(-offset.y)
+                }
+
             }
         }
         val i18n = DI.get<I18nView>()
@@ -213,7 +250,6 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
 
                     media != null -> {
                         val density = LocalDensity.current.density
-                        val reader = remember { mutableStateOf<PDFReader?>(null) }
                         LaunchedEffect(Unit) {
                             reader.value =
                                 getPlatformPDFReader(media) { setError(i18n.fileCouldNotBeLoaded()) }
@@ -234,6 +270,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                 val maxDpi = 1f / it.toFloat() * 64f * 3600f
                                 val dpiTarget = density * zoom.value
                                 dpi.value = (dpiTarget * it).coerceAtMost(maxDpi)
+                                currentConstraints.value = constraints
                             }
                         }
                         val numOfPages = reader.value?.numOfPages?.value
@@ -253,6 +290,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                     )
                                 }
                             }
+                            val pageDimensions = calcSizeOnZoom(constraints, zoom.value, density)
                             LazyColumn(
                                 modifier = Modifier
                                     .horizontalScroll(state = horizontalScroll, enabled = canZoom.value.not())
@@ -276,13 +314,13 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                                 contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),
                                                 modifier = Modifier
                                                     .background(color = Color.White) // Avoid performance drops on transparent images.
-                                                    .width(constraints.maxWidth.dp / density * zoom.value - MaterialTheme.messengerDpConstants.middle * 2),
+                                                    .width(calcSizeOnZoom(constraints, zoom.value, LocalDensity.current.density).width),
                                                 contentScale = ContentScale.FillWidth,
                                             )
                                         } else {
                                             Box(
-                                                Modifier.height(constraints.maxHeight.dp / density * zoom.value - MaterialTheme.messengerDpConstants.middle * 2)
-                                                    .width(constraints.maxWidth.dp / density * zoom.value - MaterialTheme.messengerDpConstants.middle * 2),
+                                                Modifier.height(pageDimensions.height)
+                                                    .width(constraints.maxWidth.times(zoom.value).dp),
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 LoadingSpinner()
