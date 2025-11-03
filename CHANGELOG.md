@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The sticky header now correctly displays the date of the topmost message
+- Fix focus handling in chat/group creation user list and add members view
+- Show dropdown icon in group creation history visibility menu
+
 ### Security
 
 ## 3.8.8
