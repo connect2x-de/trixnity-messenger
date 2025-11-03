@@ -184,7 +184,7 @@ private fun ErrorModal(model: PowerlevelViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, enabled: Boolean) {
+private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, canChangeAnyPowerlevel: Boolean) {
     val i18n = DI.get<I18nView>()
 
     var textFieldValue by value.input.collectAsTextFieldValueState()
@@ -204,7 +204,7 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, ena
     Column(Modifier.fillMaxWidth()) {
         Text(label)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            if (value.canBeRemoved) ThemedIconButton(
+            if (value.canBeRemoved && canChangeAnyPowerlevel) ThemedIconButton(
                 onClick = { value.remove() },
                 Modifier.align(Alignment.CenterVertically)
             ) {
@@ -216,7 +216,7 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, ena
                 label = { Text(i18n.roleLabel()) },
                 options = options,
                 value = options[initialIndex],
-                enabled = enabled && canChange,
+                enabled = canChangeAnyPowerlevel && canChange,
                 render = {
                     when (it) {
                         "User" -> i18n.userProfileRoleUser()
@@ -241,7 +241,7 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, ena
             OutlinedTextField(
                 modifier = Modifier.weight(2f).focusRequester(focusRequester).pointerHoverIcon(PointerIcon.Default),
                 value = textFieldValue,
-                enabled = enabled && isCustomSelected && canChange,
+                enabled = canChangeAnyPowerlevel && isCustomSelected && canChange,
                 readOnly = !isCustomSelected,
                 onValueChange = { textFieldValue = it },
                 isError = isError && isModified,
@@ -311,7 +311,6 @@ private fun translateEventHeading(event: String): String {
         "m.policy.rule.server" -> i18n.mPolicyRuleServerHeading()
         "m.space.parent" -> i18n.mSpaceParentHeading()
         "m.space.child" -> i18n.mSpaceChildHeading()
-
 
         else -> event
     }
