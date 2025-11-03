@@ -248,7 +248,7 @@ open class MainViewModelImpl(
         lifecycle.doOnStop {
             coroutineScope.launch {
                 withContext(NonCancellable) { // Even when the scope is destroyed, we want the sync to stop.
-                    log.debug { "app is stopped: cancel sync" }
+                    log.debug { "app is stopped: stop sync" }
                     this@MainViewModelImpl.matrixClients.value.forEach { (userId, matrixClient) ->
                         log.debug { "stop sync for $userId" }
                         matrixClient.stopSync()
