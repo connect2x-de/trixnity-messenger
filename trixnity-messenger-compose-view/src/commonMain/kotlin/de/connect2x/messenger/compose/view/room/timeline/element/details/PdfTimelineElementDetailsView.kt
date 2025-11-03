@@ -31,7 +31,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +50,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.VerticalScrollbar
@@ -133,10 +133,10 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         }
     }
 
-    private fun calcSizeOnZoom(constraints: Constraints, zoom: Float, density: Float): DpSize {
+    private fun calcSizeOnZoom(constraints: Constraints, zoom: Float): DpSize {
         return DpSize(
-            constraints.maxWidth.dp / density * zoom,
-            constraints.maxHeight.dp / density * zoom
+            (constraints.maxWidth * zoom).dp,
+            (constraints.maxHeight * zoom).dp
         )
     }
 
@@ -189,17 +189,16 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
             zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, maxZoom)
             val offset = offsetChange * zoom.value
             val newOffset = getNewZoomOffsetDelta(
-                Size(currentConstraints.value.maxWidth.toFloat(), currentConstraints.value.maxHeight.toFloat()),
+                lazyListState.layoutInfo.viewportSize.toSize(),
                 oldZoom,
                 zoom.value
             )
 
             scope.launch {
-                delay(15)
                 if (zoomChange != 1f) {
-                    val usedWidth = horizontalScroll.scrollBy(newOffset.width)
-                    val usedHeight = lazyListState.scrollBy(newOffset.height)
-                    println("Used $usedWidth/${newOffset.width} and $usedHeight/${newOffset.height}")
+                    delay(5)
+                    horizontalScroll.scrollBy(newOffset.width)
+                    lazyListState.scrollBy(newOffset.height)
                 } else {
                     horizontalScroll.scrollBy(-offset.x)
                     lazyListState.scrollBy(-offset.y)
@@ -223,7 +222,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
             element,
             onSave,
             onClose,
-            additions = { ZoomButtons(zoom, minScale = minZoom, maxScale = maxZoom) }) {
+            additions = { ZoomButtons(state, scope) }) {
             val focusRequester = remember { FocusRequester() }
             BoxWithConstraints(
                 Modifier
@@ -301,7 +300,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                     )
                                 }
                             }
-                            val pageDimensions = calcSizeOnZoom(constraints, zoom.value, density)
+                            val pageDimensions = calcSizeOnZoom(constraints, zoom.value)
                             LazyColumn(
                                 modifier = Modifier
                                     .horizontalScroll(state = horizontalScroll, enabled = canZoom.value.not())
@@ -328,8 +327,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                                     .width(
                                                         calcSizeOnZoom(
                                                             constraints,
-                                                            zoom.value,
-                                                            LocalDensity.current.density
+                                                            zoom.value
                                                         ).width
                                                     ),
                                                 contentScale = ContentScale.FillWidth,

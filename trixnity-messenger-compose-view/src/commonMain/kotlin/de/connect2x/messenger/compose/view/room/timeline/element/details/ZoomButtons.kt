@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.details
 
 import androidx.compose.foundation.gestures.TransformableState
+import androidx.compose.foundation.gestures.zoomBy
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ZoomIn
 import androidx.compose.material.icons.outlined.ZoomOut
@@ -25,6 +26,22 @@ fun ZoomButtons(scale: MutableState<Float>, minScale: Float = 0.2f, maxScale: Fl
     }
     FileBasedDetailsHeaderButton(Icons.Outlined.ZoomOut, i18n.commonZoomOut()) {
         scale.value = (scale.value - 0.2f).coerceIn(minScale, maxScale)
+    }
+}
+
+@Composable
+fun ZoomButtons(state: TransformableState, scope: CoroutineScope) {
+    val i18n = DI.get<I18nView>()
+
+    FileBasedDetailsHeaderButton(Icons.Outlined.ZoomIn, i18n.commonZoomIn()) {
+        scope.launch {
+            state.zoomBy(1.2f)
+        }
+    }
+    FileBasedDetailsHeaderButton(Icons.Outlined.ZoomOut, i18n.commonZoomOut()) {
+        scope.launch {
+            state.zoomBy(0.8f)
+        }
     }
 }
 
