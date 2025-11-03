@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,9 +24,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.input.TextFieldDecorator
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -47,6 +56,9 @@ import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -57,6 +69,7 @@ import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -184,6 +197,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         val horizontalScroll = rememberScrollState()
         val reader = remember { mutableStateOf<PDFReader?>(null) }
         val currentSize = remember { mutableStateOf(DpSize.Zero) }
+        val pageText = rememberTextFieldState("Hi")
         //Control all changes to zoom/offset
         val state = rememberTransformableState { zoomChange, offsetChange, _ ->
             scope.launch {
@@ -218,11 +232,44 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         LaunchedEffect(element.loadMediaError) {
             element.loadMediaError.collect { if (it != null) setError(i18n.fileCouldNotBeLoaded()) }
         }
+        LaunchedEffect(lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index) {
+            pageText.setTextAndPlaceCursorAtEnd(
+                (lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index?.plus(1) ?: 0).toString()
+            )
+        }
         FileBasedDetailsDialog(
             element,
             onSave,
             onClose,
-            additions = { ZoomButtons(state, scope) }) {
+            additions = {
+                val measurer = rememberTextMeasurer()
+                val textStyle = MaterialTheme.typography.headlineSmall.copy(Color.LightGray)
+                Surface(shape = MaterialTheme.shapes.medium, color = Color.DarkGray) {
+                    BasicTextField(
+                        state = pageText,
+                        lineLimits = TextFieldLineLimits.SingleLine,
+                        textStyle = textStyle,
+                        decorator = { inputField ->
+                            Row(Modifier.padding(MaterialTheme.messengerDpConstants.verySmall)) {
+                                Surface(
+                                    Modifier.width(
+                                        measurer.measure(
+                                            pageText.text.toString(),
+                                            style = textStyle
+                                        ).size.width.dp
+                                    ),
+                                    shape = MaterialTheme.shapes.extraSmall
+                                ) {
+                                    inputField()
+                                }
+                                Text(" / ${reader.value?.numOfPages?.value ?: 0}", style = textStyle)
+                            }
+                        }
+                    )
+                }
+                MiddleSpacer()
+                ZoomButtons(state, scope)
+            }) {
             val focusRequester = remember { FocusRequester() }
             BoxWithConstraints(
                 Modifier
