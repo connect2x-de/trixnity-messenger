@@ -186,26 +186,24 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         val currentSize = remember { mutableStateOf(DpSize.Zero) }
         //Control all changes to zoom/offset
         val state = rememberTransformableState { zoomChange, offsetChange, _ ->
-            val oldZoom = zoom.value
-            zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, maxZoom)
-            val offset = offsetChange * zoom.value
-            val newOffset = getNewZoomOffsetDelta(
-                lazyListState.layoutInfo.viewportSize.toSize(),
-                oldZoom,
-                zoom.value
-            )
-
             scope.launch {
                 if (zoomChange != 1f) {
+                    val oldZoom = zoom.value
+                    zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, maxZoom)
+                    val newOffset = getNewZoomOffsetDelta(
+                        lazyListState.layoutInfo.viewportSize.toSize(),
+                        oldZoom,
+                        zoom.value
+                    )
                     //Necessary to assure the new size has been measured, otherwise the scrolling won't work
                     delay(5)
                     horizontalScroll.scrollBy(newOffset.width)
                     lazyListState.scrollBy(newOffset.height)
                 } else {
+                    val offset = offsetChange * zoom.value
                     horizontalScroll.scrollBy(-offset.x)
                     lazyListState.scrollBy(-offset.y)
                 }
-
             }
         }
         val i18n = DI.get<I18nView>()
@@ -320,7 +318,6 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                             queue.emit(pageId)
                                         }
                                         if (image != null) {
-                                            println(constraints.maxWidth)
                                             Image(
                                                 bitmap = image,
                                                 contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),
