@@ -25,10 +25,14 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.InputTransformation
+import androidx.compose.foundation.text.input.OutputTransformation
 import androidx.compose.foundation.text.input.TextFieldDecorator
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.foundation.text.input.then
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +55,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.onKeyEvent
@@ -58,10 +63,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.toSize
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
@@ -76,6 +83,7 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
+import de.connect2x.messenger.compose.view.util.scrollIntoView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
@@ -197,7 +205,6 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         val horizontalScroll = rememberScrollState()
         val reader = remember { mutableStateOf<PDFReader?>(null) }
         val currentSize = remember { mutableStateOf(DpSize.Zero) }
-        val pageText = rememberTextFieldState("Hi")
         //Control all changes to zoom/offset
         val state = rememberTransformableState { zoomChange, offsetChange, _ ->
             scope.launch {
@@ -232,41 +239,13 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         LaunchedEffect(element.loadMediaError) {
             element.loadMediaError.collect { if (it != null) setError(i18n.fileCouldNotBeLoaded()) }
         }
-        LaunchedEffect(lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index) {
-            pageText.setTextAndPlaceCursorAtEnd(
-                (lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index?.plus(1) ?: 0).toString()
-            )
-        }
+
         FileBasedDetailsDialog(
             element,
             onSave,
             onClose,
             additions = {
-                val measurer = rememberTextMeasurer()
-                val textStyle = MaterialTheme.typography.headlineSmall.copy(Color.LightGray)
-                Surface(shape = MaterialTheme.shapes.medium, color = Color.DarkGray) {
-                    BasicTextField(
-                        state = pageText,
-                        lineLimits = TextFieldLineLimits.SingleLine,
-                        textStyle = textStyle,
-                        decorator = { inputField ->
-                            Row(Modifier.padding(MaterialTheme.messengerDpConstants.verySmall)) {
-                                Surface(
-                                    Modifier.width(
-                                        measurer.measure(
-                                            pageText.text.toString(),
-                                            style = textStyle
-                                        ).size.width.dp
-                                    ),
-                                    shape = MaterialTheme.shapes.extraSmall
-                                ) {
-                                    inputField()
-                                }
-                                Text(" / ${reader.value?.numOfPages?.value ?: 0}", style = textStyle)
-                            }
-                        }
-                    )
-                }
+                PageIndicator(lazyListState, reader.value?.numOfPages?.value ?: 0, scope)
                 MiddleSpacer()
                 ZoomButtons(state, scope)
             }) {
@@ -428,3 +407,52 @@ expect suspend fun getPlatformPDFReader(
     media: PlatformMedia,
     onError: (String?) -> Unit,
 ): PDFReader
+
+@Composable
+private fun PageIndicator(lazyListState: LazyListState, pageCount: Int, scope: CoroutineScope) {
+    val measurer = rememberTextMeasurer()
+    val textStyle = MaterialTheme.typography.headlineSmall.copy(Color.LightGray)
+    val pageText = rememberTextFieldState()
+    val currentIndex = remember(lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index) {
+        val currentIndex = (lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index?.plus(1) ?: 0)
+        pageText.setTextAndPlaceCursorAtEnd(currentIndex.toString())
+        currentIndex
+    }
+    Surface(shape = MaterialTheme.shapes.medium, color = Color.DarkGray) {
+        BasicTextField(
+            state = pageText,
+            lineLimits = TextFieldLineLimits.SingleLine,
+            textStyle = textStyle,
+            cursorBrush = SolidColor(Color.LightGray),
+            inputTransformation = InputTransformation.then {
+                val inputIndex = this.toString().toIntOrNull()
+                if (inputIndex != null && inputIndex in 1..pageCount && inputIndex != currentIndex) {
+                    scope.launch {
+                        lazyListState.scrollToItem(inputIndex - 1)
+                    }
+                } else {
+                    revertAllChanges()
+                }
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            decorator = { inputField ->
+                Row(Modifier.padding(MaterialTheme.messengerDpConstants.verySmall)) {
+                    Surface(
+                        Modifier.width(
+                            max(
+                                measurer.measure(
+                                    pageText.text.toString(),
+                                    style = textStyle
+                                ).size.width.dp, measurer.measure("0", textStyle).size.width.dp
+                            )
+                        ),
+                        shape = MaterialTheme.shapes.extraSmall
+                    ) {
+                        inputField()
+                    }
+                    Text(" / $pageCount", style = textStyle)
+                }
+            }
+        )
+    }
+}
