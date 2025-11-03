@@ -133,10 +133,10 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         }
     }
 
-    private fun calcSizeOnZoom(constraints: Constraints, zoom: Float): DpSize {
+    private fun calcSizeOnZoom(constraints: Constraints, zoom: Float, density: Float): DpSize {
         return DpSize(
-            (constraints.maxWidth * zoom).dp,
-            (constraints.maxHeight * zoom).dp
+            (constraints.maxWidth * zoom / density).dp,
+            (constraints.maxHeight * zoom / density).dp
         )
     }
 
@@ -172,7 +172,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         onSave: () -> Unit,
         onClose: () -> Unit,
     ) {
-        val minZoom = 1f
+        val minZoom = 0.5f
         val maxZoom = 2f
         val media = element.loadMediaResultPlatformMedia.collectAsState().value
         val progress = element.loadMediaProgress.collectAsState().value
@@ -183,7 +183,8 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         val lazyListState = rememberLazyListState()
         val horizontalScroll = rememberScrollState()
         val reader = remember { mutableStateOf<PDFReader?>(null) }
-        val currentConstraints = remember { mutableStateOf(Constraints()) }
+        val currentSize = remember { mutableStateOf(DpSize.Zero) }
+        //Control all changes to zoom/offset
         val state = rememberTransformableState { zoomChange, offsetChange, _ ->
             val oldZoom = zoom.value
             zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, maxZoom)
@@ -196,6 +197,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
 
             scope.launch {
                 if (zoomChange != 1f) {
+                    //Necessary to assure the new size has been measured, otherwise the scrolling won't work
                     delay(5)
                     horizontalScroll.scrollBy(newOffset.width)
                     lazyListState.scrollBy(newOffset.height)
@@ -280,7 +282,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                 val maxDpi = 1f / it.toFloat() * 64f * 3600f
                                 val dpiTarget = density * zoom.value
                                 dpi.value = (dpiTarget * it).coerceAtMost(maxDpi)
-                                currentConstraints.value = constraints
+                                currentSize.value = calcSizeOnZoom(constraints, zoom.value, density)
                             }
                         }
                         val numOfPages = reader.value?.numOfPages?.value
@@ -300,7 +302,6 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                     )
                                 }
                             }
-                            val pageDimensions = calcSizeOnZoom(constraints, zoom.value)
                             LazyColumn(
                                 modifier = Modifier
                                     .horizontalScroll(state = horizontalScroll, enabled = canZoom.value.not())
@@ -319,23 +320,18 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                             queue.emit(pageId)
                                         }
                                         if (image != null) {
+                                            println(constraints.maxWidth)
                                             Image(
                                                 bitmap = image,
                                                 contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),
                                                 modifier = Modifier
                                                     .background(color = Color.White) // Avoid performance drops on transparent images.
-                                                    .width(
-                                                        calcSizeOnZoom(
-                                                            constraints,
-                                                            zoom.value
-                                                        ).width
-                                                    ),
+                                                    .width(currentSize.value.width),
                                                 contentScale = ContentScale.FillWidth,
                                             )
                                         } else {
                                             Box(
-                                                Modifier.height(pageDimensions.height)
-                                                    .width(constraints.maxWidth.times(zoom.value).dp),
+                                                Modifier.size(currentSize.value),
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 LoadingSpinner()
