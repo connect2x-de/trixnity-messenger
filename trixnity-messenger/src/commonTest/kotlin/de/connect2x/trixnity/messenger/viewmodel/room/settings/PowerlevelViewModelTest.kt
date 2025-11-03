@@ -297,7 +297,7 @@ class PowerlevelViewModelTest {
     }
 
     @Test
-    fun `Value calls onRemove on remove()`() = runTest {
+    fun `Value calls onRemove on remove`() = runTest {
         var called = 0
         val v = PowerlevelViewModelImpl.ValueImpl(
             scope = backgroundScope,
