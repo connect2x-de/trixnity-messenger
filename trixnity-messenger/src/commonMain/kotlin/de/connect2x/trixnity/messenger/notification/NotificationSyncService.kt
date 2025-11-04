@@ -108,19 +108,27 @@ class NotificationSyncService(
                             matrixClient = matrixClient
                         )
                     } else {
-                        notificationHandler.push(
-                            tag = "NO_DETAILS_PLACEHOLDER",
-                            notification = Notification(
-                                title = i18n.newMessageTitle(),
-                                description = i18n.newMessageDescription(),
-                                playSound = notificationSettings.playSound,
-                            ),
-                        )
+                        try {
+                            notificationHandler.push(
+                                tag = "NO_DETAILS_PLACEHOLDER",
+                                notification = Notification(
+                                    title = i18n.newMessageTitle(),
+                                    description = i18n.newMessageDescription(),
+                                    playSound = notificationSettings.playSound,
+                                ),
+                            )
+                        } catch (e: Throwable) {
+                            log.error(e) { "failed to push placeholder notification" }
+                        }
                     }
                 }
         } else {
             log.debug { "clear all notifications for ${matrixClient.userId}, because notifications disabled" }
-            notificationHandler.clearAll()
+            try {
+                notificationHandler.clearAll()
+            } catch (e: Throwable) {
+                log.error(e) { "failed to clear all notifications" }
+            }
             matrixClient.notification.getAllUpdates().collect() // black hole
         }
     }
@@ -134,36 +142,48 @@ class NotificationSyncService(
             is NotificationUpdate.New -> {
                 val notificationData = content.toNotificationData(matrixClient)
                 log.debug { "push new notification in system (tag=$id)" }
-                notificationHandler.push(
-                    tag = id,
-                    notification = Notification(
-                        title = notificationData.title,
-                        description = notificationData.description,
-                        icon = notificationData.icon,
-                        callbackData = notificationData.callbackData,
-                        playSound = playSound,
+                try {
+                    notificationHandler.push(
+                        tag = id,
+                        notification = Notification(
+                            title = notificationData.title,
+                            description = notificationData.description,
+                            icon = notificationData.icon,
+                            callbackData = notificationData.callbackData,
+                            playSound = playSound,
+                        )
                     )
-                )
+                } catch (e: Throwable) {
+                    log.error(e) { "failed to push notification (tag=$id)" }
+                }
             }
 
             is NotificationUpdate.Update -> {
                 val notificationData = content.toNotificationData(matrixClient)
                 log.debug { "update notification in system (tag=$id)" }
-                notificationHandler.update(
-                    tag = id,
-                    notification = Notification(
-                        title = notificationData.title,
-                        description = notificationData.description,
-                        icon = notificationData.icon,
-                        callbackData = notificationData.callbackData,
-                        playSound = false,
+                try {
+                    notificationHandler.update(
+                        tag = id,
+                        notification = Notification(
+                            title = notificationData.title,
+                            description = notificationData.description,
+                            icon = notificationData.icon,
+                            callbackData = notificationData.callbackData,
+                            playSound = false,
+                        )
                     )
-                )
+                } catch (e: Throwable) {
+                    log.error(e) { "failed to update notification (tag=$id)" }
+                }
             }
 
             is NotificationUpdate.Remove -> {
                 log.debug { "remove notification in system (tag=$id)" }
-                notificationHandler.pop(tag = id)
+                try {
+                    notificationHandler.pop(tag = id)
+                } catch (e: Throwable) {
+                    log.error(e) { "failed to pop notification (tag=$id)" }
+                }
             }
         }
     }
