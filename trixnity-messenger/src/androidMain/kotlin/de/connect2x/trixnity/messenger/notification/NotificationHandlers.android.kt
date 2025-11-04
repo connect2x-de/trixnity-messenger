@@ -33,7 +33,7 @@ actual fun platformNotificationHandlersModule(): Module = module {
                 .withActivationFactory { _, notification ->
                     Intent(
                         Intent.ACTION_VIEW,
-                        "${config.urlProtocol}://localhost/${notification.callbackData}".toUri(),
+                        notification.callbackData?.toUri(),
                     )
                 }
         }

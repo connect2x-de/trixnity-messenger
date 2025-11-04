@@ -232,7 +232,7 @@ class NotificationSyncService(
             }?.let { getNotificationIcon?.invoke(it, avatarSize(), avatarSize()) }
         val callbackData =
             if (roomId != null) buildString {
-                append("matrix:roomid/")
+                append("${config.urlProtocol}://localhost/matrix:roomid/")
                 append(roomId.full.trimStart(RoomId.sigilCharacter))
             }
             else null
