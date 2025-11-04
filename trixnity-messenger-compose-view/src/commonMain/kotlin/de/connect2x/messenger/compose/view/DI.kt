@@ -60,6 +60,7 @@ import de.connect2x.messenger.compose.view.room.settings.RoomSettingsNotificatio
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsNotificationsViewImpl
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsPowerlevelView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsPowerlevelViewImpl
+import de.connect2x.messenger.compose.view.room.settings.RoomSettingsPowerlevelViewImplEmpty
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsSecurityView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsSecurityViewImpl
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsTopicView
@@ -311,6 +312,7 @@ import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWiza
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardView
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardViewImpl
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerFeatures
 import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
 import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
 import org.koin.core.module.Module
@@ -337,7 +339,7 @@ fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Mo
         createRoomsViewModule(),
         searchViewModule(),
         roomViewModule(),
-        roomSettingsViewModule(),
+        roomSettingsViewModule(messengerConfiguration?.features),
         timelineViewModule(messengerConfiguration),
         userSearchViewModule(),
         settingsViewModule(),
@@ -434,7 +436,7 @@ fun roomViewModule() = module {
     single<SearchUsersSettingsView> { SearchUsersSettingsViewImpl() }
 }
 
-fun roomSettingsViewModule() = module {
+fun roomSettingsViewModule(features: MatrixMessengerFeatures? = null) = module {
     single<RoomSettingsView> { RoomSettingsViewImpl() }
     single<TimelineElementMetadataView> { TimelineElementMetadataViewImpl() }
     single<ChangeRoomAvatarView> { ChangeRoomAvatarViewImpl() }
@@ -448,12 +450,18 @@ fun roomSettingsViewModule() = module {
     single<RoomSettingsLeaveRoomView> { RoomSettingsLeaveRoomViewImpl() }
     single<RoomSettingsHistoryVisibilityView> { RoomSettingsHistoryVisibilityViewImpl() }
     single<RoomSettingsJoinRulesView> { RoomSettingsJoinRulesViewImpl() }
-    single<RoomSettingsPowerlevelView> { RoomSettingsPowerlevelViewImpl() }
     single<ExportRoomView> { ExportRoomViewImpl() }
     single<AddMembersToRoomView> { AddMembersToRoomViewImpl() }
     single<ChangePowerLevelView> { ChangePowerLevelViewImpl() }
     single<EventContentSerializerMappings> { DefaultEventContentSerializerMappings }
     single<UserProfileView> { UserProfileViewImpl() }
+
+    single<RoomSettingsPowerlevelView> {
+        if (features?.enablePowerlevelEventConfigurationInRoomSettings == true)
+            RoomSettingsPowerlevelViewImpl()
+        else
+            RoomSettingsPowerlevelViewImplEmpty()
+    }
 }
 
 inline fun <reified F : TimelineElementView<*>> Module.timelineElementView(

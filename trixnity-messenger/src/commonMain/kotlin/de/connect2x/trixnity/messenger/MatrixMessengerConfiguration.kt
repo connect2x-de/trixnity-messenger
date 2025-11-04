@@ -42,6 +42,7 @@ data class MatrixMessengerConfiguration(
 
     val features: MatrixMessengerFeatures = MatrixMessengerFeatures(
         enablePdfReader = true,
+        enablePowerlevelEventConfigurationInRoomSettings = true,
     ),
 
     /**

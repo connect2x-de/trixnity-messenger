@@ -39,3 +39,9 @@ class RoomSettingsPowerlevelViewImpl : RoomSettingsPowerlevelView {
         }
     }
 }
+
+class RoomSettingsPowerlevelViewImplEmpty : RoomSettingsPowerlevelView {
+    @Composable
+    override fun create(model: RoomSettingsViewModel) {
+    }
+}
