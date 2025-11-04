@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.common.modifier
 
-import androidx.compose.foundation.focusable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,5 +21,5 @@ fun Modifier.focusOnFirstRender(): Modifier = composed {
         }
     }
 
-    this.focusRequester(focusRequester).focusable()
+    this.focusRequester(focusRequester)
 }
