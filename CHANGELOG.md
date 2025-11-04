@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Space in the bottom of the RoomList to account for new chat button overlapping UI elements
 - Use SQLitenity as Room implementation
 - Improve keyboard accessibility of profile selection and blocked user settings
+- room settings: improve handling of name and topic display
 
 ### Deprecated
 
