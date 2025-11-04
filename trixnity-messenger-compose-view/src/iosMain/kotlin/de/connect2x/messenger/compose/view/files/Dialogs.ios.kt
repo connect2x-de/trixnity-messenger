@@ -130,7 +130,6 @@ actual fun LoadFileDialog(
                 launcher.launch()
             }
         }
-
         FilePickerType.PHOTO_CAPTURE, FilePickerType.VIDEO_CAPTURE -> {
             LaunchedEffect(Unit) {
                 // TODO: Use video camera picker when FileKit supports it
@@ -142,7 +141,6 @@ actual fun LoadFileDialog(
                 onCloseLoadFileDialog()
             }
         }
-
         null -> {
             log.debug { "No file picker selected, don't show anything" }
         }

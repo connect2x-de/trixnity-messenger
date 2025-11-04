@@ -12,15 +12,20 @@ import kotlinx.cinterop.toCValues
 import kotlinx.coroutines.runBlocking
 import platform.Foundation.NSStringFromClass
 import platform.UIKit.UIApplication
+import platform.UIKit.UIApplicationDelegateProtocol
 import platform.UIKit.UIApplicationDelegateProtocolMeta
 import platform.UIKit.UIApplicationMain
+import platform.UIKit.UIResponder
+import platform.UIKit.UIResponderMeta
 import platform.UIKit.UIScene
 import platform.UIKit.UISceneConfiguration
 import platform.UIKit.UISceneConnectionOptions
 import platform.UIKit.UISceneSession
 import platform.UIKit.UIWindow
 import platform.UIKit.UIWindowScene
+import platform.UIKit.UIWindowSceneDelegateProtocol
 import platform.UIKit.UIWindowSceneDelegateProtocolMeta
+import platform.darwin.NSObject
 import platform.darwin.NSObjectMeta
 
 // inspired from https://github.com/JetBrains/compose-multiplatform-core/blob/jb-main/compose/mpp/demo/src/uikitMain/kotlin/androidx/compose/mpp/demo/main.uikit.kt
@@ -42,9 +47,9 @@ fun startMultiMessenger(
     }
 }
 
-private class IOSAppDelegate : MatrixMultiMessengerService.UIApplicationDelegate {
+private class IOSAppDelegate : UIApplicationDelegateProtocol, UIResponder {
     @OptIn(BetaInteropApi::class)
-    companion object Companion : UIApplicationDelegateProtocolMeta, NSObjectMeta()
+    companion object Companion : UIApplicationDelegateProtocolMeta, UIResponderMeta()
 
     @Suppress("unused")
     @OptIn(BetaInteropApi::class)
@@ -69,7 +74,7 @@ private class IOSAppDelegate : MatrixMultiMessengerService.UIApplicationDelegate
     }
 }
 
-private class IOSSceneDelegate : MatrixMultiMessengerService.UIWindowSceneDelegate {
+private class IOSSceneDelegate : UIWindowSceneDelegateProtocol, NSObject {
     companion object Companion : UIWindowSceneDelegateProtocolMeta, NSObjectMeta()
 
     private val lifecycle by lazy { ApplicationLifecycle() }
