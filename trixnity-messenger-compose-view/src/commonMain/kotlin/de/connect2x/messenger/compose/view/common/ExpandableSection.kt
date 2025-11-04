@@ -6,6 +6,7 @@ import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -41,7 +43,7 @@ fun ExpandableSection(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     ExpandableSection(
-        heading = { Text(heading, style = MaterialTheme.typography.titleMedium) },
+        heading = { Text(heading, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Start) },
         modifier = modifier,
         icon = icon,
         content = content,
@@ -75,15 +77,17 @@ fun ExpandableSection(
                     }.semantics { role = Role.Button }
                     .buttonPointerModifier(true).padding(16.dp)
                     .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (icon != null) {
                     Icon(icon, contentDescription = null)
                     Spacer(Modifier.size(10.dp))
                 }
-                heading()
-                Spacer(Modifier.weight(1F).padding(end = 10.dp))
+                Box(Modifier.weight(1f, true)) {
+                    heading()
+                }
+                Spacer(Modifier.padding(end = 10.dp))
                 Icon(
                     Icons.Default.ArrowDropDown,
                     contentDescription = null,

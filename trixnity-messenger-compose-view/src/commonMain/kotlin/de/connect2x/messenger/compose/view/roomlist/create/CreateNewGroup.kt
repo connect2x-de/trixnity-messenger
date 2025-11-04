@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -21,12 +20,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
@@ -37,10 +37,11 @@ import androidx.compose.ui.unit.sp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
+import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.LazyRovingFocusColumn
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
 import de.connect2x.messenger.compose.view.search.SearchResultState
 import de.connect2x.messenger.compose.view.search.UserSearchResultListView
@@ -56,9 +57,10 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndica
 import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
-import de.connect2x.messenger.compose.view.util.scrollIntoView
-import de.connect2x.messenger.compose.view.util.verticalRovingFocus
+import de.connect2x.messenger.compose.view.util.moveDown
+import de.connect2x.messenger.compose.view.util.moveUp
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
+import kotlinx.coroutines.CoroutineScope
 
 interface CreateNewGroupView {
     @Composable
@@ -98,13 +100,19 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
             }
             append(roomType)
         }
-        val references = remember(userSearchResults) {
-            derivedStateOf {
-                (userSearchResults as? SearchResultState.Results)?.users?.map { it.userId.full }
-                    ?.minus(selectedUsers.value.map { it.userId }.toSet())
+
+        var references by remember {
+            mutableStateOf(listOf<String>())
+        }
+
+        LaunchedEffect(userSearchResults, selectedUsers.value) {
+            if (userSearchResults is SearchResultState.Results) {
+                references =
+                    userSearchResults.users.map { it.userId.full }.minus(selectedUsers.value.map { it.userId.full }
+                        .toSet())
             }
-        }.value
-        val defaultItem = references?.firstOrNull()
+        }
+        val defaultItem = references.firstOrNull()
 
         Box(Modifier.fillMaxSize()) {
             Column(
@@ -125,37 +133,24 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             MaterialTheme.components.linearProgressIndicator
                         )
                     }
-                    val lazyListState = rememberLazyListState()
-                    val expandOptions = remember { mutableStateOf(false) }
+                    val listState = rememberLazyListState()
                     val expandHistoryOptions = remember { mutableStateOf(false) }
                     RovingFocusContainer {
                         val focusContainer = LocalRovingFocus.current
-                        val focusModifier = if (references != null) Modifier.verticalRovingFocus(
-                            default = defaultItem,
-                            scroll = { item ->
-                                val index = references.indexOf(item)
-                                if (index != -1) {
-                                    lazyListState.scrollIntoView(index)
-                                }
-                            },
-                            up = {
-                                val currentItem = activeRef.value ?: defaultItem
-                                val currentIndex = references.indexOf(currentItem)
-                                val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
-                                references[nextIndex]
-                            },
-                            down = {
-                                val currentItem = activeRef.value ?: defaultItem
-                                val currentIndex = references.indexOf(currentItem)
-                                val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
-                                references[nextIndex]
-                            },
-                        ) else Modifier
+                        val currentRef = focusContainer?.activeRef?.value
+                        LaunchedEffect(references) {
+                            if (currentRef != null && !references.contains(currentRef)) {
+                                focusContainer.activeRef.value = defaultItem
+                            }
+                        }
+                        val scroll: suspend CoroutineScope.(Any?) -> Unit = { item ->
+                            val index = references.indexOf(item)
+                            if (index != -1) {
+                                listState.scrollToItem(index)
+                            }
+                        }
 
-                        LazyColumn(
-                            modifier = Modifier.then(focusModifier),
-                            state = lazyListState,
-                        ) {
+                        LazyRovingFocusColumn(defaultItem, references, listState, focusContainer) {
                             item(key = "MoreOptions") {
                                 Column {
                                     ExpandableSection(
@@ -182,8 +177,10 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                                 createNewGroupViewModel.createNewRoomViewModel,
                                 {
                                     createNewGroupViewModel.onUserClick(it)
-                                    if (focusContainer != null) {
-                                        focusContainer.activeRef.value = null
+                                    if (references.indexOf(it.userId.full) < references.lastIndex) {
+                                        focusContainer?.moveDown(defaultItem, references, scroll)
+                                    } else {
+                                        focusContainer?.moveUp(defaultItem, references, scroll)
                                     }
                                 },
                                 userSearchResults,
@@ -194,7 +191,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                     }
                     VerticalScrollbar(
                         Modifier.fillMaxHeight().align(Alignment.CenterEnd),
-                        lazyListState,
+                        listState,
                         false
                     )
                 }

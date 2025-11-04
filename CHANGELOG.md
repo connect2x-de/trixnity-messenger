@@ -11,13 +11,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Added Space in the bottom of the RoomList to account for new chat button overlapping UI elements
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
+- The sticky header now correctly displays the date of the topmost message
+- Fix focus handling in chat/group creation user list and add members view
+- Show dropdown icon in group creation history visibility menu
+
 ### Security
+
+## 3.8.8
+
+### Added
+
+- Show richtext in room topic
+
+### Changed
+
+- Improve UI of room name & room topic
+
+### Fixed
+
+- The sticky header now correctly displays the date of the topmost message
 
 ## 3.8.7
 

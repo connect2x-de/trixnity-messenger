@@ -2,7 +2,6 @@ package de.connect2x.messenger.compose.view.common
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -20,12 +19,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -45,7 +41,6 @@ import de.connect2x.messenger.compose.view.util.RovingFocusItem
 import de.connect2x.messenger.compose.view.util.rovingFocus2D
 import de.connect2x.messenger.compose.view.util.rovingFocusItem
 import kotlin.math.ceil
-import kotlin.math.max
 
 
 @Composable
@@ -260,4 +255,21 @@ private val emojis = listOf(
     "\ud83d\ude3e", // Pouting Cat Face
     "\ud83d\ude80", // Rocket
     "\ud83d\udd25", // Fire
+    "\uD83E\uDD2F", // Exploding Head
+    "❤\uFE0F", // Red Heart
+    "\uD83D\uDC9C", // Purple Heart
+    "\uD83D\uDC9B", // Yellow Heart
+    "\uD83D\uDC9A", // Green Heart
+    "\uD83E\uDD0D", // White Heart
+    "\uD83E\uDE77", // Pink Heart
+    "\uD83E\uDD40", // Wilted Flower
+    "✅", // Check
+    "\uD83D\uDE4F", // Folded Hands
+    "\uD83D\uDEAC", // Cigarette
+    "\uD83C\uDF75", // Teacup without handle
+    "❌", // Cross Mark
+    "\uD83C\uDF89", // Party Popper
+    "\uD83E\uDD20", // Cowboy Hat Face
+    "\uD83E\uDD7A", // Pleading Face
+    "\uD83E\uDD79", // Face holding back Tears
 )
