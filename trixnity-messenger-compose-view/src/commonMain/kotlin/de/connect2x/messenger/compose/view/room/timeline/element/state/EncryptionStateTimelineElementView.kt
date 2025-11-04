@@ -34,6 +34,7 @@ class EncryptionStateTimelineElementViewImpl : EncryptionStateTimelineElementVie
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: EncryptionStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }
@@ -42,6 +43,7 @@ class EncryptionStateTimelineElementViewImpl : EncryptionStateTimelineElementVie
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: EncryptionStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }

@@ -20,12 +20,14 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
     fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: V,
+        index: Int,
     )
 
     @Composable
     fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: V,
+        index: Int,
     )
 
     @Composable
@@ -64,6 +66,7 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
+        index: Int,
     ) {
     }
 
@@ -71,6 +74,7 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
+        index: Int,
     ) {
     }
 
@@ -86,7 +90,7 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*
     @Composable
     override fun getClipEntry(
         holder: BaseTimelineElementHolderViewModel,
-        element: TimelineElementViewModel<*>
+        element: TimelineElementViewModel<*>,
     ): ClipEntry? = null
 
     @Composable

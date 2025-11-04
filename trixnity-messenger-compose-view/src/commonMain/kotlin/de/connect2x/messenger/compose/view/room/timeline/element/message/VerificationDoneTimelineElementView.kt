@@ -51,7 +51,8 @@ class VerificationDoneMessageTimelineElementViewImpl : VerificationDoneMessageTi
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: VerificationDoneTimelineElementViewModel
+        element: VerificationDoneTimelineElementViewModel,
+        index: Int,
     ) {
         VerificationDoneElement(holder, element)
     }
@@ -59,7 +60,8 @@ class VerificationDoneMessageTimelineElementViewImpl : VerificationDoneMessageTi
     @Composable
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
-        element: VerificationDoneTimelineElementViewModel
+        element: VerificationDoneTimelineElementViewModel,
+        index: Int,
     ) {
         VerificationDoneElement(holder, element)
     }

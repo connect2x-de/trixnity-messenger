@@ -35,6 +35,7 @@ class HistoryVisibilityStateTimelineElementViewImpl : HistoryVisibilityStateTime
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: HistoryVisibilityStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }
@@ -43,6 +44,7 @@ class HistoryVisibilityStateTimelineElementViewImpl : HistoryVisibilityStateTime
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: HistoryVisibilityStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }

@@ -37,6 +37,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -138,6 +142,10 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
             modifier = Modifier
                 .size(28.dp)
                 .rovingFocusItem()
+                .semantics {
+                    role = Role.Button
+                    contentDescription = i18n.commonContextMenu()
+                }
         ) {
             transition.AnimatedVisibility(
                 modifier = Modifier.buttonPointerModifier(enabled = true),
@@ -145,7 +153,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
-                Icon(Icons.Default.ExpandMore, i18n.commonContextMenu(), tint = Color.White)
+                Icon(Icons.Default.ExpandMore, null, tint = Color.White)
             }
         }
         ThemedDropdownMenu(

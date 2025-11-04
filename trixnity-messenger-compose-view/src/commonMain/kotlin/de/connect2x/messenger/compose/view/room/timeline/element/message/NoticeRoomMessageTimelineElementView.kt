@@ -27,16 +27,18 @@ class NoticeRoomMessageTimelineElementViewImpl : NoticeRoomMessageTimelineElemen
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: Notice,
+        index: Int,
     ) {
-        TextBasedRoomMessageTimelineElementView(holder, element, isPreview = false)
+        TextBasedRoomMessageTimelineElementView(holder, element, isPreview = false, index = index)
     }
 
     @Composable
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: Notice,
+        index: Int,
     ) {
-        TextBasedRoomMessageTimelineElementView(holder, element, isPreview = true)
+        TextBasedRoomMessageTimelineElementView(holder, element, isPreview = true, index = index)
     }
 
     @Composable

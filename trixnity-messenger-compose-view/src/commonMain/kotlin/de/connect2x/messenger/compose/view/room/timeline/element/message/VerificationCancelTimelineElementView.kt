@@ -52,7 +52,8 @@ class VerificationCancelTimelineElementViewImpl : VerificationCancelTimelineElem
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: VerificationCancelTimelineElementViewModel
+        element: VerificationCancelTimelineElementViewModel,
+        index: Int,
     ) {
         VerificationCancelElement(holder, element)
     }
@@ -60,7 +61,8 @@ class VerificationCancelTimelineElementViewImpl : VerificationCancelTimelineElem
     @Composable
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
-        element: VerificationCancelTimelineElementViewModel
+        element: VerificationCancelTimelineElementViewModel,
+        index: Int,
     ) {
         VerificationCancelElement(holder, element)
     }

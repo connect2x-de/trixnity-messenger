@@ -34,6 +34,7 @@ interface MessageBubbleView {
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
         isPreview: Boolean,
+        index: Int,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     )
 }
@@ -44,10 +45,11 @@ fun MessageBubble(
     needsMaxWidth: Boolean,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
     isPreview: Boolean,
+    index: Int,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     DI.get<MessageBubbleView>()
-        .create(holder, needsMaxWidth, additionalContextActions, isPreview, content)
+        .create(holder, needsMaxWidth, additionalContextActions, isPreview, index, content)
 }
 
 class MessageBubbleViewImpl : MessageBubbleView {
@@ -57,6 +59,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
         isPreview: Boolean,
+        index: Int,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     ) {
         val redactionInProgress =
@@ -96,6 +99,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
                         additionalContextActions = additionalContextActions,
                         isPreview = isPreview,
                         interactionSource = interactionSource,
+                        index = index,
                         content = content,
                     )
                 }

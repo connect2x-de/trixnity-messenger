@@ -30,13 +30,15 @@ interface TimelineElementViewSelector :
     fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-    ) = rememberFactory(element).createInTimeline(holder, element)
+        index: Int,
+    ) = rememberFactory(element).createInTimeline(holder, element, index)
 
     @Composable
     fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-    ) = rememberFactory(element).createAsPreview(holder, element)
+        index: Int,
+    ) = rememberFactory(element).createAsPreview(holder, element, index)
 
     @Composable
     fun createReplyInTimeline(
@@ -65,8 +67,9 @@ interface TimelineElementViewSelector :
 fun TimelineElementSelector(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     element: TimelineElementViewModel<*>,
+    index: Int,
 ) {
-    with(DI.get<TimelineElementViewSelector>()) { createInTimeline(timelineElementHolderViewModel, element) }
+    with(DI.get<TimelineElementViewSelector>()) { createInTimeline(timelineElementHolderViewModel, element, index) }
 }
 
 class TimelineElementViewSelectorImpl(private val factories: List<TimelineElementView<*>>) :

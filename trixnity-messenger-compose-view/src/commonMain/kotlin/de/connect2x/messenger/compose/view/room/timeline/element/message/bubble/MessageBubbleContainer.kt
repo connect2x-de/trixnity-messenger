@@ -1,9 +1,9 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message.bubble
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -22,13 +22,21 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.CollectionItemInfo
+import androidx.compose.ui.semantics.collectionItemInfo
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.pointerMoveFilter
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 
 @Composable
 fun MessageBubbleContainer(
@@ -38,6 +46,7 @@ fun MessageBubbleContainer(
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
     isPreview: Boolean,
     interactionSource: MutableInteractionSource,
+    index: Int,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
@@ -45,6 +54,9 @@ fun MessageBubbleContainer(
     val showActionMenu = remember { mutableStateOf(false) }
     val hoverMessage = remember { mutableStateOf(false) }
     val isFocused = remember { mutableStateOf(false) }
+    val i18n = DI.get<I18nView>()
+    val element = holder.element.collectAsState().value
+    val sender = holder.sender.collectAsState().value
 
     val messagePadding = remember(holder.isByMe) {
         if (holder.isByMe) Modifier else Modifier.padding(start = 8.dp)
@@ -55,54 +67,62 @@ fun MessageBubbleContainer(
         else -> MaterialTheme.components.messageBubbleOther
     }
 
-    Column {
-        Box(
-            modifier = if (isPreview) Modifier else Modifier
-                .pointerMoveFilter(
-                    onEnter = {
-                        hoverMessage.value = true
-                        true
-                    }, onExit = {
-                        hoverMessage.value = false
-                        true
-                    })
-                .pointerInput(holder) { // key is important to react to changes
-                    detectTapGestures(onLongPress = {
-                        showActionMenu.value = true
-                    }) // in case the child element has no tap / click detection, we can use this
-                    size
-                }
-        ) {
-            ThemedSurface(
-                style = messageBubbleStyle,
-                focused = isFocused.value,
-                modifier = Modifier
-                    // We want to explicitly listen for focus on children as well
-                    .onFocusChanged { isFocused.value = it.hasFocus }
-                    .then(messagePadding)
-                    .drawWithCache {
-                        onDrawBehind {
-                            if (isFirstInUserSequence) {
-                                drawChatEdge(holder.isByMe, messageBubbleStyle.color)
-                            }
-                        }
-                    },
-            ) {
-                if (!isPreview) {
-                    MessageBubbleActionMenu(
-                        holder,
-                        showActionMenu,
-                        onOpenMetadata = {
-                            if (holder is TimelineElementHolderViewModel) holder.openTimelineElementMetadata()
-                        },
-                        onReactToMessage = { reactionsOpen.value = true },
-                        interactionSource,
-                        additionalContextActions,
-                    )
-                }
-
-                MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = true }, content)
+    Box(
+        modifier = if (isPreview) Modifier else Modifier
+            .pointerMoveFilter(
+                onEnter = {
+                    hoverMessage.value = true
+                    true
+                }, onExit = {
+                    hoverMessage.value = false
+                    true
+                })
+            .pointerInput(holder) { // key is important to react to changes
+                detectTapGestures(onLongPress = {
+                    showActionMenu.value = true
+                }) // in case the child element has no tap / click detection, we can use this
+                size
             }
+    ) {
+        ThemedSurface(
+            style = messageBubbleStyle,
+            focused = isFocused.value,
+            modifier = Modifier
+                // We want to explicitly listen for the focus on children, so when a child is focused we are as well
+                .onFocusChanged { isFocused.value = it.hasFocus }
+                .then(messagePadding)
+                .drawWithCache {
+                    onDrawBehind {
+                        if (isFirstInUserSequence) {
+                            drawChatEdge(holder.isByMe, messageBubbleStyle.color)
+                        }
+                    }
+                }
+                .focusable(true)
+                .semantics {
+                    collectionItemInfo = CollectionItemInfo(0, 1, index, 1)
+                    contentDescription = when (element) {
+                        is RoomMessageTimelineElementViewModel.TextBased.Notice -> "${i18n.automated()}: ${element.body}"
+                        is RoomMessageTimelineElementViewModel.TextBased.Emote -> "${sender?.name}: ${element.body}"
+                        is RoomMessageTimelineElementViewModel.TextBased.Text -> element.body
+                        else -> "" // FIXME more? make extensible?
+                    }
+                },
+        ) {
+            if (!isPreview) {
+                MessageBubbleActionMenu(
+                    holder,
+                    showActionMenu,
+                    onOpenMetadata = {
+                        if (holder is TimelineElementHolderViewModel) holder.openTimelineElementMetadata()
+                    },
+                    onReactToMessage = { reactionsOpen.value = true },
+                    interactionSource,
+                    additionalContextActions,
+                )
+            }
+
+            MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = true }, content)
         }
     }
 }

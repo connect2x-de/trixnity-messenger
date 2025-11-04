@@ -34,6 +34,7 @@ class CanonicalAliasStateTimelineElementViewImpl : CanonicalAliasStateTimelineEl
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: CanonicalAliasStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }
@@ -42,6 +43,7 @@ class CanonicalAliasStateTimelineElementViewImpl : CanonicalAliasStateTimelineEl
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: CanonicalAliasStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }

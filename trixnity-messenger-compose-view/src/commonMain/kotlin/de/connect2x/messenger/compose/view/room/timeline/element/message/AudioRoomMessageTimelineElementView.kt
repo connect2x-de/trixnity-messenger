@@ -24,8 +24,8 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.common.FileInfo
+import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
@@ -54,10 +54,12 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: Audio,
+        index: Int,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
+            index = index,
         ) { showActionMenu, onSave ->
             MessageAudio(element, showActionMenu, onSave)
         }
@@ -67,11 +69,13 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: Audio,
+        index: Int,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
             isPreview = true,
+            index = index,
         ) { showActionMenu, onSave ->
             MessageAudio(element, showActionMenu, onSave)
         }

@@ -25,8 +25,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.common.FileInfo
+import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
@@ -54,9 +54,10 @@ class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementVie
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: File,
+        index: Int,
     ) {
         FileBasedRoomMessageTimelineElement(
-            holder, element,
+            holder, element, index = index,
         ) { showActionMenu, onSave ->
             MessageFile(element, showActionMenu, onSave)
         }
@@ -66,10 +67,12 @@ class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementVie
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: File,
+        index: Int,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder, element,
             isPreview = true,
+            index = index,
         ) { showActionMenu, onSave ->
             MessageFile(element, showActionMenu, onSave)
         }

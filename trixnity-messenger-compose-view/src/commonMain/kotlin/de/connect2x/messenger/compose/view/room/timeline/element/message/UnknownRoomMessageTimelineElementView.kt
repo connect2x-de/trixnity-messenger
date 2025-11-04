@@ -36,6 +36,7 @@ class UnknownRoomMessageTimelineElementViewImpl : UnknownRoomMessageTimelineElem
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: Unknown,
+        index: Int,
     ) {
         UnknownMessageElement(element)
     }
@@ -44,6 +45,7 @@ class UnknownRoomMessageTimelineElementViewImpl : UnknownRoomMessageTimelineElem
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: Unknown,
+        index: Int,
     ) {
         UnknownMessageElement(element)
     }

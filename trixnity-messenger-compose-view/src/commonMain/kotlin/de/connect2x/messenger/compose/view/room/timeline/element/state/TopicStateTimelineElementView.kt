@@ -33,6 +33,7 @@ class TopicStateTimelineElementViewImpl : TopicStateTimelineElementView {
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: TopicStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }
@@ -41,6 +42,7 @@ class TopicStateTimelineElementViewImpl : TopicStateTimelineElementView {
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: TopicStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }

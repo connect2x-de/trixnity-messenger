@@ -32,6 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.CollectionInfo
+import androidx.compose.ui.semantics.collectionInfo
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
@@ -81,6 +84,7 @@ fun ColumnScope.Timeline(timelineViewModel: TimelineViewModel) {
 }
 
 private const val additionalEndPadding = 8
+
 class TimelineViewImpl : TimelineView {
     @Composable
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
@@ -187,7 +191,8 @@ class TimelineViewImpl : TimelineView {
                         } ?: 0
                 }
 
-                val initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else initialIndex
+                val initialFirstVisibleItemIndex =
+                    if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else initialIndex
                 val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialFirstVisibleItemIndex)
 
                 val lastItem = remember {
@@ -251,7 +256,8 @@ class TimelineViewImpl : TimelineView {
                         Box {
                             RovingFocusContainer {
                                 LazyColumn(
-                                    modifier = Modifier.fillMaxSize()
+                                    modifier = Modifier
+                                        .fillMaxSize()
                                         .verticalRovingFocus(
                                             default = lastItem.value,
                                             scroll = { item ->
@@ -276,7 +282,11 @@ class TimelineViewImpl : TimelineView {
                                                     .coerceIn(navigatableTimelineElements.value.indices)
                                                 navigatableTimelineElements.value[nextIndex]
                                             },
-                                        ),
+                                        )
+                                        .semantics {
+                                            collectionInfo =
+                                                CollectionInfo(1, timelineElementViewModelGrouped.value.size)
+                                        },
                                     contentPadding = PaddingValues(
                                         top = 10.dp,
                                         bottom = 10.dp,
@@ -290,10 +300,10 @@ class TimelineViewImpl : TimelineView {
                                     verticalArrangement = Arrangement.Bottom,
                                 ) {
                                     log.trace { "rendering timeline elements" }
-                                    timelineElementViewModelGrouped.value.forEach { (date, viewModel) ->
+                                    timelineElementViewModelGrouped.value.forEachIndexed { index, (date, viewModel) ->
                                         item(viewModel.key) {
                                             RovingFocusItem(viewModel.key) {
-                                                TimelineElementHolder(viewModel)
+                                                TimelineElementHolder(viewModel, index)
                                             }
                                         }
                                         if (date != null)

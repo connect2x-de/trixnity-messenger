@@ -45,11 +45,13 @@ class EncryptedWaitTimelineElementViewImpl : EncryptedWaitTimelineElementView {
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: EncryptedWaitTimelineElementViewModel,
+        index: Int,
     ) {
         MessageBubble(
             holder,
             needsMaxWidth = false,
             isPreview = false,
+            index = index,
         ) { _ ->
             EncryptedMessageWaitElement()
         }
@@ -59,11 +61,13 @@ class EncryptedWaitTimelineElementViewImpl : EncryptedWaitTimelineElementView {
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: EncryptedWaitTimelineElementViewModel,
+        index: Int,
     ) {
         MessageBubble(
             holder,
             needsMaxWidth = false,
             isPreview = true,
+            index = index,
         ) { _ ->
             EncryptedMessageWaitElement()
         }

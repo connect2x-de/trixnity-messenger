@@ -73,6 +73,7 @@ class VerificationRequestRoomMessageTimelineElementViewImpl : VerificationReques
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: VerificationRequest,
+        index: Int,
     ) {
         UserVerification(holder, element)
     }
@@ -81,6 +82,7 @@ class VerificationRequestRoomMessageTimelineElementViewImpl : VerificationReques
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: VerificationRequest,
+        index: Int,
     ) {
         UserVerification(holder, element)
     }

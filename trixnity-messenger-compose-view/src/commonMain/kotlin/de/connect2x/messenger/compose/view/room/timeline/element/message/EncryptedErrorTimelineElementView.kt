@@ -36,11 +36,13 @@ class EncryptedErrorTimelineElementViewImpl : EncryptedErrorTimelineElementView 
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: EncryptedErrorTimelineElementViewModel,
+        index: Int,
     ) {
         MessageBubble(
             holder,
             needsMaxWidth = false,
             isPreview = false,
+            index = index,
         ) { _ ->
             EncryptedMessageErrorElement()
         }
@@ -50,11 +52,13 @@ class EncryptedErrorTimelineElementViewImpl : EncryptedErrorTimelineElementView 
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: EncryptedErrorTimelineElementViewModel,
+        index: Int,
     ) {
         MessageBubble(
             holder,
             needsMaxWidth = false,
             isPreview = true,
+            index = index,
         ) { _ ->
             EncryptedMessageErrorElement()
         }

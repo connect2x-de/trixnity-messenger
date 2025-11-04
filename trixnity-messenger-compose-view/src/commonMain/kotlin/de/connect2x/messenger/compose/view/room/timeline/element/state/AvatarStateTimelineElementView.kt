@@ -33,6 +33,7 @@ class AvatarStateTimelineElementViewImpl : AvatarStateTimelineElementView {
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: AvatarStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }
@@ -41,6 +42,7 @@ class AvatarStateTimelineElementViewImpl : AvatarStateTimelineElementView {
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: AvatarStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }

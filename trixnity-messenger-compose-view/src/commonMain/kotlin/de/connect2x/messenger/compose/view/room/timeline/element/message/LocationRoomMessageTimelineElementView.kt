@@ -40,16 +40,18 @@ class LocationRoomMessageTimelineElementViewImpl : LocationRoomMessageTimelineEl
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: Location,
+        index: Int,
     ) {
-        LocationMessageElement(holder, element, isPreview = false)
+        LocationMessageElement(holder, element, isPreview = false, index = index)
     }
 
     @Composable
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: Location,
+        index: Int,
     ) {
-        LocationMessageElement(holder, element, isPreview = true)
+        LocationMessageElement(holder, element, isPreview = true, index = index)
     }
 
     @Composable
@@ -84,11 +86,13 @@ fun LocationMessageElement(
     holder: BaseTimelineElementHolderViewModel,
     element: Location,
     isPreview: Boolean,
+    index: Int,
 ) {
     MessageBubble(
         holder,
         needsMaxWidth = false,
         isPreview = isPreview,
+        index = index,
     ) { showMenuAction ->
         // on Desktop and Web, it makes sense to select text and copy it;
         // on Android and iOS, this will consume long tap events, which we use for the context menu
