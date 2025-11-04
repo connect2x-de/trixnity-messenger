@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.theme.components
 
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.text.selection.TextSelectionColors
@@ -57,6 +58,7 @@ fun ThemedSelectableText(
     selectionModifier: Modifier = Modifier,
     modifier: Modifier = Modifier,
     color: Color = Color.Unspecified,
+    autoSize: TextAutoSize? = null,
     fontSize: TextUnit = TextUnit.Unspecified,
     fontStyle: FontStyle? = null,
     fontWeight: FontWeight? = null,
@@ -77,6 +79,7 @@ fun ThemedSelectableText(
             text,
             modifier,
             color,
+            autoSize,
             fontSize,
             fontStyle,
             fontWeight,

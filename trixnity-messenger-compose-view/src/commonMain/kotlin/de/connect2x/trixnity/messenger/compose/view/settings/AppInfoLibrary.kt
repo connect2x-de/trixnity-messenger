@@ -27,7 +27,7 @@ internal fun LibraryItem(
             Text(
                 text = library.name,
                 style = style.textStyles.nameTextStyle ?: style.typography.titleLarge,
-                color = style.colors.contentColor,
+                color = style.colors.libraryContentColor,
                 maxLines = style.textStyles.nameMaxLines,
                 overflow = style.textStyles.nameOverflow,
             )
@@ -41,7 +41,7 @@ internal fun LibraryItem(
                     maxLines = style.textStyles.versionMaxLines,
                     textAlign = TextAlign.Center,
                     overflow = style.textStyles.defaultOverflow,
-                    color = style.colors.contentColor,
+                    color = style.colors.libraryContentColor,
                 )
             }
         },
@@ -50,7 +50,7 @@ internal fun LibraryItem(
                 Text(
                     text = library.author,
                     style = style.textStyles.authorTextStyle ?: style.typography.bodyMedium,
-                    color = style.colors.contentColor,
+                    color = style.colors.libraryContentColor,
                     maxLines = style.textStyles.authorMaxLines,
                     overflow = style.textStyles.defaultOverflow,
                 )

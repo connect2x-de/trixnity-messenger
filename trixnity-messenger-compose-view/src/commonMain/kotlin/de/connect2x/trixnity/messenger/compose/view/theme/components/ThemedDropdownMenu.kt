@@ -52,7 +52,7 @@ fun ExposedDropdownMenuBoxScope.ThemedExposedDropdownMenu(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     scrollState: ScrollState = rememberScrollState(),
-    matchTextFieldWidth: Boolean = true,
+    matchAnchorWidth: Boolean = true,
     style: SurfaceStyle = MaterialTheme.components.dropdownMenu,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -61,7 +61,7 @@ fun ExposedDropdownMenuBoxScope.ThemedExposedDropdownMenu(
         onDismissRequest = onDismissRequest,
         modifier = modifier,
         scrollState = scrollState,
-        matchTextFieldWidth = matchTextFieldWidth,
+        matchTextFieldWidth = matchAnchorWidth,
         shape = style.shape,
         containerColor = style.color,
         tonalElevation = style.tonalElevation,
