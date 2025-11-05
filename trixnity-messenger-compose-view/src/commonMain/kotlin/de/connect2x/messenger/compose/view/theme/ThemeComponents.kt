@@ -446,7 +446,7 @@ class ThemeComponentsImpl : ThemeComponents {
         ),
         library = LibraryStyle.default(
             colors = LibraryDefaults.libraryColors(
-                backgroundColor = Color.Transparent,
+                libraryBackgroundColor = Color.Transparent,
                 licenseChipColors = LibraryDefaults.chipColors(),
             ),
             textStyles = LibraryDefaults.libraryTextStyles(

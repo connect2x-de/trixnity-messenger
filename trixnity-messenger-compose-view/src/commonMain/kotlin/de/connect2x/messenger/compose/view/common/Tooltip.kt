@@ -102,6 +102,7 @@ fun Tooltip(
                 hideTooltip = hideTooltip,
             )
             .tooltipAnchorSemantics(i18n.commonShowTooltip(), enabled, tooltipState, scope),
+        // TODO: Tooltips should be adaptive (top, bottom, etc. depending on location)
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
         tooltip = {
             TooltipSurface(
