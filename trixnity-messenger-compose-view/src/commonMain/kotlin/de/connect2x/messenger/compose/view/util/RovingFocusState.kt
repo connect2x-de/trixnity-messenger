@@ -109,6 +109,7 @@ fun Modifier.rovingFocusItem(): Modifier {
         .focusProperties {
             val current = rovingFocusState.activeRef.value ?: scope.default
             val focusable = rovingFocusState.isFocussing || current == scope.key
+            println("- ${rovingFocusState.isFocussing}, $current == ${scope.key}")
             if (!focusable) {
                 canFocus = false
             }

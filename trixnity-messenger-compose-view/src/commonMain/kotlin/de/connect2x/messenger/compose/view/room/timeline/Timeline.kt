@@ -124,19 +124,26 @@ class TimelineViewImpl : TimelineView {
                 }.asReversed()
             }
         }
-        val navigatableTimelineElements = remember {
-            derivedStateOf {
-                timelineElementHolderViewModels.value.filter {
-                    val element = it.element.value
-                    element != null && timelineElementViewSelector.isFocusable(element)
-                }.map { it.key }
-            }
-        }
         val uiTimelineElements = remember {
             derivedStateOf {
                 buildList {
                     for ((date, viewModel) in timelineElementViewModelGrouped.value) {
                         add(viewModel.key)
+                        if (date != null) {
+                            add("date-$date-${viewModel.key}")
+                        }
+                    }
+                }
+            }
+        }
+        val navigatableTimelineElements = remember {
+            derivedStateOf {
+                buildList {
+                    for ((date, viewModel) in timelineElementViewModelGrouped.value) {
+                        val element = viewModel.element.value
+                        if (element != null && timelineElementViewSelector.isFocusable(element)) {
+                            add(viewModel.key)
+                        }
                         if (date != null) {
                             add("date-$date-${viewModel.key}")
                         }
@@ -264,10 +271,12 @@ class TimelineViewImpl : TimelineView {
                                             default = lastItem.value,
                                             scroll = scroll(listState, uiTimelineElements.value) { it },
                                             up = { // inverse
-                                                getNextItem(
+                                                val res = getNextItem(
                                                     navigatableTimelineElements.value,
                                                     lastItem.value,
                                                 ) { it }
+                                                println("===res: $res")
+                                                res
                                             },
                                             down = { // inverse
                                                 getPreviousItem(
@@ -301,7 +310,9 @@ class TimelineViewImpl : TimelineView {
                                         }
                                         if (date != null)
                                             item("date-$date-${viewModel.key}") {
-                                                DateStickyHeader(date)
+                                                RovingFocusItem("date-$date-${viewModel.key}") {
+                                                    DateStickyHeader(date)
+                                                }
                                             }
                                     }
                                 }
