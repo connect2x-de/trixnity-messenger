@@ -139,6 +139,10 @@ class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementV
         holder: BaseTimelineElementHolderViewModel,
         element: Image
     ): ClipEntry? = element.toClipEntry()
+
+    override fun a11yLabel(element: Image, i18n: I18nView): String {
+        return "${i18n.commonImage()}, ${element.name} ${element.size}"
+    }
 }
 
 @Composable

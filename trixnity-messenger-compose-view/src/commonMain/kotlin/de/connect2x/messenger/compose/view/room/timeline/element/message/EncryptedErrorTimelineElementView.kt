@@ -104,6 +104,9 @@ class EncryptedErrorTimelineElementViewImpl : EncryptedErrorTimelineElementView 
         element: EncryptedErrorTimelineElementViewModel
     ): ClipEntry? = null
 
+    override fun a11yLabel(element: EncryptedErrorTimelineElementViewModel, i18n: I18nView): String {
+        return i18n.messageContentNoDecryption()
+    }
 }
 
 @Composable

@@ -103,6 +103,10 @@ class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementVie
         holder: BaseTimelineElementHolderViewModel,
         element: File
     ): ClipEntry? = element.toClipEntry()
+
+    override fun a11yLabel(element: File, i18n: I18nView): String {
+        return "${i18n.commonFile()}, ${element.name} ${element.size}"
+    }
 }
 
 @Composable

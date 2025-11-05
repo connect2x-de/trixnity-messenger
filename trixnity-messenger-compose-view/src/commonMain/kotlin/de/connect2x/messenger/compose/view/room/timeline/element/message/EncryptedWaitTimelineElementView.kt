@@ -112,6 +112,10 @@ class EncryptedWaitTimelineElementViewImpl : EncryptedWaitTimelineElementView {
         holder: BaseTimelineElementHolderViewModel,
         element: EncryptedWaitTimelineElementViewModel
     ): ClipEntry? = null
+
+    override fun a11yLabel(element: EncryptedWaitTimelineElementViewModel, i18n: I18nView): String {
+        return i18n.messageContentWaitForKeys()
+    }
 }
 
 @Composable

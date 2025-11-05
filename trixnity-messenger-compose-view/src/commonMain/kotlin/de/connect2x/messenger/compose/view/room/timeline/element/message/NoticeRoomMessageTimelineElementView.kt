@@ -4,6 +4,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
+import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.util.toClipEntry
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -66,4 +67,8 @@ class NoticeRoomMessageTimelineElementViewImpl : NoticeRoomMessageTimelineElemen
         holder: BaseTimelineElementHolderViewModel,
         element: Notice
     ): ClipEntry? = element.toClipEntry()
+
+    override fun a11yLabel(element: Notice, i18n: I18nView): String {
+        return "${i18n.automated()}: ${element.body}"
+    }
 }

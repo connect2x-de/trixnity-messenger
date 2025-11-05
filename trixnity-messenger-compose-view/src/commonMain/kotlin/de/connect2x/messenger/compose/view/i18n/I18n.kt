@@ -206,6 +206,11 @@ open class I18nView(
         DE - "Warnung"
     }
 
+    open fun commonEmote() = translate {
+        EN - "emote"
+        DE - "Emote"
+    }
+
     open fun commonImage() = translate {
         EN - "image"
         DE - "Bild"
@@ -2975,10 +2980,11 @@ open class I18nView(
         DE - "wird geladen"
     }
 
-    open fun selectDirectory() = translate{
+    open fun selectDirectory() = translate {
         EN - "select folder"
         DE - "Ordner auswählen"
     }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)

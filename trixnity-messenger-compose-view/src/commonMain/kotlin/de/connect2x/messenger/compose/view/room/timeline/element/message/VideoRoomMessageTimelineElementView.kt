@@ -124,6 +124,10 @@ class VideoRoomMessageTimelineElementViewImpl : VideoRoomMessageTimelineElementV
         holder: BaseTimelineElementHolderViewModel,
         element: Video
     ): ClipEntry? = element.toClipEntry()
+
+    override fun a11yLabel(element: Video, i18n: I18nView): String {
+        return "${i18n.commonVideo()}, ${element.name}, ${element.duration.ifNotNull { formatDuration(it.milliseconds) }}"
+    }
 }
 
 @Composable

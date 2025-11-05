@@ -31,13 +31,13 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.pointerMoveFilter
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.util.rovingFocusItem
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 
 @Composable
 fun MessageBubbleContainer(
@@ -58,6 +58,7 @@ fun MessageBubbleContainer(
     val i18n = DI.get<I18nView>()
     val element = holder.element.collectAsState().value
     val sender = holder.sender.collectAsState().value
+    val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
 
     val messagePadding = remember(holder.isByMe) {
         if (holder.isByMe) Modifier else Modifier.padding(start = 8.dp)
@@ -105,12 +106,8 @@ fun MessageBubbleContainer(
                 .focusable(true, interactionSource)
                 .semantics {
                     collectionItemInfo = CollectionItemInfo(0, 1, index, 1)
-                    contentDescription = when (element) {
-                        is RoomMessageTimelineElementViewModel.TextBased.Notice -> "${i18n.automated()}: ${element.body}"
-                        is RoomMessageTimelineElementViewModel.TextBased.Emote -> "${sender?.name}: ${element.body}"
-                        is RoomMessageTimelineElementViewModel.TextBased.Text -> element.body
-                        else -> "" // FIXME more? make extensible?
-                    }
+                    contentDescription = "${sender?.name ?: i18n.commonUnknown()} (${holder.formattedTime}): " +
+                            (element?.let { timelineElementViewSelector.a11yLabel(it, i18n) } ?: "")
                 },
         ) {
             if (!isPreview) {

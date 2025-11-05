@@ -4,6 +4,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
+import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
@@ -51,6 +52,14 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
         holder: BaseTimelineElementHolderViewModel,
         element: V,
     ): ClipEntry?
+
+    /**
+     * Optional label for accessibility. This is read to a user when the timeline element is focused in the timeline.
+     *
+     * Do not include any common metadata like the sender or timestamps of messages here. Those are provided
+     * automatically.
+     */
+    fun a11yLabel(element: V, i18n: I18nView): String? = null
 }
 
 object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*>> {

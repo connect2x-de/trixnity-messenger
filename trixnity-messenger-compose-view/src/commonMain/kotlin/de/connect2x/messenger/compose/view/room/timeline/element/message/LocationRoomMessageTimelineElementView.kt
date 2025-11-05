@@ -79,6 +79,10 @@ class LocationRoomMessageTimelineElementViewImpl : LocationRoomMessageTimelineEl
         holder: BaseTimelineElementHolderViewModel,
         element: Location
     ): ClipEntry? = element.toClipEntry()
+
+    override fun a11yLabel(element: Location, i18n: I18nView): String {
+        return i18n.commonLocation()
+    }
 }
 
 @Composable
