@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonOff
@@ -22,7 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +41,6 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
 import de.connect2x.messenger.compose.view.util.LocalRovingFocus
-import de.connect2x.messenger.compose.view.util.LocalRovingFocusItem
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
 import de.connect2x.messenger.compose.view.util.rovingFocusItem
@@ -62,18 +61,14 @@ fun BlockedContactsSettings(blockedContactsSettingsViewModel: BlockedContactsSet
 class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
     @Composable
     override fun create(blockedContactsSettingsViewModel: BlockedContactsSettingsViewModel) {
-        val userList = blockedContactsSettingsViewModel.blockedContactsList.collectAsState()
+        val userList by blockedContactsSettingsViewModel.blockedContactsList.collectAsState()
         val i18n = DI.get<I18nView>()
         val state = rememberLazyListState()
-        val references = remember {
-            derivedStateOf {
-                userList.value.map { it.userId }
-            }
-        }
-        val defaultItem = references.value.firstOrNull()
+        val references = remember(userList) { userList.map { it.userId } }
+        val defaultItem = references.firstOrNull()
         Column {
             Header(blockedContactsSettingsViewModel::back, i18n.blockedContactsHeader())
-            if (userList.value.isEmpty()) {
+            if (userList.isEmpty()) {
                 ThemedListItem(
                     style = MaterialTheme.components.settingsItem,
                     headlineContent = {
@@ -110,22 +105,22 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
                             Modifier.fillMaxSize().verticalRovingFocus(
                                 default = defaultItem,
                                 scroll = { item ->
-                                    val index = references.value.indexOf(item)
+                                    val index = references.indexOf(item)
                                     if (index != -1) {
                                         state.scrollToItem(index)
                                     }
                                 },
                                 up = {
                                     val currentItem = activeRef.value ?: defaultItem
-                                    val currentIndex = references.value.indexOf(currentItem)
-                                    val nextIndex = currentIndex.minus(1).coerceIn(references.value.indices)
-                                    references.value[nextIndex]
+                                    val currentIndex = references.indexOf(currentItem)
+                                    val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
+                                    references[nextIndex]
                                 },
                                 down = {
                                     val currentItem = activeRef.value ?: defaultItem
-                                    val currentIndex = references.value.indexOf(currentItem)
-                                    val nextIndex = currentIndex.plus(1).coerceIn(references.value.indices)
-                                    references.value[nextIndex]
+                                    val currentIndex = references.indexOf(currentItem)
+                                    val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
+                                    references[nextIndex]
                                 },
                             ),
                             state
@@ -141,9 +136,20 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
                                     }
                                 )
                             }
-                            items(userList.value, key = { it.userId }) { user ->
+                            itemsIndexed(userList, key = { _, value -> value.userId }) { index, user ->
                                 RovingFocusItem(user.userId, defaultItem) {
-                                    IgnoredUserListElement(user, i18n, blockedContactsSettingsViewModel)
+                                    val focusContainer = LocalRovingFocus.current
+
+                                    IgnoredUserListElement(user, i18n) {
+                                         val referencesWithoutThisOne = references - user.userId
+                                         blockedContactsSettingsViewModel.unblockContact(user.userId)
+
+                                         if (referencesWithoutThisOne.isEmpty()) return@IgnoredUserListElement
+
+                                         focusContainer?.selectItem(
+                                             referencesWithoutThisOne[index.coerceIn(referencesWithoutThisOne.indices)]
+                                         )
+                                    }
                                 }
                             }
                         }
@@ -161,11 +167,9 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
 fun IgnoredUserListElement(
     user: BlockedContact,
     i18n: I18nView,
-    viewModel: BlockedContactsSettingsViewModel,
+    onRemove: () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val focusContainer = LocalRovingFocus.current
-    val focusItem = LocalRovingFocusItem.current
     val focused = interactionSource.collectIsFocusedAsState()
     val focusedBorder =
         if (IsFocusHighlighting.current && focused.value) {
@@ -189,10 +193,7 @@ fun IgnoredUserListElement(
                         style = MaterialTheme.components.commonIconButton,
                         modifier = Modifier.rovingFocusItem(),
                         interactionSource = interactionSource,
-                        onClick = {
-                            viewModel.unblockContact(user.userId)
-                            focusContainer?.selectItem(focusItem?.key, shouldFocus = true)
-                        },
+                        onClick = onRemove,
                     ) {
                         Icon(Icons.Default.RemoveCircle, i18n.unblockContactDescription())
                     }
