@@ -42,8 +42,10 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.getNextItem
+import de.connect2x.messenger.compose.view.util.getPreviousItem
 import de.connect2x.messenger.compose.view.util.rovingFocusItem
-import de.connect2x.messenger.compose.view.util.scrollIntoView
+import de.connect2x.messenger.compose.view.util.scroll
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
@@ -167,24 +169,9 @@ fun MemberList(
                     .fillMaxWidth()
                     .verticalRovingFocus(
                         default = defaultItem,
-                        scroll = { item ->
-                            val index = references.value.indexOf(item)
-                            if (index != -1) {
-                                state.scrollIntoView(index)
-                            }
-                        },
-                        up = {
-                            val currentItem = activeRef.value ?: defaultItem
-                            val currentIndex = references.value.indexOf(currentItem)
-                            val nextIndex = currentIndex.minus(1).coerceIn(references.value.indices)
-                            references.value[nextIndex]
-                        },
-                        down = {
-                            val currentItem = activeRef.value ?: defaultItem
-                            val currentIndex = references.value.indexOf(currentItem)
-                            val nextIndex = currentIndex.plus(1).coerceIn(references.value.indices)
-                            references.value[nextIndex]
-                        },
+                        scroll = scroll(state, references.value) { it },
+                        up = { getPreviousItem(references.value, defaultItem) { it } },
+                        down = { getNextItem(references.value, defaultItem) { it } },
                     )
                     .semantics {
                         collectionInfo = CollectionInfo(rowCount = members.value.size, columnCount = 1)

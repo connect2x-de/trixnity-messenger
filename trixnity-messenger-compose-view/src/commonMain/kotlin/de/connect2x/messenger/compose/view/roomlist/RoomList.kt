@@ -45,6 +45,9 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingAction
 import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.getNextItem
+import de.connect2x.messenger.compose.view.util.getPreviousItem
+import de.connect2x.messenger.compose.view.util.scroll
 import de.connect2x.messenger.compose.view.util.scrollIntoView
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
@@ -122,24 +125,9 @@ class RoomListViewImpl : RoomListView {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().verticalRovingFocus(
                             default = defaultItem.value,
-                            scroll = { item ->
-                                val index = allRooms.indexOfFirst { it.roomId == item }
-                                if (index != -1) {
-                                    state.scrollIntoView(index)
-                                }
-                            },
-                            up = {
-                                val currentItem = activeRef.value ?: defaultItem.value
-                                val currentIndex = allRooms.indexOfFirst { it.roomId == currentItem }
-                                val nextIndex = currentIndex.minus(1).coerceIn(allRooms.indices)
-                                allRooms[nextIndex].roomId
-                            },
-                            down = {
-                                val currentItem = activeRef.value ?: defaultItem.value
-                                val currentIndex = allRooms.indexOfFirst { it.roomId == currentItem }
-                                val nextIndex = currentIndex.plus(1).coerceIn(allRooms.indices)
-                                allRooms[nextIndex].roomId
-                            },
+                            scroll = scroll(state, allRooms) { it.roomId },
+                            up = { getPreviousItem(allRooms, defaultItem.value) { it.roomId } },
+                            down = { getNextItem(allRooms, defaultItem.value) { it.roomId } },
                         ).semantics {
                             collectionInfo = CollectionInfo(rowCount = allRooms.size, columnCount = 0)
                         },

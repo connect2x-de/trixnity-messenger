@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.util
 
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -186,37 +187,47 @@ fun Modifier.verticalRovingFocus(
         }
 }
 
-fun RovingFocusState.getPreviousItem(defaultItem: Any?, references: List<Any?>): Any? {
+fun <T> RovingFocusState.getPreviousItem(references: List<T>, defaultItem: Any?, key: (T) -> Any?): Any? {
     val currentItem = activeRef.value ?: defaultItem
-    val currentIndex = references.indexOf(currentItem)
+    val currentIndex = references.indexOfFirst { key(it) == currentItem }
     val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
-    return references[nextIndex]
+    return references[nextIndex]?.let { key(it) }
 }
 
-fun RovingFocusState.getNextItem(defaultItem: Any?, references: List<Any?>): Any? {
+fun <T> RovingFocusState.getNextItem(references: List<T>, defaultItem: Any?, key: (T) -> Any?): Any? {
     val currentItem = activeRef.value ?: defaultItem
-    val currentIndex = references.indexOf(currentItem)
+    val currentIndex = references.indexOfFirst { key(it) == currentItem }
     val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
-    return references[nextIndex]
+    return references[nextIndex]?.let { key(it) }
 }
 
-fun RovingFocusState.moveUp(
+fun <T> RovingFocusState.moveUp(
     defaultItem: Any?,
-    references: List<Any?>,
-    onMove: suspend CoroutineScope.(Any?) -> Unit = {}
+    references: List<T>,
+    key: (T) -> Any,
+    onMove: suspend CoroutineScope.(Any?) -> Unit = {},
 ) {
-    val nextItem = getPreviousItem(defaultItem, references)
+    val nextItem = getPreviousItem(references, defaultItem, key)
     selectItem(nextItem) { onMove(nextItem) }
 }
 
-fun RovingFocusState.moveDown(
+fun <T> RovingFocusState.moveDown(
     defaultItem: Any?,
-    references: List<Any?>,
-    onMove: suspend CoroutineScope.(Any?) -> Unit = {}
+    references: List<T>,
+    key: (T) -> Any,
+    onMove: suspend CoroutineScope.(Any?) -> Unit = {},
 ) {
-    val nextItem = getNextItem(defaultItem, references)
+    val nextItem = getNextItem(references, defaultItem, key)
     selectItem(nextItem) { onMove(nextItem) }
 }
+
+fun <T> scroll(state: LazyListState, allItems: List<T>, key: (T) -> Any): suspend CoroutineScope.(Any?) -> Unit =
+    { item ->
+        val index = allItems.indexOfFirst { key(it) == item }
+        if (index != -1) {
+            state.scrollIntoView(index)
+        }
+    }
 
 @Composable
 fun Modifier.horizontalRovingFocus(

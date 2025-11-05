@@ -56,7 +56,9 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
-import de.connect2x.messenger.compose.view.util.scrollIntoView
+import de.connect2x.messenger.compose.view.util.getNextItem
+import de.connect2x.messenger.compose.view.util.getPreviousItem
+import de.connect2x.messenger.compose.view.util.scroll
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
@@ -260,27 +262,18 @@ class TimelineViewImpl : TimelineView {
                                         .fillMaxSize()
                                         .verticalRovingFocus(
                                             default = lastItem.value,
-                                            scroll = { item ->
-                                                val index = uiTimelineElements.value.indexOf(item)
-                                                if (index != -1) {
-                                                    listState.scrollIntoView(index)
-                                                }
+                                            scroll = scroll(listState, uiTimelineElements.value) { it },
+                                            up = { // inverse
+                                                getNextItem(
+                                                    navigatableTimelineElements.value,
+                                                    lastItem.value,
+                                                ) { it }
                                             },
-                                            up = {
-                                                val currentItem = activeRef.value ?: lastItem.value
-                                                val currentIndex =
-                                                    navigatableTimelineElements.value.indexOf(currentItem)
-                                                val nextIndex = currentIndex.plus(1)
-                                                    .coerceIn(navigatableTimelineElements.value.indices)
-                                                navigatableTimelineElements.value[nextIndex]
-                                            },
-                                            down = {
-                                                val currentItem = activeRef.value ?: lastItem.value
-                                                val currentIndex =
-                                                    navigatableTimelineElements.value.indexOf(currentItem)
-                                                val nextIndex = currentIndex.minus(1)
-                                                    .coerceIn(navigatableTimelineElements.value.indices)
-                                                navigatableTimelineElements.value[nextIndex]
+                                            down = { // inverse
+                                                getPreviousItem(
+                                                    navigatableTimelineElements.value,
+                                                    lastItem.value,
+                                                ) { it }
                                             },
                                         )
                                         .semantics {

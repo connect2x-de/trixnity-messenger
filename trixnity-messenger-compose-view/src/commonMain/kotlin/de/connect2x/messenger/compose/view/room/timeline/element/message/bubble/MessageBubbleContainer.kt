@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message.bubble
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
@@ -14,7 +15,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -34,6 +34,7 @@ import de.connect2x.messenger.compose.view.pointerMoveFilter
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
+import de.connect2x.messenger.compose.view.util.rovingFocusItem
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
@@ -84,12 +85,14 @@ fun MessageBubbleContainer(
                 size
             }
     ) {
+        val interactionSource = remember { MutableInteractionSource() }
+        val hasFocus = interactionSource.collectIsFocusedAsState().value
         ThemedSurface(
             style = messageBubbleStyle,
-            focused = isFocused.value,
+            focused = hasFocus,
             modifier = Modifier
-                // We want to explicitly listen for the focus on children, so when a child is focused we are as well
-                .onFocusChanged { isFocused.value = it.hasFocus }
+                // FIXME We want to explicitly listen for the focus on children, so when a child is focused we are as well
+//                .onFocusChanged { isFocused.value = it.hasFocus }
                 .then(messagePadding)
                 .drawWithCache {
                     onDrawBehind {
@@ -98,7 +101,8 @@ fun MessageBubbleContainer(
                         }
                     }
                 }
-                .focusable(true)
+                .rovingFocusItem()
+                .focusable(true, interactionSource)
                 .semantics {
                     collectionItemInfo = CollectionItemInfo(0, 1, index, 1)
                     contentDescription = when (element) {

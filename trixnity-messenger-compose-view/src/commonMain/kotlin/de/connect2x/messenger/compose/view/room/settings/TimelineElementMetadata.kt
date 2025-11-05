@@ -57,6 +57,8 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.getNextItem
+import de.connect2x.messenger.compose.view.util.getPreviousItem
 import de.connect2x.messenger.compose.view.util.rovingFocusItem
 import de.connect2x.messenger.compose.view.util.scrollIntoView
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
@@ -239,18 +241,8 @@ fun ColumnScope.ReadersAndReactions(
                                     state.scrollIntoView(index)
                                 }
                             },
-                            up = {
-                                val currentItem = activeRef.value ?: defaultItem
-                                val currentIndex = references.indexOf(currentItem)
-                                val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
-                                references[nextIndex]
-                            },
-                            down = {
-                                val currentItem = activeRef.value ?: defaultItem
-                                val currentIndex = references.indexOf(currentItem)
-                                val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
-                                references[nextIndex]
-                            },
+                            up = { getPreviousItem(references, defaultItem) { it } },
+                            down = { getNextItem(references, defaultItem) { it } },
                         )
                     ) {
                         items(allReadersAndReactions) { eventReaction ->

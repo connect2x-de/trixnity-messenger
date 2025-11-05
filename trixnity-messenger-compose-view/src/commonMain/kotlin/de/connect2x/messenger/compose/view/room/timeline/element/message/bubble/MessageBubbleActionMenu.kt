@@ -56,7 +56,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenu
 import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
 import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.LocalRovingFocusItem
-import de.connect2x.messenger.compose.view.util.rovingFocusItem
+import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import kotlinx.coroutines.launch
 
@@ -76,7 +76,6 @@ fun BoxScope.MessageBubbleActionMenu(
             showActionMenu,
             onOpenMetadata,
             onReactToMessage,
-            interactionSource,
             additionalContextActions,
         )
 
@@ -85,7 +84,6 @@ fun BoxScope.MessageBubbleActionMenu(
             showActionMenu,
             onOpenMetadata,
             onReactToMessage,
-            interactionSource,
             additionalContextActions,
         )
     }
@@ -97,9 +95,9 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
     showActionMenu: MutableState<Boolean>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
-    interactionSource: MutableInteractionSource,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     val focus = interactionSource.collectIsFocusedAsState()
     val hover = interactionSource.collectIsHoveredAsState()
     val isVisible: MutableTransitionState<Boolean> =
@@ -141,7 +139,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
             },
             modifier = Modifier
                 .size(28.dp)
-                .rovingFocusItem()
+                .rovingFocusChild()
                 .semantics {
                     role = Role.Button
                     contentDescription = i18n.commonContextMenu()
@@ -177,7 +175,6 @@ private fun MessageBubbleActionMenuMobile(
     showActionMenu: MutableState<Boolean>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
-    interactionSource: MutableInteractionSource,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
