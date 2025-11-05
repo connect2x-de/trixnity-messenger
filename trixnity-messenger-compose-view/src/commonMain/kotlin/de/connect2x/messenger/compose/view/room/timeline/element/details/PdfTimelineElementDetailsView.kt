@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -27,18 +26,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.InputTransformation
-import androidx.compose.foundation.text.input.OutputTransformation
-import androidx.compose.foundation.text.input.TextFieldDecorator
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.text.input.then
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -61,10 +56,9 @@ import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -83,7 +77,6 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
-import de.connect2x.messenger.compose.view.util.scrollIntoView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
@@ -94,6 +87,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media.PlatformMedia
+import kotlin.math.log10
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
@@ -411,12 +405,25 @@ expect suspend fun getPlatformPDFReader(
 @Composable
 private fun PageIndicator(lazyListState: LazyListState, pageCount: Int, scope: CoroutineScope) {
     val measurer = rememberTextMeasurer()
-    val textStyle = MaterialTheme.typography.headlineSmall.copy(Color.LightGray)
+    val textStyle = MaterialTheme.typography.headlineSmall.copy(color = Color.LightGray, textAlign = TextAlign.Right)
     val pageText = rememberTextFieldState()
-    val currentIndex = remember(lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index) {
-        val currentIndex = (lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index?.plus(1) ?: 0)
-        pageText.setTextAndPlaceCursorAtEnd(currentIndex.toString())
-        currentIndex
+    val currentIndex = remember { mutableStateOf(0) }
+    //Set the width to the digit count of the maximum page number + 1
+    val inputFieldWidth = remember(pageCount) {
+        if (pageCount != 0) {
+            measurer.measure(
+                text = "0".repeat(log10(pageCount.toFloat()).toInt() + 2),
+                style = textStyle
+            ).size.width.dp
+        } else measurer.measure("00", textStyle).size.width.dp
+    }
+    LaunchedEffect(lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index) {
+        currentIndex.value = (lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: 0)
+    }
+    LaunchedEffect(currentIndex.value) {
+        pageText.edit {
+            replace(0, length, (currentIndex.value + 1).toString())
+        }
     }
     Surface(shape = MaterialTheme.shapes.medium, color = Color.DarkGray) {
         BasicTextField(
@@ -425,27 +432,23 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int, scope: C
             textStyle = textStyle,
             cursorBrush = SolidColor(Color.LightGray),
             inputTransformation = InputTransformation.then {
-                val inputIndex = this.toString().toIntOrNull()
-                if (inputIndex != null && inputIndex in 1..pageCount && inputIndex != currentIndex) {
-                    scope.launch {
-                        lazyListState.scrollToItem(inputIndex - 1)
+                val inputIndex = this.toString().toIntOrNull()?.minus(1)
+                println("Transforming to $inputIndex")
+                if (inputIndex != null) {
+                    //Don't scroll to the start of the current page when selecting the TextField
+                    if (inputIndex != currentIndex.value) {
+                        currentIndex.value = inputIndex.coerceIn(0, pageCount - 1)
+                        scope.launch {
+                            lazyListState.scrollToItem(inputIndex)
+                        }
                     }
-                } else {
-                    revertAllChanges()
                 }
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             decorator = { inputField ->
                 Row(Modifier.padding(MaterialTheme.messengerDpConstants.verySmall)) {
                     Surface(
-                        Modifier.width(
-                            max(
-                                measurer.measure(
-                                    pageText.text.toString(),
-                                    style = textStyle
-                                ).size.width.dp, measurer.measure("0", textStyle).size.width.dp
-                            )
-                        ),
+                        Modifier.width(inputFieldWidth),
                         shape = MaterialTheme.shapes.extraSmall
                     ) {
                         inputField()
