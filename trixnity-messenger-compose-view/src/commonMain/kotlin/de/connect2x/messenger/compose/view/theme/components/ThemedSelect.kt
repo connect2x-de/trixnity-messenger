@@ -78,7 +78,7 @@ fun <T> ThemedSelect(
     label: @Composable (() -> Unit)? = null,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     leadingIcon: @Composable ((T) -> Unit)? = null,
-    render: (T) -> String,
+    render: @Composable (T) -> String,
 ) {
     val expanded = remember { mutableStateOf(false) }
 
@@ -90,7 +90,7 @@ fun <T> ThemedSelect(
         val textColor = LocalTextStyle.current.color.takeOrElse {
             val focused = interactionSource.collectIsFocusedAsState().value
             when {
-                !true -> style.anchor.disabledTextColor
+                !enabled -> style.anchor.disabledTextColor
                 focused -> style.anchor.focusedTextColor
                 else -> style.anchor.unfocusedTextColor
             }
@@ -142,13 +142,13 @@ fun <T> ThemedSelect(
                 suffix = null,
                 supportingText = null,
                 singleLine = true,
-                enabled = true,
+                enabled = enabled,
                 isError = false,
                 interactionSource = interactionSource,
                 colors = style.anchor,
                 container = {
                     OutlinedTextFieldDefaults.Container(
-                        enabled = true,
+                        enabled = enabled,
                         isError = false,
                         interactionSource = interactionSource,
                         colors = style.anchor,
