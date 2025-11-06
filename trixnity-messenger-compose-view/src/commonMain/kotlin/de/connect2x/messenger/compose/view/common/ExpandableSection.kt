@@ -21,13 +21,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
@@ -41,7 +40,7 @@ fun ExpandableSection(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     ExpandableSection(
-        heading = { Text(heading, style = MaterialTheme.typography.titleMedium) },
+        heading = { Text(heading, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Start) },
         modifier = modifier,
         icon = icon,
         content = content,
@@ -75,15 +74,17 @@ fun ExpandableSection(
                     }
                     .buttonPointerModifier(true).padding(16.dp)
                     .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (icon != null) {
                     Icon(icon, contentDescription = null)
                     Spacer(Modifier.size(10.dp))
                 }
-                heading()
-                Spacer(Modifier.weight(1F).padding(end = 10.dp))
+                Box(Modifier.weight(1f, true)) {
+                    heading()
+                }
+                Spacer(Modifier.padding(end = 10.dp))
                 Icon(
                     Icons.Default.ArrowDropDown,
                     contentDescription = null,

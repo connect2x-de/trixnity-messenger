@@ -110,7 +110,9 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 implementation(libs.trixnity.client.repository.room)
-                implementation(sharedLibs.androidx.sqlite3mc.bundled)
+                // implementation(sharedLibs.androidx.sqlite3mc.bundled)
+                implementation(libs.sqlitenity.bundled)
+                implementation(libs.sqlitenity.compat)
                 api(libs.trixnity.client.media.okio)
             }
         }

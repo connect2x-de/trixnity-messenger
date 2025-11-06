@@ -153,7 +153,7 @@ class ThemeComponentsImpl : ThemeComponents {
         ),
         floatingActionButton = FloatingActionButtonStyle.default(
             size = 40.dp,
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
@@ -446,7 +446,7 @@ class ThemeComponentsImpl : ThemeComponents {
         ),
         library = LibraryStyle.default(
             colors = LibraryDefaults.libraryColors(
-                backgroundColor = Color.Transparent,
+                libraryBackgroundColor = Color.Transparent,
                 licenseChipColors = LibraryDefaults.chipColors(),
             ),
             textStyles = LibraryDefaults.libraryTextStyles(

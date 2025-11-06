@@ -23,7 +23,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @OptIn(ExperimentalMaterial3Api::class)
 data class TooltipStyle(
     val contentPadding: PaddingValues,
-    val caretSize: DpSize,
+    val caretShape: Shape?,
     val shape: Shape,
     val colors: RichTooltipColors,
     val tonalElevation: Dp,
@@ -40,7 +40,7 @@ data class TooltipStyle(
         @Composable
         fun default(
             contentPadding: PaddingValues = PaddingValues(0.dp),
-            caretSize: DpSize = DpSize.Unspecified,
+            caretShape: Shape? = null,
             shape: Shape = TooltipDefaults.richTooltipContainerShape,
             colors: RichTooltipColors = TooltipDefaults.richTooltipColors(),
             tonalElevation: Dp = 0.dp,
@@ -59,7 +59,7 @@ data class TooltipStyle(
             hoverHideDelay: Duration = 100.milliseconds,
         ) = TooltipStyle(
             contentPadding = contentPadding,
-            caretSize = caretSize,
+            caretShape = caretShape,
             shape = shape,
             colors = colors,
             tonalElevation = tonalElevation,
@@ -82,7 +82,7 @@ fun TooltipScope.ThemedPlainTooltip(
     content: @Composable () -> Unit
 ) = PlainTooltip(
     modifier = modifier,
-    caretSize = style.caretSize,
+    caretShape = style.caretShape,
     shape = style.shape,
     contentColor = style.colors.contentColor,
     containerColor = style.colors.containerColor,
