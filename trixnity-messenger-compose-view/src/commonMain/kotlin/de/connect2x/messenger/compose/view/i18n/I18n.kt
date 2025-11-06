@@ -276,6 +276,11 @@ open class I18nView(
         DE - "Gruppe"
     }
 
+    open fun commonAccount() = translate {
+        EN - "Account"
+        DE - "Konto"
+    }
+
     open fun commonSettings() = translate {
         EN - "settings"
         DE - "Einstellungen"

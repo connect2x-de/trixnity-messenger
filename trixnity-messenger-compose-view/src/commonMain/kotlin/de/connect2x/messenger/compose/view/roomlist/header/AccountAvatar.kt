@@ -119,12 +119,13 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
 fun AvatarArea(
     accountInfo: AccountInfo,
 ) {
+    val i18n = DI.get<I18nView>()
     Row(
         Modifier
             .fillMaxWidth()
             .semantics {
-                text = AnnotatedString("${accountInfo.displayName}, ${accountInfo.userId.full}")
-                role = Role.Button
+                text =
+                    AnnotatedString("${i18n.commonAccount()}: ${accountInfo.displayName}, ${accountInfo.userId.full}")
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -163,7 +164,14 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
             onClick = { accountSelectionOpen.value = accountSelectionOpen.value.not() },
         ) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                ThemedUserAvatar("*", null)
+                Box(
+                    Modifier
+                        .semantics {
+                            text = AnnotatedString(i18n.accountAllAccounts())
+                        }
+                ) {
+                    ThemedUserAvatar("*", null)
+                }
                 Spacer(Modifier.size(10.dp))
                 Tooltip({ Text(accounts.joinToString { account -> account.displayName }) }) {
                     Column {
