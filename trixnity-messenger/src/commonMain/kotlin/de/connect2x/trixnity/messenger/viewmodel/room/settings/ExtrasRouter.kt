@@ -17,7 +17,9 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Conf
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.AddMembers
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.ExportRoom
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.PowerLevels
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.*
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
@@ -38,6 +40,7 @@ interface ExtrasRouter {
     suspend fun openRoomSettings(roomId: RoomId)
     suspend fun openAddMembers(roomId: RoomId)
     suspend fun openExportRoom(roomId: RoomId)
+    suspend fun openPowerLevel(roomId: RoomId)
     suspend fun openUserProfile(userId: UserId, roomId: RoomId)
     suspend fun openTimelineElementMetadata(eventId: EventId, roomId: RoomId)
 
@@ -48,6 +51,7 @@ interface ExtrasRouter {
         class RoomSettings(val viewModel: RoomSettingsViewModel) : Wrapper()
         class AddMember(val viewModel: AddMembersViewModel) : Wrapper()
         class ExportRoom(val viewModel: ExportRoomViewModel) : Wrapper()
+        class PowerLevels(val viewModel: PowerlevelViewModel) : Wrapper()
     }
 
     @Serializable
@@ -63,12 +67,14 @@ interface ExtrasRouter {
             data class AddMembers(val roomId: RoomId) : RoomSettings
 
             @Serializable
+            data class PowerLevels(val roomId: RoomId) : RoomSettings
+
+            @Serializable
             data class ExportRoom(val roomId: RoomId) : RoomSettings
         }
 
         @Serializable
         sealed interface Details : Config {
-
             @Serializable
             data class UserProfile(val userId: UserId, val roomId: RoomId) : RoomSettings
 
@@ -126,6 +132,15 @@ class ExtrasRouterImpl(
         }
     }
 
+    override suspend fun openPowerLevel(roomId: RoomId) {
+        if (stack.value.active.configuration !is RoomSettings) {
+            openRoomSettings(roomId)
+        }
+        extrasNavigation.pushSuspending(PowerLevels(roomId)) {
+            log.debug { "extras: opened powerlevel for room: $roomId" }
+        }
+    }
+
     override suspend fun openExportRoom(roomId: RoomId) {
         if (stack.value.active.configuration !is RoomSettings) {
             openRoomSettings(roomId)
@@ -166,6 +181,7 @@ class ExtrasRouterImpl(
                 onOpenAvatarCutter = onOpenAvatarCutter,
                 onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
                 onOpenMention = onOpenMention,
+                onOpenPowerLevel = { onOpenPowerLevel(config.roomId) }
             )
         )
 
@@ -179,6 +195,14 @@ class ExtrasRouterImpl(
                         viewModelContext = viewModelContext.childContext(componentContext),
                         roomId = config.roomId,
                     ),
+            )
+        )
+
+        is PowerLevels -> Wrapper.PowerLevels(
+            viewModelContext.get<PowerlevelViewModelFactory>().create(
+                viewModelContext = viewModelContext.childContext(componentContext),
+                roomId = config.roomId,
+                onBack = ::onBack,
             )
         )
 
@@ -236,6 +260,10 @@ class ExtrasRouterImpl(
         viewModelContext.coroutineScope.launch {
             openUserProfile(userId, roomId)
         }
+
+    private fun onOpenPowerLevel(roomId: RoomId) = viewModelContext.coroutineScope.launch {
+        openPowerLevel(roomId)
+    }
 
     private fun Boolean.toSuccessString() =
         if (this) "successfully" else "failed"

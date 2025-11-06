@@ -1,15 +1,14 @@
 package de.connect2x.messenger.compose.view.room.settings
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
@@ -72,52 +71,39 @@ class RoomSettingsViewImpl : RoomSettingsView {
                 Column(
                     Modifier
                         .verticalScroll(scroll)
-                        .padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp))
+                        .padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp)),
+                    Arrangement.spacedBy(20.dp)
                 ) {
-                    Spacer(Modifier.size(20.dp))
                     val changeRoomAvatarViewModel = roomSettingsViewModel.changeRoomAvatarViewModel
                     ChangeRoomAvatar(changeRoomAvatarViewModel)
-                    Spacer(Modifier.size(20.dp))
+
                     val roomNameViewModel = roomSettingsViewModel.roomSettingsNameViewModel
                     RoomSettingsName(roomNameViewModel)
-                    Spacer(Modifier.size(20.dp))
+
                     val roomTopicViewModel = roomSettingsViewModel.roomSettingsTopicViewModel
                     RoomSettingsTopic(roomTopicViewModel)
-                    Spacer(Modifier.size(20.dp))
+
                     val roomAliasViewModel = roomSettingsViewModel.roomSettingsAliasViewModel
                     val showRoomAliasSettings = roomAliasViewModel.showRoomAliasSettings.collectAsState().value
-                    if (showRoomAliasSettings) {
-                        RoomSettingsAlias(roomAliasViewModel)
-                        Spacer(Modifier.size(20.dp))
-                    }
+                    if (showRoomAliasSettings) RoomSettingsAlias(roomAliasViewModel)
+
                     if (joinRule == JoinRulesEventContent.JoinRule.Public) {
                         HorizontalDivider()
-                        Spacer(Modifier.size(20.dp))
                         RoomSettingsSecurity(roomSettingsViewModel.roomSettingsSecurityViewModel)
-                        Spacer(Modifier.size(20.dp))
                     }
+
                     HorizontalDivider()
-                    Spacer(Modifier.size(20.dp))
                     RoomSettingsNotifications(roomSettingsViewModel.roomSettingsNotificationsViewModel)
-                    Spacer(Modifier.size(20.dp))
                     HorizontalDivider()
-                    Spacer(Modifier.size(20.dp))
                     RoomSettingsHistoryVisibility(roomSettingsViewModel)
-                    Spacer(Modifier.size(20.dp))
                     HorizontalDivider()
-                    Spacer(Modifier.size(20.dp))
                     RoomSettingsJoinRules(roomSettingsViewModel)
-                    Spacer(Modifier.size(20.dp))
                     HorizontalDivider()
-                    Spacer(Modifier.size(10.dp))
                     RoomSettingsMemberList(roomSettingsViewModel)
-                    Spacer(Modifier.size(10.dp))
                     HorizontalDivider()
-                    Spacer(Modifier.size(20.dp))
+                    RoomSettingsPowerlevel(roomSettingsViewModel)
                     RoomSettingsExportRoom(roomSettingsViewModel)
-                    Spacer(Modifier.size(20.dp))
                     RoomSettingsLeaveRoom(roomSettingsViewModel)
-                    Spacer(Modifier.size(20.dp))
                     if (leaveRoomWarningOpen) RoomSettingsLeaveRoomWarning(roomSettingsViewModel)
                 }
                 VerticalScrollbar(

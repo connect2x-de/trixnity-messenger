@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.room.settings
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -73,32 +74,33 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
             memberListViewModel.elements.collectAsState().value
         val joinedMemberCount = memberListViewModel.membershipCounts.collectAsState().value[Membership.JOIN]
 
-        ThemedListItem(
-            style = MaterialTheme.components.settingsItem,
-            headlineContent = {
-                Text(
-                    "${i18n.roomSettingsMembers()} ${joinedMemberCount?.let { "($it)" }}",
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            },
-            trailingContent = if (hasPowerToInvite) {
-                {
-                    Tooltip(
-                        tooltip = { Text(i18n.addMembers()) }
-                    ) {
-                        ThemedIconButton(
-                            style = MaterialTheme.components.commonIconButton,
-                            onClick = { roomSettingsViewModel.openAddMembersView() },
+        Column {
+            ThemedListItem(
+                style = MaterialTheme.components.settingsItem,
+                headlineContent = {
+                    Text(
+                        "${i18n.roomSettingsMembers()} ${joinedMemberCount?.let { "($it)" }}",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                },
+                trailingContent = if (hasPowerToInvite) {
+                    {
+                        Tooltip(
+                            tooltip = { Text(i18n.addMembers()) }
                         ) {
-                            Icon(
-                                Icons.Default.PersonAdd,
-                                i18n.addMembers(),
-                            )
+                            ThemedIconButton(
+                                style = MaterialTheme.components.commonIconButton,
+                                onClick = { roomSettingsViewModel.openAddMembersView() },
+                            ) {
+                                Icon(
+                                    Icons.Default.PersonAdd,
+                                    i18n.addMembers(),
+                                )
+                            }
                         }
                     }
-                }
-            } else null
-        )
+                } else null
+            )
 
         FlowRow(Modifier.fillMaxWidth()) {
             ToggleableFilterChip(
@@ -141,8 +143,9 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
             }
         }
 
-        if (memberListElementViewModels.isNotEmpty()) {
-            MemberList(memberListViewModel, onClickUser = { roomSettingsViewModel.openUserProfile(it) })
+            if (memberListElementViewModels.isNotEmpty()) {
+                MemberList(memberListViewModel, onClickUser = { roomSettingsViewModel.openUserProfile(it) })
+            }
         }
     }
 }

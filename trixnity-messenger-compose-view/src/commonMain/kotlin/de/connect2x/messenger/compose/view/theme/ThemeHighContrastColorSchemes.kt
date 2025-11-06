@@ -32,6 +32,8 @@ class ThemeHighContrastDarkColorSchemeImpl(
 private fun makeHighContrastColorScheme(scheme: ColorScheme, isDarkTheme: Boolean = false): ColorScheme {
     val foreground = if (isDarkTheme) Color.Black else Color.White
     val background = if (isDarkTheme) Color.White else Color.Black
+
+    // TODO: we do not currently have proper fixed colors
     return ColorScheme(
         primary = background,
         onPrimary = foreground,

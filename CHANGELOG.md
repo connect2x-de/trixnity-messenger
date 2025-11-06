@@ -9,9 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add a settings panel for configuring power levels
+- Add timeline events for all power level changes
+- Added a message bubble to the timeline when a user's power level changes
+
 ### Changed
 
 - Added Space in the bottom of the RoomList to account for new chat button overlapping UI elements
+
+- Use SQLitenity as Room implementation
 
 ### Deprecated
 
@@ -22,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The sticky header now correctly displays the date of the topmost message
 - Fix focus handling in chat/group creation user list and add members view
 - Show dropdown icon in group creation history visibility menu
+- No more Linux segfaults
 
 ### Security
 

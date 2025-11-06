@@ -264,6 +264,7 @@ class RoomSettingsViewModelTest {
             onOpenExportRoom = mock(),
             onOpenUserProfile = mock(),
             onOpenMention = { _, _  -> },
+            onOpenPowerLevel = mock(),
         )
     }
 }
