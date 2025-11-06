@@ -109,7 +109,6 @@ fun Modifier.rovingFocusItem(): Modifier {
         .focusProperties {
             val current = rovingFocusState.activeRef.value ?: scope.default
             val focusable = rovingFocusState.isFocussing || current == scope.key
-            println("- ${rovingFocusState.isFocussing}, $current == ${scope.key}")
             if (!focusable) {
                 canFocus = false
             }
@@ -162,7 +161,6 @@ fun Modifier.verticalRovingFocus(
         }
         .focusable(interactionSource = interactionSource)
         .onKeyEvent { event ->
-            println("Key Event: $event")
             when (event.key) {
                 Key.DirectionUp -> {
                     if (event.type == KeyEventType.KeyDown) {

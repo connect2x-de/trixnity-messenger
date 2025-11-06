@@ -275,7 +275,6 @@ class TimelineViewImpl : TimelineView {
                                                     navigatableTimelineElements.value,
                                                     lastItem.value,
                                                 ) { it }
-                                                println("===res: $res")
                                                 res
                                             },
                                             down = { // inverse
