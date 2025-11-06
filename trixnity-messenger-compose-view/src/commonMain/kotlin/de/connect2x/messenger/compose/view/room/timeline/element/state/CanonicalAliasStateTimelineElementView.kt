@@ -27,8 +27,7 @@ class CanonicalAliasStateTimelineElementViewImpl : CanonicalAliasStateTimelineEl
         element.changeMessage.filterNotNull().first()
     }
 
-    // FIXME
-    override fun isFocusable(): Boolean = false
+    override fun isFocusable(): Boolean = true
 
     @Composable
     override fun createInTimeline(
@@ -92,7 +91,7 @@ class CanonicalAliasStateTimelineElementViewImpl : CanonicalAliasStateTimelineEl
     private fun StateElement(element: CanonicalAliasStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.forEach {
-            Indicator(MaterialTheme.colorScheme.tertiary) {
+            Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) {
                 IndicatorText(it, MaterialTheme.colorScheme.onTertiary)
             }
         }

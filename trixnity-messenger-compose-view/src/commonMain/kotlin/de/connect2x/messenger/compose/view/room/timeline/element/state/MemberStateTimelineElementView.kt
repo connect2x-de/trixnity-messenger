@@ -26,8 +26,7 @@ class MemberStateTimelineElementViewImpl : MemberStateTimelineElementView {
         element.changeMessage.filterNotNull().first()
     }
 
-    // FIXME
-    override fun isFocusable(): Boolean = false
+    override fun isFocusable(): Boolean = true
 
     @Composable
     override fun createInTimeline(
@@ -91,7 +90,7 @@ class MemberStateTimelineElementViewImpl : MemberStateTimelineElementView {
     private fun StateElement(element: MemberStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.let {
-            Indicator(MaterialTheme.colorScheme.tertiary) {
+            Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) {
                 IndicatorText(changeMessage, MaterialTheme.colorScheme.onTertiary)
             }
         }

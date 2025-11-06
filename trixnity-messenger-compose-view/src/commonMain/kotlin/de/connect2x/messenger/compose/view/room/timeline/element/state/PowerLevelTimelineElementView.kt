@@ -27,7 +27,7 @@ class PowerLevelTimelineElementViewImpl : PowerLevelTimelineElementView {
         element.changeMessage.filterNotNull().first()
     }
 
-    override fun isFocusable(): Boolean = false
+    override fun isFocusable(): Boolean = true
 
     @Composable
     override fun createInTimeline(
@@ -93,7 +93,7 @@ class PowerLevelTimelineElementViewImpl : PowerLevelTimelineElementView {
 private fun StateElement(element: PowerLevelsTimelineElementViewModel) {
     val changeMessage = element.changeMessage.collectAsState().value
     changeMessage?.let {
-        Indicator(MaterialTheme.colorScheme.tertiary) {
+        Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) {
             IndicatorText(it, MaterialTheme.colorScheme.onTertiary)
         }
     }
