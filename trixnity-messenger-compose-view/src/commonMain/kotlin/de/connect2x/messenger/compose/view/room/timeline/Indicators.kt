@@ -54,8 +54,8 @@ fun UnreadMessagesIndicator() {
 }
 
 @Composable
-fun DateStickyHeader(date: String) {
-    Indicator(MaterialTheme.colorScheme.tertiaryContainer, withPadding = true, focusable = true) {
+fun DateStickyHeader(date: String, focusable: Boolean) {
+    Indicator(MaterialTheme.colorScheme.tertiaryContainer, withPadding = true, focusable = focusable) {
         IndicatorText(date, MaterialTheme.colorScheme.onTertiaryContainer)
     }
 }
@@ -78,25 +78,34 @@ fun Indicator(
                     end = maxWidth / 4,
                 )
         ) {
-            ThemedSurface(
-                style = SurfaceStyle.default(
-                    shape = RoundedCornerShape(8.dp),
-                    color = containerColor,
-                    contentPadding = PaddingValues(5.dp)
-                ),
-                onClick = {},
-                interactionSource = interactionSource,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .then(
-                        if (focusable) {
-                            Modifier
-                                .rovingFocusItem()
-                                .focusHighlighting(interactionSource)
-                        } else Modifier
-                    )
-            ) {
-                content()
+            if (focusable) {
+                ThemedSurface(
+                    style = SurfaceStyle.default(
+                        shape = RoundedCornerShape(8.dp),
+                        color = containerColor,
+                        contentPadding = PaddingValues(5.dp)
+                    ),
+                    onClick = {},
+                    interactionSource = interactionSource,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .rovingFocusItem()
+                        .focusHighlighting(interactionSource)
+                ) {
+                    content()
+                }
+            } else {
+                ThemedSurface(
+                    style = SurfaceStyle.default(
+                        shape = RoundedCornerShape(8.dp),
+                        color = containerColor,
+                        contentPadding = PaddingValues(5.dp)
+                    ),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                ) {
+                    content()
+                }
             }
         }
     }

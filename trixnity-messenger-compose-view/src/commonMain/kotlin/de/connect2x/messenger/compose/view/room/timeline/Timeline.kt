@@ -310,7 +310,7 @@ class TimelineViewImpl : TimelineView {
                                         if (date != null)
                                             item("date-$date-${viewModel.key}") {
                                                 RovingFocusItem("date-$date-${viewModel.key}") {
-                                                    DateStickyHeader(date)
+                                                    DateStickyHeader(date, focusable = true)
                                                 }
                                             }
                                     }
@@ -443,6 +443,6 @@ fun ListDateHeader(
         }
     }
     Box(Modifier.padding(end = additionalEndPadding.dp)) {
-        timestamp.value?.let { DateStickyHeader(it) }
+        timestamp.value?.let { DateStickyHeader(it, focusable = false) }
     }
 }

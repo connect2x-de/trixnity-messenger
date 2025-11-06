@@ -343,7 +343,7 @@ private fun ColumnScope.MessageContentHistorySwitch(
             val scrollState = rememberScrollState()
             Box {
                 Column(Modifier.verticalScroll(scrollState).padding(end = 10.dp)) {
-                    DateStickyHeader(element.formattedDate)
+                    DateStickyHeader(element.formattedDate, focusable = true)
                     Spacer(Modifier.height(8.dp))
                     MessageContent(element)
                 }
@@ -391,7 +391,7 @@ private fun MessageHistory(elementHistory: List<TimelineElementHolderViewModel>)
                 elementHistoryGrouped.forEach { (date, viewModel) ->
                     if (date != null) {
                         item("date-$date-${viewModel.key}") {
-                            DateStickyHeader(date)
+                            DateStickyHeader(date, focusable = true)
                             Spacer(Modifier.height(8.dp))
                         }
                     }
