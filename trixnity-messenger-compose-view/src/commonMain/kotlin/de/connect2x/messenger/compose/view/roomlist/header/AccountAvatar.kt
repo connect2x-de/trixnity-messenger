@@ -18,9 +18,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
@@ -123,7 +122,7 @@ fun AvatarArea(
     Row(
         Modifier
             .fillMaxWidth()
-            .semantics {
+            .clearAndSetSemantics {
                 text =
                     AnnotatedString("${i18n.commonAccount()}: ${accountInfo.displayName}, ${accountInfo.userId.full}")
             },
@@ -163,15 +162,15 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
             style = MaterialTheme.components.accountSelector,
             onClick = { accountSelectionOpen.value = accountSelectionOpen.value.not() },
         ) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    Modifier
-                        .semantics {
-                            text = AnnotatedString(i18n.accountAllAccounts())
-                        }
-                ) {
-                    ThemedUserAvatar("*", null)
-                }
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clearAndSetSemantics {
+                        text = AnnotatedString(i18n.accountAllAccounts())
+                    },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ThemedUserAvatar("*", null)
                 Spacer(Modifier.size(10.dp))
                 Tooltip({ Text(accounts.joinToString { account -> account.displayName }) }) {
                     Column {
@@ -220,10 +219,6 @@ fun AllAccountsMenuItem(selectAction: () -> Unit) {
         leadingIcon = { ThemedUserAvatar("*", null) },
         text = { Text(i18n.accountAllAccounts()) },
         onClick = selectAction,
-        modifier = Modifier.semantics(mergeDescendants = true) {
-            text = AnnotatedString(i18n.accountAllAccounts())
-            role = Role.Button
-        }
     )
 }
 
@@ -251,10 +246,6 @@ fun AccountMenuItem(
             }
         },
         onClick = { selectAction(accountInfo.userId) },
-        modifier = Modifier.semantics(mergeDescendants = true) {
-            text = AnnotatedString("${accountInfo.displayName}, ${accountInfo.userId.full}")
-            role = Role.Button
-        }
     )
 }
 
