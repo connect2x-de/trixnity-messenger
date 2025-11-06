@@ -1040,6 +1040,11 @@ open class I18nView(
         DE - "Ja, Teilnehmer entbannen"
     }
 
+    open fun roomHeaderClose() = translate {
+        EN - "Close room"
+        DE - "Raum schließen"
+    }
+
     open fun roomHeaderUserIsBlocked() = translate {
         EN - "This user was blocked by you."
         DE - "Dieser Nutzer wird von Ihnen geblockt."

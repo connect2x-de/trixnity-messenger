@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
@@ -211,8 +212,11 @@ fun RowScope.RoomBackButton(roomHeaderViewModel: RoomHeaderViewModel) {
         ThemedIconButton(
             style = MaterialTheme.components.commonIconButton,
             onClick = { roomHeaderViewModel.back() },
+            modifier = Modifier.semantics(mergeDescendants = true) {
+                contentDescription = i18n.roomHeaderClose()
+            }
         ) {
-            Icon(Icons.AutoMirrored.Default.KeyboardArrowLeft, i18n.commonBack())
+            Icon(Icons.AutoMirrored.Default.KeyboardArrowLeft, contentDescription = null)
         }
     }
 }
