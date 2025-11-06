@@ -230,7 +230,7 @@ fun ColumnScope.ReadersAndReactions(
                 RovingFocusContainer {
                     LazyColumn(
                         state = state,
-                        modifier = Modifier.Companion.verticalRovingFocus(
+                        modifier = Modifier.verticalRovingFocus(
                             default = defaultItem,
                             scroll = { item ->
                                 val index = references.indexOf(item)
@@ -319,7 +319,7 @@ private fun UserInfo(
                     )
                 }
             },
-            modifier = Modifier.Companion.rovingFocusItem(),
+            modifier = Modifier.rovingFocusItem(),
             onClick = {
                 onOpenUserProfile(userInfo.userId)
             }

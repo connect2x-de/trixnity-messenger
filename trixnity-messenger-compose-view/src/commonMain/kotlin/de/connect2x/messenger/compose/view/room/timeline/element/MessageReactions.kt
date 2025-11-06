@@ -164,7 +164,7 @@ internal fun MessageReactionButton(
                 modifier = buttonModifier.rovingFocusChild(),
             ) {
                 MessageReactionDisplay(reaction)
-                Spacer(Modifier.Companion.width(MaterialTheme.components.reactionButton.iconSpacing))
+                Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
                 Text(count.toString())
             }
         } else {
@@ -174,7 +174,7 @@ internal fun MessageReactionButton(
                 modifier = buttonModifier.rovingFocusChild(),
             ) {
                 MessageReactionDisplay(reaction)
-                Spacer(Modifier.Companion.width(MaterialTheme.components.reactionButton.iconSpacing))
+                Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
                 Text(count.toString())
             }
         }
@@ -191,7 +191,7 @@ internal fun MessageAddReactionButton(onClick: () -> Unit, label: String) {
         Icon(
             Icons.Outlined.AddReaction,
             contentDescription = label,
-            modifier = Modifier.Companion.size(MaterialTheme.components.reactionButton.iconSize),
+            modifier = Modifier.size(MaterialTheme.components.reactionButton.iconSize),
         )
     }
 }

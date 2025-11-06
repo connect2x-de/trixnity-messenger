@@ -57,7 +57,7 @@ fun MessageBubbleContainer(
 
     Column {
         Box(
-            modifier = if (isPreview) Modifier else Modifier.Companion
+            modifier = if (isPreview) Modifier else Modifier
                 .pointerMoveFilter(
                     onEnter = {
                         hoverMessage.value = true

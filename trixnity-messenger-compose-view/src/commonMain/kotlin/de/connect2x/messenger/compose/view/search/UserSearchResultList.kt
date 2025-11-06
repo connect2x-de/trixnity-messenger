@@ -132,7 +132,7 @@ private fun UserElement(
                 style = MaterialTheme.typography.labelMedium,
             )
         },
-        modifier = Modifier.Companion.rovingFocusItem(),
+        modifier = Modifier.rovingFocusItem(),
         onClick = onClick,
     )
     HorizontalDivider(Modifier.fillMaxWidth().width(1.dp).padding(horizontal = 10.dp))

@@ -65,7 +65,7 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = { roomListElementViewModel.acceptInvitation() },
-                    modifier = Modifier.Companion.rovingFocusChild(),
+                    modifier = Modifier.rovingFocusChild(),
                 ) {
                     Icon(Icons.Default.Check, i18n.invitationAccept())
                 }

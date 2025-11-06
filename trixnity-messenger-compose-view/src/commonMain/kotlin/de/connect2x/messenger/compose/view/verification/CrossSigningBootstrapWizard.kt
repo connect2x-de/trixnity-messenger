@@ -180,7 +180,7 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                                         copyToClipboard(recoveryKey ?: "", di)
                                         copiedToClipBoard.value = true
                                     }
-                                }, Modifier.Companion.buttonPointerModifier()) {
+                                }, Modifier.buttonPointerModifier()) {
                                     Icon(
                                         Icons.AutoMirrored.Filled.Assignment,
                                         i18n.bootstrapRecoveryKeyCopyToClipboard(),

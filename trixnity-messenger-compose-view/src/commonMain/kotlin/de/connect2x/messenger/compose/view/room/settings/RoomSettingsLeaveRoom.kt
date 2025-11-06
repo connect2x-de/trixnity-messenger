@@ -45,9 +45,9 @@ class RoomSettingsLeaveRoomViewImpl : RoomSettingsLeaveRoomView {
                 Icon(
                     Icons.AutoMirrored.Filled.Logout,
                     leaveRoomSettingEntryText,
-                    modifier = Modifier.Companion.size(MaterialTheme.components.destructiveButton.iconSize)
+                    modifier = Modifier.size(MaterialTheme.components.destructiveButton.iconSize)
                 )
-                Spacer(Modifier.Companion.size(MaterialTheme.components.destructiveButton.iconSpacing))
+                Spacer(Modifier.size(MaterialTheme.components.destructiveButton.iconSpacing))
                 Text(
                     text = leaveRoomSettingEntryText,
                     style = MaterialTheme.typography.labelLarge

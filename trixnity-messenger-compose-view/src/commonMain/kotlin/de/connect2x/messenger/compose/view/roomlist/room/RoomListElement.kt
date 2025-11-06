@@ -72,7 +72,7 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
             )
                 .rovingFocusItem()
                 .then(
-                    if (roomId == selectedRoomId) Modifier.Companion.themedSurface(
+                    if (roomId == selectedRoomId) Modifier.themedSurface(
                         MaterialTheme.components.roomListSelection,
                         focused = hasFocus
                     )

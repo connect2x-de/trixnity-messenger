@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 
 @Composable
-fun VerySmallSpacer() = Spacer(Modifier.Companion.size(MaterialTheme.messengerDpConstants.verySmall))
+fun VerySmallSpacer() = Spacer(Modifier.size(MaterialTheme.messengerDpConstants.verySmall))
 
 @Composable
 fun SmallSpacer() = Spacer(Modifier.size(MaterialTheme.messengerDpConstants.small))

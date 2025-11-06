@@ -63,7 +63,7 @@ fun Banner(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val modifier = onClick?.let {
-        Modifier.Companion
+        Modifier
             .buttonPointerModifier()
             .clickable(interactionSource, indication = ripple(bounded = true), onClick = onClick)
     }

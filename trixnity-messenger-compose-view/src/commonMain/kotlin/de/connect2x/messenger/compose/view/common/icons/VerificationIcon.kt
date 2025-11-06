@@ -17,6 +17,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.Tooltip
+import de.connect2x.messenger.compose.view.common.icons.VerificationLevel.DEVICE
+import de.connect2x.messenger.compose.view.common.icons.VerificationLevel.TIMELINE_EVENT
+import de.connect2x.messenger.compose.view.common.icons.VerificationLevel.USER
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.messengerColors
@@ -30,9 +33,9 @@ fun VerifiedIcon(verificationLevel: VerificationLevel, size: Dp = 24.dp) {
     val i18n = DI.get<I18nView>()
     Tooltip(tooltip = {
         when (verificationLevel) {
-            VerificationLevel.DEVICE -> Text(i18n.verificationVerifiedDevice())
-            VerificationLevel.USER -> Text(i18n.verificationVerifiedUser())
-            VerificationLevel.TIMELINE_EVENT -> Box {}
+            DEVICE -> Text(i18n.verificationVerifiedDevice())
+            USER -> Text(i18n.verificationVerifiedUser())
+            TIMELINE_EVENT -> Box {}
         }
     }) {
         Shield(size) {
@@ -51,9 +54,9 @@ fun NotVerifiedIcon(verificationLevel: VerificationLevel, size: Dp = 24.dp) {
     val i18n = DI.get<I18nView>()
     Tooltip(tooltip = {
         when (verificationLevel) {
-            VerificationLevel.DEVICE -> Text(i18n.verificationNotVerifiedDevice())
-            VerificationLevel.USER -> Text(i18n.verificationNotVerifiedUser())
-            VerificationLevel.TIMELINE_EVENT -> Box { }
+            DEVICE -> Text(i18n.verificationNotVerifiedDevice())
+            USER -> Text(i18n.verificationNotVerifiedUser())
+            TIMELINE_EVENT -> Box { }
         }
     }) {
         Shield(size) {
@@ -72,9 +75,9 @@ fun NeutralVerifiedIcon(verificationLevel: VerificationLevel, size: Dp = 24.dp) 
     val i18n = DI.get<I18nView>()
     Tooltip(tooltip = {
         when (verificationLevel) {
-            VerificationLevel.DEVICE -> Box { }
-            VerificationLevel.USER -> Text(i18n.verificationNeutralUser())
-            VerificationLevel.TIMELINE_EVENT -> Box { }
+            DEVICE -> Box { }
+            USER -> Text(i18n.verificationNeutralUser())
+            TIMELINE_EVENT -> Box { }
         }
     }) {
         Shield(size) {

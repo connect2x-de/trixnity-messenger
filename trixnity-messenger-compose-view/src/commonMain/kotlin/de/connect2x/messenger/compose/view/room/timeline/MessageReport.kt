@@ -41,7 +41,7 @@ fun MessageReport(
         }
         ModalDialogContent {
             OutlinedTextField(
-                modifier = Modifier.Companion.inputFocusNavigation()
+                modifier = Modifier.inputFocusNavigation()
                     .focusRequester(focusRequester)
                     .fillMaxWidth(),
                 value = reason.value,

@@ -231,7 +231,7 @@ private fun SearchGroupResult(
 
     Tooltip({ Text(group.groupName) }) {
         ThemedListItemButton(
-            modifier = Modifier.Companion.rovingFocusItem(),
+            modifier = Modifier.rovingFocusItem(),
             leadingContent = { ThemedUserAvatar(group.initials, image) },
             headlineContent = {
                 Text(

@@ -84,9 +84,9 @@ class RoomListViewImpl : RoomListView {
                                 Icon(
                                     Icons.AutoMirrored.Filled.Chat,
                                     i18n.accountCreateNewRoom(),
-                                    modifier = Modifier.Companion.size(MaterialTheme.components.primaryButton.iconSize)
+                                    modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize)
                                 )
-                                Spacer(Modifier.Companion.size(MaterialTheme.components.primaryButton.iconSpacing))
+                                Spacer(Modifier.size(MaterialTheme.components.primaryButton.iconSpacing))
                                 Text(i18n.roomListCreateRoom())
                             }
                         }

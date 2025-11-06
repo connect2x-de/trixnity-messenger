@@ -34,7 +34,7 @@ class KnockRoomListElementImpl : KnockRoomListElement {
         ) {
             ThemedIconButton(
                 onClick = { roomListElementViewModel.unknock() },
-                modifier = Modifier.Companion.rovingFocusChild(),
+                modifier = Modifier.rovingFocusChild(),
             ) {
                 Icon(Icons.Default.Close, i18n.unknock())
             }

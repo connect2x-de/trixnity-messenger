@@ -46,7 +46,7 @@ class ReadMarkerViewImpl : ReadMarkerView {
         val isByMe = timelineElementHolderViewModel.isByMe
         if (isByMe) {
             val isSent by timelineElementHolderViewModel.isSent.collectAsState()
-            Box(Modifier.Companion.size(MaterialTheme.typography.labelSmall.dp).padding(start = 2.dp)) {
+            Box(Modifier.size(MaterialTheme.typography.labelSmall.dp).padding(start = 2.dp)) {
                 if (isSent) {
                     val isRead =
                         timelineElementHolderViewModel.asTimelineElementHolder()?.isRead?.collectAsState()?.value == true

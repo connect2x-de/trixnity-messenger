@@ -140,7 +140,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
                 .rovingFocusItem()
         ) {
             transition.AnimatedVisibility(
-                modifier = Modifier.Companion.buttonPointerModifier(enabled = true),
+                modifier = Modifier.buttonPointerModifier(enabled = true),
                 visible = { it },
                 enter = fadeIn(),
                 exit = fadeOut(),

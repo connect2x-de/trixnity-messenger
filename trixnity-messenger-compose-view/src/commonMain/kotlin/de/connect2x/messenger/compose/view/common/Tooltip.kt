@@ -9,7 +9,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
@@ -94,7 +93,7 @@ fun Tooltip(
     }
 
     TooltipBox(
-        modifier = Modifier.Companion
+        modifier = Modifier
             .tooltipGestures(
                 enabled = enabled,
                 state = tooltipState,

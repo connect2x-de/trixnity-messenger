@@ -113,10 +113,10 @@ class AvatarCutterViewImpl : AvatarCutterView {
                         Icon(
                             Icons.Default.Check,
                             contentDescription = null,
-                            modifier = Modifier.Companion.size(MaterialTheme.components.primaryButton.iconSize)
+                            modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize)
                         )
                     }
-                    Spacer(Modifier.Companion.size(MaterialTheme.components.commonButton.iconSpacing))
+                    Spacer(Modifier.size(MaterialTheme.components.commonButton.iconSpacing))
                     Text(i18n.commonAccept())
                 }
             }

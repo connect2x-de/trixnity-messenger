@@ -246,7 +246,7 @@ fun OptionalRoomNameInput(
         value = value.value,
         onValueChange = { value.value = it },
         label = { Text(i18n.optionalGroupNameLabel()) },
-        modifier = Modifier.Companion
+        modifier = Modifier
             .inputFocusNavigation()
             .fillMaxWidth()
             .padding(horizontal = 10.dp),

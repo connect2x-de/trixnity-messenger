@@ -21,8 +21,7 @@ fun TooltipText(text: suspend () -> String) {
     }
     if (cached.value.isBlank()) {
         ThemedProgressIndicator(
-            Modifier.Companion.size(MaterialTheme.typography.bodySmall.dp)
-                .padding(MaterialTheme.typography.bodySmall.dp / 2),
+            Modifier.size(MaterialTheme.typography.bodySmall.dp).padding(MaterialTheme.typography.bodySmall.dp / 2),
             MaterialTheme.components.extraSmallCircularProgressIndicator
         )
     } else {

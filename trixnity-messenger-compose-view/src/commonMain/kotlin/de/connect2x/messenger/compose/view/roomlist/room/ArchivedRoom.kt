@@ -60,7 +60,7 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = { showWarning = true },
-                    modifier = Modifier.Companion.rovingFocusChild(),
+                    modifier = Modifier.rovingFocusChild(),
                 ) {
                     Icon(Icons.Default.Delete, i18n.commonDelete())
                 }

@@ -53,8 +53,8 @@ import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.messenger.compose.view.util.BlurHashDecoder
 import de.connect2x.messenger.compose.view.util.animateImage
-import de.connect2x.messenger.compose.view.util.rememberComputation
 import de.connect2x.messenger.compose.view.util.ifNotNull
+import de.connect2x.messenger.compose.view.util.rememberComputation
 import de.connect2x.messenger.compose.view.util.toClipEntry
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -260,7 +260,7 @@ internal fun ImageReplyElement(
                         Icon(
                             MaterialTheme.messengerIcons.typeImage,
                             i18n.commonImage(),
-                            modifier = Modifier.Companion.size(MaterialTheme.typography.bodySmall.dp)
+                            modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp)
                         )
                         FileName(element.name)
                     }

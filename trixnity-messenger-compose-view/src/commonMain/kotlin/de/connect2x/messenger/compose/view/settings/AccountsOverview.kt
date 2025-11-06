@@ -90,7 +90,7 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
             Box(Modifier.fillMaxSize()) {
                 RovingFocusContainer {
                     Column(
-                        Modifier.Companion.verticalRovingFocus(
+                        Modifier.verticalRovingFocus(
                             default = defaultItem,
                             up = {
                                 val currentItem = activeRef.value ?: defaultItem
@@ -136,7 +136,7 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                                                 ThemedIconButton(
                                                     style = MaterialTheme.components.destructiveIconButton,
                                                     interactionSource = interactionSource,
-                                                    modifier = Modifier.Companion.rovingFocusItem(),
+                                                    modifier = Modifier.rovingFocusItem(),
                                                     onClick = { showLogoutWarning = accountInfo },
                                                 ) {
                                                     Icon(Icons.AutoMirrored.Default.Logout, i18n.actionDelete())

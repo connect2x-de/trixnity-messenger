@@ -39,6 +39,8 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.backhandler.BackHandler
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
+import de.connect2x.messenger.compose.view.common.WizardButtons.NextButton
+import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.settings.LegalFooter
@@ -87,7 +89,7 @@ data class WizardStep(
     val backButton: (@Composable () -> WizardNavigationButton) = { WizardNavigationButton.Standard() },
     val buttonOrder: @Composable () -> Triple<WizardButtons, WizardButtons, WizardButtons> = {
         Triple(
-            WizardButtons.AdditionalButton, WizardButtons.BackButton, WizardButtons.NextButton
+            WizardButtons.AdditionalButton, WizardButtons.BackButton, NextButton
         )
     }
 )
@@ -206,7 +208,7 @@ private fun ColumnScope.WizardContent(
     boxWithConstraints: BoxWithConstraintsScope,
 ) {
     Surface(
-        Modifier.Companion
+        Modifier
             .weight(1.0f, fill = true)
     ) {
         Box(
@@ -274,7 +276,7 @@ private fun RowScope.NextButton(
 
         is WizardNavigationButton.None -> {}
 
-        is WizardNavigationButton.Custom -> {
+        is Custom -> {
             nextButton.button(CustomButtonScopeImpl(this, currentStep, nextStep = nextStep))
         }
     }
@@ -310,7 +312,7 @@ private fun RowScope.BackButton(wizardStep: WizardStep, currentStep: MutableStat
 
         is WizardNavigationButton.None -> {}
 
-        is WizardNavigationButton.Custom -> {
+        is Custom -> {
             backButton.button(CustomButtonScopeImpl(this, currentStep, previousStep = previousStep))
         }
     }
@@ -344,7 +346,7 @@ private fun getCorrespondingButton(
     previousStep: StepId?
 ): @Composable (RowScope.() -> Unit) {
     return when (wizardButton) {
-        WizardButtons.NextButton -> {
+        NextButton -> {
             {
                 NextButton(wizardStep, nextStep, currentStep)
             }

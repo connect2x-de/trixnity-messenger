@@ -53,7 +53,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import de.connect2x.messenger.compose.view.common.modifier.PlaceholderHighlight
 
 /**
- * Contains default values used by [Modifier.placeholder] and [PlaceholderHighlight].
+ * Contains default values used by [Modifier.placeholder] and [de.connect2x.messenger.compose.view.common.modifier.PlaceholderHighlight].
  */
 object PlaceholderDefaults {
     /**

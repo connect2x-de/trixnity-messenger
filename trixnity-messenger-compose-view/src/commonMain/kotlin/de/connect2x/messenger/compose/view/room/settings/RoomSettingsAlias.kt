@@ -83,7 +83,7 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                                     }
                                 },
                                 label = { Text(i18n.newAlias()) },
-                                modifier = Modifier.Companion
+                                modifier = Modifier
                                     .inputFocusNavigation()
                                     .weight(1.0f, fill = true)
                                     .fillMaxWidth(),

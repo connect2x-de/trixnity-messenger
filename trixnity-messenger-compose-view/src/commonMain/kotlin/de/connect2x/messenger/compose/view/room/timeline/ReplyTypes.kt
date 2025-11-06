@@ -95,7 +95,7 @@ class ImageReplyDefaultViewImpl : ImageReplyDefaultView {
             Icon(
                 MaterialTheme.messengerIcons.typeImage,
                 i18n.commonImage(),
-                modifier = Modifier.Companion.size(MaterialTheme.typography.bodySmall.dp)
+                modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp)
             )
             FileName(fileName)
         }

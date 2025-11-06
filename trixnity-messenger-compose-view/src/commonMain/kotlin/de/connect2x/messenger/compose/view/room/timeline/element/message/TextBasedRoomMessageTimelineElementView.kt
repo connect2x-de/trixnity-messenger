@@ -65,7 +65,7 @@ fun TextRoomMessageTimelineElementView(
     // on Android and iOS, this will consume long tap events, which we use for the context menu
     when (Platform.current) {
         PlatformType.DESKTOP, PlatformType.WEB -> ThemedSelectionContainer(
-            modifier = Modifier.Companion.rovingFocusChild(),
+            modifier = Modifier.rovingFocusChild(),
             style = if (holder.isByMe) MaterialTheme.components.selectionOnPrimary else MaterialTheme.components.selectionOnSurface
         ) {
             MessageTextContent(holder, element, showActionMenu)

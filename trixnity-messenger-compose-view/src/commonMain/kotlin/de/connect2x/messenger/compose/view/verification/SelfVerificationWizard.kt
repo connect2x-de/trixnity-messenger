@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ErrorView
+import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.RunningText
@@ -56,7 +57,6 @@ import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.messengerColors
@@ -698,7 +698,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             shape = MaterialTheme.shapes.medium,
             onClick = onClick,
             interactionSource = interactionSource,
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .buttonPointerModifier()
                 .focusHighlighting(interactionSource, shape = MaterialTheme.shapes.medium)
                 .focusProperties {

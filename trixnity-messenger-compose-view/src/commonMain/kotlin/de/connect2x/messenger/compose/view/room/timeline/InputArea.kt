@@ -63,6 +63,7 @@ import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.EmojiSelector
+import de.connect2x.messenger.compose.view.common.FilePickerType
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.files.EmptyFileListException
@@ -88,7 +89,6 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.messenger.compose.view.common.FilePickerType
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
 import okio.FileSystem
 import kotlin.math.abs
@@ -271,7 +271,7 @@ fun RowScope.InputAreaTextField(
         }
         BasicTextField(
             cursorBrush = SolidColor(style.colors.cursorColor),
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .inputFocusNavigation()
                 .focusRequester(focusRequester)
                 .fillMaxWidth()

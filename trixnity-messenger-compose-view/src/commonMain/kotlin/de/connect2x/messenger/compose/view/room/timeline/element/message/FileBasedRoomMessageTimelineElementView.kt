@@ -29,8 +29,8 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.pointerMoveFilter
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelector
-import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.FileContentOverlay
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.messenger.compose.view.util.ifNotNull
@@ -172,7 +172,7 @@ internal fun FileBasedView(
     var openElementDetails by remember { mutableStateOf(false) }
     Box {
         Column(
-            Modifier.Companion
+            Modifier
                 .rovingFocusChild()
                 .pointerInput(Unit) {
                     detectTapGestures(
@@ -185,7 +185,7 @@ internal fun FileBasedView(
                 .buttonPointerModifier()
                 .then(
                     if (isPreview) Modifier
-                    else Modifier.Companion.pointerMoveFilter(
+                    else Modifier.pointerMoveFilter(
                         onEnter = {
                             hoverMessage.value = true
                             true

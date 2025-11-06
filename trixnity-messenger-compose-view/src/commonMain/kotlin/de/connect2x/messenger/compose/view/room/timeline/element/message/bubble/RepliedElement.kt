@@ -31,7 +31,7 @@ fun RepliedElement(holder: BaseTimelineElementHolderViewModel) {
             timelineElementViewSelector.createReplyInTimeline(
                 holder = repliedElementHolder,
                 element = element,
-                modifier = Modifier.Companion.rovingFocusChild()
+                modifier = Modifier.rovingFocusChild()
                     .clickable(interactionSource, LocalIndication.current) {
                         repliedElementHolder.jumpTo()
                     },

@@ -34,7 +34,7 @@ data class RichTextColors(
 fun RichTextDisplay(
     document: HtmlNode.HtmlElement,
     mentions: StateFlow<Map<String, TimelineElementMention?>>? = null,
-    modifier: Modifier = Modifier.Companion,
+    modifier: Modifier = Modifier,
     colors: RichTextColors = RichTextColors.default(),
     onCopy: ((String) -> Unit)? = null,
     onLinkClick: (String) -> Unit = {},

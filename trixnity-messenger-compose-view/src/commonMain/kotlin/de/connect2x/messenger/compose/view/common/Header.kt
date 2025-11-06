@@ -27,6 +27,8 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
+import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.root.IsSinglePane
@@ -41,7 +43,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 fun Header(
     onBack: () -> Unit,
     title: String,
-    backButtonType: HeaderBackButtonType = HeaderBackButtonType.BACK,
+    backButtonType: HeaderBackButtonType = BACK,
     additionalButtons: @Composable (() -> Unit)? = null,
 ) {
     Header(
@@ -79,7 +81,7 @@ internal fun HeaderSurface(
 fun Header(
     onBack: () -> Unit,
     title: @Composable () -> Unit,
-    backButtonType: HeaderBackButtonType = HeaderBackButtonType.BACK,
+    backButtonType: HeaderBackButtonType = BACK,
     additionalButtons: @Composable (() -> Unit)? = null,
 ) {
     val i18n = DI.get<I18nView>()
@@ -99,7 +101,7 @@ fun Header(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         when (backButtonType) {
-                            HeaderBackButtonType.BACK ->
+                            BACK ->
                                 Tooltip({ Text(i18n.commonBack()) }) {
                                     ThemedIconButton(
                                         style = MaterialTheme.components.commonIconButton,
@@ -109,7 +111,7 @@ fun Header(
                                     }
                                 }
 
-                            HeaderBackButtonType.CLOSE ->
+                            CLOSE ->
                                 Tooltip({ Text(i18n.commonClose()) }) {
                                     ThemedIconButton(
                                         style = MaterialTheme.components.commonIconButton,

@@ -43,9 +43,9 @@ class RoomSettingsExportRoomViewImpl : RoomSettingsExportRoomView {
                 Icon(
                     Icons.Default.Archive,
                     exportRoomText,
-                    modifier = Modifier.Companion.size(MaterialTheme.components.primaryButton.iconSize)
+                    modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize)
                 )
-                Spacer(Modifier.Companion.size(MaterialTheme.components.primaryButton.iconSpacing))
+                Spacer(Modifier.size(MaterialTheme.components.primaryButton.iconSpacing))
                 Text(exportRoomText)
             }
         }

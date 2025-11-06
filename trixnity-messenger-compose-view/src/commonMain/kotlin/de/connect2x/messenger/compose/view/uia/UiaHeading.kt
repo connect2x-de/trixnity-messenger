@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 @Composable
 fun UiaHeading(text: String) =
     Box(Modifier.fillMaxWidth()) {
-        Box(Modifier.Companion.align(Alignment.Center)) {
+        Box(Modifier.align(Alignment.Center)) {
             Text(text, style = MaterialTheme.typography.titleLarge)
         }
     }

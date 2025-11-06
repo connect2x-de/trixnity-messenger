@@ -271,8 +271,7 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
                                             onClick = {
                                                 context.onCopy(highlightedCode.content.text)
                                             },
-                                            modifier = Modifier.Companion.rovingFocusChild()
-                                                .pointerHoverIcon(PointerIcon.Hand)
+                                            modifier = Modifier.rovingFocusChild().pointerHoverIcon(PointerIcon.Hand)
                                         ) {
                                             Icon(
                                                 Icons.Default.ContentCopy,

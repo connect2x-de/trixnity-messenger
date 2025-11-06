@@ -175,7 +175,7 @@ fun AccountWithDevicesList(
         RovingFocusContainer {
             SettingsAccountCard(
                 accountWithDevices.userId,
-                modifier = Modifier.Companion.verticalRovingFocus(
+                modifier = Modifier.verticalRovingFocus(
                     default = defaultItem,
                     up = {
                         val currentItem = activeRef.value ?: defaultItem
@@ -288,7 +288,7 @@ fun DeviceItem(
                 Tooltip({ Text(i18n.commonMore()) }) {
                     ThemedIconButton(
                         style = MaterialTheme.components.commonIconButton,
-                        modifier = Modifier.Companion.rovingFocusItem(),
+                        modifier = Modifier.rovingFocusItem(),
                         interactionSource = interactionSource,
                         onClick = {
                             showOptions.value = true
@@ -374,7 +374,7 @@ private fun RenameDeviceDialog(
                 label = { Text(i18n.devicesDeviceName()) },
                 maxLines = 1,
                 singleLine = true,
-                modifier = Modifier.Companion.inputFocusNavigation()
+                modifier = Modifier.inputFocusNavigation()
                     .focusRequester(focusRequester)
                     .fillMaxWidth(),
             )

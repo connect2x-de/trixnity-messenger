@@ -21,7 +21,6 @@ import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
 import de.connect2x.messenger.compose.view.util.rovingFocusItem
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
-import kotlin.collections.iterator
 
 internal data class RadioSettingOption(
     val text: String,
@@ -71,7 +70,7 @@ internal fun <T : Any> ColumnScope.RadioSetting(
     ExpandableSection(heading = title, icon = icon) {
         RovingFocusContainer {
             Column(
-                modifier = Modifier.Companion.verticalRovingFocus(
+                modifier = Modifier.verticalRovingFocus(
                     default = defaultItem,
                     scroll = {},
                     up = {
@@ -97,7 +96,7 @@ internal fun <T : Any> ColumnScope.RadioSetting(
                             leadingContent = if (optionExplanation != null) {
                                 @Composable { HelpIcon(optionExplanation) }
                             } else null,
-                            modifier = Modifier.Companion.rovingFocusItem(),
+                            modifier = Modifier.rovingFocusItem(),
                             enabled = enabled && optionEnabled,
                             selected = value == key,
                             onChange = { set(key) },

@@ -17,7 +17,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.entity.Library
-import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
@@ -34,6 +33,7 @@ import de.connect2x.messenger.compose.view.util.RovingFocusItem
 import de.connect2x.messenger.compose.view.util.rovingFocusItem
 import de.connect2x.messenger.compose.view.util.scrollIntoView
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 
 interface AppInfoLicensesView {
@@ -74,7 +74,7 @@ internal fun Licenses(onClose: () -> Unit) {
                 val focusContainer = LocalRovingFocus.current
                 AdaptiveDialogScrollContent(scrollState = lazyListState) {
                     LazyColumn(
-                        modifier = Modifier.Companion.verticalRovingFocus(
+                        modifier = Modifier.verticalRovingFocus(
                             default = defaultItem,
                             scroll = { item ->
                                 val index = references.indexOf(item)
@@ -104,7 +104,7 @@ internal fun Licenses(onClose: () -> Unit) {
                                 val focusItem = LocalRovingFocusItem.current
                                 LibraryItem(
                                     library = library,
-                                    modifier = Modifier.Companion
+                                    modifier = Modifier
                                         .focusHighlighting(interactionSource)
                                         .rovingFocusItem()
                                         .clickable(interactionSource, LocalIndication.current) {

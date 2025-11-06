@@ -25,8 +25,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -229,7 +229,7 @@ internal fun VideoReplyElement(
                         Icon(
                             MaterialTheme.messengerIcons.typeVideo,
                             i18n.commonVideo(),
-                            modifier = Modifier.Companion.size(MaterialTheme.typography.bodySmall.dp),
+                            modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp),
                         )
                         FileName(element.name)
                     }

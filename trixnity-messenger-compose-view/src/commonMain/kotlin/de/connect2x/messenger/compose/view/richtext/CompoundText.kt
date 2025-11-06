@@ -120,7 +120,7 @@ internal fun CompoundText(
                     softWrap = true,
                     maxLines = Int.MAX_VALUE,
                     minLines = 1,
-                    modifier = Modifier.Companion.rovingFocusChild()
+                    modifier = Modifier.rovingFocusChild()
                 )
                 if (placeholders.isNotEmpty()) {
                     Layout(

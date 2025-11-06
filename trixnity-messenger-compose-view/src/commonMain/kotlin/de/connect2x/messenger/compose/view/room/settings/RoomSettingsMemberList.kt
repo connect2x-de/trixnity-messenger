@@ -177,7 +177,7 @@ fun MemberList(
                             memberListViewModel,
                             member.memberUserId,
                             member,
-                            modifier = Modifier.Companion.rovingFocusItem(),
+                            modifier = Modifier.rovingFocusItem(),
                             onClick = {
                                 onClickUser(member.memberUserId)
                             },

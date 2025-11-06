@@ -73,7 +73,7 @@ internal fun MentionChip(
                 }
             },
             onClick = { onMentionClick(mention) },
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .rovingFocusChild()
                 .requiredWidthIn(max = maxWidth)
                 .pointerHoverIcon(PointerIcon.Hand)

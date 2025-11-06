@@ -19,6 +19,11 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.common.FilePickerType.ATTACHMENT_FILE
+import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_AND_VIDEO_FILE
+import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_FILE
+import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
+import de.connect2x.messenger.compose.view.common.FilePickerType.VIDEO_CAPTURE
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -76,7 +81,7 @@ class FilePickerTypeSelectionViewImpl : FilePickerTypeSelectionView {
                 ) {
                     availableTypes.forEach { pickerType ->
                         when (pickerType) {
-                            FilePickerType.ATTACHMENT_FILE -> {
+                            ATTACHMENT_FILE -> {
                                 Tooltip({ Text(i18nView.fileDialogLoadFileButton()) }) {
                                     ThemedIconButton(
                                         style = MaterialTheme.components.commonIconButton,
@@ -90,7 +95,7 @@ class FilePickerTypeSelectionViewImpl : FilePickerTypeSelectionView {
                                 }
                             }
 
-                            FilePickerType.IMAGE_FILE ->
+                            IMAGE_FILE ->
                                 Tooltip({ Text(i18nView.fileDialogLoadImageButton()) }) {
                                     ThemedIconButton(
                                         style = MaterialTheme.components.commonIconButton,
@@ -103,7 +108,7 @@ class FilePickerTypeSelectionViewImpl : FilePickerTypeSelectionView {
                                     }
                                 }
 
-                            FilePickerType.IMAGE_AND_VIDEO_FILE ->
+                            IMAGE_AND_VIDEO_FILE ->
                                 Tooltip({ Text(i18nView.fileDialogLoadImageOrVideoButton()) }) {
                                     ThemedIconButton(
                                         style = MaterialTheme.components.commonIconButton,
@@ -116,7 +121,7 @@ class FilePickerTypeSelectionViewImpl : FilePickerTypeSelectionView {
                                     }
                                 }
 
-                            FilePickerType.PHOTO_CAPTURE ->
+                            PHOTO_CAPTURE ->
                                 Tooltip({ Text(i18nView.fileDialogTakeImageButton()) }) {
                                     ThemedIconButton(
                                         style = MaterialTheme.components.commonIconButton,
@@ -129,7 +134,7 @@ class FilePickerTypeSelectionViewImpl : FilePickerTypeSelectionView {
                                     }
                                 }
 
-                            FilePickerType.VIDEO_CAPTURE ->
+                            VIDEO_CAPTURE ->
                                 Tooltip({ Text(i18nView.fileDialogTakeVideoButton()) }) {
                                     ThemedIconButton(
                                         style = MaterialTheme.components.commonIconButton,

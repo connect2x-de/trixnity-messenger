@@ -52,7 +52,7 @@ class LegalFooterViewImpl : LegalFooterView {
 @Composable
 private fun TooltipText(text: String, tooltip: String, onClick: () -> Unit) {
     Tooltip(tooltip = { Text(tooltip) }) {
-        Text(text, Modifier.Companion.customClickable(onClick = onClick))
+        Text(text, Modifier.customClickable(onClick = onClick))
     }
 }
 
