@@ -26,9 +26,10 @@ fun ThemedListItemButton(
     overlineContent: @Composable (() -> Unit)? = null,
     supportingContent: @Composable (() -> Unit)? = null,
     leadingContent: @Composable (() -> Unit)? = null,
+    trailingContent: @Composable (() -> Unit)? = null,
     style: ListItemStyle = MaterialTheme.components.listItem,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
     val focused = interactionSource.collectIsFocusedAsState()
     val focusedBorder =
         if (IsFocusHighlighting.current && focused.value) {
@@ -41,6 +42,7 @@ fun ThemedListItemButton(
     ThemedListItem(
         headlineContent = headlineContent,
         leadingContent = leadingContent,
+        trailingContent = trailingContent,
         overlineContent = overlineContent,
         supportingContent = supportingContent,
         style = style,
