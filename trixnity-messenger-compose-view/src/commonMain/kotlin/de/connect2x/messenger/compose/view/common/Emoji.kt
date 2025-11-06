@@ -256,4 +256,21 @@ private val emojis = listOf(
     "\ud83d\ude3e", // Pouting Cat Face
     "\ud83d\ude80", // Rocket
     "\ud83d\udd25", // Fire
+    "\uD83E\uDD2F", // Exploding Head
+    "❤\uFE0F", // Red Heart
+    "\uD83D\uDC9C", // Purple Heart
+    "\uD83D\uDC9B", // Yellow Heart
+    "\uD83D\uDC9A", // Green Heart
+    "\uD83E\uDD0D", // White Heart
+    "\uD83E\uDE77", // Pink Heart
+    "\uD83E\uDD40", // Wilted Flower
+    "✅", // Check
+    "\uD83D\uDE4F", // Folded Hands
+    "\uD83D\uDEAC", // Cigarette
+    "\uD83C\uDF75", // Teacup without handle
+    "❌", // Cross Mark
+    "\uD83C\uDF89", // Party Popper
+    "\uD83E\uDD20", // Cowboy Hat Face
+    "\uD83E\uDD7A", // Pleading Face
+    "\uD83E\uDD79", // Face holding back Tears
 )

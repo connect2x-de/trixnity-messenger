@@ -250,6 +250,21 @@ open class I18n(
         DE - "$username hat die Beschreibung $groupOrChat ${from}zu '$roomName' geändert"
     }
 
+    open fun eventPowerLevelChange(user: String, newPowerLevel: Long) = translate {
+        EN - when (newPowerLevel) {
+            0L -> "$user is now a user"
+            50L -> "$user is now a moderator"
+            100L -> "$user is now an administrator"
+            else -> "power level $newPowerLevel"
+        }
+        DE - when (newPowerLevel) {
+            0L -> "$user ist nun ein Nutzer"
+            50L -> "$user ist nun ein Moderator"
+            100L -> "$user ist nun ein Administrator"
+            else -> "$user hat nun Berechtigungslevel $newPowerLevel"
+        }
+    }
+
     open fun setAsMainAlias(username: String, alias: String) = translate {
         EN - "$username set main alias to $alias"
         DE - "$username hat $alias als Hauptalias festgelegt"
@@ -1365,6 +1380,236 @@ open class I18n(
     open fun newMessageDescription() = translate {
         EN - "You have new messages."
         DE - "Sie haben neue Nachrichten."
+    }
+
+    open fun powerLevelUpdateBan(powerLevel: Long) = translate {
+        EN - when (powerLevel) {
+            0L -> "Users can now ban users"
+            50L -> "Moderators can now ban users"
+            100L -> "Administrators can now ban users"
+            else -> "Power level of $powerLevel can now ban users"
+        }
+        DE - when (powerLevel) {
+            0L -> "Nutzer können nun Nutzer bannen"
+            50L -> "Moderatoren können nun Nutzer bannen"
+            100L -> "Administratoren können nun Nutzer bannen"
+            else -> "Berechtigungslevel $powerLevel kann nun Nutzer bannen"
+        }
+    }
+
+    open fun powerLevelUpdateInvite(powerLevel: Long) = translate {
+        EN - when (powerLevel) {
+            0L -> "Users can now invite users"
+            50L -> "Moderators can now invite users"
+            100L -> "Administrators can now invite users"
+            else -> "Power level of $powerLevel can now invite users"
+        }
+        DE - when (powerLevel) {
+            0L -> "Nutzer können nun Nutzer einladen"
+            50L -> "Moderatoren können nun Nutzer einladen"
+            100L -> "Administratoren können nun Nutzer einladen"
+            else -> "Berechtigungslevel $powerLevel kann nun Nutzer einladen"
+        }
+    }
+
+    open fun powerLevelUpdateKick(powerLevel: Long) = translate {
+        EN - when (powerLevel) {
+            0L -> "Users can now kick users"
+            50L -> "Moderators can now kick users"
+            100L -> "Administrators can now kick users"
+            else -> "Power level of $powerLevel can now kick users"
+        }
+        DE - when (powerLevel) {
+            0L -> "Nutzer können nun Nutzer entfernen"
+            50L -> "Moderatoren können nun Nutzer entfernen"
+            100L -> "Administratoren können nun Nutzer entfernen"
+            else -> "Berechtigungslevel $powerLevel kann nun Nutzer entfernen"
+        }
+    }
+
+    open fun powerLevelUpdateRedact(powerLevel: Long) = translate {
+        EN - when (powerLevel) {
+            0L -> "Users can now delete messages"
+            50L -> "Moderators can now delete messages"
+            100L -> "Administrators can now delete messages"
+            else -> "Power level of $powerLevel can now delete messages"
+        }
+        DE - when (powerLevel) {
+            0L -> "Nutzer können nun Nachrichten löschen"
+            50L -> "Moderatoren können nun Nachrichten löschen"
+            100L -> "Administratoren können nun Nachrichten löschen"
+            else -> "Berechtigungslevel $powerLevel kann nun Nachrichten löschen"
+        }
+    }
+
+    open fun powerLevelUpdateStateDefault(powerLevel: Long) = translate {
+        EN - when (powerLevel) {
+            0L -> "Users can now change room settings"
+            50L -> "Moderators can now change room settings"
+            100L -> "Administrators can now change room settings"
+            else -> "Powerlevel of $powerLevel can now change room settings"
+        }
+        DE - when (powerLevel) {
+            0L -> "Nutzer können nun Raumeinstellungen ändern"
+            50L -> "Moderatoren können nun Raumeinstellungen ändern"
+            100L -> "Administratoren können nun Raumeinstellungen ändern"
+            else -> "Berechtigungslevel $powerLevel kann nun Raumeinstellungen ändern"
+        }
+    }
+
+    open fun powerLevelUpdateEventsDefault(powerLevel: Long) = translate {
+        EN - when (powerLevel) {
+            0L -> "Users can now send all event types"
+            50L -> "Moderators can now send all event types"
+            100L -> "Administrators can now send all event types"
+            else -> "Powerlevel of $powerLevel can now send all event types"
+        }
+        DE - when (powerLevel) {
+            0L -> "Nutzer können nun alle Ereignistypen senden"
+            50L -> "Moderatoren können nun alle Ereignistypen senden"
+            100L -> "Administratoren können nun alle Ereignistypen senden"
+            else -> "Berechtigungslevel $powerLevel kann nun alle Ereignistypen senden"
+        }
+    }
+
+
+    open fun powerLevelUpdateUsersDefault(powerLevel: Long) = translate {
+        EN - when (powerLevel) {
+            0L -> "Default power level is set to User"
+            50L -> "Default power level is set to Moderator"
+            100L -> "Default power level is set to Administrator"
+            else -> "Default power level is set to $powerLevel"
+        }
+        DE - when (powerLevel) {
+            0L -> "Standard-Berechtigungslevel ist nun Nutzer"
+            50L -> "Standard-Berechtigungslevel ist nun Moderatore"
+            100L -> "Standard-Berechtigungslevel ist nun Administratoren"
+            else -> "Standard-Berechtigungslevel ist nun $powerLevel"
+        }
+    }
+
+    open fun powerLevelUpdateNoChanges() = translate {
+        EN - "No changes to power levels"
+        DE - "Keine Änderungen der Berechtigungslevel"
+    }
+
+    open fun powerLevelUpdateNChanges(n: Int) = translate {
+        EN - "$n power level changes occurred"
+        DE - "$n Berechtigungslevel wurden geändert"
+    }
+
+    open fun powerLevelUpdateEvent(event: String, powerLevel: Long) = translate {
+        var rendered = when (powerLevel) {
+            0L -> "user"
+            50L -> "moderator"
+            100L -> "administrator"
+            else -> "power level $powerLevel"
+        }
+
+        EN - when (event) {
+            "m.room.avatar" -> "Power level for changing the room avatar set to $rendered"
+            "m.room.name" -> "Power level for changing the room name set to $rendered"
+            "m.room.topic" -> "Power level for changing the room topic set to $rendered"
+            "m.room.member" -> "Power level for membership changes set to $rendered"
+            "m.room.power_levels" -> "Power level for changing power levels set to $rendered"
+            "m.room.join_rules" -> "Power level for changing join rules set to $rendered"
+            "m.room.history_visibility" -> "Power level for changing history visibility set to $rendered"
+            "m.room.encryption" -> "Power level for enabling encryption set to $rendered"
+            "m.room.pinned_events" -> "Power level for pinning events set to $rendered"
+            "m.room.canonical_alias" -> "Power level for changing the main room alias set to $rendered"
+            "m.room.server_acl" -> "Power level for changing server ACL set to $rendered"
+            "m.room.tombstone" -> "Power level for upgrading the room set to $rendered"
+
+            "m.room.message" -> "Power level for sending messages set to $rendered"
+            "m.reaction" -> "Power level for sending reactions set to $rendered"
+            "m.room.redaction" -> "Power level for message redactions set to $rendered"
+            "m.room.encrypted" -> "Power level for sending encrypted messages set to $rendered"
+
+            "m.key.verification.start" -> "Power level for starting key verification set to $rendered"
+            "m.key.verification.ready" -> "Power level for ready key verification set to $rendered"
+            "m.key.verification.accept" -> "Power level for accepting key verification set to $rendered"
+            "m.key.verification.key" -> "Power level for exchanging verification keys set to $rendered"
+            "m.key.verification.mac" -> "Power level for MAC verification set to $rendered"
+            "m.key.verification.done" -> "Power level for completing key verification set to $rendered"
+            "m.key.verification.cancel" -> "Power level for cancelling key verification set to $rendered"
+
+            "m.call.invite" -> "Power level for call invites set to $rendered"
+            "m.call.candidates" -> "Power level for call candidates set to $rendered"
+            "m.call.answer" -> "Power level for answering calls set to $rendered"
+            "m.call.hangup" -> "Power level for hanging up calls set to $rendered"
+            "m.call.negotiate" -> "Power level for call negotiation set to $rendered"
+            "m.call.reject" -> "Power level for rejecting calls set to $rendered"
+            "m.call.select_answer" -> "Power level for selecting call answers set to $rendered"
+            "m.call.sdp_stream_metadata_changed" -> "Power level for SDP stream metadata changes set to $rendered"
+
+            else -> "Power level for $event set to $rendered"
+        }
+
+        rendered = when (powerLevel) {
+            0L -> "Nutzer"
+            50L -> "Moderator"
+            100L -> "Administrator"
+            else -> "Berechtigungslevel $powerLevel"
+        }
+
+        DE - when (event) {
+            "m.room.avatar" -> "Berechtigungslevel für das Ändern des Raumavatars auf $rendered gesetzt"
+            "m.room.name" -> "Berechtigungslevel für das Ändern des Raumnamens auf $rendered gesetzt"
+            "m.room.topic" -> "Berechtigungslevel für das Ändern des Raumthemas auf $rendered gesetzt"
+            "m.room.member" -> "Berechtigungslevel für Mitgliederänderungen auf $rendered gesetzt"
+            "m.room.power_levels" -> "Berechtigungslevel für das Ändern der Berechtigungen auf $rendered gesetzt"
+            "m.room.join_rules" -> "Berechtigungslevel für Beitrittsregeln auf $rendered gesetzt"
+            "m.room.history_visibility" -> "Berechtigungslevel für Verlaufssichtbarkeit auf $rendered gesetzt"
+            "m.room.encryption" -> "Berechtigungslevel für das Aktivieren der Verschlüsselung auf $rendered gesetzt"
+            "m.room.pinned_events" -> "Berechtigungslevel für das Anheften von Ereignissen auf $rendered gesetzt"
+            "m.room.canonical_alias" -> "Berechtigungslevel für den Hauptalias des Raums auf $rendered gesetzt"
+            "m.room.server_acl" -> "Berechtigungslevel für Server-ACL auf $rendered gesetzt"
+            "m.room.tombstone" -> "Berechtigungslevel für Raumaktualisierungen auf $rendered gesetzt"
+
+            "m.room.message" -> "Berechtigungslevel für das Senden von Nachrichten auf $rendered gesetzt"
+            "m.reaction" -> "Berechtigungslevel für das Senden von Reaktionen auf $rendered gesetzt"
+            "m.room.redaction" -> "Berechtigungslevel für das Entfernen von Nachrichten auf $rendered gesetzt"
+            "m.room.encrypted" -> "Berechtigungslevel für das Senden von verschlüsselten Nachrichten auf $rendered gesetzt"
+
+            "m.key.verification.start" -> "Berechtigungslevel für das Starten der Verifizierung auf $rendered gesetzt"
+            "m.key.verification.ready" -> "Berechtigungslevel für die Bereitschaft zur Verifizierung auf $rendered gesetzt"
+            "m.key.verification.accept" -> "Berechtigungslevel für das Akzeptieren der Verifizierung auf $rendered gesetzt"
+            "m.key.verification.key" -> "Berechtigungslevel für das Senden des Verifizierungsschlüssels auf $rendered gesetzt"
+            "m.key.verification.mac" -> "Berechtigungslevel für das Senden des Verifizierungs-MAC auf $rendered gesetzt"
+            "m.key.verification.done" -> "Berechtigungslevel für das Abschließen der Verifizierung auf $rendered gesetzt"
+            "m.key.verification.cancel" -> "Berechtigungslevel für das Abbrechen der Verifizierung auf $rendered gesetzt"
+
+            "m.call.invite" -> "Berechtigungslevel für das Starten von Anrufen auf $rendered gesetzt"
+            "m.call.candidates" -> "Berechtigungslevel für das Austauschen von Anrufkandidaten auf $rendered gesetzt"
+            "m.call.answer" -> "Berechtigungslevel für das Annehmen von Anrufen auf $rendered gesetzt"
+            "m.call.hangup" -> "Berechtigungslevel für das Beenden von Anrufen auf $rendered gesetzt"
+            "m.call.negotiate" -> "Berechtigungslevel für das Aushandeln von Anrufparametern auf $rendered gesetzt"
+            "m.call.reject" -> "Berechtigungslevel für das Ablehnen von Anrufen auf $rendered gesetzt"
+            "m.call.select_answer" -> "Berechtigungslevel für das Auswählen von Anrufantworten auf $rendered gesetzt"
+            "m.call.sdp_stream_metadata_changed" -> "Berechtigungslevel für das Aktualisieren von Anruf-Stream-Metadaten auf $rendered gesetzt"
+
+            else -> "Berechtigungslevel für $event auf $rendered gesetzt"
+        }
+    }
+
+    open fun powerLevelWronglyConfiguredError() = translate {
+        EN - "The power levels were wrongly configured"
+        DE - "Die Berechtigungslevel sind falsch konfiguriert"
+    }
+
+    open fun powerLevelInputErrNotANumber() = translate {
+        EN - "not a number"
+        DE - "keine Zahl"
+    }
+
+    open fun powerLevelInputErrAboveAllowedPowerLevel(maxPowerLevel: Long) = translate {
+        EN - "power level has to be below $maxPowerLevel"
+        DE - "Berechtigungslevel muss unter $maxPowerLevel sein"
+    }
+
+    open fun newEventAlreadyExistsErr() = translate {
+        EN - "This event id exists already"
+        DE - "Diese Event Id existiert bereits"
     }
 }
 

@@ -61,7 +61,7 @@ fun ExposedDropdownMenuBoxScope.ThemedExposedDropdownMenu(
         onDismissRequest = onDismissRequest,
         modifier = modifier,
         scrollState = scrollState,
-        matchTextFieldWidth = matchAnchorWidth,
+        matchAnchorWidth = matchAnchorWidth,
         shape = style.shape,
         containerColor = style.color,
         tonalElevation = style.tonalElevation,

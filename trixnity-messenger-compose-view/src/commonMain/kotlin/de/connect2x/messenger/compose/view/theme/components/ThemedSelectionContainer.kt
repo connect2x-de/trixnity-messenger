@@ -72,7 +72,7 @@ fun ThemedSelectableText(
     maxLines: Int = Int.MAX_VALUE,
     minLines: Int = 1,
     onTextLayout: ((TextLayoutResult) -> Unit)? = null,
-    style: TextStyle = LocalTextStyle.current
+    style: TextStyle = LocalTextStyle.current,
 ) {
     ThemedSelectionContainer(selectionStyle, selectionModifier) {
         Text(

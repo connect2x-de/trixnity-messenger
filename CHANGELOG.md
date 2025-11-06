@@ -9,15 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add a settings panel for configuring power levels
+- Add timeline events for all power level changes
+- Added a message bubble to the timeline when a user's power level changes
 - Completely new notification handling
 
 ### Changed
+
+- Added Space in the bottom of the RoomList to account for new chat button overlapping UI elements
+- Use SQLitenity as Room implementation
+- Improve keyboard accessibility of profile selection and blocked user settings
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- The sticky header now correctly displays the date of the topmost message
+- Fix focus handling in chat/group creation user list and add members view
+- Show dropdown icon in group creation history visibility menu
+- No more Linux segfaults
 
 ### Security
 
@@ -72,6 +84,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Emoji Regex in Kotlin/JS
 - Correctly show profiles
 
+### Security
+
 ## 3.8.5
 
 ### Added
@@ -93,6 +107,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 - rename loadMediaResult to loadMediaResultBytes in FileBased RoomMessageEventContent
+
+### Removed
 
 ### Fixed
 

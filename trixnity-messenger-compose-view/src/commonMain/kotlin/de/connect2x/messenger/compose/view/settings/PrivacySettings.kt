@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +34,7 @@ import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModel
@@ -108,25 +110,22 @@ fun PrivacySettingsSingleAccount(privacySettingViewModel: PrivacySettingsSingleA
         val blockedCount = privacySettingViewModel.blockedContactsCount.collectAsState().value
         val interactionSource = remember { MutableInteractionSource() }
         ElevatedCard(
-            Modifier
-                .padding(bottom = 10.dp)
-                .clickable(
-                    interactionSource,
-                    LocalIndication.current
-                ) { privacySettingViewModel.showBlockedContactsSettings() }
-                .focusHighlighting(interactionSource)
-                .buttonPointerModifier()
-                .fillMaxWidth()) {
-            Row(
-                Modifier.padding(16.dp).fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = i18n.blockedContactsButtonCaption(blockedCount),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, i18n.blockedContactsHeader())
-            }
+            modifier = Modifier
+                .padding(top = 5.dp, bottom = 10.dp)
+                .focusHighlighting(interactionSource, shape = CardDefaults.elevatedShape),
+            interactionSource = interactionSource,
+            onClick = {
+                privacySettingViewModel.showBlockedContactsSettings()
+            },
+        ) {
+            ThemedListItemButton(
+                headlineContent = { Text(i18n.blockedContactsButtonCaption(blockedCount)) },
+                trailingContent = { Icon(Icons.AutoMirrored.Filled.ArrowForward, null) },
+                interactionSource = interactionSource,
+                onClick = {
+                    privacySettingViewModel.showBlockedContactsSettings()
+                }
+            )
         }
     }
 }

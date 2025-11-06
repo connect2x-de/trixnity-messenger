@@ -58,6 +58,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewMod
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.PowerlevelViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsHistoryVisibilityViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsJoinRulesViewModelFactory
@@ -99,6 +100,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.En
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.HistoryVisibilityStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.MemberStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.NameStateTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.PowerLevelsTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.TopicStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ThumbnailsImpl
@@ -386,6 +388,7 @@ private fun timelineElementViewModels() = module {
     timelineElementViewModelFactory<CanonicalAliasStateTimelineElementViewModelFactory> { CanonicalAliasStateTimelineElementViewModelFactory }
     timelineElementViewModelFactory<HistoryVisibilityStateTimelineElementViewModelFactory> { HistoryVisibilityStateTimelineElementViewModelFactory }
     timelineElementViewModelFactory<EncryptionStateTimelineElementViewModelFactory> { EncryptionStateTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<PowerLevelsTimelineElementViewModelFactory> { PowerLevelsTimelineElementViewModelFactory }
 
     // Common:
     timelineElementViewModelFactory<RedactedTimelineElementViewModelFactory> { RedactedTimelineElementViewModelFactory }
@@ -428,6 +431,7 @@ private fun roomSettingsViewModels() = module {
     single<UserProfileViewModelFactory> { UserProfileViewModelFactory }
     single<AddMembersViewModelFactory> { AddMembersViewModelFactory }
     single<ExportRoomViewModelFactory> { ExportRoomViewModelFactory }
+    single<PowerlevelViewModelFactory> { PowerlevelViewModelFactory }
 }
 
 private fun timelineViewModels() = module {

@@ -1,29 +1,86 @@
+/*
+ * Copyright 2024 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Taken from https://github.com/JetBrains/compose-multiplatform-core/tree/jb-main/mpp/karma.config.d with minor tweaks
+
 const path = require("node:path");
 
-config.browserConsoleLogOptions.level = "debug"
+config.browserConsoleLogOptions.level = "debug";
 
 const basePath = config.basePath;
-// According to https://kotlinlang.org/docs/js-project-setup.html#karma-configuration all files ending in `.js` are
-// from the `karma.config.d` directory are merged into a single configuration. This configuration however does not
-// reside in the subprojects build directory, but instead in the main one. The resulting path of the merged config is
-// then `build/js/packages/trixnity-messenger-root-trixnity-messenger-compose-view-web-test/karma.conf.js`.
-const rootPath = path.resolve(basePath, "..", "..", "..", "..");
-const configPath = path.resolve(rootPath, "trixnity-messenger-compose-view", "karma.config.d");
+const rootPath = path.resolve(basePath, "..", "..", "..", "..")
+const configPath = path.resolve(rootPath, "trixnity-messenger-compose-view", "karma.config.d")
 
 const debug = message => console.error(`[karma-config] ${message}`);
+debug(`karma basePath: ${basePath}`);
+debug(`karma rootPath: ${rootPath}`);
 
-debug(basePath)
-debug(rootPath)
-debug(configPath)
+// This enables running tests on a custom html page without iframe
+const staticFilesDir =  path.resolve(configPath, "static");
+config.customContextFile = path.resolve(staticFilesDir, "compose_context.html");
 
-// TODO: We need a custom context to import `skiko.js` like in trixnity-messenger-compose-app/src/webMain/resources/index.html
-// https://youtrack.jetbrains.com/issue/CMP-4906/1nMakeRasterN32Premul-is-not-defined-when-running-runComposeUiTest-with-js
-config.customContextFile = path.resolve(configPath, "compose_context.html");
+// https://github.com/JetBrains/compose-multiplatform-core/pull/1008#issuecomment-1956354231
+config.client.mocha = config.client.mocha || {};
+config.client.mocha.timeout = 10000;
 
-config.proxies = {
-    "/skiko.js": path.resolve(basePath, "kotlin", "skiko.js"),
-    "/skiko.wasm": path.resolve(basePath, "kotlin", "skiko.wasm"),
+function KarmaWebpackOutputFramework(config) {
+    // This controller is instantiated and set during the preprocessor phase by the karma-webpack plugin
+    const controller = config.__karmaWebpackController;
+
+    // only if webpack has instantiated its controller
+    if (!controller) {
+        console.warn(
+            "Webpack has not instantiated controller yet.\n" +
+            "Check if you have enabled webpack preprocessor and framework before this framework"
+        )
+        return
+    }
+
+    config.files.push({
+        pattern: `${staticFilesDir}/**/*.js`,
+        included: true,
+        served: true,
+        watched: false
+    });
+
+    config.files.push({
+        pattern: `${controller.outputPath}/**/*`,
+        included: false,
+        served: true,
+        watched: false
+    });
 }
 
-config.files.push({ pattern: path.resolve(basePath, "kotlin", "skiko.js"), included: false, served: true, watched: false });
-config.files.push({ pattern: path.resolve(basePath, "kotlin", "skiko.wasm"), included: false, served: true, watched: false });
+const KarmaWebpackOutputPlugin = {
+    'framework:webpack-output': ['factory', KarmaWebpackOutputFramework],
+};
+
+config.plugins.push(KarmaWebpackOutputPlugin);
+config.frameworks.push("webpack-output");
+
+config.files.push(
+    {pattern: path.resolve(basePath, "kotlin", "skiko.wasm"), included: false, served: true, watched: false},
+    {pattern: path.resolve(basePath, "kotlin", "skiko.mjs"), included: true, served: true, watched: false, type: 'module'},
+    {pattern: path.resolve(basePath, "kotlin", "js-reexport-symbols.mjs"), included: false, served: true, watched: false, type: 'module'},
+    {pattern: path.resolve(basePath, "kotlin", "composeResources", "**"), included: false, served: true, watched: false },
+);
+
+config.proxies = {
+    "/skiko.mjs": path.resolve(basePath, "kotlin", "skiko.mjs"),
+    "/skiko.wasm": path.resolve(basePath, "kotlin", "skiko.wasm"),
+    "/js-reexport-symbols.mjs": path.resolve(basePath, "kotlin", "js-reexport-symbols.mjs"),
+    "/composeResources": path.resolve(basePath, "kotlin", "composeResources"),
+}
