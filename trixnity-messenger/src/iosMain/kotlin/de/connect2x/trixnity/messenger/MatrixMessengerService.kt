@@ -3,8 +3,6 @@ package de.connect2x.trixnity.messenger
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import platform.UIKit.UIApplicationDelegateProtocol
-import platform.UIKit.UIWindowSceneDelegateProtocol
 
 @OptIn(BetaInteropApi::class)
 object MatrixMessengerService : SingletonService<MatrixMessenger>() {
@@ -12,12 +10,6 @@ object MatrixMessengerService : SingletonService<MatrixMessenger>() {
         MatrixMessenger.create(configuration = configuration)
 
     var configuration: MatrixMessengerConfiguration.() -> Unit = {}
-
-    abstract class UIApplicationDelegate :
-        UIApplicationDelegateProxy(get()?.di?.getAll<UIApplicationDelegateProtocol>() ?: emptyList())
-
-    abstract class UISceneDelegate :
-        UIWindowSceneDelegateProxy(get()?.di?.getAll<UIWindowSceneDelegateProtocol>() ?: emptyList())
 }
 
 suspend fun <T> withMatrixMessengerFromService(

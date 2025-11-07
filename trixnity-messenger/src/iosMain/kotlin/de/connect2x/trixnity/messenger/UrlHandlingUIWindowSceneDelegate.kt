@@ -4,10 +4,8 @@ import de.connect2x.trixnity.messenger.util.defaultUrlHandler
 import kotlinx.coroutines.runBlocking
 import platform.UIKit.UIOpenURLContext
 import platform.UIKit.UIScene
-import platform.UIKit.UIWindowSceneDelegateProtocol
-import platform.darwin.NSObject
 
-class UrlHandlingUIWindowSceneDelegate : UIWindowSceneDelegateProtocol, NSObject() {
+class UrlHandlingUIWindowSceneDelegate : KUIWindowSceneDelegateProtocol {
     override fun scene(scene: UIScene, openURLContexts: Set<*>) {
         val uri = (openURLContexts.firstOrNull() as? UIOpenURLContext)?.URL?.absoluteString
         if (uri != null) {

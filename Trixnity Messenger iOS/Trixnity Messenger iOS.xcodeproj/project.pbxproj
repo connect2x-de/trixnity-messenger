@@ -276,6 +276,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Trixnity Messenger iOS/Preview Content\"";
 				DEVELOPMENT_TEAM = C6CHAMK5QZ;
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/../trixnity-messenger-compose-app/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)\"";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Trixnity-Messenger-iOS-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Trixnity Messenger iOS photo use";
@@ -309,6 +310,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Trixnity Messenger iOS/Preview Content\"";
 				DEVELOPMENT_TEAM = C6CHAMK5QZ;
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/../trixnity-messenger-compose-app/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)\"";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Trixnity-Messenger-iOS-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Trixnity Messenger iOS photo use";

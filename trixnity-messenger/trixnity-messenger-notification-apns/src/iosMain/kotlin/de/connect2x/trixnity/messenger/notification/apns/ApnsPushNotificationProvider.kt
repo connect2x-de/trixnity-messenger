@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.notification.apns
 
+import de.connect2x.trixnity.messenger.KUIApplicationDelegateProtocol
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerService
@@ -29,9 +30,7 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import platform.Foundation.NSData
 import platform.UIKit.UIApplication
-import platform.UIKit.UIApplicationDelegateProtocol
 import platform.UIKit.UIBackgroundFetchResult
-import platform.darwin.NSObject
 
 class ApnsPushNotificationProvider(
     config: MatrixMessengerConfiguration,
@@ -77,7 +76,7 @@ class ApnsPushNotificationProvider(
             }
         }
 
-    open class UIApplicationDelegate : UIApplicationDelegateProtocol, NSObject() {
+    class UIApplicationDelegate : KUIApplicationDelegateProtocol {
         override fun application(application: UIApplication, didFinishLaunchingWithOptions: Map<Any?, *>?): Boolean {
             SyncAndProcessPendingWorker.registerUniquePeriodicWork()
             return true
@@ -156,7 +155,7 @@ private fun apnsPushNotificationProviderPushKeyUpdaterModule() = module {
 
 private fun apnsPushNotificationProviderUIApplicationDelegateModule() = module {
     single(named<ApnsPushNotificationProvider.UIApplicationDelegate>()) { ApnsPushNotificationProvider.UIApplicationDelegate() }
-        .bind<UIApplicationDelegateProtocol>()
+        .bind<KUIApplicationDelegateProtocol>()
 }
 
 fun MatrixMultiMessengerConfiguration.addApnsPushNotificationProvider() {

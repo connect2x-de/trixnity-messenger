@@ -3,20 +3,13 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.create
-import platform.UIKit.UIApplicationDelegateProtocol
-import platform.UIKit.UIWindowSceneDelegateProtocol
+import org.koin.core.Koin
 
 object MatrixMultiMessengerService : SingletonService<MatrixMultiMessenger>() {
     override suspend fun factory(): MatrixMultiMessenger =
         MatrixMultiMessenger.create(configuration = configuration)
 
     var configuration: MatrixMultiMessengerConfiguration.() -> Unit = {}
-
-    abstract class UIApplicationDelegate :
-        UIApplicationDelegateProxy(get()?.di?.getAll<UIApplicationDelegateProtocol>() ?: emptyList())
-
-    abstract class UIWindowSceneDelegate :
-        UIWindowSceneDelegateProxy(get()?.di?.getAll<UIWindowSceneDelegateProtocol>() ?: emptyList())
 }
 
 suspend fun <T> withMatrixMultiMessengerFromService(
@@ -26,3 +19,8 @@ suspend fun <T> withMatrixMultiMessengerFromService(
         ?: throw IllegalStateException("MatrixMultiMessengerService is not enabled")
     return block(matrixMultiMessenger)
 }
+
+val activeDI: Koin
+    get() = checkNotNull(MatrixMultiMessengerService.get()?.di ?: MatrixMessengerService.get()?.di) {
+        "No Active Matrix Messenger, you have to either initialize MatrixMultiMessengerService or MatrixMessengerService"
+    }
