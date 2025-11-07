@@ -81,6 +81,7 @@ fun ColumnScope.Timeline(timelineViewModel: TimelineViewModel) {
 }
 
 private const val additionalEndPadding = 8
+
 class TimelineViewImpl : TimelineView {
     @Composable
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
@@ -187,7 +188,8 @@ class TimelineViewImpl : TimelineView {
                         } ?: 0
                 }
 
-                val initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else initialIndex
+                val initialFirstVisibleItemIndex =
+                    if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else initialIndex
                 val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialFirstVisibleItemIndex)
 
                 val lastItem = remember {
@@ -303,7 +305,11 @@ class TimelineViewImpl : TimelineView {
                                     }
                                 }
                             }
-                            ListDateHeader(visibleItems, timelineElementHolderViewModels)
+                            ListDateHeader(
+                                visibleItems,
+                                timelineElementHolderViewModels,
+                                show = listState.canScrollForward,
+                            )
                             ScrollToEndButton(timelineViewModel, canScrollToEnd)
                             draggedFile.value?.let { draggedFile ->
                                 Box(
@@ -419,17 +425,20 @@ fun updateVisibleItems(
 fun ListDateHeader(
     visible: State<Pair<String, String>?>,
     timelineElementHolderViewModels: State<List<BaseTimelineElementHolderViewModel>>,
+    show: Boolean,
 ) {
-    val timestamp = remember {
-        derivedStateOf {
-            visible.value?.first?.let { lastEventId ->
-                timelineElementHolderViewModels.value
-                    .find { it.key == lastEventId }
-                    ?.formattedDate
+    if (show) {
+        val timestamp = remember {
+            derivedStateOf {
+                visible.value?.first?.let { lastEventId ->
+                    timelineElementHolderViewModels.value
+                        .find { it.key == lastEventId }
+                        ?.formattedDate
+                }
             }
         }
-    }
-    Box(Modifier.padding(end = additionalEndPadding.dp)) {
-        timestamp.value?.let { DateStickyHeader(it) }
+        Box(Modifier.padding(end = additionalEndPadding.dp)) {
+            timestamp.value?.let { DateStickyHeader(it) }
+        }
     }
 }
