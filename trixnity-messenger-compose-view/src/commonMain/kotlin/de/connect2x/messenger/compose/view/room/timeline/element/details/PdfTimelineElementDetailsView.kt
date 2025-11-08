@@ -28,7 +28,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.text.input.then
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -62,7 +61,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.toSize
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
@@ -70,7 +68,6 @@ import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
-import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -81,6 +78,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -188,7 +186,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         onClose: () -> Unit,
     ) {
         val minZoom = 0.5f
-        val maxZoom = 2f
+        val maxZoom = 4f
         val media = element.loadMediaResultPlatformMedia.collectAsState().value
         val progress = element.loadMediaProgress.collectAsState().value
         val (error, setError) = remember { mutableStateOf<String?>(null) }
@@ -239,8 +237,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
             onSave,
             onClose,
             additions = {
-                PageIndicator(lazyListState, reader.value?.numOfPages?.value ?: 0, scope)
-                MiddleSpacer()
+                PageIndicator(lazyListState, reader.value?.numOfPages?.value ?: 0)
                 ZoomButtons(state, scope)
             }) {
             val focusRequester = remember { FocusRequester() }
@@ -402,29 +399,39 @@ expect suspend fun getPlatformPDFReader(
     onError: (String?) -> Unit,
 ): PDFReader
 
+private data class PageNumber(val pageIndex: Int, val scroll: Boolean)
+
 @Composable
-private fun PageIndicator(lazyListState: LazyListState, pageCount: Int, scope: CoroutineScope) {
+private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
     val measurer = rememberTextMeasurer()
     val textStyle = MaterialTheme.typography.headlineSmall.copy(color = Color.LightGray, textAlign = TextAlign.Right)
     val pageText = rememberTextFieldState()
-    val currentIndex = remember { mutableStateOf(0) }
+    val currentIndex = remember { mutableStateOf(PageNumber(0, false)) }
+    val density = LocalDensity.current
     //Set the width to the digit count of the maximum page number + 1
     val inputFieldWidth = remember(pageCount) {
         if (pageCount != 0) {
             measurer.measure(
                 text = "0".repeat(log10(pageCount.toFloat()).toInt() + 2),
-                style = textStyle
-            ).size.width.dp
-        } else measurer.measure("00", textStyle).size.width.dp
+                style = textStyle,
+                density = density
+            ).size.width.dp / density.density
+        } else measurer.measure(text = "00", style = textStyle, density = density).size.width.dp / density.density
     }
+    //Update the page numbers when new pages are scrolled into view
     LaunchedEffect(lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index) {
-        currentIndex.value = (lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: 0)
-    }
-    LaunchedEffect(currentIndex.value) {
+        currentIndex.value = PageNumber(lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: 0, false)
         pageText.edit {
-            replace(0, length, (currentIndex.value + 1).toString())
+            replace(0, length, currentIndex.value.pageIndex.inc().toString())
         }
     }
+
+    LaunchedEffect(currentIndex.value) {
+        if (currentIndex.value.scroll) {
+            lazyListState.scrollToItem(currentIndex.value.pageIndex)
+        }
+    }
+
     Surface(shape = MaterialTheme.shapes.medium, color = Color.DarkGray) {
         BasicTextField(
             state = pageText,
@@ -432,15 +439,15 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int, scope: C
             textStyle = textStyle,
             cursorBrush = SolidColor(Color.LightGray),
             inputTransformation = InputTransformation.then {
-                val inputIndex = this.toString().toIntOrNull()?.minus(1)
-                println("Transforming to $inputIndex")
-                if (inputIndex != null) {
-                    //Don't scroll to the start of the current page when selecting the TextField
-                    if (inputIndex != currentIndex.value) {
-                        currentIndex.value = inputIndex.coerceIn(0, pageCount - 1)
-                        scope.launch {
-                            lazyListState.scrollToItem(inputIndex)
-                        }
+                if (toString() != "") {
+                    val inputNumber = this.toString().toIntOrNull()?.coerceIn(1, pageCount)
+                    if (inputNumber != null) {
+                        //Don't scroll to the start of the current page when selecting the TextField
+                        currentIndex.value =
+                            PageNumber(inputNumber.dec(), inputNumber.dec() != currentIndex.value.pageIndex)
+                        replace(0, length, currentIndex.value.pageIndex.inc().toString())
+                    } else {
+                        revertAllChanges()
                     }
                 }
             },
