@@ -16,7 +16,6 @@ import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.calls
@@ -27,12 +26,10 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
-import dev.mokkery.verifySuspend
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -445,7 +442,7 @@ class RoomListViewModelTest {
     }
 
     @Test
-    fun `join the room first and then open the room when the selected room is an invitation`() = runTest {
+    fun `do nothing when selecting invited room`() = runTest {
         val room = Room(roomId1, membership = Membership.INVITE)
         every { roomServiceMock.getById(roomId1) } returns flowOf(room)
         every { roomServiceMock.getAll() } returns MutableStateFlow(
@@ -453,75 +450,6 @@ class RoomListViewModelTest {
                 roomId1 to MutableStateFlow(Room(roomId1))
             )
         )
-        everySuspend {
-            roomsApiClientMock.joinRoom(
-                eq(roomId1),
-                any(),
-                any(),
-                any(),
-                any()
-            )
-        } returns Result.success(roomId1)
-
-        val cut = roomListViewModel()
-        subscribe(cut)
-
-        cut.selectRoom(roomId1)
-        delay(10)
-
-        verifySuspend {
-            roomsApiClientMock.joinRoom(eq(roomId1), any(), any(), any(), any())
-            onRoomSelectedMock.invoke(any(), eq(roomId1))
-        }
-    }
-
-    @Test
-    fun `display an error message when the selected room is an invitation and the join fails`() = runTest {
-        val room = Room(roomId1, membership = Membership.INVITE)
-        every { roomServiceMock.getById(roomId1) } returns flowOf(room)
-        every { roomServiceMock.getAll() } returns MutableStateFlow(
-            mapOf(
-                roomId1 to MutableStateFlow(Room(roomId1))
-            )
-        )
-        everySuspend {
-            roomsApiClientMock.joinRoom(
-                eq(roomId1),
-                any(),
-                any(),
-                any(),
-                any()
-            )
-        } returns Result.failure(RuntimeException("Oh no!"))
-
-        val cut = roomListViewModel()
-        subscribe(cut)
-
-        cut.selectRoom(roomId1)
-        delay(10)
-
-        cut.error.value shouldNotBe null
-        cut.errorType.value shouldBe ErrorType.WITH_ACTION
-    }
-
-    @Test
-    fun `display info message when trying to join a room while the client is not connected to the server`() = runTest {
-        val room = Room(roomId1, membership = Membership.INVITE)
-        every { roomServiceMock.getById(roomId1) } returns flowOf(room)
-        every { roomServiceMock.getAll() } returns MutableStateFlow(
-            mapOf(
-                roomId1 to MutableStateFlow(Room(roomId1))
-            )
-        )
-        everySuspend {
-            roomsApiClientMock.joinRoom(
-                eq(roomId1),
-                any(),
-                any(),
-                any(),
-                any(),
-            )
-        } returns Result.success(roomId1)
         val syncState = MutableStateFlow(SyncState.ERROR)
         syncStateMocker returns syncState
 
@@ -531,8 +459,8 @@ class RoomListViewModelTest {
         cut.selectRoom(roomId1)
         delay(10)
 
-        cut.error.value shouldNotBe null
-        cut.errorType.value shouldBe ErrorType.JUST_DISMISS
+        cut.error.value shouldBe null
+        cut.selectedRoomId.value shouldBe RoomId("!roomId") // default when initialized in test case
     }
 
     @Test

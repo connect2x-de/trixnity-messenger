@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
@@ -26,7 +25,6 @@ import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -592,7 +590,7 @@ class RoomListViewModelMultiAccountTest {
     }
 
     @Test
-    fun `display info message when trying to join a room while the client is not connected to the server`() = runTest {
+    fun `do nothing when selecting invited room`() = runTest {
         val room = Room(roomId1, createEventContent = roomCreateEventContent, membership = Membership.INVITE)
         every { roomServiceMock1.getById(roomId1) } returns flowOf(room)
         every { roomServiceMock1.getAll() } returns MutableStateFlow(
@@ -602,15 +600,6 @@ class RoomListViewModelMultiAccountTest {
         )
         every { roomServiceMock2.getAll() } returns MutableStateFlow(emptyMap())
         every { roomServiceMock3.getAll() } returns MutableStateFlow(emptyMap())
-        everySuspend {
-            roomsApiClientMock.joinRoom(
-                eq(roomId1),
-                any(),
-                any(),
-                any(),
-                any(),
-            )
-        } returns Result.success(roomId1)
         val syncState = MutableStateFlow(SyncState.ERROR)
         syncStateMocker1 returns syncState
 
@@ -620,8 +609,8 @@ class RoomListViewModelMultiAccountTest {
         cut.selectRoom(roomId1)
         delay(10)
 
-        cut.error.value shouldNotBe null
-        cut.errorType.value shouldBe ErrorType.JUST_DISMISS
+        cut.error.value shouldBe null
+        cut.selectedRoomId.value shouldBe RoomId("!roomId") // default when initialized in test case
     }
 
     @Test
