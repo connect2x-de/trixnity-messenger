@@ -456,7 +456,8 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
                 Row(Modifier.padding(MaterialTheme.messengerDpConstants.verySmall)) {
                     Surface(
                         Modifier.width(inputFieldWidth),
-                        shape = MaterialTheme.shapes.extraSmall
+                        shape = MaterialTheme.shapes.extraSmall,
+                        color = Color.Black
                     ) {
                         inputField()
                     }
