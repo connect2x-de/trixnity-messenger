@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show dropdown icon in group creation history visibility menu
 - No more Linux segfaults
 - Fix whitespaces in room list search input leading to unwanted removal of rooms from search results
+- Correctly align appearance color preview in appearance settings
 
 ### Security
 
