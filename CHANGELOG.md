@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add timeline events for all power level changes
 - Added a message bubble to the timeline when a user's power level changes
 - UI: timeline does not show sticky date header if not necessary
+- Readme entry on using the web app inside an `iframe`
 
 ### Changed
 
