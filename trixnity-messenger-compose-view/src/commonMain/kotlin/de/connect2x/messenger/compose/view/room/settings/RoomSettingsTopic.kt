@@ -15,6 +15,9 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
@@ -50,24 +53,25 @@ class RoomSettingsTopicViewImpl : RoomSettingsTopicView {
     override fun create(roomSettingsTopicViewModel: RoomSettingsTopicViewModel) {
         val i18n = DI.get<I18nView>()
         val isEdit = roomSettingsTopicViewModel.roomTopic.isEdit.collectAsState()
-        val isEditable = roomSettingsTopicViewModel.canChangeRoomTopic.collectAsState()
+        val canChangeRoomTopic = roomSettingsTopicViewModel.canChangeRoomTopic.collectAsState()
         val value = roomSettingsTopicViewModel.roomTopic.collectAsTextFieldValueState()
         val content = roomSettingsTopicViewModel.formattedRoomTopic.collectAsState()
         val uriCaller = DI.get<UriCaller>()
 
-        val editLabel = if (isEditable.value) i18n.commonEdit() else i18n.roomSettingsRoomTopicCannotChange()
+        val oldValue by remember(isEdit.value) { mutableStateOf(value.value.text) }
 
         if (!isEdit.value) {
             Row(verticalAlignment = Alignment.Top) {
                 Box(Modifier.align(Alignment.CenterVertically).weight(1f, fill = true)) {
-                    if (value.value.text.isBlank()) {
+                    if (value.value.text.isBlank() && canChangeRoomTopic.value) {
                         Text(
                             i18n.roomSettingsRoomTopicPlaceholder(),
                             style = MaterialTheme.typography.bodyLarge,
                             fontStyle = FontStyle.Italic,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                    } else {
+                    }
+                    if (!value.value.text.isBlank()) {
                         ProvideTextStyle(MaterialTheme.typography.bodyLarge) {
                             ThemedSelectionContainer(MaterialTheme.components.selectionOnSurface) {
                                 RichTextDisplay(
@@ -82,12 +86,14 @@ class RoomSettingsTopicViewImpl : RoomSettingsTopicView {
                         }
                     }
                 }
-                Tooltip({ Text(editLabel) }) {
-                    ThemedIconButton(
-                        onClick = { roomSettingsTopicViewModel.roomTopic.startEdit() },
-                        enabled = isEditable.value,
-                    ) {
-                        Icon(Icons.Filled.Edit, contentDescription = editLabel)
+                if (canChangeRoomTopic.value) {
+                    Tooltip({ Text(i18n.commonEdit()) }) {
+                        ThemedIconButton(
+                            onClick = { roomSettingsTopicViewModel.roomTopic.startEdit() },
+                            enabled = canChangeRoomTopic.value,
+                        ) {
+                            Icon(Icons.Filled.Edit, contentDescription = i18n.commonEdit())
+                        }
                     }
                 }
             }
@@ -112,6 +118,7 @@ class RoomSettingsTopicViewImpl : RoomSettingsTopicView {
                     ThemedButton(
                         style = MaterialTheme.components.primaryButton,
                         onClick = { roomSettingsTopicViewModel.roomTopic.approveEdit() },
+                        enabled = oldValue != value.value.text,
                     ) {
                         Text(i18n.commonAcceptEdit())
                     }

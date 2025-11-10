@@ -13,9 +13,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
@@ -43,34 +45,24 @@ class RoomSettingsNameViewImpl : RoomSettingsNameView {
     override fun create(roomSettingsNameViewModel: RoomSettingsNameViewModel) {
         val i18n = DI.get<I18nView>()
         val isEdit = roomSettingsNameViewModel.roomName.isEdit.collectAsState()
-        val isEditable = roomSettingsNameViewModel.canChangeRoomName.collectAsState()
+        val canChangeRoomName = roomSettingsNameViewModel.canChangeRoomName.collectAsState().value
         val value = roomSettingsNameViewModel.roomName.collectAsTextFieldValueState()
 
-        val editLabel = if (isEditable.value) i18n.commonEdit() else i18n.roomSettingsRoomNameCannotChange()
+        val oldValue by remember(isEdit.value) { mutableStateOf(value.value.text) }
 
         if (!isEdit.value) {
             Row(verticalAlignment = Alignment.Top) {
-                if (value.value.text.isBlank()) {
-                    Text(
-                        i18n.roomSettingsRoomNamePlaceholder(),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontStyle = FontStyle.Italic,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.align(Alignment.CenterVertically).weight(1f, true)
-                    )
-                } else {
-                    Text(
-                        value.value.text,
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.align(Alignment.CenterVertically).weight(1f, true)
-                    )
-                }
-                Tooltip({ Text(editLabel) }) {
+                Text(
+                    value.value.text.ifBlank { i18n.roomSettingsRoomNamePlaceholder() },
+                    Modifier.weight(1f),
+                    style = MaterialTheme.typography.headlineSmall,
+                )
+                if (canChangeRoomName) Tooltip({ Text(i18n.commonEdit()) }) {
                     ThemedIconButton(
                         onClick = { roomSettingsNameViewModel.roomName.startEdit() },
-                        enabled = isEditable.value,
+                        Modifier.weight(1f),
                     ) {
-                        Icon(Icons.Filled.Edit, contentDescription = editLabel)
+                        Icon(Icons.Filled.Edit, contentDescription = i18n.commonEdit())
                     }
                 }
             }
@@ -95,6 +87,7 @@ class RoomSettingsNameViewImpl : RoomSettingsNameView {
                     ThemedButton(
                         style = MaterialTheme.components.primaryButton,
                         onClick = { roomSettingsNameViewModel.roomName.approveEdit() },
+                        enabled = oldValue != value.value.text,
                     ) {
                         Text(i18n.commonAcceptEdit())
                     }

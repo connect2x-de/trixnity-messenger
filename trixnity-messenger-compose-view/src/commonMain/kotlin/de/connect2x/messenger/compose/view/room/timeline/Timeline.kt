@@ -307,7 +307,11 @@ class TimelineViewImpl : TimelineView {
                                     }
                                 }
                             }
-                            ListDateHeader(visibleItems, timelineElementHolderViewModels)
+                            ListDateHeader(
+                                visibleItems,
+                                timelineElementHolderViewModels,
+                                show = listState.canScrollForward,
+                            )
                             ScrollToEndButton(timelineViewModel, canScrollToEnd)
                             draggedFile.value?.let { draggedFile ->
                                 Box(
@@ -423,17 +427,20 @@ fun updateVisibleItems(
 fun ListDateHeader(
     visible: State<Pair<String, String>?>,
     timelineElementHolderViewModels: State<List<BaseTimelineElementHolderViewModel>>,
+    show: Boolean,
 ) {
-    val timestamp = remember {
-        derivedStateOf {
-            visible.value?.first?.let { lastEventId ->
-                timelineElementHolderViewModels.value
-                    .find { it.key == lastEventId }
-                    ?.formattedDate
+    if (show) {
+        val timestamp = remember {
+            derivedStateOf {
+                visible.value?.first?.let { lastEventId ->
+                    timelineElementHolderViewModels.value
+                        .find { it.key == lastEventId }
+                        ?.formattedDate
+                }
             }
         }
-    }
-    Box(Modifier.padding(end = additionalEndPadding.dp)) {
-        timestamp.value?.let { DateStickyHeader(it) }
+        Box(Modifier.padding(end = additionalEndPadding.dp)) {
+            timestamp.value?.let { DateStickyHeader(it) }
+        }
     }
 }

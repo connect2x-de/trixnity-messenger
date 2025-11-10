@@ -563,6 +563,20 @@ var body: some View {
 `Observing` takes care of all changes happening in the `Flow` and propagates changes to SwiftUI so that the UI can
 react accordingly. No other translation is needed.
 
+## Usage as a Web app and inside an `iframe`
+
+### Notifications
+
+* if the origin of the parent window and the `iframe` containing the messenger are not the same, notifications will
+  **not work**!
+* Unfortunately, there is no workaround here. The only clean solution would involve `postMessage()` from the `iframe` to
+  the parent window and handling the notification there
+    * this requires code changes to Trixnity-Messenger _and_ the containing app!
+
+### Clipboard (Chrome only)
+
+* in the `iframe` HTML element, include the following attribute: `allow="clipboard-read *; clipboard-write *"`
+
 ## Contributions
 
 If you want to contribute to the project, you need to sign the [Contributor License Agreement](CLA.md).

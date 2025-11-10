@@ -756,6 +756,33 @@ class RoomListViewModelTest {
     }
 
     @Test
+    fun `show rooms without whitespace when adding a whitespace to the end of search term`() = runTest {
+        val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+        val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+        val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
+        every { roomServiceMock.getAll() } returns MutableStateFlow(
+            mapOf(
+                roomId1 to MutableStateFlow(room1),
+                roomId2 to MutableStateFlow(room2),
+                roomId3 to MutableStateFlow(room3)
+            )
+        )
+        every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+        every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
+        every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
+
+        val cut = roomListViewModel()
+        subscribe(cut)
+
+        cut.searchTerm.update("2")
+        delay(301) // 300 ms debounce
+        cut.searchTerm.update("2 ")
+        delay(301) // 300 ms debounce
+
+        cut.elements.value.should(containRoomListElementViewModelsFor(listOf(roomId2)))
+    }
+
+    @Test
     fun `not show spaces in room list`() = runTest {
         val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
         val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
