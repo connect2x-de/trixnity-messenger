@@ -99,12 +99,14 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
 
         ExpandableSection(
             heading = {
-                Text(
-                    text = "${text}: ",
-                    style = MaterialTheme.typography.titleSmall,
-                )
-                Spacer(Modifier.width(5.dp))
-                AppearanceSettingsColorPreview(currentColor)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "${text}: ",
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    Spacer(Modifier.width(5.dp))
+                    AppearanceSettingsColorPreview(currentColor)
+                }
             },
             icon = Icons.Default.Settings,
         ) {
