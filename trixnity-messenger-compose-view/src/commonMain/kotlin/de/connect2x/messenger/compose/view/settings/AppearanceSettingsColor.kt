@@ -37,6 +37,8 @@ import de.connect2x.messenger.compose.view.common.hue
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.common.ExpandableSection
+import de.connect2x.messenger.compose.view.common.SmallSpacer
+import de.connect2x.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.messenger.compose.view.theme.DefaultAccentColor
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
@@ -104,7 +106,7 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                         text = "${text}: ",
                         style = MaterialTheme.typography.titleSmall,
                     )
-                    Spacer(Modifier.width(5.dp))
+                    VerySmallSpacer()
                     AppearanceSettingsColorPreview(currentColor)
                 }
             },
