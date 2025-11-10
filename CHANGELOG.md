@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a settings panel for configuring power levels
 - Add timeline events for all power level changes
 - Added a message bubble to the timeline when a user's power level changes
+- UI: timeline does not show sticky date header if not necessary
 
 ### Changed
 
@@ -19,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use SQLitenity as Room implementation
 - Improve keyboard accessibility of profile selection and blocked user settings
 - room settings: improve handling of name and topic display
+- Upgrade Trixnity to 4.22.7
 
 ### Deprecated
 
