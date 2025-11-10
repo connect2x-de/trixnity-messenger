@@ -25,6 +25,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import de.connect2x.messenger.compose.view.common.modifier.focusOnFirstRender
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -93,7 +94,7 @@ fun RovingFocusItem(
 }
 
 @Composable
-fun Modifier.rovingFocusItem(): Modifier {
+fun Modifier.rovingFocusItem(focusOnFirstRender: Boolean = false): Modifier {
     val focusRequester = remember { FocusRequester() }
     val rovingFocusState = LocalRovingFocus.current ?: return this
     val scope = LocalRovingFocusItem.current ?: return this
@@ -114,6 +115,7 @@ fun Modifier.rovingFocusItem(): Modifier {
             }
         }
         .focusRequester(focusRequester)
+        .then(if (focusOnFirstRender) Modifier.focusOnFirstRender(focusRequester) else Modifier)
 }
 
 @Composable

@@ -92,8 +92,6 @@ fun MessageBubbleContainer(
             style = messageBubbleStyle,
             focused = hasFocus,
             modifier = Modifier
-                // FIXME We want to explicitly listen for the focus on children, so when a child is focused we are as well
-//                .onFocusChanged { isFocused.value = it.hasFocus }
                 .then(messagePadding)
                 .drawWithCache {
                     onDrawBehind {
@@ -102,7 +100,7 @@ fun MessageBubbleContainer(
                         }
                     }
                 }
-                .rovingFocusItem()
+                .rovingFocusItem(focusOnFirstRender = true)
                 .focusable(true, interactionSource)
                 .semantics {
                     collectionItemInfo = CollectionItemInfo(0, 1, index, 1)

@@ -12,6 +12,10 @@ import androidx.compose.ui.focus.focusRequester
 
 fun Modifier.focusOnFirstRender(): Modifier = composed {
     val focusRequester = remember { FocusRequester() }
+    focusOnFirstRender(focusRequester)
+}
+
+fun Modifier.focusOnFirstRender(focusRequester: FocusRequester): Modifier = composed {
     var hasRequested by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
