@@ -103,7 +103,7 @@ fun MessageBubbleContainer(
                 .rovingFocusItem(focusOnFirstRender = true)
                 .focusable(true, interactionSource)
                 .semantics {
-                    collectionItemInfo = CollectionItemInfo(0, 1, index, 1)
+                    collectionItemInfo = CollectionItemInfo(index, 1, 0, 1)
                     contentDescription = "${sender?.name ?: i18n.commonUnknown()} (${holder.formattedTime}): " +
                             (element?.let { timelineElementViewSelector.a11yLabel(it, i18n) } ?: "")
                 },
