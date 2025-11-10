@@ -16,13 +16,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.core.net.toUri
 import com.arkivanov.decompose.defaultComponentContext
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.MatrixMultiMessengerServiceConnection
 import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.MatrixMultiMessengerServiceConnection
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.defaultActivityGetter
 import de.connect2x.trixnity.messenger.util.defaultSharedDataHandler
@@ -40,7 +40,7 @@ import kotlinx.coroutines.withContext
 class MatrixMultiMessengerActivity : AppCompatActivity() {
     private val log = KotlinLogging.logger { }
     private val matrixMultiMessengerServiceConnection = MatrixMultiMessengerServiceConnection()
-    private val scope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, exception ->
+    private val coroutineScope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, exception ->
         log.error(exception) { "Exception in MatrixMultiMessengerActivity coroutine" }
     })
 
@@ -57,7 +57,7 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
 
         val componentContext = defaultComponentContext()
 
-        scope.launch {
+        coroutineScope.launch {
             val matrixMultiMessenger =
                 matrixMultiMessengerServiceConnection.instance.filterNotNull().first()
             matrixMultiMessenger.defaultActivityGetter { this@MatrixMultiMessengerActivity }
@@ -126,42 +126,41 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        scope.cancel()
+        coroutineScope.cancel()
         matrixMultiMessengerServiceConnection.unbind(applicationContext)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        when (intent.action) {
-            Intent.ACTION_VIEW -> intent.data?.also {
-                matrixMultiMessengerServiceConnection.instance.value?.defaultUrlHandler?.onUri(it)
-            }
+        coroutineScope.launch {
+            val multiMessenger = matrixMultiMessengerServiceConnection.instance.filterNotNull().first()
+            when (intent.action) {
+                Intent.ACTION_VIEW -> intent.data?.also {
+                    multiMessenger.defaultUrlHandler.onUri(it)
+                }
 
-            Intent.ACTION_SEND if intent.type == "text/plain" -> {
-                intent.getStringExtra(Intent.EXTRA_TEXT)?.let { text ->
-                    val uri = text.toUri()
+                Intent.ACTION_SEND if intent.type == "text/plain" -> {
+                    intent.getStringExtra(Intent.EXTRA_TEXT)?.let { text ->
+                        val uri = text.toUri()
 
-                    val sharedIntentData =
-                        if (uri.scheme == "http" || uri.scheme == "https") {
-                            val icon = intent.clipData?.toSequence()?.firstOrNull()?.uri
+                        val sharedIntentData =
+                            if (uri.scheme == "http" || uri.scheme == "https") {
+                                val icon = intent.clipData?.toSequence()?.firstOrNull()?.uri
 
-                            SharedIntentData.SharedUrl(text, icon)
-                        } else {
-                            SharedIntentData.SharedText(text)
-                        }
-                    matrixMultiMessengerServiceConnection.instance.value?.also {
-                        val i18n = it.di.get<I18n>()
-                        it.defaultSharedDataHandler.onShare(
+                                SharedIntentData.SharedUrl(text, icon)
+                            } else {
+                                SharedIntentData.SharedText(text)
+                            }
+                        val i18n = multiMessenger.di.get<I18n>()
+                        multiMessenger.defaultSharedDataHandler.onShare(
                             sharedIntentData.toSharedData(applicationContext, i18n)
                         )
                     }
                 }
-            }
 
-            Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE -> intent.clipData?.let { clipData ->
-                matrixMultiMessengerServiceConnection.instance.value?.also {
-                    val i18n = it.di.get<I18n>()
-                    it.defaultSharedDataHandler.onShare(
+                Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE -> intent.clipData?.let { clipData ->
+                    val i18n = multiMessenger.di.get<I18n>()
+                    multiMessenger.defaultSharedDataHandler.onShare(
                         clipData.toList().let(SharedIntentData::SharedItems).toSharedData(applicationContext, i18n)
                     )
                 }
