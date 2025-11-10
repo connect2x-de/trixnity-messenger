@@ -1,22 +1,19 @@
 package de.connect2x.messenger.compose.view.settings
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonOff
 import androidx.compose.material.icons.filled.RemoveCircle
@@ -29,7 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
@@ -37,9 +34,17 @@ import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
+import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
+import de.connect2x.messenger.compose.view.util.LocalRovingFocus
+import de.connect2x.messenger.compose.view.util.RovingFocusContainer
+import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.rovingFocusItem
+import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContact
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModel
 
@@ -56,39 +61,101 @@ fun BlockedContactsSettings(blockedContactsSettingsViewModel: BlockedContactsSet
 class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
     @Composable
     override fun create(blockedContactsSettingsViewModel: BlockedContactsSettingsViewModel) {
-        val userList = blockedContactsSettingsViewModel.blockedContactsList.collectAsState().value
+        val userList by blockedContactsSettingsViewModel.blockedContactsList.collectAsState()
         val i18n = DI.get<I18nView>()
-        val scroll = rememberScrollState()
-        Box(Modifier.fillMaxSize()) {
-            Column {
-                Header(blockedContactsSettingsViewModel::back, i18n.blockedContactsHeader())
-                Text(
-                    i18n.blockedContactsAccountLabel(blockedContactsSettingsViewModel.account.full),
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.padding(16.dp),
-                )
-                when (userList.isNotEmpty()) {
-                    true -> Box {
-                        Column(Modifier.padding(10.dp).verticalScroll(scroll)) {
-                            userList.map { user ->
-                                IgnoredUserListElement(user, i18n, blockedContactsSettingsViewModel)
-                            }
-                        }
-                        VerticalScrollbar(
-                            Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                            scroll,
+        val state = rememberLazyListState()
+        val references = remember(userList) { userList.map { it.userId } }
+        val defaultItem = references.firstOrNull()
+        Column {
+            Header(blockedContactsSettingsViewModel::back, i18n.blockedContactsHeader())
+            if (userList.isEmpty()) {
+                ThemedListItem(
+                    style = MaterialTheme.components.settingsItem,
+                    headlineContent = {
+                        Text(
+                            i18n.blockedContactsAccountLabel(blockedContactsSettingsViewModel.account.full),
+                            style = MaterialTheme.typography.titleMedium,
                         )
                     }
-
-                    false -> Box(Modifier.fillMaxWidth()) {
+                )
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Icon(
+                            Icons.Default.PersonOff,
+                            null,
+                            modifier = Modifier.requiredSize(72.dp),
+                            tint = MaterialTheme.colorScheme.primaryContainer,
+                        )
+                        Spacer(Modifier.height(20.dp))
                         Text(
                             i18n.blockedContactsEmptyListLabel(),
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(
-                                horizontal = 10.dp,
-                                vertical = 100.dp,
-                            ).align(Alignment.Center),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleMedium,
                         )
+                    }
+                }
+            } else {
+            Box(Modifier.fillMaxSize()) {
+                    RovingFocusContainer {
+                        LazyColumn(
+                            Modifier.fillMaxSize().verticalRovingFocus(
+                                default = defaultItem,
+                                scroll = { item ->
+                                    val index = references.indexOf(item)
+                                    if (index != -1) {
+                                        state.scrollToItem(index)
+                                    }
+                                },
+                                up = {
+                                    val currentItem = activeRef.value ?: defaultItem
+                                    val currentIndex = references.indexOf(currentItem)
+                                    val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
+                                    references[nextIndex]
+                                },
+                                down = {
+                                    val currentItem = activeRef.value ?: defaultItem
+                                    val currentIndex = references.indexOf(currentItem)
+                                    val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
+                                    references[nextIndex]
+                                },
+                            ),
+                            state
+                        ) {
+                            item("header") {
+                                ThemedListItem(
+                                    style = MaterialTheme.components.settingsItem,
+                                    headlineContent = {
+                                        Text(
+                                            i18n.blockedContactsAccountLabel(blockedContactsSettingsViewModel.account.full),
+                                            style = MaterialTheme.typography.titleMedium,
+                                        )
+                                    }
+                                )
+                            }
+                            itemsIndexed(userList, key = { _, value -> value.userId }) { index, user ->
+                                RovingFocusItem(user.userId, defaultItem) {
+                                    val focusContainer = LocalRovingFocus.current
+
+                                    IgnoredUserListElement(user, i18n) {
+                                         val referencesWithoutThisOne = references - user.userId
+                                         blockedContactsSettingsViewModel.unblockContact(user.userId)
+
+                                         if (referencesWithoutThisOne.isEmpty()) return@IgnoredUserListElement
+
+                                         focusContainer?.selectItem(
+                                             referencesWithoutThisOne[index.coerceIn(referencesWithoutThisOne.indices)]
+                                         )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (state.canScrollForward || state.canScrollBackward) {
+                        VerticalScrollbar(Modifier.align(Alignment.CenterEnd), state, false)
                     }
                 }
             }
@@ -100,61 +167,38 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
 fun IgnoredUserListElement(
     user: BlockedContact,
     i18n: I18nView,
-    viewModel: BlockedContactsSettingsViewModel,
-) = Box(Modifier.fillMaxWidth()) {
-    val rowInteractionSource = remember { MutableInteractionSource() }
-    val isRowHovered by rowInteractionSource.collectIsHoveredAsState()
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(unbounded = true)
-            .hoverable(rowInteractionSource)
-            .background(if (isRowHovered) MaterialTheme.colorScheme.surfaceVariant else Color.Transparent)
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        val buttonInteractionSource = remember { MutableInteractionSource() }
-        val isButtonHovered by buttonInteractionSource.collectIsHoveredAsState()
-        Icon(
-            Icons.Default.PersonOff,
-            contentDescription = i18n.blockedContactDescription(),
-            modifier = Modifier.wrapContentSize(unbounded = true),
-        )
-        Text(
-            user.userId.full,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(8.dp).weight(1.0f, true),
-        )
-        Box(
-            Modifier
-                .size(24.dp) // To keep child elements centered to the same pivot.
-                .wrapContentSize(unbounded = true)
-        ) {
-            when (user.isUnblocking) {
-                true -> ThemedProgressIndicator(
-                    Modifier.align(Alignment.Center),
-                    MaterialTheme.components.extraSmallCircularProgressIndicator
-                )
+    onRemove: () -> Unit,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val focused = interactionSource.collectIsFocusedAsState()
+    val focusedBorder =
+        if (IsFocusHighlighting.current && focused.value) {
+            Modifier.border(
+                width = MaterialTheme.messengerFocusIndicator.borderWidth,
+                color = MaterialTheme.colorScheme.onBackground,
+            )
+        } else Modifier
 
-                else -> Tooltip({ Text(i18n.unblockContactDescription()) }) {
+    ThemedListItem(
+        style = MaterialTheme.components.settingsItem,
+        modifier = Modifier.then(focusedBorder),
+        leadingContent = { Icon(Icons.Default.PersonOff, null) },
+        headlineContent = { Text(user.userId.full) },
+        trailingContent = {
+            if (user.isUnblocking) {
+                ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
+            } else {
+                Tooltip({ Text(i18n.unblockContactDescription()) }) {
                     ThemedIconButton(
                         style = MaterialTheme.components.commonIconButton,
-                        onClick = { viewModel.unblockContact(user.userId) },
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .hoverable(buttonInteractionSource)
+                        modifier = Modifier.rovingFocusItem(),
+                        interactionSource = interactionSource,
+                        onClick = onRemove,
                     ) {
-                        Icon(
-                            Icons.Default.RemoveCircle,
-                            contentDescription = i18n.unblockContactDescription(),
-                            modifier = Modifier.align(Alignment.Center),
-                            tint = if (isButtonHovered) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.surfaceTint,
-                        )
+                        Icon(Icons.Default.RemoveCircle, i18n.unblockContactDescription())
                     }
                 }
             }
-        }
-    }
+        },
+    )
 }

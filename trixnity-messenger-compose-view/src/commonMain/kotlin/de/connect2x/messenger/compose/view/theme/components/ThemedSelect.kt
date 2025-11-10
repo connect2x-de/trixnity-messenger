@@ -10,11 +10,11 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -78,7 +78,7 @@ fun <T> ThemedSelect(
     label: @Composable (() -> Unit)? = null,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     leadingIcon: @Composable ((T) -> Unit)? = null,
-    render: (T) -> String,
+    render: @Composable (T) -> String,
 ) {
     val expanded = remember { mutableStateOf(false) }
 
@@ -90,7 +90,7 @@ fun <T> ThemedSelect(
         val textColor = LocalTextStyle.current.color.takeOrElse {
             val focused = interactionSource.collectIsFocusedAsState().value
             when {
-                !true -> style.anchor.disabledTextColor
+                !enabled -> style.anchor.disabledTextColor
                 focused -> style.anchor.focusedTextColor
                 else -> style.anchor.unfocusedTextColor
             }
@@ -112,7 +112,7 @@ fun <T> ThemedSelect(
                 .toggleable(expanded.value, interactionSource, null, enabled, Role.DropdownList) {
                     expanded.value = it
                 }
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled)
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled)
                 .then(labelModifier).defaultMinSize(
                     minWidth = OutlinedTextFieldDefaults.MinWidth,
                     minHeight = OutlinedTextFieldDefaults.MinHeight
@@ -142,13 +142,13 @@ fun <T> ThemedSelect(
                 suffix = null,
                 supportingText = null,
                 singleLine = true,
-                enabled = true,
+                enabled = enabled,
                 isError = false,
                 interactionSource = interactionSource,
                 colors = style.anchor,
                 container = {
                     OutlinedTextFieldDefaults.Container(
-                        enabled = true,
+                        enabled = enabled,
                         isError = false,
                         interactionSource = interactionSource,
                         colors = style.anchor,
@@ -162,7 +162,7 @@ fun <T> ThemedSelect(
         ThemedExposedDropdownMenu(
             expanded = expanded.value,
             onDismissRequest = { expanded.value = false },
-            matchTextFieldWidth = true,
+            matchAnchorWidth = true,
             style = style.menu,
         ) {
             for (option in options) {

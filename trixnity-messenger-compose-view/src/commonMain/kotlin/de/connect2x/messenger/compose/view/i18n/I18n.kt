@@ -2945,6 +2945,271 @@ open class I18nView(
         DE - "Nachricht in $roomName"
     }
 
+    open fun userProfileRoleCustom() = translate {
+        EN - "custom"
+        DE - "Selbstdefiniert"
+    }
+
+    open fun mRoomAvatarPowerLevelHeading() = translate {
+        EN - "Change room avatar"
+        DE - "Raumavatar ändern"
+    }
+
+    open fun mRoomNameHeading() = translate {
+        EN - "Change room name"
+        DE - "Raumnamen ändern"
+    }
+
+    open fun mRoomTopicHeading() = translate {
+        EN - "Change room topic"
+        DE - "Raumthema ändern"
+    }
+
+    open fun mRoomMemberHeading() = translate {
+        EN - "Change membership"
+        DE - "Mitgliedschaft ändern"
+    }
+
+    open fun mRoomPowerLevelsHeading() = translate {
+        EN - "Change power levels"
+        DE - "Berechtigungslevel ändern"
+    }
+
+    open fun mRoomJoinRulesHeading() = translate {
+        EN - "Change join rules"
+        DE - "Beitrittsregeln ändern"
+    }
+
+    open fun mRoomHistoryVisibilityHeading() = translate {
+        EN - "Change history visibility"
+        DE - "Sichtbarkeit der Historie ändern"
+    }
+
+    open fun mRoomEncryptionHeading() = translate {
+        EN - "Enable encryption"
+        DE - "Verschlüsselung aktivieren"
+    }
+
+    open fun mRoomPinnedEventsHeading() = translate {
+        EN - "Update pinned messages"
+        DE - "Markierte Nachrichten aktualisieren"
+    }
+
+    open fun mRoomCanonicalAliasHeading() = translate {
+        EN - "Change main room address"
+        DE - "Hauptadresse des Raums ändern"
+    }
+
+    open fun mRoomServerAclHeading() = translate {
+        EN - "Change server access rules"
+        DE - "Serverzugriffsregeln ändern"
+    }
+
+    open fun mRoomTombstoneHeading() = translate {
+        EN - "Change linked replacement room"
+        DE - "Verknüpften Ersatzraum ändern"
+    }
+
+    open fun mRoomUserDefaultHeading() = translate {
+        EN - "Default power level for users"
+        DE - "Standard-Berechtigungslevel für Benutzer"
+    }
+
+    open fun mRoomStateDefaultHeading() = translate {
+        EN - "Default power level for state events"
+        DE - "Standard-Berechtigungslevel für Statusereignisse"
+    }
+
+    open fun mRoomEventDefaultHeading() = translate {
+        EN - "Default power level for events"
+        DE - "Standard-Berechtigungslevel für Ereignisse"
+    }
+
+    open fun mRoomBanHeading() = translate {
+        EN - "Ban users"
+        DE - "Benutzer bannen"
+    }
+
+    open fun mRoomInviteHeading() = translate {
+        EN - "Invite users"
+        DE - "Benutzer einladen"
+    }
+
+    open fun mRoomKickHeading() = translate {
+        EN - "Remove users"
+        DE - "Benutzer entfernen"
+    }
+
+    open fun mRoomRedactHeading() = translate {
+        EN - "Redact messages"
+        DE - "Nachrichten löschen"
+    }
+
+    open fun changePowerLevelHeader() = translate {
+        EN - "Change Power Levels"
+        DE - "Berechtigungslevel ändern"
+    }
+
+    open fun cannotChangePowerLevels() = translate {
+        EN - "You don't have permission to change power levels"
+        DE - "Sie haben nicht die Rechte um Berechtigungslevel zu ändern"
+    }
+
+    open fun powerLevelLabel() = translate {
+        EN - "Power level"
+        DE - "Berechtigungslevel"
+    }
+
+    open fun roleLabel() = translate {
+        EN - "Role"
+        DE - "Rolle"
+    }
+
+    open fun newEventIdLabel() = translate {
+        EN - "Event id"
+        DE - "Event Id"
+    }
+
+    open fun mRoomMessageHeading() = translate {
+        EN - "Send unencrypted messages"
+        DE - "Unverschlüsselte Nachrichten senden"
+    }
+
+    open fun mReactionHeading() = translate {
+        EN - "Send reactions"
+        DE - "Reaktionen senden"
+    }
+
+    open fun mRoomRedactionHeading() = translate {
+        EN - "Remove messages"
+        DE - "Nachrichten entfernen"
+    }
+
+    open fun mRoomEncryptedHeading() = translate {
+        EN - "Send encrypted messages"
+        DE - "Verschlüsselte Nachrichten senden"
+    }
+
+    open fun mKeyVerificationStartHeading() = translate {
+        EN - "Start verification"
+        DE - "Verifizierung starten"
+    }
+
+    open fun mKeyVerificationReadyHeading() = translate {
+        EN - "Be ready for verification"
+        DE - "Zur Verifizierung bereit sein"
+    }
+
+    open fun mKeyVerificationAcceptHeading() = translate {
+        EN - "Accept verification"
+        DE - "Verifizierung akzeptieren"
+    }
+
+    open fun mKeyVerificationKeyHeading() = translate {
+        EN - "Send verification key"
+        DE - "Verifizierungsschlüssel senden"
+    }
+
+    open fun mKeyVerificationMacHeading() = translate {
+        EN - "Send verification MAC"
+        DE - "Verifizierungs-MAC senden"
+    }
+
+    open fun mKeyVerificationDoneHeading() = translate {
+        EN - "Complete verification"
+        DE - "Verifizierung abschließen"
+    }
+
+    open fun mKeyVerificationCancelHeading() = translate {
+        EN - "Cancel verification"
+        DE - "Verifizierung abbrechen"
+    }
+
+    open fun mCallInviteHeading() = translate {
+        EN - "Start calls"
+        DE - "Anrufe starten"
+    }
+
+    open fun mCallCandidatesHeading() = translate {
+        EN - "Exchange call candidates"
+        DE - "Anrufkandidaten austauschen"
+    }
+
+    open fun mCallAnswerHeading() = translate {
+        EN - "Answer calls"
+        DE - "Anrufe annehmen"
+    }
+
+    open fun mCallHangupHeading() = translate {
+        EN - "End calls"
+        DE - "Anrufe beenden"
+    }
+
+    open fun mCallNegotiateHeading() = translate {
+        EN - "Negotiate call parameters"
+        DE - "Anrufparameter aushandeln"
+    }
+
+    open fun mCallRejectHeading() = translate {
+        EN - "Reject calls"
+        DE - "Anrufe ablehnen"
+    }
+
+    open fun mCallSelectAnswerHeading() = translate {
+        EN - "Select call answer"
+        DE - "Anrufantwort auswählen"
+    }
+
+    open fun mCallSdpStreamMetadataChangedHeading() = translate {
+        EN - "Update call stream metadata"
+        DE - "Anruf-Stream-Metadaten aktualisieren"
+    }
+
+    open fun powerLevelChangeNewEventHeading() = translate {
+        EN - "Create new event"
+        DE - "Neues Ereignis erstellen"
+    }
+
+    open fun mRoomCreateHeading() = translate {
+        EN - "Create rooms"
+        DE - "Räume erstellen"
+    }
+
+    open fun mRoomThirdPartyInviteHeading() = translate {
+        EN - "Invite third-party users"
+        DE - "Drittbenutzer einladen"
+    }
+
+    open fun mRoomGuestAccessHeading() = translate {
+        EN - "Set guest access"
+        DE - "Gastzugriff festlegen"
+    }
+
+    open fun mPolicyRuleUserHeading() = translate {
+        EN - "Manage user policies"
+        DE - "Benutzerrichtlinien verwalten"
+    }
+
+    open fun mPolicyRuleRoomHeading() = translate {
+        EN - "Manage room policies"
+        DE - "Raumrichtlinien verwalten"
+    }
+
+    open fun mPolicyRuleServerHeading() = translate {
+        EN - "Manage server policies"
+        DE - "Serverrichtlinien verwalten"
+    }
+
+    open fun mSpaceParentHeading() = translate {
+        EN - "Link parent spaces"
+        DE - "Übergeordnete Spaces verknüpfen"
+    }
+
+    open fun mSpaceChildHeading() = translate {
+        EN - "Link child spaces"
+        DE - "Untergeordnete Spaces verknüpfen"
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)

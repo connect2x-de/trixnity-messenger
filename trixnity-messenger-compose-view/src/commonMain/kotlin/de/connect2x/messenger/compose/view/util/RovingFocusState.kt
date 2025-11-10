@@ -164,16 +164,16 @@ fun Modifier.verticalRovingFocus(
             when (event.key) {
                 Key.DirectionUp -> {
                     if (event.type == KeyEventType.KeyDown) {
-                        val item = state.up()
-                        state.selectItem(item) { scroll(item) }
+                        val nextItem = state.up()
+                        state.selectItem(nextItem) { scroll(nextItem) }
                     }
                     true
                 }
 
                 Key.DirectionDown -> {
                     if (event.type == KeyEventType.KeyDown) {
-                        val item = state.down()
-                        state.selectItem(item) { scroll(item) }
+                        val nextItem = state.down()
+                        state.selectItem(nextItem) { scroll(nextItem) }
                     }
                     true
                 }
@@ -184,6 +184,38 @@ fun Modifier.verticalRovingFocus(
                 else -> false
             }
         }
+}
+
+fun RovingFocusState.getPreviousItem(defaultItem: Any?, references: List<Any?>): Any? {
+    val currentItem = activeRef.value ?: defaultItem
+    val currentIndex = references.indexOf(currentItem)
+    val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
+    return references[nextIndex]
+}
+
+fun RovingFocusState.getNextItem(defaultItem: Any?, references: List<Any?>): Any? {
+    val currentItem = activeRef.value ?: defaultItem
+    val currentIndex = references.indexOf(currentItem)
+    val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
+    return references[nextIndex]
+}
+
+fun RovingFocusState.moveUp(
+    defaultItem: Any?,
+    references: List<Any?>,
+    onMove: suspend CoroutineScope.(Any?) -> Unit = {}
+) {
+    val nextItem = getPreviousItem(defaultItem, references)
+    selectItem(nextItem) { onMove(nextItem) }
+}
+
+fun RovingFocusState.moveDown(
+    defaultItem: Any?,
+    references: List<Any?>,
+    onMove: suspend CoroutineScope.(Any?) -> Unit = {}
+) {
+    val nextItem = getNextItem(defaultItem, references)
+    selectItem(nextItem) { onMove(nextItem) }
 }
 
 @Composable

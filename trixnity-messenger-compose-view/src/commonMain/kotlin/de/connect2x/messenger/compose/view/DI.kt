@@ -36,6 +36,8 @@ import de.connect2x.messenger.compose.view.room.RoomView
 import de.connect2x.messenger.compose.view.room.RoomViewImpl
 import de.connect2x.messenger.compose.view.room.settings.AddMembersToRoomView
 import de.connect2x.messenger.compose.view.room.settings.AddMembersToRoomViewImpl
+import de.connect2x.messenger.compose.view.room.settings.ChangePowerLevelView
+import de.connect2x.messenger.compose.view.room.settings.ChangePowerLevelViewImpl
 import de.connect2x.messenger.compose.view.room.settings.ChangeRoomAvatarView
 import de.connect2x.messenger.compose.view.room.settings.ChangeRoomAvatarViewImpl
 import de.connect2x.messenger.compose.view.room.settings.ExportRoomView
@@ -56,6 +58,9 @@ import de.connect2x.messenger.compose.view.room.settings.RoomSettingsNameView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsNameViewImpl
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsNotificationsView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsNotificationsViewImpl
+import de.connect2x.messenger.compose.view.room.settings.RoomSettingsPowerlevelView
+import de.connect2x.messenger.compose.view.room.settings.RoomSettingsPowerlevelViewImpl
+import de.connect2x.messenger.compose.view.room.settings.RoomSettingsPowerlevelViewImplEmpty
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsSecurityView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsSecurityViewImpl
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsTopicView
@@ -168,6 +173,8 @@ import de.connect2x.messenger.compose.view.room.timeline.element.state.MemberSta
 import de.connect2x.messenger.compose.view.room.timeline.element.state.MemberStateTimelineElementViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.state.NameStateTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.state.NameStateTimelineElementViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.state.PowerLevelTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.PowerLevelTimelineElementViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.state.TopicStateTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.state.TopicStateTimelineElementViewImpl
 import de.connect2x.messenger.compose.view.roomlist.RoomListContainerView
@@ -305,6 +312,9 @@ import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWiza
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardView
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardViewImpl
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerFeatures
+import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
+import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named
@@ -329,7 +339,7 @@ fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Mo
         createRoomsViewModule(),
         searchViewModule(),
         roomViewModule(),
-        roomSettingsViewModule(),
+        roomSettingsViewModule(messengerConfiguration?.features),
         timelineViewModule(messengerConfiguration),
         userSearchViewModule(),
         settingsViewModule(),
@@ -426,7 +436,7 @@ fun roomViewModule() = module {
     single<SearchUsersSettingsView> { SearchUsersSettingsViewImpl() }
 }
 
-fun roomSettingsViewModule() = module {
+fun roomSettingsViewModule(features: MatrixMessengerFeatures? = null) = module {
     single<RoomSettingsView> { RoomSettingsViewImpl() }
     single<TimelineElementMetadataView> { TimelineElementMetadataViewImpl() }
     single<ChangeRoomAvatarView> { ChangeRoomAvatarViewImpl() }
@@ -442,7 +452,16 @@ fun roomSettingsViewModule() = module {
     single<RoomSettingsJoinRulesView> { RoomSettingsJoinRulesViewImpl() }
     single<ExportRoomView> { ExportRoomViewImpl() }
     single<AddMembersToRoomView> { AddMembersToRoomViewImpl() }
+    single<ChangePowerLevelView> { ChangePowerLevelViewImpl() }
+    single<EventContentSerializerMappings> { DefaultEventContentSerializerMappings }
     single<UserProfileView> { UserProfileViewImpl() }
+
+    single<RoomSettingsPowerlevelView> {
+        if (features?.enablePowerlevelEventConfigurationInRoomSettings == true)
+            RoomSettingsPowerlevelViewImpl()
+        else
+            RoomSettingsPowerlevelViewImplEmpty()
+    }
 }
 
 inline fun <reified F : TimelineElementView<*>> Module.timelineElementView(
@@ -474,6 +493,7 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
     timelineElementView<CreateStateTimelineElementView> { CreateStateTimelineElementViewImpl() }
     timelineElementView<EncryptionStateTimelineElementView> { EncryptionStateTimelineElementViewImpl() }
     timelineElementView<HistoryVisibilityStateTimelineElementView> { HistoryVisibilityStateTimelineElementViewImpl() }
+    timelineElementView<PowerLevelTimelineElementView> { PowerLevelTimelineElementViewImpl() }
     timelineElementView<MemberStateTimelineElementView> { MemberStateTimelineElementViewImpl() }
     timelineElementView<NameStateTimelineElementView> { NameStateTimelineElementViewImpl() }
     timelineElementView<TopicStateTimelineElementView> { TopicStateTimelineElementViewImpl() }

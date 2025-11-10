@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.tasks.factory.dependsOn
+import com.mikepenz.aboutlibraries.plugin.AboutLibrariesExtension
 import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.registerCoverageTask
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
@@ -10,10 +12,18 @@ plugins {
     alias(sharedLibs.plugins.compose.multiplatform)
     alias(sharedLibs.plugins.compose.compiler)
     alias(sharedLibs.plugins.kotlin.parcelize)
+    alias(sharedLibs.plugins.kotlinx.kover)
 }
 
 configureJava(sharedLibs.versions.targetJvm)
 registerCoverageTask()
+
+tasks.register("koverXmlReportJvm") {
+    val desktopReport = tasks.named("koverXmlReportDesktop")
+
+    inputs.files(desktopReport)
+    outputs.files(desktopReport)
+}
 
 kotlin {
     compilerOptions {
