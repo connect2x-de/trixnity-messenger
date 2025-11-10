@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix focus handling in chat/group creation user list and add members view
 - Show dropdown icon in group creation history visibility menu
 - No more Linux segfaults
+- Correctly align appearance color preview in appearance settings
 
 ### Security
 
