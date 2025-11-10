@@ -29,7 +29,13 @@ import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.then
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -65,6 +71,7 @@ import androidx.compose.ui.unit.toSize
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.VerticalScrollbar
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
@@ -432,37 +439,57 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
     }
 
     Surface(shape = MaterialTheme.shapes.medium, color = Color.DarkGray) {
-        BasicTextField(
-            state = pageText,
-            lineLimits = TextFieldLineLimits.SingleLine,
-            textStyle = textStyle,
-            cursorBrush = SolidColor(Color.LightGray),
-            inputTransformation = InputTransformation.then {
-                if (toString() != "") {
-                    val inputNumber = this.toString().toIntOrNull()?.coerceIn(1, pageCount)
-                    if (inputNumber != null) {
-                        //Don't scroll to the start of the current page when selecting the TextField
-                        currentIndex.value =
-                            PageNumber(inputNumber.dec(), inputNumber.dec() != currentIndex.value.pageIndex)
-                        replace(0, length, currentIndex.value.pageIndex.inc().toString())
-                    } else {
-                        revertAllChanges()
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(
+                onClick = {
+                    if (currentIndex.value.pageIndex > 0) {
+                        currentIndex.value = PageNumber(currentIndex.value.pageIndex.dec(), true)
                     }
-                }
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            decorator = { inputField ->
-                Row(Modifier.padding(MaterialTheme.messengerDpConstants.verySmall)) {
-                    Surface(
-                        Modifier.width(inputFieldWidth),
-                        shape = MaterialTheme.shapes.extraSmall,
-                        color = Color.Black
-                    ) {
-                        inputField()
-                    }
-                    Text(" / $pageCount", style = textStyle)
-                }
+                }, modifier = Modifier.buttonPointerModifier(),
+            ) {
+                Icon(Icons.Default.Remove, "To previous page")
             }
-        )
+            BasicTextField(
+                state = pageText,
+                lineLimits = TextFieldLineLimits.SingleLine,
+                textStyle = textStyle,
+                cursorBrush = SolidColor(Color.LightGray),
+                inputTransformation = InputTransformation.then {
+                    if (toString() != "") {
+                        val inputNumber = this.toString().toIntOrNull()?.coerceIn(1, pageCount)
+                        if (inputNumber != null) {
+                            //Don't scroll to the start of the current page when selecting the TextField
+                            currentIndex.value =
+                                PageNumber(inputNumber.dec(), inputNumber.dec() != currentIndex.value.pageIndex)
+                            replace(0, length, currentIndex.value.pageIndex.inc().toString())
+                        } else {
+                            revertAllChanges()
+                        }
+                    }
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                decorator = { inputField ->
+                    Row(Modifier.padding(MaterialTheme.messengerDpConstants.verySmall)) {
+                        Surface(
+                            Modifier.width(inputFieldWidth),
+                            shape = MaterialTheme.shapes.extraSmall,
+                            color = Color.Black
+                        ) {
+                            inputField()
+                        }
+                        Text(" / $pageCount", style = textStyle)
+                    }
+                }
+            )
+            IconButton(
+                onClick = {
+                    if (currentIndex.value.pageIndex < pageCount - 1) {
+                        currentIndex.value = PageNumber(currentIndex.value.pageIndex.inc(), true)
+                    }
+                }, modifier = Modifier.buttonPointerModifier(),
+            ) {
+                Icon(Icons.Default.Add, "To next page")
+            }
+        }
     }
 }
