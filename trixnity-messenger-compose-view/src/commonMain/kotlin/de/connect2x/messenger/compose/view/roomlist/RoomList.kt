@@ -110,12 +110,12 @@ class RoomListViewImpl : RoomListView {
                 RovingFocusContainer {
                     val rovingFocusState = LocalRovingFocus.current
                     val defaultItem = derivedStateOf {
-                        selectedRoomId.value ?: allRoomState.value.firstOrNull()?.roomId
+                        selectedRoomId.value ?: allRoomState.value.firstOrNull()?.roomId?.full
                     }
 
                     LaunchedEffect(rovingFocusState, defaultItem.value) {
                         rovingFocusState?.selectItem(defaultItem.value) {
-                            val index = allRooms.indexOfFirst { it.roomId == defaultItem.value }
+                            val index = allRooms.indexOfFirst { it.roomId.full == defaultItem.value }
                             if (index != -1) {
                                 state.scrollIntoView(index)
                             }
@@ -125,9 +125,9 @@ class RoomListViewImpl : RoomListView {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().verticalRovingFocus(
                             default = defaultItem.value,
-                            scroll = scroll(state, allRooms) { it.roomId },
-                            up = { getPreviousItem(allRooms, defaultItem.value) { it.roomId } },
-                            down = { getNextItem(allRooms, defaultItem.value) { it.roomId } },
+                            scroll = scroll(state, allRooms) { it.roomId.full },
+                            up = { getPreviousItem(allRooms, defaultItem.value) { it.roomId.full } },
+                            down = { getNextItem(allRooms, defaultItem.value) { it.roomId.full } },
                         ).semantics {
                             collectionInfo = CollectionInfo(rowCount = allRooms.size, columnCount = 0)
                         },
@@ -137,7 +137,7 @@ class RoomListViewImpl : RoomListView {
                             allRooms,
                             { _, element -> element.roomId.full }
                         ) { index, roomListElement ->
-                            RovingFocusItem(roomListElement.roomId, selectedRoomId) {
+                            RovingFocusItem(roomListElement.roomId.full, selectedRoomId.value?.full) {
                                 RoomListElementContainer(
                                     roomListElement.roomId,
                                     roomListViewModel,

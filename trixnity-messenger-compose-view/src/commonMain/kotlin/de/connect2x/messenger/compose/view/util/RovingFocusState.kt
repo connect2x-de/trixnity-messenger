@@ -25,6 +25,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.unit.center
 import de.connect2x.messenger.compose.view.common.modifier.focusOnFirstRender
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -222,11 +223,18 @@ fun <T> RovingFocusState.moveDown(
     selectItem(nextItem) { onMove(nextItem) }
 }
 
-fun <T> scroll(state: LazyListState, allItems: List<T>, key: (T) -> Any): suspend CoroutineScope.(Any?) -> Unit =
+fun <T> scroll(
+    state: LazyListState,
+    allItems: List<T>,
+    horizontal: Boolean = false,
+    key: (T) -> Any,
+): suspend CoroutineScope.(Any?) -> Unit =
     { item ->
         val index = allItems.indexOfFirst { key(it) == item }
+        val center = state.layoutInfo.viewportSize.center
+        val halfItemSize = state.layoutInfo.visibleItemsInfo.find { it.key == item }?.let { it.size / 2 } ?: 0
         if (index != -1) {
-            state.scrollIntoView(index)
+            state.animateScrollToItem(index, if (horizontal) -(center.x - halfItemSize) else -(center.y - halfItemSize))
         }
     }
 
