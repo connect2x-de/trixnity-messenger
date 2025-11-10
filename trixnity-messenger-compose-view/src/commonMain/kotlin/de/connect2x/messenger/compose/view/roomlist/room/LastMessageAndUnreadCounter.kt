@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.common.Tooltip
+import de.connect2x.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
@@ -33,13 +34,14 @@ fun LastMessageAndUnreadMessagesCounter(roomListElementViewModel: RoomListElemen
             Box(Modifier.fillMaxWidth().weight(1.0f, false).alignByBaseline()) {
                 LastMessage(lastMessage, usersTyping)
             }
+            val size = MaterialTheme.typography.labelSmall.dp
             when {
                 notificationCount != null -> {
                     Surface(
                         shape = CircleShape,
                         modifier = Modifier
-                            .defaultMinSize(minWidth = 16.dp)
-                            .height(16.dp)
+                            .defaultMinSize(minWidth = size)
+                            .height(size)
                             .alignByBaseline(),
                         color = MaterialTheme.colorScheme.primary,
                     ) {
@@ -58,7 +60,7 @@ fun LastMessageAndUnreadMessagesCounter(roomListElementViewModel: RoomListElemen
                     Surface(
                         shape = CircleShape,
                         modifier = Modifier
-                            .size(16.dp)
+                            .size(size)
                             .alignByBaseline(),
                         color = MaterialTheme.colorScheme.onSurface,
                     ) {}
