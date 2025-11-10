@@ -12,7 +12,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
 object SyncAndProcessPendingWorker {
-    private const val UNIQUE_WORK_NAME = "de.connect2x.trixnity.messenger.notification.apns.syncAndProcessPending"
+    private const val UNIQUE_WORK_NAME = "de.connect2x.trixnity.messenger.notification.apns.SyncAndProcessPending"
 
     var interval: Duration = 15.minutes
 
