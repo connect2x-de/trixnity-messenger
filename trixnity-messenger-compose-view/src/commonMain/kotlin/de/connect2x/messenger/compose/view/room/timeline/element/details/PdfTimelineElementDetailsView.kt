@@ -53,6 +53,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -206,6 +207,16 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         val horizontalScroll = rememberScrollState()
         val reader = remember { mutableStateOf<PDFReader?>(null) }
         val currentSize = remember { mutableStateOf(DpSize.Zero) }
+        val scrollRequest = remember { mutableStateOf<Size?>(null) }
+        LaunchedEffect(scrollRequest.value) {
+            val currentRequest = scrollRequest.value
+            if (currentRequest != null) {
+                horizontalScroll.scrollBy(currentRequest.width)
+                lazyListState.scrollBy(currentRequest.height)
+                scrollRequest.value = null
+            }
+        }
+
         //Control all changes to zoom/offset
         val state = rememberTransformableState { zoomChange, offsetChange, _ ->
             scope.launch {
@@ -218,9 +229,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                         zoom.value
                     )
                     //Necessary to assure the new size has been measured, otherwise the scrolling won't work
-                    delay(5)
-                    horizontalScroll.scrollBy(newOffset.width)
-                    lazyListState.scrollBy(newOffset.height)
+                    scrollRequest.value = newOffset
                 } else {
                     val offset = offsetChange * zoom.value
                     horizontalScroll.scrollBy(-offset.x)
