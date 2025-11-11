@@ -63,7 +63,6 @@ interface TimelineElementViewSelector :
         element: TimelineElementViewModel<*>,
     ): ClipEntry? = rememberFactory(element).getClipEntry(holder, element)
 
-    // FIXME is caching a problem here?
     /**
      * Optional label for accessibility. This is read to a user when the timeline element is focused in the timeline.
      */

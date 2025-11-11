@@ -66,8 +66,7 @@ class VerificationRequestRoomMessageTimelineElementViewImpl : VerificationReques
         // NO-OP (has default size)
     }
 
-    // FIXME
-    override fun isFocusable(): Boolean = false
+    override fun isFocusable(): Boolean = true
 
     @Composable
     override fun createInTimeline(
@@ -110,6 +109,10 @@ class VerificationRequestRoomMessageTimelineElementViewImpl : VerificationReques
         holder: BaseTimelineElementHolderViewModel,
         element: VerificationRequest
     ): ClipEntry? = element.toClipEntry()
+
+    override fun a11yLabel(element: VerificationRequest, i18n: I18nView): String {
+        return i18n.userVerificationStarted(i18n.commonUnknown()) // TODO we cannot react to changes here, as the a11yLabel is set once during building the compose graph
+    }
 }
 
 @Composable
