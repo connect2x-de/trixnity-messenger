@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.8.9
+
+### Added
+
 - Add a settings panel for configuring power levels
 - Add timeline events for all power level changes
 - Added a message bubble to the timeline when a user's power level changes
@@ -23,10 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - room settings: improve handling of name and topic display
 - Upgrade Trixnity to 4.22.7
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - The sticky header now correctly displays the date of the topmost message
@@ -36,8 +46,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix SQLitenity on windows
 - Fix whitespaces in room list search input leading to unwanted removal of rooms from search results
 - Correctly align appearance color preview in appearance settings
-
-### Security
 
 ## 3.8.8
 
