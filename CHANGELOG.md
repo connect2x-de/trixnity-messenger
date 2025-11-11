@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No more Linux segfaults
 - Fix whitespaces in room list search input leading to unwanted removal of rooms from search results
 - Correctly align appearance color preview in appearance settings
+- a11y behavior all over the app (TAB behavior, roles, a11y labels, etc)
 
 ### Security
 
