@@ -45,6 +45,7 @@ import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.RoomApiClient
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.clientserverapi.client.UserApiClient
+import net.folivo.trixnity.core.MegolmMessageValue
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -400,7 +401,7 @@ class RoomListElementViewModelTest {
             TimelineEvent(
                 MessageEvent(
                     MegolmEncryptedMessageEventContent(
-                        "",
+                        MegolmMessageValue(""),
                         KeyValue.Curve25519KeyValue(""),
                         deviceId = "",
                         sessionId = "",
@@ -800,7 +801,10 @@ class RoomListElementViewModelTest {
         TimelineEvent(
             event = MessageEvent(
                 content = MegolmEncryptedMessageEventContent(
-                    ciphertext = "", senderKey = KeyValue.Curve25519KeyValue(""), deviceId = "", sessionId = ""
+                    ciphertext = MegolmMessageValue(""),
+                    senderKey = KeyValue.Curve25519KeyValue(""),
+                    deviceId = "",
+                    sessionId = ""
                 ),
                 id = eventId,
                 sender = sender,

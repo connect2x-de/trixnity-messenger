@@ -1,5 +1,3 @@
-import com.android.build.gradle.internal.tasks.factory.dependsOn
-import com.mikepenz.aboutlibraries.plugin.AboutLibrariesExtension
 import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.registerCoverageTask
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
@@ -58,6 +56,7 @@ kotlin {
                 }
             }
         }
+        useEsModules()
         binaries.library()
         generateTypeScriptDefinitions()
     }

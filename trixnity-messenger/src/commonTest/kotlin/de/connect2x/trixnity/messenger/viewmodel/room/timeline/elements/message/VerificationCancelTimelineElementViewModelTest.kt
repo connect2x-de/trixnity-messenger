@@ -25,6 +25,7 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
+import net.folivo.trixnity.core.MegolmMessageValue
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -107,7 +108,7 @@ class VerificationCancelTimelineElementViewModelTest {
             TimelineEvent(
                 event = ClientEvent.RoomEvent.MessageEvent(
                     content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = "",
+                        ciphertext = MegolmMessageValue(""),
                         sessionId = "",
                     ),
                     id = EventId("1"),
@@ -125,7 +126,7 @@ class VerificationCancelTimelineElementViewModelTest {
             TimelineEvent(
                 event = ClientEvent.RoomEvent.MessageEvent(
                     content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = "",
+                        ciphertext = MegolmMessageValue(""),
                         sessionId = "",
                     ),
                     id = EventId("2"),
@@ -165,7 +166,7 @@ class VerificationCancelTimelineElementViewModelTest {
             TimelineEvent(
                 event = ClientEvent.RoomEvent.MessageEvent(
                     content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = "",
+                        ciphertext = MegolmMessageValue(""),
                         sessionId = "",
                     ),
                     id = EventId("1"),
@@ -183,7 +184,7 @@ class VerificationCancelTimelineElementViewModelTest {
             TimelineEvent(
                 event = ClientEvent.RoomEvent.MessageEvent(
                     content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = "",
+                        ciphertext = MegolmMessageValue(""),
                         sessionId = "",
                     ),
                     id = EventId("2"),

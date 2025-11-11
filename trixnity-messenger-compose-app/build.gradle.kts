@@ -92,6 +92,7 @@ kotlin {
             }
         }
         binaries.executable()
+        useEsModules()
     }
     listOf(
         iosX64(),

@@ -34,6 +34,7 @@ import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.store.eventId
 import net.folivo.trixnity.client.user.UserService
 import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
+import net.folivo.trixnity.core.MegolmMessageValue
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -445,7 +446,7 @@ class MessageEventBuilder {
 
     fun encrypted(): EncryptedMessageEventContent {
         val result = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-            ciphertext = "",
+            ciphertext = MegolmMessageValue(""),
             sessionId = ""
         )
         content = result

@@ -56,6 +56,7 @@ kotlin {
                 }
             }
         }
+        useEsModules()
         binaries.library()
         generateTypeScriptDefinitions()
     }
@@ -80,6 +81,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(libs.trixnity.client)
+                implementation(libs.trixnity.crypto.driver.libolm)
                 implementation(libs.trixnity.crypto.core)
                 api(sharedLibs.ktor.client.logging)
                 api(sharedLibs.decompose)
