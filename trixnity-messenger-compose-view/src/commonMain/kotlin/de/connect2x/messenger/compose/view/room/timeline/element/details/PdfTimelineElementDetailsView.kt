@@ -48,6 +48,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -89,6 +90,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media.PlatformMedia
 import kotlin.math.log10
@@ -414,6 +417,7 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
     val pageText = rememberTextFieldState()
     val currentIndex = remember { mutableStateOf(PageNumber(0, false)) }
     val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
     //Set the width to the digit count of the maximum page number + 1
     val inputFieldWidth = remember(pageCount) {
         if (pageCount != 0) {
@@ -425,11 +429,18 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
         } else measurer.measure(text = "00", style = textStyle, density = density).size.width.dp / density.density
     }
     //Update the page numbers when new pages are scrolled into view
-    LaunchedEffect(lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index) {
-        currentIndex.value = PageNumber(lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.index ?: 0, false)
-        pageText.edit {
-            replace(0, length, currentIndex.value.pageIndex.inc().toString())
-        }
+    LaunchedEffect(Unit) {
+        snapshotFlow { lazyListState.layoutInfo.visibleItemsInfo }
+            .collect { visibleItems ->
+                println(visibleItems.map { it.index })
+                if (currentIndex.value.pageIndex !in visibleItems.map { it.index }) {
+                    visibleItems.firstOrNull()?.index?.let { currentIndex.value = PageNumber(it, false) }
+                }
+                pageText.edit {
+                    replace(0, length, currentIndex.value.pageIndex.inc().toString())
+                }
+            }
+
     }
 
     LaunchedEffect(currentIndex.value) {
@@ -441,11 +452,13 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
     Surface(shape = MaterialTheme.shapes.medium, color = Color.DarkGray) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(
+                enabled = currentIndex.value.pageIndex > 0,
                 onClick = {
                     if (currentIndex.value.pageIndex > 0) {
                         currentIndex.value = PageNumber(currentIndex.value.pageIndex.dec(), true)
                     }
-                }, modifier = Modifier.buttonPointerModifier(),
+                },
+                modifier = Modifier.buttonPointerModifier(),
             ) {
                 Icon(Icons.Default.Remove, "To previous page")
             }
@@ -482,11 +495,13 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
                 }
             )
             IconButton(
+                enabled = currentIndex.value.pageIndex < pageCount - 1,
                 onClick = {
                     if (currentIndex.value.pageIndex < pageCount - 1) {
                         currentIndex.value = PageNumber(currentIndex.value.pageIndex.inc(), true)
                     }
-                }, modifier = Modifier.buttonPointerModifier(),
+                },
+                modifier = Modifier.buttonPointerModifier(),
             ) {
                 Icon(Icons.Default.Add, "To next page")
             }
