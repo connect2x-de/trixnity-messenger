@@ -55,8 +55,8 @@ icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu4j" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 ksoup-html = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
 highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
-sqlitenity-bundled = { module = "net.folivo:sqlitenity-bundled", version.ref = "sqlitenity" }
-sqlitenity-compat = { module = "net.folivo:sqlitenity-compat", version.ref = "sqlitenity" }
+sqlitenity-bundled = { module = "de.connect2x:sqlitenity-bundled", version.ref = "sqlitenity" }
+sqlitenity-compat = { module = "de.connect2x:sqlitenity-compat", version.ref = "sqlitenity" }
 
 [bundles]
 
