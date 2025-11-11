@@ -273,11 +273,10 @@ class TimelineViewImpl : TimelineView {
                                             default = lastItem.value,
                                             scroll = scroll(listState, uiTimelineElements.value) { it },
                                             up = { // inverse
-                                                val res = getNextItem(
+                                                getNextItem(
                                                     navigatableTimelineElements.value,
                                                     lastItem.value,
                                                 ) { it }
-                                                res
                                             },
                                             down = { // inverse
                                                 getPreviousItem(
