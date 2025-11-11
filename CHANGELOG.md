@@ -12,11 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a settings panel for configuring power levels
 - Add timeline events for all power level changes
 - Added a message bubble to the timeline when a user's power level changes
+- UI: timeline does not show sticky date header if not necessary
+- Readme entry on using the web app inside an `iframe`
 
 ### Changed
 
 - Added Space in the bottom of the RoomList to account for new chat button overlapping UI elements
 - Use SQLitenity as Room implementation
+- Improve keyboard accessibility of profile selection and blocked user settings
+- room settings: improve handling of name and topic display
+- Upgrade Trixnity to 4.22.7
 
 ### Deprecated
 
@@ -29,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show dropdown icon in group creation history visibility menu
 - No more Linux segfaults
 - Fix SQLitenity on windows
+- Fix whitespaces in room list search input leading to unwanted removal of rooms from search results
+- Correctly align appearance color preview in appearance settings
 
 ### Security
 
@@ -83,6 +90,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Emoji Regex in Kotlin/JS
 - Correctly show profiles
 
+### Security
+
 ## 3.8.5
 
 ### Added
@@ -105,6 +114,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 - rename loadMediaResult to loadMediaResultBytes in FileBased RoomMessageEventContent
+
+### Removed
 
 ### Fixed
 
