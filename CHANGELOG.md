@@ -16,7 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Added Space in the bottom of the RoomList to account for new chat button overlapping UI elements
-
 - Use SQLitenity as Room implementation
 
 ### Deprecated
@@ -29,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix focus handling in chat/group creation user list and add members view
 - Show dropdown icon in group creation history visibility menu
 - No more Linux segfaults
+- Fix SQLitenity on windows
 
 ### Security
 
