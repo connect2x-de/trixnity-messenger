@@ -298,7 +298,7 @@ class RoomListViewModelImpl(
                 allRoomsFlow.map { it.keys },
                 searchTerm.debounce { if (it.text.isBlank()) 0.milliseconds else 300.milliseconds },
             ) { allRoomIds, currentSearchTerm ->
-                allRoomIds to currentSearchTerm.text
+                allRoomIds to currentSearchTerm.text.trim()
             }.flatMapLatest { (allRoomIds, currentSearchTerm) ->
                 if (currentSearchTerm.isNotBlank()) {
                     allRoomNamesFlow.map { allRoomNames ->

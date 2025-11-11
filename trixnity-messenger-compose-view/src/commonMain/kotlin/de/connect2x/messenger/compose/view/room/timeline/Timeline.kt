@@ -33,7 +33,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.CollectionInfo
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.collectionInfo
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -287,6 +289,7 @@ class TimelineViewImpl : TimelineView {
                                         .semantics {
                                             collectionInfo =
                                                 CollectionInfo(1, timelineElementViewModelGrouped.value.size)
+                                            liveRegion = LiveRegionMode.Polite
                                         },
                                     contentPadding = PaddingValues(
                                         top = 10.dp,
@@ -316,7 +319,11 @@ class TimelineViewImpl : TimelineView {
                                     }
                                 }
                             }
-                            ListDateHeader(visibleItems, timelineElementHolderViewModels)
+                            ListDateHeader(
+                                visibleItems,
+                                timelineElementHolderViewModels,
+                                show = listState.canScrollForward,
+                            )
                             ScrollToEndButton(timelineViewModel, canScrollToEnd)
                             draggedFile.value?.let { draggedFile ->
                                 Box(
@@ -432,17 +439,20 @@ fun updateVisibleItems(
 fun ListDateHeader(
     visible: State<Pair<String, String>?>,
     timelineElementHolderViewModels: State<List<BaseTimelineElementHolderViewModel>>,
+    show: Boolean,
 ) {
-    val timestamp = remember {
-        derivedStateOf {
-            visible.value?.first?.let { lastEventId ->
-                timelineElementHolderViewModels.value
-                    .find { it.key == lastEventId }
-                    ?.formattedDate
+    if (show) {
+        val timestamp = remember {
+            derivedStateOf {
+                visible.value?.first?.let { lastEventId ->
+                    timelineElementHolderViewModels.value
+                        .find { it.key == lastEventId }
+                        ?.formattedDate
+                }
             }
         }
-    }
-    Box(Modifier.padding(end = additionalEndPadding.dp)) {
-        timestamp.value?.let { DateStickyHeader(it, focusable = false) }
+        Box(Modifier.padding(end = additionalEndPadding.dp)) {
+            timestamp.value?.let { DateStickyHeader(it, focusable = false) }
+        }
     }
 }

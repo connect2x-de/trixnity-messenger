@@ -67,7 +67,7 @@ internal fun <T : Any> ColumnScope.RadioSetting(
 ) {
     val keys = remember(options) { options.keys.toList() }
     val defaultItem = options.keys.firstOrNull()
-    ExpandableSection(heading = title, icon = icon) {
+    ExpandableSection(heading = { title() }, icon = icon) {
         RovingFocusContainer {
             Column(
                 modifier = Modifier.verticalRovingFocus(
