@@ -18,11 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.text
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
@@ -34,7 +29,6 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogFooter
 import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogScrollContent
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
-import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemRadioButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.export.CSVFileBasedExportRoomProperties
@@ -108,17 +102,13 @@ class ExportRoomViewImpl : ExportRoomView {
                         val (processed, total) = state.progress.collectAsState().value
                         if (processed == null || total == null)
                             ThemedProgressIndicator(
-                                Modifier.fillMaxWidth().semantics {
-                                    liveRegion = LiveRegionMode.Polite
-                                },
+                                Modifier.fillMaxWidth(),
                                 MaterialTheme.components.linearProgressIndicator
                             )
                         else
                             ThemedProgressIndicator(
                                 progress = { processed.toFloat() / total },
-                                modifier = Modifier.fillMaxWidth().semantics {
-                                    liveRegion = LiveRegionMode.Polite
-                                },
+                                modifier = Modifier.fillMaxWidth(),
                                 style = MaterialTheme.components.linearProgressIndicator
                             )
                         Spacer(Modifier.size(10.dp))
@@ -128,9 +118,7 @@ class ExportRoomViewImpl : ExportRoomView {
                     is ExportRoomViewModel.State.Success -> {
                         ThemedProgressIndicator(
                             progress = { 1f },
-                            modifier = Modifier.fillMaxWidth().semantics {
-                                liveRegion = LiveRegionMode.Polite
-                            },
+                            modifier = Modifier.fillMaxWidth(),
                             style = MaterialTheme.components.linearProgressIndicator
                         )
                         Spacer(Modifier.size(10.dp))

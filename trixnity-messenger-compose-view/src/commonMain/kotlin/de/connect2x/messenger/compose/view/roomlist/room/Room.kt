@@ -119,7 +119,7 @@ class RoomListElementViewImpl : RoomListElementView {
                             rowIndex = index,
                             rowSpan = 1,
                             columnIndex = 0,
-                            columnSpan = 0,
+                            columnSpan = 1,
                         )
                     },
                 verticalAlignment = Alignment.CenterVertically
