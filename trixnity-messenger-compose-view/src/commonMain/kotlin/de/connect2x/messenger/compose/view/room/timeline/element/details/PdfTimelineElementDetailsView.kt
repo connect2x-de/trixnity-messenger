@@ -32,10 +32,8 @@ import androidx.compose.foundation.text.input.then
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -53,7 +51,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -91,8 +88,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media.PlatformMedia
 import kotlin.math.log10
@@ -417,16 +413,15 @@ expect suspend fun getPlatformPDFReader(
     onError: (String?) -> Unit,
 ): PDFReader
 
-private data class PageNumber(val pageIndex: Int, val scroll: Boolean)
+private data class PageNumber(val pageIndex: Int, val scroll: Boolean, val updateIndexViaList: Boolean)
 
 @Composable
 private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
     val measurer = rememberTextMeasurer()
     val textStyle = MaterialTheme.typography.headlineSmall.copy(color = Color.LightGray, textAlign = TextAlign.Right)
     val pageText = rememberTextFieldState()
-    val currentIndex = remember { mutableStateOf(PageNumber(0, false)) }
+    val currentIndex = remember { mutableStateOf(PageNumber(0, scroll = false, updateIndexViaList = true)) }
     val density = LocalDensity.current
-    val scope = rememberCoroutineScope()
     //Set the width to the digit count of the maximum page number + 1
     val inputFieldWidth = remember(pageCount) {
         if (pageCount != 0) {
@@ -439,22 +434,27 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
     }
     //Update the page numbers when new pages are scrolled into view
     LaunchedEffect(Unit) {
-        snapshotFlow { lazyListState.layoutInfo.visibleItemsInfo }
+        snapshotFlow { lazyListState.layoutInfo.visibleItemsInfo.map { it.index } }.distinctUntilChanged { old, new -> old.firstOrNull() == new.firstOrNull() }
             .collect { visibleItems ->
-                println(visibleItems.map { it.index })
-                if (currentIndex.value.pageIndex !in visibleItems.map { it.index }) {
-                    visibleItems.firstOrNull()?.index?.let { currentIndex.value = PageNumber(it, false) }
+                if (currentIndex.value.updateIndexViaList) {
+                    visibleItems.firstOrNull()?.let {
+                        currentIndex.value = PageNumber(
+                            it,
+                            scroll = false,
+                            updateIndexViaList = true
+                        )
+                    }
                 }
-                pageText.edit {
-                    replace(0, length, currentIndex.value.pageIndex.inc().toString())
-                }
+                else currentIndex.value = currentIndex.value.copy(updateIndexViaList = true)
             }
-
     }
 
-    LaunchedEffect(currentIndex.value) {
+    LaunchedEffect(currentIndex.value.pageIndex) {
         if (currentIndex.value.scroll) {
             lazyListState.scrollToItem(currentIndex.value.pageIndex)
+        }
+        pageText.edit {
+            replace(0, length, currentIndex.value.pageIndex.inc().toString())
         }
     }
 
@@ -464,7 +464,10 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
                 enabled = currentIndex.value.pageIndex > 0,
                 onClick = {
                     if (currentIndex.value.pageIndex > 0) {
-                        currentIndex.value = PageNumber(currentIndex.value.pageIndex.dec(), true)
+                        currentIndex.value = PageNumber(currentIndex.value.pageIndex.dec(),
+                            scroll = true,
+                            updateIndexViaList = true
+                        )
                     }
                 },
                 modifier = Modifier.buttonPointerModifier(),
@@ -482,7 +485,12 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
                         if (inputNumber != null) {
                             //Don't scroll to the start of the current page when selecting the TextField
                             currentIndex.value =
-                                PageNumber(inputNumber.dec(), inputNumber.dec() != currentIndex.value.pageIndex)
+                                PageNumber(
+                                    inputNumber.dec(),
+                                    inputNumber.dec() != currentIndex.value.pageIndex,
+                                    lazyListState.layoutInfo.visibleItemsInfo.map { itemInfo -> itemInfo.index }
+                                        .contains(inputNumber.dec())
+                                )
                             replace(0, length, currentIndex.value.pageIndex.inc().toString())
                         } else {
                             revertAllChanges()
@@ -507,7 +515,10 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
                 enabled = currentIndex.value.pageIndex < pageCount - 1,
                 onClick = {
                     if (currentIndex.value.pageIndex < pageCount - 1) {
-                        currentIndex.value = PageNumber(currentIndex.value.pageIndex.inc(), true)
+                        currentIndex.value = PageNumber(currentIndex.value.pageIndex.inc(),
+                            scroll = true,
+                            updateIndexViaList = true
+                        )
                     }
                 },
                 modifier = Modifier.buttonPointerModifier(),
