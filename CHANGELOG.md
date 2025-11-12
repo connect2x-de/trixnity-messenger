@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.8.9
+
+### Added
+
 - Add a settings panel for configuring power levels
 - Add timeline events for all power level changes
 - Added a message bubble to the timeline when a user's power level changes
@@ -25,21 +39,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgrade Trixnity to 4.22.7
 - Change zoom behaviour in PDF reader
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - The sticky header now correctly displays the date of the topmost message
 - Fix focus handling in chat/group creation user list and add members view
 - Show dropdown icon in group creation history visibility menu
 - No more Linux segfaults
+- Fix SQLitenity on windows
 - Fix whitespaces in room list search input leading to unwanted removal of rooms from search results
 - Correctly align appearance color preview in appearance settings
 - No longer crash when opening a large pdf page on older Android versions
-
-### Security
 
 ## 3.8.8
 

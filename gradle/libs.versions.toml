@@ -1,6 +1,6 @@
 [versions]
 
-trixnityMessenger = "3.8.9"
+trixnityMessenger = "3.8.10"
 
 seskar = "4.15.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
@@ -24,7 +24,7 @@ kotlinLogging = "7.0.13" # https://github.com/MicroUtils/kotlin-logging/releases
 slf4j = "2.0.17" # https://github.com/qos-ch/slf4j/tags
 logback = "1.5.20" # https://github.com/qos-ch/logback/tags
 logbackAndroid = "3.0.0" # https://github.com/tony19/logback-android/releases
-sqlitenity = "0.0.1"
+sqlitenity = "0.0.3"
 
 [libraries]
 
@@ -55,8 +55,8 @@ icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu4j" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 ksoup-html = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
 highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
-sqlitenity-bundled = { module = "net.folivo:sqlitenity-bundled", version.ref = "sqlitenity" }
-sqlitenity-compat = { module = "net.folivo:sqlitenity-compat", version.ref = "sqlitenity" }
+sqlitenity-bundled = { module = "de.connect2x:sqlitenity-bundled", version.ref = "sqlitenity" }
+sqlitenity-compat = { module = "de.connect2x:sqlitenity-compat", version.ref = "sqlitenity" }
 
 [bundles]
 
