@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Upgrade sqlitenity to fix iOS issues
+
 ### Security
 
 ## 3.8.9
