@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A11Y,WEB: add a SemanticsOwnerListener to allow for accessibility in web
+
 ### Changed
 
 - DEPENDENCIES: Bump c2x Conventions to 20251114.122133
