@@ -92,12 +92,17 @@ fun FileBasedDetailsHeader(
                 onSave
             )
         } else {
-            ThemedProgressIndicator(
-                progress = {
-                    downloadProgress.percent
-                },
+            downloadProgress.percent?.let {
+                ThemedProgressIndicator(
+                    progress = {
+                        it
+                    },
+                    style = MaterialTheme.components.circularProgressIndicator
+                )
+            } ?: ThemedProgressIndicator(
                 style = MaterialTheme.components.circularProgressIndicator
             )
+
         }
     }
 }

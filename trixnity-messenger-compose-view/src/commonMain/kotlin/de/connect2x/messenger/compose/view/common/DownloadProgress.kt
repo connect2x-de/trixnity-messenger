@@ -45,11 +45,17 @@ fun BoxScope.DownloadProgress(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ThemedProgressIndicator(
-                    progress = { progressElement.percent },
+                progressElement.percent?.let {
+                    ThemedProgressIndicator(
+                        progress = { it },
+                        modifier = Modifier.padding(start = 10.dp),
+                        style = MaterialTheme.components.linearProgressIndicator
+                    )
+                } ?: ThemedProgressIndicator(
                     modifier = Modifier.padding(start = 10.dp),
                     style = MaterialTheme.components.linearProgressIndicator
                 )
+
                 if (cancel != null)
                     Tooltip({ Text(i18n.commonCancel()) }) {
                         ThemedIconButton(
