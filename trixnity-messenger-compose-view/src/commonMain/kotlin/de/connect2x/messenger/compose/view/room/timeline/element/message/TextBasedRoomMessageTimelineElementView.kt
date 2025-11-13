@@ -1,12 +1,12 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.Icon
@@ -31,14 +31,14 @@ import de.connect2x.messenger.compose.view.richtext.RichTextColors
 import de.connect2x.messenger.compose.view.richtext.RichTextDisplay
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedSelectionContainer
 import de.connect2x.messenger.compose.view.theme.messengerColors
+import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.util.UriCaller
-import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import io.ktor.http.*
 
 @Composable
 fun TextBasedRoomMessageTimelineElementView(
@@ -51,21 +51,34 @@ fun TextBasedRoomMessageTimelineElementView(
         needsMaxWidth = false,
         isPreview = isPreview
     ) { showActionMenu ->
-        // on Desktop and Web, it makes sense to select text and copy it;
-        // on Android and iOS, this will consume long tap events, which we use for the context menu
-        when(Platform.current) {
-            PlatformType.ANDROID, PlatformType.IOS -> MessageTextContent(holder, element, showActionMenu)
-            PlatformType.WEB, PlatformType.DESKTOP -> SelectionContainer {
-                MessageTextContent(holder, element, showActionMenu)
-            }
+        TextRoomMessageTimelineElementView(holder, element, showActionMenu)
+    }
+}
+
+@Composable
+fun TextRoomMessageTimelineElementView(
+    holder: BaseTimelineElementHolderViewModel,
+    element: RoomMessageTimelineElementViewModel<*>,
+    showActionMenu: () -> Unit,
+) {
+    // on Desktop and Web, it makes sense to select text and copy it;
+    // on Android and iOS, this will consume long tap events, which we use for the context menu
+    when (Platform.current) {
+        PlatformType.DESKTOP, PlatformType.WEB -> ThemedSelectionContainer(
+            modifier = Modifier.rovingFocusChild(),
+            style = if (holder.isByMe) MaterialTheme.components.selectionOnPrimary else MaterialTheme.components.selectionOnSurface
+        ) {
+            MessageTextContent(holder, element, showActionMenu)
         }
+
+        PlatformType.ANDROID, PlatformType.IOS -> MessageTextContent(holder, element, showActionMenu)
     }
 }
 
 @Composable
 private fun MessageTextContent(
     holder: BaseTimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.TextBased<*>,
+    element: RoomMessageTimelineElementViewModel<*>,
     showActionMenu: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
@@ -87,9 +100,11 @@ private fun MessageTextContent(
             Spacer(Modifier.size(5.dp))
         }
 
+
         if (content != null) {
             CompositionLocalProvider(
-                LocalTextStyle provides MaterialTheme.typography.bodyMedium.copy(color = LocalContentColor.current)) {
+                LocalTextStyle provides MaterialTheme.typography.bodyMedium.copy(color = LocalContentColor.current)
+            ) {
                 RichTextDisplay(
                     document = content,
                     mentions = element.mentionsInFormattedBody,
@@ -103,9 +118,9 @@ private fun MessageTextContent(
                         linkColor =
                             if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
                             else MaterialTheme.messengerColors.link
-                ),
-                onCopy = null,
-                onLinkClick = { uriCaller.invoke(it, true) },
+                    ),
+                    onCopy = null,
+                    onLinkClick = { uriCaller.invoke(it, true) },
                     onMentionClick = element::openMention
                 )
             }
@@ -117,9 +132,13 @@ private fun MessageTextContent(
 fun TextReplyInTimeline(
     holder: TimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.TextBased<*>,
+    modifier: Modifier,
+    interactionSource: MutableInteractionSource,
 ) {
     ReferencedMessagePill(
         holder = holder,
+        modifier = modifier,
+        interactionSource = interactionSource,
         content = {
             TextReply(element, 4)
         }
@@ -129,10 +148,14 @@ fun TextReplyInTimeline(
 @Composable
 fun TextReplyInSendMessage(
     holder: TimelineElementHolderViewModel,
-    element: RoomMessageTimelineElementViewModel.TextBased<*>
+    element: RoomMessageTimelineElementViewModel.TextBased<*>,
+    modifier: Modifier,
+    interactionSource: MutableInteractionSource,
 ) {
     ReferencedMessagePill(
         holder = holder,
+        modifier = modifier,
+        interactionSource = interactionSource,
         content = {
             TextReply(element, 2)
         }
@@ -140,7 +163,7 @@ fun TextReplyInSendMessage(
 }
 
 @Composable
-private fun TextReply(element: RoomMessageTimelineElementViewModel.TextBased<*>, maxLines: Int) {
+fun TextReply(element: RoomMessageTimelineElementViewModel<*>, maxLines: Int) {
     Text(
         text = element.body,
         fontStyle = FontStyle.Italic,

@@ -98,9 +98,9 @@ fun ImageMessageBubblePreview() {
         override val thumbnailLoading: StateFlow<Boolean> = MutableStateFlow(false)
 
         override val name: String = "kiwi.png"
-        override val description: String? = null
         override val size: String? = "465kb"
         override val mimeType: String? = "image/png"
+        override val hasCaption: Boolean = true
         override val loadMediaResultPlatformMedia: StateFlow<PlatformMedia?> =
             MutableStateFlow(InMemoryPlatformMedia(flowOf(previewImageByteArray())))
         override val loadMediaResultBytes: StateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
@@ -120,6 +120,14 @@ fun ImageMessageBubblePreview() {
         override val downloadMediaError: StateFlow<String?> = MutableStateFlow(null)
         override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit) {}
         override fun cancelDownloadMedia() {}
+        override val body: String = "Ein Kiwi :D"
+        override val formattedBody: String? = null
+        override val formattedBodyContent: HtmlNode.HtmlElement? = null
+        override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>> = emptyMap()
+        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(emptyMap())
+
+        override fun openMention(mention: TimelineElementMention) {
+        }
     }
     InitMessengerPreview {
         ImageRoomMessageTimelineElementViewImpl().createInTimeline(
@@ -144,9 +152,9 @@ fun FileMessageBubblePreview() {
     holder.showBigGapBefore.value = true
     val element = object : RoomMessageTimelineElementViewModel.FileBased.File {
         override val name: String = "kiwi.txt"
-        override val description: String? = "A file."
         override val size: String? = "465kb"
         override val mimeType: String? = "text/plain"
+        override val hasCaption: Boolean = true
         override val loadMediaResultPlatformMedia: StateFlow<PlatformMedia?> =
             MutableStateFlow(InMemoryPlatformMedia(flowOf("Kiwi".toByteArray())))
         override val loadMediaResultBytes: StateFlow<ByteArray?> = MutableStateFlow("Kiwi".toByteArray())
@@ -168,6 +176,14 @@ fun FileMessageBubblePreview() {
         override val downloadMediaError: StateFlow<String?> = MutableStateFlow(null)
         override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit) {}
         override fun cancelDownloadMedia() {}
+        override val body: String = "Ein Kiwi :D"
+        override val formattedBody: String? = null
+        override val formattedBodyContent: HtmlNode.HtmlElement? = null
+        override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>> = emptyMap()
+        override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(emptyMap())
+
+        override fun openMention(mention: TimelineElementMention) {
+        }
     }
     InitMessengerPreview {
         FileRoomMessageTimelineElementViewImpl().createInTimeline(

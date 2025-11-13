@@ -9,7 +9,105 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.8.9
+
+### Added
+
+- Add a settings panel for configuring power levels
+- Add timeline events for all power level changes
+- Added a message bubble to the timeline when a user's power level changes
+- UI: timeline does not show sticky date header if not necessary
+- Readme entry on using the web app inside an `iframe`
+
+### Changed
+
+- Added Space in the bottom of the RoomList to account for new chat button overlapping UI elements
+- Use SQLitenity as Room implementation
+- Improve keyboard accessibility of profile selection and blocked user settings
+- room settings: improve handling of name and topic display
+- Upgrade Trixnity to 4.22.7
+
+### Fixed
+
+- The sticky header now correctly displays the date of the topmost message
+- Fix focus handling in chat/group creation user list and add members view
+- Show dropdown icon in group creation history visibility menu
+- No more Linux segfaults
+- Fix SQLitenity on windows
+- Fix whitespaces in room list search input leading to unwanted removal of rooms from search results
+- Correctly align appearance color preview in appearance settings
+
+## 3.8.8
+
+### Added
+
+- Show richtext in room topic
+
+### Changed
+
+- Improve UI of room name & room topic
+
+### Fixed
+
+- The sticky header now correctly displays the date of the topmost message
+
+## 3.8.7
+
+### Added
+
+- Introduce Worker to schedule work when messenger is started
+- Add a cancel button to abort the reject invitation dialog
+- Add a footer containing legal information to the login wizard
+- Introduce new UI component for dropdown select
+
+### Changed
+
+- Explicitly draw system bars for edge to edge UI
+
+### Fixed
+
+- Fix db keys not deleted on account remove
+- Correctly send and display strikethrough text via the del-tag
+- Fix room settings crashing on opening when using Android
+- Whitespace is stripped when searching for mxids
+- Turn UiaModalBox into a Dialog so it no longer draws behind the ConnectingWizard
+- UiaActionConfirmations without message are no longer being shown
+- Make Imprint, Privacy and Licenses depend on MatrixMessengerBaseConfiguration instead of MatrixMessengerConfiguration
+- The version number of a library in the licenses has the proper font color now
+- Fix room list scrolling unnecessary on selection or focus navigation
+
+## 3.8.6
+
+### Added
+
+- UI: Implement Keyboard navigation
+
+### Fixed
+
+- Technical: Don't override siblings or children in the deep nested settings view
+- Fix Emoji Regex in Kotlin/JS
+- Correctly show profiles
+
+### Security
+
+## 3.8.5
+
+### Added
+
 - Technical: Support deep nested settings view
+- Copy message content
+- Captions for Media messages
+-
 
 ### Changed
 
@@ -18,12 +116,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - iOS: startMessenger() helper function now also returns MatrixMultiMessenger in order to bridge certain values to Swift
   code (like objects that can only be obtained via Koin)
 - Don't close DI, because garbage collector can handle it
-- Upgrade Trixnity to 4.22.3
+- Upgrade Trixnity to 4.22.4
 - Expose platform media in loadMedia of FileBasedRoomMessageTimelineElementViewModel to allow temporary file generation
 
 ### Deprecated
 
-- rename loadMediaResult to loadMediaResultBytes in FileBased RoomMessageEventContent 
+- rename loadMediaResult to loadMediaResultBytes in FileBased RoomMessageEventContent
 
 ### Removed
 
@@ -32,8 +130,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Focus highlighting for "Create Group" and "Search Group"
 - Desktop/Web: show scrollbar in user search when creating a new chat
 - Fix crash due to intrinsic size in timeline
-
-### Security
+- UI spacing for file-timeline-elements
+- Mentions List calculated even though mention was already selected
+- Crash when selecting mention if cursorPosition=0
 
 ## 3.8.4
 

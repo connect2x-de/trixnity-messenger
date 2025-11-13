@@ -8,4 +8,5 @@ data class MatrixMessengerFeatures(
      * If true, the PDF reader details view in the timeline will be enabled.
      */
     var enablePdfReader: Boolean = true,
+    var enablePowerlevelEventConfigurationInRoomSettings: Boolean = true,
 )

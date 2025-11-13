@@ -49,6 +49,7 @@ import org.koin.dsl.module
 import kotlin.test.Test
 import kotlin.time.Clock
 
+@Suppress("NonAsciiCharacters")
 class MemberListElementViewModelTest {
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")

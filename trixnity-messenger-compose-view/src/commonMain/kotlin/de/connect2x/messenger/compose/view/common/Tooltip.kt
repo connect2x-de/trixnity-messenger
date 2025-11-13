@@ -102,6 +102,7 @@ fun Tooltip(
                 hideTooltip = hideTooltip,
             )
             .tooltipAnchorSemantics(i18n.commonShowTooltip(), enabled, tooltipState, scope),
+        // TODO: Tooltips should be adaptive (top, bottom, etc. depending on location)
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
         tooltip = {
             TooltipSurface(
@@ -116,9 +117,11 @@ fun Tooltip(
             Modifier
                 .onFocusChanged { focusState ->
                     if (focusState.isFocused) {
-                        scope.launch(start = CoroutineStart.UNDISPATCHED) {
-                            delay(hoverShowDelay)
-                            tooltipState.show()
+                        if (enabled) {
+                            scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                                delay(hoverShowDelay)
+                                tooltipState.show()
+                            }
                         }
                     } else {
                         scope.launch(start = CoroutineStart.UNDISPATCHED) {

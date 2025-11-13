@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,14 +24,17 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.files.SaveFileDialog
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.pointerMoveFilter
 import de.connect2x.messenger.compose.view.room.timeline.element.details.ElementDetailsViewSelector
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.MessageBubble
+import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.FileContentOverlay
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
+import de.connect2x.messenger.compose.view.util.ifNotNull
+import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
@@ -45,7 +50,7 @@ interface FileBasedRoomMessageTimelineElementView {
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
         isPreview: Boolean,
         displayProgressOverElement: Boolean,
-        overlay: @Composable BoxScope.() -> Unit,
+        overlay: (@Composable BoxScope.() -> Unit)?,
         content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     )
 }
@@ -56,7 +61,7 @@ fun FileBasedRoomMessageTimelineElement(
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     isPreview: Boolean = false,
     displayProgressOverElement: Boolean = false,
-    overlay: @Composable BoxScope.() -> Unit,
+    overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
 ) {
     DI.get<FileBasedRoomMessageTimelineElementView>()
@@ -70,7 +75,7 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
         isPreview: Boolean,
         displayProgressOverElement: Boolean,
-        overlay: @Composable BoxScope.() -> Unit,
+        overlay: (@Composable BoxScope.() -> Unit)?,
         content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     ) {
         val error = element.downloadMediaError.collectAsState().value
@@ -100,7 +105,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
     onSave: () -> Unit,
     isPreview: Boolean = false,
     displayProgressOverElement: Boolean,
-    overlay: @Composable BoxScope.() -> Unit,
+    overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.(() -> Unit, () -> Unit) -> Unit
 ) {
     val i18n = DI.get<I18nView>()
@@ -112,10 +117,10 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
         additionalContextActions = { onClose ->
             // name
             Tooltip(
-                { TooltipText("${element.name} " + (element.size ?: "")) } // full name
+                { Text("${element.name}${element.size.ifNotNull { " $it" }}") } // full name
             ) {
                 Text(
-                    "${shortenFileName(element)} ${element.size ?: ""}", // shortened name
+                    "${shortenFileName(element)}${element.size.ifNotNull { " $it" }}", // shortened name
                     modifier = Modifier.padding(5.dp),
                     maxLines = 1,
                 )
@@ -128,12 +133,27 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
                 action = onSave,
             ).render(onClose)
         },
-        overlay,
         isPreview = isPreview,
     ) { showActionMenu ->
-        FileBasedView(holder, element, onSave, showActionMenu, displayProgressOverElement, content)
+        Column {
+            FileBasedView(
+                holder,
+                element,
+                onSave,
+                showActionMenu,
+                displayProgressOverElement,
+                isPreview,
+                overlay,
+                content
+            )
+
+            if (element.hasCaption) {
+                TextRoomMessageTimelineElementView(holder, element, showActionMenu)
+            }
+        }
     }
 }
+
 
 @Composable
 internal fun FileBasedView(
@@ -142,14 +162,18 @@ internal fun FileBasedView(
     onSave: () -> Unit,
     showActionMenu: () -> Unit,
     displayProgressOverElement: Boolean,
+    isPreview: Boolean,
+    overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.(onShowActionMenu: () -> Unit, openElementDetails: () -> Unit) -> Unit
 ) {
+    val hoverMessage = remember { mutableStateOf(false) }
 
     val elementDetailsFactory = DI.get<ElementDetailsViewSelector>().rememberFactory(element)
     var openElementDetails by remember { mutableStateOf(false) }
     Box {
         Column(
             Modifier
+                .rovingFocusChild()
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onTap = {
@@ -159,10 +183,31 @@ internal fun FileBasedView(
                     )
                 }
                 .buttonPointerModifier()
+                .then(
+                    if (isPreview) Modifier
+                    else Modifier.pointerMoveFilter(
+                        onEnter = {
+                            hoverMessage.value = true
+                            true
+                        }, onExit = {
+                            hoverMessage.value = false
+                            true
+                        })
+                )
         ) {
-            // content based on the actual file
-            content(showActionMenu) {
-                openElementDetails = true
+            Box(modifier = Modifier.width(IntrinsicSize.Min)) {
+                Column {
+                    // content based on the actual file
+                    content(showActionMenu) {
+                        openElementDetails = true
+                    }
+                }
+                if (!isPreview) {
+                    FileContentOverlay(
+                        hoverMessage,
+                        overlay,
+                    )
+                }
             }
             if (!displayProgressOverElement) {
                 LoadingProgresses(holder, element, Modifier.align(Alignment.CenterHorizontally))

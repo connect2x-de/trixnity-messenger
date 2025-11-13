@@ -42,6 +42,7 @@ import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModel
 fun ApprovableTextField(
     viewModel: ApprovableTextFieldViewModel,
     isEditable: Boolean,
+    modifier: Modifier = Modifier,
     textCaption: String = "",
     textPlaceholder: String = "",
     textInfoCannotChange: String = "",
@@ -87,7 +88,7 @@ fun ApprovableTextField(
                         onValueChange = { value = it },
                         enabled = isEdit,
                         placeholder = { Text(textPlaceholder) },
-                        modifier = Modifier
+                        modifier = modifier
                             .weight(1.0f, fill = true)
                             .pointerInput(Unit) {
                                 detectTapGestures(onPress = {

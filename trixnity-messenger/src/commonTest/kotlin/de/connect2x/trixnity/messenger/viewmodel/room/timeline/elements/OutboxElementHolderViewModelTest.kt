@@ -46,6 +46,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 
+@Suppress("NonAsciiCharacters")
 class OutboxElementHolderViewModelTest {
 
     private val roomId = RoomId("!room1")

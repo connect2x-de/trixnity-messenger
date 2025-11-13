@@ -12,30 +12,35 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GroupAdd
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.MoreInfo
+import de.connect2x.messenger.compose.view.common.LazyRovingFocusColumn
 import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
+import de.connect2x.messenger.compose.view.search.SearchResultState
 import de.connect2x.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.messenger.compose.view.search.collectUserSearchResult
 import de.connect2x.messenger.compose.view.theme.components
@@ -47,6 +52,8 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedAvatar
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
+import de.connect2x.messenger.compose.view.util.LocalRovingFocus
+import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 
@@ -71,64 +78,74 @@ class CreateNewChatViewImpl : CreateNewChatView {
         val userSearchResultView = DI.get<UserSearchResultListView>()
         val searchUsersResults = collectUserSearchResult(createNewChatViewModel.createNewRoomViewModel.searchHandler)
         val listState = rememberLazyListState()
+        var references by remember {
+            mutableStateOf(listOf<String>())
+        }
 
-        Box(Modifier.fillMaxSize()) {
-            Box {
-                if (error != null) {
-                    ThemedModalDialog({ createNewChatViewModel.errorDismiss() }) {
-                        ModalDialogHeader {
-                            Text(i18n.anErrorHasOccurred())
-                        }
-                        ModalDialogContent {
-                            Text(error)
-                            if (errorDetails != null) {
-                                MoreInfo(
-                                    title = i18n.errorDetails(),
-                                ) {
-                                    Text(errorDetails, modifier = Modifier.padding(20.dp))
-                                }
+        LaunchedEffect(searchUsersResults) {
+            if (searchUsersResults is SearchResultState.Results) {
+                references = searchUsersResults.users.map { it.userId.full }
+            }
+        }
+        val defaultItem = references.firstOrNull()
+
+        Column(Modifier.fillMaxSize()) {
+            Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
+            Box(Modifier.fillMaxSize()) {
+                RovingFocusContainer {
+                    val focusContainer = LocalRovingFocus.current
+                    LazyRovingFocusColumn(defaultItem, references, listState, focusContainer) {
+                        item(key = "CreatingIndicator") {
+                            if (isCreating) {
+                                ThemedProgressIndicator(
+                                    Modifier.fillMaxWidth(),
+                                    MaterialTheme.components.linearProgressIndicator
+                                )
                             }
                         }
-                        ModalDialogFooter {
-                            ThemedButton(
-                                style = MaterialTheme.components.primaryButton,
-                                onClick = { createNewChatViewModel.errorDismiss() },
-                            ) {
-                                Text(i18n.actionOk())
-                            }
+                        item(key = "AddOrSearchGroup") {
+                            AddOrSearchGroup(createNewChatViewModel)
+                            HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
                         }
+                        searchUsersView.create(
+                            createNewChatViewModel.createNewRoomViewModel,
+                            createNewChatViewModel::onUserClick,
+                            searchUsersResults,
+                            userSearchResultView,
+                            this,
+                        )
                     }
                 }
 
-                Column {
-                    Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
-                    Box(Modifier.fillMaxSize()) {
-                        LazyColumn(state = listState) {
-                            item(key = "CreatingIndicator") {
-                                if (isCreating) {
-                                    ThemedProgressIndicator(
-                                        Modifier.fillMaxWidth(),
-                                        MaterialTheme.components.linearProgressIndicator
-                                    )
-                                }
-                            }
-                            item(key = "AddOrSearchGroup") {
-                                AddOrSearchGroup(createNewChatViewModel)
-                                HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
-                            }
-                            searchUsersView.create(
-                                createNewChatViewModel.createNewRoomViewModel,
-                                createNewChatViewModel::onUserClick,
-                                searchUsersResults,
-                                userSearchResultView,
-                                this,
-                            )
+                if (listState.canScrollForward || listState.canScrollBackward) {
+                    VerticalScrollbar(
+                        Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                        lazyListState = listState,
+                        reverseLayout = false,
+                    )
+                }
+            }
+        }
+
+        if (error != null) {
+            ThemedModalDialog({ createNewChatViewModel.errorDismiss() }) {
+                ModalDialogHeader {
+                    Text(i18n.anErrorHasOccurred())
+                }
+                ModalDialogContent {
+                    Text(error)
+                    if (errorDetails != null) {
+                        ExpandableSection(heading = i18n.errorDetails(), icon = Icons.Default.Info) {
+                            Text(errorDetails, modifier = Modifier.padding(20.dp))
                         }
-                        VerticalScrollbar(
-                            Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                            lazyListState = listState,
-                            reverseLayout = false,
-                        )
+                    }
+                }
+                ModalDialogFooter {
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
+                        onClick = { createNewChatViewModel.errorDismiss() },
+                    ) {
+                        Text(i18n.actionOk())
                     }
                 }
             }

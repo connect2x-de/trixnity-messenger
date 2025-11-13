@@ -1,11 +1,15 @@
 package de.connect2x.messenger.compose.view
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import de.connect2x.messenger.compose.view.root.RootSwitch
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
@@ -58,11 +62,22 @@ fun Client(rootViewModel: RootViewModel) {
 class ClientViewImpl : ClientView {
     @Composable
     override fun create(rootViewModel: RootViewModel) {
+        val insets = WindowInsets.safeDrawing
+        val headerColor = MaterialTheme.components.systemUi.header
+        val footerColor = MaterialTheme.components.systemUi.footer
+
         ThemedSurface(
             style = MaterialTheme.components.background,
             modifier = Modifier
                 .fillMaxSize()
-                .safeDrawingPadding()
+                .drawBehind {
+                    val top = insets.getTop(this)
+                    val bottom = insets.getBottom(this)
+
+                    drawRect(headerColor, topLeft = Offset.Zero, size = size.copy(height = top.toFloat()))
+                    drawRect(footerColor, topLeft = Offset(0f, size.height - bottom), size = size.copy(height = bottom.toFloat()))
+                }
+                .windowInsetsPadding(insets)
         ) {
             RootSwitch(rootViewModel.stack)
             UiaSwitch(rootViewModel.uiaStack)

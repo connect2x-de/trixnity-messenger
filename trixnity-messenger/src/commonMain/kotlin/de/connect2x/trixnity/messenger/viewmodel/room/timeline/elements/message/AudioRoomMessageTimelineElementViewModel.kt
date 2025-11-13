@@ -19,6 +19,9 @@ interface AudioRoomMessageTimelineElementViewModelFactory : TimelineElementViewM
         AudioRoomMessageTimelineElementViewModelImpl(
             viewModelContext,
             content,
+            roomId,
+            eventIdOrTransactionId,
+            onOpenMention,
         )
 
     override val supports: KClass<FileBased.Audio>
@@ -30,7 +33,16 @@ interface AudioRoomMessageTimelineElementViewModelFactory : TimelineElementViewM
 class AudioRoomMessageTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: FileBased.Audio,
+    roomId: RoomId,
+    eventIdOrTransactionId: EventIdOrTransactionId,
+    onOpenMention: OpenMentionCallback,
 ) : RoomMessageTimelineElementViewModel.FileBased.Audio,
-    FileBasedRoomMessageTimelineElementViewModel<FileBased.Audio>(viewModelContext, content) {
+    FileBasedRoomMessageTimelineElementViewModel<FileBased.Audio>(
+        viewModelContext,
+        content,
+        roomId,
+        eventIdOrTransactionId,
+        onOpenMention,
+    ) {
     override val duration: Long? = content.info?.duration
 }

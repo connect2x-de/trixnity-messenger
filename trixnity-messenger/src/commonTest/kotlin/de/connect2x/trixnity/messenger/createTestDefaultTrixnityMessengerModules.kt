@@ -83,6 +83,11 @@ fun TestScope.createTestDefaultTrixnityMessengerModules(
                 TODO("Not yet implemented")
             }
 
+            override val initFromStoreResult: StateFlow<MatrixClients.InitFromStoreResult?>
+                get() = TODO("Not yet implemented")
+            override val isInitialized: StateFlow<Boolean>
+                get() = TODO("Not yet implemented")
+
             override suspend fun initFromStore(): MatrixClients.InitFromStoreResult {
                 TODO("Not yet implemented")
             }

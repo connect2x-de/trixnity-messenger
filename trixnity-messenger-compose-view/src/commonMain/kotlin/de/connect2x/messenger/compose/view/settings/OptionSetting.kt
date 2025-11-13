@@ -7,7 +7,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
-import de.connect2x.messenger.compose.view.common.MoreOptions
+import de.connect2x.messenger.compose.view.common.ExpandableSection
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 
 internal data class OptionSettingOption(
     val text: String,
@@ -29,12 +31,13 @@ internal fun OptionSetting(
     if (explanation != null) Text(text, style = MaterialTheme.typography.labelSmall)
     for (option in options) {
         val (optionText, optionExplanation, optionValue, optionToggle, optionEnabled) = option
-        Setting(
-            text = optionText,
-            explanation = optionExplanation,
-            value = optionValue,
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(optionText) },
+            supportingContent = if (optionExplanation == null) null else {{ Text(optionExplanation) }},
+            selected = optionValue,
             enabled = enabled && optionEnabled,
-            toggle = optionToggle
+            onChange = optionToggle,
         )
     }
 }
@@ -47,18 +50,24 @@ internal fun ColumnScope.CollapsableOptionSetting(
     icon: ImageVector = Icons.Default.Settings,
     options: List<OptionSettingOption>,
 ) {
-    MoreOptions(title = {
-        Text(text, style = MaterialTheme.typography.titleSmall)
-        if (explanation != null) Text(explanation, style = MaterialTheme.typography.labelSmall)
-    }, icon = icon, enabled = enabled) {
+    ExpandableSection(
+        heading = {
+            Text(text, style = MaterialTheme.typography.titleSmall)
+            if (explanation != null) Text(explanation, style = MaterialTheme.typography.labelSmall)
+        },
+        icon = icon,
+    ) {
         for (option in options) {
             val (optionText, optionExplanation, optionValue, optionToggle, optionEnabled) = option
-            Setting(
-                text = optionText,
-                explanation = optionExplanation,
-                value = optionValue,
+            ThemedListItemSwitch(
+                style = MaterialTheme.components.settingsItem,
+                headlineContent = { Text(optionText) },
+                supportingContent = if (optionExplanation == null) null else {
+                    { Text(optionExplanation) }
+                },
+                selected = optionValue,
                 enabled = enabled && optionEnabled,
-                toggle = optionToggle
+                onChange = optionToggle,
             )
         }
     }

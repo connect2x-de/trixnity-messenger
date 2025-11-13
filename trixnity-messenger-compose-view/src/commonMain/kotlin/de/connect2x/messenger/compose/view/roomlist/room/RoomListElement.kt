@@ -4,12 +4,8 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.hoverable
-import androidx.compose.foundation.indication
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyItemScope
@@ -20,12 +16,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -33,6 +23,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedHorizontalDivider
 import de.connect2x.messenger.compose.view.theme.components.themedSurface
+import de.connect2x.messenger.compose.view.util.rovingFocusItem
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import net.folivo.trixnity.core.model.RoomId
@@ -79,55 +70,17 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                     visibilityThreshold = IntOffset.VisibilityThreshold
                 )
             )
-                // TODO: Replace if Modifier.clickable works again
-                // For explanation:
-                // For some reason Modifier.clickable leads to the LazyColumn not recomposing the item where the click
-                // happened:
-                // LazyColumn {
-                //     items(100) {
-                //         println("rerun: $it")
-                //         Text(
-                //             text = "$it",
-                //             modifier = Modifier.clickable {
-                //                 println("clicked: $it")
-                //             }
-                //         )
-                //      }
-                //  }
-                .hoverable(interactionSource, enabled = hoverable)
-                .focusable(enabled = true, interactionSource = interactionSource)
-                .pointerInput(roomName, roomId, isInvite) {
-                    if (roomName == null || isInvite == null || isInvite == true) return@pointerInput
-
-                    detectTapGestures(
-                        onPress = { offset ->
-                            val press = PressInteraction.Press(offset)
-                            interactionSource.emit(press)
-                            val released = tryAwaitRelease()
-                            interactionSource.emit(PressInteraction.Release(press))
-
-                            if (released) {
-                                roomListViewModel.selectRoom(roomId)
-                            }
-                        }
-                    )
-                }
-                .onKeyEvent { keyEvent ->
-                    if (keyEvent.type == KeyEventType.KeyUp && (keyEvent.key == Key.Enter || keyEvent.key == Key.Spacebar)) {
+                .rovingFocusItem()
+                .then(
+                    if (roomId == selectedRoomId) Modifier.themedSurface(MaterialTheme.components.roomListSelection, focused = hasFocus)
+                    else Modifier.themedSurface(MaterialTheme.components.roomListElement, focused = hasFocus)
+                )
+                .clickable(interactionSource, LocalIndication.current) {
+                    if (hoverable) {
                         roomListViewModel.selectRoom(roomId)
-                        true
-                    } else false
+                    }
                 }
-                .then(
-                    if (roomId == selectedRoomId) Modifier.themedSurface(MaterialTheme.components.roomListSelection)
-                    else Modifier.themedSurface(MaterialTheme.components.roomListElement)
-                )
-                .then(
-                    if (hasFocus) Modifier.themedSurface(MaterialTheme.components.roomListFocused)
-                    else Modifier
-                )
-                .indication(interactionSource, LocalIndication.current)
-                .buttonPointerModifier(enabled = isInvite == null || isInvite == false)
+                .buttonPointerModifier(enabled = isInvite != true)
         ) {
             CompositionLocalProvider(
                 LocalContentColor provides if (roomId == selectedRoomId) MaterialTheme.components.roomListSelection.contentColor else LocalContentColor.current

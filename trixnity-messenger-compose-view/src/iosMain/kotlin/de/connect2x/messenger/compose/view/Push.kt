@@ -29,7 +29,6 @@ import net.folivo.trixnity.core.model.events.m.room.Membership
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.roomIdOrNull
 import org.koin.core.Koin
-import kotlin.collections.iterator
 import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
@@ -48,14 +47,20 @@ private fun createSetPushersRequest(userId: UserId, deviceId: String, di: Koin, 
         data = PusherData(
             format = "event_id_only",
             url = configuration.pushUrl,
-            customFields = JsonObject(mapOf(
-                "default_payload" to JsonObject(mapOf(
-                    "aps" to JsonObject(mapOf(
-                        "content-available" to JsonPrimitive(1)
-                    )),
-                    "user_id" to JsonPrimitive(userId.toString())
-                ))
-            ))
+            customFields = JsonObject(
+                mapOf(
+                    "default_payload" to JsonObject(
+                        mapOf(
+                            "aps" to JsonObject(
+                                mapOf(
+                                    "content-available" to JsonPrimitive(1)
+                                )
+                            ),
+                            "user_id" to JsonPrimitive(userId.toString())
+                        )
+                    )
+                )
+            )
         ),
         deviceDisplayName = "$userId ($deviceId)",
         kind = "http",
@@ -106,17 +111,11 @@ fun handleNotification(userId: String, roomId: String, eventId: String) {
                 }
             }
         }
-        
+
         val messenger = matrixMultiMessenger.activeMatrixMessenger.filterNotNull().first()
         log.debug { "Selected active messenger from multi messenger" }
         val matrixClients = messenger.di.get<MatrixClients>()
-        val storeError = matrixClients.initFromStore()
-        if (storeError.failures.isNotEmpty()) {
-            for ((userId, error) in storeError.failures) {
-                log.error { "Error while loading $userId: $error" }
-            }
-            return@runBlocking
-        }
+        matrixClients.isInitialized.first { it }
 
         val matrixClient = matrixClients.first { it.isNotEmpty() }[userId] ?: run {
             log.error { "MatrixClient not found for user $userId" }
@@ -145,11 +144,13 @@ fun handleNotification(userId: String, roomId: String, eventId: String) {
 
                     val notificationHandler = notificationHandlerProvider(matrixClient.userId.toString())
                     notificationHandler.requestPermissions()
-                    notificationHandler.push(Notification(
-                        title = roomName,
-                        description = message,
-                        callbackData = "$userId-${notification.event.roomIdOrNull}"
-                    ))
+                    notificationHandler.push(
+                        Notification(
+                            title = roomName,
+                            description = message,
+                            callbackData = "$userId-${notification.event.roomIdOrNull}"
+                        )
+                    )
                 }
             } ?: log.error { "Failed to receive notifications in timeout" }
         }.onFailure {

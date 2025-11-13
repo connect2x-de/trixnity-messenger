@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -52,6 +51,10 @@ import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.messengerIcons
+import de.connect2x.messenger.compose.view.util.RovingFocusContainer
+import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.scrollIntoView
+import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -78,6 +81,7 @@ fun ColumnScope.Timeline(timelineViewModel: TimelineViewModel) {
 }
 
 private const val additionalEndPadding = 8
+
 class TimelineViewImpl : TimelineView {
     @Composable
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
@@ -113,6 +117,26 @@ class TimelineViewImpl : TimelineView {
                         }
                     }
                 }.asReversed()
+            }
+        }
+        val navigatableTimelineElements = remember {
+            derivedStateOf {
+                timelineElementHolderViewModels.value.filter {
+                    val element = it.element.value
+                    element != null && timelineElementViewSelector.isFocusable(element)
+                }.map { it.key }
+            }
+        }
+        val uiTimelineElements = remember {
+            derivedStateOf {
+                buildList {
+                    for ((date, viewModel) in timelineElementViewModelGrouped.value) {
+                        add(viewModel.key)
+                        if (date != null) {
+                            add("date-$date-${viewModel.key}")
+                        }
+                    }
+                }
             }
         }
 
@@ -164,9 +188,15 @@ class TimelineViewImpl : TimelineView {
                         } ?: 0
                 }
 
-                val initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else initialIndex
-                val listState =
-                    rememberLazyListState(initialFirstVisibleItemIndex = initialFirstVisibleItemIndex)
+                val initialFirstVisibleItemIndex =
+                    if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else initialIndex
+                val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialFirstVisibleItemIndex)
+
+                val lastItem = remember {
+                    derivedStateOf {
+                        navigatableTimelineElements.value.firstOrNull()
+                    }
+                }
 
                 LaunchedEffect(scrollTo, timelineElementHolderViewModels.value) {
                     if (scrollTo != null) {
@@ -221,32 +251,65 @@ class TimelineViewImpl : TimelineView {
                             }
                         }
                         Box {
-                            LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(
-                                    top = 10.dp,
-                                    bottom = 10.dp,
-                                    start = if (this@BoxWithConstraints.maxWidth.value > 1000)
-                                        (0.5 * (this@BoxWithConstraints.maxWidth.value - 1000) + 10).dp else 10.dp,
-                                    end = if (this@BoxWithConstraints.maxWidth.value > 1000)
-                                        (0.5 * (this@BoxWithConstraints.maxWidth.value - 1000) + (10 + additionalEndPadding)).dp else 18.dp // 10 + 8, since we cannot add a padding or Spacer at the end
-                                ),
-                                state = listState,
-                                reverseLayout = true,
-                                verticalArrangement = Arrangement.Bottom,
-                            ) {
-                                log.trace { "rendering timeline elements" }
-                                timelineElementViewModelGrouped.value.forEach { (date, viewModel) ->
-                                    item(viewModel.key) {
-                                        TimelineElementHolder(viewModel)
-                                    }
-                                    if (date != null)
-                                        item("date-$date-${viewModel.key}") {
-                                            DateStickyHeader(date)
+                            RovingFocusContainer {
+                                LazyColumn(
+                                    modifier = Modifier.fillMaxSize()
+                                        .verticalRovingFocus(
+                                            default = lastItem.value,
+                                            scroll = { item ->
+                                                val index = uiTimelineElements.value.indexOf(item)
+                                                if (index != -1) {
+                                                    listState.scrollIntoView(index)
+                                                }
+                                            },
+                                            up = {
+                                                val currentItem = activeRef.value ?: lastItem.value
+                                                val currentIndex =
+                                                    navigatableTimelineElements.value.indexOf(currentItem)
+                                                val nextIndex = currentIndex.plus(1)
+                                                    .coerceIn(navigatableTimelineElements.value.indices)
+                                                navigatableTimelineElements.value[nextIndex]
+                                            },
+                                            down = {
+                                                val currentItem = activeRef.value ?: lastItem.value
+                                                val currentIndex =
+                                                    navigatableTimelineElements.value.indexOf(currentItem)
+                                                val nextIndex = currentIndex.minus(1)
+                                                    .coerceIn(navigatableTimelineElements.value.indices)
+                                                navigatableTimelineElements.value[nextIndex]
+                                            },
+                                        ),
+                                    contentPadding = PaddingValues(
+                                        top = 10.dp,
+                                        bottom = 10.dp,
+                                        start = if (this@BoxWithConstraints.maxWidth.value > 1000)
+                                            (0.5 * (this@BoxWithConstraints.maxWidth.value - 1000) + 10).dp else 10.dp,
+                                        end = if (this@BoxWithConstraints.maxWidth.value > 1000)
+                                            (0.5 * (this@BoxWithConstraints.maxWidth.value - 1000) + (10 + additionalEndPadding)).dp else 18.dp // 10 + 8, since we cannot add a padding or Spacer at the end
+                                    ),
+                                    state = listState,
+                                    reverseLayout = true,
+                                    verticalArrangement = Arrangement.Bottom,
+                                ) {
+                                    log.trace { "rendering timeline elements" }
+                                    timelineElementViewModelGrouped.value.forEach { (date, viewModel) ->
+                                        item(viewModel.key) {
+                                            RovingFocusItem(viewModel.key) {
+                                                TimelineElementHolder(viewModel)
+                                            }
                                         }
+                                        if (date != null)
+                                            item("date-$date-${viewModel.key}") {
+                                                DateStickyHeader(date)
+                                            }
+                                    }
                                 }
                             }
-                            ListDateHeader(visibleItems, timelineElementHolderViewModels)
+                            ListDateHeader(
+                                visibleItems,
+                                timelineElementHolderViewModels,
+                                show = listState.canScrollForward,
+                            )
                             ScrollToEndButton(timelineViewModel, canScrollToEnd)
                             draggedFile.value?.let { draggedFile ->
                                 Box(
@@ -362,17 +425,20 @@ fun updateVisibleItems(
 fun ListDateHeader(
     visible: State<Pair<String, String>?>,
     timelineElementHolderViewModels: State<List<BaseTimelineElementHolderViewModel>>,
+    show: Boolean,
 ) {
-    val timestamp = remember {
-        derivedStateOf {
-            visible.value?.second?.let { lastEventId ->
-                timelineElementHolderViewModels.value
-                    .find { it.key == lastEventId }
-                    ?.formattedDate
+    if (show) {
+        val timestamp = remember {
+            derivedStateOf {
+                visible.value?.first?.let { lastEventId ->
+                    timelineElementHolderViewModels.value
+                        .find { it.key == lastEventId }
+                        ?.formattedDate
+                }
             }
         }
-    }
-    Box(Modifier.padding(end = additionalEndPadding.dp)) {
-        timestamp.value?.let { DateStickyHeader(it) }
+        Box(Modifier.padding(end = additionalEndPadding.dp)) {
+            timestamp.value?.let { DateStickyHeader(it) }
+        }
     }
 }

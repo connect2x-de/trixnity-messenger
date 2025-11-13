@@ -22,9 +22,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -70,7 +68,7 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
     }.collectAsState(null).value
 
     if (activeAccountInfo != null) {
-        Box(Modifier.Companion.weight(1.0f, false).fillMaxWidth()) {
+        Box(Modifier.weight(1.0f, false).fillMaxWidth()) {
             ThemedButton(
                 style = MaterialTheme.components.accountSelector,
                 onClick = {
@@ -119,32 +117,22 @@ fun AvatarArea(
         ThemedUserAvatar(accountInfo.initials, accountInfo.avatar)
         Spacer(Modifier.size(10.dp))
         Column {
-            Tooltip(
-                tooltip = {
-                    TooltipText { accountInfo.displayName }
-                },
-                content = {
-                    Text(
-                        accountInfo.displayName,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                }
-            )
-            Tooltip(
-                tooltip = {
-                    TooltipText { accountInfo.userId.full }
-                },
-                content = {
-                    Text(
-                        accountInfo.userId.full,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.labelMedium,
-                    )
-                }
-            )
+            Tooltip({ Text(accountInfo.displayName) }) {
+                Text(
+                    accountInfo.displayName,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
+            Tooltip({ Text(accountInfo.userId.full) }) {
+                Text(
+                    accountInfo.userId.full,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelMedium,
+                )
+            }
         }
     }
 }
@@ -155,7 +143,7 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
     val accounts = accountViewModel.accounts.collectAsState().value
     val accountSelectionOpen = remember { mutableStateOf(false) }
 
-    Box(Modifier.Companion.weight(1.0f, false).fillMaxWidth()) {
+    Box(Modifier.weight(1.0f, false).fillMaxWidth()) {
         ThemedButton(
             style = MaterialTheme.components.accountSelector,
             onClick = { accountSelectionOpen.value = accountSelectionOpen.value.not() },
@@ -163,14 +151,7 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 ThemedUserAvatar("*", null)
                 Spacer(Modifier.size(10.dp))
-                Tooltip(
-                    tooltip = {
-                        TooltipText {
-                            accounts.joinToString { account -> account.displayName }
-                        }
-                    },
-                    onClick = { accountSelectionOpen.value = accountSelectionOpen.value.not() }
-                ) {
+                Tooltip({ Text(accounts.joinToString { account -> account.displayName }) }) {
                     Column {
                         Text(
                             i18n.accountAllAccounts(),
@@ -214,20 +195,8 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
 fun AllAccountsMenuItem(selectAction: () -> Unit) {
     val i18n = DI.get<I18nView>()
     ThemedDropdownMenuItem(
-        text = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 10.dp), // to make up for missing account name space
-            ) {
-                ThemedUserAvatar("*", null)
-                Spacer(Modifier.size(10.dp))
-                Text(
-                    i18n.accountAllAccounts(),
-                    Modifier.buttonPointerModifier(),
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-            }
-        },
+        leadingIcon = { ThemedUserAvatar("*", null) },
+        text = { Text(i18n.accountAllAccounts()) },
         onClick = selectAction,
     )
 }
@@ -238,35 +207,21 @@ fun AccountMenuItem(
     selectAction: (UserId) -> Unit,
 ) {
     ThemedDropdownMenuItem(
+        leadingIcon = { ThemedUserAvatar(accountInfo.initials, accountInfo.avatar) },
         text = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.buttonPointerModifier()
-            ) {
-                ThemedUserAvatar(accountInfo.initials, accountInfo.avatar)
-                Spacer(Modifier.size(10.dp))
-                Column {
-                    Tooltip(
-                        tooltip = {
-                            TooltipText { accountInfo.displayName }
-                        },
-                        content = {
-                            Text(
-                                accountInfo.displayName,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        }
-                    )
-
+            Column {
+                Tooltip({ Text(accountInfo.displayName) }) {
                     Text(
-                        accountInfo.userId.full,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        style = MaterialTheme.typography.labelMedium,
+                        accountInfo.displayName,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
+                Text(
+                    accountInfo.userId.full,
+                    style = MaterialTheme.typography.labelMedium,
+                )
             }
         },
         onClick = { selectAction(accountInfo.userId) },

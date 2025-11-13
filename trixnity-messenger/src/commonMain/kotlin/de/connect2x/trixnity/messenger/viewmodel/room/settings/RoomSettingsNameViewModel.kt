@@ -4,6 +4,7 @@ import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.PreviewApprovableTextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +15,7 @@ import net.folivo.trixnity.client.user
 import net.folivo.trixnity.client.user.canSendEvent
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.NameEventContent
+import org.koin.core.component.get
 
 
 interface RoomSettingsNameViewModelFactory {
@@ -55,11 +57,12 @@ class RoomSettingsNameViewModelImpl(
             .map { it?.isDirect?.not() ?: false }
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
+    private val defaultRoomName = get<RoomName>().getRoomName(selectedRoomId, matrixClient)
+        .stateIn(coroutineScope, WhileSubscribed(), "")
+
     override val roomName: ApprovableTextFieldViewModel =
         ApprovableTextFieldViewModelImpl(
-            serverValue = matrixClient.room
-                .getById(selectedRoomId)
-                .map { it?.name?.explicitName ?: "" },
+            serverValue = defaultRoomName,
             maxLength = 1_000,
             coroutineScope = coroutineScope,
             onApplyChange = { newName ->

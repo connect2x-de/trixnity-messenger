@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -36,6 +39,11 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenu
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
+import de.connect2x.messenger.compose.view.util.LocalRovingFocus
+import de.connect2x.messenger.compose.view.util.RovingFocusContainer
+import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.scrollIntoView
+import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -56,7 +64,8 @@ class RoomListViewImpl : RoomListView {
     override fun create(roomListViewModel: RoomListViewModel) {
         val state = rememberLazyListState()
         val initialSyncFinished = roomListViewModel.initialSyncFinished.collectAsState().value
-        val allRooms = roomListViewModel.elements.collectAsState().value
+        val allRoomState = roomListViewModel.elements.collectAsState()
+        val allRooms = allRoomState.value
         val canCreateNewRoomWithAccount = roomListViewModel.canCreateNewRoomWithAccount.collectAsState().value
         val searchResultsEmpty = roomListViewModel.searchResultsEmpty.collectAsState().value
         val i18n = DI.get<I18nView>()
@@ -90,16 +99,67 @@ class RoomListViewImpl : RoomListView {
                     }
                 }
             } else {
-                LazyColumn(Modifier.fillMaxSize(), state) {
-                    items(
-                        allRooms,
-                        { it.roomId.full }
-                    ) { roomListElement ->
-                        RoomListElementContainer(
-                            roomListElement.roomId,
-                            roomListViewModel,
-                            roomListElement,
-                        )
+                val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState()
+
+                RovingFocusContainer {
+                    val rovingFocusState = LocalRovingFocus.current
+                    val defaultItem = derivedStateOf {
+                        selectedRoomId.value ?: allRoomState.value.firstOrNull()?.roomId
+                    }
+
+                    LaunchedEffect(rovingFocusState, defaultItem.value) {
+                        rovingFocusState?.selectItem(defaultItem.value) {
+                            val index = allRooms.indexOfFirst { it.roomId == defaultItem.value }
+                            if (index != -1) {
+                                state.scrollIntoView(index)
+                            }
+                        }
+                    }
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().verticalRovingFocus(
+                            default = defaultItem.value,
+                            scroll = { item ->
+                                val index = allRooms.indexOfFirst { it.roomId == item }
+                                if (index != -1) {
+                                    state.scrollIntoView(index)
+                                }
+                            },
+                            up = {
+                                val currentItem = activeRef.value ?: defaultItem.value
+                                val currentIndex = allRooms.indexOfFirst { it.roomId == currentItem }
+                                val nextIndex = currentIndex.minus(1).coerceIn(allRooms.indices)
+                                allRooms[nextIndex].roomId
+                            },
+                            down = {
+                                val currentItem = activeRef.value ?: defaultItem.value
+                                val currentIndex = allRooms.indexOfFirst { it.roomId == currentItem }
+                                val nextIndex = currentIndex.plus(1).coerceIn(allRooms.indices)
+                                allRooms[nextIndex].roomId
+                            },
+                        ),
+                        state,
+                    ) {
+                        items(
+                            allRooms,
+                            { it.roomId.full }
+                        ) { roomListElement ->
+                            RovingFocusItem(roomListElement.roomId, selectedRoomId) {
+                                RoomListElementContainer(
+                                    roomListElement.roomId,
+                                    roomListViewModel,
+                                    roomListElement,
+                                )
+                            }
+                        }
+
+                        item {
+                            Spacer(
+                                Modifier.fillMaxWidth().height(
+                                    MaterialTheme.components.floatingActionButton.size * 2
+                                )
+                            )
+                        }
                     }
                 }
                 VerticalScrollbar(

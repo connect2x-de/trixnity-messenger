@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,8 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Attachment
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -24,17 +23,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ClipEntry
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.FileName
+import de.connect2x.messenger.compose.view.common.FileInfo
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
-import de.connect2x.messenger.compose.view.room.timeline.element.util.shortenFileName
-import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.util.toClipEntry
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -52,6 +48,8 @@ class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementVie
         // NO-OP (has default size)
     }
 
+    override fun isFocusable(): Boolean = true
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
@@ -59,15 +57,6 @@ class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementVie
     ) {
         FileBasedRoomMessageTimelineElement(
             holder, element,
-            overlay = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${shortenFileName(element)}, ${element.size}",
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                        maxLines = 1,
-                    )
-                }
-            }
         ) { showActionMenu, onSave ->
             MessageFile(element, showActionMenu, onSave)
         }
@@ -81,15 +70,6 @@ class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementVie
         FileBasedRoomMessageTimelineElement(
             holder, element,
             isPreview = true,
-            overlay = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${shortenFileName(element)}, ${element.size}",
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                        maxLines = 1,
-                    )
-                }
-            }
         ) { showActionMenu, onSave ->
             MessageFile(element, showActionMenu, onSave)
         }
@@ -99,16 +79,20 @@ class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementVie
     override fun createReplyInTimeline(
         holder: TimelineElementHolderViewModel,
         element: File,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
-        FileReplyElement(holder, element)
+        FileReplyElement(holder, interactionSource, modifier, element)
     }
 
     @Composable
     override fun createReplyInSendMessage(
         holder: TimelineElementHolderViewModel,
         element: File,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
     ) {
-        FileReplyElement(holder, element)
+        FileReplyElement(holder, interactionSource, modifier, element)
     }
 
     @Composable
@@ -144,12 +128,8 @@ internal fun MessageFile(
             Icon(Icons.Default.Attachment, i18n.commonAttachment(), Modifier.padding(10.dp))
         }
         Spacer(Modifier.size(10.dp))
-        Text(
-            buildAnnotatedString {
-                append(element.name)
-                pushStyle(SpanStyle(Color.Gray))
-                append(element.size)
-            },
+        FileInfo(
+            element,
             Modifier.align(Alignment.CenterVertically)
         )
         if (downloadSuccessful.value) {
@@ -165,10 +145,17 @@ internal fun MessageFile(
 }
 
 @Composable
-internal fun FileReplyElement(holder: TimelineElementHolderViewModel, element: File) {
+internal fun FileReplyElement(
+    holder: TimelineElementHolderViewModel,
+    interactionSource: MutableInteractionSource,
+    modifier: Modifier,
+    element: File,
+) {
     val i18n = DI.get<I18nView>()
     ReferencedMessagePill(
         holder = holder,
+        modifier = modifier,
+        interactionSource = interactionSource,
         content = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(
@@ -178,6 +165,9 @@ internal fun FileReplyElement(holder: TimelineElementHolderViewModel, element: F
                     tint = Color.DarkGray,
                 )
                 FileName(element.name)
+                if (element.hasCaption) {
+                    TextReply(element, maxLines = 2)
+                }
             }
         }
     )

@@ -1,24 +1,19 @@
-package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
+package de.connect2x.trixnity.messenger.viewmodel.room
 
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.MatrixReferences
-import de.connect2x.trixnity.messenger.util.html.AutoLinkifyVisitor
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
-import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.EventInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toRoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
@@ -34,51 +29,25 @@ import net.folivo.trixnity.client.user
 import net.folivo.trixnity.core.model.RoomAliasId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-import net.folivo.trixnity.core.model.events.m.room.formattedBodyWithoutFallback
 import net.folivo.trixnity.core.util.Reference
-import org.koin.core.component.get
 
-abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEventContent.TextBased>(
-    private val viewModelContext: MatrixClientViewModelContext,
-    content: C,
-    private val roomId: RoomId,
-    private val onOpenMention: OpenMentionCallback,
-) : RoomMessageTimelineElementViewModel.TextBased<C>, MatrixClientViewModelContext by viewModelContext {
-    private val initials = get<Initials>()
-    private val roomName = get<RoomName>()
-    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-    override val body: String = content.bodyWithoutFallback
-    override val formattedBody: String? = content.formattedBodyWithoutFallback
-    override val formattedBodyContent: HtmlNode.HtmlElement =
-        content.formattedBodyWithoutFallback
-            ?.let(HtmlVisitor::process)
-            ?.let(AutoLinkifyVisitor::process)
-            ?: HtmlNode.HtmlElement("#root", emptyMap(), listOf(HtmlNode.TextContent(content.body)))
-                .let(AutoLinkifyVisitor::process)
-
-    override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>> by lazy {
-        MatrixReferences.findInText(body)
-            .mapValues { (_, mention) -> processMention(mention) }
-    }
-
-    private val mentionFlowsInFormattedBody =
-        formattedBodyContent
+class MentionHelper(
+    val coroutineScope: CoroutineScope,
+    val matrixClient: MatrixClient,
+    val roomId: RoomId,
+    val initials: Initials,
+    val roomName: RoomName,
+    val maxMediaSizeInMemory: Long,
+) {
+    fun processMentions(content: HtmlNode.HtmlElement): Flow<Map<String, TimelineElementMention?>> =
+        content
             .let(MatrixReferences::findInHtml)
             .mapValues { (_, mention) -> processMention(mention) }
             .map { (key, flow) -> flow.map { Pair(key, it) } }
-
-    override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
-        combine(mentionFlowsInFormattedBody) { it.toMap() }
-            .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
-
-    override fun openMention(mention: TimelineElementMention) {
-        onOpenMention(userId, mention)
-    }
+            .let { combine(it, Array<Pair<String, TimelineElementMention?>>::toMap) }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun processMention(reference: Reference): StateFlow<TimelineElementMention?> =
+    fun processMention(reference: Reference): StateFlow<TimelineElementMention?> =
         when (reference) {
             is Reference.User -> matrixClient.user.getById(roomId, reference.userId)
                 .map {
@@ -128,7 +97,7 @@ abstract class TextBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
             matrixClient.room.getById(roomId),
             roomName.getRoomName(roomId, matrixClient),
             matrixClient.room.getState<CanonicalAliasEventContent>(roomId).map { it?.content },
-        ) { room, roomName, aliases ->
+        ) { room, roomName, _ ->
             room?.toRoomInfoElement(
                 coroutineScope,
                 initials,

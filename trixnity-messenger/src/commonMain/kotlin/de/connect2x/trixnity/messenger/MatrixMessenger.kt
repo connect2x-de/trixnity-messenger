@@ -80,10 +80,10 @@ class MatrixMessengerImpl private constructor(
                 log.debug { "initialize SettingsHolder ($it)" }
                 it.init()
             }
-            val worker = di.getAll<MatrixMessengerWorker>()
-            worker.forEach { work ->
-                log.debug { "start worker $work" }
-                coroutineScope.launch { work() }
+            val worker = di.getAll<Worker>()
+            worker.forEach { worker ->
+                log.debug { "start worker $worker" }
+                coroutineScope.launch { worker.doWork() }
             }
             log.debug { "created MatrixMessengerImpl" }
             return MatrixMessengerImpl(di)

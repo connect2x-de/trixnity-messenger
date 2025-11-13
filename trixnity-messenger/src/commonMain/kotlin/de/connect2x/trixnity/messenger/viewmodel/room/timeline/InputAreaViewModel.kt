@@ -6,6 +6,7 @@ import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavour
 import de.connect2x.trixnity.messenger.util.html.toLink
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
@@ -64,10 +65,16 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import net.folivo.trixnity.utils.concurrentMutableMap
+import org.intellij.markdown.IElementType
 import org.intellij.markdown.ast.ASTNode
+import org.intellij.markdown.flavours.gfm.GFMElementTypes
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
+import org.intellij.markdown.html.GeneratingProvider
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.html.HtmlGenerator.TagRenderer
+import org.intellij.markdown.html.SimpleInlineTagProvider
+import org.intellij.markdown.html.URI
+import org.intellij.markdown.parser.LinkMap
 import org.intellij.markdown.parser.MarkdownParser
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
@@ -200,7 +207,7 @@ open class InputAreaViewModelImpl(
     override val listOfMentionsLoading: StateFlow<Boolean> = _listOfMentionsLoading.asStateFlow()
 
     override val useMarkdown = MutableStateFlow(true)
-    private val markdownFlavourDescriptor = GFMFlavourDescriptor()
+    private val markdownFlavourDescriptor = get<MatrixMarkdownFlavour>()
     private val markdownParser = MarkdownParser(markdownFlavourDescriptor)
 
     private class HtmlTagRenderer() : TagRenderer {
@@ -288,7 +295,7 @@ open class InputAreaViewModelImpl(
     }
 
     private fun TextFieldViewModel.State.mentionBeforeCursor() =
-        if (text.isNotEmpty() && selection != null && selection.firstIsLast()) {
+        if (text.isNotEmpty() && selection != null && selection.firstIsLast() && selection.first != 0) {
             text.substring(0..(selection.last - 1).coerceIn(0..text.lastIndex))
                 .takeLast(50)
                 .takeIf { it.contains('@') }

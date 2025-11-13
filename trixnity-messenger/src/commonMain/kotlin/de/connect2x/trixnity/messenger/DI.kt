@@ -17,6 +17,8 @@ import de.connect2x.trixnity.messenger.util.EnterRoom
 import de.connect2x.trixnity.messenger.util.EnterRoomImpl
 import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.util.LeaveRoomImpl
+import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavour
+import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavourImpl
 import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
@@ -55,6 +57,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewMod
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.PowerlevelViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsHistoryVisibilityViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsJoinRulesViewModelFactory
@@ -96,6 +99,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.En
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.HistoryVisibilityStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.MemberStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.NameStateTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.PowerLevelsTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.TopicStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ThumbnailsImpl
@@ -230,11 +234,15 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             }
 
             single<MatrixClientFactory> {
-                MatrixClientFactoryImpl(get(), get(), get(), get(), getAll(), get<CoroutineScope>().coroutineContext)
+                MatrixClientFactoryImpl(get(), get(), get(), getAll(), get<CoroutineScope>().coroutineContext)
             }
-            single<MatrixClients> {
+            single<MatrixClientsImpl> {
                 MatrixClientsImpl(get(), get(), get(), get(), get())
-            }.bind<AutoCloseable>()
+            }.apply {
+                bind<MatrixClients>()
+                bind<AutoCloseable>()
+                bind<Worker>()
+            }
 
             single<TimelineEventContentToString> { TimelineEventContentToStringImpl(get()) }
             single<Initials> { InitialsImpl(get()) }
@@ -259,6 +267,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<RunInitialSync> { RunInitialSyncImpl }
             single<DragAndDropHandler> { DragAndDropHandlerBase() }
             single<AccountSetupViewModelFactory> { AccountSetupViewModelFactory }
+            single<MatrixMarkdownFlavour> { MatrixMarkdownFlavourImpl() }
 
             single<RootViewModelFactory> { RootViewModelFactory }
             single<MainViewModelFactory> { MainViewModelFactory }
@@ -415,6 +424,7 @@ private fun timelineElementViewModels() = module {
     timelineElementViewModelFactory<CanonicalAliasStateTimelineElementViewModelFactory> { CanonicalAliasStateTimelineElementViewModelFactory }
     timelineElementViewModelFactory<HistoryVisibilityStateTimelineElementViewModelFactory> { HistoryVisibilityStateTimelineElementViewModelFactory }
     timelineElementViewModelFactory<EncryptionStateTimelineElementViewModelFactory> { EncryptionStateTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<PowerLevelsTimelineElementViewModelFactory> { PowerLevelsTimelineElementViewModelFactory }
 
     // Common:
     timelineElementViewModelFactory<RedactedTimelineElementViewModelFactory> { RedactedTimelineElementViewModelFactory }
@@ -457,6 +467,7 @@ private fun roomSettingsViewModels() = module {
     single<UserProfileViewModelFactory> { UserProfileViewModelFactory }
     single<AddMembersViewModelFactory> { AddMembersViewModelFactory }
     single<ExportRoomViewModelFactory> { ExportRoomViewModelFactory }
+    single<PowerlevelViewModelFactory> { PowerlevelViewModelFactory }
 }
 
 private fun timelineViewModels() = module {

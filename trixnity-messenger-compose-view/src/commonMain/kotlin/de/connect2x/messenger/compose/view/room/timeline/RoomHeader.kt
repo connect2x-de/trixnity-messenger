@@ -33,9 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.HeaderSurface
-import de.connect2x.messenger.compose.view.common.SelectableText
 import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.TooltipText
 import de.connect2x.messenger.compose.view.common.UserState
 import de.connect2x.messenger.compose.view.common.icons.PublicIcon
 import de.connect2x.messenger.compose.view.common.icons.UnencryptedIcon
@@ -211,9 +209,7 @@ fun RowScope.RoomBackButton(roomHeaderViewModel: RoomHeaderViewModel) {
 fun RoomName(
     roomHeaderElement: RoomHeaderInfo,
 ) {
-    Tooltip({
-        TooltipText { roomHeaderElement.roomName }
-    }) {
+    Tooltip({ Text(roomHeaderElement.roomName) }) {
         Text(
             roomHeaderElement.roomName,
             style = MaterialTheme.typography.titleMedium,
@@ -242,7 +238,7 @@ fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
         Tooltip(tooltip = {
             Text(topic)
         }) {
-            SelectableText(
+            Text(
                 topic,
                 style = MaterialTheme.typography.labelMedium,
                 overflow = TextOverflow.Ellipsis,

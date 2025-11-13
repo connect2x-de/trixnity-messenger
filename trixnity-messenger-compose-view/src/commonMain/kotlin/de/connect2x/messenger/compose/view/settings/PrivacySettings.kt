@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +33,9 @@ import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModel
@@ -81,48 +85,47 @@ fun PrivacySettingsSingleAccount(privacySettingViewModel: PrivacySettingsSingleA
     val i18n = DI.get<I18nView>()
 
     SettingsAccountCard(privacySettingViewModel.account) {
-        Setting(
-            text = i18n.privacyPresenceIsPublic(),
-            explanation = i18n.privacyPresenceIsPublicExplanation(DI.get<MatrixMessengerConfiguration>().appName),
-            value = presenceIsPublic,
-        ) {
-            privacySettingViewModel.togglePresenceIsPublic()
-        }
-        Setting(
-            text = i18n.privacyReadMarkerIsPublic(),
-            explanation = i18n.privacyReadMarkerIsPublicExplanation(),
-            value = readMarkerIsPublic
-        ) {
-            privacySettingViewModel.toggleReadMarkerIsPublic()
-        }
-        Setting(
-            text = i18n.privacyTypingIsPublic(),
-            explanation = i18n.privacyTypingIsPublicExplanation(),
-            value = typingIsPublic
-        ) { privacySettingViewModel.toggleTypingIsPublic() }
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.privacyPresenceIsPublic()) },
+            supportingContent = { Text(i18n.privacyPresenceIsPublicExplanation(DI.get<MatrixMessengerConfiguration>().appName)) },
+            selected = presenceIsPublic,
+            onChange = { privacySettingViewModel.togglePresenceIsPublic() },
+        )
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.privacyReadMarkerIsPublic()) },
+            supportingContent = { Text(i18n.privacyReadMarkerIsPublicExplanation()) },
+            selected = readMarkerIsPublic,
+            onChange = { privacySettingViewModel.toggleReadMarkerIsPublic() },
+        )
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.privacyTypingIsPublic()) },
+            supportingContent = { Text(i18n.privacyTypingIsPublicExplanation()) },
+            selected = typingIsPublic,
+            onChange = {  privacySettingViewModel.toggleTypingIsPublic() },
+        )
 
         val blockedCount = privacySettingViewModel.blockedContactsCount.collectAsState().value
         val interactionSource = remember { MutableInteractionSource() }
         ElevatedCard(
-            Modifier
-                .padding(bottom = 10.dp)
-                .clickable(
-                    interactionSource,
-                    LocalIndication.current
-                ) { privacySettingViewModel.showBlockedContactsSettings() }
-                .focusHighlighting(interactionSource)
-                .buttonPointerModifier()
-                .fillMaxWidth()) {
-            Row(
-                Modifier.padding(16.dp).fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = i18n.blockedContactsButtonCaption(blockedCount),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, i18n.blockedContactsHeader())
-            }
+            modifier = Modifier
+                .padding(top = 5.dp, bottom = 10.dp)
+                .focusHighlighting(interactionSource, shape = CardDefaults.elevatedShape),
+            interactionSource = interactionSource,
+            onClick = {
+                privacySettingViewModel.showBlockedContactsSettings()
+            },
+        ) {
+            ThemedListItemButton(
+                headlineContent = { Text(i18n.blockedContactsButtonCaption(blockedCount)) },
+                trailingContent = { Icon(Icons.AutoMirrored.Filled.ArrowForward, null) },
+                interactionSource = interactionSource,
+                onClick = {
+                    privacySettingViewModel.showBlockedContactsSettings()
+                }
+            )
         }
     }
 }

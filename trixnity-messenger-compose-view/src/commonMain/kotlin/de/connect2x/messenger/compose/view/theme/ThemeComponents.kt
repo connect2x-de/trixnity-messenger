@@ -8,6 +8,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
@@ -19,10 +20,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
+import com.mikepenz.aboutlibraries.ui.compose.m3.chipColors
+import com.mikepenz.aboutlibraries.ui.compose.m3.libraryColors
 import de.connect2x.messenger.compose.view.theme.components.ApplySystemUiTheme
 import de.connect2x.messenger.compose.view.theme.components.AvatarStyle
 import de.connect2x.messenger.compose.view.theme.components.ButtonStyle
+import de.connect2x.messenger.compose.view.theme.components.CheckboxStyle
 import de.connect2x.messenger.compose.view.theme.components.ChipStyle
 import de.connect2x.messenger.compose.view.theme.components.DialogStyle
 import de.connect2x.messenger.compose.view.theme.components.DividerStyle
@@ -30,9 +36,14 @@ import de.connect2x.messenger.compose.view.theme.components.DropdownMenuItemStyl
 import de.connect2x.messenger.compose.view.theme.components.FloatingActionButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
 import de.connect2x.messenger.compose.view.theme.components.InputAreaStyle
+import de.connect2x.messenger.compose.view.theme.components.LibraryStyle
+import de.connect2x.messenger.compose.view.theme.components.ListItemStyle
 import de.connect2x.messenger.compose.view.theme.components.LocalContent
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.CircularProgressIndicatorStyle
 import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
+import de.connect2x.messenger.compose.view.theme.components.RadioButtonStyle
+import de.connect2x.messenger.compose.view.theme.components.SelectStyle
+import de.connect2x.messenger.compose.view.theme.components.SelectionStyle
 import de.connect2x.messenger.compose.view.theme.components.SliderStyle
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.messenger.compose.view.theme.components.SwitchStyle
@@ -142,7 +153,7 @@ class ThemeComponentsImpl : ThemeComponents {
         ),
         floatingActionButton = FloatingActionButtonStyle.default(
             size = 40.dp,
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f),
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
@@ -175,6 +186,9 @@ class ThemeComponentsImpl : ThemeComponents {
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSecondary),
         ),
         // other inputs
+        listItem = ListItemStyle.default(),
+        checkbox = CheckboxStyle.default(),
+        radioButton = RadioButtonStyle.default(),
         switch = SwitchStyle.default(),
         // surfaces
         background = SurfaceStyle.default(),
@@ -227,13 +241,12 @@ class ThemeComponentsImpl : ThemeComponents {
         // room list
         roomListElement = SurfaceStyle.default(
             color = Color.Unspecified,
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
         roomListSelection = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onBackground,
-        ),
-        roomListFocused = SurfaceStyle.default(
-            border = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
         roomListDivider = DividerStyle.default(
             padding = PaddingValues(horizontal = 10.dp),
@@ -306,20 +319,24 @@ class ThemeComponentsImpl : ThemeComponents {
             color = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
             shape = RoundedCornerShape(8.dp),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimary),
         ),
         messageBubbleOther = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.secondary,
             contentColor = MaterialTheme.colorScheme.onSecondary,
             shape = RoundedCornerShape(8.dp),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSecondary),
         ),
         messageBubbleError = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.errorContainer,
             contentColor = MaterialTheme.colorScheme.onErrorContainer,
             shape = RoundedCornerShape(8.dp),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimary),
         ),
         messageReference = SurfaceStyle.default(
             shape = RoundedCornerShape(8.dp),
             color = Color(0x55FFFFFF),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
         ),
         // tooltip
         tooltip = TooltipStyle.default(
@@ -415,6 +432,28 @@ class ThemeComponentsImpl : ThemeComponents {
         dropdownMenuItem = DropdownMenuItemStyle.default(
             contentPadding = PaddingValues(horizontal = 10.dp),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
-        )
+        ),
+        // select, like HTML <select>
+        select = SelectStyle.default(),
+        // selection
+        selectionOnSurface = SelectionStyle.onSurface(),
+        selectionOnPrimary = SelectionStyle.onPrimary(),
+        // other
+        settingsItem = ListItemStyle.default(
+            colors = ListItemDefaults.colors(
+                containerColor = Color.Transparent,
+            )
+        ),
+        library = LibraryStyle.default(
+            colors = LibraryDefaults.libraryColors(
+                libraryBackgroundColor = Color.Transparent,
+                licenseChipColors = LibraryDefaults.chipColors(),
+            ),
+            textStyles = LibraryDefaults.libraryTextStyles(
+                defaultOverflow = TextOverflow.Ellipsis,
+                nameMaxLines = 10,
+                versionMaxLines = 2
+            ),
+        ),
     )
 }

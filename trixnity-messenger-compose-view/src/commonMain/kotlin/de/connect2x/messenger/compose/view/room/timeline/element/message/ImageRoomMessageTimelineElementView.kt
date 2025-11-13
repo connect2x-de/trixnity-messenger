@@ -1,9 +1,12 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -29,6 +32,7 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -50,6 +54,7 @@ import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.messenger.compose.view.util.BlurHashDecoder
 import de.connect2x.messenger.compose.view.util.animateImage
 import de.connect2x.messenger.compose.view.util.rememberComputation
+import de.connect2x.messenger.compose.view.util.ifNotNull
 import de.connect2x.messenger.compose.view.util.toClipEntry
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -68,6 +73,8 @@ class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementV
         // NO-OP (has default size)
     }
 
+    override fun isFocusable(): Boolean = true
+
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
@@ -77,13 +84,7 @@ class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementV
             holder,
             element,
             overlay = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${shortenFileName(element)} ${element.size}",
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                        maxLines = 1,
-                    )
-                }
+                ImageMessageElementOverlay(element)
             },
             displayProgressOverElement = true
         ) { showActionMenu, onSave ->
@@ -102,13 +103,7 @@ class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementV
             isPreview = true,
             displayProgressOverElement = true,
             overlay = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${shortenFileName(element)} ${element.size}",
-                        color = MaterialTheme.messengerColors.metaDataPreview,
-                        maxLines = 1,
-                    )
-                }
+                ImageMessageElementOverlay(element)
             },
         ) { showActionMenu, onSave ->
             MessageImage(element, showActionMenu, onSave)
@@ -116,13 +111,23 @@ class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementV
     }
 
     @Composable
-    override fun createReplyInTimeline(holder: TimelineElementHolderViewModel, element: Image) {
-        ImageReplyElement(holder, element)
+    override fun createReplyInTimeline(
+        holder: TimelineElementHolderViewModel,
+        element: Image,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
+    ) {
+        ImageReplyElement(holder, element, modifier, interactionSource)
     }
 
     @Composable
-    override fun createReplyInSendMessage(holder: TimelineElementHolderViewModel, element: Image) {
-        ImageReplyElement(holder, element)
+    override fun createReplyInSendMessage(
+        holder: TimelineElementHolderViewModel,
+        element: Image,
+        modifier: Modifier,
+        interactionSource: MutableInteractionSource,
+    ) {
+        ImageReplyElement(holder, element, modifier, interactionSource)
     }
 
     @Composable
@@ -134,11 +139,14 @@ class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementV
 
 @Composable
 internal fun ImageMessageElementOverlay(element: Image) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
-            "${shortenFileName(element)} ${element.size}",
+            "${shortenFileName(element)}${element.size.ifNotNull { " $it" }}",
+            Modifier.basicMarquee(),
             color = MaterialTheme.messengerColors.metaDataPreview,
-            maxLines = 1,
+            maxLines = 1
         )
     }
 }
@@ -165,7 +173,7 @@ internal fun ColumnScope.MessageImage(
     Box(
         modifier = Modifier
             .padding(3.dp)
-            .requiredHeightIn(50.dp, 300.dp)
+            .requiredHeightIn(50.dp, with(LocalDensity.current) { 300.dp })
             .then(aspectRatioModifier)
             .clip(RoundedCornerShape(8.dp))
             .customClickable(
@@ -193,12 +201,19 @@ internal fun ColumnScope.MessageImage(
                 }
             }
         } else {
-            Column(Modifier.width(48.dp)) {
-                Icon(
-                    Icons.Default.Image,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                )
+            Column {
+                Column(
+                    Modifier.width(IntrinsicSize.Max).padding(10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        Icons.Default.Image,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                    )
+                    FileName(element.name)
+                }
+
                 if (thumbnailLoading) {
                     Spacer(Modifier.height(8.dp))
                     ThemedProgressIndicator(style = MaterialTheme.components.linearProgressIndicator)
@@ -210,36 +225,48 @@ internal fun ColumnScope.MessageImage(
 
 @Composable
 @OptIn(ExperimentalResourceApi::class)
-internal fun ImageReplyElement(holder: TimelineElementHolderViewModel, element: Image) {
+internal fun ImageReplyElement(
+    holder: TimelineElementHolderViewModel,
+    element: Image,
+    modifier: Modifier,
+    interactionSource: MutableInteractionSource,
+) {
     val i18n = DI.get<I18nView>()
     ReferencedMessagePill(
         holder = holder,
+        modifier = modifier,
+        interactionSource = interactionSource,
         content = {
             val thumbnail = rememberImagePainter(element)
             val fallback = rememberFallbackPainter(element)
             val imagePainter = animateImage(thumbnail, fallback)
             val thumbnailLoading = element.thumbnailLoading.collectAsState().value
 
-            if (imagePainter != null) {
-                Box {
-                    Image(
-                        imagePainter,
-                        null,
-                        Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)).align(Alignment.Center),
-                        contentScale = ContentScale.Fit
-                    )
-                    if (thumbnailLoading) {
-                        LoadingSpinner(Modifier.align(Alignment.Center))
+            Column {
+                if (imagePainter != null) {
+                    Box {
+                        Image(
+                            imagePainter,
+                            null,
+                            Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)).align(Alignment.Center),
+                            contentScale = ContentScale.Fit
+                        )
+                        if (thumbnailLoading) {
+                            LoadingSpinner(Modifier.align(Alignment.Center))
+                        }
+                    }
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(10.dp)) {
+                        Icon(
+                            MaterialTheme.messengerIcons.typeImage,
+                            i18n.commonImage(),
+                            modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp)
+                        )
+                        FileName(element.name)
                     }
                 }
-            } else {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(10.dp)) {
-                    Icon(
-                        MaterialTheme.messengerIcons.typeImage,
-                        i18n.commonImage(),
-                        modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp)
-                    )
-                    FileName(element.name)
+                if (element.hasCaption) {
+                    TextReply(element, maxLines = 2)
                 }
             }
         }

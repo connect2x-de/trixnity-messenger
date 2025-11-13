@@ -162,7 +162,7 @@ class SendAttachmentViewModelImpl(
                                 type = file.mimeType,
                                 size = file.fileSize,
                             )
-                        } // TODO width, height, duration
+                        } // TODO width, height, duration, thumbnail
 
                         isAudio ?: false -> {
                             log.debug { "send an audio" }

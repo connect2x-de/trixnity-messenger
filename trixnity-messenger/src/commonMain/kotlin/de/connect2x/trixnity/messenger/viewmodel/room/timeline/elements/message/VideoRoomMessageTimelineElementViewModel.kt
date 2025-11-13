@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
@@ -29,6 +28,9 @@ interface VideoRoomMessageTimelineElementViewModelFactory : TimelineElementViewM
         VideoRoomMessageTimelineElementViewModelImpl(
             viewModelContext,
             content,
+            roomId,
+            eventIdOrTransactionId,
+            onOpenMention,
         )
 
     override val supports: KClass<FileBased.Video>
@@ -40,21 +42,26 @@ interface VideoRoomMessageTimelineElementViewModelFactory : TimelineElementViewM
 class VideoRoomMessageTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: FileBased.Video,
-) : RoomMessageTimelineElementViewModel.FileBased.Video,
-    FileBasedRoomMessageTimelineElementViewModel<FileBased.Video>(viewModelContext, content) {
+    roomId: RoomId,
+    eventIdOrTransactionId: EventIdOrTransactionId,
+    onOpenMention: OpenMentionCallback,
+) : RoomMessageTimelineElementViewModel.FileBased.Video, FileBasedRoomMessageTimelineElementViewModel<FileBased.Video>(
+    viewModelContext,
+    content,
+    roomId,
+    eventIdOrTransactionId,
+    onOpenMention,
+) {
+    override val duration: Long? = content.info?.duration
 
-    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     private val thumbnails = get<Thumbnails>()
 
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
-
-    private val thumbnailLoad = coroutineScope.async { // TODO needs some sort of retry
-        thumbnails.loadThumbnail(coroutineScope, matrixClient, content, thumbnailProgressFlow, maxMediaSizeInMemory)
-    }
-
-    override val duration: Long? = content.info?.duration
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     override val thumbnail: StateFlow<ByteArray?> = flow {
-        emit(thumbnailLoad.await())
+        emit(
+            thumbnails.loadThumbnail(coroutineScope, matrixClient, content, thumbnailProgressFlow, maxMediaSizeInMemory)
+        )
     }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val width: Int? = content.info?.width

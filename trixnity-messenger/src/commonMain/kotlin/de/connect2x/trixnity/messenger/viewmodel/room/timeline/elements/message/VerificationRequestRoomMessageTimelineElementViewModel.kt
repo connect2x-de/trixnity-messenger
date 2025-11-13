@@ -31,7 +31,9 @@ interface VerificationRequestRoomMessageTimelineElementViewModelFactory :
             VerificationRequestRoomMessageTimelineElementViewModelImpl(
                 viewModelContext,
                 roomId,
-                eventIdOrTransactionId.eventId
+                eventIdOrTransactionId.eventId,
+                content,
+                onOpenMention,
             ) else null
 
     override val supports: KClass<VerificationRequest>
@@ -44,7 +46,10 @@ class VerificationRequestRoomMessageTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
     private val eventId: EventId,
-) : RoomMessageTimelineElementViewModel.VerificationRequest, MatrixClientViewModelContext by viewModelContext {
+    content: VerificationRequest,
+    onOpenMention: OpenMentionCallback,
+) : RoomMessageTimelineElementViewModel.VerificationRequest,
+    RoomMessageTimelineElementViewModelImpl<VerificationRequest>(viewModelContext, content, roomId, onOpenMention) {
     private val activeVerifications = get<ActiveVerifications>()
 
     override val isActive: MutableStateFlow<Boolean> = MutableStateFlow(true)

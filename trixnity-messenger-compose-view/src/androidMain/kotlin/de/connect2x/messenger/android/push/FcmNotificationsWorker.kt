@@ -54,6 +54,7 @@ import net.folivo.trixnity.core.model.events.roomIdOrNull
 import net.folivo.trixnity.core.model.events.senderOrNull
 import java.time.Instant
 import kotlin.time.Duration.Companion.seconds
+import androidx.core.graphics.createBitmap
 
 class FcmNotificationsWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     private val log = KotlinLogging.logger { }
@@ -175,7 +176,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
     }
 
     private fun Bitmap.getCircledBitmap(): Bitmap {
-        val output = Bitmap.createBitmap(this.width, this.height, Bitmap.Config.ARGB_8888)
+        val output = createBitmap(this.width, this.height)
         val canvas = Canvas(output)
         val paint = Paint()
         val rect = Rect(0, 0, this.width, this.height)

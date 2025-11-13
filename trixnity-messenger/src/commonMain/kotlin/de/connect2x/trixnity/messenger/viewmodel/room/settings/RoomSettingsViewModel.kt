@@ -4,6 +4,7 @@ import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +33,8 @@ interface RoomSettingsViewModelFactory {
         onCloseRoomSettings: () -> Unit,
         onOpenUserProfile: (UserId) -> Unit,
         onOpenAvatarCutter: OpenAvatarCutterCallback,
+        onOpenPowerLevel: () -> Unit,
+        onOpenMention: OpenMentionCallback,
     ): RoomSettingsViewModel = RoomSettingsViewModelImpl(
         viewModelContext = viewModelContext,
         selectedRoomId = selectedRoomId,
@@ -41,6 +44,8 @@ interface RoomSettingsViewModelFactory {
         onOpenAvatarCutter = onOpenAvatarCutter,
         onCloseRoom = onCloseRoom,
         onOpenUserProfile = onOpenUserProfile,
+        onOpenPowerLevel = onOpenPowerLevel,
+        onOpenMention = onOpenMention,
     )
 
     companion object : RoomSettingsViewModelFactory
@@ -71,6 +76,7 @@ interface RoomSettingsViewModel {
 
     fun openAddMembersView()
     fun openExportRoomView()
+    fun openPowerLevelView()
     fun leaveRoom()
     fun forgetRoom()
     fun openLeaveRoomWarningDialog()
@@ -88,6 +94,8 @@ class RoomSettingsViewModelImpl(
     private val onCloseRoom: () -> Unit,
     private val onOpenAvatarCutter: OpenAvatarCutterCallback,
     private val onOpenUserProfile: (UserId) -> Unit,
+    private val onOpenPowerLevel: () -> Unit,
+    private val onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsViewModel {
     private val leaveRoom: LeaveRoom = get()
 
@@ -112,7 +120,7 @@ class RoomSettingsViewModelImpl(
     }
     override val roomSettingsTopicViewModel by lazy {
         get<RoomSettingsTopicViewModelFactory>()
-            .create(viewModelContext, selectedRoomId)
+            .create(viewModelContext, selectedRoomId, onOpenMention)
     }
 
     override val roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel by lazy {
@@ -257,6 +265,10 @@ class RoomSettingsViewModelImpl(
     override fun openUserProfile(userId: UserId) {
         onOpenUserProfile(userId)
     }
+
+    override fun openPowerLevelView() {
+        onOpenPowerLevel()
+    }
 }
 
 class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
@@ -281,6 +293,7 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val isLeave = MutableStateFlow(false)
     override fun openAddMembersView() {}
     override fun openExportRoomView() {}
+    override fun openPowerLevelView() {}
     override fun openUserProfile(userId: UserId) {}
     override fun leaveRoom() {}
     override fun forgetRoom() {}

@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -19,17 +19,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.core.model.EventId
+import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.room.ImageInfo
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import net.folivo.trixnity.core.model.events.m.room.ThumbnailInfo
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 class ImageRoomMessageTimelineElementViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
-
     val thumbnailsMock = mock<Thumbnails>()
 
     init {
@@ -48,9 +50,8 @@ class ImageRoomMessageTimelineElementViewModelTest {
         val cut = imageMessageViewModel()
         backgroundScope.launch { cut.thumbnail.collect {} }
 
-        eventually(2.seconds) {
-            cut.thumbnail.value shouldBe "thumbnail".encodeToByteArray()
-        }
+        delay(100.milliseconds)
+        cut.thumbnail.value shouldBe "thumbnail".encodeToByteArray()
     }
 
     @Test
@@ -87,9 +88,8 @@ class ImageRoomMessageTimelineElementViewModelTest {
         val cut = imageMessageViewModel()
         backgroundScope.launch { cut.thumbnail.collect {} }
 
-        eventually(1.seconds) {
-            cut.thumbnail.value shouldBe null
-        }
+        delay(100.milliseconds)
+        cut.thumbnail.value shouldBe null
     }
 
     private fun TestScope.imageMessageViewModel(): ImageRoomMessageTimelineElementViewModelImpl {
@@ -105,7 +105,20 @@ class ImageRoomMessageTimelineElementViewModelTest {
                 }.koin,
                 userId = UserId("test", "server"),
             ),
-            content = RoomMessageEventContent.FileBased.Image(""),
+            content = RoomMessageEventContent.FileBased.Image(
+                "",
+                info = ImageInfo(
+                    height = 500,
+                    width = 500,
+                    thumbnailInfo = ThumbnailInfo(
+                        height = 100,
+                        width = 100,
+                    )
+                )
+            ),
+            roomId = RoomId("!testimage:server"),
+            eventIdOrTransactionId = EventIdOrTransactionId(EventId("\$very1demure1event")),
+            onOpenMention = { _, _ -> }
         )
     }
 }
