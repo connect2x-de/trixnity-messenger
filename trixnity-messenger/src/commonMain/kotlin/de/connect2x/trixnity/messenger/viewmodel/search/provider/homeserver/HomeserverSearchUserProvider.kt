@@ -43,6 +43,10 @@ class HomeserverSearchUserProvider(
     override val hasSettings: Boolean = false
     override val settingsDisplay: StateFlow<String?> = MutableStateFlow(null)
 
+    override fun applySettings() {
+        // has no settings
+    }
+
     override suspend fun search(
         searchTerm: String,
         activeAccount: UserId,

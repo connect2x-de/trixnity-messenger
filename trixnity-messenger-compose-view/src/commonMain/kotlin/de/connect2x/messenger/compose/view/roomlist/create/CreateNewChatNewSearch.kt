@@ -28,8 +28,8 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
+import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.MoreInfo
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -72,8 +72,8 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
                             ModalDialogContent {
                                 Text(error)
                                 if (errorDetails != null) {
-                                    MoreInfo(
-                                        title = i18n.errorDetails(),
+                                    ExpandableSection(
+                                        heading = i18n.errorDetails(),
                                     ) {
                                         Text(errorDetails, modifier = Modifier.padding(20.dp))
                                     }

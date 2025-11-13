@@ -40,6 +40,11 @@ interface SearchUserProvider {
      */
     val settingsDisplay: StateFlow<String?>
 
+    /**
+     * Although [settingsDisplay] is a Flow, it could be updated lazily, e.g., by pressing "apply" in a popup.
+     */
+    fun applySettings()
+
     suspend fun search(
         searchTerm: String,
         activeAccount: UserId,

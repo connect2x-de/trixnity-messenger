@@ -105,39 +105,43 @@ class SearchUserViewModelImpl(
 
     @OptIn(FlowPreview::class)
     private suspend fun search() {
-        searchTerm
-            .onEach { log.trace { "Searching for user $it" } }
-            .map { it.text }
-            .distinctUntilChanged()
-            .debounce(debounceDuration)
-            .map {
-                if (UserId.isValid(it.lowercase())) {
-                    log.trace { "found matrix id" }
-                    it.lowercase()
-                } else it
-            }
-            .scopedCollectLatest { searchTerm ->
-                if (searchTerm.isNotBlank()) {
-                    log.trace { "search for users" }
-                    searchUserProviders.mapIndexed { index, searchUserProvider ->
-                        log.trace { " - in search provider ${searchUserProvider.providerDisplayName} (${searchUserProvider.providerId})" }
-                        if (providerSearchActive.value[index]) {
-                            providerSearchLoading[index].value = true
-                            launch {
-                                providerSearchResult[index].value =
-                                    searchUserProvider.search(searchTerm, matrixClient.userId, this)
-                                providerSearchLoading[index].value = false
-                            }
-                        } else {
-                            log.debug { "searchProvider ${searchUserProvider.providerId} is not active -> no search" }
+        combine(
+            providerSettings,
+            searchTerm
+                .onEach { log.trace { "Searching for user $it" } }
+                .map { it.text }
+                .distinctUntilChanged()
+                .debounce(debounceDuration)
+                .map {
+                    if (UserId.isValid(it.lowercase())) {
+                        log.trace { "found matrix id" }
+                        it.lowercase()
+                    } else it
+                },
+        ) { _, searchTerm ->
+            searchTerm // we just need to react to providerSettings changes
+        }.scopedCollectLatest { searchTerm ->
+            if (searchTerm.isNotBlank()) {
+                log.trace { "search for users" }
+                searchUserProviders.mapIndexed { index, searchUserProvider ->
+                    log.trace { " - in search provider ${searchUserProvider.providerDisplayName} (${searchUserProvider.providerId})" }
+                    if (providerSearchActive.value[index]) {
+                        providerSearchLoading[index].value = true
+                        launch {
+                            providerSearchResult[index].value =
+                                searchUserProvider.search(searchTerm, matrixClient.userId, this)
+                            providerSearchLoading[index].value = false
                         }
+                    } else {
+                        log.debug { "searchProvider ${searchUserProvider.providerId} is not active -> no search" }
                     }
-                } else {
-                    log.trace { "user search blank -> empty list" }
-                    providerSearchResult.map { it.value = null }
-                    providerSearchLoading.map { it.value = false }
                 }
+            } else {
+                log.trace { "user search blank -> empty list" }
+                providerSearchResult.map { it.value = null }
+                providerSearchLoading.map { it.value = false }
             }
+        }
     }
 }
 

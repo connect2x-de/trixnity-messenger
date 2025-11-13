@@ -10,6 +10,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
@@ -23,6 +26,9 @@ fun SearchUserProviderSettings(
     searchUserProviders: List<SearchUserProvider>,
     onDismiss: () -> Unit,
 ) {
+    val i18n = DI.get<I18nView>()
+    val tabIndex = remember { mutableStateOf(0) }
+
     ThemedModalDialog(
         onDismissRequest = onDismiss,
         modifier = Modifier.heightIn(min = 200.dp),
@@ -33,7 +39,6 @@ fun SearchUserProviderSettings(
         ModalDialogContent {
             val searchUserProvidersWithFilters =
                 searchUserProviders.filter { searchUserProvider -> searchUserProvider.hasSettings } // FIXME viewmodel?
-            val tabIndex = remember { mutableStateOf(0) }
             if (searchUserProvidersWithFilters.size > 1) {
                 TabRow(tabIndex.value) {
                     searchUserProvidersWithFilters.mapIndexed { index, searchUserProvider ->
@@ -51,7 +56,16 @@ fun SearchUserProviderSettings(
         }
         ModalDialogFooter {
             ThemedButton(
-                onClick = onDismiss,
+                style = MaterialTheme.components.commonButton,
+                onClick = { onDismiss() },
+            ) {
+                Text(i18n.actionCancel())
+            }
+            ThemedButton(
+                onClick = {
+                    searchUserProviders[tabIndex.value].applySettings()
+                    onDismiss()
+                },
                 style = MaterialTheme.components.primaryButton,
             ) {
                 Text("Apply") // FIXME i18n

@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.roomlist.search.SearchResultView
 import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
-import de.connect2x.messenger.compose.view.theme.components.ThemedInfoChip
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverUserSearchResult
 import kotlin.reflect.KClass
@@ -60,7 +59,6 @@ class HomeserverSearchResultView : SearchResultView<HomeserverUserSearchResult> 
                         style = MaterialTheme.typography.labelMedium,
                     )
                 }
-                ThemedInfoChip(label = { Text("Homeserver") })
             }
         }
     }
