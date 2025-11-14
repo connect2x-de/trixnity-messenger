@@ -2,10 +2,12 @@ package de.connect2x.messenger.compose.view.room.timeline.element.details
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.gestures.zoomBy
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -51,13 +53,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerInputScope
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
@@ -69,6 +77,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
+import de.connect2x.messenger.compose.view.Platform
+import de.connect2x.messenger.compose.view.PlatformType
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.CenteredElement
@@ -76,10 +86,12 @@ import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
+import de.connect2x.trixnity.messenger.platformModule
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
@@ -215,23 +227,24 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
 
         //Control all changes to zoom/offset
         val state = rememberTransformableState { zoomChange, offsetChange, _ ->
-            scope.launch {
-                if (zoomChange != 1f) {
-                    val oldZoom = zoom.value
-                    zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, maxZoom)
-                    val newOffset = getNewZoomOffsetDelta(
-                        lazyListState.layoutInfo.viewportSize.toSize(),
-                        oldZoom,
-                        zoom.value
-                    )
-                    //Necessary to assure the new size has been measured, otherwise the scrolling won't work
-                    scrollRequest.value = newOffset
-                } else {
+            if (zoomChange != 1f && canZoom.value) {
+                val oldZoom = zoom.value
+                zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, maxZoom)
+                val newOffset = getNewZoomOffsetDelta(
+                    lazyListState.layoutInfo.viewportSize.toSize(),
+                    oldZoom,
+                    zoom.value
+                )
+                //Necessary to assure the new size has been measured, otherwise the scrolling won't work
+                scrollRequest.value = newOffset
+            } else {
+                scope.launch {
                     val offset = offsetChange * zoom.value
                     horizontalScroll.scrollBy(-offset.x)
                     lazyListState.scrollBy(-offset.y)
                 }
             }
+
         }
         val i18n = DI.get<I18nView>()
         val dpi = remember { mutableStateOf<Float?>(null) }
@@ -245,16 +258,22 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         LaunchedEffect(element.loadMediaError) {
             element.loadMediaError.collect { if (it != null) setError(i18n.fileCouldNotBeLoaded()) }
         }
-
+        val focusRequester = remember { FocusRequester() }
         FileBasedDetailsDialog(
             element,
             onSave,
             onClose,
             additions = {
-                PageIndicator(lazyListState, reader.value?.numOfPages?.value ?: 0)
-                ZoomButtons(state, scope)
+                PageIndicator(lazyListState, reader.value?.numOfPages?.value ?: 0, focusRequester)
+                ZoomButtons({
+                    scope.launch {
+                        val prevCanZoom = canZoom.value
+                        canZoom.value = true
+                        state.zoomBy(it)
+                        canZoom.value = prevCanZoom
+                    }
+                }, scope)
             }) {
-            val focusRequester = remember { FocusRequester() }
             BoxWithConstraints(
                 Modifier
                     .background(color = Color.Black)
@@ -265,9 +284,24 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                         canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
                         false
                     }
-                    .zoomModifier(focusRequester, canZoom, state, scope),
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                awaitPointerEvent(PointerEventPass.Initial).changes.forEach { pointerEvent ->
+                                    //Focus pdf as soon as it's clicked or scrolled
+                                    if (pointerEvent.pressed || pointerEvent.scrollDelta != Offset.Zero) {
+                                        focusRequester.requestFocus()
+                                    }
+                                }
+                            }
+                        }
+                    },
+                //.zoomModifier(focusRequester, canZoom, state, scope),
                 contentAlignment = Alignment.TopCenter
             ) {
+                LaunchedEffect(Unit) {
+                    focusRequester.requestFocus()
+                }
                 when {
                     error != null -> {
                         Column(
@@ -416,7 +450,7 @@ expect suspend fun getPlatformPDFReader(
 private data class PageNumber(val pageIndex: Int, val scroll: Boolean, val updateIndexViaList: Boolean)
 
 @Composable
-private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
+private fun PageIndicator(lazyListState: LazyListState, pageCount: Int, focusRequester: FocusRequester) {
     val measurer = rememberTextMeasurer()
     val textStyle = MaterialTheme.typography.headlineSmall.copy(color = Color.LightGray, textAlign = TextAlign.Right)
     val pageText = rememberTextFieldState()
@@ -444,8 +478,7 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
                             updateIndexViaList = true
                         )
                     }
-                }
-                else currentIndex.value = currentIndex.value.copy(updateIndexViaList = true)
+                } else currentIndex.value = currentIndex.value.copy(updateIndexViaList = true)
             }
     }
 
@@ -458,13 +491,18 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
         }
     }
 
-    Surface(shape = MaterialTheme.shapes.medium, color = Color.DarkGray) {
+    Surface(
+        shape = MaterialTheme.shapes.medium,
+        color = Color.DarkGray,
+        modifier = Modifier.focusRequester(focusRequester).focusable()
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(
                 enabled = currentIndex.value.pageIndex > 0,
                 onClick = {
                     if (currentIndex.value.pageIndex > 0) {
-                        currentIndex.value = PageNumber(currentIndex.value.pageIndex.dec(),
+                        currentIndex.value = PageNumber(
+                            currentIndex.value.pageIndex.dec(),
                             scroll = true,
                             updateIndexViaList = true
                         )
@@ -515,7 +553,8 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int) {
                 enabled = currentIndex.value.pageIndex < pageCount - 1,
                 onClick = {
                     if (currentIndex.value.pageIndex < pageCount - 1) {
-                        currentIndex.value = PageNumber(currentIndex.value.pageIndex.inc(),
+                        currentIndex.value = PageNumber(
+                            currentIndex.value.pageIndex.inc(),
                             scroll = true,
                             updateIndexViaList = true
                         )
