@@ -1,4 +1,3 @@
-import de.connect2x.conventions.registerCoverageTask
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 
 plugins {
@@ -7,8 +6,6 @@ plugins {
     alias(libs.plugins.seskar)
     `maven-publish`
 }
-
-registerCoverageTask()
 
 kotlin {
     compilerOptions {

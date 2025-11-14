@@ -56,7 +56,6 @@ kotlin {
                 }
             }
         }
-        useEsModules()
         binaries.library()
         generateTypeScriptDefinitions()
     }

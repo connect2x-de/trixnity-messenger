@@ -1,5 +1,4 @@
 import de.connect2x.conventions.configureJava
-import de.connect2x.conventions.registerCoverageTask
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
@@ -10,7 +9,6 @@ plugins {
 }
 
 configureJava(sharedLibs.versions.targetJvm)
-registerCoverageTask()
 
 kotlin {
     compilerOptions {
