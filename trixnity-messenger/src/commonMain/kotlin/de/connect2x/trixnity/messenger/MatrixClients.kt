@@ -79,7 +79,6 @@ class MatrixClientsImpl(
     private val settings: MatrixMessengerSettingsHolder,
     private val config: MatrixMessengerConfiguration,
     private val secretByteArrays: SecretByteArrays,
-    //private val notificationHandlers: NotificationHandlers,
     private val matrixClients: MutableStateFlow<Map<UserId, MatrixClient>> = MutableStateFlow(mapOf()),
 ) : Worker, MatrixClients, StateFlow<Map<UserId, MatrixClient>> by matrixClients {
     override suspend fun doWork() {
@@ -291,7 +290,6 @@ class MatrixClientsImpl(
             matrixClients.update { it - userId }
             secretByteArrays.deleteDatabaseKey(userId)
             deleteAccountData(userId)
-            //notificationHandlers.remove(userId)
         }
     }.onFailure {
         log.warn(it) { "failed to remove user data fro $userId" }
