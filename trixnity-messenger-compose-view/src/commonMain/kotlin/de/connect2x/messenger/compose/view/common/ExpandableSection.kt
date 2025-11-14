@@ -92,6 +92,23 @@ fun ExpandableSection(
     icon: ImageVector? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    ExpandableSectionImpl(
+        heading = heading,
+        expanded = expanded,
+        modifier = modifier,
+        icon = icon,
+        content = content,
+    )
+}
+
+@Composable
+private inline fun ExpandableSectionImpl(
+    crossinline heading: @Composable BoxScope.() -> Unit,
+    expanded: MutableState<Boolean>,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    crossinline content: @Composable ColumnScope.() -> Unit,
+) {
     val interactionSource = remember { MutableInteractionSource() }
     val rotateState = animateFloatAsState(if (expanded.value) 180F else 0F)
 
