@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -50,12 +51,47 @@ fun ExpandableSection(
 
 @Composable
 fun ExpandableSection(
+    heading: String,
+    expanded: MutableState<Boolean>,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    ExpandableSection(
+        heading = { Text(heading, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Start) },
+        expanded = expanded,
+        modifier = modifier,
+        icon = icon,
+        content = content,
+    )
+}
+
+@Composable
+fun ExpandableSection(
     heading: @Composable BoxScope.() -> Unit,
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val expanded = remember { mutableStateOf(false) }
+
+    ExpandableSection(
+        heading = heading,
+        expanded = expanded,
+        modifier = modifier,
+        icon = icon,
+        content = content,
+    )
+}
+
+@Composable
+fun ExpandableSection(
+    heading: @Composable BoxScope.() -> Unit,
+    expanded: MutableState<Boolean>,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     val interactionSource = remember { MutableInteractionSource() }
     val rotateState = animateFloatAsState(if (expanded.value) 180F else 0F)
 
