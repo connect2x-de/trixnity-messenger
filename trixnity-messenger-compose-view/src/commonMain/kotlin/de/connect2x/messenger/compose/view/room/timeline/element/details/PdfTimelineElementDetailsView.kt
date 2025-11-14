@@ -209,7 +209,8 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         val progress = element.loadMediaProgress.collectAsState().value
         val (error, setError) = remember { mutableStateOf<String?>(null) }
         val zoom = remember { mutableStateOf(1.0f) }
-        val canZoom = remember { mutableStateOf(false) }
+        val currentPlatform = Platform.current
+        val canZoom = remember { mutableStateOf(currentPlatform.isMobile) }
         val scope = rememberCoroutineScope()
         val lazyListState = rememberLazyListState()
         val horizontalScroll = rememberScrollState()
@@ -367,14 +368,17 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                             }
                             LazyColumn(
                                 modifier = Modifier
-                                    .horizontalScroll(state = horizontalScroll, enabled = canZoom.value.not())
+                                    .horizontalScroll(
+                                        state = horizontalScroll,
+                                        enabled = canZoom.value.not() || currentPlatform.isMobile
+                                    )
                                     .fillMaxSize()
                                     .transformable(state),
                                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
                                 contentPadding = PaddingValues(horizontal = MaterialTheme.messengerDpConstants.middle),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 state = lazyListState,
-                                userScrollEnabled = canZoom.value.not(),
+                                userScrollEnabled = canZoom.value.not() || currentPlatform.isMobile,
                                 content = {
                                     items(count = numOfPages, key = { it }) { pageId ->
                                         val image = getCacheElement(pageId, scope).collectAsState().value?.page
