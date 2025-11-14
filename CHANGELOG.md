@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Using latest emojifont version on web 
+
 ### Security
 
 ## 3.8.10
