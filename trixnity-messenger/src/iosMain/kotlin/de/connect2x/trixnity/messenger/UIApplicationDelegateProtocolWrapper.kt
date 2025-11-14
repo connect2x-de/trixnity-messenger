@@ -300,4 +300,7 @@ abstract class UIApplicationDelegateProxy(
     override fun applicationWillTerminate(application: UIApplication) {
         delegates.forEach { it.applicationWillTerminate(application) }
     }
+
+    override fun application(application: UIApplication, didFinishLaunchingWithOptions: Map<Any?, *>?): Boolean
+        = delegates.any { it.application(application, didFinishLaunchingWithOptions) }
 }
