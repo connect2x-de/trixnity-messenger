@@ -26,6 +26,7 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
+import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 
 @Composable
@@ -40,7 +41,11 @@ fun BoxScope.DownloadProgress(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Surface(color = backgroundColor(color), modifier = Modifier.clip(RoundedCornerShape(8.dp))) {
+        Surface(
+            color = backgroundColor(color),
+            modifier = Modifier.padding(horizontal = MaterialTheme.messengerDpConstants.small)
+                .clip(RoundedCornerShape(8.dp))
+        ) {
             Row(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically
