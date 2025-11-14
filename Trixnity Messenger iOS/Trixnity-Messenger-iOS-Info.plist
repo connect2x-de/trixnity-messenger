@@ -6,7 +6,7 @@
     <key>CFBundleName</key>
     <string>MessengerApp</string>
     <key>CFBundleIdentifier</key>
-    <string>de.connect2x.messenger</string>
+    <string>de.connect2x.trixnity.messenger.compose.app</string>
     <key>CFBundleShortVersionString</key>
     <string>1.0</string>
     <key>CFBundleVersion</key>
@@ -24,10 +24,10 @@
     <array>
         <dict>
             <key>CFBundleURLName</key>
-            <string>com.connect2x.messenger</string>
+            <string>de.connect2x.trixnity.messenger.compose.app</string>
             <key>CFBundleURLSchemes</key>
             <array>
-                <string>de.connect2x.messenger</string>
+                <string>de.connect2x.trixnity.messenger.compose.app</string>
             </array>
         </dict>
     </array>
