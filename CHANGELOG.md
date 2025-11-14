@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- UI: StoreFailure: show the name of the account with the corrupted database
 - A11Y,WEB: add a SemanticsOwnerListener to allow for accessibility in web
 
 ### Changed
