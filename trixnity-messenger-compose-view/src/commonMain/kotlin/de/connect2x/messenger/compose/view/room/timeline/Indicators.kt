@@ -1,9 +1,10 @@
 package de.connect2x.messenger.compose.view.room.timeline
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,6 +13,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,8 +23,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.Tooltip
+import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
+import de.connect2x.messenger.compose.view.util.rovingFocusItem
 
 @Composable
 fun UnreadMessagesIndicator() {
@@ -48,8 +54,8 @@ fun UnreadMessagesIndicator() {
 }
 
 @Composable
-fun DateStickyHeader(date: String) {
-    Indicator(MaterialTheme.colorScheme.tertiaryContainer, withPadding = true) {
+fun DateStickyHeader(date: String, focusable: Boolean) {
+    Indicator(MaterialTheme.colorScheme.tertiaryContainer, withPadding = true, focusable = focusable) {
         IndicatorText(date, MaterialTheme.colorScheme.onTertiaryContainer)
     }
 }
@@ -58,8 +64,10 @@ fun DateStickyHeader(date: String) {
 fun Indicator(
     containerColor: Color,
     withPadding: Boolean = true,
+    focusable: Boolean = false,
     content: @Composable BoxScope.() -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     BoxWithConstraints {
         Box(
             Modifier
@@ -70,12 +78,34 @@ fun Indicator(
                     end = maxWidth / 4,
                 )
         ) {
-            Box(
-                Modifier.background(color = containerColor, shape = RoundedCornerShape(8.dp))
-                    .align(Alignment.Center)
-                    .padding(5.dp)
-            ) {
-                content()
+            if (focusable) {
+                ThemedSurface(
+                    style = SurfaceStyle.default(
+                        shape = RoundedCornerShape(8.dp),
+                        color = containerColor,
+                        contentPadding = PaddingValues(5.dp)
+                    ),
+                    onClick = {},
+                    interactionSource = interactionSource,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .rovingFocusItem()
+                        .focusHighlighting(interactionSource)
+                ) {
+                    content()
+                }
+            } else {
+                ThemedSurface(
+                    style = SurfaceStyle.default(
+                        shape = RoundedCornerShape(8.dp),
+                        color = containerColor,
+                        contentPadding = PaddingValues(5.dp)
+                    ),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                ) {
+                    content()
+                }
             }
         }
     }
