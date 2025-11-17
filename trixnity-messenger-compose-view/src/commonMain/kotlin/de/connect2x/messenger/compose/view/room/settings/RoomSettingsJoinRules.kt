@@ -7,6 +7,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.focused
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.RadioSetting
@@ -49,36 +53,55 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
                 },
                 style = MaterialTheme.components.settingsItem,
             )
+
             if (!canChangeJoinRule.value) {
-                Tooltip({ Text(currentJoinRule.getExplanation(i18n)) }) {
+                Tooltip(
+                    tooltip = { Text(currentJoinRule.getExplanation(i18n)) },
+                    Modifier.semantics {
+                        text = AnnotatedString(i18n.chatJoinRuleSettings() + ", " + currentJoinRule.getStateName(i18n))
+                    }
+                ) {
                     Text(
                         text = currentJoinRule.getStateName(i18n),
                         style = MaterialTheme.typography.labelLarge,
                         modifier = Modifier.padding(10.dp)
                     )
                 }
-            } else {
-                RadioSetting(
-                    title = {
-                        if (joinRuleIsChanging) {
-                            ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
-                        } else {
-                            Tooltip({ Text(currentJoinRule.getExplanation(i18n)) }) {
-                                Text(currentJoinRule.getStateName(i18n), style = MaterialTheme.typography.titleSmall)
-                            }
-                        }
-                    },
-                    options = joinRules?.associate {
-                        it to RadioSettingOption(
-                            text = it.getStateName(i18n),
-                            explanation = it.getExplanation(i18n),
-                            enabled = joinRuleIsChanging.not()
-                        )
-                    } ?: mapOf(),
-                    value = currentJoinRule,
-                    set = { roomSettingsViewModel.roomSettingsJoinRulesViewModel.changeJoinRule(it) }
-                )
+                return
             }
+
+            if (joinRuleIsChanging) {
+                ThemedProgressIndicator(
+                    modifier = Modifier.semantics {
+                        focused = false
+                        text = AnnotatedString(i18n.chatJoinRuleSettings() + ", " + i18n.loading())
+                    }, style = MaterialTheme.components.extraSmallCircularProgressIndicator
+                )
+                return
+            }
+
+            RadioSetting(
+                title = {
+                    Tooltip(
+                        tooltip = { Text(currentJoinRule.getExplanation(i18n)) },
+                        Modifier.semantics {
+                            text =
+                                AnnotatedString(i18n.chatJoinRuleSettings() + ", " + currentJoinRule.getStateName(i18n) + " " + i18n.selected())
+                        }) {
+                        Text(currentJoinRule.getStateName(i18n), style = MaterialTheme.typography.titleSmall)
+                    }
+                },
+                options = joinRules?.associate {
+                    it to RadioSettingOption(
+                        text = it.getStateName(i18n),
+                        explanation = it.getExplanation(i18n),
+                        enabled = joinRuleIsChanging.not()
+                    )
+                } ?: mapOf(),
+                value = currentJoinRule,
+                set = { roomSettingsViewModel.roomSettingsJoinRulesViewModel.changeJoinRule(it) }
+            )
         }
     }
+
 }

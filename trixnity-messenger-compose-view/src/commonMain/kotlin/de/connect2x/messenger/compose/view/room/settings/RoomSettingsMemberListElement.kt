@@ -19,6 +19,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
@@ -35,6 +38,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import net.folivo.trixnity.client.user.PowerLevel
 import net.folivo.trixnity.core.model.UserId
+import androidx.compose.ui.semantics.Role as SemanticRole
 
 interface RoomSettingsMemberListElementView {
     @Composable
@@ -84,11 +88,17 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
         Box(
             modifier
                 .fillMaxWidth()
-                .clickable(interactionSource = interactionSource, indication = LocalIndication.current) {
-                    memberListElementViewModel.openUserProfile()
-                }
+                .clickable(
+                    role = SemanticRole.Button,
+                    interactionSource = interactionSource,
+                    indication = LocalIndication.current
+                ) { memberListElementViewModel.openUserProfile() }
                 .focusHighlighting(interactionSource)
-                .buttonPointerModifier(),
+                .buttonPointerModifier()
+                .semantics {
+                    if (!isMemberElementLoading)
+                        text = AnnotatedString(memberElement.displayName + " " + i18n.profileTitle())
+                },
         ) {
             Column {
                 Row(

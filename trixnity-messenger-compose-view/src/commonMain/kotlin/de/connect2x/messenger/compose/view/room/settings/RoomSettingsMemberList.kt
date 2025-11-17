@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonAdd
@@ -23,6 +23,13 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.CollectionInfo
+import androidx.compose.ui.semantics.CollectionItemInfo
+import androidx.compose.ui.semantics.collectionInfo
+import androidx.compose.ui.semantics.collectionItemInfo
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
@@ -36,8 +43,10 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.getNextItem
+import de.connect2x.messenger.compose.view.util.getPreviousItem
 import de.connect2x.messenger.compose.view.util.rovingFocusItem
-import de.connect2x.messenger.compose.view.util.scrollIntoView
+import de.connect2x.messenger.compose.view.util.scroll
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
@@ -93,35 +102,46 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
                 } else null
             )
 
-            FlowRow(Modifier.fillMaxWidth()) {
-                ToggleableFilterChip(
-                    memberListViewModel.filterByMemberships,
-                    setOf(Membership.JOIN)
-                ) {
-                    Text(i18n.settingsRoomMemberListJoined())
-                }
-                Spacer(Modifier.size(5.dp))
-                ToggleableFilterChip(
-                    memberListViewModel.filterByMemberships,
-                    setOf(Membership.KNOCK)
-                ) {
-                    Text(i18n.settingsRoomMemberListKnocking())
-                }
-                Spacer(Modifier.size(5.dp))
-                ToggleableFilterChip(
-                    memberListViewModel.filterByMemberships,
-                    setOf(Membership.INVITE)
-                ) {
-                    Text(i18n.settingsRoomMemberListInvited())
-                }
-                Spacer(Modifier.size(5.dp))
-                ToggleableFilterChip(
-                    memberListViewModel.filterByMemberships,
-                    setOf(Membership.BAN)
-                ) {
-                    Text(i18n.settingsRoomMemberListBanned())
-                }
+        FlowRow(Modifier.fillMaxWidth()) {
+            ToggleableFilterChip(
+                memberListViewModel.filterByMemberships,
+                setOf(Membership.JOIN)
+            ) {
+                Text(i18n.settingsRoomMemberListJoined(), Modifier.semantics {
+                    text = AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListJoined())
+                })
             }
+            Spacer(Modifier.size(5.dp))
+            ToggleableFilterChip(
+                memberListViewModel.filterByMemberships,
+                setOf(Membership.KNOCK)
+            ) {
+                Text(i18n.settingsRoomMemberListKnocking(), Modifier.semantics {
+                    text =
+                        AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListKnocking())
+                })
+            }
+            Spacer(Modifier.size(5.dp))
+            ToggleableFilterChip(
+                memberListViewModel.filterByMemberships,
+                setOf(Membership.INVITE)
+            ) {
+                Text(i18n.settingsRoomMemberListInvited(), Modifier.semantics {
+                    text =
+                        AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListInvited())
+                })
+            }
+            Spacer(Modifier.size(5.dp))
+            ToggleableFilterChip(
+                memberListViewModel.filterByMemberships,
+                setOf(Membership.BAN)
+            ) {
+                Text(i18n.settingsRoomMemberListBanned(), Modifier.semantics {
+                    text =
+                        AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListBanned())
+                })
+            }
+        }
 
             if (memberListElementViewModels.isNotEmpty()) {
                 MemberList(memberListViewModel, onClickUser = { roomSettingsViewModel.openUserProfile(it) })
@@ -148,42 +168,36 @@ fun MemberList(
     Box(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
         RovingFocusContainer {
             LazyColumn(
-                Modifier.fillMaxWidth().verticalRovingFocus(
-                    default = defaultItem,
-                    scroll = { item ->
-                        val index = references.value.indexOf(item)
-                        if (index != -1) {
-                            state.scrollIntoView(index)
-                        }
+                Modifier
+                    .fillMaxWidth()
+                    .verticalRovingFocus(
+                        default = defaultItem,
+                        scroll = scroll(state, references.value) { it },
+                        up = { getPreviousItem(references.value, defaultItem) { it } },
+                        down = { getNextItem(references.value, defaultItem) { it } },
+                    )
+                    .semantics {
+                        collectionInfo = CollectionInfo(rowCount = members.value.size, columnCount = 1)
                     },
-                    up = {
-                        val currentItem = activeRef.value ?: defaultItem
-                        val currentIndex = references.value.indexOf(currentItem)
-                        val nextIndex = currentIndex.minus(1).coerceIn(references.value.indices)
-                        references.value[nextIndex]
-                    },
-                    down = {
-                        val currentItem = activeRef.value ?: defaultItem
-                        val currentIndex = references.value.indexOf(currentItem)
-                        val nextIndex = currentIndex.plus(1).coerceIn(references.value.indices)
-                        references.value[nextIndex]
-                    },
-                ),
                 state
             ) {
-                items(members.value, key = { it.memberUserId.full }) { member ->
+                itemsIndexed(members.value, key = { _, item -> item.memberUserId.full }) { i, member ->
                     RovingFocusItem(member.memberUserId, defaultItem) {
                         RoomSettingsMemberListElement(
                             memberListViewModel,
                             member.memberUserId,
                             member,
-                            modifier = Modifier.rovingFocusItem(),
+                            modifier = Modifier.rovingFocusItem().semantics {
+                                collectionItemInfo =
+                                    CollectionItemInfo(rowIndex = i, rowSpan = 1, columnIndex = 0, columnSpan = 1)
+                            },
                             onClick = {
                                 onClickUser(member.memberUserId)
                             },
                         )
                     }
                 }
+
                 if (showLoadingSpinner) {
                     item(key = "loadingSpinner") {
                         LoadingSpinner()

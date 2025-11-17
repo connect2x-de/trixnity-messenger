@@ -30,8 +30,10 @@ import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.LocalRovingFocusItem
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.getNextItem
+import de.connect2x.messenger.compose.view.util.getPreviousItem
 import de.connect2x.messenger.compose.view.util.rovingFocusItem
-import de.connect2x.messenger.compose.view.util.scrollIntoView
+import de.connect2x.messenger.compose.view.util.scroll
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
@@ -76,24 +78,9 @@ internal fun Licenses(onClose: () -> Unit) {
                     LazyColumn(
                         modifier = Modifier.verticalRovingFocus(
                             default = defaultItem,
-                            scroll = { item ->
-                                val index = references.indexOf(item)
-                                if (index != -1) {
-                                    lazyListState.scrollIntoView(index)
-                                }
-                            },
-                            up = {
-                                val currentItem = activeRef.value ?: defaultItem
-                                val currentIndex = references.indexOf(currentItem)
-                                val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
-                                references[nextIndex]
-                            },
-                            down = {
-                                val currentItem = activeRef.value ?: defaultItem
-                                val currentIndex = references.indexOf(currentItem)
-                                val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
-                                references[nextIndex]
-                            },
+                            scroll = scroll(lazyListState, references) { it },
+                            up = { getPreviousItem(references, defaultItem) { it } },
+                            down = { getNextItem(references, defaultItem) { it } },
                         ),
                         verticalArrangement = Arrangement.spacedBy(style.dimensions.itemSpacing),
                         state = lazyListState,

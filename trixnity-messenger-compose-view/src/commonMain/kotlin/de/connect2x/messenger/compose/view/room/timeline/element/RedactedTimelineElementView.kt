@@ -45,12 +45,14 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: RedactedTimelineElementViewModel
+        element: RedactedTimelineElementViewModel,
+        index: Int,
     ) {
         MessageBubble(
             holder,
             needsMaxWidth = false,
             isPreview = false,
+            index = index,
         ) { _ ->
             RedactedMessageElement(element)
         }
@@ -60,11 +62,13 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: RedactedTimelineElementViewModel,
+        index: Int,
     ) {
         MessageBubble(
             holder,
             needsMaxWidth = false,
             isPreview = true,
+            index = index,
         ) { _ ->
             RedactedMessageElement(element)
         }
