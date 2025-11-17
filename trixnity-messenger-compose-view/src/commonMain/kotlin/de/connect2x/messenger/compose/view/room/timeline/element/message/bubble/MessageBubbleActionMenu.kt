@@ -47,6 +47,7 @@ import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.modifier.expandable
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
@@ -140,6 +141,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
             modifier = Modifier
                 .size(28.dp)
                 .rovingFocusChild()
+                .expandable(showActionMenu)
                 .semantics {
                     role = Role.Button
                     contentDescription = i18n.commonContextMenu()
