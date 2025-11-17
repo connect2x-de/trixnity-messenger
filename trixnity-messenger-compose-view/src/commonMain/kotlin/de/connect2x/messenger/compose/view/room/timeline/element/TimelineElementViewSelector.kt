@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
@@ -30,13 +31,15 @@ interface TimelineElementViewSelector :
     fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-    ) = rememberFactory(element).createInTimeline(holder, element)
+        index: Int,
+    ) = rememberFactory(element).createInTimeline(holder, element, index)
 
     @Composable
     fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
-    ) = rememberFactory(element).createAsPreview(holder, element)
+        index: Int,
+    ) = rememberFactory(element).createAsPreview(holder, element, index)
 
     @Composable
     fun createReplyInTimeline(
@@ -59,14 +62,21 @@ interface TimelineElementViewSelector :
         holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
     ): ClipEntry? = rememberFactory(element).getClipEntry(holder, element)
+
+    /**
+     * Optional label for accessibility. This is read to a user when the timeline element is focused in the timeline.
+     */
+    fun a11yLabel(element: TimelineElementViewModel<*>, i18n: I18nView): String? =
+        selectFactory(element).a11yLabel(element, i18n)
 }
 
 @Composable
 fun TimelineElementSelector(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     element: TimelineElementViewModel<*>,
+    index: Int,
 ) {
-    with(DI.get<TimelineElementViewSelector>()) { createInTimeline(timelineElementHolderViewModel, element) }
+    with(DI.get<TimelineElementViewSelector>()) { createInTimeline(timelineElementHolderViewModel, element, index) }
 }
 
 class TimelineElementViewSelectorImpl(private val factories: List<TimelineElementView<*>>) :

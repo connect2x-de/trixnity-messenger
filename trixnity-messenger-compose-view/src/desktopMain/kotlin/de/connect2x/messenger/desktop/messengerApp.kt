@@ -168,7 +168,7 @@ fun CoroutineScope.messengerApp(
                         IsFocused provides windowIsFocused,
                         DI provides matrixMultiMessenger.di,
                         ShowProfileCreation provides showProfileCreation,
-                        IsFocusHighlighting provides false, // FIXME do we need this here, too?
+                        IsFocusHighlighting provides false,
                         EscapeKeyPressed provides escapeKeyPressed,
                     ) {
                         MessengerTheme {

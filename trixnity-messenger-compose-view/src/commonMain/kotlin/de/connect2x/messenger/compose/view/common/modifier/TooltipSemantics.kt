@@ -110,7 +110,7 @@ internal fun Modifier.tooltipAnchorSemantics(
     scope: CoroutineScope
 ): Modifier =
     if (enabled) {
-        this.semantics(mergeDescendants = true) {
+        this.semantics {
             onLongClick(
                 label = label,
                 action = {

@@ -1,8 +1,7 @@
 package de.connect2x.messenger.compose.view.settings
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -31,6 +30,11 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.CollectionInfo
+import androidx.compose.ui.semantics.CollectionItemInfo
+import androidx.compose.ui.semantics.collectionInfo
+import androidx.compose.ui.semantics.collectionItemInfo
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,9 +43,9 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.Tooltip
+import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
@@ -51,9 +55,11 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingAction
 import de.connect2x.messenger.compose.view.theme.components.ThemedHorizontalDivider
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
-import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.getNextItem
+import de.connect2x.messenger.compose.view.util.getPreviousItem
+import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.messenger.compose.view.util.rovingFocusItem
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
@@ -89,33 +95,22 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
             Header(accountsOverviewViewModel::close, i18n.accountYourAccounts().capitalize(Locale.current))
             Box(Modifier.fillMaxSize()) {
                 RovingFocusContainer {
-                    Column(Modifier.verticalRovingFocus(
-                        default = defaultItem,
-                        up = {
-                            val currentItem = activeRef.value ?: defaultItem
-                            val currentIndex = references.value.indexOf(currentItem)
-                            val nextIndex = currentIndex.minus(1).coerceIn(references.value.indices)
-                            references.value[nextIndex]
-                        },
-                        down = {
-                            val currentItem = activeRef.value ?: defaultItem
-                            val currentIndex = references.value.indexOf(currentItem)
-                            val nextIndex = currentIndex.plus(1).coerceIn(references.value.indices)
-                            references.value[nextIndex]
-                        },
-                    ).verticalScroll(scrollState)) {
-                        accounts.value.map { accountInfo ->
+                    Column(
+                        Modifier
+                            .verticalRovingFocus(
+                                default = defaultItem,
+                                up = { getPreviousItem(references.value, defaultItem) { it } },
+                                down = { getNextItem(references.value, defaultItem) { it } },
+                            )
+                            .verticalScroll(scrollState)
+                            .semantics {
+                                collectionInfo = CollectionInfo(rowCount = accounts.value.size, columnCount = 1)
+                            }
+                    ) {
+                        accounts.value.mapIndexed { index, accountInfo ->
                             key(accountInfo.userId) {
                                 val displayColor = accountInfo.displayColor?.let { Color(it) }
                                 val interactionSource = remember { MutableInteractionSource() }
-                                val isFocused = interactionSource.collectIsFocusedAsState()
-                                val focusedBorder =
-                                    if (IsFocusHighlighting.current && isFocused.value) {
-                                        Modifier.border(
-                                            width = MaterialTheme.messengerFocusIndicator.borderWidth,
-                                            color = MaterialTheme.colorScheme.onBackground,
-                                        )
-                                    } else Modifier
 
                                 RovingFocusItem(accountInfo.userId, defaultItem) {
                                     ListItem(
@@ -131,10 +126,12 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                                         supportingContent = { Text(accountInfo.userId.full) },
                                         trailingContent = {
                                             Tooltip({ Text(i18n.actionDelete()) }) {
+                                                val interactionSourceLogout = remember { MutableInteractionSource() }
                                                 ThemedIconButton(
                                                     style = MaterialTheme.components.destructiveIconButton,
-                                                    interactionSource = interactionSource,
-                                                    modifier = Modifier.rovingFocusItem(),
+                                                    interactionSource = interactionSourceLogout,
+                                                    modifier = Modifier
+                                                        .rovingFocusChild(),
                                                     onClick = { showLogoutWarning = accountInfo },
                                                 ) {
                                                     Icon(Icons.AutoMirrored.Default.Logout, i18n.actionDelete())
@@ -147,7 +144,13 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                                                 displayColor?.let {
                                                     drawRect(displayColor, Offset.Zero, Size(5.dp.toPx(), size.height))
                                                 }
-                                            }.then(focusedBorder)
+                                            }
+                                            .rovingFocusItem()
+                                            .focusable(true, interactionSource)
+                                            .focusHighlighting(interactionSource)
+                                            .semantics {
+                                                collectionItemInfo = CollectionItemInfo(index, 1, 0, 1)
+                                            }
                                     )
                                     ThemedHorizontalDivider(style = MaterialTheme.components.roomListDivider)
                                 }
