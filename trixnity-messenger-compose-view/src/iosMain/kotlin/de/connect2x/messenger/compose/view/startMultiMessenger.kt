@@ -29,7 +29,6 @@ import platform.UIKit.UIApplicationDelegateProtocolMeta
 import platform.UIKit.UIApplicationMain
 import platform.UIKit.UIBackgroundFetchResult
 import platform.UIKit.UILocalNotification
-import platform.UIKit.UINavigationController
 import platform.UIKit.UIScene
 import platform.UIKit.UISceneConfiguration
 import platform.UIKit.UISceneConnectionOptions
@@ -261,30 +260,32 @@ class AppDelegate : UIApplicationDelegateProtocol, NSObject {
 
 @ExportObjCClass
 @OptIn(BetaInteropApi::class)
-class SceneDelegate: UIWindowSceneDelegateProtocol, NSObject {
+class SceneDelegate : UIWindowSceneDelegateProtocol, NSObject {
 
     companion object : UIWindowSceneDelegateProtocolMeta, NSObjectMeta()
 
     @OverrideInit
-    @Suppress("Un")
+    @Suppress("Unused")
     constructor() : super()
 
     object UIWindowSceneDelegate : UIWindowSceneDelegateProxy(activeDI.getAll<KUIWindowSceneDelegateProtocol>())
 
-    override fun window(): UIWindow?
-        = UIWindowSceneDelegate.window()
+    override fun window(): UIWindow? = UIWindowSceneDelegate.window()
 
-    override fun setWindow(window: UIWindow?)
-        = UIWindowSceneDelegate.setWindow(window)
+    override fun setWindow(window: UIWindow?) = UIWindowSceneDelegate.setWindow(window)
 
     override fun scene(
         scene: UIScene,
         didFailToContinueUserActivityWithType: String,
         error: NSError
-    ) = UIWindowSceneDelegate.scene(scene = scene, didFailToContinueUserActivityWithType = didFailToContinueUserActivityWithType, error = error)
+    ) = UIWindowSceneDelegate.scene(
+        scene = scene,
+        didFailToContinueUserActivityWithType = didFailToContinueUserActivityWithType,
+        error = error
+    )
 
-    override fun scene(scene: UIScene, willContinueUserActivityWithType: String)
-            = UIWindowSceneDelegate.scene(scene = scene, willContinueUserActivityWithType = willContinueUserActivityWithType)
+    override fun scene(scene: UIScene, willContinueUserActivityWithType: String) =
+        UIWindowSceneDelegate.scene(scene = scene, willContinueUserActivityWithType = willContinueUserActivityWithType)
 
     override fun scene(
         scene: UIScene,
@@ -292,17 +293,17 @@ class SceneDelegate: UIWindowSceneDelegateProtocol, NSObject {
         options: UISceneConnectionOptions
     ) = UIWindowSceneDelegate.scene(scene = scene, willConnectToSession = willConnectToSession, options = options)
 
-    override fun scene(scene: UIScene, openURLContexts: Set<*>)
-            = UIWindowSceneDelegate.scene(scene = scene, openURLContexts = openURLContexts)
+    override fun scene(scene: UIScene, openURLContexts: Set<*>) =
+        UIWindowSceneDelegate.scene(scene = scene, openURLContexts = openURLContexts)
 
-    override fun sceneDidBecomeActive(scene: UIScene)
-            = UIWindowSceneDelegate.sceneDidBecomeActive(scene = scene)
+    override fun sceneDidBecomeActive(scene: UIScene) = UIWindowSceneDelegate.sceneDidBecomeActive(scene = scene)
 
-    override fun sceneDidDisconnect(scene: UIScene) =UIWindowSceneDelegate.sceneDidDisconnect(scene = scene)
+    override fun sceneDidDisconnect(scene: UIScene) = UIWindowSceneDelegate.sceneDidDisconnect(scene = scene)
 
-    override fun sceneDidEnterBackground(scene: UIScene) =UIWindowSceneDelegate.sceneDidEnterBackground(scene = scene)
+    override fun sceneDidEnterBackground(scene: UIScene) = UIWindowSceneDelegate.sceneDidEnterBackground(scene = scene)
 
-    override fun sceneWillEnterForeground(scene: UIScene) = UIWindowSceneDelegate.sceneWillEnterForeground(scene = scene)
+    override fun sceneWillEnterForeground(scene: UIScene) =
+        UIWindowSceneDelegate.sceneWillEnterForeground(scene = scene)
 
     override fun sceneWillResignActive(scene: UIScene) = UIWindowSceneDelegate.sceneWillResignActive(scene = scene)
 
@@ -321,12 +322,12 @@ class MultiMessengerApplicationDelegate : KUIApplicationDelegateProtocol {
         configurationForConnectingSceneSession: UISceneSession,
         options: UISceneConnectionOptions
     ): UISceneConfiguration = UISceneConfiguration(
-            name = null,
-            sessionRole = configurationForConnectingSceneSession.role,
-        ).apply {
-            delegateClass = SceneDelegate
-            sceneClass = UIWindowScene
-        }
+        name = null,
+        sessionRole = configurationForConnectingSceneSession.role,
+    ).apply {
+        delegateClass = SceneDelegate
+        sceneClass = UIWindowScene
+    }
 }
 
 class MultiMessengerSceneDelegate : KUIWindowSceneDelegateProtocol {
