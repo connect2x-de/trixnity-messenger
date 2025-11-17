@@ -321,9 +321,32 @@ class CanvasSemanticsOwnerListener(
             }
 
             else -> {
+                // ThemedAdaptiveDialog sets this paneTitle
+                val isDialog = node.config.getOrNull(SemanticsProperties.IsDialog) != null ||
+                        node.config.getOrNull(SemanticsProperties.PaneTitle) == "Dialog"
+                if (isDialog) {
+                    el.setAttribute("role", "dialog")
+                    // find a header node and mark it as the label and mark its sibling (if it exists) as the description
+                    var hasHeadingAsChild: SemanticsNode? = node
+                    while (hasHeadingAsChild != null) {
+                        if (hasHeadingAsChild.children.getOrNull(0)?.config?.getOrNull(SemanticsProperties.Heading) != null)
+                            break
+                        hasHeadingAsChild = hasHeadingAsChild.children.getOrNull(0)
+                    }
+                    if (hasHeadingAsChild != null) {
+                        hasHeadingAsChild.children.getOrNull(0)?.let {
+                            el.setAttribute("aria-labelledby", it.semanticId)
+                        }
+                        hasHeadingAsChild.children.getOrNull(1)?.let {
+                            el.setAttribute("aria-describedby", it.semanticId)
+                        }
+                    }
+                }
+
                 setIf("aria-label", SemanticsProperties.Text, { it.joinToString() })
                 // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/textbox_role
                 // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/text
+
                 if (node.config.getOrNull(SemanticsProperties.IsEditable) != null && el is HTMLInputElement) {
                     el.setAttribute("type", "text")
                     setIf("aria-description", SemanticsProperties.InputText) { it.toString() }
@@ -362,8 +385,6 @@ class CanvasSemanticsOwnerListener(
         setIf("role", SemanticsProperties.CollectionInfo) {
             if (areAllChildrenRadioButtons(node)) "radiogroup" else null
         }
-
-        setIf("role", SemanticsProperties.IsDialog) { "dialog" }
 
         when (val onClick = node.config.getOrNull(SemanticsActions.OnClick)?.action) {
             null -> {

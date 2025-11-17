@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - DEPENDENCIES: Bump c2x Conventions to 20251114.122133
 - Add button to cancel download in file details view
+- A11Y,WEB: CanvasSemanticsOwnerListener: dialog now has labelledby and describedby attributes
 
 ### Deprecated
 

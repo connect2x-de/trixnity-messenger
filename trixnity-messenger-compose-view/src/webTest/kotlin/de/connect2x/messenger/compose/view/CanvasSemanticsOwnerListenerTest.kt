@@ -32,6 +32,7 @@ import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.collapse
 import androidx.compose.ui.semantics.collectionInfo
 import androidx.compose.ui.semantics.expand
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.progressBarRangeInfo
@@ -551,6 +552,50 @@ class CanvasSemanticsOwnerListenerTest {
             tag = "button",
             attrs = mapOf("aria-expanded" to "false"),
             innerHTML = "Open me",
+        )
+    }
+
+    @Test
+    fun `dialog with heading is labelled by`() = a11yTest({
+        Dialog(onDismissRequest = {}) {
+            Text("lorem", Modifier.semantics {
+                testTag = "lbl"
+                heading()
+            })
+        }
+    }) { a11yRoot ->
+        val lbl = a11yRoot.byTestTag("lbl")!!
+        assertElem(
+            elem = lbl,
+            tag = "div",
+            attrs = mapOf("aria-label" to "lorem"),
+        )
+        assertElem(
+            elem = lbl.parentElement,
+            tag = "div",
+            attrs = mapOf("role" to "dialog", "aria-labelledby" to lbl.id),
+        )
+    }
+
+    @Test
+    fun `dialog with heading and content is labelled by and described by`() = a11yTest({
+        Dialog(onDismissRequest = {}) {
+            Text("lorem", Modifier.semantics { heading(); testTag = "lbl" })
+            Text("ipsum", Modifier.semantics { testTag = "inner" })
+            Text("dolor", Modifier.semantics { testTag = "inner2" })
+        }
+    }) { a11yRoot ->
+        val lbl = a11yRoot.byTestTag("lbl")!!
+        assertElem(
+            elem = lbl,
+            tag = "div",
+            attrs = mapOf("aria-label" to "lorem"),
+        )
+        val inner = a11yRoot.byTestTag("inner")!!
+        assertElem(
+            elem = lbl.parentElement,
+            tag = "div",
+            attrs = mapOf("role" to "dialog", "aria-labelledby" to lbl.id, "aria-describedby" to inner.id),
         )
     }
 }
