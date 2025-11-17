@@ -2,46 +2,30 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- App Name, Bundle Identifier und Version -->
-    <key>CFBundleName</key>
-    <string>MessengerApp</string>
-    <key>CFBundleIdentifier</key>
-    <string>de.connect2x.trixnity.messenger.compose.app</string>
-    <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
-    <key>CFBundleVersion</key>
-    <string>1</string>
-    
-    <!-- Lokalisierungen -->
-    <key>CFBundleLocalizations</key>
-    <array>
-        <string>en</string>
-        <string>de</string>
-    </array>
-
-    <!-- URL Scheme für SSO Redirect -->
-    <key>CFBundleURLTypes</key>
-    <array>
-        <dict>
-            <key>CFBundleURLName</key>
-            <string>de.connect2x.trixnity.messenger.compose.app</string>
-            <key>CFBundleURLSchemes</key>
-            <array>
-                <string>de.connect2x.trixnity.messenger.compose.app</string>
-            </array>
-        </dict>
-    </array>
-
-    <!-- Hintergrund-Modi -->
-    <key>UIBackgroundModes</key>
-    <array>
-        <string>remote-notification</string>
-    </array>
-
-    <!-- Standard iOS-Einstellungen -->
-    <key>LSRequiresIPhoneOS</key>
-    <true/>
-    <key>UIApplicationSupportsIndirectInputEvents</key>
-    <true/>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>de.connect2x.trixnity.messenger.notification.apns.SyncAndProcessPending</string>
+	</array>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>de</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>de.connect2x.trixnity.messenger.compose.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>de.connect2x.trixnity.messenger.compose.app</string>
+			</array>
+		</dict>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>processing</string>
+	</array>
 </dict>
 </plist>

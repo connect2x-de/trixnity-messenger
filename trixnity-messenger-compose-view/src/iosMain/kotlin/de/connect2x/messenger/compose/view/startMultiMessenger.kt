@@ -334,12 +334,11 @@ class MultiMessengerSceneDelegate : KUIWindowSceneDelegateProtocol {
     private val lifecycle by lazy { ApplicationLifecycle() }
 
     // @formatter:off
-    private var _window: UIWindow? = null
+    private var window: UIWindow? = null
     override fun window(): UIWindow? {
-        println("get window called")
-        return _window
+        return window
     }
-    override fun setWindow(window: UIWindow?) { _window = window }
+    override fun setWindow(window: UIWindow?) { this.window = window }
     // @formatter:on
 
     override fun scene(
@@ -347,14 +346,12 @@ class MultiMessengerSceneDelegate : KUIWindowSceneDelegateProtocol {
         willConnectToSession: UISceneSession,
         options: UISceneConnectionOptions
     ) {
-        println("Scene called")
         val windowScene = scene as? UIWindowScene ?: return
-        val window = UIWindow(windowScene = windowScene)
+        val newWindow = UIWindow(windowScene = windowScene)
 
-        window.rootViewController = UINavigationController(
-            rootViewController = MultiMessengerViewController(lifecycle)
-        )
-        window.makeKeyAndVisible()
-        _window = window
+        val rootViewController = MultiMessengerViewController(lifecycle)
+        newWindow.rootViewController = rootViewController
+        newWindow.makeKeyAndVisible()
+        window = newWindow
     }
 }
