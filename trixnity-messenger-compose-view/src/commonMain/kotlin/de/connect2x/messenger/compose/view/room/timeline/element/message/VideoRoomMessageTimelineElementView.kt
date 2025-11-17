@@ -66,10 +66,12 @@ class VideoRoomMessageTimelineElementViewImpl : VideoRoomMessageTimelineElementV
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: Video,
+        index: Int,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
+            index = index,
             overlay = {
                 VideoMessageElementOverlay(element)
             }
@@ -82,11 +84,13 @@ class VideoRoomMessageTimelineElementViewImpl : VideoRoomMessageTimelineElementV
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: Video,
+        index: Int,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
             isPreview = true,
+            index = index,
             overlay = {
                 VideoMessageElementOverlay(element)
             },
@@ -120,6 +124,10 @@ class VideoRoomMessageTimelineElementViewImpl : VideoRoomMessageTimelineElementV
         holder: BaseTimelineElementHolderViewModel,
         element: Video
     ): ClipEntry? = element.toClipEntry()
+
+    override fun a11yLabel(element: Video, i18n: I18nView): String {
+        return "${i18n.commonVideo()}, ${element.name}, ${element.duration.ifNotNull { formatDuration(it.milliseconds) }}"
+    }
 }
 
 @Composable

@@ -33,7 +33,8 @@ interface RoomListElementContainerView {
     fun LazyItemScope.create(
         roomId: RoomId,
         roomListViewModel: RoomListViewModel,
-        roomListElementViewModel: RoomListElementViewModel
+        roomListElementViewModel: RoomListElementViewModel,
+        index: Int
     )
 }
 
@@ -42,8 +43,9 @@ fun LazyItemScope.RoomListElementContainer(
     roomId: RoomId,
     roomListViewModel: RoomListViewModel,
     roomListElementViewModel: RoomListElementViewModel,
+    index: Int,
 ) {
-    with(DI.get<RoomListElementContainerView>()) { create(roomId, roomListViewModel, roomListElementViewModel) }
+    with(DI.get<RoomListElementContainerView>()) { create(roomId, roomListViewModel, roomListElementViewModel, index) }
 }
 
 class RoomListElementContainerViewImpl : RoomListElementContainerView {
@@ -52,6 +54,7 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
         roomId: RoomId,
         roomListViewModel: RoomListViewModel,
         roomListElementViewModel: RoomListElementViewModel,
+        index: Int,
     ) {
         val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState().value
         val roomName = roomListElementViewModel.roomName.collectAsState().value
@@ -60,6 +63,7 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
         val hasFocus = interactionSource.collectIsFocusedAsState().value
         val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
         val hoverable = roomName != null && isInvite != true && !isKnock
+        val elementsSize = roomListViewModel.elements.collectAsState().value.size
 
         Box(
             Modifier.animateItem(
@@ -88,11 +92,13 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
             CompositionLocalProvider(
                 LocalContentColor provides if (roomId == selectedRoomId) MaterialTheme.components.roomListSelection.contentColor else LocalContentColor.current
             ) {
-                RoomListElement(roomListViewModel, roomListElementViewModel)
+                RoomListElement(roomListViewModel, roomListElementViewModel, index)
             }
         }
-        ThemedHorizontalDivider(
-            style = MaterialTheme.components.roomListDivider
-        )
+        if (index < elementsSize) {
+            ThemedHorizontalDivider(
+                style = MaterialTheme.components.roomListDivider
+            )
+        }
     }
 }

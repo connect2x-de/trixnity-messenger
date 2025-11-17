@@ -27,12 +27,13 @@ class CanonicalAliasStateTimelineElementViewImpl : CanonicalAliasStateTimelineEl
         element.changeMessage.filterNotNull().first()
     }
 
-    override fun isFocusable(): Boolean = false
+    override fun isFocusable(): Boolean = true
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: CanonicalAliasStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }
@@ -41,6 +42,7 @@ class CanonicalAliasStateTimelineElementViewImpl : CanonicalAliasStateTimelineEl
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: CanonicalAliasStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }
@@ -89,7 +91,7 @@ class CanonicalAliasStateTimelineElementViewImpl : CanonicalAliasStateTimelineEl
     private fun StateElement(element: CanonicalAliasStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.forEach {
-            Indicator(MaterialTheme.colorScheme.tertiary) {
+            Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) {
                 IndicatorText(it, MaterialTheme.colorScheme.onTertiary)
             }
         }

@@ -190,7 +190,7 @@ private fun MessagePreviewContent(messageHolder: TimelineElementHolderViewModel)
     val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
     Column {
         element?.let { element ->
-            timelineElementViewSelector.createAsPreview(messageHolder, element)
+            timelineElementViewSelector.createAsPreview(messageHolder, element, 0)
         }
     }
 }

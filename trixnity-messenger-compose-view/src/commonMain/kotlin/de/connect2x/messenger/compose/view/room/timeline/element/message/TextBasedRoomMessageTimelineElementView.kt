@@ -45,11 +45,13 @@ fun TextBasedRoomMessageTimelineElementView(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.TextBased<*>,
     isPreview: Boolean,
+    index: Int,
 ) {
     MessageBubble(
         holder,
         needsMaxWidth = false,
-        isPreview = isPreview
+        isPreview = isPreview,
+        index = index,
     ) { showActionMenu ->
         TextRoomMessageTimelineElementView(holder, element, showActionMenu)
     }
@@ -84,8 +86,12 @@ private fun MessageTextContent(
     val i18n = DI.get<I18nView>()
     val uriCaller = DI.get<UriCaller>()
     val content = element.formattedBodyContent
+    val sender = holder.sender.collectAsState().value
 
-    Column(Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)) {
+    Column(
+        Modifier
+            .padding(start = 10.dp, end = 10.dp, top = 10.dp)
+    ) {
         if (element is RoomMessageTimelineElementViewModel.TextBased.Notice) {
             Row {
                 Icon(Icons.Filled.SmartToy, i18n.automated())
@@ -96,7 +102,7 @@ private fun MessageTextContent(
         }
 
         if (element is RoomMessageTimelineElementViewModel.TextBased.Emote) {
-            Text("${holder.sender.collectAsState().value?.name}", fontStyle = FontStyle.Italic)
+            Text("${sender?.name}", fontStyle = FontStyle.Italic)
             Spacer(Modifier.size(5.dp))
         }
 

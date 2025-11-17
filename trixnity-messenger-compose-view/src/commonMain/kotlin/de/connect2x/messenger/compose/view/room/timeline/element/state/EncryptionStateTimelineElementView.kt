@@ -27,12 +27,13 @@ class EncryptionStateTimelineElementViewImpl : EncryptionStateTimelineElementVie
         element.changeMessage.filterNotNull().first()
     }
 
-    override fun isFocusable(): Boolean = false
+    override fun isFocusable(): Boolean = true
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: EncryptionStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }
@@ -41,6 +42,7 @@ class EncryptionStateTimelineElementViewImpl : EncryptionStateTimelineElementVie
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: EncryptionStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }
@@ -89,7 +91,7 @@ class EncryptionStateTimelineElementViewImpl : EncryptionStateTimelineElementVie
     private fun StateElement(element: EncryptionStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.let {
-            Indicator(MaterialTheme.colorScheme.tertiary) {
+            Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) {
                 IndicatorText(it, MaterialTheme.colorScheme.onTertiary)
             }
         }

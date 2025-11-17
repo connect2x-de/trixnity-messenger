@@ -32,6 +32,7 @@ class AvatarStateTimelineElementViewImpl : AvatarStateTimelineElementView {
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: AvatarStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }
@@ -40,6 +41,7 @@ class AvatarStateTimelineElementViewImpl : AvatarStateTimelineElementView {
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: AvatarStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }
@@ -88,7 +90,7 @@ class AvatarStateTimelineElementViewImpl : AvatarStateTimelineElementView {
     private fun StateElement(element: AvatarStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.let {
-            Indicator(MaterialTheme.colorScheme.tertiary) {
+            Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) {
                 IndicatorText(it, MaterialTheme.colorScheme.onTertiary)
             }
         }

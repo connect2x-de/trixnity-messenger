@@ -18,6 +18,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -113,7 +118,16 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
 fun AvatarArea(
     accountInfo: AccountInfo,
 ) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    val i18n = DI.get<I18nView>()
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clearAndSetSemantics {
+                text =
+                    AnnotatedString("${i18n.commonAccount()}: ${accountInfo.displayName}, ${accountInfo.userId.full}")
+            },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         ThemedUserAvatar(accountInfo.initials, accountInfo.avatar)
         Spacer(Modifier.size(10.dp))
         Column {
@@ -148,7 +162,14 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
             style = MaterialTheme.components.accountSelector,
             onClick = { accountSelectionOpen.value = accountSelectionOpen.value.not() },
         ) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clearAndSetSemantics {
+                        text = AnnotatedString(i18n.accountAllAccounts())
+                    },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 ThemedUserAvatar("*", null)
                 Spacer(Modifier.size(10.dp))
                 Tooltip({ Text(accounts.joinToString { account -> account.displayName }) }) {
@@ -233,7 +254,11 @@ fun SelectAccountHeader(header: String) {
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Text(
             header,
-            modifier = Modifier.padding(horizontal = 20.dp),
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .semantics {
+                    heading()
+                },
             style = MaterialTheme.typography.titleLarge,
         )
     }

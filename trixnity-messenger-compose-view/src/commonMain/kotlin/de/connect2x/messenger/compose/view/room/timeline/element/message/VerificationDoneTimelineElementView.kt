@@ -45,12 +45,13 @@ class VerificationDoneMessageTimelineElementViewImpl : VerificationDoneMessageTi
         // NO-OP (has default size)
     }
 
-    override fun isFocusable(): Boolean = false
+    override fun isFocusable(): Boolean = true
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: VerificationDoneTimelineElementViewModel
+        element: VerificationDoneTimelineElementViewModel,
+        index: Int,
     ) {
         VerificationDoneElement(holder, element)
     }
@@ -58,7 +59,8 @@ class VerificationDoneMessageTimelineElementViewImpl : VerificationDoneMessageTi
     @Composable
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
-        element: VerificationDoneTimelineElementViewModel
+        element: VerificationDoneTimelineElementViewModel,
+        index: Int,
     ) {
         VerificationDoneElement(holder, element)
     }
@@ -86,6 +88,10 @@ class VerificationDoneMessageTimelineElementViewImpl : VerificationDoneMessageTi
         holder: BaseTimelineElementHolderViewModel,
         element: VerificationDoneTimelineElementViewModel
     ): ClipEntry? = null
+
+    override fun a11yLabel(element: VerificationDoneTimelineElementViewModel, i18n: I18nView): String {
+        return "${i18n.userVerificationStarted("")}, ${i18n.userVerificationDone()}, ${element.message}"
+    }
 
 }
 

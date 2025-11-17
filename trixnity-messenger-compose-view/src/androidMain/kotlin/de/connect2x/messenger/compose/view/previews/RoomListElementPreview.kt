@@ -19,7 +19,8 @@ private fun RoomListElementPreview() {
         roomElementViewModel.time.value = null
         RoomListElement(
             roomListElementViewModel = roomElementViewModel,
-            roomListViewModel = PreviewRoomListViewModel()
+            roomListViewModel = PreviewRoomListViewModel(),
+            index = 0,
         )
     }
 }

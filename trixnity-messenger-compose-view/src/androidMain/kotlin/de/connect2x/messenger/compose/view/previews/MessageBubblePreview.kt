@@ -71,6 +71,7 @@ fun TextMessageBubblePreview() {
             holder,
             element,
             isPreview = false,
+            index = 0,
         )
     }
 }
@@ -134,6 +135,7 @@ fun ImageMessageBubblePreview() {
         ImageRoomMessageTimelineElementViewImpl().createInTimeline(
             holder,
             element,
+            0,
         )
     }
 }
@@ -191,6 +193,7 @@ fun FileMessageBubblePreview() {
         FileRoomMessageTimelineElementViewImpl().createInTimeline(
             holder,
             element,
+            0,
         )
     }
 }

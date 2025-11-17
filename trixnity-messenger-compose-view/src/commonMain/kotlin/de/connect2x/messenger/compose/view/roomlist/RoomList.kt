@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
@@ -27,6 +27,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.CollectionInfo
+import androidx.compose.ui.semantics.collectionInfo
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
@@ -42,6 +45,9 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingAction
 import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.getNextItem
+import de.connect2x.messenger.compose.view.util.getPreviousItem
+import de.connect2x.messenger.compose.view.util.scroll
 import de.connect2x.messenger.compose.view.util.scrollIntoView
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
@@ -104,12 +110,12 @@ class RoomListViewImpl : RoomListView {
                 RovingFocusContainer {
                     val rovingFocusState = LocalRovingFocus.current
                     val defaultItem = derivedStateOf {
-                        selectedRoomId.value ?: allRoomState.value.firstOrNull()?.roomId
+                        selectedRoomId.value ?: allRoomState.value.firstOrNull()?.roomId?.full
                     }
 
                     LaunchedEffect(rovingFocusState, defaultItem.value) {
                         rovingFocusState?.selectItem(defaultItem.value) {
-                            val index = allRooms.indexOfFirst { it.roomId == defaultItem.value }
+                            val index = allRooms.indexOfFirst { it.roomId.full == defaultItem.value }
                             if (index != -1) {
                                 state.scrollIntoView(index)
                             }
@@ -119,36 +125,24 @@ class RoomListViewImpl : RoomListView {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().verticalRovingFocus(
                             default = defaultItem.value,
-                            scroll = { item ->
-                                val index = allRooms.indexOfFirst { it.roomId == item }
-                                if (index != -1) {
-                                    state.scrollIntoView(index)
-                                }
-                            },
-                            up = {
-                                val currentItem = activeRef.value ?: defaultItem.value
-                                val currentIndex = allRooms.indexOfFirst { it.roomId == currentItem }
-                                val nextIndex = currentIndex.minus(1).coerceIn(allRooms.indices)
-                                allRooms[nextIndex].roomId
-                            },
-                            down = {
-                                val currentItem = activeRef.value ?: defaultItem.value
-                                val currentIndex = allRooms.indexOfFirst { it.roomId == currentItem }
-                                val nextIndex = currentIndex.plus(1).coerceIn(allRooms.indices)
-                                allRooms[nextIndex].roomId
-                            },
-                        ),
+                            scroll = scroll(state, allRooms) { it.roomId.full },
+                            up = { getPreviousItem(allRooms, defaultItem.value) { it.roomId.full } },
+                            down = { getNextItem(allRooms, defaultItem.value) { it.roomId.full } },
+                        ).semantics {
+                            collectionInfo = CollectionInfo(rowCount = allRooms.size, columnCount = 0)
+                        },
                         state,
                     ) {
-                        items(
+                        itemsIndexed(
                             allRooms,
-                            { it.roomId.full }
-                        ) { roomListElement ->
-                            RovingFocusItem(roomListElement.roomId, selectedRoomId) {
+                            { _, element -> element.roomId.full }
+                        ) { index, roomListElement ->
+                            RovingFocusItem(roomListElement.roomId.full, selectedRoomId.value?.full) {
                                 RoomListElementContainer(
                                     roomListElement.roomId,
                                     roomListViewModel,
                                     roomListElement,
+                                    index,
                                 )
                             }
                         }

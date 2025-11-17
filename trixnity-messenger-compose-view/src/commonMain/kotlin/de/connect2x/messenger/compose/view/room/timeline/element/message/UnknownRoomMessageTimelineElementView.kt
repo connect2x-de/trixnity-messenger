@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.messenger.compose.view.util.toClipEntry
@@ -29,12 +30,13 @@ class UnknownRoomMessageTimelineElementViewImpl : UnknownRoomMessageTimelineElem
         // NO-OP (has default size)
     }
 
-    override fun isFocusable(): Boolean = false
+    override fun isFocusable(): Boolean = true
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: Unknown,
+        index: Int,
     ) {
         UnknownMessageElement(element)
     }
@@ -43,6 +45,7 @@ class UnknownRoomMessageTimelineElementViewImpl : UnknownRoomMessageTimelineElem
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: Unknown,
+        index: Int,
     ) {
         UnknownMessageElement(element)
     }
@@ -99,6 +102,9 @@ class UnknownRoomMessageTimelineElementViewImpl : UnknownRoomMessageTimelineElem
         element: Unknown
     ): ClipEntry? = element.toClipEntry()
 
+    override fun a11yLabel(element: Unknown, i18n: I18nView): String {
+        return "${i18n.commonUnknown()}: ${element.fallbackBody}"
+    }
 }
 
 @Composable

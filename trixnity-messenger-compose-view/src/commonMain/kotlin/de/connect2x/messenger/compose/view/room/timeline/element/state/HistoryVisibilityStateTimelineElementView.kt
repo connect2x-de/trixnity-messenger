@@ -28,12 +28,13 @@ class HistoryVisibilityStateTimelineElementViewImpl : HistoryVisibilityStateTime
         element.changeMessage.filterNotNull().first()
     }
 
-    override fun isFocusable(): Boolean = false
+    override fun isFocusable(): Boolean = true
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: HistoryVisibilityStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }
@@ -42,6 +43,7 @@ class HistoryVisibilityStateTimelineElementViewImpl : HistoryVisibilityStateTime
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: HistoryVisibilityStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }
@@ -90,7 +92,7 @@ class HistoryVisibilityStateTimelineElementViewImpl : HistoryVisibilityStateTime
     private fun StateElement(element: HistoryVisibilityStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.let {
-            Indicator(MaterialTheme.colorScheme.tertiary) {
+            Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) {
                 IndicatorText(it, MaterialTheme.colorScheme.onTertiary)
             }
         }

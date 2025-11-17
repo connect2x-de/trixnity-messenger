@@ -79,6 +79,7 @@ class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementV
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: Image,
+        index: Int
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
@@ -86,7 +87,8 @@ class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementV
             overlay = {
                 ImageMessageElementOverlay(element)
             },
-            displayProgressOverElement = true
+            displayProgressOverElement = true,
+            index = index,
         ) { showActionMenu, onSave ->
             MessageImage(element, showActionMenu, onSave)
         }
@@ -96,12 +98,14 @@ class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementV
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: Image,
+        index: Int,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
             isPreview = true,
             displayProgressOverElement = true,
+            index = index,
             overlay = {
                 ImageMessageElementOverlay(element)
             },
@@ -135,6 +139,10 @@ class ImageRoomMessageTimelineElementViewImpl : ImageRoomMessageTimelineElementV
         holder: BaseTimelineElementHolderViewModel,
         element: Image
     ): ClipEntry? = element.toClipEntry()
+
+    override fun a11yLabel(element: Image, i18n: I18nView): String {
+        return "${i18n.commonImage()}, ${element.name} ${element.size}"
+    }
 }
 
 @Composable

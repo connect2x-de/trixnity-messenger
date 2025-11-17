@@ -3,11 +3,11 @@ package de.connect2x.trixnity.messenger
 import androidx.room.RoomDatabase
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.SQLiteDriver
+import de.connect2x.sqlitenity.bundled.BundledSQLitenityDriver
+import de.connect2x.sqlitenity.compat.SQLitenityCompatDriver
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException.DatabaseAccessException
 import de.connect2x.trixnity.messenger.util.RootPath
 import io.github.oshai.kotlinlogging.KotlinLogging
-import de.connect2x.sqlitenity.bundled.BundledSQLitenityDriver
-import de.connect2x.sqlitenity.compat.SQLitenityCompatDriver
 import net.folivo.trixnity.client.store.repository.room.TrixnityRoomDatabase
 import net.folivo.trixnity.client.store.repository.room.createRoomRepositoriesModule
 import net.folivo.trixnity.core.model.UserId

@@ -50,6 +50,7 @@ interface FileBasedRoomMessageTimelineElementView {
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
         isPreview: Boolean,
         displayProgressOverElement: Boolean,
+        index: Int,
         overlay: (@Composable BoxScope.() -> Unit)?,
         content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     )
@@ -61,11 +62,12 @@ fun FileBasedRoomMessageTimelineElement(
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     isPreview: Boolean = false,
     displayProgressOverElement: Boolean = false,
+    index: Int,
     overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
 ) {
     DI.get<FileBasedRoomMessageTimelineElementView>()
-        .create(holder, element, isPreview, displayProgressOverElement, overlay, content)
+        .create(holder, element, isPreview, displayProgressOverElement, index, overlay, content)
 }
 
 class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimelineElementView {
@@ -75,6 +77,7 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
         isPreview: Boolean,
         displayProgressOverElement: Boolean,
+        index: Int,
         overlay: (@Composable BoxScope.() -> Unit)?,
         content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     ) {
@@ -92,6 +95,7 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
             { saveDialogOpen = true },
             isPreview,
             displayProgressOverElement,
+            index,
             overlay,
             content
         )
@@ -105,6 +109,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
     onSave: () -> Unit,
     isPreview: Boolean = false,
     displayProgressOverElement: Boolean,
+    index: Int,
     overlay: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.(() -> Unit, () -> Unit) -> Unit
 ) {
@@ -134,6 +139,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
             ).render(onClose)
         },
         isPreview = isPreview,
+        index = index,
     ) { showActionMenu ->
         Column {
             FileBasedView(

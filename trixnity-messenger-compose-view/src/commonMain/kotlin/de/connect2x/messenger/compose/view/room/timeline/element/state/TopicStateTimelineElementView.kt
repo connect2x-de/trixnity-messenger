@@ -26,12 +26,13 @@ class TopicStateTimelineElementViewImpl : TopicStateTimelineElementView {
         element.changeMessage.filterNotNull().first()
     }
 
-    override fun isFocusable(): Boolean = false
+    override fun isFocusable(): Boolean = true
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: TopicStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }
@@ -40,6 +41,7 @@ class TopicStateTimelineElementViewImpl : TopicStateTimelineElementView {
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: TopicStateTimelineElementViewModel,
+        index: Int,
     ) {
         StateElement(element)
     }
@@ -88,7 +90,7 @@ class TopicStateTimelineElementViewImpl : TopicStateTimelineElementView {
     private fun StateElement(element: TopicStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.let {
-            Indicator(MaterialTheme.colorScheme.tertiary) {
+            Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) {
                 IndicatorText(it, MaterialTheme.colorScheme.onTertiary)
             }
         }
