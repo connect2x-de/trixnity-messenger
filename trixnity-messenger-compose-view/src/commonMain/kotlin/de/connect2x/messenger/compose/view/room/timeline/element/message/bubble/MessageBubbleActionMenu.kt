@@ -81,6 +81,7 @@ fun BoxScope.MessageBubbleActionMenu(
 
         else -> MessageBubbleActionMenuDefault(
             holder,
+            interactionSource,
             showActionMenu,
             onOpenMetadata,
             onReactToMessage,
@@ -92,17 +93,15 @@ fun BoxScope.MessageBubbleActionMenu(
 @Composable
 private fun BoxScope.MessageBubbleActionMenuDefault(
     holder: BaseTimelineElementHolderViewModel,
+    interactionSource: MutableInteractionSource,
     showActionMenu: MutableState<Boolean>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
     val focus = interactionSource.collectIsFocusedAsState()
     val hover = interactionSource.collectIsHoveredAsState()
-    val isVisible: MutableTransitionState<Boolean> =
-        remember { MutableTransitionState(showActionMenu.value || focus.value || hover.value) }
-
+    val isVisible = remember { MutableTransitionState(showActionMenu.value || focus.value || hover.value) }
     LaunchedEffect(showActionMenu.value, focus.value, hover.value) {
         isVisible.targetState = showActionMenu.value || focus.value || hover.value
     }
@@ -129,7 +128,6 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
         Surface(
             shape = CircleShape,
             color = Color.Black.copy(alpha = opacity.value),
-            interactionSource = interactionSource,
             border = if (IsFocusHighlighting.current && focus.value) {
                 BorderStroke(MaterialTheme.messengerFocusIndicator.borderWidth, MaterialTheme.colorScheme.onSurface)
             } else null,
