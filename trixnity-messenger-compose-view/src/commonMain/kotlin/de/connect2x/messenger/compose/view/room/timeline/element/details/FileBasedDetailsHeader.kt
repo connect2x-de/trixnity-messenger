@@ -63,7 +63,6 @@ fun FileBasedDetailsHeader(
         itemVerticalAlignment = Alignment.CenterVertically,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.verySmall),
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small, alignment = Alignment.CenterHorizontally),
-        maxLines = 2
     ) {
         FileBasedDetailsHeaderButton(Icons.Outlined.Close, i18n.commonClose(), onAction = onClose)
 

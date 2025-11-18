@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.details
 
 import androidx.compose.foundation.gestures.TransformableState
-import androidx.compose.foundation.gestures.zoomBy
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ZoomIn
 import androidx.compose.material.icons.outlined.ZoomOut
@@ -83,10 +82,7 @@ fun Modifier.zoomModifier(
                     awaitPointerEvent(pass = PointerEventPass.Final)
                         .changes
                         .forEach {
-                            println(canZoom.value)
-                            //focusRequester.requestFocus() // otherwise, key events will be lost
                             if (it.scrollDelta.y.toInt() != 0 && canZoom.value) {
-                                println("Zooming")
                                 val delta = 0.1f * -it.scrollDelta.y
                                 scope.launch {
                                     state.transform {
