@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Add button to cancel download in file details view
+
 ### Deprecated
 
 ### Removed
@@ -19,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Using latest emojifont version on web 
 - Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
+- Show download progress indicator when no total file size is received during download
+- Allow restart of download after cancellation
 
 ### Security
 
