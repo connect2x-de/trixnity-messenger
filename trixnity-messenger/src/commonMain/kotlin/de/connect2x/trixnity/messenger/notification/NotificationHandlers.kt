@@ -32,7 +32,6 @@ fun interface NotificationHandlerFactory {
     operator fun invoke(
         name: String,
         id: String,
-        isDebugEnabled: Boolean,
         appId: String,
     ): NotificationHandler
 }
@@ -44,8 +43,8 @@ class NotificationHandlersImpl(
     private val multiSettings: MatrixMultiMessengerSettingsHolder?,
     private val matrixClients: MatrixClients,
     private val requestPermissionsCallback: (granted: Boolean) -> Unit = {},
-    private val notificationHandlerFactory: NotificationHandlerFactory = NotificationHandlerFactory { name, id, isDebugEnabled, appId ->
-        NotificationHandler(name = name, id = id, isDebugEnabled = isDebugEnabled, appId = appId)
+    private val notificationHandlerFactory: NotificationHandlerFactory = NotificationHandlerFactory { name, id, appId ->
+        NotificationHandler(name = name, id = id, appId = appId)
     }
 ) : NotificationHandlers {
 
@@ -99,7 +98,6 @@ class NotificationHandlersImpl(
             id = "${config.appId}-$idSuffix",
             appId = config.appId,
             name = name,
-            isDebugEnabled = config.isDebugEnabled,
         )
 
     private val _global = lazy {

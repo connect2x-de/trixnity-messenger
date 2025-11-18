@@ -94,7 +94,6 @@ data class MatrixMessengerConfiguration(
      */
     override var imprint: String? = null,
     override var licenses: String? = null,
-    override var isDebugEnabled: Boolean = false,
 
     var pushUrl: String? = null,
     var pushAppId: String? = null,

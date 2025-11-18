@@ -20,7 +20,6 @@ fun MatrixMultiMessengerConfiguration.configure() {
     licenses = BuildConfig.licenses
     sendLogsEmailAddress = null
     urlProtocol = BuildConfig.appId
-    isDebugEnabled = BuildConfig.flavor == Flavor.DEV
 
     modulesFactories += listOf(
         { composeViewModule(null) },

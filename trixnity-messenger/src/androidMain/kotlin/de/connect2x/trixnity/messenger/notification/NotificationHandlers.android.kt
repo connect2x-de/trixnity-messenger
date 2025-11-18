@@ -22,11 +22,10 @@ actual fun platformNotificationHandlersModule(): Module = module {
             notificationProviders = get(),
             multiSettings = getOrNull(),
             matrixClients = get(),
-        ) { name, id, isDebugEnabled, appId ->
+        ) { name, id, appId ->
             NotificationHandler(
                 name = name,
                 id = id,
-                isDebugEnabled = isDebugEnabled,
                 appId = appId,
             ).withContext { get<ContextGetter>().invoke() }
                 .withActivity { get<ActivityGetter>().invoke() }
