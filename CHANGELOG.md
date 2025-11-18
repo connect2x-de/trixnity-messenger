@@ -17,7 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Using latest emojifont version on web 
+- Using latest emojifont version on web
+- iOS: reporting a message could result in app crash
 
 ### Security
 

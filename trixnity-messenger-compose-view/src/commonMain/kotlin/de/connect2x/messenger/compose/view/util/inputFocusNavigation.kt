@@ -1,7 +1,7 @@
 package de.connect2x.messenger.compose.view.util
 
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -14,11 +14,10 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
 
-@Composable
-fun Modifier.inputFocusNavigation(): Modifier {
+fun Modifier.inputFocusNavigation(): Modifier = composed {
     val focusManager = LocalFocusManager.current
 
-    return this then Modifier.onPreviewKeyEvent {
+    this then Modifier.onPreviewKeyEvent {
         if (it.key == Key.Tab && !it.isCtrlPressed && !it.isMetaPressed && !it.isAltPressed) {
             if (it.type == KeyEventType.KeyDown) {
                 focusManager.moveFocus(
