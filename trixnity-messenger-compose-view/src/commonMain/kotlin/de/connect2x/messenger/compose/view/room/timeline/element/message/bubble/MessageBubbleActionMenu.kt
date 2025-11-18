@@ -37,12 +37,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.modifier.expandable
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
@@ -52,7 +57,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenu
 import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
 import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.LocalRovingFocusItem
-import de.connect2x.messenger.compose.view.util.rovingFocusItem
+import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import kotlinx.coroutines.launch
 
@@ -72,16 +77,15 @@ fun BoxScope.MessageBubbleActionMenu(
             showActionMenu,
             onOpenMetadata,
             onReactToMessage,
-            interactionSource,
             additionalContextActions,
         )
 
         else -> MessageBubbleActionMenuDefault(
             holder,
+            interactionSource,
             showActionMenu,
             onOpenMetadata,
             onReactToMessage,
-            interactionSource,
             additionalContextActions,
         )
     }
@@ -90,17 +94,15 @@ fun BoxScope.MessageBubbleActionMenu(
 @Composable
 private fun BoxScope.MessageBubbleActionMenuDefault(
     holder: BaseTimelineElementHolderViewModel,
+    interactionSource: MutableInteractionSource,
     showActionMenu: MutableState<Boolean>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
-    interactionSource: MutableInteractionSource,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     val focus = interactionSource.collectIsFocusedAsState()
     val hover = interactionSource.collectIsHoveredAsState()
-    val isVisible: MutableTransitionState<Boolean> =
-        remember { MutableTransitionState(showActionMenu.value || focus.value || hover.value) }
-
+    val isVisible = remember { MutableTransitionState(showActionMenu.value || focus.value || hover.value) }
     LaunchedEffect(showActionMenu.value, focus.value, hover.value) {
         isVisible.targetState = showActionMenu.value || focus.value || hover.value
     }
@@ -127,7 +129,6 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
         Surface(
             shape = CircleShape,
             color = Color.Black.copy(alpha = opacity.value),
-            interactionSource = interactionSource,
             border = if (IsFocusHighlighting.current && focus.value) {
                 BorderStroke(MaterialTheme.messengerFocusIndicator.borderWidth, MaterialTheme.colorScheme.onSurface)
             } else null,
@@ -137,7 +138,12 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
             },
             modifier = Modifier
                 .size(28.dp)
-                .rovingFocusItem()
+                .rovingFocusChild()
+                .expandable(showActionMenu)
+                .semantics {
+                    role = Role.Button
+                    contentDescription = i18n.commonContextMenu()
+                }
         ) {
             transition.AnimatedVisibility(
                 modifier = Modifier.buttonPointerModifier(enabled = true),
@@ -145,7 +151,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
-                Icon(Icons.Default.ExpandMore, i18n.commonContextMenu(), tint = Color.White)
+                Icon(Icons.Default.ExpandMore, null, tint = Color.White)
             }
         }
         ThemedDropdownMenu(
@@ -169,7 +175,6 @@ private fun MessageBubbleActionMenuMobile(
     showActionMenu: MutableState<Boolean>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
-    interactionSource: MutableInteractionSource,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     val i18n = DI.get<I18nView>()

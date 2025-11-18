@@ -111,7 +111,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                 headlineContent = { Text(i18n.appearanceSizesApplySystemHeading()) },
                 supportingContent = { Text(i18n.appearanceSizesApplySystemExplanation()) },
                 selected = applySystemSizes,
-                onChange = { 
+                onChange = {
                     appearanceSettingsViewModel.toggleApplySystemSizes()
                     newFontSize = -1F
                     newDisplaySize = -1F
@@ -190,7 +190,7 @@ private fun MessagePreviewContent(messageHolder: TimelineElementHolderViewModel)
     val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
     Column {
         element?.let { element ->
-            timelineElementViewSelector.createAsPreview(messageHolder, element)
+            timelineElementViewSelector.createAsPreview(messageHolder, element, 0)
         }
     }
 }

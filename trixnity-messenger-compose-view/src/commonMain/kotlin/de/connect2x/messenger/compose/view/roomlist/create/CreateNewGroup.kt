@@ -175,12 +175,12 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             }
                             userSearchView.create(
                                 createNewGroupViewModel.createNewRoomViewModel,
-                                {
-                                    createNewGroupViewModel.onUserClick(it)
-                                    if (references.indexOf(it.userId.full) < references.lastIndex) {
-                                        focusContainer?.moveDown(defaultItem, references, scroll)
+                                { user ->
+                                    createNewGroupViewModel.onUserClick(user)
+                                    if (references.indexOf(user.userId.full) < references.lastIndex) {
+                                        focusContainer?.moveDown(defaultItem, references, key = { it }, onMove = scroll)
                                     } else {
-                                        focusContainer?.moveUp(defaultItem, references, scroll)
+                                        focusContainer?.moveUp(defaultItem, references, key = { it }, onMove = scroll)
                                     }
                                 },
                                 userSearchResults,

@@ -46,13 +46,13 @@ class VerificationCancelTimelineElementViewImpl : VerificationCancelTimelineElem
         // NO-OP (has default size)
     }
 
-    // FIXME
-    override fun isFocusable(): Boolean = false
+    override fun isFocusable(): Boolean = true
 
     @Composable
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
-        element: VerificationCancelTimelineElementViewModel
+        element: VerificationCancelTimelineElementViewModel,
+        index: Int,
     ) {
         VerificationCancelElement(holder, element)
     }
@@ -60,7 +60,8 @@ class VerificationCancelTimelineElementViewImpl : VerificationCancelTimelineElem
     @Composable
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
-        element: VerificationCancelTimelineElementViewModel
+        element: VerificationCancelTimelineElementViewModel,
+        index: Int,
     ) {
         VerificationCancelElement(holder, element)
     }
@@ -88,6 +89,10 @@ class VerificationCancelTimelineElementViewImpl : VerificationCancelTimelineElem
         holder: BaseTimelineElementHolderViewModel,
         element: VerificationCancelTimelineElementViewModel
     ): ClipEntry? = null
+
+    override fun a11yLabel(element: VerificationCancelTimelineElementViewModel, i18n: I18nView): String {
+        return i18n.verificationCancelled(i18n.userVerification())
+    }
 
 }
 

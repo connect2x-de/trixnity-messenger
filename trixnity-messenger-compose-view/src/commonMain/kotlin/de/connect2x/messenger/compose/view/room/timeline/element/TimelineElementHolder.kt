@@ -18,20 +18,23 @@ interface TimelineElementHolderView {
     @Composable
     fun create(
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
+        index: Int,
     )
 }
 
 @Composable
 fun TimelineElementHolder(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
+    index: Int,
 ) {
-    DI.get<TimelineElementHolderView>().create(timelineElementHolderViewModel)
+    DI.get<TimelineElementHolderView>().create(timelineElementHolderViewModel, index)
 }
 
 class TimelineElementHolderViewImpl : TimelineElementHolderView {
     @Composable
     override fun create(
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
+        index: Int,
     ) {
         Column {
             when (timelineElementHolderViewModel) {
@@ -43,13 +46,13 @@ class TimelineElementHolderViewImpl : TimelineElementHolderView {
                         timelineElementHolderViewModel.showLoadingIndicatorAfter.collectAsState().value
 
                     AnimatedVisibility(showLoadingIndicatorBefore) { LoadingSpinner() }
-                    TimelineElementHolderSwitch(timelineElementHolderViewModel)
+                    TimelineElementHolderSwitch(timelineElementHolderViewModel, index)
                     AnimatedVisibility(showUnreadMarker) { UnreadMessagesIndicator() }
                     AnimatedVisibility(showLoadingIndicatorAfter) { LoadingSpinner() }
                 }
 
                 is OutboxElementHolderViewModel -> {
-                    TimelineElementHolderSwitch(timelineElementHolderViewModel)
+                    TimelineElementHolderSwitch(timelineElementHolderViewModel, index)
                 }
             }
         }
@@ -59,12 +62,13 @@ class TimelineElementHolderViewImpl : TimelineElementHolderView {
 @Composable
 fun TimelineElementHolderSwitch(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
+    index: Int,
 ) {
     val element = timelineElementHolderViewModel.element.collectAsState().value
 
     when (element) {
         is TimelineElementViewModel.Message<*>, is TimelineElementViewModel.State<*> -> {
-            TimelineElementSelector(timelineElementHolderViewModel, element)
+            TimelineElementSelector(timelineElementHolderViewModel, element, index)
         }
 
         TimelineElementViewModel.Empty, null -> {}

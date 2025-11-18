@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
+import de.connect2x.messenger.compose.view.common.modifier.focusOnFirstRender
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.root.IsSinglePane
@@ -104,6 +105,7 @@ fun Header(
                             BACK ->
                                 Tooltip({ Text(i18n.commonBack()) }) {
                                     ThemedIconButton(
+                                        modifier = Modifier.focusOnFirstRender(),
                                         style = MaterialTheme.components.commonIconButton,
                                         onClick = onBack,
                                     ) {
@@ -114,6 +116,7 @@ fun Header(
                             CLOSE ->
                                 Tooltip({ Text(i18n.commonClose()) }) {
                                     ThemedIconButton(
+                                        modifier = Modifier.focusOnFirstRender(),
                                         style = MaterialTheme.components.commonIconButton,
                                         onClick = onBack,
                                     ) {

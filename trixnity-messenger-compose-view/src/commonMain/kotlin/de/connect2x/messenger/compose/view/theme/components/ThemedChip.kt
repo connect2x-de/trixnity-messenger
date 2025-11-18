@@ -20,6 +20,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.theme.components
@@ -426,7 +431,14 @@ fun ThemedFilterChip(
         onClick,
         label,
         modifier
-            .onFocusChanged { hasFocus.value = it.hasFocus },
+            .onFocusChanged { hasFocus.value = it.hasFocus }
+            .semantics(mergeDescendants = true) {
+                // Role.Checkbox is also set internally by material3
+                // it unfortunately adds 'readonly' under windows/NVDA
+                // Role.Switch produced even worse results however
+                role = Role.Checkbox
+                toggleableState = ToggleableState(selected)
+            },
         enabled,
         leadingIcon,
         trailingIcon,
