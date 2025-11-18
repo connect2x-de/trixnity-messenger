@@ -39,7 +39,7 @@ actual fun SaveFileDialog(
     fileName: String,
     mimeType: String?,
     error: String?,
-    downloadFile: (suspend (PlatformMedia) -> Unit) -> Unit,
+    downloadFile: (suspend (PlatformMedia) -> Unit, () -> Unit) -> Unit,
     onCloseSaveFileDialog: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
@@ -63,7 +63,7 @@ actual fun SaveFileDialog(
         }
     }
     LaunchedEffect(hasError) {
-        if (!hasError) downloadFile {
+        if (!hasError) downloadFile({
             val file = FileKit.openFileSaver(
                 suggestedName = fileName.substringBeforeLast("."),
                 extension = fileName.substringAfterLast("."),
@@ -76,7 +76,7 @@ actual fun SaveFileDialog(
             } finally {
                 onCloseSaveFileDialog()
             }
-        }
+        }, onCloseSaveFileDialog)
     }
 }
 
