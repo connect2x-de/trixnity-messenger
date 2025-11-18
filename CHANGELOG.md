@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Using latest emojifont version on web 
+- Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
+
 ### Security
 
 ## 3.8.10
@@ -52,6 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix SQLitenity on windows
 - Fix whitespaces in room list search input leading to unwanted removal of rooms from search results
 - Correctly align appearance color preview in appearance settings
+- a11y behavior all over the app (TAB behavior, roles, a11y labels, etc)
+- mark buttons that create popups as aria-expandable
 
 ## 3.8.8
 

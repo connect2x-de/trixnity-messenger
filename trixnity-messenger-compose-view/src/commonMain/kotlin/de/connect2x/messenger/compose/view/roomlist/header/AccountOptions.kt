@@ -14,6 +14,8 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.Tooltip
+import de.connect2x.messenger.compose.view.common.modifier.expandable
+import de.connect2x.messenger.compose.view.common.modifier.focusOnFirstRender
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -46,6 +48,7 @@ class AccountOptionsViewImpl : AccountOptionsView {
             ThemedIconButton(
                 style = MaterialTheme.components.commonIconButton,
                 onClick = { menuOpen.value = menuOpen.value.not() },
+                modifier = Modifier.expandable(menuOpen),
             ) {
                 Icon(Icons.Default.MoreVert, i18n.accountMoreSettings())
                 ThemedDropdownMenu(
@@ -56,6 +59,7 @@ class AccountOptionsViewImpl : AccountOptionsView {
                     ThemedDropdownMenuItem(
                         text = { Text(i18n.commonSettings().capitalize(Locale.current)) },
                         accountViewModel::openUserSettings,
+                        modifier = Modifier.focusOnFirstRender(),
                     )
                     ThemedDropdownMenuItem(
                         text = { Text(i18n.accountYourAccounts()) },

@@ -24,19 +24,22 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
-import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.common.FileInfo
+import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.messenger.compose.view.theme.messengerIcons
+import de.connect2x.messenger.compose.view.util.ifNotNull
 import de.connect2x.messenger.compose.view.util.toClipEntry
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Audio
+import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
 import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
+import kotlin.time.Duration.Companion.milliseconds
 
 interface AudioRoomMessageTimelineElementView : TimelineElementView<Audio>
 
@@ -54,10 +57,12 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: Audio,
+        index: Int,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
+            index = index,
         ) { showActionMenu, onSave ->
             MessageAudio(element, showActionMenu, onSave)
         }
@@ -67,11 +72,13 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: Audio,
+        index: Int,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
             isPreview = true,
+            index = index,
         ) { showActionMenu, onSave ->
             MessageAudio(element, showActionMenu, onSave)
         }
@@ -103,6 +110,9 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
         element: Audio
     ): ClipEntry? = element.toClipEntry()
 
+    override fun a11yLabel(element: Audio, i18n: I18nView): String {
+        return "${i18n.commonAudio()}: ${element.name}, ${element.duration.ifNotNull { formatDuration(it.milliseconds) }}"
+    }
 }
 
 @Composable

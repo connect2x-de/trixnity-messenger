@@ -28,8 +28,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.modifier.expandable
 import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.util.animateRotation
 
@@ -73,6 +77,8 @@ fun ExpandableSection(
                     .clickable(interactionSource, LocalIndication.current) {
                         expanded.value = !expanded.value
                     }
+                    .expandable(expanded)
+                    .semantics { role = Role.Button }
                     .buttonPointerModifier(true).padding(16.dp)
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start,

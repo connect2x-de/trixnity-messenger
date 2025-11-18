@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Public
@@ -107,12 +108,13 @@ class ShareDataViewImpl : ShareDataView {
                     }
                 } else {
                     LazyColumn(Modifier.fillMaxSize(), state) {
-                        items(
-                            allRooms, { it.roomId.full }) { roomListElement ->
+                        itemsIndexed(
+                            allRooms, { _, element -> element.roomId.full }) { index, roomListElement ->
                             RoomListElementContainer(
                                 roomListElement.roomId,
                                 viewModel.roomList,
                                 roomListElement,
+                                index,
                             )
                         }
                     }
