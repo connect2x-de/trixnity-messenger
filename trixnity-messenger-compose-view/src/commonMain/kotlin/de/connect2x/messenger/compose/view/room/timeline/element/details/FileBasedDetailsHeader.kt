@@ -7,9 +7,12 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +29,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -83,7 +87,6 @@ fun FileBasedDetailsHeader(
         }
 
         additionalButtons(this)
-
         if (downloadProgress == null) {
             FileBasedDetailsHeaderButton(
                 Icons.Outlined.Download,
@@ -92,17 +95,25 @@ fun FileBasedDetailsHeader(
                 onSave
             )
         } else {
-            downloadProgress.percent?.let {
-                ThemedProgressIndicator(
-                    progress = {
-                        it
-                    },
+            Box {
+                downloadProgress.percent?.let {
+                    ThemedProgressIndicator(
+                        progress = {
+                            it
+                        },
+                        style = MaterialTheme.components.circularProgressIndicator
+                    )
+                } ?: ThemedProgressIndicator(
                     style = MaterialTheme.components.circularProgressIndicator
                 )
-            } ?: ThemedProgressIndicator(
-                style = MaterialTheme.components.circularProgressIndicator
-            )
-
+                ThemedIconButton(
+                    onClick = element::cancelDownloadMedia,
+                    modifier = Modifier.buttonPointerModifier(),
+                    style = MaterialTheme.components.commonIconButton
+                ) {
+                    Icon(Icons.Default.Cancel, i18n.commonCancel())
+                }
+            }
         }
     }
 }
