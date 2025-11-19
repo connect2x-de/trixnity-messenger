@@ -55,6 +55,7 @@ import net.folivo.trixnity.core.model.events.senderOrNull
 import java.time.Instant
 import kotlin.time.Duration.Companion.seconds
 import androidx.core.graphics.createBitmap
+import net.folivo.trixnity.core.model.UserId
 
 class FcmNotificationsWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
     private val log = KotlinLogging.logger { }
@@ -196,9 +197,9 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
             coroutineScope {
                 // we cannot assume that we should still be running
                 val pushModes =
-                    matrixMessenger.di.get<MatrixMessengerSettingsHolder>().value.base.accounts.map { it.value.platformNotifications.pushMode }
+                    matrixMessenger.di.get<MatrixMessengerSettingsHolder>().value.base.accounts.map { it.key to it.value.platformNotifications.pushMode }.toMap()
                 val maxMediaSizeInMemory = matrixMessenger.di.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-                if (pushModes.none { it == PushMode.PUSH } ||
+                if (pushModes.none { it.value == PushMode.PUSH } ||
                     applicationContext.backgroundSyncShouldBeRunning.not()
                 ) {
                     return@coroutineScope Result.failure()
@@ -213,6 +214,7 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
                 findTheCorrespondingMatrixClient(
                     matrixMessenger,
                     roomId,
+                    pushModes,
                 )?.let { matrixClient ->
                     val listen = async {
                         queryNotifications(
@@ -255,15 +257,39 @@ class FcmNotificationsWorker(context: Context, params: WorkerParameters) : Corou
     private suspend fun findTheCorrespondingMatrixClient(
         matrixMessenger: MatrixMessenger,
         roomId: RoomId,
+        pushModes: Map<UserId, PushMode>,
     ): MatrixClient? {
-        val matrixClient =
-            matrixMessenger.di.get<MatrixClients>().value.values.firstOrNull { matrixClient ->
-                matrixClient.room.getById(roomId).first() != null
+        val settings = matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
+        val isNotificationsEnabled = settings.value.base.accounts.map {
+            it.key to it.value.base.notificationsEnabled
+        }.toMap()
+
+        val possibleClients = matrixMessenger.di.get<MatrixClients>().value
+            .filter { it.value.room.getById(roomId).first() != null }
+
+        if (possibleClients.isEmpty()) {
+            log.warn { "Cannot find a MatrixClient for the room $roomId" }
+            return null
+        }
+
+        log.debug { "Possible MatrixClients for $roomId: $possibleClients" }
+
+        for (client in possibleClients) {
+            if (pushModes[client.key] != PushMode.PUSH) {
+                log.warn { "Cannot use $client because Push not enabled for client" }
+                continue
             }
 
-        if (matrixClient == null) {
-            log.warn { "Cannot find a MatrixClient for the room $roomId" }
+            if (isNotificationsEnabled[client.key] != true) {
+                log.warn { "Cannot use $client because notifications disabled for client" }
+                continue
+            }
+
+            return client.value
         }
-        return matrixClient
+
+        log.warn { "There were possible clients but none had push notifications enabled" }
+
+        return null
     }
 }
