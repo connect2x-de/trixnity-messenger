@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
@@ -450,6 +451,16 @@ class RoomListViewModelImpl(
                 val segments = it.rawSegments
                 if (segments.size < 3 || segments[1] != "room") return@collect
                 selectRoom(RoomId(segments[2]))
+            }
+        }
+        val backCallback = BackCallback(isEnabled = showSearch.value) {
+            showSearch.value = false
+        }
+        backHandler.register(backCallback)
+
+        coroutineScope.launch {
+            showSearch.collect {
+                backCallback.isEnabled = it
             }
         }
     }

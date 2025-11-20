@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Change zoom behaviour in PDF reader
 - Make buttons in FileHeader move into extra row(s) when necessary
+- Close room list search with back button
 
 ### Deprecated
 
