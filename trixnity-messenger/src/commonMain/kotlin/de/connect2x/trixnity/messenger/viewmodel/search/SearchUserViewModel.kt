@@ -76,13 +76,28 @@ class SearchUserViewModelImpl(
         }
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
+//    override val providerSettings: StateFlow<String?> = combine(
+//        providerSearchActive,
+//        combine(searchUserProviders.map { searchUserProvider -> searchUserProvider.settingsDisplay }) { it },
+//    ) { active, settings ->
+//        active.foldIndexed("") { index, acc, active ->
+//            if (active && settings[index] != null) {
+//                if (acc.isBlank()) settings[index]!! else "$acc, ${settings[index]}"
+//            } else acc
+//        }.ifBlank { null }
+//    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
     override val providerSettings: StateFlow<String?> = combine(
         providerSearchActive,
-        combine(searchUserProviders.map { searchUserProvider -> searchUserProvider.settingsDisplay }) { it },
+        combine(searchUserProviders.flatMap { searchUserProvider ->
+            searchUserProvider.settings.filterValues { searchSetting ->
+                searchSetting.value.value != null
+            }.values
+        }) { it }
     ) { active, settings ->
         active.foldIndexed("") { index, acc, active ->
-            if (active && settings[index] != null) {
-                if (acc.isBlank()) settings[index]!! else "$acc, ${settings[index]}"
+            if (active && settings[index].value != null) {
+                if (acc.isBlank()) settings[index].value!! else "$acc, ${settings[index].name}: ${settings[index].value}"
             } else acc
         }.ifBlank { null }
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)

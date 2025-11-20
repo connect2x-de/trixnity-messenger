@@ -4,7 +4,9 @@ import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.ProviderSearchResult
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchSetting
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SettingsId
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isValid
@@ -46,6 +48,8 @@ class HomeserverSearchUserProvider(
     override fun applySettings() {
         // has no settings
     }
+
+    override val settings: Map<SettingsId, StateFlow<SearchSetting>> = emptyMap()
 
     override suspend fun search(
         searchTerm: String,

@@ -5,6 +5,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import net.folivo.trixnity.core.model.UserId
 
+typealias SettingsId = String
+
+data class SearchSetting(
+    val name: String, // language for i18n can change
+    val value: String? = null, // value can change
+)
+
 /**
  * A place to search for users that at least have a UserId. For standard Matrix clients this is the homeserver search
  * which is already included by default.
@@ -44,6 +51,13 @@ interface SearchUserProvider {
      * Although [settingsDisplay] is a Flow, it could be updated lazily, e.g., by pressing "apply" in a popup.
      */
     fun applySettings()
+
+    /// ------
+
+    /**
+     * If empty, no settings
+     */
+    val settings: Map<SettingsId, StateFlow<SearchSetting>>
 
     suspend fun search(
         searchTerm: String,
