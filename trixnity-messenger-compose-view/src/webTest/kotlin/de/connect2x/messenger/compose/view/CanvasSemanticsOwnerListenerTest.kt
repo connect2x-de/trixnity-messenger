@@ -15,6 +15,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
@@ -41,6 +42,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.InternalTestApi
 import androidx.compose.ui.test.SkikoComposeUiTest
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import kotlinx.browser.document
 import kotlinx.coroutines.delay
@@ -50,6 +52,7 @@ import org.w3c.dom.asList
 import kotlin.js.Promise
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
@@ -497,7 +500,7 @@ class CanvasSemanticsOwnerListenerTest {
     @Test
     fun `tooltip is role tooltip`() = a11yTest({
         TooltipBox(
-            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above, 4.dp),
             state = rememberTooltipState(),
             modifier = Modifier.semantics {
                 testTag = "tt"
@@ -573,7 +576,7 @@ private fun Element.byTestTag(tag: String): Element? = this.querySelector("[data
 
 private fun assertAttrs(el: Element?, attrs: Map<String, String>?) {
     val actualAttrs = el?.attributes?.asList()?.associate { Pair(it.name, it.value) }?.toMutableMap()
-    for (key in listOf("semantics-id", "style", "data-test-tag"))
+    for (key in listOf("id", "style", "data-test-tag"))
         actualAttrs?.remove(key)
     assertEquals(attrs, actualAttrs, "wrong attributes")
 }
@@ -584,10 +587,11 @@ private fun assertElem(
     attrs: Map<String, String>? = null,
     innerHTML: String? = null,
 ) {
+    assertNotNull(elem)
     if (tag != null)
-        assertEquals(tag.lowercase(), elem?.tagName?.lowercase(), "wrong tag")
+        assertEquals(tag.lowercase(), elem.tagName.lowercase(), "wrong tag")
     if (attrs != null)
         assertAttrs(elem, attrs)
     if (innerHTML != null)
-        assertEquals(innerHTML, elem?.innerHTML, "wrong inner html")
+        assertEquals(innerHTML, elem.innerHTML, "wrong inner html")
 }
