@@ -127,9 +127,7 @@ open class RoomSettingsNotificationsViewModelImpl(
                     deleteRoomPush()
                     setOverridePush()
                 }
-
             }
-
             isNotificationsLevelLoading.value = false
         }
     }
@@ -143,7 +141,9 @@ open class RoomSettingsNotificationsViewModelImpl(
                 conditions = setOf(),
                 actions = if (notify) setOf(PushAction.Notify, PushAction.SetSoundTweak("default")) else setOf(),
             ),
-        ).onFailure { exception ->
+        ).onSuccess {
+            log.debug { "add room push notification rule: (${selectedRoomId.full})" }
+        }.onFailure { exception ->
             log.error(exception) { "Cannot add room push notification rule: (${selectedRoomId.full})" }
             error.value = i18n.settingsRoomNotificationsError()
         }
@@ -158,7 +158,9 @@ open class RoomSettingsNotificationsViewModelImpl(
                 conditions = setOf(PushCondition.EventMatch(key = "room_id", pattern = selectedRoomId.full)),
                 actions = setOf(),
             ),
-        ).onFailure { exception ->
+        ).onSuccess {
+            log.debug { "add override push notification rule: (${selectedRoomId.full})" }
+        }.onFailure { exception ->
             log.error(exception) { "Cannot add override push notification rule: (${selectedRoomId.full})" }
             error.value = i18n.settingsRoomNotificationsError()
         }
@@ -169,7 +171,9 @@ open class RoomSettingsNotificationsViewModelImpl(
             "global",
             PushRuleKind.ROOM,
             selectedRoomId.full,
-        ).onFailure { exception ->
+        ).onSuccess {
+            log.debug { "delete room push notification rule: (${selectedRoomId.full})" }
+        }.onFailure { exception ->
             // we could just prevent calling the function at all, when rule already deleted
             if (exception is MatrixServerException && exception.statusCode == HttpStatusCode.NotFound) return
             log.error(exception) { "cannot delete room push notification rule: (${selectedRoomId.full})" }
@@ -182,7 +186,9 @@ open class RoomSettingsNotificationsViewModelImpl(
             "global",
             PushRuleKind.OVERRIDE,
             selectedRoomId.full,
-        ).onFailure { exception ->
+        ).onSuccess {
+            log.debug { "delete override push notification rule: (${selectedRoomId.full})" }
+        }.onFailure { exception ->
             // we could just prevent calling the function at all, when rule already deleted
             if (exception is MatrixServerException && exception.statusCode == HttpStatusCode.NotFound) return
             log.error(exception) { "cannot delete override push notification rule: (${selectedRoomId.full})" }
