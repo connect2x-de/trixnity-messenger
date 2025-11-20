@@ -54,7 +54,7 @@ open class RoomSettingsNotificationsViewModelImpl(
     override val roomNotificationLevels = mapOf(
         NotificationLevels.ALL to NotificationLevelImpl(i18n, NotificationLevels.ALL),
         NotificationLevels.MENTIONS to NotificationLevelImpl(i18n, NotificationLevels.MENTIONS),
-        NotificationLevels.SILENT to NotificationLevelImpl(i18n, NotificationLevels.SILENT),
+        NotificationLevels.OFF to NotificationLevelImpl(i18n, NotificationLevels.OFF),
         NotificationLevels.DEFAULT to NotificationLevelImpl(i18n, NotificationLevels.DEFAULT),
     )
     override val selectedRoomNotificationsLevel: StateFlow<NotificationLevel> =
@@ -89,7 +89,7 @@ open class RoomSettingsNotificationsViewModelImpl(
                         NotificationLevels.MENTIONS
 
                     roomActions == null && overrideActions != null && overrideActions.isEmpty() ->
-                        NotificationLevels.SILENT
+                        NotificationLevels.OFF
 
                     else -> NotificationLevels.DEFAULT
                 }
@@ -101,7 +101,7 @@ open class RoomSettingsNotificationsViewModelImpl(
             roomNotificationLevels.getValue(NotificationLevels.ALL)
         )
     override val isNotificationsLevelLoading = MutableStateFlow(false)
-    
+
     override fun changeSelectedRoomNotificationsLevel(newLevel: NotificationLevel) {
         coroutineScope.launch {
             error.value = null
@@ -123,7 +123,7 @@ open class RoomSettingsNotificationsViewModelImpl(
                     setRoomPush(false)
                 }
 
-                NotificationLevels.SILENT -> {
+                NotificationLevels.OFF -> {
                     deleteRoomPush()
                     setOverridePush()
                 }
@@ -196,7 +196,7 @@ enum class NotificationLevels(val key: String) {
     DEFAULT("DEFAULT"),
     ALL("ALL"),
     MENTIONS("MENTIONS"),
-    SILENT("SILENT"),
+    OFF("OFF"),
 }
 
 interface NotificationLevel {
@@ -213,14 +213,14 @@ class NotificationLevelImpl(i18n: I18n, override val key: NotificationLevels) : 
         name.value = when (key) {
             NotificationLevels.ALL -> i18n.settingsRoomNotificationsAll()
             NotificationLevels.MENTIONS -> i18n.settingsRoomNotificationsMentions()
-            NotificationLevels.SILENT -> i18n.settingsRoomNotificationsSilent()
+            NotificationLevels.OFF -> i18n.settingsRoomNotificationsOff()
             NotificationLevels.DEFAULT -> i18n.settingsRoomNotificationsDefault()
         }
 
         explanation.value = when (key) {
             NotificationLevels.ALL -> i18n.settingsRoomNotificationsAllExplanation()
             NotificationLevels.MENTIONS -> i18n.settingsRoomNotificationsMentionsExplanation()
-            NotificationLevels.SILENT -> i18n.settingsRoomNotificationsSilentExplanation()
+            NotificationLevels.OFF -> i18n.settingsRoomNotificationsOffExplanation()
             NotificationLevels.DEFAULT -> i18n.settingsRoomNotificationsDefaultExplanation()
         }
     }
@@ -239,21 +239,21 @@ class PreviewRoomSettingsNotificationsViewModel : RoomSettingsNotificationsViewM
         override val explanation: MutableStateFlow<String> = MutableStateFlow("something")
     }
 
-    class NotificationLevelSilent : NotificationLevel {
-        override val key: NotificationLevels = NotificationLevels.SILENT
-        override val name: MutableStateFlow<String> = MutableStateFlow("silent")
+    class NotificationLevelOff : NotificationLevel {
+        override val key: NotificationLevels = NotificationLevels.OFF
+        override val name: MutableStateFlow<String> = MutableStateFlow("off")
         override val explanation: MutableStateFlow<String> = MutableStateFlow("nothing")
     }
 
     override val roomNotificationLevels: Map<NotificationLevels, NotificationLevel> = mapOf(
         NotificationLevels.ALL to NotificationLevelAll(),
         NotificationLevels.MENTIONS to NotificationLevelMentions(),
-        NotificationLevels.SILENT to NotificationLevelSilent(),
+        NotificationLevels.OFF to NotificationLevelOff(),
         NotificationLevels.DEFAULT to NotificationLevelMentions(),
     )
 
     override val selectedRoomNotificationsLevel: MutableStateFlow<NotificationLevel> =
-        MutableStateFlow(NotificationLevelSilent())
+        MutableStateFlow(NotificationLevelOff())
 
     override val isNotificationsLevelLoading: MutableStateFlow<Boolean> =
         MutableStateFlow(false)

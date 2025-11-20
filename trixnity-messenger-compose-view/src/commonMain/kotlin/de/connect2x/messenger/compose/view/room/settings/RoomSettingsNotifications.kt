@@ -1,7 +1,5 @@
 package de.connect2x.messenger.compose.view.room.settings
 
-import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.NotificationImportant
@@ -53,7 +51,7 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
         val roomNotificationLevelDefault = roomNotificationLevels.getValue(NotificationLevels.DEFAULT)
         val roomNotificationLevelAll = roomNotificationLevels.getValue(NotificationLevels.ALL)
         val roomNotificationLevelMentions = roomNotificationLevels.getValue(NotificationLevels.MENTIONS)
-        val roomNotificationLevelSilent = roomNotificationLevels.getValue(NotificationLevels.SILENT)
+        val roomNotificationLevelOFF = roomNotificationLevels.getValue(NotificationLevels.OFF)
 
         Column {
             ThemedListItem(
@@ -99,9 +97,9 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
                         roomNotificationLevelMentions.name.collectAsState().value,
                         roomNotificationLevelMentions.explanation.collectAsState().value
                     ),
-                    roomNotificationLevelSilent to RadioSettingOption(
-                        roomNotificationLevelSilent.name.collectAsState().value,
-                        roomNotificationLevelSilent.explanation.collectAsState().value
+                    roomNotificationLevelOFF to RadioSettingOption(
+                        roomNotificationLevelOFF.name.collectAsState().value,
+                        roomNotificationLevelOFF.explanation.collectAsState().value
                     )
                 ),
                 value = selectedLevel,
@@ -110,7 +108,7 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
                     NotificationLevels.DEFAULT -> Icons.Default.Notifications
                     NotificationLevels.ALL -> Icons.Default.NotificationsActive
                     NotificationLevels.MENTIONS -> Icons.Default.NotificationImportant
-                    NotificationLevels.SILENT -> Icons.Default.NotificationsOff
+                    NotificationLevels.OFF -> Icons.Default.NotificationsOff
                 }
             )
         }

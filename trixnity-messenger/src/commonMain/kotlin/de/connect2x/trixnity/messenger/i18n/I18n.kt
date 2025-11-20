@@ -568,11 +568,6 @@ open class I18n(
         DE - "Töne"
     }
 
-    open fun settingsNotificationsSilent() = translate {
-        EN - "silent"
-        DE - "Stumm"
-    }
-
     open fun settingsNotificationsVibration() = translate {
         EN - "vibration"
         DE - "Vibration"
@@ -831,9 +826,9 @@ open class I18n(
         DE - "Erwähnungen"
     }
 
-    open fun settingsRoomNotificationsSilent() = translate {
-        EN - "Silent"
-        DE - "Stumm"
+    open fun settingsRoomNotificationsOff() = translate {
+        EN - "Off"
+        DE - "Aus"
     }
 
     open fun settingsRoomNotificationsDefault() = translate {
@@ -851,7 +846,7 @@ open class I18n(
         DE - "Sie werden über Nachrichten informiert, die direkt an Sie gerichtet sind"
     }
 
-    open fun settingsRoomNotificationsSilentExplanation() = translate {
+    open fun settingsRoomNotificationsOffExplanation() = translate {
         EN - "you are not notified on any new message"
         DE - "Sie erhalten keinerlei Benachrichtigungen über neue Nachrichten"
     }
