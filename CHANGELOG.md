@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- a11y: add proper label and role to LegalFooter
+
 ### Security
 
 ## 3.8.11
