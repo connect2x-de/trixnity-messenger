@@ -79,6 +79,7 @@ private fun setPushersRequest(fcmToken: String, userId: UserId, deviceId: String
             url = config.pushUrl,
             format = "event_id_only",
         ),
+        append = true,
         deviceDisplayName = "$userId ($deviceId)",
         kind = "http",
         lang = "de",

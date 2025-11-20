@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Using latest emojifont version on web 
 - Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
 - No longer crash when opening a large pdf page on older Android versions
+- Only push notifications for enabled accounts
 
 ### Security
 
