@@ -5,6 +5,7 @@ import de.connect2x.messenger.compose.view.notifications.notificationsModule
 import de.connect2x.sysnotify.Notification
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessenger
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.create
@@ -65,6 +66,7 @@ private fun createSetPushersRequest(userId: UserId, deviceId: String, di: Koin, 
         deviceDisplayName = "$userId ($deviceId)",
         kind = "http",
         lang = "de",
+        append = true,
         pushkey = token
     )
 }
@@ -113,6 +115,14 @@ fun handleNotification(userId: String, roomId: String, eventId: String) {
         }
 
         val messenger = matrixMultiMessenger.activeMatrixMessenger.filterNotNull().first()
+        val settings = messenger.di.get<MatrixMessengerSettingsHolder>()
+
+        val isNotificationsEnabled = settings.value.base.accounts[userId]?.base?.notificationsEnabled
+        if (isNotificationsEnabled != true) {
+            log.warn { "User $userId has notifications disabled" }
+            return@runBlocking
+        }
+
         log.debug { "Selected active messenger from multi messenger" }
         val matrixClients = messenger.di.get<MatrixClients>()
         matrixClients.isInitialized.first { it }
