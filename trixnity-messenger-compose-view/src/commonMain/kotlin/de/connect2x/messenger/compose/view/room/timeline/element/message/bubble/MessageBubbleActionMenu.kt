@@ -47,6 +47,7 @@ import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.modifier.expandable
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
@@ -81,6 +82,7 @@ fun BoxScope.MessageBubbleActionMenu(
 
         else -> MessageBubbleActionMenuDefault(
             holder,
+            interactionSource,
             showActionMenu,
             onOpenMetadata,
             onReactToMessage,
@@ -92,17 +94,15 @@ fun BoxScope.MessageBubbleActionMenu(
 @Composable
 private fun BoxScope.MessageBubbleActionMenuDefault(
     holder: BaseTimelineElementHolderViewModel,
+    interactionSource: MutableInteractionSource,
     showActionMenu: MutableState<Boolean>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
     val focus = interactionSource.collectIsFocusedAsState()
     val hover = interactionSource.collectIsHoveredAsState()
-    val isVisible: MutableTransitionState<Boolean> =
-        remember { MutableTransitionState(showActionMenu.value || focus.value || hover.value) }
-
+    val isVisible = remember { MutableTransitionState(showActionMenu.value || focus.value || hover.value) }
     LaunchedEffect(showActionMenu.value, focus.value, hover.value) {
         isVisible.targetState = showActionMenu.value || focus.value || hover.value
     }
@@ -129,7 +129,6 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
         Surface(
             shape = CircleShape,
             color = Color.Black.copy(alpha = opacity.value),
-            interactionSource = interactionSource,
             border = if (IsFocusHighlighting.current && focus.value) {
                 BorderStroke(MaterialTheme.messengerFocusIndicator.borderWidth, MaterialTheme.colorScheme.onSurface)
             } else null,
@@ -140,6 +139,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
             modifier = Modifier
                 .size(28.dp)
                 .rovingFocusChild()
+                .expandable(showActionMenu)
                 .semantics {
                     role = Role.Button
                     contentDescription = i18n.commonContextMenu()
