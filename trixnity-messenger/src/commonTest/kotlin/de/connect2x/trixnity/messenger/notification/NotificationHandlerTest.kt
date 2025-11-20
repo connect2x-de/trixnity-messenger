@@ -51,7 +51,7 @@ class NotificationHandlerTest {
             multiSettings,
             matrixClients,
             { callbackParam = it }
-        ) { _, _, _, _ ->
+        ) { _, _, _ ->
             notificationHandler
         }
     }
