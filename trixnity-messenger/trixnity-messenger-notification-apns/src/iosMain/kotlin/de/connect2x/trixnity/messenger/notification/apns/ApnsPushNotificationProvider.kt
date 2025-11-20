@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.notification.apns
 
-import de.connect2x.trixnity.messenger.KUIApplicationDelegateProtocol
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerService
@@ -12,10 +11,15 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.notification.NotificationProvider
 import de.connect2x.trixnity.messenger.notification.PushNotificationProvider
 import de.connect2x.trixnity.messenger.notification.PushNotificationProviderPushKeyUpdater
+import de.connect2x.trixnity.messenger.uikit.ApplicationDelegateProtocol
+import de.connect2x.trixnity.messenger.uikit.WithDefault
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
+import de.connect2x.trixnity.messenger.util.IOOrDefault
 import de.connect2x.trixnity.messenger.withMatrixMessengerFromService
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.io.bytestring.toByteString
 import kotlinx.io.bytestring.toHexString
 import kotlinx.serialization.json.JsonObject
@@ -30,6 +34,7 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import platform.Foundation.NSData
 import platform.UIKit.UIApplication
+import platform.UIKit.UIApplicationLaunchOptionsKey
 import platform.UIKit.UIBackgroundFetchResult
 
 class ApnsPushNotificationProvider(
@@ -76,14 +81,18 @@ class ApnsPushNotificationProvider(
             }
         }
 
-    class UIApplicationDelegate : KUIApplicationDelegateProtocol {
-        override fun application(application: UIApplication, didFinishLaunchingWithOptions: Map<Any?, *>?): Boolean {
+    class UIApplicationDelegate : ApplicationDelegateProtocol {
+
+        override fun didFinishLaunching(
+            application: UIApplication, launchOptions: Map<UIApplicationLaunchOptionsKey, *>?
+        ): WithDefault<Boolean> {
             SyncAndProcessPendingWorker.registerUniquePeriodicWork()
-            return true
+
+            return WithDefault.Default
         }
 
-        override fun application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken: NSData) {
-            val pushKey = didRegisterForRemoteNotificationsWithDeviceToken.toByteString().toHexString()
+        override fun didRegisterForRemoteNotifications(application: UIApplication, deviceToken: NSData) {
+            val pushKey = deviceToken.toByteString().toHexString()
             runBlocking {
                 withApnsPushNotificationProviderPushKeyUpdater {
                     it.onPushKeyUpdate(pushKey)
@@ -91,24 +100,30 @@ class ApnsPushNotificationProvider(
             }
         }
 
-        override fun application(
-            application: UIApplication,
-            didReceiveRemoteNotification: Map<Any?, *>,
-            fetchCompletionHandler: (UIBackgroundFetchResult) -> Unit
-        ) {
-            val profile = didReceiveRemoteNotification["profile"] as? String
-            val account = (didReceiveRemoteNotification["account"] as? String)?.let(::UserId)
-            val roomId = (didReceiveRemoteNotification["room_id"] as? String)?.let(::RoomId)
-            val eventId = (didReceiveRemoteNotification["event_id"] as? String)?.let(::EventId)
-            if (roomId != null) {
-                runBlocking {
-                    withApnsPushNotificationProvider {
-                        val didAlreadyProcessOnPush = it.onPush(profile, account, roomId, eventId)
-                        if (!didAlreadyProcessOnPush) it.processPending(profile, account)
+        override suspend fun didReceiveRemoteNotification(
+            application: UIApplication, userInfo: Map<Any?, *>
+        ): WithDefault<UIBackgroundFetchResult> {
+            val profile = userInfo["profile"] as? String
+            val account = (userInfo["account"] as? String)?.let(::UserId)
+            val roomId = (userInfo["room_id"] as? String)?.let(::RoomId)
+            val eventId = (userInfo["event_id"] as? String)?.let(::EventId)
+
+            if (roomId == null) {
+                return WithDefault.Value(UIBackgroundFetchResult.UIBackgroundFetchResultNoData)
+            }
+
+            return withContext(Dispatchers.IOOrDefault) {
+                withApnsPushNotificationProvider {
+                    val didAlreadyProcessOnPush = it.onPush(profile, account, roomId, eventId)
+
+                    if (didAlreadyProcessOnPush) {
+                        WithDefault.Value(UIBackgroundFetchResult.UIBackgroundFetchResultNoData)
+                    } else {
+                        it.processPending(profile, account)
+                        WithDefault.Value(UIBackgroundFetchResult.UIBackgroundFetchResultNewData)
                     }
                 }
             }
-            fetchCompletionHandler(UIBackgroundFetchResult.UIBackgroundFetchResultNoData)
         }
     }
 }
@@ -154,8 +169,9 @@ private fun apnsPushNotificationProviderPushKeyUpdaterModule() = module {
 }
 
 private fun apnsPushNotificationProviderUIApplicationDelegateModule() = module {
-    single(named<ApnsPushNotificationProvider.UIApplicationDelegate>()) { ApnsPushNotificationProvider.UIApplicationDelegate() }
-        .bind<KUIApplicationDelegateProtocol>()
+    single<ApplicationDelegateProtocol>(named<ApnsPushNotificationProvider.UIApplicationDelegate>()) {
+        ApnsPushNotificationProvider.UIApplicationDelegate()
+    }
 }
 
 fun MatrixMultiMessengerConfiguration.addApnsPushNotificationProvider() {
