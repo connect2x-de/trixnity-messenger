@@ -28,6 +28,18 @@ fun ZoomButtons(scale: MutableState<Float>, minScale: Float = 0.2f, maxScale: Fl
     }
 }
 
+@Composable
+fun ZoomButtons(onZoom: (factor: Float) -> Unit, scope: CoroutineScope) {
+    val i18n = DI.get<I18nView>()
+
+    FileBasedDetailsHeaderButton(Icons.Outlined.ZoomIn, i18n.commonZoomIn()) {
+        onZoom(1.2f)
+    }
+    FileBasedDetailsHeaderButton(Icons.Outlined.ZoomOut, i18n.commonZoomOut()) {
+        onZoom(0.8f)
+    }
+}
+
 fun Modifier.zoomModifier(
     focusRequester: FocusRequester,
     canZoom: MutableState<Boolean>,
@@ -70,7 +82,6 @@ fun Modifier.zoomModifier(
                     awaitPointerEvent(pass = PointerEventPass.Final)
                         .changes
                         .forEach {
-                            focusRequester.requestFocus() // otherwise, key events will be lost
                             if (it.scrollDelta.y.toInt() != 0 && canZoom.value) {
                                 val delta = 0.1f * -it.scrollDelta.y
                                 scope.launch {

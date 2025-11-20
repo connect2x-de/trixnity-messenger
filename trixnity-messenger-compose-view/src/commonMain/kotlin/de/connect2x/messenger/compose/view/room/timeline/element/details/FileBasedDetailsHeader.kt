@@ -2,7 +2,7 @@ package de.connect2x.messenger.compose.view.room.timeline.element.details
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -51,7 +51,7 @@ fun FileBasedDetailsHeader(
     val configuration = DI.get<MatrixMessengerConfiguration>()
     val downloadProgress = element.downloadMediaProgress.collectAsState().value
 
-    Row(
+    FlowRow(
         Modifier
             .zIndex(99.0f)
             .fillMaxWidth()
@@ -64,8 +64,9 @@ fun FileBasedDetailsHeader(
                     false
                 }
             },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small)
+        itemVerticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.verySmall),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small, alignment = Alignment.CenterHorizontally),
     ) {
         FileBasedDetailsHeaderButton(Icons.Outlined.Close, i18n.commonClose(), onAction = onClose)
 

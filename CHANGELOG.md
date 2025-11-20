@@ -9,8 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add a page selector to PDF reader
+
 ### Changed
 
+- Change zoom behaviour in PDF reader
+- Make buttons in FileHeader move into extra row(s) when necessary
 - Add button to cancel download in file details view
 
 ### Deprecated
@@ -21,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Using latest emojifont version on web 
 - Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
+- No longer crash when opening a large pdf page on older Android versions
 - Show download progress indicator when no total file size is received during download
 - Allow restart of download after cancellation
 
