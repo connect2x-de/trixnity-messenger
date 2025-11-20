@@ -62,7 +62,7 @@ fun LastMessageAndUnreadMessagesCounter(roomListElementViewModel: RoomListElemen
                         modifier = Modifier
                             .size(size)
                             .alignByBaseline(),
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = MaterialTheme.colorScheme.primary,
                     ) {}
                 }
             }
