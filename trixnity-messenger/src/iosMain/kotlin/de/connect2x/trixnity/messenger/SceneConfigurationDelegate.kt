@@ -11,6 +11,9 @@ import platform.UIKit.UISceneSession
 import platform.UIKit.UISceneSessionRole
 import platform.UIKit.UIWindowScene
 
+/**
+ * Connects [WindowSceneDelegate] as [UIWindowScene] for [ApplicationDelegateProtocol]
+ */
 object SceneConfigurationDelegate : ApplicationDelegateProtocol {
 
     override fun configurationForConnecting(

@@ -2,9 +2,7 @@ package de.connect2x.trixnity.messenger.notification.apns
 
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerService
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.MatrixMultiMessengerService
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
@@ -14,12 +12,9 @@ import de.connect2x.trixnity.messenger.notification.PushNotificationProviderPush
 import de.connect2x.trixnity.messenger.uikit.ApplicationDelegateProtocol
 import de.connect2x.trixnity.messenger.uikit.WithDefault
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
-import de.connect2x.trixnity.messenger.util.IOOrDefault
 import de.connect2x.trixnity.messenger.withMatrixMessengerFromService
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import kotlinx.io.bytestring.toByteString
 import kotlinx.io.bytestring.toHexString
 import kotlinx.serialization.json.JsonObject
@@ -81,7 +76,9 @@ class ApnsPushNotificationProvider(
             }
         }
 
-    class UIApplicationDelegate : ApplicationDelegateProtocol {
+    class UIApplicationDelegate(
+        private val pushKeyUpdater: PushNotificationProviderPushKeyUpdater,
+    ) : ApplicationDelegateProtocol {
 
         override fun didFinishLaunching(
             application: UIApplication, launchOptions: Map<UIApplicationLaunchOptionsKey, *>?
@@ -93,11 +90,7 @@ class ApnsPushNotificationProvider(
 
         override fun didRegisterForRemoteNotifications(application: UIApplication, deviceToken: NSData) {
             val pushKey = deviceToken.toByteString().toHexString()
-            runBlocking {
-                withApnsPushNotificationProviderPushKeyUpdater {
-                    it.onPushKeyUpdate(pushKey)
-                }
-            }
+            runBlocking { pushKeyUpdater.onPushKeyUpdate(pushKey) }
         }
 
         override suspend fun didReceiveRemoteNotification(
@@ -112,16 +105,14 @@ class ApnsPushNotificationProvider(
                 return WithDefault.Value(UIBackgroundFetchResult.UIBackgroundFetchResultNoData)
             }
 
-            return withContext(Dispatchers.IOOrDefault) {
-                withApnsPushNotificationProvider {
-                    val didAlreadyProcessOnPush = it.onPush(profile, account, roomId, eventId)
+            return withApnsPushNotificationProvider {
+                val didAlreadyProcessOnPush = it.onPush(profile, account, roomId, eventId)
 
-                    if (didAlreadyProcessOnPush) {
-                        WithDefault.Value(UIBackgroundFetchResult.UIBackgroundFetchResultNoData)
-                    } else {
-                        it.processPending(profile, account)
-                        WithDefault.Value(UIBackgroundFetchResult.UIBackgroundFetchResultNewData)
-                    }
+                if (didAlreadyProcessOnPush) {
+                    WithDefault.Value(UIBackgroundFetchResult.UIBackgroundFetchResultNoData)
+                } else {
+                    it.processPending(profile, account)
+                    WithDefault.Value(UIBackgroundFetchResult.UIBackgroundFetchResultNewData)
                 }
             }
         }
@@ -133,19 +124,6 @@ internal suspend fun <T> withApnsPushNotificationProvider(
 ): T = withMatrixMessengerFromService {
     val apnsPushNotificationProvider = it.di.get<ApnsPushNotificationProvider>()
     block(apnsPushNotificationProvider)
-}
-
-internal suspend fun <T> withApnsPushNotificationProviderPushKeyUpdater(
-    block: suspend (PushNotificationProviderPushKeyUpdater) -> T
-): T {
-    val matrixMultiMessenger = MatrixMultiMessengerService.get()
-    if (matrixMultiMessenger != null) {
-        return block(matrixMultiMessenger.di.get<PushNotificationProviderPushKeyUpdater>())
-    } else {
-        val matrixMessenger = MatrixMessengerService.get()
-            ?: throw IllegalStateException("no service enabled")
-        return block(matrixMessenger.di.get<PushNotificationProviderPushKeyUpdater>())
-    }
 }
 
 private fun apnsPushNotificationProviderModule() = module {
@@ -170,7 +148,7 @@ private fun apnsPushNotificationProviderPushKeyUpdaterModule() = module {
 
 private fun apnsPushNotificationProviderUIApplicationDelegateModule() = module {
     single<ApplicationDelegateProtocol>(named<ApnsPushNotificationProvider.UIApplicationDelegate>()) {
-        ApnsPushNotificationProvider.UIApplicationDelegate()
+        ApnsPushNotificationProvider.UIApplicationDelegate(get())
     }
 }
 

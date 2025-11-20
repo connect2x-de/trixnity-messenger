@@ -19,7 +19,10 @@ fun startMultiMessenger(
     args: List<String>,
     configuration: MatrixMultiMessengerConfiguration.() -> Unit,
 ) {
-    MatrixMultiMessengerService.configuration = { configuration() }
+    MatrixMultiMessengerService.configuration = {
+        addViewProvider()
+        configuration()
+    }
     runBlocking {
         MatrixMultiMessengerService.init()
     }
