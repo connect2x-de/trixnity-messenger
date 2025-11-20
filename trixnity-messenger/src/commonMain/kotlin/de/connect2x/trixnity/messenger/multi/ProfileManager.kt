@@ -1,7 +1,12 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.messenger.MatrixMessenger
+import de.connect2x.trixnity.messenger.settings.MutableSettings
+import de.connect2x.trixnity.messenger.settings.MutableSettingsImpl
 import de.connect2x.trixnity.messenger.settings.SettingsJson
+import de.connect2x.trixnity.messenger.settings.SettingsView
+import de.connect2x.trixnity.messenger.settings.get
+import de.connect2x.trixnity.messenger.settings.set
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
@@ -11,8 +16,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.serializer
 
 private val log = KotlinLogging.logger {}
 
@@ -26,7 +33,7 @@ interface ProfileManager {
     suspend fun createProfile(settings: MatrixMultiMessengerProfileSettingsBase = MatrixMultiMessengerProfileSettingsBase()): String
     suspend fun updateProfile(
         profile: String,
-        updateSettings: (MatrixMultiMessengerProfileSettings) -> MatrixMultiMessengerProfileSettings
+        updater: MutableSettings<MatrixMultiMessengerProfileSettings>.(MatrixMultiMessengerProfileSettings) -> Unit
     )
 
     suspend fun deleteProfile(profile: String)
@@ -90,14 +97,16 @@ class ProfileManagerImpl(
 
     override suspend fun updateProfile(
         profile: String,
-        updateSettings: (MatrixMultiMessengerProfileSettings) -> MatrixMultiMessengerProfileSettings
-    ) {
-        settingsHolder.update<MatrixMultiMessengerSettingsBase> { oldSettings ->
-            val newProfileSettings = oldSettings.profiles[profile]?.also { updateSettings(it) }
-            if (newProfileSettings != null)
-                oldSettings.copy(profiles = oldSettings.profiles + (profile to newProfileSettings))
-            else oldSettings
+        updater: MutableSettings<MatrixMultiMessengerProfileSettings>.(MatrixMultiMessengerProfileSettings) -> Unit
+    ) = settingsHolder.update<MatrixMultiMessengerSettingsBase> {
+        log.debug { "update profile settings for $profile" }
+        val oldProfiles = it.profiles
+        val oldProfileSettings = oldProfiles[profile] ?: return@update it
+        val newProfileSettings = MutableSettingsImpl(oldProfileSettings)
+        with(newProfileSettings) {
+            updater(oldProfileSettings)
         }
+        it.copy(profiles = oldProfiles + (profile to MatrixMultiMessengerProfileSettings(newProfileSettings)))
     }
 
     override suspend fun deleteProfile(profile: String) {
@@ -116,3 +125,16 @@ class ProfileManagerImpl(
         }.join()
     }
 }
+
+suspend fun <T : SettingsView<MatrixMultiMessengerProfileSettings>> ProfileManager.updateProfile(
+    profile: String,
+    serializer: KSerializer<T>,
+    updater: (T) -> T,
+) = updateProfile(profile) {
+    set(updater(it.get(serializer)), serializer)
+}
+
+suspend inline fun <reified T : SettingsView<MatrixMultiMessengerProfileSettings>> ProfileManager.updateProfile(
+    profile: String,
+    noinline updater: (T) -> T,
+) = updateProfile(profile, serializer(), updater)
