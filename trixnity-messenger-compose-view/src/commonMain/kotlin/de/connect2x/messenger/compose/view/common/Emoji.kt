@@ -53,7 +53,7 @@ fun EmojiSelector(
     val defaultItem = emojis.firstOrNull()
 
     Box(modifier) {
-        Row(modifier = Modifier.verticalScroll(scrollState), horizontalArrangement = Arrangement.Center) {
+        Row(modifier = Modifier.verticalScroll(scrollState).align(Alignment.Center), horizontalArrangement = Arrangement.Center) {
             BoxWithConstraints(Modifier.padding(12.dp)) {
                 val calculatedEmojiSize = with (LocalDensity.current) { 48.dp.roundToPx() }
                 val columns = constraints.maxWidth / calculatedEmojiSize
