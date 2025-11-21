@@ -30,7 +30,7 @@ internal data class RadioSettingOption(
 )
 
 @Composable
-internal fun <T: Any> ColumnScope.RadioSetting(
+internal fun <T : Any> ColumnScope.RadioSetting(
     text: String,
     explanation: String? = null,
     options: Map<T, RadioSettingOption>,
@@ -65,7 +65,7 @@ internal fun <T : Any> ColumnScope.RadioSetting(
     enabled: Boolean = true,
     icon: ImageVector = Icons.Default.Settings,
 ) {
-    val keys = remember(options) { options.keys.toList() }
+    val keys = remember(options) { options.filter { enabled && it.value.enabled }.keys.toList() }
     val defaultItem = options.keys.firstOrNull()
     ExpandableSection(heading = { title() }, icon = icon) {
         RovingFocusContainer {
@@ -96,7 +96,7 @@ internal fun <T : Any> ColumnScope.RadioSetting(
                             leadingContent = if (optionExplanation != null) {
                                 @Composable { HelpIcon(optionExplanation) }
                             } else null,
-                            modifier = Modifier.rovingFocusItem(),
+                            modifier = if (enabled && optionEnabled) Modifier.rovingFocusItem() else Modifier,
                             enabled = enabled && optionEnabled,
                             selected = value == key,
                             onChange = { set(key) },

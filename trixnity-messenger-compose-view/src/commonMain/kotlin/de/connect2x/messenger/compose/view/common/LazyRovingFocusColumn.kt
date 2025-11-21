@@ -16,7 +16,7 @@ import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 @Composable
 fun LazyRovingFocusColumn(
     defaultItem: Any?,
-    references: List<Any?>,
+    references: List<Any>,
     state: LazyListState = rememberLazyListState(),
     focusContainer: RovingFocusState?,
     content: LazyListScope.() -> Unit
@@ -36,10 +36,10 @@ fun LazyRovingFocusColumn(
                 }
             },
             up = {
-                focusContainer?.getPreviousItem(defaultItem, references)
+                focusContainer?.getPreviousItem(references, defaultItem) { it }
             },
             down = {
-                focusContainer?.getNextItem(defaultItem, references)
+                focusContainer?.getNextItem(references, defaultItem) { it }
             },
         )
     ) { content() }

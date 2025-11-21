@@ -1,21 +1,14 @@
 package de.connect2x.messenger.compose.view.room.settings
 
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,14 +22,14 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.RunningText
-import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogScrollContent
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemRadioButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.export.CSVFileBasedExportRoomProperties
 import de.connect2x.trixnity.messenger.export.Destination
@@ -84,42 +77,42 @@ class ExportRoomViewImpl : ExportRoomView {
         val canExport by exportRoomViewModel.canExport.collectAsState()
         val isExporting by exportRoomViewModel.isExporting.collectAsState()
 
-        Column(Modifier.fillMaxSize()) {
+        Column {
             Header(
-                exportRoomViewModel::back, i18n.exportRoom(
+                onBack = exportRoomViewModel::back,
+                title = i18n.exportRoom(
                     if (isDirect) i18n.commonChat().capitalize(Locale.current)
                     else i18n.commonGroup().capitalize(Locale.current)
                 )
             )
 
-            Column(
-                Modifier
-                    .fillMaxSize()
-                    .padding(PaddingValues(vertical = 20.dp, horizontal = 20.dp))
-            ) {
-                RunningText(text = i18n.exportRoomBodyLabel(roomName))
-                Spacer(modifier = Modifier.height(20.dp))
-                // TODO Range(exportRoomViewModel)
+            // TODO Range(exportRoomViewModel)
+            AdaptiveDialogScrollContent {
+                Text(i18n.exportRoomBodyLabel(roomName))
+
+                Spacer(Modifier.height(16.dp))
+
                 ExportRoomProperties(exportRoomViewModel)
-                Spacer(modifier = Modifier.height(20.dp))
+
+                Spacer(Modifier.height(16.dp))
+
                 when (state) {
                     ExportRoomViewModel.State.None -> {}
                     is ExportRoomViewModel.State.Running -> {
-                        val progress by state.progress.collectAsState()
-                        val progressString by state.progressString.collectAsState()
-                        val (processed, total) = progress
-                        if (processed == null || total == null) ThemedProgressIndicator(
-                            Modifier.fillMaxWidth(),
-                            MaterialTheme.components.linearProgressIndicator
-                        )
-                        else ThemedProgressIndicator(
-                            progress = { processed.toFloat() / total },
-                            modifier = Modifier.fillMaxWidth(),
-                            style = MaterialTheme.components.linearProgressIndicator
-                        )
+                        val (processed, total) = state.progress.collectAsState().value
+                        if (processed == null || total == null)
+                            ThemedProgressIndicator(
+                                Modifier.fillMaxWidth(),
+                                MaterialTheme.components.linearProgressIndicator
+                            )
+                        else
+                            ThemedProgressIndicator(
+                                progress = { processed.toFloat() / total },
+                                modifier = Modifier.fillMaxWidth(),
+                                style = MaterialTheme.components.linearProgressIndicator
+                            )
                         Spacer(Modifier.size(10.dp))
-                        Text(progressString)
-                        Spacer(Modifier.size(20.dp))
+                        Text(state.progressString.collectAsState().value)
                     }
 
                     is ExportRoomViewModel.State.Success -> {
@@ -130,39 +123,26 @@ class ExportRoomViewImpl : ExportRoomView {
                         )
                         Spacer(Modifier.size(10.dp))
                         Text(state.progressString)
-                        Spacer(Modifier.size(20.dp))
                     }
 
                     is ExportRoomViewModel.State.Error -> {
                         Text(state.message, color = MaterialTheme.colorScheme.error)
-                        Spacer(Modifier.size(20.dp))
                         // TODO list missing media
                     }
                 }
+            }
 
-                Row(Modifier.fillMaxWidth()) {
-                    val abortText = i18n.exportRoomAbort()
-                    Column(Modifier.weight(0.5f), horizontalAlignment = Alignment.Start) {
-                        ThemedButton(
-                            style = MaterialTheme.components.destructiveButton,
-                            onClick = { exportRoomViewModel.abort() },
-                            enabled = isExporting,
-                        ) {
-                            Text(abortText)
-                        }
-                    }
-
-                    val exportRoomText = i18n.exportRoomButton()
-                    Column(Modifier.weight(0.5f), horizontalAlignment = Alignment.End) {
-                        ThemedButton(
-                            style = MaterialTheme.components.primaryButton,
-                            onClick = { exportRoomViewModel.start() },
-                            enabled = canExport && !isExporting,
-                        ) {
-                            Text(exportRoomText)
-                        }
-                    }
-                }
+            AdaptiveDialogFooter {
+                ThemedButton(
+                    style = MaterialTheme.components.destructiveButton,
+                    onClick = { exportRoomViewModel.abort() },
+                    enabled = isExporting,
+                ) { Text(i18n.exportRoomAbort()) }
+                ThemedButton(
+                    style = MaterialTheme.components.primaryButton,
+                    onClick = { exportRoomViewModel.start() },
+                    enabled = canExport && !isExporting,
+                ) { Text(i18n.exportRoomButton()) }
             }
         }
     }
@@ -179,47 +159,24 @@ fun ExportRoomProperties(exportRoomViewModel: ExportRoomViewModel) {
     )
     var selectedIndex by remember { mutableStateOf(0) }
     val selectedTarget = targets.getOrNull(selectedIndex)
-    val interactionSource = remember { MutableInteractionSource() }
 
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(interactionSource, LocalIndication.current) { selectedIndex = 0 }
-                .focusHighlighting(interactionSource)
-                .buttonPointerModifier(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                i18n.exportRoomTargetPlainText(),
-                modifier = Modifier.weight(1.0f, fill = true),
-                style = MaterialTheme.typography.labelLarge,
-            )
-            RadioButton(
-                selected = selectedIndex == 0,
-                onClick = { selectedIndex = 0 }
-            )
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(interactionSource, LocalIndication.current) { selectedIndex = 1 }
-                .focusHighlighting(interactionSource)
-                .buttonPointerModifier(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                i18n.exportRoomTargetCsv(),
-                modifier = Modifier.weight(1.0f, fill = true),
-                style = MaterialTheme.typography.labelLarge,
-            )
-            RadioButton(
-                selected = selectedIndex == 1,
-                onClick = { selectedIndex = 1 }
-            )
-        }
-    }
-    Spacer(modifier = Modifier.height(20.dp))
+    ThemedListItemRadioButton(
+        selected = selectedIndex == 0,
+        headlineContent = {
+            Text(i18n.exportRoomTargetPlainText(), style = MaterialTheme.typography.labelLarge)
+        },
+        onChange = { selectedIndex = 0 }
+    )
+
+    ThemedListItemRadioButton(
+        selected = selectedIndex == 1,
+        headlineContent = {
+            Text(i18n.exportRoomTargetCsv(), style = MaterialTheme.typography.labelLarge)
+        },
+        onChange = { selectedIndex = 1 }
+    )
+
+    Spacer(Modifier.height(16.dp))
 
     when (selectedTarget?.first) {
         "txt" -> {
@@ -245,9 +202,7 @@ fun ExportRoomProperties(exportRoomViewModel: ExportRoomViewModel) {
             }
         }
 
-        else -> {
-            log.warn { "invalid room export target" }
-        }
+        else -> log.warn { "invalid room export target" }
     }
 }
 
