@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -25,8 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -43,10 +40,9 @@ import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.common.UserState
 import de.connect2x.messenger.compose.view.common.icons.PublicIcon
 import de.connect2x.messenger.compose.view.common.icons.UnencryptedIcon
+import de.connect2x.messenger.compose.view.common.modifier.minHeaderHeight
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.root.IsSinglePane
-import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
@@ -80,20 +76,14 @@ class RoomHeaderViewImpl : RoomHeaderView {
         val roomHeaderElement = roomHeaderViewModel.roomHeaderInfo.collectAsState().value
         val usersTyping = roomHeaderViewModel.usersTyping.collectAsState().value
         val knockingMembersCount = roomHeaderViewModel.knockingMembersCount.collectAsState().value
-        val headerHeightFlow = MaxHeaderHeight.current
-        val headerHeight = headerHeightFlow.collectAsState().value
         val i18n = DI.get<I18nView>()
-        val density = LocalDensity.current
 
         HeaderSurface {
             Column {
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().onGloballyPositioned { coordinates ->
-                        val newHeaderHeight = with(density) { coordinates.size.height.toDp() - 1.toDp() }
-                        headerHeightFlow.value = maxOf(headerHeight, newHeaderHeight)
-                    }
+                    modifier = Modifier.minHeaderHeight()
                 ) {
                     if (showBackButton) {
                         Spacer(Modifier.size(8.dp))
@@ -184,17 +174,6 @@ class RoomHeaderViewImpl : RoomHeaderView {
 
                     RoomExtras(roomHeaderViewModel, showSettingsButton)
                     Spacer(Modifier.size(8.dp))
-
-                    // If we have a multi-pane view, we will display an invisible text that has the function of
-                    // forcing the three header elements to the same height.
-                    if (!IsSinglePane.current) {
-                        Text(
-                            text = " ",
-                            style = MaterialTheme.typography.labelMedium
-                                .copy(color = MaterialTheme.colorScheme.onBackground),
-                            modifier = Modifier.height(headerHeight)
-                        )
-                    }
                 }
 
                 HorizontalDivider(Modifier.fillMaxWidth())
