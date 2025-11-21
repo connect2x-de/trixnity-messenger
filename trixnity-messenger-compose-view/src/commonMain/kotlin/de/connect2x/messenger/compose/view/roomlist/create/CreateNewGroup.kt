@@ -135,7 +135,6 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                         )
                     }
                     val listState = rememberLazyListState()
-                    val expandHistoryOptions = remember { mutableStateOf(false) }
                     RovingFocusContainer {
                         val focusContainer = LocalRovingFocus.current
                         val currentRef = focusContainer?.activeRef?.value
@@ -154,6 +153,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                         LazyRovingFocusColumn(defaultItem, references, listState, focusContainer) {
                             item(key = "MoreOptions") {
                                 val expanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }
+                                val historyExpanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }
 
                                 Column {
                                     ExpandableSection(
@@ -162,7 +162,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                                         modifier = Modifier.padding(horizontal = 10.dp),
                                         icon = Icons.Default.Settings,
                                     ) {
-                                        CreateGroupOptions(createNewGroupViewModel, expandHistoryOptions)
+                                        CreateGroupOptions(createNewGroupViewModel, historyExpanded)
                                     }
                                     Spacer(Modifier.height(15.dp))
                                 }
