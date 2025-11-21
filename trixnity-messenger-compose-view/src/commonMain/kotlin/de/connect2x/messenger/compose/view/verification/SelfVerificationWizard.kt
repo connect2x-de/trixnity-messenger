@@ -449,6 +449,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                                 autoCorrectEnabled = false,
                                 keyboardType = KeyboardType.Password,
                             ),
+                            maxLines = 1,
                             label = { Text(i18n.commonRecoveryKey()) })
                     }
                     if (recoveryKeyWrong.value) {
