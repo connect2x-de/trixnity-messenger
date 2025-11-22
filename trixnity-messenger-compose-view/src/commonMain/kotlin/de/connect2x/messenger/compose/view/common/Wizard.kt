@@ -118,34 +118,27 @@ fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
         }
     }
 
-    Dialog(
-        onDismissRequest = {},
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-        ),
-    ) {
-        key(wizardStep) {
-            if (wizardStep != null) {
-                // this is necessary to have a scroll position saved on every step,
-                // but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
-                savableStateHolder.SaveableStateProvider(key = wizardStep.id) {
-                    val scrollState = rememberScrollState()
-                    Surface(
-                        Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.background,
+    key(wizardStep) {
+        if (wizardStep != null) {
+            // this is necessary to have a scroll position saved on every step,
+            // but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
+            savableStateHolder.SaveableStateProvider(key = wizardStep.id) {
+                val scrollState = rememberScrollState()
+                Surface(
+                    Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background,
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(bottom = MaterialTheme.messengerDpConstants.small)
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.padding(bottom = MaterialTheme.messengerDpConstants.small)
+                        BoxWithConstraints(
+                            Modifier.fillMaxWidth().weight(1f),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            BoxWithConstraints(
-                                Modifier.fillMaxWidth().weight(1f),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
-                            }
-                            LegalFooter()
+                            WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
                         }
+                        LegalFooter()
                     }
                 }
             }
