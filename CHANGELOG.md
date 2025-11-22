@@ -4,8 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
-
+ 
 ## [Unreleased]
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- Emoji picker is correctly aligned to the center
+
+### Security
+
+## 3.8.11
 
 ### Added
 
@@ -16,18 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change zoom behaviour in PDF reader
 - Make buttons in FileHeader move into extra row(s) when necessary
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
-- Using latest emojifont version on web 
+- Using latest emojifont version on web
 - Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
 - No longer crash when opening a large pdf page on older Android versions
-- Emoji picker is correctly aligned to the center
-
-### Security
+- Only push notifications for enabled accounts
 
 ## 3.8.10
 
