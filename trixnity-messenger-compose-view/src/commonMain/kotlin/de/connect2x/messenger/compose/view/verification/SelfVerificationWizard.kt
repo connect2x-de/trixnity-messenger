@@ -479,11 +479,14 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             backButton = {
                 Custom {
+                    val showStep = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
+                    if (!showStep) {
+                        currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardMethods.stepId
+                    }
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = {
                             selfVerificationViewModel.backToChoose()
-                            currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardMethods.stepId
                         },
                     ) {
                         Text(i18n.commonBack())
@@ -545,11 +548,14 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             backButton = {
                 Custom {
+                    val showStep = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
+                    if (!showStep) {
+                        currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardMethods.stepId
+                    }
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = {
                             selfVerificationViewModel.backToChoose()
-                            currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardMethods.stepId
                         },
                     ) {
                         Text(i18n.commonBack())
