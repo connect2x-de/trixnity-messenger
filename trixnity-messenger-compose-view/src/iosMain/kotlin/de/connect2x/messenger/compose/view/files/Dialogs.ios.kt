@@ -41,7 +41,7 @@ actual fun SaveFileDialog(
     fileName: String,
     mimeType: String?,
     error: String?,
-    downloadFile: (suspend (PlatformMedia) -> Unit) -> Unit,
+    downloadFile: (suspend (PlatformMedia) -> Unit, () -> Unit) -> Unit,
     onCloseSaveFileDialog: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
@@ -65,7 +65,7 @@ actual fun SaveFileDialog(
         }
     }
     LaunchedEffect(hasError) {
-        if (!hasError) downloadFile { file ->
+        if (!hasError) downloadFile({ file ->
             val savedFile = FileKit.openFileSaver(
                 suggestedName = fileName.substringBeforeLast("."),
                 extension = fileName.substringAfterLast("."),
@@ -87,7 +87,7 @@ actual fun SaveFileDialog(
             } finally {
                 onCloseSaveFileDialog()
             }
-        }
+        }, onCloseSaveFileDialog)
     }
 }
 
@@ -130,6 +130,7 @@ actual fun LoadFileDialog(
                 launcher.launch()
             }
         }
+
         FilePickerType.PHOTO_CAPTURE, FilePickerType.VIDEO_CAPTURE -> {
             LaunchedEffect(Unit) {
                 // TODO: Use video camera picker when FileKit supports it
@@ -141,6 +142,7 @@ actual fun LoadFileDialog(
                 onCloseLoadFileDialog()
             }
         }
+
         null -> {
             log.debug { "No file picker selected, don't show anything" }
         }

@@ -117,7 +117,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     override val downloadMediaError = _downloadMediaError.asStateFlow()
     private val activeDownloadMedia = MutableStateFlow<Deferred<Result<PlatformMedia>>?>(null)
 
-    override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit) {
+    override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit, onDownloadCancelled: () -> Unit) {
         activeDownloadMedia.value?.cancel("new download started")
 
         _downloadMedia.value = null
@@ -146,9 +146,11 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                     }
             } catch (exc: CancellationException) {
                 log.error(exc) { "media download was cancelled" }
+                onDownloadCancelled()
             }
         }.invokeOnCompletion {
             activeDownloadMedia.value = null
+            _downloadMediaProgress.value = null
         }
     }
 
