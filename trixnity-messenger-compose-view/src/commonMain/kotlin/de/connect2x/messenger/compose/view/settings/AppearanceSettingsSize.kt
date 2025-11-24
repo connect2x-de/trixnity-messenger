@@ -23,14 +23,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.common.modifier.resetMinHeaderHeight
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.messenger.compose.view.theme.DefaultSizes
-import de.connect2x.messenger.compose.view.theme.MaxHeaderHeight
 import de.connect2x.messenger.compose.view.theme.SystemDensity
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
@@ -69,7 +68,6 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
         val i18n = DI.get<I18nView>()
         val defaultSizes = DI.get<DefaultSizes>()
         val applySystemSizes by appearanceSettingsViewModel.applySystemSizes.collectAsState()
-        val maxHeaderHeight = MaxHeaderHeight.current
 
         // Font size
         val fontSize = appearanceSettingsViewModel.fontSize.collectAsState().value ?: defaultSizes.fontSize
@@ -116,7 +114,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                     newFontSize = -1F
                     newDisplaySize = -1F
 
-                    maxHeaderHeight.value = Dp(0.0f)
+                    resetMinHeaderHeight()
                     appearanceSettingsViewModel.setDisplaySize(defaultSizes.displaySize)
                     appearanceSettingsViewModel.setFontSize(defaultSizes.fontSize)
                 },
@@ -173,7 +171,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                 style = MaterialTheme.components.primaryButton,
                 enabled = !applySystemSizes,
                 onClick = {
-                    maxHeaderHeight.value = Dp(0.0f)
+                    resetMinHeaderHeight()
                     appearanceSettingsViewModel.setDisplaySize(finalNewDisplaySize)
                     appearanceSettingsViewModel.setFontSize(finalNewFontSize)
                 }
