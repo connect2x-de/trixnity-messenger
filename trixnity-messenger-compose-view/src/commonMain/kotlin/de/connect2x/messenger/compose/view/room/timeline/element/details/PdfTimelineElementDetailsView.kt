@@ -6,15 +6,17 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.gestures.zoomBy
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,8 +24,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.InputTransformation
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.then
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -34,28 +47,41 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
+import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.VerticalScrollbar
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.CenteredElement
 import de.connect2x.messenger.compose.view.common.DownloadProgress
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.isMobile
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
@@ -68,8 +94,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media.PlatformMedia
+import kotlin.math.log10
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
@@ -130,6 +158,38 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         }
     }
 
+    private fun calcSizeOnZoom(constraints: Constraints, zoom: Float, density: Float): DpSize {
+        return DpSize(
+            (constraints.maxWidth * zoom / density).dp,
+            (constraints.maxHeight * zoom / density).dp
+        )
+    }
+
+    private fun Size.divideComponents(other: Size): Size {
+        return Size(this.width / other.width, this.height / other.height)
+    }
+
+    private fun Size.multiplyComponents(other: Size): Size {
+        return Size(this.width * other.width, this.height * other.height)
+    }
+
+    private fun Size.subtractComponents(other: Size): Size {
+        return Size(this.width - other.width, this.height - other.height)
+    }
+
+    private fun getNewZoomOffsetDelta(
+        viewportSize: Size,
+        oldZoomFactor: Float,
+        newZoomFactor: Float
+    ): Size {
+        val oldMaxSize = viewportSize * oldZoomFactor
+        val oldCenter = viewportSize / 2f
+        val newSize = viewportSize * newZoomFactor
+        val oldFraction = oldCenter.divideComponents(oldMaxSize)
+        val newCenter = newSize.multiplyComponents(oldFraction)
+        val newOffset = newCenter.subtractComponents(viewportSize / 2f)
+        return newOffset
+    }
 
     @Composable
     override fun create(
@@ -143,19 +203,44 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         val progress = element.loadMediaProgress.collectAsState().value
         val (error, setError) = remember { mutableStateOf<String?>(null) }
         val zoom = remember { mutableStateOf(1.0f) }
-        val canZoom = remember { mutableStateOf(false) }
+        val currentPlatform = Platform.current
+        val canZoom = remember { mutableStateOf(currentPlatform.isMobile) }
         val scope = rememberCoroutineScope()
         val lazyListState = rememberLazyListState()
         val horizontalScroll = rememberScrollState()
-        val state = rememberTransformableState { zoomChange, offsetChange, _ ->
-            zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, maxZoom)
-            val offset = offsetChange * zoom.value
-            scope.launch {
-                lazyListState.scrollBy(-offset.y)
-                horizontalScroll.scrollBy(-offset.x)
+        val reader = remember { mutableStateOf<PDFReader?>(null) }
+        val currentSize = remember { mutableStateOf(DpSize.Zero) }
+        val scrollRequest = remember { mutableStateOf<Size?>(null) }
+        LaunchedEffect(scrollRequest.value) {
+            val currentRequest = scrollRequest.value
+            if (currentRequest != null) {
+                horizontalScroll.scrollBy(currentRequest.width)
+                lazyListState.scrollBy(currentRequest.height)
+                scrollRequest.value = null
             }
         }
-        val viewSize = remember { mutableStateOf(IntSize.Zero) }
+
+        //Control all changes to zoom/offset
+        val state = rememberTransformableState { zoomChange, offsetChange, _ ->
+            if (zoomChange != 1f && canZoom.value) {
+                val oldZoom = zoom.value
+                zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, maxZoom)
+                val newOffset = getNewZoomOffsetDelta(
+                    lazyListState.layoutInfo.viewportSize.toSize(),
+                    oldZoom,
+                    zoom.value
+                )
+                //Necessary to assure the new size has been measured, otherwise the scrolling won't work
+                scrollRequest.value = newOffset
+            } else {
+                scope.launch {
+                    val offset = offsetChange * zoom.value
+                    horizontalScroll.scrollBy(-offset.x)
+                    lazyListState.scrollBy(-offset.y)
+                }
+            }
+
+        }
         val i18n = DI.get<I18nView>()
         val dpi = remember { mutableStateOf<Float?>(null) }
         val pageCacheSize = remember { mutableStateOf(max(2f, min(16f, 8f / zoom.value)).toInt()) }
@@ -168,157 +253,176 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         LaunchedEffect(element.loadMediaError) {
             element.loadMediaError.collect { if (it != null) setError(i18n.fileCouldNotBeLoaded()) }
         }
+        val focusRequester = remember { FocusRequester() }
         FileBasedDetailsDialog(
             element,
             onSave,
             onClose,
-            additions = { ZoomButtons(zoom, minScale = minZoom, maxScale = maxZoom) }) {
-            val focusRequester = remember { FocusRequester() }
-            Column {
-                Box(
-                    Modifier
-                        .background(color = Color.Black)
-                        .fillMaxSize()
-                        .focusRequester(focusRequester)
-                        .focusable()
-                        .onKeyEvent { keyEvent ->
-                            canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
-                            false
-                        }
-                        .zoomModifier(focusRequester, canZoom, state, scope),
-                ) {
-                    when {
-                        error != null -> {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxSize().padding(32.dp),
-                            ) {
-                                Icon(
-                                    MaterialTheme.messengerIcons.typeFile,
-                                    i18n.commonFile(),
-                                    Modifier.size(96.dp).align(Alignment.CenterHorizontally),
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                                Text(error, color = Color.White)
-                            }
-                        }
-
-                        progress != null && media == null -> {
-                            DownloadProgress(progress, element::cancelDownloadMedia)
-                        }
-
-                        media != null -> {
-                            val density = LocalDensity.current.density
-                            val reader = remember { mutableStateOf<PDFReader?>(null) }
-                            LaunchedEffect(Unit) {
-                                reader.value =
-                                    getPlatformPDFReader(media) { setError(i18n.fileCouldNotBeLoaded()) }
-                            }
-                            DisposableEffect(Unit) {
-                                onDispose {
-                                    reader.value?.onDispose()
-                                    cache.clear()
-                                }
-                            }
-                            LaunchedEffect(
-                                reader.value?.documentWidth?.value,
-                                viewSize.value,
-                                zoom.value,
-                            ) {
-                                reader.value?.documentWidth?.value?.let {
-                                    val maxDpi = 1f / it.toFloat() * 64f * 3600f
-                                    val dpiTarget = density * zoom.value
-                                    dpi.value = (dpiTarget * it).coerceAtMost(maxDpi)
-                                }
-                            }
-
-                            Box(
-                                Modifier
-                                    .fillMaxSize()
-                                    .onSizeChanged { viewSize.value = it },
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                val numOfPages = reader.value?.numOfPages?.value
-                                val reader = reader.value
-                                val dpi = dpi.value
-
-                                if (reader != null && numOfPages != null && dpi != null) {
-                                    LaunchedEffect(Unit) {
-                                        queue.collect {
-                                            pageCacheSize.value = max(3f, min(16f, 8f / zoom.value)).toInt()
-                                            loadImageWithDpi(
-                                                reader,
-                                                it,
-                                                dpi,
-                                                pageCacheSize.value,
-                                                lazyListState
-                                            )
-                                        }
+            additions = {
+                PageIndicator(lazyListState, reader.value?.numOfPages?.value ?: 0, focusRequester)
+                ZoomButtons({
+                    scope.launch {
+                        val prevCanZoom = canZoom.value
+                        canZoom.value = true
+                        state.zoomBy(it)
+                        canZoom.value = prevCanZoom
+                    }
+                }, scope)
+            }) {
+            BoxWithConstraints(
+                Modifier
+                    .background(color = Color.Black)
+                    .fillMaxSize()
+                    .focusRequester(focusRequester)
+                    .focusable()
+                    .onKeyEvent { keyEvent ->
+                        canZoom.value = keyEvent.isCtrlPressed || keyEvent.isMetaPressed
+                        false
+                    }
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                awaitPointerEvent(PointerEventPass.Initial).changes.forEach { pointerEvent ->
+                                    //Focus pdf as soon as it's clicked or scrolled
+                                    if (pointerEvent.pressed || pointerEvent.scrollDelta != Offset.Zero) {
+                                        focusRequester.requestFocus()
                                     }
-                                    LazyColumn(
-                                        modifier = Modifier
-                                            .horizontalScroll(state = horizontalScroll, enabled = canZoom.value.not())
-                                            .fillMaxSize()
-                                            .transformable(state),
-                                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
-                                        contentPadding = PaddingValues(horizontal = MaterialTheme.messengerDpConstants.middle),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        state = lazyListState,
-                                        userScrollEnabled = canZoom.value.not(),
-                                        content = {
-                                            items(count = numOfPages, key = { it }) { pageId ->
-                                                val image = getCacheElement(pageId, scope).collectAsState().value?.page
-                                                LaunchedEffect(dpi) {
-                                                    delay(200)
-                                                    queue.emit(pageId)
-                                                }
-                                                if (image != null) {
-                                                    Image(
-                                                        bitmap = image,
-                                                        contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),
-                                                        modifier = Modifier
-                                                            .background(color = Color.White) // Avoid performance drops on transparent images.
-                                                            .width(viewSize.value.width.dp / density * zoom.value - MaterialTheme.messengerDpConstants.middle * 2),
-                                                        contentScale = ContentScale.FillWidth,
-                                                    )
-                                                } else {
-                                                    Box(
-                                                        Modifier.height(viewSize.value.height.dp / density * zoom.value - MaterialTheme.messengerDpConstants.middle * 2)
-                                                            .width(viewSize.value.width.dp / density * zoom.value - MaterialTheme.messengerDpConstants.middle * 2),
-                                                        contentAlignment = Alignment.Center
-                                                    ) {
-                                                        LoadingSpinner()
-                                                    }
-                                                }
+                                }
+                            }
+                        }
+                    },
+                //.zoomModifier(focusRequester, canZoom, state, scope),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                LaunchedEffect(Unit) {
+                    focusRequester.requestFocus()
+                }
+                when {
+                    error != null -> {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxSize().padding(32.dp),
+                        ) {
+                            Icon(
+                                MaterialTheme.messengerIcons.typeFile,
+                                i18n.commonFile(),
+                                Modifier.size(96.dp).align(Alignment.CenterHorizontally),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Text(error, color = Color.White)
+                        }
+                    }
+
+                    progress != null && media == null -> {
+                        DownloadProgress(progress, element::cancelDownloadMedia)
+                    }
+
+                    media != null -> {
+                        val density = LocalDensity.current.density
+                        LaunchedEffect(Unit) {
+                            reader.value =
+                                getPlatformPDFReader(media) { setError(i18n.fileCouldNotBeLoaded()) }
+                        }
+                        DisposableEffect(Unit) {
+                            onDispose {
+                                reader.value?.onDispose()
+                                cache.clear()
+                            }
+                        }
+                        LaunchedEffect(
+                            reader.value?.documentWidth?.value,
+                            constraints.maxWidth,
+                            constraints.maxHeight,
+                            zoom.value,
+                        ) {
+                            reader.value?.documentWidth?.value?.let {
+                                val maxDpi = 1f / it.toFloat() * 64f * 3600f
+                                val dpiTarget = density * zoom.value
+                                dpi.value = (dpiTarget * it).coerceAtMost(maxDpi)
+                                currentSize.value = calcSizeOnZoom(constraints, zoom.value, density)
+                            }
+                        }
+                        val numOfPages = reader.value?.numOfPages?.value
+                        val currentReader = reader.value
+                        val dpi = dpi.value
+
+                        if (currentReader != null && numOfPages != null && dpi != null) {
+                            LaunchedEffect(Unit) {
+                                queue.collect {
+                                    pageCacheSize.value = max(3f, min(16f, 8f / zoom.value)).toInt()
+                                    loadImageWithDpi(
+                                        currentReader,
+                                        it,
+                                        dpi,
+                                        pageCacheSize.value,
+                                        lazyListState
+                                    )
+                                }
+                            }
+                            LazyColumn(
+                                modifier = Modifier
+                                    .horizontalScroll(
+                                        state = horizontalScroll,
+                                        enabled = canZoom.value.not() || currentPlatform.isMobile
+                                    )
+                                    .fillMaxSize()
+                                    .transformable(state),
+                                verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
+                                contentPadding = PaddingValues(horizontal = MaterialTheme.messengerDpConstants.middle),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                state = lazyListState,
+                                userScrollEnabled = canZoom.value.not() || currentPlatform.isMobile,
+                                content = {
+                                    items(count = numOfPages, key = { it }) { pageId ->
+                                        val image = getCacheElement(pageId, scope).collectAsState().value?.page
+                                        LaunchedEffect(dpi) {
+                                            delay(200)
+                                            queue.emit(pageId)
+                                        }
+                                        if (image != null) {
+                                            Image(
+                                                bitmap = image,
+                                                contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),
+                                                modifier = Modifier
+                                                    .background(color = Color.White) // Avoid performance drops on transparent images.
+                                                    .width(currentSize.value.width),
+                                                contentScale = ContentScale.FillWidth,
+                                            )
+                                        } else {
+                                            Box(
+                                                Modifier.size(currentSize.value),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                LoadingSpinner()
                                             }
                                         }
-                                    )
-                                } else CenteredElement {
-                                    ThemedProgressIndicator(
-                                        style = MaterialTheme.components.circularProgressIndicator
-                                    )
+                                    }
                                 }
-                                HorizontalScrollbar(
-                                    Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
-                                    horizontalScroll,
-                                )
-                                VerticalScrollbar(
-                                    Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                                    lazyListState,
-                                    false
-                                )
-                            }
+                            )
+                        } else CenteredElement {
+                            ThemedProgressIndicator(
+                                style = MaterialTheme.components.circularProgressIndicator
+                            )
                         }
+                        HorizontalScrollbar(
+                            Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
+                            horizontalScroll,
+                        )
+                        VerticalScrollbar(
+                            Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                            lazyListState,
+                            false
+                        )
+                    }
 
-                        else -> {
-                            Column(
-                                modifier = Modifier.align(Alignment.Center),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                            ) {
-                                ThemedProgressIndicator(style = MaterialTheme.components.circularProgressIndicator)
-                            }
+                    else -> {
+                        Column(
+                            modifier = Modifier.align(Alignment.Center),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            ThemedProgressIndicator(style = MaterialTheme.components.circularProgressIndicator)
                         }
                     }
                 }
@@ -340,3 +444,124 @@ expect suspend fun getPlatformPDFReader(
     media: PlatformMedia,
     onError: (String?) -> Unit,
 ): PDFReader
+
+private data class PageNumber(val pageIndex: Int, val scroll: Boolean, val updateIndexViaList: Boolean)
+
+@Composable
+private fun PageIndicator(lazyListState: LazyListState, pageCount: Int, focusRequester: FocusRequester) {
+    val measurer = rememberTextMeasurer()
+    val textStyle = MaterialTheme.typography.headlineSmall.copy(color = Color.LightGray, textAlign = TextAlign.Right)
+    val pageText = rememberTextFieldState()
+    val currentIndex = remember { mutableStateOf(PageNumber(0, scroll = false, updateIndexViaList = true)) }
+    val density = LocalDensity.current
+    //Set the width to the digit count of the maximum page number + 1
+    val inputFieldWidth = remember(pageCount) {
+        if (pageCount != 0) {
+            measurer.measure(
+                text = "0".repeat(log10(pageCount.toFloat()).toInt() + 2),
+                style = textStyle,
+                density = density
+            ).size.width.dp / density.density
+        } else measurer.measure(text = "00", style = textStyle, density = density).size.width.dp / density.density
+    }
+    //Update the page numbers when new pages are scrolled into view
+    LaunchedEffect(Unit) {
+        snapshotFlow { lazyListState.layoutInfo.visibleItemsInfo.map { it.index } }.distinctUntilChanged { old, new -> old.firstOrNull() == new.firstOrNull() }
+            .collect { visibleItems ->
+                if (currentIndex.value.updateIndexViaList) {
+                    visibleItems.firstOrNull()?.let {
+                        currentIndex.value = PageNumber(
+                            it,
+                            scroll = false,
+                            updateIndexViaList = true
+                        )
+                    }
+                } else currentIndex.value = currentIndex.value.copy(updateIndexViaList = true)
+            }
+    }
+
+    LaunchedEffect(currentIndex.value.pageIndex) {
+        if (currentIndex.value.scroll) {
+            lazyListState.scrollToItem(currentIndex.value.pageIndex)
+        }
+        pageText.edit {
+            replace(0, length, currentIndex.value.pageIndex.inc().toString())
+        }
+    }
+
+    Surface(
+        shape = MaterialTheme.shapes.medium,
+        color = Color.DarkGray,
+        modifier = Modifier.focusRequester(focusRequester).focusable()
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(
+                enabled = currentIndex.value.pageIndex > 0,
+                onClick = {
+                    if (currentIndex.value.pageIndex > 0) {
+                        currentIndex.value = PageNumber(
+                            currentIndex.value.pageIndex.dec(),
+                            scroll = true,
+                            updateIndexViaList = true
+                        )
+                    }
+                },
+                modifier = Modifier.buttonPointerModifier(),
+            ) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "To previous page")
+            }
+            BasicTextField(
+                state = pageText,
+                lineLimits = TextFieldLineLimits.SingleLine,
+                textStyle = textStyle,
+                cursorBrush = SolidColor(Color.LightGray),
+                inputTransformation = InputTransformation.then {
+                    if (toString() != "") {
+                        val inputNumber = this.toString().toIntOrNull()?.coerceIn(1, pageCount)
+                        if (inputNumber != null) {
+                            //Don't scroll to the start of the current page when selecting the TextField
+                            currentIndex.value =
+                                PageNumber(
+                                    inputNumber.dec(),
+                                    inputNumber.dec() != currentIndex.value.pageIndex,
+                                    lazyListState.layoutInfo.visibleItemsInfo.map { itemInfo -> itemInfo.index }
+                                        .contains(inputNumber.dec())
+                                )
+                            replace(0, length, currentIndex.value.pageIndex.inc().toString())
+                        } else {
+                            revertAllChanges()
+                        }
+                    }
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                decorator = { inputField ->
+                    Row(Modifier.padding(MaterialTheme.messengerDpConstants.verySmall)) {
+                        Surface(
+                            Modifier.width(inputFieldWidth),
+                            shape = MaterialTheme.shapes.extraSmall,
+                            color = Color.Black
+                        ) {
+                            inputField()
+                        }
+                        Text(" / $pageCount", style = textStyle)
+                    }
+                }
+            )
+            IconButton(
+                enabled = currentIndex.value.pageIndex < pageCount - 1,
+                onClick = {
+                    if (currentIndex.value.pageIndex < pageCount - 1) {
+                        currentIndex.value = PageNumber(
+                            currentIndex.value.pageIndex.inc(),
+                            scroll = true,
+                            updateIndexViaList = true
+                        )
+                    }
+                },
+                modifier = Modifier.buttonPointerModifier(),
+            ) {
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, "To next page")
+            }
+        }
+    }
+}
