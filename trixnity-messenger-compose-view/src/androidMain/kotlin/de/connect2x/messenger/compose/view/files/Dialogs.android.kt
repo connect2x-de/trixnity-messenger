@@ -60,7 +60,7 @@ actual fun SaveFileDialog(
     fileName: String,
     mimeType: String?,
     error: String?,
-    downloadFile: (suspend (PlatformMedia) -> Unit) -> Unit,
+    downloadFile: (suspend (PlatformMedia) -> Unit, () -> Unit) -> Unit,
     onCloseSaveFileDialog: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
@@ -85,7 +85,7 @@ actual fun SaveFileDialog(
         }
     }
     LaunchedEffect(hasError) {
-        if (!hasError) downloadFile { byteArrayFlow ->
+        if (!hasError) downloadFile({ byteArrayFlow ->
             withContext(Dispatchers.IO) {
                 val values = ContentValues().apply {
                     put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
@@ -147,7 +147,7 @@ actual fun SaveFileDialog(
 
                 onCloseSaveFileDialog()
             }
-        }
+        }, onCloseSaveFileDialog)
     }
 }
 
