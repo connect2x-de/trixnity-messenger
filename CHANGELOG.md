@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Add button to cancel download in file details view
+
+
 ### Deprecated
 
 ### Removed
@@ -19,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - A11Y: add proper label and role to LegalFooter
 - UI: Create new group keeps information on expanded elements
+- Show download progress indicator when no total file size is received during download
+- Allow restart of download after cancellation
+- A11Y: add proper label and role to LegalFooter
 
 ### Security
 
