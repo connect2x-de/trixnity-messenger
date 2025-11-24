@@ -8,6 +8,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.unit.IntSize
 import androidx.core.graphics.createBitmap
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -33,6 +34,9 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
     private val temporaryFile: MutableStateFlow<OkioPlatformMedia.TemporaryFile?> = MutableStateFlow(null)
     private val renderer = MutableStateFlow<PdfRenderer?>(null)
 
+    //Max size to use for rendering page bitmaps, because of API limits. Set to 100MB
+    private val maxPixelTextureSize = 1024 * 1024 * 100 / 4
+
     suspend fun initialize() {
         val temporaryFileResult = (media as OkioPlatformMedia).getTemporaryFile()
         if (temporaryFileResult.isSuccess) {
@@ -50,6 +54,14 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
         }
     }
 
+    private fun downscaleTextureSizeIfNecessary(size: IntSize): IntSize {
+        val pixelSize = size.width * size.height
+        val scaleFactor = maxPixelTextureSize.toDouble() / pixelSize
+        return if (scaleFactor < 1) {
+            IntSize((size.width * scaleFactor).toInt(), (size.height * scaleFactor).toInt())
+        } else size
+    }
+
     override suspend fun getPage(
         pageId: Int,
         dpi: Float
@@ -58,14 +70,18 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
         renderer?.let {
             renderer.openPage(pageId).use { page ->
                 val scaledDpi = dpi.div(72f)
-                val width = (page.width * scaledDpi).toInt()
-                val height = (page.height * scaledDpi).toInt()
+                val size = downscaleTextureSizeIfNecessary(
+                    IntSize(
+                        (page.width * scaledDpi).toInt(),
+                        (page.height * scaledDpi).toInt()
+                    )
+                )
                 log.debug {
                     "render pdf page $pageId " +
-                            "to viewport (${width}x${height}) " +
+                            "to viewport (${size.width}x${size.height}) " +
                             "at scale factor: $dpi "
                 }
-                val bitmap = createBitmap(width, height)
+                val bitmap = createBitmap(size.width, size.height)
                 page.render(bitmap, null, null, RENDER_MODE_FOR_DISPLAY)
                 return bitmap.asImageBitmap()
             }
