@@ -9,6 +9,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.Tooltip
@@ -52,7 +57,10 @@ class LegalFooterViewImpl : LegalFooterView {
 @Composable
 private fun TooltipText(text: String, tooltip: String, onClick: () -> Unit) {
     Tooltip(tooltip = { Text(tooltip) }) {
-        Text(text, Modifier.customClickable(onClick = onClick))
+        Text(text, Modifier.customClickable(onClick = onClick).semantics {
+            this.text = AnnotatedString(tooltip)
+            role = Role.Button
+        })
     }
 }
 
