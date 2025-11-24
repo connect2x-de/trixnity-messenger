@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -53,14 +53,14 @@ fun EmojiSelector(
     val defaultItem = emojis.firstOrNull()
 
     Box(modifier) {
-        Row(modifier = Modifier.verticalScroll(scrollState).align(Alignment.Center), horizontalArrangement = Arrangement.Center) {
+        Row(modifier = Modifier.verticalScroll(scrollState).align(Alignment.Center)) {
             BoxWithConstraints(Modifier.padding(12.dp)) {
                 val calculatedEmojiSize = with (LocalDensity.current) { 48.dp.roundToPx() }
                 val columns = constraints.maxWidth / calculatedEmojiSize
 
                 RovingFocusContainer {
                     FlowRow(
-                        modifier = Modifier.wrapContentWidth(align = Alignment.CenterHorizontally)
+                        modifier = Modifier.fillMaxWidth()
                             .onKeyEvent { event ->
                                 when (event.key) {
                                     Key.Escape -> {
@@ -104,6 +104,7 @@ fun EmojiSelector(
                                     emojis[nextIndex]
                                 },
                             ),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         for (emoji in emojis) {
                             RovingFocusItem(emoji, defaultItem) {
