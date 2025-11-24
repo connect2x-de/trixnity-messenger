@@ -4,12 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
-
+ 
 ## [Unreleased]
 
 ### Added
 
 ### Changed
+
+- Add button to cancel download in file details view
+
 
 ### Deprecated
 
@@ -17,10 +20,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Using latest emojifont version on web 
-- Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
+- Show download progress indicator when no total file size is received during download
+- Allow restart of download after cancellation
+- a11y: add proper label and role to LegalFooter
 
 ### Security
+
+## 3.8.11
+
+### Added
+
+- Add a page selector to PDF reader
+
+### Changed
+
+- Change zoom behaviour in PDF reader
+- Make buttons in FileHeader move into extra row(s) when necessary
+
+### Fixed
+
+- Using latest emojifont version on web
+- Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
+- No longer crash when opening a large pdf page on older Android versions
+- Only push notifications for enabled accounts
 
 ## 3.8.10
 

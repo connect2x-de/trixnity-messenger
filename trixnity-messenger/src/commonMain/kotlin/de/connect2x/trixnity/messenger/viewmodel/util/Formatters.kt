@@ -27,7 +27,7 @@ fun formatProgress(fileTransferProgress: FileTransferProgress?): String {
     return fileTransferProgress?.let {
         val total = it.total
         if (total != null) "${formatSize(it.transferred, total)} / ${formatSize(total)}"
-        else ""
+        else formatSize(it.transferred)
     } ?: ""
 }
 
