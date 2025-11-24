@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
- 
+
 ## [Unreleased]
 
 ### Added
@@ -20,9 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A11Y: add proper label and role to LegalFooter
+- UI: Create new group keeps information on expanded elements
 - Show download progress indicator when no total file size is received during download
 - Allow restart of download after cancellation
-- a11y: add proper label and role to LegalFooter
+- A11Y: add proper label and role to LegalFooter
 
 ### Security
 
