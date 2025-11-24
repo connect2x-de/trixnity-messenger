@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - A11Y: add proper label and role to LegalFooter
+- IOS: reporting a message could result in app crash
 - UI: Create new group keeps information on expanded elements
 - Show download progress indicator when no total file size is received during download
 - Allow restart of download after cancellation
