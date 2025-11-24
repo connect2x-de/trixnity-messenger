@@ -1,7 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
-import com.arkivanov.essenty.backhandler.BackCallback
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.util.BackCallback
+import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -263,18 +265,20 @@ open class SelfVerificationViewModelImpl(
         onCloseSelfVerification(!showVerificationHelp.value)
     }
 
-    private val backCallback = BackCallback(priority = if (isSetup.value) 1 else 0) {
-        when {
-            showVerificationHelp.value -> close()
-            (showResetRecoveryWarning.value || showPassphraseMethod.value != null || showRecoveryKeyMethod.value != null) -> backToChoose()
+    private val backCallback =
+        BackCallback(priority = BackHandler.PRIORITY_SELF_VERIFICATION) {
+            when {
+                showVerificationHelp.value -> close()
+                (showResetRecoveryWarning.value || showPassphraseMethod.value != null || showRecoveryKeyMethod.value != null) -> backToChoose()
 
-            else -> backToHelp()
+                else -> backToHelp()
+            }
         }
-    }
 
     init {
-        backHandler.register(
-            backCallback
-        )
+        val backHandler = get<BackHandler>()
+        backHandler.registerBackCallback(backCallback)
+        println(backHandler.stack.value)
+        doOnDestroy { backHandler.unregisterCallback(backCallback) }
     }
 }

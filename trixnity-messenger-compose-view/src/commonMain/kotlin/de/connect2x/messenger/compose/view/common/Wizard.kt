@@ -33,10 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import com.arkivanov.essenty.backhandler.BackCallback
-import com.arkivanov.essenty.backhandler.BackHandler
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.WizardButtons.NextButton
@@ -47,6 +43,8 @@ import de.connect2x.messenger.compose.view.settings.LegalFooter
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
+import de.connect2x.trixnity.messenger.util.BackCallback
+import de.connect2x.trixnity.messenger.util.BackHandler
 
 typealias StepId = String
 
@@ -104,16 +102,18 @@ fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
     if (backHandler != null) {
         val onBack = rememberUpdatedState {
             previousStep?.let { currentStepId.value = it }
+            println(backHandler.stack.value)
+
         }
         val callback = remember(onBack) {
-            BackCallback(priority = 1) {
+            BackCallback(priority = BackHandler.PRIORITY_WIZARD) {
                 onBack.value()
             }
         }
         DisposableEffect(backHandler, callback) {
-            backHandler.register(callback)
+            backHandler.registerBackCallback(callback)
             onDispose {
-                backHandler.unregister(callback)
+                backHandler.unregisterCallback(callback)
             }
         }
     }
