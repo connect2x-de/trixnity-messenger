@@ -20,8 +20,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.UserId
 import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
+import kotlin.time.Duration.Companion.milliseconds
 
 private val log = KotlinLogging.logger {}
 
@@ -51,7 +50,7 @@ interface SearchUserViewModel {
 
 class SearchUserViewModelImpl(
     matrixClientViewModelContext: MatrixClientViewModelContext,
-    private val debounceDuration: Duration = 300.toDuration(DurationUnit.MILLISECONDS),
+    private val debounceDuration: Duration = 300.milliseconds,
 ) : SearchUserViewModel, MatrixClientViewModelContext by matrixClientViewModelContext {
     override val searchUserProviders: List<SearchUserProvider> = getKoin().getAll<SearchUserProvider>()
     private val providerSearchResult = searchUserProviders.map { MutableStateFlow<ProviderSearchResult?>(null) }
@@ -65,6 +64,7 @@ class SearchUserViewModelImpl(
         providerSearchActive,
         combine(providerSearchLoading) { it },
     ) { results, active, loading ->
+        log.debug { "searchResult=${results.joinToString { it?.toString() ?: "<none>" }}, active=$active, loading=$loading" }
         results.mapIndexed { index, result ->
             SearchResult(
                 id = searchUserProviders[index].providerId,
@@ -90,16 +90,19 @@ class SearchUserViewModelImpl(
     override val providerSettings: StateFlow<String?> = combine(
         providerSearchActive,
         combine(searchUserProviders.flatMap { searchUserProvider ->
-            searchUserProvider.settings.filterValues { searchSetting ->
-                searchSetting.value.value != null
-            }.values
+            searchUserProvider.settings.values
         }) { it }
     ) { active, settings ->
-        active.foldIndexed("") { index, acc, active ->
-            if (active && settings[index].value != null) {
-                if (acc.isBlank()) settings[index].value!! else "$acc, ${settings[index].name}: ${settings[index].value}"
-            } else acc
-        }.ifBlank { null }
+        log.trace { "provider settings: $active, ${settings.joinToString { it.value ?: "<none>" }}" }
+        searchUserProviders.mapIndexed { index, searchUserProvider -> active[index] to searchUserProvider.settings.values }
+            .filter { (active, settings) -> active && settings.any { it.value.value != null } }
+            .joinToString { (_, settings) ->
+                settings
+                    .filter { setting -> setting.value.value != null }
+                    .joinToString { setting ->
+                        "${setting.value.name}: ${setting.value.value}"
+                    }
+            }
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     init {

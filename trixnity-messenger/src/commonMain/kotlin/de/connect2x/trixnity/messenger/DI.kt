@@ -343,8 +343,8 @@ private fun syncViewModels() = module {
 }
 
 inline fun <reified F : SearchUserProvider> Module.searchUserProvider(
-    noinline definition: Scope.(ParametersHolder) -> F,
-) = single<F>(named<F>(), definition = definition).bind<SearchUserProvider>()
+    noinline definition: Scope.(ParametersHolder) -> SearchUserProvider,
+) = single<SearchUserProvider>(named<F>(), definition = definition)
 
 private fun roomListViewModels() = module {
     single<AccountViewModelFactory> { AccountViewModelFactory }
