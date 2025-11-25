@@ -84,9 +84,8 @@ fun ThemedUserAvatar(
     size: Dp = avatarSize().dp,
     style: AvatarStyle = MaterialTheme.components.avatar,
     modifier: Modifier = Modifier,
-    overlay: @Composable () -> Unit = {},
+    overlay: @Composable BoxScope.() -> Unit = {},
 ) {
-    val i18n = DI.get<I18nView>()
     val bitmap = remember(image) { image?.toImageBitmap() }
 
     val tooltip = presenceText(presence)
@@ -114,7 +113,7 @@ fun ThemedAvatar(
     size: Dp,
     modifier: Modifier = Modifier,
     style: AvatarStyle = MaterialTheme.components.avatar,
-    overlay: @Composable () -> Unit = {},
+    overlay: @Composable BoxScope.() -> Unit = {},
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(

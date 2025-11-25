@@ -8,7 +8,7 @@ interface SearchResultView<V : UserSearchResult> {
     val supports: KClass<out V>
 
     @Composable
-    fun create(userSearchResult: V, onClick: (V) -> Unit)
+    fun create(userSearchResult: V, showOrigin: Boolean, onClick: (V) -> Unit)
 }
 
 object EmptySearchResultView : SearchResultView<UserSearchResult> {
@@ -16,7 +16,7 @@ object EmptySearchResultView : SearchResultView<UserSearchResult> {
         get() = TODO("Not yet implemented")
 
     @Composable
-    override fun create(userSearchResult: UserSearchResult, onClick: (UserSearchResult) -> Unit) {
+    override fun create(userSearchResult: UserSearchResult, showOrigin: Boolean, onClick: (UserSearchResult) -> Unit) {
         // TODO empty
     }
 

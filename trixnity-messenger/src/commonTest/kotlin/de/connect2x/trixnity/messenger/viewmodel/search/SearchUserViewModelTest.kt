@@ -17,6 +17,7 @@ import dev.mokkery.every
 import dev.mokkery.mock
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.matchers.collections.shouldContainAll
+import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineScope
@@ -49,25 +50,35 @@ class SearchUserViewModelTest {
     companion object {
         val user1 = object : UserSearchResult {
             override val id: String = "user-1"
-            override val userId: UserId = UserId("user1")
+            override val userId: UserId = UserId("user1", "server")
             override val displayName: String = "User 1"
             override val initials: String = "U1"
             override val image: ByteArray? = null
+            override fun toString(): String {
+                return "(id='$id', userId=$userId, displayName='$displayName')"
+            }
+
         }
 
         val user2 = object : UserSearchResult {
             override val id: String = "user-2"
-            override val userId: UserId = UserId("user2")
+            override val userId: UserId = UserId("user2", "server")
             override val displayName: String = "User 2"
             override val initials: String = "U2"
             override val image: ByteArray? = null
+            override fun toString(): String {
+                return "(id='$id', userId=$userId, displayName='$displayName')"
+            }
         }
         val user3 = object : UserSearchResult {
             override val id: String = "user-3"
-            override val userId: UserId = UserId("user3")
+            override val userId: UserId = UserId("user3", "server")
             override val displayName: String = "User 3"
             override val initials: String = "U3"
             override val image: ByteArray? = null
+            override fun toString(): String {
+                return "(id='$id', userId=$userId, displayName='$displayName')"
+            }
         }
     }
 
@@ -93,7 +104,27 @@ class SearchUserViewModelTest {
     fun `should display the same options from different providers as one`() = runTest {
         val cut = searchUserViewModel()
         searchUserProvider1.cityFlow.value = SearchSetting("city", "Berlin")
-        
+        // FIXME
+    }
+
+    @Test
+    fun `should select all user results`() = runTest {
+        val cut = searchUserViewModel()
+        cut.searchTerm.update("u")
+        delay(10.milliseconds)
+        cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(user1, user2, user3)
+    }
+
+    @Test
+    fun `should allow to filter by search providers`() = runTest {
+        val cut = searchUserViewModel()
+        cut.searchTerm.update("u")
+        delay(10.milliseconds)
+        cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(user1, user2, user3)
+        val index = cut.searchUserProviders.indexOf(searchUserProvider1)
+        cut.providerSearchActive.value = List(3, { i -> i != index })
+        delay(10.milliseconds)
+        cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(user2, user3)
     }
 
     @Test
@@ -206,8 +237,7 @@ class SearchUserViewModelTest {
 
                                     override fun applySettings() {}
 
-                                    override val settings: List<Pair<SettingsId, StateFlow<SearchSetting>>> =
-                                        emptyList()
+                                    override val settings: Map<SettingsId, StateFlow<SearchSetting>> = emptyMap()
 
                                     override suspend fun search(
                                         searchTerm: String,
@@ -229,6 +259,7 @@ class SearchUserViewModelTest {
             debounceDuration = Duration.ZERO,
         )
         backgroundScope.launch { searchUserViewModelImpl.searchResult.collect() }
+        backgroundScope.launch { searchUserViewModelImpl.searchResultList.collect() }
         backgroundScope.launch { searchUserViewModelImpl.providerSettings.collect() }
         return searchUserViewModelImpl
     }
@@ -245,7 +276,7 @@ class SearchUserViewModelTest {
         val cityFlow = MutableStateFlow(SearchSetting("city", null))
         val addressFlow = MutableStateFlow(SearchSetting("address", null))
 
-        override val settings: List<Pair<SettingsId, StateFlow<SearchSetting>>> = listOf(
+        override val settings: Map<SettingsId, StateFlow<SearchSetting>> = mapOf(
             "city" to cityFlow,
             "address" to addressFlow,
         )
@@ -277,7 +308,7 @@ class SearchUserViewModelTest {
 
         override fun applySettings() {}
 
-        override val settings: List<Pair<SettingsId, StateFlow<SearchSetting>>> = listOf(
+        override val settings: Map<SettingsId, StateFlow<SearchSetting>> = mapOf(
             "city" to cityFlow,
             "options" to optionsFlow,
             "color" to colorFlow,

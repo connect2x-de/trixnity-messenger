@@ -14,15 +14,16 @@ private val log = KotlinLogging.logger {}
 @Composable
 fun SearchResultSelector(
     userSearchResult: UserSearchResult,
+    showOrigin: Boolean,
     onClick: (UserSearchResult) -> Unit,
 ) {
-    with(DI.get<SearchResultViewSelector>()) { create(userSearchResult, onClick) }
+    with(DI.get<SearchResultViewSelector>()) { create(userSearchResult, showOrigin, onClick) }
 }
 
 interface SearchResultViewSelector : SearchResultViewFactorySelector<SearchResultView<UserSearchResult>> {
     @Composable
-    fun create(userSearchResult: UserSearchResult, onClick: (UserSearchResult) -> Unit) =
-        rememberFactory(userSearchResult).create(userSearchResult, onClick)
+    fun create(userSearchResult: UserSearchResult, showOrigin: Boolean, onClick: (UserSearchResult) -> Unit) =
+        rememberFactory(userSearchResult).create(userSearchResult, showOrigin, onClick)
 }
 
 class SearchResultViewSelectorImpl(

@@ -18,10 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -56,7 +53,7 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
             val error = createNewChatViewModel.error.collectAsState().value
             val errorDetails = createNewChatViewModel.errorDetails.collectAsState().value
             var searchTerm by createNewChatViewModel.searchUserViewModel.searchTerm.collectAsTextFieldValueState()
-            val searchResults = createNewChatViewModel.searchUserViewModel.searchResult.collectAsState().value
+            val searchResultList = createNewChatViewModel.searchUserViewModel.searchResultList.collectAsState().value
             val providerSearchActive =
                 createNewChatViewModel.searchUserViewModel.providerSearchActive.collectAsState().value
             val providerSettings = createNewChatViewModel.searchUserViewModel.providerSettings.collectAsState().value
@@ -92,9 +89,6 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
 
                     Column {
                         Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
-                        val expanded = rememberSaveable(searchResults) {
-                            searchResults?.map { 3 }?.toMutableStateList() ?: SnapshotStateList()
-                        }
                         Box(Modifier.fillMaxSize()) {
                             LazyColumn(state = listState) {
                                 item(key = "CreatingIndicator") {
@@ -137,14 +131,11 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
                                 searchResults(
                                     searchUserProviders = createNewChatViewModel.searchUserViewModel.searchUserProviders,
                                     createNewChatViewModel = createNewChatViewModel,
-                                    searchTerm = searchTerm.text,
                                     providerSearchActive = providerSearchActive,
                                     providerSearchSetActive = { index, active ->
                                         createNewChatViewModel.searchUserViewModel.setProvider(index, active)
                                     },
-                                    searchResults = searchResults,
-                                    listState = listState,
-                                    expanded = expanded,
+                                    searchResultList = searchResultList,
                                 )
                             }
                             VerticalScrollbar(
